@@ -845,6 +845,20 @@
     </div>
   </div>
 
+  <!-- Modal ver detalles pedido -->
+  <div id="modal-ver-pedido" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <h3>Detalles del Pedido</h3>
+      <div id="modal-ver-pedido-contenido"></div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="window.cerrarModalVerPedido()">Cerrar</button>
+        <button class="btn btn-primary" onclick="window.descargarPedidoPDF()" id="btn-descargar-pdf">
+          📄 Descargar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal recibir pedido -->
   <div id="modal-recibir-pedido" class="modal">
     <div class="modal-content" style="max-width: 900px;">
@@ -1882,6 +1896,289 @@
         }
       };
 
+      let pedidoViendoIndex = null;
+
+      window.verDetallesPedido = function(index) {
+        pedidoViendoIndex = index;
+        const pedido = pedidos[index];
+        const prov = proveedores.find(p => p.id === pedido.proveedorId);
+
+        let html = '<div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin-bottom: 20px;">';
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">';
+        html += `<div><strong>Proveedor:</strong><br>${prov ? prov.nombre : 'Desconocido'}</div>`;
+        html += `<div><strong>Fecha:</strong><br>${new Date(pedido.fecha).toLocaleDateString('es-ES')}</div>`;
+        html += `<div><strong>Estado:</strong><br><span class="badge ${pedido.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${pedido.estado === 'recibido' ? 'Recibido' : 'Pendiente'}</span></div>`;
+        if (pedido.estado === 'recibido' && pedido.fechaRecepcion) {
+          html += `<div><strong>Recibido:</strong><br>${new Date(pedido.fechaRecepcion).toLocaleDateString('es-ES')}</div>`;
+        }
+        html += '</div></div>';
+
+        html += '<h4 style="margin-bottom: 15px;">Ingredientes del pedido:</h4>';
+        html += '<table style="font-size: 14px;"><thead><tr>';
+        html += '<th>Ingrediente</th><th>Cantidad</th><th>Precio Unit.</th><th>Subtotal</th>';
+        
+        if (pedido.estado === 'recibido' && pedido.itemsRecepcion) {
+          html += '<th>Estado</th>';
+        }
+        
+        html += '</tr></thead><tbody>';
+
+        const items = pedido.estado === 'recibido' && pedido.ingredientes[0].cantidadRecibida !== undefined 
+          ? pedido.ingredientes 
+          : pedido.ingredientes;
+
+        let totalPedido = 0;
+        let totalRecibido = 0;
+
+        items.forEach(item => {
+          const ing = ingredientes.find(i => i.id === item.ingredienteId);
+          if (!ing) return;
+
+          const esRecibido = pedido.estado === 'recibido' && item.cantidadRecibida !== undefined;
+          const cantidad = esRecibido ? item.cantidadRecibida : item.cantidad;
+          const precio = esRecibido && item.precioReal ? item.precioReal : item.precioUnitario;
+          const subtotal = cantidad * precio;
+
+          if (esRecibido && item.estado !== 'no-entregado') {
+            totalRecibido += subtotal;
+          } else if (!esRecibido) {
+            totalPedido += subtotal;
+          }
+
+          html += '<tr>';
+          html += `<td><strong>${ing.nombre}</strong></td>`;
+          html += `<td>${cantidad} ${ing.unidad}`;
+          
+          // Mostrar varianza si es recibido y hay diferencia
+          if (esRecibido && item.cantidad && Math.abs(cantidad - item.cantidad) > 0.01) {
+            const diff = cantidad - item.cantidad;
+            html += `<br><small style="color:${diff > 0 ? '#10b981' : '#ef4444'};">(${diff > 0 ? '+' : ''}${diff.toFixed(2)})</small>`;
+          }
+          
+          html += `</td>`;
+          html += `<td>${precio.toFixed(2)} €/${ing.unidad}`;
+          
+          // Mostrar varianza de precio
+          if (esRecibido && item.precioUnitario && Math.abs(precio - item.precioUnitario) > 0.01) {
+            const diff = precio - item.precioUnitario;
+            html += `<br><small style="color:${diff > 0 ? '#ef4444' : '#10b981'};">(${diff > 0 ? '+' : ''}${diff.toFixed(2)} €)</small>`;
+          }
+          
+          html += `</td>`;
+          html += `<td><strong>${item.estado === 'no-entregado' ? '0.00' : subtotal.toFixed(2)} €</strong></td>`;
+          
+          if (esRecibido) {
+            let estadoText = '';
+            if (item.estado === 'consolidado') estadoText = '✅ OK';
+            else if (item.estado === 'varianza') estadoText = '⚠️ Varianza';
+            else if (item.estado === 'no-entregado') estadoText = '❌ No entregado';
+            html += `<td>${estadoText}</td>`;
+          }
+          
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+
+        // Resumen de totales
+        const total = pedido.estado === 'recibido' && pedido.totalRecibido ? pedido.totalRecibido : pedido.total;
+        
+        html += '<div style="margin-top: 20px; padding: 20px; background: #f0fdf4; border: 2px solid #10b981; border-radius: 8px;">';
+        
+        if (pedido.estado === 'recibido' && pedido.totalRecibido !== undefined) {
+          const varianza = pedido.totalRecibido - pedido.total;
+          html += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center;">';
+          html += `<div><strong style="color:#666;">Total Original</strong><br><span style="font-size:20px;font-weight:bold;">${pedido.total.toFixed(2)} €</span></div>`;
+          html += `<div><strong style="color:#666;">Total Recibido</strong><br><span style="font-size:20px;font-weight:bold;color:#059669;">${pedido.totalRecibido.toFixed(2)} €</span></div>`;
+          html += `<div><strong style="color:#666;">Varianza</strong><br><span style="font-size:20px;font-weight:bold;color:${varianza >= 0 ? '#ef4444' : '#10b981'};">${varianza >= 0 ? '+' : ''}${varianza.toFixed(2)} €</span></div>`;
+          html += '</div>';
+        } else {
+          html += `<div style="text-align: right;"><strong style="color:#666;">Total del Pedido:</strong><br><span style="font-size:24px;font-weight:bold;color:#059669;">${total.toFixed(2)} €</span></div>`;
+        }
+        
+        html += '</div>';
+
+        document.getElementById('modal-ver-pedido-contenido').innerHTML = html;
+        document.getElementById('modal-ver-pedido').classList.add('active');
+      };
+
+      window.cerrarModalVerPedido = function() {
+        document.getElementById('modal-ver-pedido').classList.remove('active');
+        pedidoViendoIndex = null;
+      };
+
+      window.descargarPedidoPDF = function() {
+        if (pedidoViendoIndex === null) return;
+        
+        const pedido = pedidos[pedidoViendoIndex];
+        const prov = proveedores.find(p => p.id === pedido.proveedorId);
+
+        // Crear HTML para imprimir
+        let htmlPrint = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Pedido - La Caleta 102</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; }
+    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #c35a3f; padding-bottom: 20px; }
+    .header h1 { color: #c35a3f; margin: 0; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; background: #f8f8f8; padding: 20px; border-radius: 5px; }
+    .info-item { margin-bottom: 10px; }
+    .info-item strong { display: block; color: #666; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: #f8f8f8; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 12px; color: #666; }
+    td { padding: 12px; border-bottom: 1px solid #eee; }
+    .total-box { background: #f0fdf4; border: 2px solid #10b981; padding: 20px; border-radius: 5px; text-align: right; }
+    .total-box strong { font-size: 24px; color: #059669; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .badge-received { background: #d1fae5; color: #059669; }
+    .badge-pending { background: #fef3c7; color: #d97706; }
+    .varianza { font-size: 11px; }
+    .varianza.pos { color: #10b981; }
+    .varianza.neg { color: #ef4444; }
+    @media print {
+      body { padding: 20px; }
+      button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>La Caleta 102</h1>
+    <p>Pedido a Proveedor</p>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-item">
+      <strong>Proveedor</strong>
+      ${prov ? prov.nombre : 'Desconocido'}
+    </div>
+    <div class="info-item">
+      <strong>Fecha del Pedido</strong>
+      ${new Date(pedido.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+    </div>
+    <div class="info-item">
+      <strong>Estado</strong>
+      <span class="badge ${pedido.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">
+        ${pedido.estado === 'recibido' ? 'Recibido' : 'Pendiente'}
+      </span>
+    </div>
+    ${pedido.estado === 'recibido' && pedido.fechaRecepcion ? `
+    <div class="info-item">
+      <strong>Fecha de Recepción</strong>
+      ${new Date(pedido.fechaRecepcion).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+    </div>
+    ` : ''}
+  </div>
+
+  <h3>Detalle del Pedido</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Ingrediente</th>
+        <th>Cantidad</th>
+        <th>Precio Unitario</th>
+        <th>Subtotal</th>
+        ${pedido.estado === 'recibido' ? '<th>Estado</th>' : ''}
+      </tr>
+    </thead>
+    <tbody>`;
+
+        const items = pedido.ingredientes;
+        let totalFinal = 0;
+
+        items.forEach(item => {
+          const ing = ingredientes.find(i => i.id === item.ingredienteId);
+          if (!ing) return;
+
+          const esRecibido = pedido.estado === 'recibido' && item.cantidadRecibida !== undefined;
+          const cantidad = esRecibido ? item.cantidadRecibida : item.cantidad;
+          const precio = esRecibido && item.precioReal ? item.precioReal : item.precioUnitario;
+          const subtotal = cantidad * precio;
+
+          if (item.estado !== 'no-entregado') {
+            totalFinal += subtotal;
+          }
+
+          htmlPrint += '<tr>';
+          htmlPrint += `<td>${ing.nombre}</td>`;
+          htmlPrint += `<td>${cantidad} ${ing.unidad}`;
+          
+          if (esRecibido && item.cantidad && Math.abs(cantidad - item.cantidad) > 0.01) {
+            const diff = cantidad - item.cantidad;
+            htmlPrint += `<br><span class="varianza ${diff > 0 ? 'pos' : 'neg'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)})</span>`;
+          }
+          
+          htmlPrint += `</td>`;
+          htmlPrint += `<td>${precio.toFixed(2)} €/${ing.unidad}`;
+          
+          if (esRecibido && item.precioUnitario && Math.abs(precio - item.precioUnitario) > 0.01) {
+            const diff = precio - item.precioUnitario;
+            htmlPrint += `<br><span class="varianza ${diff > 0 ? 'neg' : 'pos'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)} €)</span>`;
+          }
+          
+          htmlPrint += `</td>`;
+          htmlPrint += `<td>${item.estado === 'no-entregado' ? '0.00' : subtotal.toFixed(2)} €</td>`;
+          
+          if (esRecibido) {
+            let estadoText = '';
+            if (item.estado === 'consolidado') estadoText = '✅ OK';
+            else if (item.estado === 'varianza') estadoText = '⚠️ Varianza';
+            else if (item.estado === 'no-entregado') estadoText = '❌ No entregado';
+            htmlPrint += `<td>${estadoText}</td>`;
+          }
+          
+          htmlPrint += '</tr>';
+        });
+
+        htmlPrint += '</tbody></table>';
+
+        if (pedido.estado === 'recibido' && pedido.totalRecibido !== undefined) {
+          const varianza = pedido.totalRecibido - pedido.total;
+          htmlPrint += `
+  <div class="total-box">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center;">
+      <div>
+        <strong style="color:#666;font-size:14px;">Total Original</strong><br>
+        <span style="font-size:20px;">${pedido.total.toFixed(2)} €</span>
+      </div>
+      <div>
+        <strong style="color:#059669;font-size:14px;">Total Recibido</strong><br>
+        <strong>${pedido.totalRecibido.toFixed(2)} €</strong>
+      </div>
+      <div>
+        <strong style="color:#666;font-size:14px;">Varianza</strong><br>
+        <span style="font-size:20px;color:${varianza >= 0 ? '#ef4444' : '#10b981'};">${varianza >= 0 ? '+' : ''}${varianza.toFixed(2)} €</span>
+      </div>
+    </div>
+  </div>`;
+        } else {
+          htmlPrint += `
+  <div class="total-box">
+    <strong>Total del Pedido: ${pedido.total.toFixed(2)} €</strong>
+  </div>`;
+        }
+
+        htmlPrint += `
+  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center;">
+    Generado el ${new Date().toLocaleDateString('es-ES')} - La Caleta 102 Dashboard
+  </div>
+</body>
+</html>`;
+
+        // Abrir en nueva ventana para imprimir/guardar PDF
+        const ventana = window.open('', '_blank');
+        ventana.document.write(htmlPrint);
+        ventana.document.close();
+        
+        // Esperar a que se cargue y abrir diálogo de impresión
+        setTimeout(() => {
+          ventana.print();
+        }, 250);
+      };
+
       function renderizarPedidos() {
         const busqueda = document.getElementById('busqueda-pedidos').value.toLowerCase();
         const filtrados = pedidos.filter(ped => {
@@ -1918,8 +2215,9 @@
             html += `<td><strong>${ped.total.toFixed(2)} €</strong></td>`;
             html += `<td><span class="badge ${ped.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${ped.estado === 'recibido' ? 'Recibido' : 'Pendiente'}</span></td>`;
             html += `<td><div class="actions">`;
+            html += `<button class="icon-btn view" onclick="window.verDetallesPedido(${realIndex})" title="Ver detalles">👁️</button>`;
             if (ped.estado === 'pendiente') {
-              html += `<button class="icon-btn receive" onclick="window.marcarPedidoRecibido(${realIndex})" title="Marcar recibido">📥</button>`;
+              html += `<button class="icon-btn receive" onclick="window.marcarPedidoRecibido(${realIndex})" title="Recibir pedido">📥</button>`;
             }
             html += `<button class="icon-btn delete" onclick="window.eliminarPedido(${realIndex})" title="Eliminar">🗑️</button>`;
             html += '</div></td>';
