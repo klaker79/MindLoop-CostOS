@@ -2568,58 +2568,16 @@
           html += '<tr>';
           html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
           html += `<td><strong>${ing.nombre}</strong></td>`;
-          html += `<td><div class="stock-actions">
-            <button class="stock-btn" onclick="window.ajustarStock(${ing.id}, -1)">-</button>
-            <span class="stock-value">${ing.stockActual.toFixed(2)}</span>
-            <button class="stock-btn" onclick="window.ajustarStock(${ing.id}, 1)">+</button>
-          </div></td>`;
+          html += `<td><span class="stock-value">${ing.stockActual.toFixed(2)}</span></td>`;
           html += `<td>${ing.stockMinimo}</td>`;
           html += `<td>${ing.unidad}</td>`;
-          html += `<td><button class="btn btn-small btn-secondary" onclick="window.ajustarStockManual(${ing.id})">✏️ Ajustar</button></td>`;
           html += '</tr>';
         });
 
-        html += '</tbody></table>';
         container.innerHTML = html;
       };
 
-      window.ajustarStock = async function(id, cambio) {
-        const ing = window.ingredientes.find(i => i.id === id);
-        if (!ing) return;
-        
-        const nuevoStock = Math.max(0, ing.stockActual + cambio);
-        
-        try {
-        await api.updateIngrediente(id, {
-          nombre: ing.nombre,
-          unidad: ing.unidad,
-          precio: ing.precio,
-          proveedor_id: ing.proveedorId,
-          stock_actual: nuevoStock,
-          stock_minimo: ing.stockMinimo
-        });
-        await cargarDatos();
-          renderizarInventario();
-        } catch (error) {
-          alert('Error actualizando stock: ' + error.message);
-        }
-      };
 
-      window.ajustarStockManual = function(id) {
-        const ing = window.ingredientes.find(i => i.id === id);
-        if (!ing) return;
-        
-        const nuevoStock = prompt(`Stock actual de ${ing.nombre}:`, ing.stockActual);
-        if (nuevoStock === null) return;
-        
-        const stockNum = parseFloat(nuevoStock);
-        if (isNaN(stockNum) || stockNum < 0) {
-          alert('Cantidad inválida');
-          return;
-        }
-        
-        ajustarStock(id, stockNum - ing.stockActual);
-      };
       // Event listener para búsqueda de inventario
       document.getElementById('busqueda-inventario').addEventListener('input', window.renderizarInventario);
 
