@@ -1046,22 +1046,7 @@ window.renderizarVentas = async function() {
   document.getElementById('tabla-ventas').innerHTML = html;
 };
 
-document.getElementById('form-venta').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const recetaId = document.getElementById('venta-receta').value;
-  const cantidad = parseInt(document.getElementById('venta-cantidad').value);
-  
-  try {
-    await api.createSale({ recetaId, cantidad });
-    await cargarDatos();
-    renderizarVentas();
-    renderizarInventario();
-    e.target.reset();
-    alert('Venta registrada correctamente');
-  } catch (error) {
-    alert('Error: ' + error.message);
-  }
-});
+
       async function init() {
         await cargarDatos();
         renderizarIngredientes();
@@ -1070,6 +1055,22 @@ document.getElementById('form-venta').addEventListener('submit', async (e) => {
         renderizarPedidos();
         renderizarInventario();
         renderizarVentas();
+        document.getElementById('form-venta').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const recetaId = document.getElementById('venta-receta').value;
+      const cantidad = parseInt(document.getElementById('venta-cantidad').value);
+      
+      try {
+        await api.createSale({ recetaId, cantidad });
+        await cargarDatos();
+        renderizarVentas();
+        renderizarInventario();
+        e.target.reset();
+        alert('Venta registrada correctamente');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    });
 
         // Configurar fecha de hoy por defecto
         const hoy = new Date().toISOString().split('T')[0];
