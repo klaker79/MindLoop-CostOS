@@ -1426,7 +1426,7 @@ const api = {
             html += '<tr>';
             html += `<td><strong>${ing.nombre}</strong></td>`;
             html += `<td>${getNombreProveedor(ing.proveedorId)}</td>`;
-            html += `<td>${ing.precio ? ing.precio.toFixed(2) + ' €/' + ing.unidad : '-'}</td>`;
+            html += '<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad + ' -'}</td>';
             html += `<td>`;
             if (ing.stockActual) {
               html += `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stockActual} ${ing.unidad}</span>`;
