@@ -2724,7 +2724,7 @@ const api = {
           html += '<tr>';
           html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
           html += `<td><strong>${ing.nombre}</strong></td>`;
-          html += `<td><span class="stock-value">${ing.stockActual.toFixed(2)}</span></td>`;
+          html += `<td><span class="stock-value">${parseFloat(ing.stockActual || 0).toFixed(2)}</span></td>`;
           html += `<td>${ing.stockMinimo}</td>`;
           html += `<td>${ing.unidad}</td>`;
           html += '</tr>';
