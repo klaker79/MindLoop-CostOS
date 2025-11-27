@@ -1113,8 +1113,19 @@ window.renderizarBalance = async function() {
     const mes = document.getElementById('balance-mes').value;
     const ano = document.getElementById('balance-ano').value;
     
-    const balance = await api.getBalanceMes(mes, ano);
-    const comparativa = await api.getComparativa();
+    const API_URL = 'https://lacaleta-api.mindloop.cloud/api';
+
+// Obtener balance del mes
+const paramsBalance = new URLSearchParams();
+if (mes) paramsBalance.append('mes', mes);
+if (ano) paramsBalance.append('ano', ano);
+const urlBalance = `${API_URL}/balance/mes${paramsBalance.toString() ? '?' + paramsBalance.toString() : ''}`;
+const resBalance = await fetch(urlBalance);
+const balance = await resBalance.json();
+
+// Obtener comparativa
+const resComp = await fetch(`${API_URL}/balance/comparativa`);
+const comparativa = await resComp.json();
     
     // Actualizar métricas
     document.getElementById('balance-ingresos').textContent = balance.ingresos.toFixed(2) + '€';
