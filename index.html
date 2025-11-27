@@ -1264,6 +1264,25 @@ const comparativa = await resComp.json();
           document.getElementById('ped-fecha').value = hoy;
         }
       }
+      // API helper para balance
+const api = {
+  async getIngredientes() {
+    const res = await fetch('https://lacaleta-api.mindloop.cloud/api/ingredients');
+    return await res.json();
+  },
+  async getRecetas() {
+    const res = await fetch('https://lacaleta-api.mindloop.cloud/api/recipes');
+    return await res.json();
+  },
+  async getProveedores() {
+    const res = await fetch('https://lacaleta-api.mindloop.cloud/api/suppliers');
+    return await res.json();
+  },
+  async getPedidos() {
+    const res = await fetch('https://lacaleta-api.mindloop.cloud/api/orders');
+    return await res.json();
+  }
+};
 
       async function cargarDatos() {
         try {
