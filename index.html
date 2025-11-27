@@ -907,6 +907,63 @@
     <div id="tabla-ventas"></div>
   </div>
 </div>
+      <!-- TAB: BALANCE -->
+<div id="tab-balance" class="tab-content">
+  <div class="top-bar">
+    <h2>💵 Balance Financiero</h2>
+    <p>Resumen de ingresos, costos y rentabilidad</p>
+  </div>
+  
+  <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+    <select id="balance-mes" style="padding: 8px;">
+      <option value="">Mes actual</option>
+    </select>
+    <select id="balance-ano" style="padding: 8px;">
+      <option value="">Año actual</option>
+    </select>
+    <button onclick="window.renderizarBalance()" class="btn btn-primary">Actualizar</button>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+    <div class="card" style="text-align: center;">
+      <h4>💰 Ingresos</h4>
+      <p id="balance-ingresos" style="font-size: 24px; font-weight: bold; color: #27ae60;">-</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>📉 Costos</h4>
+      <p id="balance-costos" style="font-size: 24px; font-weight: bold; color: #e74c3c;">-</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>💵 Ganancia</h4>
+      <p id="balance-ganancia" style="font-size: 24px; font-weight: bold; color: #3498db;">-</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>📊 Margen</h4>
+      <p id="balance-margen" style="font-size: 24px; font-weight: bold; color: #9b59b6;">-</p>
+    </div>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+    <div class="card">
+      <h3>📦 Inventario</h3>
+      <p>Valor actual: <strong id="balance-inventario">-</strong></p>
+    </div>
+    <div class="card">
+      <h3>🏆 Plato Más Vendido</h3>
+      <p id="balance-plato-vendido">-</p>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h3>📈 Distribución de Ventas por Plato</h3>
+    <canvas id="chart-ventas-plato" width="400" height="200"></canvas>
+  </div>
+  
+  <div class="card">
+    <h3>📅 Comparativa Mensual (Últimos 12 meses)</h3>
+    <canvas id="chart-comparativa" width="400" height="200"></canvas>
+  </div>
+</div>
 
     </div>
   </div>
@@ -1047,7 +1104,122 @@ window.renderizarVentas = async function() {
   html += `</tbody></table><p><strong>Total del día: ${totalDia.toFixed(2)}€</strong></p>`;
   document.getElementById('tabla-ventas').innerHTML = html;
 };
+// === BALANCE ===
+let chartVentasPlato = null;
+let chartComparativa = null;
 
+window.renderizarBalance = async function() {
+  try {
+    const mes = document.getElementById('balance-mes').value;
+    const ano = document.getElementById('balance-ano').value;
+    
+    const balance = await api.getBalanceMes(mes, ano);
+    const comparativa = await api.getComparativa();
+    
+    // Actualizar métricas
+    document.getElementById('balance-ingresos').textContent = balance.ingresos.toFixed(2) + '€';
+    document.getElementById('balance-costos').textContent = balance.costos.toFixed(2) + '€';
+    document.getElementById('balance-ganancia').textContent = balance.ganancia.toFixed(2) + '€';
+    document.getElementById('balance-margen').textContent = balance.margen + '%';
+    document.getElementById('balance-inventario').textContent = balance.valor_inventario.toFixed(2) + '€';
+    
+    if (balance.plato_mas_vendido) {
+      document.getElementById('balance-plato-vendido').textContent = 
+        `${balance.plato_mas_vendido.nombre} (${balance.plato_mas_vendido.total_vendido} unidades)`;
+    } else {
+      document.getElementById('balance-plato-vendido').textContent = 'Sin ventas';
+    }
+    
+    // Gráfico de distribución por plato
+    const ctxPlato = document.getElementById('chart-ventas-plato').getContext('2d');
+    if (chartVentasPlato) chartVentasPlato.destroy();
+    
+    chartVentasPlato = new Chart(ctxPlato, {
+      type: 'pie',
+      data: {
+        labels: balance.ventas_por_plato.map(v => v.nombre),
+        datasets: [{
+          data: balance.ventas_por_plato.map(v => parseFloat(v.total_ingresos)),
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.label + ': ' + context.parsed.toFixed(2) + '€';
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    // Gráfico comparativa mensual
+    const ctxComp = document.getElementById('chart-comparativa').getContext('2d');
+    if (chartComparativa) chartComparativa.destroy();
+    
+    chartComparativa = new Chart(ctxComp, {
+      type: 'bar',
+      data: {
+        labels: comparativa.map(m => m.mes).reverse(),
+        datasets: [{
+          label: 'Ingresos',
+          data: comparativa.map(m => parseFloat(m.ingresos)).reverse(),
+          backgroundColor: '#36A2EB'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return value + '€';
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    // Llenar selectores de mes/año
+    const selectMes = document.getElementById('balance-mes');
+    const selectAno = document.getElementById('balance-ano');
+    
+    if (selectMes.options.length === 1) {
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      meses.forEach((m, i) => {
+        const opt = document.createElement('option');
+        opt.value = i + 1;
+        opt.textContent = m;
+        selectMes.appendChild(opt);
+      });
+    }
+    
+    if (selectAno.options.length === 1) {
+      const anoActual = new Date().getFullYear();
+      for (let i = anoActual; i >= anoActual - 3; i--) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = i;
+        selectAno.appendChild(opt);
+      }
+    }
+    
+  } catch (error) {
+    console.error('Error renderizando balance:', error);
+    alert('Error cargando balance: ' + error.message);
+  }
+};
 
       async function init() {
         await cargarDatos();
@@ -1057,6 +1229,7 @@ window.renderizarVentas = async function() {
         renderizarPedidos();
         renderizarInventario();
         renderizarVentas();
+        renderizarBalance();
         document.getElementById('form-venta').addEventListener('submit', async (e) => {
       e.preventDefault();
       const recetaId = document.getElementById('venta-receta').value;
@@ -1104,6 +1277,7 @@ window.renderizarVentas = async function() {
         if (tab === 'pedidos') renderizarPedidos();
         if (tab === 'inventario') window.renderizarInventario();
         if (tab === 'ventas') window.renderizarVentas();
+        if (tab === 'balance') window.renderizarBalance();
       };
 
       // ========== INGREDIENTES (código completo pero resumido visualmente) ==========
