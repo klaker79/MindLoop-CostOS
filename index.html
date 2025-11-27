@@ -1538,7 +1538,7 @@ const api = {
             html += `<td><strong>${rec.nombre}</strong></td>`;
             html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
             html += `<td>${coste.toFixed(2)} €</td>`;
-            html += `<td>${rec.precioVenta.toFixed(2)} €</td>`;
+            html += `<td>${rec.precioVenta ? parseFloat(rec.precioVenta).toFixed(2) : '0.00'} €</td>`;
             html += `<td><span class="badge ${margen>0?'badge-success':'badge-warning'}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
