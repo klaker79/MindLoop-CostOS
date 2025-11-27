@@ -1497,6 +1497,12 @@ window.renderizarBalance = async function() {
         document.getElementById('lista-ingredientes-receta').innerHTML = '';
         document.getElementById('coste-calculado-form').style.display = 'none';
         editandoRecetaId = null;
+        // Limpiar campos del formulario
+        document.getElementById('rec-nombre').value = '';
+        document.getElementById('rec-categoria').value = 'entrante';
+        document.getElementById('rec-precio_venta').value = '';
+        document.getElementById('rec-porciones').value = '1';
+        document.getElementById('lista-ingredientes-receta').innerHTML = '';
         document.getElementById('form-title-receta').textContent = 'Nueva Receta';
         document.getElementById('btn-text-receta').textContent = 'Guardar';
       };
