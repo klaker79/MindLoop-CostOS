@@ -668,7 +668,7 @@
               </div>
               <div class="form-group">
                 <label>Precio venta (€)</label>
-                <input type="number" id="rec-precioVenta" step="0.01" min="0" oninput="window.calcularCosteReceta()">
+                <input type="number" id="rec-precio_venta" step="0.01" min="0" oninput="window.calcularCosteReceta()">
               </div>
               <div class="form-group">
                 <label>Porciones</label>
@@ -1067,7 +1067,7 @@ window.renderizarVentas = async function() {
   const select = document.getElementById('venta-receta');
   select.innerHTML = '<option value="">Selecciona un plato...</option>';
   window.recetas.forEach(r => {
-    select.innerHTML += `<option value="${r.id}">${r.nombre} - ${r.precioVenta}€</option>`;
+    select.innerHTML += `<option value="${r.id}">${r.nombre} - ${r.precio_venta}€</option>`;
   });
   
   const hoy = new Date().toISOString().split('T')[0];
@@ -1543,16 +1543,16 @@ window.renderizarBalance = async function() {
           }
         });
 
-        const precioVenta = parseFloat(document.getElementById('rec-precioVenta').value) || 0;
-        const margen = precioVenta - costeTotal;
-        const margenPct = precioVenta > 0 ? ((margen / precioVenta) * 100).toFixed(1) : 0;
+        const precio_venta = parseFloat(document.getElementById('rec-precio_venta').value) || 0;
+        const margen = precio_venta - costeTotal;
+        const margenPct = precio_venta > 0 ? ((margen / precio_venta) * 100).toFixed(1) : 0;
 
         if (hayDatos) {
           document.getElementById('coste-calculado-form').style.display = 'block';
           document.getElementById('coste-calculado-form').innerHTML = `
             <h4>💰 Cálculo</h4>
             <div class="coste-row"><span>Coste:</span><strong>${costeTotal.toFixed(2)} €</strong></div>
-            <div class="coste-row"><span>Precio:</span><strong>${precioVenta.toFixed(2)} €</strong></div>
+            <div class="coste-row"><span>Precio:</span><strong>${precio_venta.toFixed(2)} €</strong></div>
             <div class="coste-row"><span>Margen:</span><strong>${margen.toFixed(2)} € (${margenPct}%)</strong></div>
           `;
         } else {
@@ -1585,7 +1585,7 @@ window.renderizarBalance = async function() {
         const receta = {
           nombre: document.getElementById('rec-nombre').value,
           categoria: document.getElementById('rec-categoria').value,
-          precioVenta: parseFloat(document.getElementById('rec-precioVenta').value) || 0,
+          precio_venta: parseFloat(document.getElementById('rec-precio_venta').value) || 0,
           porciones: parseInt(document.getElementById('rec-porciones').value) || 1,
           ingredientes: ingredientesReceta
         };
@@ -1611,7 +1611,7 @@ window.renderizarBalance = async function() {
         
         document.getElementById('rec-nombre').value = rec.nombre;
         document.getElementById('rec-categoria').value = rec.categoria;
-        document.getElementById('rec-precioVenta').value = rec.precioVenta;
+        document.getElementById('rec-precio_venta').value = rec.precio_venta;
         document.getElementById('rec-porciones').value = rec.porciones;
         
         document.getElementById('lista-ingredientes-receta').innerHTML = '';
@@ -1672,14 +1672,14 @@ window.renderizarBalance = async function() {
 
           filtradas.forEach(rec => {
             const coste = calcularCosteRecetaCompleto(rec);
-            const margen = rec.precioVenta - coste;
-            const pct = rec.precioVenta > 0 ? ((margen/rec.precioVenta)*100).toFixed(0) : 0;
+            const margen = rec.precio_venta - coste;
+            const pct = rec.precio_venta > 0 ? ((margen/rec.precio_venta)*100).toFixed(0) : 0;
             
             html += '<tr>';
             html += `<td><strong>${rec.nombre}</strong></td>`;
             html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
             html += `<td>${coste.toFixed(2)} €</td>`;
-            html += `<td>${rec.precioVenta ? parseFloat(rec.precioVenta).toFixed(2) : '0.00'} €</td>`;
+            html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
             html += `<td><span class="badge ${margen>0?'badge-success':'badge-warning'}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
@@ -2665,8 +2665,8 @@ window.renderizarBalance = async function() {
         let totalCoste = 0;
         const datosRecetas = recetas.map(rec => {
           const coste = calcularCosteRecetaCompleto(rec);
-          const margen = rec.precioVenta - coste;
-          const margenPct = rec.precioVenta > 0 ? (margen / rec.precioVenta) * 100 : 0;
+          const margen = rec.precio_venta - coste;
+          const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
           totalMargen += margenPct;
           totalCoste += coste;
           return { ...rec, coste, margen, margenPct };
@@ -2782,7 +2782,7 @@ window.renderizarBalance = async function() {
           html += `<td><strong>#${idx + 1}</strong></td>`;
           html += `<td>${rec.nombre}</td>`;
           html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
-          html += `<td>${parseFloat(rec.precioVenta || 0).toFixed(2)} €</td>`;
+          html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
           html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
           html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
           html += '</tr>';
