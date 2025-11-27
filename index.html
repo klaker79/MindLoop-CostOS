@@ -1165,7 +1165,37 @@ const api = {
   async getPedidos() {
     const res = await fetch('https://lacaleta-api.mindloop.cloud/api/orders');
     return await res.json();
+  },
+  },
+  
+  // ✅ FUNCIONES DE VENTAS
+  async getSales(fecha = null) {
+    const url = fecha 
+      ? `https://lacaleta-api.mindloop.cloud/api/sales?fecha=${fecha}`
+      : 'https://lacaleta-api.mindloop.cloud/api/sales';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Error al cargar ventas');
+    return await res.json();
+  },
+  
+  async createSale(saleData) {
+    const res = await fetch('https://lacaleta-api.mindloop.cloud/api/sales', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(saleData)
+    });
+    if (!res.ok) throw new Error('Error al registrar venta');
+    return await res.json();
+  },
+  
+  async deleteSale(id) {
+    const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/sales/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Error al eliminar venta');
+    return await res.json();
   }
+};
 };
 
       async function cargarDatos() {
