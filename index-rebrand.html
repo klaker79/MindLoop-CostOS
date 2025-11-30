@@ -3201,76 +3201,7 @@ window.renderizarBalance = async function() {
 
       init();
     }
-    // Renderizar gráfico en tab Análisis
-if (typeof Chart !== 'undefined') {
-  let revenueChartInstance = null;
-  
-  const originalCambiarTab = window.cambiarTab;
-  window.cambiarTab = function(tab) {
-    if (originalCambiarTab) originalCambiarTab(tab);
     
-    if (tab === 'analisis') {
-      setTimeout(() => {
-        const ctx = document.getElementById('revenueChart');
-        if (ctx) {
-          if (revenueChartInstance) revenueChartInstance.destroy();
-          
-          revenueChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-              datasets: [{
-                label: 'Ingresos',
-                data: [450, 520, 380, 690, 580, 720, 650],
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 3
-              }, {
-                label: 'Gastos',
-                data: [280, 350, 240, 420, 380, 450, 410],
-                borderColor: '#EF4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 3
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              plugins: {
-                legend: {
-                  position: 'top',
-                  labels: {
-                    usePointStyle: true,
-                    padding: 20,
-                    font: { size: 14, weight: '600' }
-                  }
-                }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                  ticks: {
-                    callback: value => value + '€',
-                    font: { size: 12 }
-                  }
-                },
-                x: {
-                  grid: { display: false },
-                  ticks: { font: { size: 12 } }
-                }
-              }
-            }
-          });
-        }
-      }, 200);
-    }
-  };
-}
   </script>
 </body>
 </html>
