@@ -543,6 +543,87 @@
       text-align: center;
       font-weight: bold;
     }
+    /* === MEJORAS PROFESIONALES MINDLOOP === */
+.header { 
+  background: linear-gradient(135deg, #4F46E5 0%, #9333EA 100%);
+  padding: 24px 32px;
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
+}
+
+.logo-mindloop { display: none; }
+
+.header-title h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.tabs {
+  gap: 8px;
+  padding: 16px 0;
+}
+
+.tab {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.tab:hover {
+  background: rgba(255, 107, 53, 0.1);
+  transform: translateY(-2px);
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.main-card {
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
+}
+
+table {
+  border-spacing: 0 8px;
+}
+
+table thead th {
+  font-weight: 600;
+  color: #64748B;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 16px;
+}
+
+table tbody tr {
+  background: white;
+  transition: all 0.2s ease;
+}
+
+table tbody tr:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
   </style>
 </head>
 <body>
