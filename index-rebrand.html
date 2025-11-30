@@ -1,0 +1,2891 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Caleta 102 - Dashboard de Costes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #c35a3f 0%, #d47157 100%);
+      min-height: 100vh;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    
+    .header {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .logo-circle {
+      width: 50px;
+      height: 50px;
+      border: 2px solid #c35a3f;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #c35a3f;
+    }
+    .header-title { flex: 1; }
+    .header-title h1 { color: #c35a3f; font-size: 24px; font-weight: 700; }
+    .header-title p { color: #666; font-size: 14px; }
+    
+    .tabs {
+      background: white;
+      border-radius: 10px 10px 0 0;
+      display: flex;
+      gap: 5px;
+      padding: 10px 10px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      flex-wrap: wrap;
+    }
+    .tab {
+      padding: 12px 20px;
+      border: none;
+      background: transparent;
+      color: #666;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      transition: all 0.3s;
+    }
+    .tab:hover { background: #f5f5f5; }
+    .tab.active {
+      background: white;
+      color: #c35a3f;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .main-card {
+      background: white;
+      border-radius: 0 10px 10px 10px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      min-height: 500px;
+    }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .top-bar h2 { font-size: 28px; color: #333; }
+    .top-bar p { color: #666; font-size: 14px; margin-top: 5px; }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    .btn-primary { background: #c35a3f; color: white; }
+    .btn-primary:hover { background: #a84a33; }
+    .btn-secondary { background: #f0f0f0; color: #333; }
+    .btn-secondary:hover { background: #e0e0e0; }
+    .btn-success { background: #10b981; color: white; }
+    .btn-success:hover { background: #059669; }
+    .btn-small { padding: 8px 16px; font-size: 13px; }
+    
+    .search-box {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 12px 12px 12px 40px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+    }
+    .search-box svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+    }
+    
+    .form-card {
+      background: #fff5f2;
+      border: 2px solid #c35a3f;
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+    .form-card h3 {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    .ingredientes-receta {
+      margin-bottom: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+    .ingredientes-receta h4 {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .ingrediente-item {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .ingrediente-item select,
+    .ingrediente-item input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .ingrediente-item button {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    
+    .selector-ingredientes {
+      margin-bottom: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+    .selector-ingredientes h4 {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .ingredientes-disponibles {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      background: #f9f9f9;
+    }
+    .ingrediente-checkbox {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .ingrediente-checkbox:hover {
+      background: #f0f0f0;
+    }
+    .ingrediente-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    .ingrediente-checkbox label {
+      cursor: pointer;
+      flex: 1;
+      margin: 0;
+    }
+    
+    .coste-calculado {
+      background: #f0fdf4;
+      border: 2px solid #10b981;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .coste-calculado h4 {
+      color: #059669;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .coste-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #d1fae5;
+    }
+    .coste-row:last-child {
+      border-bottom: none;
+      font-weight: 700;
+      font-size: 18px;
+      color: #059669;
+      padding-top: 15px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #fff 0%, #f9f9f9 100%);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-left: 4px solid #c35a3f;
+    }
+    .stat-card.green { border-left-color: #10b981; }
+    .stat-card.blue { border-left-color: #3b82f6; }
+    .stat-card.orange { border-left-color: #f59e0b; }
+    .stat-card h3 {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #333;
+    }
+    .stat-card .subtext {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+    
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .chart-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .chart-card h3 {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .chart-card canvas {
+      max-height: 300px;
+    }
+    
+    @media (max-width: 768px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead {
+      background: #f8f8f8;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    th {
+      padding: 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+    }
+    td {
+      padding: 15px 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    tbody tr:hover {
+      background: #f9f9f9;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover { transform: scale(1.1); }
+    .icon-btn.edit { color: #c35a3f; }
+    .icon-btn.delete { color: #dc2626; }
+    .icon-btn.produce { color: #10b981; }
+    .icon-btn.view { color: #3b82f6; }
+    .icon-btn.receive { color: #10b981; }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    .empty-state .icon { font-size: 60px; margin-bottom: 15px; }
+    .empty-state h3 { font-size: 20px; color: #666; margin-bottom: 10px; }
+    
+    .stock-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .stock-low { background: #fee; color: #c00; }
+    .stock-ok { background: #efe; color: #060; }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-success { background: #d1fae5; color: #059669; }
+    .badge-warning { background: #fef3c7; color: #d97706; }
+    .badge-info { background: #dbeafe; color: #2563eb; }
+    .badge-pending { background: #fef3c7; color: #d97706; }
+    .badge-received { background: #d1fae5; color: #059669; }
+    
+    .summary {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f8f8;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #666;
+    }
+    .summary strong { color: #333; }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      padding: 0;
+      line-height: 1;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-content h3 {
+      font-size: 22px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    
+    .ingredientes-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .ingredientes-list .badge {
+      background: #f0f0f0;
+      color: #333;
+      padding: 6px 12px;
+    }
+
+    .total-pedido {
+      background: #f0fdf4;
+      border: 2px solid #10b981;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      text-align: right;
+    }
+    .total-pedido strong {
+      font-size: 24px;
+      color: #059669;
+    }
+
+    /* Estilos para Inventario */
+    .tab-badge {
+      background: #ef4444;
+      color: white;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-left: 6px;
+      font-weight: bold;
+    }
+
+    .stock-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .stock-ok { background: #10b981; }
+    .stock-bajo { background: #f59e0b; }
+    .stock-critico { background: #ef4444; }
+
+    .stock-actions {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .stock-btn {
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .stock-btn:hover {
+      background: #e5e7eb;
+    }
+
+    .stock-value {
+      min-width: 60px;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo-circle">LC</div>
+      <div class="header-title">
+        <h1>La Caleta 102</h1>
+        <p>Dashboard de Costes</p>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button id="tab-btn-ingredientes" class="tab active" onclick="window.cambiarTab('ingredientes')">📦 Ingredientes</button>
+      <button id="tab-btn-recetas" class="tab" onclick="window.cambiarTab('recetas')">👨‍🍳 Recetas</button>
+      <button id="tab-btn-proveedores" class="tab" onclick="window.cambiarTab('proveedores')">🚚 Proveedores</button>
+      <button id="tab-btn-pedidos" class="tab" onclick="window.cambiarTab('pedidos')">📋 Pedidos</button>
+      <button id="tab-btn-analisis" class="tab" onclick="window.cambiarTab('analisis')">📊 Análisis</button>
+      <button id="tab-btn-inventario" class="tab" onclick="window.cambiarTab('inventario')">📦 Inventario<span id="badge-inventario" class="tab-badge" style="display:none;">0</span></button>
+      <button id="tab-btn-ventas" class="tab" onclick="window.cambiarTab('ventas')">💰 Ventas</button>
+      <button id="tab-btn-balance" class="tab" onclick="window.cambiarTab('balance')">💵 Balance</button>
+    </div>
+
+    <div class="main-card">
+      
+      <!-- TAB: INGREDIENTES (código anterior simplificado por brevedad) -->
+      <div id="tab-ingredientes" class="tab-content active">
+        <div class="top-bar">
+          <div>
+            <h2>Ingredientes</h2>
+            <p>Gestiona todos los ingredientes de tu restaurante</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.mostrarFormularioIngrediente()">+ Añadir Ingrediente</button>
+        </div>
+        <div class="search-box">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="busqueda-ingredientes" placeholder="Buscar..." oninput="window.renderizarIngredientes()">
+        </div>
+        <div id="formulario-ingrediente" class="form-card" style="display: none;">
+          <h3>
+            <span id="form-title-ingrediente">Nuevo Ingrediente</span>
+            <button class="close-btn" onclick="window.cerrarFormularioIngrediente()">×</button>
+          </h3>
+          <form onsubmit="window.guardarIngrediente(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" id="ing-nombre" required>
+              </div>
+              <div class="form-group">
+                <label>Proveedor</label>
+                <select id="ing-proveedor-select"><option value="">Sin proveedor</option></select>
+              </div>
+              <div class="form-group">
+                <label>Precio (€)</label>
+                <input type="number" id="ing-precio" step="0.01" min="0">
+              </div>
+              <div class="form-group">
+                <label>Unidad</label>
+                <select id="ing-unidad">
+                  <option value="kg">kg</option>
+                  <option value="g">g</option>
+                  <option value="l">L</option>
+                  <option value="ml">ml</option>
+                  <option value="unidad">Unidades</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Stock actual</label>
+                <input type="number" id="ing-stockActual" step="0.01" min="0">
+              </div>
+              <div class="form-group">
+                <label>Stock mínimo</label>
+                <input type="number" id="ing-stockMinimo" step="0.01" min="0">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="window.cerrarFormularioIngrediente()">Cancelar</button>
+              <button type="submit" class="btn btn-primary"><span id="btn-text-ingrediente">Añadir</span></button>
+            </div>
+          </form>
+        </div>
+        <div id="tabla-ingredientes"></div>
+        <div id="resumen-ingredientes" class="summary" style="display: none;"></div>
+      </div>
+
+      <!-- TAB: RECETAS (simplificado) -->
+      <div id="tab-recetas" class="tab-content">
+        <div class="top-bar">
+          <div>
+            <h2>Recetas</h2>
+            <p>Crea recetas y calcula costes</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.mostrarFormularioReceta()">+ Nueva Receta</button>
+        </div>
+        <div class="search-box">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="busqueda-recetas" placeholder="Buscar..." oninput="window.renderizarRecetas()">
+        </div>
+        <div id="formulario-receta" class="form-card" style="display: none;">
+          <h3>
+            <span id="form-title-receta">Nueva Receta</span>
+            <button class="close-btn" onclick="window.cerrarFormularioReceta()">×</button>
+          </h3>
+          <form onsubmit="window.guardarReceta(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" id="rec-nombre" required>
+              </div>
+              <div class="form-group">
+                <label>Categoría</label>
+                <select id="rec-categoria">
+                  <option value="entrante">Entrante</option>
+                  <option value="principal">Principal</option>
+                  <option value="postre">Postre</option>
+                  <option value="bebida">Bebida</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Precio venta (€)</label>
+                <input type="number" id="rec-precio_venta" step="0.01" min="0" oninput="window.calcularCosteReceta()">
+              </div>
+              <div class="form-group">
+                <label>Porciones</label>
+                <input type="number" id="rec-porciones" min="1" value="1">
+              </div>
+            </div>
+            <div class="ingredientes-receta">
+              <h4>Ingredientes</h4>
+              <div id="lista-ingredientes-receta"></div>
+              <button type="button" class="btn btn-secondary btn-small" onclick="window.agregarIngredienteReceta()">+ Añadir</button>
+            </div>
+            <div id="coste-calculado-form" class="coste-calculado" style="display: none;"></div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="window.cerrarFormularioReceta()">Cancelar</button>
+              <button type="submit" class="btn btn-primary"><span id="btn-text-receta">Guardar</span></button>
+            </div>
+          </form>
+        </div>
+        <div id="tabla-recetas"></div>
+        <div id="resumen-recetas" class="summary" style="display: none;"></div>
+      </div>
+
+      <!-- TAB: PROVEEDORES (simplificado) -->
+      <div id="tab-proveedores" class="tab-content">
+        <div class="top-bar">
+          <div>
+            <h2>Proveedores</h2>
+            <p>Gestiona tus proveedores</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.mostrarFormularioProveedor()">+ Añadir Proveedor</button>
+        </div>
+        <div class="search-box">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="busqueda-proveedores" placeholder="Buscar..." oninput="window.renderizarProveedores()">
+        </div>
+        <div id="formulario-proveedor" class="form-card" style="display: none;">
+          <h3>
+            <span id="form-title-proveedor">Nuevo Proveedor</span>
+            <button class="close-btn" onclick="window.cerrarFormularioProveedor()">×</button>
+          </h3>
+          <form onsubmit="window.guardarProveedor(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" id="prov-nombre" required>
+              </div>
+              <div class="form-group">
+                <label>Contacto</label>
+                <input type="text" id="prov-contacto">
+              </div>
+              <div class="form-group">
+                <label>Teléfono</label>
+                <input type="tel" id="prov-telefono">
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="prov-email">
+              </div>
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Dirección</label>
+                <textarea id="prov-direccion"></textarea>
+              </div>
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Notas</label>
+                <textarea id="prov-notas"></textarea>
+              </div>
+            </div>
+            <div class="selector-ingredientes">
+              <h4>Ingredientes que suministra</h4>
+              <div class="search-box" style="margin-bottom: 10px;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input type="text" id="buscar-ingredientes-proveedor" placeholder="Buscar..." oninput="window.filtrarIngredientesProveedor()">
+              </div>
+              <div class="ingredientes-disponibles" id="lista-ingredientes-proveedor"></div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="window.cerrarFormularioProveedor()">Cancelar</button>
+              <button type="submit" class="btn btn-primary"><span id="btn-text-proveedor">Añadir</span></button>
+            </div>
+          </form>
+        </div>
+        <div id="tabla-proveedores"></div>
+        <div id="resumen-proveedores" class="summary" style="display: none;"></div>
+      </div>
+
+      <!-- TAB: PEDIDOS -->
+      <div id="tab-pedidos" class="tab-content">
+        <div class="top-bar">
+          <div>
+            <h2>Pedidos a Proveedores</h2>
+            <p>Gestiona tus pedidos y actualiza stock automáticamente</p>
+          </div>
+          <button class="btn btn-primary" onclick="window.mostrarFormularioPedido()">+ Nuevo Pedido</button>
+        </div>
+
+        <div class="search-box">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="busqueda-pedidos" placeholder="Buscar pedidos..." oninput="window.renderizarPedidos()">
+        </div>
+
+        <div id="formulario-pedido" class="form-card" style="display: none;">
+          <h3>
+            <span>Nuevo Pedido</span>
+            <button class="close-btn" onclick="window.cerrarFormularioPedido()">×</button>
+          </h3>
+          <form onsubmit="window.guardarPedido(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Proveedor *</label>
+                <select id="ped-proveedor" required onchange="window.cargarIngredientesPedido()">
+                  <option value="">Seleccionar proveedor...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Fecha del pedido</label>
+                <input type="date" id="ped-fecha" required>
+              </div>
+            </div>
+
+            <div class="ingredientes-receta" id="container-ingredientes-pedido" style="display:none;">
+              <h4>Ingredientes del pedido</h4>
+              <div id="lista-ingredientes-pedido"></div>
+              <button type="button" class="btn btn-secondary btn-small" onclick="window.agregarIngredientePedido()">+ Añadir ingrediente</button>
+            </div>
+
+            <div id="total-pedido-form" style="display:none;" class="total-pedido">
+              Total: <strong id="total-pedido-value">0.00 €</strong>
+            </div>
+
+            <div class="form-actions" style="margin-top: 20px;">
+              <button type="button" class="btn btn-secondary" onclick="window.cerrarFormularioPedido()">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Crear Pedido</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="tabla-pedidos"></div>
+        <div id="resumen-pedidos" class="summary" style="display: none;"></div>
+      </div>
+
+      <!-- TAB: ANÁLISIS (simplificado) -->
+      <div id="tab-analisis" class="tab-content">
+        <div class="top-bar">
+          <div>
+            <h2>Análisis de Costes</h2>
+            <p>Visualiza rentabilidad y costes</p>
+          </div>
+        </div>
+        <div id="analisis-vacio" class="empty-state">
+          <div class="icon">📊</div>
+          <h3>Aún no hay datos</h3>
+          <p>Añade ingredientes y recetas</p>
+        </div>
+        <div id="analisis-contenido" style="display: none;">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h3>Total Recetas</h3>
+              <div class="value" id="stat-total-recetas">0</div>
+            </div>
+            <div class="stat-card green">
+              <h3>Margen Promedio</h3>
+              <div class="value" id="stat-margen-promedio">0%</div>
+            </div>
+            <div class="stat-card blue">
+              <h3>Coste Promedio</h3>
+              <div class="value" id="stat-coste-promedio">0 €</div>
+            </div>
+            <div class="stat-card orange">
+              <h3>Total Ingredientes</h3>
+              <div class="value" id="stat-total-ingredientes">0</div>
+            </div>
+          </div>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3>Rentabilidad por Plato</h3>
+              <canvas id="chart-rentabilidad"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3>Ingredientes Más Caros</h3>
+              <canvas id="chart-ingredientes"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>Ranking de Rentabilidad</h3>
+            <div id="tabla-rentabilidad"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: INVENTARIO -->
+      <div id="tab-inventario" class="tab-content">
+        <div class="top-bar">
+          <div>
+            <h2>📦 Inventario</h2>
+            <p>Control de stock de ingredientes</p>
+          </div>
+          <div id="resumen-inventario" style="display: none; gap: 20px;"></div>
+        </div>
+
+        <div class="card">
+          <div style="margin-bottom: 20px;">
+            <input type="text" id="busqueda-inventario" placeholder="🔍 Buscar ingrediente..." style="width: 100%; max-width: 400px;">
+          </div>
+
+          <div id="tabla-inventario"></div>
+        </div>
+      </div>
+      <!-- TAB: VENTAS -->
+<div id="tab-ventas" class="tab-content">
+  <div class="top-bar">
+    <h2>💰 Ventas</h2>
+    <p>Registro diario de ventas</p>
+  </div>
+  
+  <div class="card">
+    <h3>Registrar Venta</h3>
+    <form id="form-venta">
+      <label>Plato:</label>
+      <select id="venta-receta" required></select>
+      
+      <label>Cantidad:</label>
+      <input type="number" id="venta-cantidad" min="1" value="1" required>
+      
+      <button type="submit" class="btn btn-success">Registrar Venta</button>
+    </form>
+  </div>
+  
+  <div class="card">
+    <h3>Ventas de Hoy</h3>
+    <div id="tabla-ventas"></div>
+  </div>
+</div>
+      <!-- TAB: BALANCE -->
+<div id="tab-balance" class="tab-content">
+  <div class="top-bar">
+    <h2>💵 Balance Financiero</h2>
+    <p>Resumen de ingresos, costos y rentabilidad</p>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+  <div class="card" style="text-align: center; padding: 30px;">
+    <h4 style="margin-bottom: 10px; color: #666;">💰 Ingresos</h4>
+    <p id="balance-ingresos" style="font-size: 32px; font-weight: bold; color: #27ae60; margin: 0;">-</p>
+  </div>
+  <div class="card" style="text-align: center; padding: 30px;">
+    <h4 style="margin-bottom: 10px; color: #666;">📉 Costos</h4>
+    <p id="balance-costos" style="font-size: 32px; font-weight: bold; color: #e74c3c; margin: 0;">-</p>
+  </div>
+  <div class="card" style="text-align: center; padding: 30px;">
+    <h4 style="margin-bottom: 10px; color: #666;">💵 Ganancia</h4>
+    <p id="balance-ganancia" style="font-size: 32px; font-weight: bold; color: #3498db; margin: 0;">-</p>
+  </div>
+  <div class="card" style="text-align: center; padding: 30px;">
+    <h4 style="margin-bottom: 10px; color: #666;">📊 Margen</h4>
+    <p id="balance-margen" style="font-size: 32px; font-weight: bold; color: #9b59b6; margin: 0;">-</p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+  <div class="card">
+    <h3>📦 Valor Inventario</h3>
+    <p style="font-size: 24px; font-weight: bold; color: #f39c12; margin-top: 15px;" id="balance-inventario">-</p>
+  </div>
+  <div class="card">
+    <h3>🏆 Plato Más Vendido</h3>
+    <p style="font-size: 18px; margin-top: 15px;" id="balance-plato-vendido">-</p>
+  </div>
+</div>
+</div>
+
+    </div>
+  </div>
+  
+  <!-- Modales (simplificados) -->
+  <div id="modal-producir" class="modal">
+    <div class="modal-content">
+      <h3>Producir platos</h3>
+      <p style="margin-bottom: 20px;">¿Cuántas unidades de <strong id="modal-plato-nombre"></strong>?</p>
+      <div class="form-group">
+        <label>Cantidad</label>
+        <input type="number" id="modal-cantidad" min="1" value="1" style="width:100%;padding:10px;" oninput="window.actualizarDetalleDescuento()">
+      </div>
+      <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 6px;">
+        <strong>⚠️ Descuento de stock:</strong>
+        <div id="modal-descuento-detalle" style="margin-top: 10px;"></div>
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="window.cerrarModalProducir()">Cancelar</button>
+        <button class="btn btn-success" onclick="window.confirmarProduccion()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-ver-proveedor" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-proveedor-titulo"></h3>
+      <div id="modal-proveedor-contenido"></div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="window.cerrarModalVerProveedor()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal ver detalles pedido -->
+  <div id="modal-ver-pedido" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <h3>Detalles del Pedido</h3>
+      <div id="modal-ver-pedido-contenido"></div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="window.cerrarModalVerPedido()">Cerrar</button>
+        <button class="btn btn-primary" onclick="window.descargarPedidoPDF()" id="btn-descargar-pdf">
+          📄 Descargar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal recibir pedido -->
+  <div id="modal-recibir-pedido" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <h3>Recibir Pedido</h3>
+      <p style="margin-bottom: 20px; color: #666;">
+        Verifica las cantidades y precios recibidos. Puedes ajustar los valores si hay diferencias.
+      </p>
+      
+      <div style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <strong>Proveedor:</strong> <span id="modal-rec-proveedor"></span><br>
+        <strong>Fecha pedido:</strong> <span id="modal-rec-fecha"></span><br>
+        <strong>Total original:</strong> <span id="modal-rec-total-original"></span>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h4 style="margin-bottom: 10px;">Ingredientes del pedido:</h4>
+        <table style="font-size: 13px;">
+          <thead>
+            <tr>
+              <th>Ingrediente</th>
+              <th>Pedido</th>
+              <th>Recibido</th>
+              <th>Precio Ped.</th>
+              <th>Precio Real</th>
+              <th>Subtotal</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="modal-rec-items"></tbody>
+        </table>
+      </div>
+
+      <div style="background: #f0fdf4; border: 2px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+          <div>
+            <strong style="color: #666;">Total Original:</strong><br>
+            <span style="font-size: 20px; font-weight: bold; color: #333;" id="modal-rec-resumen-original">0.00 €</span>
+          </div>
+          <div>
+            <strong style="color: #666;">Total Recibido:</strong><br>
+            <span style="font-size: 20px; font-weight: bold; color: #059669;" id="modal-rec-resumen-recibido">0.00 €</span>
+          </div>
+          <div>
+            <strong style="color: #666;">Varianza:</strong><br>
+            <span style="font-size: 20px; font-weight: bold;" id="modal-rec-resumen-varianza">0.00 €</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn btn-secondary" onclick="window.cerrarModalRecibirPedido()">Cancelar</button>
+        <button class="btn btn-success" onclick="window.confirmarRecepcionPedido()">Confirmar Recepción</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Código JavaScript completo (por brevedad, incluyo versión funcional comprimida)
+    // El código completo está disponible en el archivo descargable
+    
+    (function() {
+      window.ingredientes = [];
+      window.recetas = [];
+      window.proveedores = [];
+      window.pedidos = [];
+      let editandoIngredienteId = null;
+      let editandoRecetaId = null;
+      let editandoProveedorId = null;
+      let recetaProduciendo = null;
+      let chartRentabilidad = null;
+      let chartIngredientes = null;
+      // === VENTAS ===
+window.renderizarVentas = async function() {
+  const select = document.getElementById('venta-receta');
+  select.innerHTML = '<option value="">Selecciona un plato...</option>';
+  window.recetas.forEach(r => {
+    select.innerHTML += `<option value="${r.id}">${r.nombre} - ${r.precio_venta}€</option>`;
+  });
+  
+  const hoy = new Date().toISOString().split('T')[0];
+  const ventas = await api.getSales(hoy);
+  
+  let html = '<table><thead><tr><th>Hora</th><th>Plato</th><th>Cantidad</th><th>Total</th></tr></thead><tbody>';
+  let totalDia = 0;
+  ventas.forEach(v => {
+    const hora = new Date(v.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+    html += `<tr><td>${hora}</td><td>${v.receta_nombre}</td><td>${v.cantidad}</td><td>${parseFloat(v.total).toFixed(2)}€</td></tr>`;
+    totalDia += parseFloat(v.total);
+  });
+  html += `</tbody></table><p><strong>Total del día: ${totalDia.toFixed(2)}€</strong></p>`;
+  document.getElementById('tabla-ventas').innerHTML = html;
+};
+// === BALANCE ===
+window.renderizarBalance = async function() {
+  try {
+    const API_URL = 'https://lacaleta-api.mindloop.cloud/api';
+    
+    // Obtener balance del mes actual
+    const resBalance = await fetch(`${API_URL}/balance/mes`);
+    const balance = await resBalance.json();
+    
+    // Actualizar métricas
+    document.getElementById('balance-ingresos').textContent = balance.ingresos.toFixed(2) + '€';
+    document.getElementById('balance-costos').textContent = balance.costos.toFixed(2) + '€';
+    document.getElementById('balance-ganancia').textContent = balance.ganancia.toFixed(2) + '€';
+    document.getElementById('balance-margen').textContent = balance.margen.toFixed(1) + '%';
+    document.getElementById('balance-inventario').textContent = balance.valor_inventario.toFixed(2) + '€';
+    
+    if (balance.plato_mas_vendido) {
+      document.getElementById('balance-plato-vendido').textContent = 
+        `${balance.plato_mas_vendido.nombre} (${balance.plato_mas_vendido.total_vendido} unidades)`;
+    } else {
+      document.getElementById('balance-plato-vendido').textContent = 'Sin ventas este mes';
+    }
+    
+  } catch (error) {
+    console.error('Error renderizando balance:', error);
+    document.getElementById('balance-ingresos').textContent = 'Error';
+    document.getElementById('balance-costos').textContent = 'Error';
+    document.getElementById('balance-ganancia').textContent = 'Error';
+    document.getElementById('balance-margen').textContent = 'Error';
+  }
+};
+
+      async function init() {
+        await cargarDatos();
+        renderizarIngredientes();
+        renderizarRecetas();
+        renderizarProveedores();
+        renderizarPedidos();
+        renderizarInventario();
+        renderizarVentas();
+        renderizarBalance();
+        document.getElementById('form-venta').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const recetaId = document.getElementById('venta-receta').value;
+      const cantidad = parseInt(document.getElementById('venta-cantidad').value);
+      
+      try {
+        await api.createSale({ recetaId, cantidad });
+        await cargarDatos();
+        renderizarVentas();
+        renderizarInventario();
+        e.target.reset();
+        alert('Venta registrada correctamente');
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    });
+
+        // Configurar fecha de hoy por defecto
+        const hoy = new Date().toISOString().split('T')[0];
+        if(document.getElementById('ped-fecha')) {
+          document.getElementById('ped-fecha').value = hoy;
+        }
+      }
+     // API helper para balance
+      window.api = {
+        async getIngredientes() {
+          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/ingredients');
+          return await res.json();
+        },
+        
+        async createIngrediente(ingrediente) {
+          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/ingredients', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ingrediente)
+          });
+          if (!res.ok) throw new Error('Error creando ingrediente');
+          return await res.json();
+        },
+        
+        async updateIngrediente(id, ingrediente) {
+          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/ingredients/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ingrediente)
+          });
+          if (!res.ok) throw new Error('Error actualizando ingrediente');
+          return await res.json();
+        },
+        
+        async deleteIngrediente(id) {
+          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/ingredients/${id}`, {
+            method: 'DELETE'
+          });
+          if (!res.ok) throw new Error('Error eliminando ingrediente');
+          return await res.json();
+        },
+        
+        async getRecetas() {
+          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/recipes');
+          return await res.json();
+        },
+        
+        async createReceta(receta) {
+          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/recipes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(receta)
+          });
+          if (!res.ok) throw new Error('Error creando receta');
+          return await res.json();
+        },
+        
+        async updateReceta(id, receta) {
+          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/recipes/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(receta)
+          });
+          if (!res.ok) throw new Error('Error actualizando receta');
+          return await res.json();
+        },
+        
+        async deleteReceta(id) {
+          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/recipes/${id}`, {
+            method: 'DELETE'
+          });
+          if (!res.ok) throw new Error('Error eliminando receta');
+          return await res.json();
+        },
+        
+        async getProveedores() {
+          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/suppliers');
+          return await res.json();
+        },
+        
+        async createProveedor(proveedor) {
+          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/suppliers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(proveedor)
+          });
+          if (!res.ok) throw new Error('Error creando proveedor');
+          return await res.json();
+        },
+        
+        async updateProveedor(id, proveedor) {
+          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/suppliers/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(proveedor)
+          });
+          if (!res.ok) throw new Error('Error actualizando proveedor');
+          return await res.json();
+        },
+        
+        async deleteProveedor(id) {
+          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/suppliers/${id}`, {
+            method: 'DELETE'
+          });
+          if (!res.ok) throw new Error('Error eliminando proveedor');
+          return await res.json();
+        },
+        
+        async getPedidos() {
+          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/orders');
+          return await res.json();
+        },
+        
+        async createPedido(pedido) {
+          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedido)
+          });
+          if (!res.ok) throw new Error('Error creando pedido');
+          return await res.json();
+        },
+        
+        async updatePedido(id, pedido) {
+          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/orders/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedido)
+          });
+          if (!res.ok) throw new Error('Error actualizando pedido');
+          return await res.json();
+        },
+        
+        async deletePedido(id) {
+          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/orders/${id}`, {
+            method: 'DELETE'
+          });
+          if (!res.ok) throw new Error('Error eliminando pedido');
+          return await res.json();
+        },
+        
+        async getSales(fecha = null) {
+          const url = fecha 
+            ? `https://lacaleta-api.mindloop.cloud/api/sales?fecha=${fecha}`
+            : 'https://lacaleta-api.mindloop.cloud/api/sales';
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Error al cargar ventas');
+          return await res.json();
+        },
+        
+        async createSale(saleData) {
+          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/sales', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(saleData)
+          });
+          if (!res.ok) throw new Error('Error al registrar venta');
+          return await res.json();
+        },
+        
+        async deleteSale(id) {
+          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/sales/${id}`, {
+            method: 'DELETE'
+          });
+          if (!res.ok) throw new Error('Error al eliminar venta');
+          return await res.json();
+        }
+      };
+
+      async function cargarDatos() {
+        try {
+          window.ingredientes = await api.getIngredientes();
+          window.recetas = await api.getRecetas();
+          window.proveedores = await api.getProveedores();
+          window.pedidos = await api.getPedidos();
+        } catch (error) {
+          console.error('Error cargando datos:', error);
+          alert('Error conectando con la API');
+        }
+      }
+
+      window.cambiarTab = function(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        document.getElementById('tab-btn-' + tab).classList.add('active');
+        document.getElementById('tab-' + tab).classList.add('active');
+
+        if (tab === 'analisis') window.renderizarAnalisis();
+        if (tab === 'pedidos') renderizarPedidos();
+        if (tab === 'inventario') window.renderizarInventario();
+        if (tab === 'ventas') window.renderizarVentas();
+        if (tab === 'balance') window.renderizarBalance();
+      };
+
+      // ========== INGREDIENTES (código completo pero resumido visualmente) ==========
+      window.mostrarFormularioIngrediente = function() {
+        actualizarSelectProveedores();
+        document.getElementById('formulario-ingrediente').style.display = 'block';
+        document.getElementById('ing-nombre').focus();
+      };
+
+      window.cerrarFormularioIngrediente = function() {
+        document.getElementById('formulario-ingrediente').style.display = 'none';
+        document.querySelector('#formulario-ingrediente form').reset();
+        editandoIngredienteId = null;
+        document.getElementById('form-title-ingrediente').textContent = 'Nuevo Ingrediente';
+        document.getElementById('btn-text-ingrediente').textContent = 'Añadir';
+      };
+
+      function actualizarSelectProveedores() {
+        const select = document.getElementById('ing-proveedor-select');
+        select.innerHTML = '<option value="">Sin proveedor</option>';
+        proveedores.forEach(prov => {
+          select.innerHTML += `<option value="${prov.id}">${prov.nombre}</option>`;
+        });
+      }
+
+      window.guardarIngrediente = async function(event) {
+        event.preventDefault();
+        
+        const ingrediente = {
+          nombre: document.getElementById('ing-nombre').value,
+          proveedorId: document.getElementById('ing-proveedor-select').value || null,
+          precio: parseFloat(document.getElementById('ing-precio').value) || 0,
+          unidad: document.getElementById('ing-unidad').value,
+          stockActual: parseFloat(document.getElementById('ing-stockActual').value) || 0,
+          stockMinimo: parseFloat(document.getElementById('ing-stockMinimo').value) || 0
+        };
+
+        try {
+          if (editandoIngredienteId !== null) {
+            await api.updateIngrediente(editandoIngredienteId, ingrediente);
+          } else {
+            await api.createIngrediente(ingrediente);
+          }
+          await cargarDatos();
+          renderizarIngredientes();
+          window.cerrarFormularioIngrediente();
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error guardando ingrediente');
+        }
+      };
+
+      window.editarIngrediente = function(id) {
+        const ing = ingredientes.find(i => i.id === id);
+        if (!ing) return;
+        
+        actualizarSelectProveedores();
+        document.getElementById('ing-nombre').value = ing.nombre;
+        document.getElementById('ing-proveedor-select').value = ing.proveedorId || '';
+        document.getElementById('ing-precio').value = ing.precio || '';
+        document.getElementById('ing-unidad').value = ing.unidad;
+        document.getElementById('ing-stockActual').value = ing.stockActual || '';
+        document.getElementById('ing-stockMinimo').value = ing.stockMinimo || '';
+        
+        editandoIngredienteId = id;
+        document.getElementById('form-title-ingrediente').textContent = 'Editar Ingrediente';
+        document.getElementById('btn-text-ingrediente').textContent = 'Guardar';
+        window.mostrarFormularioIngrediente();
+      };
+
+      window.eliminarIngrediente = async function(id) {
+        if (confirm('¿Eliminar?')) {
+          try {
+            await api.deleteIngrediente(id);
+            await cargarDatos();
+            renderizarIngredientes();
+          } catch (error) {
+            console.error('Error:', error);
+            alert('Error eliminando ingrediente');
+          }
+        }
+      };
+
+      function getNombreProveedor(proveedorId) {
+        if (!proveedorId) return '-';
+        const prov = proveedores.find(p => p.id == proveedorId);
+        return prov ? prov.nombre : '-';
+      }
+
+      window.renderizarIngredientes = function() {
+        const busqueda = document.getElementById('busqueda-ingredientes').value.toLowerCase();
+        const filtrados = ingredientes.filter(ing => {
+          const nombreProv = getNombreProveedor(ing.proveedorId).toLowerCase();
+          return ing.nombre.toLowerCase().includes(busqueda) || nombreProv.includes(busqueda);
+        });
+
+        const container = document.getElementById('tabla-ingredientes');
+        
+        if (filtrados.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📦</div>
+              <h3>${busqueda ? 'No encontrados' : 'Aún no hay ingredientes'}</h3>
+              <p>${busqueda ? 'Otra búsqueda' : 'Añade tu primer ingrediente'}</p>
+            </div>
+          `;
+          document.getElementById('resumen-ingredientes').style.display = 'none';
+        } else {
+          let html = '<table><thead><tr>';
+          html += '<th>Ingrediente</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Acciones</th>';
+          html += '</tr></thead><tbody>';
+
+          filtrados.forEach(ing => {
+            const stockBajo = ing.stockActual <= ing.stockMinimo;
+            
+            html += '<tr>';
+            html += `<td><strong>${ing.nombre}</strong></td>`;
+            html += `<td>${getNombreProveedor(ing.proveedorId)}</td>`;
+            html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad + ' -' : ''}</td>`;
+            html += `<td>`;
+            if (ing.stockActual) {
+              html += `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stockActual} ${ing.unidad}</span>`;
+              if (stockBajo && ing.stockMinimo) html += ` ⚠️`;
+            } else {
+              html += '-';
+            }
+            html += `</td>`;
+            html += `<td><div class="actions">`;
+            html += `<button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})">✏️</button>`;
+            html += `<button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})">🗑️</button>`;
+            html += '</div></td>';
+            html += '</tr>';
+          });
+
+          html += '</tbody></table>';
+          container.innerHTML = html;
+
+          document.getElementById('resumen-ingredientes').innerHTML = `
+            <div>Total: <strong>${ingredientes.length}</strong></div>
+            <div>Mostrando: <strong>${filtrados.length}</strong></div>
+          `;
+          document.getElementById('resumen-ingredientes').style.display = 'flex';
+        }
+      };
+
+      // ========== RECETAS (resumido) ==========
+      window.mostrarFormularioReceta = function() {
+        if (ingredientes.length === 0) {
+          alert('Primero añade ingredientes');
+          window.cambiarTab('ingredientes');
+          window.mostrarFormularioIngrediente();
+          return;
+        }
+        document.getElementById('formulario-receta').style.display = 'block';
+        window.agregarIngredienteReceta();
+        document.getElementById('rec-nombre').focus();
+      };
+
+      window.cerrarFormularioReceta = function() {
+        document.getElementById('formulario-receta').style.display = 'none';
+        document.querySelector('#formulario-receta form').reset();
+        document.getElementById('lista-ingredientes-receta').innerHTML = '';
+        document.getElementById('coste-calculado-form').style.display = 'none';
+        editandoRecetaId = null;
+        // Limpiar campos del formulario
+        document.getElementById('rec-nombre').value = '';
+        document.getElementById('rec-categoria').value = 'entrante';
+        document.getElementById('rec-precio_venta').value = '';
+        document.getElementById('rec-porciones').value = '1';
+        document.getElementById('lista-ingredientes-receta').innerHTML = '';
+        document.getElementById('form-title-receta').textContent = 'Nueva Receta';
+        document.getElementById('btn-text-receta').textContent = 'Guardar';
+      };
+
+      window.agregarIngredienteReceta = function() {
+        const container = document.getElementById('lista-ingredientes-receta');
+        const div = document.createElement('div');
+        div.className = 'ingrediente-item';
+        
+        let opciones = '<option value="">Seleccionar...</option>';
+        ingredientes.forEach(ing => {
+          opciones += `<option value="${ing.id}">${ing.nombre} (${ing.unidad})</option>`;
+        });
+        
+        div.innerHTML = `
+          <select onchange="window.calcularCosteReceta()">${opciones}</select>
+          <input type="number" placeholder="Cantidad" step="0.01" min="0" oninput="window.calcularCosteReceta()">
+          <span style="font-size: 12px; color: #666;"></span>
+          <button type="button" onclick="this.parentElement.remove(); window.calcularCosteReceta()">×</button>
+        `;
+        
+        container.appendChild(div);
+      };
+
+      window.calcularCosteReceta = function() {
+        const items = document.querySelectorAll('#lista-ingredientes-receta .ingrediente-item');
+        let costeTotal = 0;
+        let hayDatos = false;
+
+        items.forEach(item => {
+          const select = item.querySelector('select');
+          const input = item.querySelector('input');
+          const span = item.querySelector('span');
+          
+          if (select.value && input.value) {
+            hayDatos = true;
+            const ing = ingredientes.find(i => i.id == select.value);
+            const cantidad = parseFloat(input.value);
+            const coste = (ing.precio * cantidad).toFixed(2);
+            costeTotal += parseFloat(coste);
+            span.textContent = `${coste} €`;
+          } else {
+            span.textContent = '';
+          }
+        });
+
+        const precio_venta = parseFloat(document.getElementById('rec-precio_venta').value) || 0;
+        const margen = precio_venta - costeTotal;
+        const margenPct = precio_venta > 0 ? ((margen / precio_venta) * 100).toFixed(1) : 0;
+
+        if (hayDatos) {
+          document.getElementById('coste-calculado-form').style.display = 'block';
+          document.getElementById('coste-calculado-form').innerHTML = `
+            <h4>💰 Cálculo</h4>
+            <div class="coste-row"><span>Coste:</span><strong>${costeTotal.toFixed(2)} €</strong></div>
+            <div class="coste-row"><span>Precio:</span><strong>${precio_venta.toFixed(2)} €</strong></div>
+            <div class="coste-row"><span>Margen:</span><strong>${margen.toFixed(2)} € (${margenPct}%)</strong></div>
+          `;
+        } else {
+          document.getElementById('coste-calculado-form').style.display = 'none';
+        }
+      };
+
+      window.guardarReceta = async function(event) {
+        event.preventDefault();
+        
+        const items = document.querySelectorAll('#lista-ingredientes-receta .ingrediente-item');
+        const ingredientesReceta = [];
+        
+        items.forEach(item => {
+          const select = item.querySelector('select');
+          const input = item.querySelector('input');
+          if (select.value && input.value) {
+            ingredientesReceta.push({
+              ingredienteId: parseInt(select.value),
+              cantidad: parseFloat(input.value)
+            });
+          }
+        });
+
+        if (ingredientesReceta.length === 0) {
+          alert('Añade ingredientes');
+          return;
+        }
+
+        const receta = {
+          nombre: document.getElementById('rec-nombre').value,
+          categoria: document.getElementById('rec-categoria').value,
+          precio_venta: parseFloat(document.getElementById('rec-precio_venta').value) || 0,
+          porciones: parseInt(document.getElementById('rec-porciones').value) || 1,
+          ingredientes: ingredientesReceta
+        };
+
+        try {
+          if (editandoRecetaId !== null) {
+            await api.updateReceta(editandoRecetaId, receta);
+          } else {
+            await api.createReceta(receta);
+          }
+          await cargarDatos();
+          renderizarRecetas();
+          window.cerrarFormularioReceta();
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error guardando receta');
+        }
+      };
+
+      window.editarReceta = function(id) {
+        const rec = recetas.find(r => r.id === id);
+        if (!rec) return;
+        
+        document.getElementById('rec-nombre').value = rec.nombre;
+        document.getElementById('rec-categoria').value = rec.categoria;
+        document.getElementById('rec-precio_venta').value = rec.precio_venta;
+        document.getElementById('rec-porciones').value = rec.porciones;
+        
+        document.getElementById('lista-ingredientes-receta').innerHTML = '';
+        rec.ingredientes.forEach(item => {
+          window.agregarIngredienteReceta();
+          const lastItem = document.querySelector('#lista-ingredientes-receta .ingrediente-item:last-child');
+          lastItem.querySelector('select').value = item.ingredienteId;
+          lastItem.querySelector('input').value = item.cantidad;
+        });
+        
+        window.calcularCosteReceta();
+        editandoRecetaId = id;
+        document.getElementById('form-title-receta').textContent = 'Editar';
+        document.getElementById('btn-text-receta').textContent = 'Guardar';
+        window.mostrarFormularioReceta();
+      };
+
+      window.eliminarReceta = async function(id) {
+        if (confirm('¿Eliminar?')) {
+          try {
+            await api.deleteReceta(id);
+            await cargarDatos();
+            renderizarRecetas();
+          } catch (error) {
+            console.error('Error:', error);
+            alert('Error eliminando receta');
+          }
+        }
+      };
+
+      function calcularCosteRecetaCompleto(receta) {
+        let total = 0;
+        receta.ingredientes.forEach(item => {
+          const ing = ingredientes.find(i => i.id === item.ingredienteId);
+          if (ing) total += ing.precio * item.cantidad;
+        });
+        return total;
+      }
+
+      window.renderizarRecetas = function() {
+        const busqueda = document.getElementById('busqueda-recetas').value.toLowerCase();
+        const filtradas = recetas.filter(r => r.nombre.toLowerCase().includes(busqueda));
+
+        const container = document.getElementById('tabla-recetas');
+        
+        if (filtradas.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">👨‍🍳</div>
+              <h3>${busqueda ? 'No encontradas' : 'Aún no hay recetas'}</h3>
+            </div>
+          `;
+          document.getElementById('resumen-recetas').style.display = 'none';
+        } else {
+          let html = '<table><thead><tr>';
+          html += '<th>Plato</th><th>Categoría</th><th>Coste</th><th>Precio</th><th>Margen</th><th>Acciones</th>';
+          html += '</tr></thead><tbody>';
+
+          filtradas.forEach(rec => {
+            const coste = calcularCosteRecetaCompleto(rec);
+            const margen = rec.precio_venta - coste;
+            const pct = rec.precio_venta > 0 ? ((margen/rec.precio_venta)*100).toFixed(0) : 0;
+            
+            html += '<tr>';
+            html += `<td><strong>${rec.nombre}</strong></td>`;
+            html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
+            html += `<td>${coste.toFixed(2)} €</td>`;
+            html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
+            html += `<td><span class="badge ${margen>0?'badge-success':'badge-warning'}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
+            html += `<td><div class="actions">`;
+            html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
+            html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
+            html += `<button class="icon-btn delete" onclick="window.eliminarReceta(${rec.id})">🗑️</button>`;
+            html += '</div></td>';
+            html += '</tr>';
+          });
+
+          html += '</tbody></table>';
+          container.innerHTML = html;
+
+          document.getElementById('resumen-recetas').innerHTML = `
+            <div>Total: <strong>${recetas.length}</strong></div>
+            <div>Mostrando: <strong>${filtradas.length}</strong></div>
+          `;
+          document.getElementById('resumen-recetas').style.display = 'flex';
+        }
+      };
+
+      // ========== PRODUCCIÓN ==========
+      window.abrirModalProducir = function(id) {
+        recetaProduciendo = id;
+        const rec = recetas.find(r => r.id === id);
+        document.getElementById('modal-plato-nombre').textContent = rec.nombre;
+        document.getElementById('modal-cantidad').value = 1;
+        window.actualizarDetalleDescuento();
+        document.getElementById('modal-producir').classList.add('active');
+      };
+
+      window.cerrarModalProducir = function() {
+        document.getElementById('modal-producir').classList.remove('active');
+        recetaProduciendo = null;
+      };
+
+      window.actualizarDetalleDescuento = function() {
+        if (recetaProduciendo === null) return;
+        const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
+        const rec = recetas.find(r => r.id === recetaProduciendo);
+        let html = '<ul style="margin:0;padding-left:20px;">';
+        rec.ingredientes.forEach(item => {
+          const ing = ingredientes.find(i => i.id === item.ingredienteId);
+          if (ing) html += `<li>${ing.nombre}: -${item.cantidad*cant} ${ing.unidad}</li>`;
+        });
+        html += '</ul>';
+        document.getElementById('modal-descuento-detalle').innerHTML = html;
+      };
+
+      window.confirmarProduccion = async function() {
+        if (recetaProduciendo === null) return;
+        const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
+        const rec = recetas.find(r => r.id === recetaProduciendo);
+        
+        let falta = false;
+        let msg = 'Stock insuficiente:\n';
+        rec.ingredientes.forEach(item => {
+          const ing = ingredientes.find(i => i.id === item.ingredienteId);
+          if (ing) {
+            const necesario = item.cantidad * cant;
+            if (ing.stockActual < necesario) {
+              falta = true;
+              msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${ing.stockActual}\n`;
+            }
+          }
+        });
+        
+        if (falta) {
+          alert(msg);
+          return;
+        }
+        
+        try {
+          for (const item of rec.ingredientes) {
+            const ing = ingredientes.find(i => i.id === item.ingredienteId);
+            if (ing) {
+              const nuevoStock = Math.max(0, ing.stockActual - (item.cantidad * cant));
+              await api.updateIngrediente(ing.id, {
+                ...ing,
+                stockActual: nuevoStock
+              });
+            }
+          }
+          
+          await cargarDatos();
+          renderizarIngredientes();
+          window.cerrarModalProducir();
+          alert(`✅ Producidas ${cant} unidades de ${rec.nombre}`);
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error actualizando stock');
+        }
+      };
+
+      // ========== PROVEEDORES (resumido) ==========
+      window.mostrarFormularioProveedor = function() {
+        document.getElementById('formulario-proveedor').style.display = 'block';
+        cargarIngredientesProveedor();
+        document.getElementById('prov-nombre').focus();
+      };
+
+      window.cerrarFormularioProveedor = function() {
+        document.getElementById('formulario-proveedor').style.display = 'none';
+        document.querySelector('#formulario-proveedor form').reset();
+        editandoProveedorId = null;
+        document.getElementById('form-title-proveedor').textContent = 'Nuevo Proveedor';
+        document.getElementById('btn-text-proveedor').textContent = 'Añadir';
+      };
+
+      function cargarIngredientesProveedor(seleccionados = []) {
+        const container = document.getElementById('lista-ingredientes-proveedor');
+        if (ingredientes.length === 0) {
+          container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">Primero añade ingredientes</p>';
+          return;
+        }
+
+        const busqueda = document.getElementById('buscar-ingredientes-proveedor').value.toLowerCase();
+        const filtrados = ingredientes.filter(ing => ing.nombre.toLowerCase().includes(busqueda));
+
+        let html = '';
+        filtrados.forEach(ing => {
+          const checked = seleccionados.includes(ing.id) ? 'checked' : '';
+          html += `
+            <div class="ingrediente-checkbox">
+              <input type="checkbox" id="check-ing-${ing.id}" value="${ing.id}" ${checked}>
+              <label for="check-ing-${ing.id}">${ing.nombre}</label>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html || '<p style="color:#999;padding:10px;">Sin resultados</p>';
+      }
+
+      window.filtrarIngredientesProveedor = function() {
+        const checks = document.querySelectorAll('#lista-ingredientes-proveedor input[type="checkbox"]:checked');
+        const seleccionados = Array.from(checks).map(c => parseInt(c.value));
+        cargarIngredientesProveedor(seleccionados);
+      };
+
+      window.guardarProveedor = async function(event) {
+        event.preventDefault();
+
+        const checks = document.querySelectorAll('#lista-ingredientes-proveedor input[type="checkbox"]:checked');
+        const ingredientesIds = Array.from(checks).map(c => parseInt(c.value));
+
+        const proveedor = {
+          nombre: document.getElementById('prov-nombre').value,
+          contacto: document.getElementById('prov-contacto').value,
+          telefono: document.getElementById('prov-telefono').value,
+          email: document.getElementById('prov-email').value,
+          direccion: document.getElementById('prov-direccion').value,
+          notas: document.getElementById('prov-notas').value,
+          ingredientes: ingredientesIds
+        };
+
+        try {
+          if (editandoProveedorId !== null) {
+            await api.updateProveedor(editandoProveedorId, proveedor);
+          } else {
+            await api.createProveedor(proveedor);
+          }
+          await cargarDatos();
+          renderizarProveedores();
+          window.cerrarFormularioProveedor();
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error guardando proveedor');
+        }
+      };
+
+      window.editarProveedor = function(id) {
+        const prov = proveedores.find(p => p.id === id);
+        if (!prov) return;
+        
+        document.getElementById('prov-nombre').value = prov.nombre;
+        document.getElementById('prov-contacto').value = prov.contacto || '';
+        document.getElementById('prov-telefono').value = prov.telefono || '';
+        document.getElementById('prov-email').value = prov.email || '';
+        document.getElementById('prov-direccion').value = prov.direccion || '';
+        document.getElementById('prov-notas').value = prov.notas || '';
+        
+        cargarIngredientesProveedor(prov.ingredientes || []);
+        
+        editandoProveedorId = id;
+        document.getElementById('form-title-proveedor').textContent = 'Editar';
+        document.getElementById('btn-text-proveedor').textContent = 'Guardar';
+        window.mostrarFormularioProveedor();
+      };
+
+      window.eliminarProveedor = async function(id) {
+        if (confirm('¿Eliminar?')) {
+          try {
+            await api.deleteProveedor(id);
+            await cargarDatos();
+            renderizarProveedores();
+            renderizarIngredientes();
+          } catch (error) {
+            console.error('Error:', error);
+            alert('Error eliminando proveedor');
+          }
+        }
+      };
+
+      window.verProveedorDetalles = function(id) {
+        const prov = proveedores.find(p => p.id === id);
+        if (!prov) return;
+        
+        document.getElementById('modal-proveedor-titulo').textContent = prov.nombre;
+        
+        let html = '<div style="margin-bottom:20px;">';
+        if (prov.contacto) html += `<p><strong>Contacto:</strong> ${prov.contacto}</p>`;
+        if (prov.telefono) html += `<p><strong>Teléfono:</strong> ${prov.telefono}</p>`;
+        if (prov.email) html += `<p><strong>Email:</strong> ${prov.email}</p>`;
+        if (prov.direccion) html += `<p><strong>Dirección:</strong> ${prov.direccion}</p>`;
+        if (prov.notas) html += `<p><strong>Notas:</strong> ${prov.notas}</p>`;
+        html += '</div>';
+
+        html += '<h4 style="margin-top:20px;margin-bottom:10px;">Ingredientes:</h4>';
+        if (prov.ingredientes && prov.ingredientes.length > 0) {
+          html += '<div class="ingredientes-list">';
+          prov.ingredientes.forEach(ingId => {
+            const ing = ingredientes.find(i => i.id === ingId);
+            if (ing) html += `<span class="badge">${ing.nombre}</span>`;
+          });
+          html += '</div>';
+        } else {
+          html += '<p style="color:#999;">Sin ingredientes</p>';
+        }
+
+        document.getElementById('modal-proveedor-contenido').innerHTML = html;
+        document.getElementById('modal-ver-proveedor').classList.add('active');
+      };
+
+      window.cerrarModalVerProveedor = function() {
+        document.getElementById('modal-ver-proveedor').classList.remove('active');
+      };
+
+      window.renderizarProveedores = function() {
+        const busqueda = document.getElementById('busqueda-proveedores').value.toLowerCase();
+        const filtrados = proveedores.filter(p => p.nombre.toLowerCase().includes(busqueda));
+
+        const container = document.getElementById('tabla-proveedores');
+        
+        if (filtrados.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">🚚</div>
+              <h3>${busqueda ? 'No encontrados' : 'Aún no hay proveedores'}</h3>
+            </div>
+          `;
+          document.getElementById('resumen-proveedores').style.display = 'none';
+        } else {
+          let html = '<table><thead><tr>';
+          html += '<th>Proveedor</th><th>Contacto</th><th>Teléfono</th><th>Ingredientes</th><th>Acciones</th>';
+          html += '</tr></thead><tbody>';
+
+          filtrados.forEach(prov => {
+            const numIng = prov.ingredientes ? prov.ingredientes.length : 0;
+            
+            html += '<tr>';
+            html += `<td><strong>${prov.nombre}</strong></td>`;
+            html += `<td>${prov.contacto || '-'}</td>`;
+            html += `<td>${prov.telefono || '-'}</td>`;
+            html += `<td><span class="badge badge-info">${numIng}</span></td>`;
+            html += `<td><div class="actions">`;
+            html += `<button class="icon-btn view" onclick="window.verProveedorDetalles(${prov.id})">👁️</button>`;
+            html += `<button class="icon-btn edit" onclick="window.editarProveedor(${prov.id})">✏️</button>`;
+            html += `<button class="icon-btn delete" onclick="window.eliminarProveedor(${prov.id})">🗑️</button>`;
+            html += '</div></td>';
+            html += '</tr>';
+          });
+
+          html += '</tbody></table>';
+          container.innerHTML = html;
+
+          document.getElementById('resumen-proveedores').innerHTML = `
+            <div>Total: <strong>${proveedores.length}</strong></div>
+            <div>Mostrando: <strong>${filtrados.length}</strong></div>
+          `;
+          document.getElementById('resumen-proveedores').style.display = 'flex';
+        }
+      };
+
+      // ========== PEDIDOS ==========
+      window.mostrarFormularioPedido = function() {
+        if (proveedores.length === 0) {
+          alert('Primero añade proveedores');
+          window.cambiarTab('proveedores');
+          return;
+        }
+        
+        // Cargar select de proveedores
+        const select = document.getElementById('ped-proveedor');
+        select.innerHTML = '<option value="">Seleccionar proveedor...</option>';
+        proveedores.forEach(prov => {
+          select.innerHTML += `<option value="${prov.id}">${prov.nombre}</option>`;
+        });
+        
+        document.getElementById('formulario-pedido').style.display = 'block';
+        document.getElementById('ped-proveedor').focus();
+      };
+
+      window.cerrarFormularioPedido = function() {
+        document.getElementById('formulario-pedido').style.display = 'none';
+        document.querySelector('#formulario-pedido form').reset();
+        document.getElementById('container-ingredientes-pedido').style.display = 'none';
+        document.getElementById('lista-ingredientes-pedido').innerHTML = '';
+        document.getElementById('total-pedido-form').style.display = 'none';
+      };
+
+      window.cargarIngredientesPedido = function() {
+        const proveedorId = parseInt(document.getElementById('ped-proveedor').value);
+        if (!proveedorId) {
+          document.getElementById('container-ingredientes-pedido').style.display = 'none';
+          return;
+        }
+
+        const proveedor = proveedores.find(p => p.id === proveedorId);
+        if (!proveedor || !proveedor.ingredientes || proveedor.ingredientes.length === 0) {
+          document.getElementById('container-ingredientes-pedido').style.display = 'none';
+          alert('Este proveedor no tiene ingredientes asignados');
+          return;
+        }
+
+        document.getElementById('container-ingredientes-pedido').style.display = 'block';
+        document.getElementById('lista-ingredientes-pedido').innerHTML = '';
+        window.agregarIngredientePedido();
+      };
+
+      window.agregarIngredientePedido = function() {
+        const proveedorId = parseInt(document.getElementById('ped-proveedor').value);
+        if (!proveedorId) return;
+
+        const proveedor = proveedores.find(p => p.id === proveedorId);
+        const ingredientesProveedor = ingredientes.filter(ing => 
+          proveedor.ingredientes.includes(ing.id)
+        );
+
+        const container = document.getElementById('lista-ingredientes-pedido');
+        const div = document.createElement('div');
+        div.className = 'ingrediente-item';
+        
+        let opciones = '<option value="">Seleccionar...</option>';
+        ingredientesProveedor.forEach(ing => {
+          opciones += `<option value="${ing.id}">${ing.nombre} (${ing.precio.toFixed(2)}€/${ing.unidad})</option>`;
+        });
+        
+        div.innerHTML = `
+          <select onchange="window.calcularTotalPedido()">${opciones}</select>
+          <input type="number" placeholder="Cantidad" step="0.01" min="0" oninput="window.calcularTotalPedido()">
+          <span style="font-size: 12px; color: #666;"></span>
+          <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()">×</button>
+        `;
+        
+        container.appendChild(div);
+      };
+
+      window.calcularTotalPedido = function() {
+        const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
+        let total = 0;
+        let hayDatos = false;
+
+        items.forEach(item => {
+          const select = item.querySelector('select');
+          const input = item.querySelector('input');
+          const span = item.querySelector('span');
+          
+          if (select.value && input.value) {
+            hayDatos = true;
+            const ing = ingredientes.find(i => i.id == select.value);
+            const cantidad = parseFloat(input.value);
+            const subtotal = ing.precio * cantidad;
+            total += subtotal;
+            span.textContent = `${subtotal.toFixed(2)} €`;
+          } else {
+            span.textContent = '';
+          }
+        });
+
+        if (hayDatos) {
+          document.getElementById('total-pedido-form').style.display = 'block';
+          document.getElementById('total-pedido-value').textContent = total.toFixed(2) + ' €';
+        } else {
+          document.getElementById('total-pedido-form').style.display = 'none';
+        }
+      };
+
+      window.guardarPedido = async function(event) {
+        event.preventDefault();
+
+        const proveedorId = parseInt(document.getElementById('ped-proveedor').value);
+        const fecha = document.getElementById('ped-fecha').value;
+
+        const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
+        const ingredientesPedido = [];
+        let total = 0;
+
+        items.forEach(item => {
+          const select = item.querySelector('select');
+          const input = item.querySelector('input');
+          if (select.value && input.value) {
+            const ing = ingredientes.find(i => i.id == select.value);
+            const cantidad = parseFloat(input.value);
+            const subtotal = ing.precio * cantidad;
+            total += subtotal;
+            
+            ingredientesPedido.push({
+              ingredienteId: ing.id,
+              cantidad: cantidad,
+              precioUnitario: ing.precio,
+              subtotal: subtotal
+            });
+          }
+        });
+
+        if (ingredientesPedido.length === 0) {
+          alert('Añade ingredientes al pedido');
+          return;
+        }
+
+        const pedido = {
+          proveedorId: proveedorId,
+          fecha: fecha,
+          ingredientes: ingredientesPedido,
+          total: total,
+          estado: 'pendiente'
+        };
+
+        try {
+          await api.createPedido(pedido);
+          await cargarDatos();
+          renderizarPedidos();
+          window.cerrarFormularioPedido();
+          alert('✅ Pedido creado');
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error creando pedido');
+        }
+      };
+
+      let pedidoRecibiendoId = null;
+
+      window.marcarPedidoRecibido = function(id) {
+        pedidoRecibiendoId = id;
+        const pedido = pedidos.find(p => p.id === id);
+        const prov = proveedores.find(p => p.id === pedido.proveedorId);
+
+        // Llenar información del pedido
+        document.getElementById('modal-rec-proveedor').textContent = prov ? prov.nombre : 'Desconocido';
+        document.getElementById('modal-rec-fecha').textContent = new Date(pedido.fecha).toLocaleDateString('es-ES');
+        document.getElementById('modal-rec-total-original').textContent = pedido.total.toFixed(2) + ' €';
+
+        // Crear copia de items para edición
+        if (!pedido.itemsRecepcion) {
+          pedido.itemsRecepcion = pedido.ingredientes.map(item => ({
+            ...item,
+            cantidadRecibida: item.cantidad,
+            precioReal: item.precioUnitario,
+            estado: 'consolidado'
+          }));
+        }
+
+        renderItemsRecepcion();
+        document.getElementById('modal-recibir-pedido').classList.add('active');
+      };
+
+      function renderItemsRecepcion() {
+        const pedido = pedidos.find(p => p.id === pedidoRecibiendoId);
+        const tbody = document.getElementById('modal-rec-items');
+        
+        let html = '';
+        let totalOriginal = 0;
+        let totalRecibido = 0;
+
+        pedido.itemsRecepcion.forEach((item, idx) => {
+          const ing = ingredientes.find(i => i.id === item.ingredienteId);
+          if (!ing) return;
+
+          const subtotalOriginal = item.cantidad * item.precioUnitario;
+          const subtotalRecibido = item.cantidadRecibida * item.precioReal;
+          totalOriginal += subtotalOriginal;
+          
+          if (item.estado !== 'no-entregado') {
+            totalRecibido += subtotalRecibido;
+          }
+
+          const varianzaCant = item.cantidadRecibida - item.cantidad;
+          const varianzaPrecio = item.precioReal - item.precioUnitario;
+
+          html += '<tr>';
+          html += `<td><strong>${ing.nombre}</strong></td>`;
+          html += `<td>${item.cantidad} ${ing.unidad}</td>`;
+          html += `<td>`;
+          if (item.estado === 'no-entregado') {
+            html += '<span style="color:#999;">No entregado</span>';
+          } else {
+            html += `<input type="number" value="${item.cantidadRecibida}" step="0.01" min="0" 
+              style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"
+              onchange="window.actualizarItemRecepcion(${idx}, 'cantidad', this.value)"> ${ing.unidad}`;
+            if (Math.abs(varianzaCant) > 0.01) {
+              html += `<br><small style="color:${varianzaCant > 0 ? '#10b981' : '#ef4444'};">${varianzaCant > 0 ? '+' : ''}${varianzaCant.toFixed(2)}</small>`;
+            }
+          }
+          html += `</td>`;
+          html += `<td>${item.precioUnitario.toFixed(2)} €</td>`;
+          html += `<td>`;
+          if (item.estado === 'no-entregado') {
+            html += '<span style="color:#999;">-</span>';
+          } else {
+            html += `<input type="number" value="${item.precioReal}" step="0.01" min="0" 
+              style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"
+              onchange="window.actualizarItemRecepcion(${idx}, 'precio', this.value)"> €`;
+            if (Math.abs(varianzaPrecio) > 0.01) {
+              html += `<br><small style="color:${varianzaPrecio > 0 ? '#ef4444' : '#10b981'};">${varianzaPrecio > 0 ? '+' : ''}${varianzaPrecio.toFixed(2)} €</small>`;
+            }
+          }
+          html += `</td>`;
+          html += `<td><strong>${item.estado === 'no-entregado' ? '0.00' : subtotalRecibido.toFixed(2)} €</strong></td>`;
+          html += `<td>`;
+          html += `<select onchange="window.cambiarEstadoItem(${idx}, this.value)" style="padding:5px;border:1px solid #ddd;border-radius:4px;">`;
+          html += `<option value="consolidado" ${item.estado === 'consolidado' ? 'selected' : ''}>✅ OK</option>`;
+          html += `<option value="varianza" ${item.estado === 'varianza' ? 'selected' : ''}>⚠️ Varianza</option>`;
+          html += `<option value="no-entregado" ${item.estado === 'no-entregado' ? 'selected' : ''}>❌ No entregado</option>`;
+          html += `</select>`;
+          html += `</td>`;
+          html += '</tr>';
+        });
+
+        tbody.innerHTML = html;
+
+        // Actualizar resumen
+        const varianza = totalRecibido - totalOriginal;
+        document.getElementById('modal-rec-resumen-original').textContent = totalOriginal.toFixed(2) + ' €';
+        document.getElementById('modal-rec-resumen-recibido').textContent = totalRecibido.toFixed(2) + ' €';
+        
+        const varianzaEl = document.getElementById('modal-rec-resumen-varianza');
+        varianzaEl.textContent = (varianza >= 0 ? '+' : '') + varianza.toFixed(2) + ' €';
+        varianzaEl.style.color = varianza > 0 ? '#ef4444' : varianza < 0 ? '#10b981' : '#666';
+      }
+
+      window.actualizarItemRecepcion = function(idx, tipo, valor) {
+        const pedido = pedidos.find(p => p.id === pedidoRecibiendoId);
+        const item = pedido.itemsRecepcion[idx];
+        
+        if (tipo === 'cantidad') {
+          item.cantidadRecibida = parseFloat(valor) || 0;
+          if (Math.abs(item.cantidadRecibida - item.cantidad) > 0.01) {
+            item.estado = 'varianza';
+          } else if (item.estado === 'varianza') {
+            item.estado = 'consolidado';
+          }
+        } else if (tipo === 'precio') {
+          item.precioReal = parseFloat(valor) || 0;
+          if (Math.abs(item.precioReal - item.precioUnitario) > 0.01) {
+            item.estado = 'varianza';
+          } else if (item.estado === 'varianza') {
+            item.estado = 'consolidado';
+          }
+        }
+        
+        renderItemsRecepcion();
+      };
+
+      window.cambiarEstadoItem = function(idx, estado) {
+        const pedido = pedidos.find(p => p.id === pedidoRecibiendoId);
+        pedido.itemsRecepcion[idx].estado = estado;
+        renderItemsRecepcion();
+      };
+
+      window.cerrarModalRecibirPedido = function() {
+        document.getElementById('modal-recibir-pedido').classList.remove('active');
+        pedidoRecibiendoId = null;
+      };
+
+      window.confirmarRecepcionPedido = async function() {
+        if (!confirm('¿Confirmar recepción del pedido? Esto actualizará el stock con las cantidades recibidas.')) return;
+
+        const pedido = pedidos.find(p => p.id === pedidoRecibiendoId);
+        
+        // Actualizar stock con cantidades reales recibidas
+        let totalRecibido = 0;
+        
+        try {
+          for (const item of pedido.itemsRecepcion) {
+            if (item.estado !== 'no-entregado') {
+              const ing = ingredientes.find(i => i.id === item.ingredienteId);
+              if (ing) {
+                await api.updateIngrediente(ing.id, {
+                  ...ing,
+                  stockActual: ing.stockActual + item.cantidadRecibida
+                });
+              }
+              totalRecibido += item.cantidadRecibida * item.precioReal;
+            }
+          }
+
+          // Actualizar pedido
+          await api.updatePedido(pedidoRecibiendoId, {
+            ...pedido,
+            estado: 'recibido',
+            totalRecibido: totalRecibido,
+            ingredientes: pedido.itemsRecepcion
+          });
+
+          await cargarDatos();
+          renderizarPedidos();
+          renderizarIngredientes();
+          window.cerrarModalRecibirPedido();
+          
+          alert('✅ Pedido recibido y stock actualizado correctamente');
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error confirmando recepción');
+        }
+      };
+
+      window.eliminarPedido = async function(id) {
+        if (confirm('¿Eliminar este pedido?')) {
+          try {
+            await api.deletePedido(id);
+            await cargarDatos();
+            renderizarPedidos();
+          } catch (error) {
+            console.error('Error:', error);
+            alert('Error eliminando pedido');
+          }
+        }
+      };
+
+      let pedidoViendoId = null;
+
+      window.verDetallesPedido = function(id) {
+        pedidoViendoId = id;
+        const pedido = pedidos.find(p => p.id === id);
+        const prov = proveedores.find(p => p.id === pedido.proveedorId);
+
+        let html = '<div style="background: #f8f8f8; padding: 20px; border-radius: 8px; margin-bottom: 20px;">';
+        html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">';
+        html += `<div><strong>Proveedor:</strong><br>${prov ? prov.nombre : 'Desconocido'}</div>`;
+        html += `<div><strong>Fecha:</strong><br>${new Date(pedido.fecha).toLocaleDateString('es-ES')}</div>`;
+        html += `<div><strong>Estado:</strong><br><span class="badge ${pedido.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${pedido.estado === 'recibido' ? 'Recibido' : 'Pendiente'}</span></div>`;
+        if (pedido.estado === 'recibido' && pedido.fechaRecepcion) {
+          html += `<div><strong>Recibido:</strong><br>${new Date(pedido.fechaRecepcion).toLocaleDateString('es-ES')}</div>`;
+        }
+        html += '</div></div>';
+
+        html += '<h4 style="margin-bottom: 15px;">Ingredientes del pedido:</h4>';
+        html += '<table style="font-size: 14px;"><thead><tr>';
+        html += '<th>Ingrediente</th><th>Cantidad</th><th>Precio Unit.</th><th>Subtotal</th>';
+        
+        if (pedido.estado === 'recibido' && pedido.itemsRecepcion) {
+          html += '<th>Estado</th>';
+        }
+        
+        html += '</tr></thead><tbody>';
+
+        const items = pedido.estado === 'recibido' && pedido.ingredientes[0].cantidadRecibida !== undefined 
+          ? pedido.ingredientes 
+          : pedido.ingredientes;
+
+        let totalPedido = 0;
+        let totalRecibido = 0;
+
+        items.forEach(item => {
+          const ing = ingredientes.find(i => i.id === item.ingredienteId);
+          if (!ing) return;
+
+          const esRecibido = pedido.estado === 'recibido' && item.cantidadRecibida !== undefined;
+          const cantidad = esRecibido ? item.cantidadRecibida : item.cantidad;
+          const precio = esRecibido && item.precioReal ? item.precioReal : item.precioUnitario;
+          const subtotal = cantidad * precio;
+
+          if (esRecibido && item.estado !== 'no-entregado') {
+            totalRecibido += subtotal;
+          } else if (!esRecibido) {
+            totalPedido += subtotal;
+          }
+
+          html += '<tr>';
+          html += `<td><strong>${ing.nombre}</strong></td>`;
+          html += `<td>${cantidad} ${ing.unidad}`;
+          
+          // Mostrar varianza si es recibido y hay diferencia
+          if (esRecibido && item.cantidad && Math.abs(cantidad - item.cantidad) > 0.01) {
+            const diff = cantidad - item.cantidad;
+            html += `<br><small style="color:${diff > 0 ? '#10b981' : '#ef4444'};">(${diff > 0 ? '+' : ''}${diff.toFixed(2)})</small>`;
+          }
+          
+          html += `</td>`;
+          html += `<td>${precio.toFixed(2)} €/${ing.unidad}`;
+          
+          // Mostrar varianza de precio
+          if (esRecibido && item.precioUnitario && Math.abs(precio - item.precioUnitario) > 0.01) {
+            const diff = precio - item.precioUnitario;
+            html += `<br><small style="color:${diff > 0 ? '#ef4444' : '#10b981'};">(${diff > 0 ? '+' : ''}${diff.toFixed(2)} €)</small>`;
+          }
+          
+          html += `</td>`;
+          html += `<td><strong>${item.estado === 'no-entregado' ? '0.00' : subtotal.toFixed(2)} €</strong></td>`;
+          
+          if (esRecibido) {
+            let estadoText = '';
+            if (item.estado === 'consolidado') estadoText = '✅ OK';
+            else if (item.estado === 'varianza') estadoText = '⚠️ Varianza';
+            else if (item.estado === 'no-entregado') estadoText = '❌ No entregado';
+            html += `<td>${estadoText}</td>`;
+          }
+          
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+
+        // Resumen de totales
+        const total = pedido.estado === 'recibido' && pedido.totalRecibido ? pedido.totalRecibido : pedido.total;
+        
+        html += '<div style="margin-top: 20px; padding: 20px; background: #f0fdf4; border: 2px solid #10b981; border-radius: 8px;">';
+        
+        if (pedido.estado === 'recibido' && pedido.totalRecibido !== undefined) {
+          const varianza = pedido.totalRecibido - pedido.total;
+          html += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; text-align: center;">';
+          html += `<div><strong style="color:#666;">Total Original</strong><br><span style="font-size:20px;font-weight:bold;">${pedido.total.toFixed(2)} €</span></div>`;
+          html += `<div><strong style="color:#666;">Total Recibido</strong><br><span style="font-size:20px;font-weight:bold;color:#059669;">${pedido.totalRecibido.toFixed(2)} €</span></div>`;
+          html += `<div><strong style="color:#666;">Varianza</strong><br><span style="font-size:20px;font-weight:bold;color:${varianza >= 0 ? '#ef4444' : '#10b981'};">${varianza >= 0 ? '+' : ''}${varianza.toFixed(2)} €</span></div>`;
+          html += '</div>';
+        } else {
+          html += `<div style="text-align: right;"><strong style="color:#666;">Total del Pedido:</strong><br><span style="font-size:24px;font-weight:bold;color:#059669;">${total.toFixed(2)} €</span></div>`;
+        }
+        
+        html += '</div>';
+
+        document.getElementById('modal-ver-pedido-contenido').innerHTML = html;
+        document.getElementById('modal-ver-pedido').classList.add('active');
+      };
+
+      window.cerrarModalVerPedido = function() {
+        document.getElementById('modal-ver-pedido').classList.remove('active');
+        pedidoViendoId = null;
+      };
+
+      window.descargarPedidoPDF = function() {
+        if (pedidoViendoId === null) return;
+        
+        const pedido = pedidos.find(p => p.id === pedidoViendoId);
+        const prov = proveedores.find(p => p.id === pedido.proveedorId);
+
+        // Crear HTML para imprimir
+        let htmlPrint = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Pedido - La Caleta 102</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; }
+    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #c35a3f; padding-bottom: 20px; }
+    .header h1 { color: #c35a3f; margin: 0; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; background: #f8f8f8; padding: 20px; border-radius: 5px; }
+    .info-item { margin-bottom: 10px; }
+    .info-item strong { display: block; color: #666; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: #f8f8f8; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 12px; color: #666; }
+    td { padding: 12px; border-bottom: 1px solid #eee; }
+    .total-box { background: #f0fdf4; border: 2px solid #10b981; padding: 20px; border-radius: 5px; text-align: right; }
+    .total-box strong { font-size: 24px; color: #059669; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .badge-received { background: #d1fae5; color: #059669; }
+    .badge-pending { background: #fef3c7; color: #d97706; }
+    .varianza { font-size: 11px; }
+    .varianza.pos { color: #10b981; }
+    .varianza.neg { color: #ef4444; }
+    @media print {
+      body { padding: 20px; }
+      button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>La Caleta 102</h1>
+    <p>Pedido a Proveedor</p>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-item">
+      <strong>Proveedor</strong>
+      ${prov ? prov.nombre : 'Desconocido'}
+    </div>
+    <div class="info-item">
+      <strong>Fecha del Pedido</strong>
+      ${new Date(pedido.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+    </div>
+    <div class="info-item">
+      <strong>Estado</strong>
+      <span class="badge ${pedido.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">
+        ${pedido.estado === 'recibido' ? 'Recibido' : 'Pendiente'}
+      </span>
+    </div>
+    ${pedido.estado === 'recibido' && pedido.fechaRecepcion ? `
+    <div class="info-item">
+      <strong>Fecha de Recepción</strong>
+      ${new Date(pedido.fechaRecepcion).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+    </div>
+    ` : ''}
+  </div>
+
+  <h3>Detalle del Pedido</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Ingrediente</th>
+        <th>Cantidad</th>
+        <th>Precio Unitario</th>
+        <th>Subtotal</th>
+        ${pedido.estado === 'recibido' ? '<th>Estado</th>' : ''}
+      </tr>
+    </thead>
+    <tbody>`;
+
+        const items = pedido.ingredientes;
+        let totalFinal = 0;
+
+        items.forEach(item => {
+          const ing = ingredientes.find(i => i.id === item.ingredienteId);
+          if (!ing) return;
+
+          const esRecibido = pedido.estado === 'recibido' && item.cantidadRecibida !== undefined;
+          const cantidad = esRecibido ? item.cantidadRecibida : item.cantidad;
+          const precio = esRecibido && item.precioReal ? item.precioReal : item.precioUnitario;
+          const subtotal = cantidad * precio;
+
+          if (item.estado !== 'no-entregado') {
+            totalFinal += subtotal;
+          }
+
+          htmlPrint += '<tr>';
+          htmlPrint += `<td>${ing.nombre}</td>`;
+          htmlPrint += `<td>${cantidad} ${ing.unidad}`;
+          
+          if (esRecibido && item.cantidad && Math.abs(cantidad - item.cantidad) > 0.01) {
+            const diff = cantidad - item.cantidad;
+            htmlPrint += `<br><span class="varianza ${diff > 0 ? 'pos' : 'neg'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)})</span>`;
+          }
+          
+          htmlPrint += `</td>`;
+          htmlPrint += `<td>${precio.toFixed(2)} €/${ing.unidad}`;
+          
+          if (esRecibido && item.precioUnitario && Math.abs(precio - item.precioUnitario) > 0.01) {
+            const diff = precio - item.precioUnitario;
+            htmlPrint += `<br><span class="varianza ${diff > 0 ? 'neg' : 'pos'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)} €)</span>`;
+          }
+          
+          htmlPrint += `</td>`;
+          htmlPrint += `<td>${item.estado === 'no-entregado' ? '0.00' : subtotal.toFixed(2)} €</td>`;
+          
+          if (esRecibido) {
+            let estadoText = '';
+            if (item.estado === 'consolidado') estadoText = '✅ OK';
+            else if (item.estado === 'varianza') estadoText = '⚠️ Varianza';
+            else if (item.estado === 'no-entregado') estadoText = '❌ No entregado';
+            htmlPrint += `<td>${estadoText}</td>`;
+          }
+          
+          htmlPrint += '</tr>';
+        });
+
+        htmlPrint += '</tbody></table>';
+
+        if (pedido.estado === 'recibido' && pedido.totalRecibido !== undefined) {
+          const varianza = pedido.totalRecibido - pedido.total;
+          htmlPrint += `
+  <div class="total-box">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center;">
+      <div>
+        <strong style="color:#666;font-size:14px;">Total Original</strong><br>
+        <span style="font-size:20px;">${pedido.total.toFixed(2)} €</span>
+      </div>
+      <div>
+        <strong style="color:#059669;font-size:14px;">Total Recibido</strong><br>
+        <strong>${pedido.totalRecibido.toFixed(2)} €</strong>
+      </div>
+      <div>
+        <strong style="color:#666;font-size:14px;">Varianza</strong><br>
+        <span style="font-size:20px;color:${varianza >= 0 ? '#ef4444' : '#10b981'};">${varianza >= 0 ? '+' : ''}${varianza.toFixed(2)} €</span>
+      </div>
+    </div>
+  </div>`;
+        } else {
+          htmlPrint += `
+  <div class="total-box">
+    <strong>Total del Pedido: ${pedido.total.toFixed(2)} €</strong>
+  </div>`;
+        }
+
+        htmlPrint += `
+  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center;">
+    Generado el ${new Date().toLocaleDateString('es-ES')} - La Caleta 102 Dashboard
+  </div>
+</body>
+</html>`;
+
+        // Abrir en nueva ventana para imprimir/guardar PDF
+        const ventana = window.open('', '_blank');
+        ventana.document.write(htmlPrint);
+        ventana.document.close();
+        
+        // Esperar a que se cargue y abrir diálogo de impresión
+        setTimeout(() => {
+          ventana.print();
+        }, 250);
+      };
+
+      function renderizarPedidos() {
+        const busqueda = document.getElementById('busqueda-pedidos').value.toLowerCase();
+        const filtrados = pedidos.filter(ped => {
+          const prov = proveedores.find(p => p.id === ped.proveedorId);
+          const nombreProv = prov ? prov.nombre.toLowerCase() : '';
+          return nombreProv.includes(busqueda) || ped.estado.includes(busqueda);
+        });
+
+        const container = document.getElementById('tabla-pedidos');
+
+        if (filtrados.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📋</div>
+              <h3>${busqueda ? 'No encontrados' : 'Aún no hay pedidos'}</h3>
+              <p>${busqueda ? 'Otra búsqueda' : 'Crea tu primer pedido'}</p>
+            </div>
+          `;
+          document.getElementById('resumen-pedidos').style.display = 'none';
+        } else {
+          let html = '<table><thead><tr>';
+          html += '<th>Fecha</th><th>Proveedor</th><th>Items</th><th>Total</th><th>Estado</th><th>Acciones</th>';
+          html += '</tr></thead><tbody>';
+
+          filtrados.forEach(ped => {
+            const prov = proveedores.find(p => p.id === ped.proveedorId);
+            const nombreProv = prov ? prov.nombre : 'Desconocido';
+            
+            html += '<tr>';
+            html += `<td>${new Date(ped.fecha).toLocaleDateString('es-ES')}</td>`;
+            html += `<td><strong>${nombreProv}</strong></td>`;
+            html += `<td>${ped.ingredientes.length} ingredientes</td>`;
+            html += `<td><strong>${parseFloat(ped.total).toFixed(2)} €</strong></td>`;
+            html += `<td><span class="badge ${ped.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${ped.estado === 'recibido' ? 'Recibido' : 'Pendiente'}</span></td>`;
+            html += `<td><div class="actions">`;
+            html += `<button class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="Ver detalles">👁️</button>`;
+            if (ped.estado === 'pendiente') {
+              html += `<button class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir pedido">📥</button>`;
+            }
+            html += `<button class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})" title="Eliminar">🗑️</button>`;
+            html += '</div></td>';
+            html += '</tr>';
+          });
+
+          html += '</tbody></table>';
+          container.innerHTML = html;
+
+          const totalPendientes = pedidos.filter(p => p.estado === 'pendiente').length;
+          const totalRecibidos = pedidos.filter(p => p.estado === 'recibido').length;
+
+          document.getElementById('resumen-pedidos').innerHTML = `
+            <div>Total: <strong>${pedidos.length}</strong></div>
+            <div>Pendientes: <strong>${totalPendientes}</strong></div>
+            <div>Recibidos: <strong>${totalRecibidos}</strong></div>
+          `;
+          document.getElementById('resumen-pedidos').style.display = 'flex';
+        }
+      }
+
+      // ========== ANÁLISIS (resumido) ==========
+      window.renderizarAnalisis = function() {
+        if (recetas.length === 0 || ingredientes.length === 0) {
+          document.getElementById('analisis-vacio').style.display = 'block';
+          document.getElementById('analisis-contenido').style.display = 'none';
+          return;
+        }
+
+        document.getElementById('analisis-vacio').style.display = 'none';
+        document.getElementById('analisis-contenido').style.display = 'block';
+
+        let totalMargen = 0;
+        let totalCoste = 0;
+        const datosRecetas = recetas.map(rec => {
+          const coste = calcularCosteRecetaCompleto(rec);
+          const margen = rec.precio_venta - coste;
+          const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
+          totalMargen += margenPct;
+          totalCoste += coste;
+          return { ...rec, coste, margen, margenPct };
+        });
+
+        const margenPromedio = (totalMargen / recetas.length).toFixed(1);
+        const costePromedio = (totalCoste / recetas.length).toFixed(2);
+
+        document.getElementById('stat-total-recetas').textContent = recetas.length;
+        document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
+        document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
+        document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
+
+        renderChartRentabilidad(datosRecetas);
+        renderChartIngredientes();
+        renderTablaRentabilidad(datosRecetas);
+      };
+
+      function renderChartRentabilidad(datos) {
+        const ctx = document.getElementById('chart-rentabilidad');
+        if (!ctx) return;
+
+        const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct).slice(0, 10);
+
+        if (chartRentabilidad) chartRentabilidad.destroy();
+
+        chartRentabilidad = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ordenados.map(r => r.nombre),
+            datasets: [{
+              label: 'Margen (%)',
+              data: ordenados.map(r => r.margenPct.toFixed(1)),
+              backgroundColor: ordenados.map(r => r.margenPct > 50 ? '#10b981' : r.margenPct > 30 ? '#f59e0b' : '#ef4444')
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function renderChartIngredientes() {
+        const ctx = document.getElementById('chart-ingredientes');
+        if (!ctx) return;
+
+        const ordenados = [...ingredientes]
+          .filter(ing => ing.precio > 0)
+          .sort((a, b) => b.precio - a.precio)
+          .slice(0, 10);
+
+        if (chartIngredientes) chartIngredientes.destroy();
+
+        chartIngredientes = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ordenados.map(i => i.nombre),
+            datasets: [{
+              data: ordenados.map(i => i.precio),
+              backgroundColor: [
+                '#c35a3f', '#d47157', '#10b981', '#3b82f6', '#f59e0b',
+                '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: {
+                  font: {
+                    size: 11
+                  }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return context.label + ': ' + context.parsed.toFixed(2) + ' €';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function renderTablaRentabilidad(datos) {
+        const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
+        
+        let html = '<table><thead><tr>';
+        html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
+        html += '</tr></thead><tbody>';
+
+        ordenados.forEach((rec, idx) => {
+          html += '<tr>';
+          html += `<td><strong>#${idx + 1}</strong></td>`;
+          html += `<td>${rec.nombre}</td>`;
+          html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
+          html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
+          html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
+          html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        document.getElementById('tabla-rentabilidad').innerHTML = html;
+      }
+
+      // ========== INVENTARIO ==========
+      window.renderizarInventario = function() {
+        const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
+        const filtrados = ingredientes.filter(ing => 
+          ing.nombre.toLowerCase().includes(busqueda)
+        );
+
+        const container = document.getElementById('tabla-inventario');
+        
+        // Calcular alertas
+        let stockBajo = 0;
+        let stockCritico = 0;
+        
+        ingredientes.forEach(ing => {
+          if (ing.stockActual <= 0) {
+            stockCritico++;
+          } else if (ing.stockActual <= ing.stockMinimo) {
+            stockBajo++;
+          }
+        });
+        
+        // Actualizar badge
+        const totalAlertas = stockBajo + stockCritico;
+        const badge = document.getElementById('badge-inventario');
+        if (totalAlertas > 0) {
+          badge.textContent = totalAlertas;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+        
+        // Actualizar resumen
+        const resumen = document.getElementById('resumen-inventario');
+        if (stockBajo > 0 || stockCritico > 0) {
+          resumen.innerHTML = `
+            <div style="color: #f59e0b;">⚠️ Stock bajo: <strong>${stockBajo}</strong></div>
+            <div style="color: #ef4444;">🔴 Stock crítico: <strong>${stockCritico}</strong></div>
+          `;
+          resumen.style.display = 'flex';
+        } else {
+          resumen.style.display = 'none';
+        }
+
+        if (filtrados.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📦</div>
+              <h3>No hay ingredientes</h3>
+              <p>Añade ingredientes para gestionar el inventario</p>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '<table><thead><tr>';
+        html += '<th>Estado</th><th>Ingrediente</th><th>Stock Actual</th><th>Stock Mínimo</th><th>Unidad</th><th>Acciones</th>';
+        html += '</tr></thead><tbody>';
+
+        filtrados.forEach(ing => {
+          let estadoClass = 'stock-ok';
+          let estadoIcon = '🟢';
+          
+          if (ing.stockActual <= 0) {
+            estadoClass = 'stock-critico';
+            estadoIcon = '🔴';
+          } else if (ing.stockActual <= ing.stockMinimo) {
+            estadoClass = 'stock-bajo';
+            estadoIcon = '🟡';
+          }
+          
+          html += '<tr>';
+          html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
+          html += `<td><strong>${ing.nombre}</strong></td>`;
+          html += `<td><span class="stock-value">${parseFloat(ing.stockActual || 0).toFixed(2)}</span></td>`;
+          html += `<td>${ing.stockMinimo}</td>`;
+          html += `<td>${ing.unidad}</td>`;
+          html += '</tr>';
+        });
+
+        container.innerHTML = html;
+      };
+
+
+      // Event listener para búsqueda de inventario
+      document.getElementById('busqueda-inventario').addEventListener('input', window.renderizarInventario);
+
+      init();
+    })();
+  </script>
+</body>
+</html>
