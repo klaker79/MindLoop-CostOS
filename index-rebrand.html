@@ -1746,6 +1746,45 @@ table tbody td:first-child {
       function hideLoading() {
         document.getElementById('loading-overlay').classList.remove('active');
       }
+      // === ACTUALIZAR KPIs ===
+      function actualizarKPIs() {
+        // 1. INGRESOS TOTALES (suma de ventas)
+        api.getSales().then(ventas => {
+          const ingresos = ventas.reduce((sum, v) => sum + parseFloat(v.total), 0);
+          document.getElementById('kpi-ingresos').textContent = ingresos.toFixed(0) + '€';
+        }).catch(() => {
+          document.getElementById('kpi-ingresos').textContent = '0€';
+        });
+
+        // 2. PEDIDOS ACTIVOS
+        const pedidosActivos = pedidos.filter(p => p.estado === 'pendiente').length;
+        document.getElementById('kpi-pedidos').textContent = pedidosActivos;
+
+        // 3. STOCK BAJO
+        const stockBajo = ingredientes.filter(ing => 
+          ing.stockActual <= ing.stockMinimo
+        ).length;
+        document.getElementById('kpi-stock').textContent = stockBajo;
+        document.getElementById('kpi-stock-msg').textContent = 
+          stockBajo > 0 ? 'Requieren atención' : 'Todo OK';
+
+        // 4. MARGEN PROMEDIO
+        if (recetas.length > 0) {
+          let totalMargen = 0;
+          recetas.forEach(rec => {
+            const coste = rec.ingredientes.reduce((sum, item) => {
+              const ing = ingredientes.find(i => i.id === item.ingredienteId);
+              return sum + (ing ? ing.precio * item.cantidad : 0);
+            }, 0);
+            const margen = rec.precio_venta > 0 ? ((rec.precio_venta - coste) / rec.precio_venta) * 100 : 0;
+            totalMargen += margen;
+          });
+          const margenPromedio = (totalMargen / recetas.length).toFixed(0);
+          document.getElementById('kpi-margen').textContent = margenPromedio + '%';
+        } else {
+          document.getElementById('kpi-margen').textContent = '0%';
+        }
+      }
       
       // === GRÁFICO INGRESOS VS GASTOS ===
       function renderRevenueChart() {
@@ -1856,6 +1895,7 @@ window.renderizarBalance = async function() {
         renderizarInventario();
         renderizarVentas();
         renderizarBalance();
+        actualizarKPIs();
         document.getElementById('form-venta').addEventListener('submit', async (e) => {
       e.preventDefault();
       const recetaId = document.getElementById('venta-receta').value;
