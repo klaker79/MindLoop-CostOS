@@ -116,48 +116,25 @@
     .btn-success:hover { background: #059669; }
     .btn-small { padding: 8px 16px; font-size: 13px; }
     
-    /* === BUSCADOR MEJORADO === */
-.search-box {
-  position: relative;
-  max-width: 400px;
-  margin: 20px 0;
-}
-
-.search-box input {
-  width: 100%;
-  padding: 14px 20px 14px 48px;
-  border: 2px solid #E2E8F0;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 500;
-  color: #1E293B;
-  background: white;
-  transition: all 0.3s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.search-box input:focus {
-  outline: none;
-  border-color: #FF6B35;
-  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
-}
-
-.search-box input::placeholder {
-  color: #94A3B8;
-  font-weight: 400;
-}
-
-.search-box::before {
-  content: "🔍";
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 18px;
-  pointer-events: none;
-  opacity: 0.6;
-}
+    .search-box {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 12px 12px 12px 40px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+    }
+    .search-box svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+    }
     
     .form-card {
       background: #fff5f2;
@@ -992,94 +969,6 @@ table tbody td:first-child {
   background: #EFF6FF;
   border-color: #3B82F6;
 }
-    background: #EFF6FF;
-    border-color: #3B82F6;
-  }
-
-  /* === ANIMACIONES DE ENTRADA === */
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  /* Header animation */
-  .header {
-    animation: fadeIn 0.6s ease-out;
-  }
-
-  /* KPI cards staggered animation */
-  .kpi-card {
-    opacity: 0;
-    animation: fadeInUp 0.6s ease-out forwards;
-  }
-
-  .kpi-card:nth-child(1) {
-    animation-delay: 0.1s;
-  }
-
-  .kpi-card:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-
-  .kpi-card:nth-child(3) {
-    animation-delay: 0.3s;
-  }
-
-  .kpi-card:nth-child(4) {
-    animation-delay: 0.4s;
-  }
-
-  /* Tabs animation */
-  .tabs {
-    animation: fadeIn 0.6s ease-out 0.5s backwards;
-  }
-
-  /* Main card animation */
-  .main-card {
-    animation: fadeInUp 0.6s ease-out 0.6s backwards;
-  }
-
-  /* Table rows animation */
-  table tbody tr {
-    animation: fadeIn 0.4s ease-out backwards;
-  }
-
-  table tbody tr:nth-child(1) { animation-delay: 0.05s; }
-  table tbody tr:nth-child(2) { animation-delay: 0.1s; }
-  table tbody tr:nth-child(3) { animation-delay: 0.15s; }
-  table tbody tr:nth-child(4) { animation-delay: 0.2s; }
-  table tbody tr:nth-child(5) { animation-delay: 0.25s; }
-  table tbody tr:nth-child(6) { animation-delay: 0.3s; }
-  table tbody tr:nth-child(7) { animation-delay: 0.35s; }
-  table tbody tr:nth-child(8) { animation-delay: 0.4s; }
-  table tbody tr:nth-child(9) { animation-delay: 0.45s; }
-  table tbody tr:nth-child(10) { animation-delay: 0.5s; }
-
-  /* Buttons animation */
-  .btn-primary {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .btn-primary:active {
-    transform: scale(0.95);
-  }
-
-</style>
   </style>
 </head>
 <body>
