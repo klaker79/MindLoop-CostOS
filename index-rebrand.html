@@ -2089,7 +2089,7 @@ window.renderizarBalance = async function() {
           window.pedidos = await api.getPedidos();
         } catch (error) {
           console.error('Error cargando datos:', error);
-          alert('Error conectando con la API');
+         showToast('Error conectando con la API', 'error');
         }
       }
 
@@ -2183,7 +2183,7 @@ window.renderizarBalance = async function() {
             renderizarIngredientes();
           } catch (error) {
             console.error('Error:', error);
-            alert('Error eliminando ingrediente');
+            showToast('Error eliminando ingrediente', 'error');
           }
         }
       };
@@ -2253,7 +2253,7 @@ window.renderizarBalance = async function() {
       // ========== RECETAS (resumido) ==========
       window.mostrarFormularioReceta = function() {
         if (ingredientes.length === 0) {
-          alert('Primero añade ingredientes');
+          showToast('Primero añade ingredientes', 'warning');
           window.cambiarTab('ingredientes');
           window.mostrarFormularioIngrediente();
           return;
@@ -2356,7 +2356,7 @@ window.renderizarBalance = async function() {
         });
 
         if (ingredientesReceta.length === 0) {
-          alert('Añade ingredientes');
+          showToast('Añade ingredientes a la receta', 'warning');
           return;
         }
 
@@ -2415,7 +2415,8 @@ window.renderizarBalance = async function() {
             renderizarRecetas();
           } catch (error) {
             console.error('Error:', error);
-            alert('Error eliminando receta');
+           showToast('Error guardando receta', 'error');
+
           }
         }
       };
@@ -2544,10 +2545,10 @@ window.renderizarBalance = async function() {
           await cargarDatos();
           renderizarIngredientes();
           window.cerrarModalProducir();
-          alert(`✅ Producidas ${cant} unidades de ${rec.nombre}`);
+          showToast(`Producidas ${cant} unidades de ${rec.nombre}`, 'success');
         } catch (error) {
           console.error('Error:', error);
-          alert('Error actualizando stock');
+          showToast('Error actualizando stock', 'error');
         }
       };
 
@@ -2623,7 +2624,7 @@ window.renderizarBalance = async function() {
           window.cerrarFormularioProveedor();
         } catch (error) {
           console.error('Error:', error);
-          alert('Error guardando proveedor');
+          showToast('Error guardando proveedor', 'error');
         }
       };
 
@@ -2655,7 +2656,7 @@ window.renderizarBalance = async function() {
             renderizarIngredientes();
           } catch (error) {
             console.error('Error:', error);
-            alert('Error eliminando proveedor');
+            showToast('Error eliminando proveedor', 'error');
           }
         }
       };
@@ -2743,7 +2744,7 @@ window.renderizarBalance = async function() {
       // ========== PEDIDOS ==========
       window.mostrarFormularioPedido = function() {
         if (proveedores.length === 0) {
-          alert('Primero añade proveedores');
+         showToast('Primero añade proveedores', 'warning');
           window.cambiarTab('proveedores');
           return;
         }
@@ -2777,7 +2778,7 @@ window.renderizarBalance = async function() {
         const proveedor = proveedores.find(p => p.id === proveedorId);
         if (!proveedor || !proveedor.ingredientes || proveedor.ingredientes.length === 0) {
           document.getElementById('container-ingredientes-pedido').style.display = 'none';
-          alert('Este proveedor no tiene ingredientes asignados');
+          showToast('Este proveedor no tiene ingredientes asignados', 'warning');
           return;
         }
 
@@ -2873,7 +2874,7 @@ window.renderizarBalance = async function() {
         });
 
         if (ingredientesPedido.length === 0) {
-          alert('Añade ingredientes al pedido');
+          showToast('Añade ingredientes al pedido', 'warning');
           return;
         }
 
@@ -2890,10 +2891,10 @@ window.renderizarBalance = async function() {
           await cargarDatos();
           renderizarPedidos();
           window.cerrarFormularioPedido();
-          alert('✅ Pedido creado');
+         showToast('Pedido creado correctamente', 'success');
         } catch (error) {
           console.error('Error:', error);
-          alert('Error creando pedido');
+         showToast('Error creando pedido', 'error');
         }
       };
 
@@ -3066,10 +3067,10 @@ window.renderizarBalance = async function() {
           renderizarIngredientes();
           window.cerrarModalRecibirPedido();
           
-          alert('✅ Pedido recibido y stock actualizado correctamente');
+          showToast('Pedido recibido y stock actualizado correctamente', 'success');
         } catch (error) {
           console.error('Error:', error);
-          alert('Error confirmando recepción');
+          showToast('Error confirmando recepción', 'error');
         }
       };
 
@@ -3081,7 +3082,7 @@ window.renderizarBalance = async function() {
             renderizarPedidos();
           } catch (error) {
             console.error('Error:', error);
-            alert('Error eliminando pedido');
+            showToast('Error eliminando pedido', 'error');
           }
         }
       };
