@@ -1077,6 +1077,86 @@ table tbody td:first-child {
   .btn-primary:active {
     transform: scale(0.95);
   }
+    /* === TOAST NOTIFICATIONS === */
+  .toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+  }
+  
+  .toast {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease;
+    border-left: 4px solid #10B981;
+  }
+  
+  .toast.success { border-left-color: #10B981; }
+  .toast.error { border-left-color: #EF4444; }
+  .toast.warning { border-left-color: #F59E0B; }
+  .toast.info { border-left-color: #3B82F6; }
+  
+  .toast-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  
+  .toast-message {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1E293B;
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  /* === LOADING SPINNER === */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.3);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  }
+  
+  .loading-overlay.active {
+    display: flex;
+  }
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top-color: #FF6B35;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 
 </style>
   </style>
@@ -1638,6 +1718,82 @@ table tbody td:first-child {
       let recetaProduciendo = null;
       let chartRentabilidad = null;
       let chartIngredientes = null;
+
+      // === UTILIDADES ===
+      function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+        
+        toast.innerHTML = `
+          <div class="toast-icon">${icons[type]}</div>
+          <div class="toast-message">${message}</div>
+        `;
+        
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.animation = 'slideIn 0.3s ease reverse';
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+      
+      function showLoading() {
+        document.getElementById('loading-overlay').classList.add('active');
+      }
+      
+      function hideLoading() {
+        document.getElementById('loading-overlay').classList.remove('active');
+      }
+      
+      // === GRÁFICO INGRESOS VS GASTOS ===
+      function renderRevenueChart() {
+        const ctx = document.getElementById('revenueChart');
+        if (!ctx || typeof Chart === 'undefined') return;
+
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+              label: 'Ingresos',
+              data: [450, 520, 380, 690, 580, 720, 650],
+              borderColor: '#10B981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              fill: true,
+              tension: 0.4,
+              borderWidth: 3
+            }, {
+              label: 'Gastos',
+              data: [280, 350, 240, 420, 380, 450, 410],
+              borderColor: '#EF4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              fill: true,
+              tension: 0.4,
+              borderWidth: 3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { usePointStyle: true, padding: 20, font: { size: 14, weight: '600' } }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                ticks: { callback: value => value + '€', font: { size: 12 } }
+              },
+              x: { grid: { display: false }, ticks: { font: { size: 12 } } }
+            }
+          }
+        });
+      }
       // === VENTAS ===
 window.renderizarVentas = async function() {
   const select = document.getElementById('venta-receta');
@@ -3261,7 +3417,8 @@ window.renderizarBalance = async function() {
         document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
         document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
         document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
-
+        
+        renderRevenueChart();
         renderChartRentabilidad(datosRecetas);
         renderChartIngredientes();
         renderTablaRentabilidad(datosRecetas);
@@ -3464,5 +3621,12 @@ window.renderizarBalance = async function() {
     })();
     
   </script>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+  
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+  </div>
 </body>
 </html>
