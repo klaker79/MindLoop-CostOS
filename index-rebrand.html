@@ -1023,9 +1023,10 @@ table tbody td:first-child {
   }
 
   /* KPI cards staggered animation */
-.kpi-card {
-  animation: fadeInUp 0.6s ease-out;
-}
+  .kpi-card {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
 
   .kpi-card:nth-child(1) {
     animation-delay: 0.1s;
@@ -3173,129 +3174,6 @@ window.renderizarBalance = async function() {
         }, 250);
       };
 
-      // ========== ANÁLISIS ==========
-      window.renderizarAnalisis = function() {
-        if (recetas.length === 0 || ingredientes.length === 0) {
-          document.getElementById('analisis-vacio').style.display = 'block';
-          document.getElementById('analisis-contenido').style.display = 'none';
-          return;
-        }
-
-        document.getElementById('analisis-vacio').style.display = 'none';
-        document.getElementById('analisis-contenido').style.display = 'block';
-
-        let totalMargen = 0;
-        let totalCoste = 0;
-        const datosRecetas = recetas.map(rec => {
-          const coste = calcularCosteRecetaCompleto(rec);
-          const margen = rec.precio_venta - coste;
-          const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
-          totalMargen += margenPct;
-          totalCoste += coste;
-          return { ...rec, coste, margen, margenPct };
-        });
-
-        const margenPromedio = (totalMargen / recetas.length).toFixed(1);
-        const costePromedio = (totalCoste / recetas.length).toFixed(2);
-
-        document.getElementById('stat-total-recetas').textContent = recetas.length;
-        document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
-        document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
-        document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
-      
-        renderRevenueChart();
-        renderChartRentabilidad(datosRecetas);
-        renderChartIngredientes();
-        renderTablaRentabilidad(datosRecetas);
-      };
-
-      function renderChartRentabilidad(datos) {
-        const ctx = document.getElementById('chart-rentabilidad');
-        if (!ctx) return;
-
-        const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct).slice(0, 10);
-
-        if (chartRentabilidad) chartRentabilidad.destroy();
-
-        chartRentabilidad = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ordenados.map(r => r.nombre),
-            datasets: [{
-              label: 'Margen (%)',
-              data: ordenados.map(r => r.margenPct.toFixed(1)),
-              backgroundColor: ordenados.map(r => r.margenPct > 50 ? '#10b981' : r.margenPct > 30 ? '#f59e0b' : '#ef4444')
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: { display: false }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  callback: function(value) {
-                    return value + '%';
-                  }
-                }
-              }
-            }
-          }
-        });
-      }
-
-      function renderChartIngredientes() {
-        const ctx = document.getElementById('chart-ingredientes');
-        if (!ctx) return;
-
-        const ordenados = [...ingredientes]
-          .filter(ing => ing.precio > 0)
-          .sort((a, b) => b.precio - a.precio)
-          .slice(0, 10);
-
-        if (chartIngredientes) chartIngredientes.destroy();
-
-        chartIngredientes = new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: ordenados.map(i => i.nombre),
-            datasets: [{
-              data: ordenados.map(i => i.precio),
-              backgroundColor: [
-                '#c35a3f', '#d47157', '#10b981', '#3b82f6', '#f59e0b',
-                '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
-              ]
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: {
-                position: 'right',
-                labels: {
-                  font: {
-                    size: 11
-                  }
-                }
-              },
-              tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    return context.label + ': ' + context.parsed.toFixed(2) + ' €';
-                  }
-                }
-              }
-            }
-          }
-        });
-      }
-
-      function renderizarPedidos() {
-
       function renderizarPedidos() {
         const busqueda = document.getElementById('busqueda-pedidos').value.toLowerCase();
         const filtrados = pedidos.filter(ped => {
@@ -3390,6 +3268,91 @@ window.renderizarBalance = async function() {
         renderTablaRentabilidad(datosRecetas);
       };
 
+      function renderChartRentabilidad(datos) {
+        const ctx = document.getElementById('chart-rentabilidad');
+        if (!ctx) return;
+
+        const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct).slice(0, 10);
+
+        if (chartRentabilidad) chartRentabilidad.destroy();
+
+        chartRentabilidad = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ordenados.map(r => r.nombre),
+            datasets: [{
+              label: 'Margen (%)',
+              data: ordenados.map(r => r.margenPct.toFixed(1)),
+              backgroundColor: ordenados.map(r => r.margenPct > 50 ? '#10b981' : r.margenPct > 30 ? '#f59e0b' : '#ef4444')
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    return value + '%';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function renderChartIngredientes() {
+        const ctx = document.getElementById('chart-ingredientes');
+        if (!ctx) return;
+
+        const ordenados = [...ingredientes]
+          .filter(ing => ing.precio > 0)
+          .sort((a, b) => b.precio - a.precio)
+          .slice(0, 10);
+
+        if (chartIngredientes) chartIngredientes.destroy();
+
+        chartIngredientes = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ordenados.map(i => i.nombre),
+            datasets: [{
+              data: ordenados.map(i => i.precio),
+              backgroundColor: [
+                '#c35a3f', '#d47157', '#10b981', '#3b82f6', '#f59e0b',
+                '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: {
+                  font: {
+                    size: 11
+                  }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return context.label + ': ' + context.parsed.toFixed(2) + ' €';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
       function renderTablaRentabilidad(datos) {
         const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
         
@@ -3410,63 +3373,6 @@ window.renderizarBalance = async function() {
 
         html += '</tbody></table>';
         document.getElementById('tabla-rentabilidad').innerHTML = html;
-      }
-
-      function renderRevenueChart() {
-        const ctx = document.getElementById('revenueChart');
-        if (!ctx || typeof Chart === 'undefined') return;
-
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-            datasets: [{
-              label: 'Ingresos',
-              data: [450, 520, 380, 690, 580, 720, 650],
-              borderColor: '#10B981',
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              fill: true,
-              tension: 0.4,
-              borderWidth: 3
-            }, {
-              label: 'Gastos',
-              data: [280, 350, 240, 420, 380, 450, 410],
-              borderColor: '#EF4444',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              fill: true,
-              tension: 0.4,
-              borderWidth: 3
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: {
-                position: 'top',
-                labels: {
-                  usePointStyle: true,
-                  padding: 20,
-                  font: { size: 14, weight: '600' }
-                }
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                ticks: {
-                  callback: value => value + '€',
-                  font: { size: 12 }
-                }
-              },
-              x: {
-                grid: { display: false },
-                ticks: { font: { size: 12 } }
-              }
-            }
-          }
-        });
       }
 
       // ========== INVENTARIO ==========
