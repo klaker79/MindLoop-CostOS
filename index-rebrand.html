@@ -1836,38 +1836,19 @@ table tbody td:first-child {
         
         exportarAExcel(window.recetas, 'Recetas_CostOS', columnas);
       }
-      async function exportarVentas() {
-  try {
-    const ventas = await api.getSales();
-    
-    const columnas = [
-      { header: 'Fecha', key: 'fecha' },
-      { header: 'Receta', value: (venta) => {
-        const rec = window.recetas.find(r => r.id === venta.receta_id);
-        return rec ? rec.nombre : 'Desconocida';
-      }},
-      { header: 'Cantidad', key: 'cantidad' },
-      { header: 'Total (€)', value: (venta) => parseFloat(venta.total || 0).toFixed(2) }
-    ];
-    
-    exportarAExcel(ventas, 'Ventas_CostOS', columnas);
-  } catch (error) {
-    console.error('Error exportando ventas:', error);
-    showToast('Error exportando ventas', 'error');
-  }
-}
-```
-
-### ✅ Los 3 cambios críticos:
-
-1. **Línea 1839**: `function exportarVentas()` → `async function exportarVentas()`
-2. **Línea 1847**: `parseFloat(venta.total)` → `parseFloat(venta.total || 0)`
-3. **Línea 1850**: `exportarAExcel(window.ventas, ...)` → `exportarAExcel(ventas, ...)`
-4. **Añadir línea 1840-1841**: `const ventas = await api.getSales();` después del `try {`
-
-### 📝 Mensaje del commit:
-```
-Fix exportarVentas: add parseFloat fallback and fetch data from API
+      function exportarVentas() {
+        const columnas = [
+          { header: 'Fecha', key: 'fecha' },
+          { header: 'Receta', value: (venta) => {
+            const rec = window.recetas.find(r => r.id === venta.receta_id);
+            return rec ? rec.nombre : 'Desconocida';
+          }},
+          { header: 'Cantidad', key: 'cantidad' },
+          { header: 'Total (€)', value: (venta) => parseFloat(venta.total).toFixed(2) }
+        ];
+        
+        exportarAExcel(window.ventas, 'Ventas_CostOS', columnas);
+      }
       // Exponer funciones globalmente
       window.exportarIngredientes = exportarIngredientes;
       window.exportarRecetas = exportarRecetas;
