@@ -3236,8 +3236,8 @@ window.renderizarBalance = async function() {
           showToast('Pedido no encontrado', 'error');
           return;
         }
-        
-        const prov = proveedores.find(p => p.id === pedido.proveedor_id);
+
+        const prov = proveedores.find(p => p.id === pedido.proveedorId);
         
         let html = `
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
@@ -3280,7 +3280,7 @@ window.renderizarBalance = async function() {
             if (!ing) return;
             
             const cantidad = item.cantidad || 0;
-            const precio = item.precioReal || item.precioUnitario || ing.precio || 0;
+            const precio = item.precioUnitario || ing.precio || 0;
             const subtotal = cantidad * precio;
             total += subtotal;
             
