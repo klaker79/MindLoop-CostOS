@@ -1847,7 +1847,7 @@ table tbody td:first-child {
           { header: 'Total (€)', value: (venta) => parseFloat(venta.total).toFixed(2) }
         ];
         
-        exportarAExcel(window.ventas, 'Ventas_CostOS', columnas);
+        api.getSales().then(ventas => exportarAExcel(ventas, 'Ventas_CostOS', columnas));
       }
       // Exponer funciones globalmente
       window.exportarIngredientes = exportarIngredientes;
