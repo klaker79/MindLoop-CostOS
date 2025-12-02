@@ -3485,7 +3485,7 @@ window.renderizarBalance = async function() {
         } else {
           htmlPrint += `
   <div class="total-box">
-    <strong>Total del Pedido: ${pedido.total.toFixed(2)} €</strong>
+   <strong>Total del Pedido: ${parseFloat(pedido.total).toFixed(2)} €</strong>
   </div>`;
         }
 
