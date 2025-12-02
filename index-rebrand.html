@@ -1816,7 +1816,7 @@ table tbody td:first-child {
         const columnas = [
           { header: 'Nombre', key: 'nombre' },
           { header: 'Categoría', key: 'categoria' },
-          { header: 'Precio Venta (€)', value: (rec) => rec.precio_venta.toFixed(2) },
+          { header: 'Precio Venta (€)', value: (rec) => parseFloat(rec.precio_venta || 0).toFixed(2) },
           { header: 'Coste (€)', value: (rec) => {
             return rec.ingredientes.reduce((sum, item) => {
               const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
@@ -1828,7 +1828,7 @@ table tbody td:first-child {
               const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
               return sum + (ing ? ing.precio * item.cantidad : 0);
             }, 0);
-            const margen = rec.precio_venta > 0 ? ((rec.precio_venta - coste) / rec.precio_venta * 100) : 0;
+            const margen = rec.precio_venta > 0 ? ((parseFloat(rec.precio_venta) - coste) / parseFloat(rec.precio_venta) * 100) : 0;
             return margen.toFixed(1) + '%';
           }},
           { header: 'Ingredientes', value: (rec) => rec.ingredientes.length }
