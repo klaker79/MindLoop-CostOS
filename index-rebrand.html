@@ -1804,10 +1804,10 @@ table tbody td:first-child {
             const prov = window.proveedores.find(p => p.id === ing.proveedor_id);
             return prov ? prov.nombre : 'Sin proveedor';
           }},
-          { header: 'Precio (€)', value: (ing) => ing.precio.toFixed(2) },
+          { header: 'Precio (€)', value: (ing) => parseFloat(ing.precio || 0).toFixed(2) },
           { header: 'Unidad', key: 'unidad' },
-          { header: 'Stock Actual', value: (ing) => ing.stockActual.toFixed(2) },
-          { header: 'Stock Mínimo', value: (ing) => ing.stockMinimo.toFixed(2) }
+          { header: 'Stock Actual', value: (ing) => parseFloat(ing.stockActual || 0).toFixed(2) },
+          { header: 'Stock Mínimo', value: (ing) => parseFloat(ing.stockMinimo || 0).toFixed(2) }
         ];
         
         exportarAExcel(window.ingredientes, 'Ingredientes_CostOS', columnas);
