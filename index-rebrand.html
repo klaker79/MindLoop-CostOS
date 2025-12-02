@@ -3049,7 +3049,7 @@ window.renderizarBalance = async function() {
         // Llenar información del pedido
         document.getElementById('modal-rec-proveedor').textContent = prov ? prov.nombre : 'Desconocido';
         document.getElementById('modal-rec-fecha').textContent = new Date(pedido.fecha).toLocaleDateString('es-ES');
-        document.getElementById('modal-rec-total-original').textContent = pedido.total.toFixed(2) + ' €';
+        document.getElementById('modal-rec-total-original').textContent = parseFloat(pedido.total || 0).toFixed(2) + ' €';
 
         // Crear copia de items para edición
         if (!pedido.itemsRecepcion) {
@@ -3294,7 +3294,7 @@ window.renderizarBalance = async function() {
                   ${cantidad.toFixed(2)} ${unidadIng}
                 </td>
                 <td style="padding: 12px; text-align: right; color: #64748B;">
-                  ${precio.toFixed(2)} €
+                 ${parseFloat(precio || 0).toFixed(2)} €
                 </td>
                 <td style="padding: 12px; text-align: right;">
                   <strong style="color: #1E293B;">${subtotal.toFixed(2)} €</strong>
