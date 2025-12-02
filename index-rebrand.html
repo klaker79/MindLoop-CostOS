@@ -3103,7 +3103,7 @@ window.renderizarBalance = async function() {
             }
           }
           html += `</td>`;
-          html += `<td>${item.precioUnitario.toFixed(2)} €</td>`;
+          html += `<td>${parseFloat(item.precioUnitario || 0).toFixed(2)} €</td>`;
           html += `<td>`;
           if (item.estado === 'no-entregado') {
             html += '<span style="color:#999;">-</span>';
