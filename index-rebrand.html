@@ -1983,9 +1983,6 @@ window.renderizarVentas = async function() {
         html += `<tr><td>${fecha}</td><td>${hora}</td><td>${v.receta_nombre}</td><td>${v.cantidad}</td><td><strong>${parseFloat(v.total).toFixed(2)}€</strong></td></tr>`;
         totalDia += parseFloat(v.total);
         totalGeneral += parseFloat(v.total);
-      });
-      html += `<tr style="background:#f0fdf4;font-weight:600;"><td colspan="4">Subtotal ${new Date(dia).toLocaleDateString('es-ES')}</td><td>${totalDia.toFixed(2)}€</td></tr>`;
-    });
     
     html += `<tr style="background:#10b981;color:white;font-weight:700;font-size:16px;"><td colspan="4">TOTAL</td><td>${totalGeneral.toFixed(2)}€</td></tr>`;
     html += '</tbody></table>';
