@@ -1976,15 +1976,16 @@ window.renderizarVentas = async function() {
     let totalGeneral = 0;
     
     Object.keys(ventasPorDia).sort().reverse().forEach(dia => {
-      let totalDia = 0;
+      // Header de fecha
+      html += `<tr style="background:#F8FAFC;"><td colspan="5" style="padding:12px 16px;font-weight:700;color:#1E293B;border-top:2px solid #E2E8F0;">${new Date(dia).toLocaleDateString('es-ES', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}</td></tr>`;
+      
+      // Ventas de ese día
       ventasPorDia[dia].forEach(v => {
         const hora = new Date(v.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
         const fecha = new Date(v.fecha).toLocaleDateString('es-ES');
-        html += `<tr><td>${fecha}</td><td>${hora}</td><td>${v.receta_nombre}</td><td>${v.cantidad}</td><td><strong>${parseFloat(v.total).toFixed(2)}€</strong></td></tr>`;
-        totalDia += parseFloat(v.total);
+        html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fecha}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${v.receta_nombre}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${parseFloat(v.total).toFixed(2)}€</strong></td></tr>`;
         totalGeneral += parseFloat(v.total);
       });
-      html += `<tr style="background:#f0fdf4;font-weight:600;"><td colspan="4">Subtotal ${new Date(dia).toLocaleDateString('es-ES')}</td><td>${totalDia.toFixed(2)}€</td></tr>`;
     });
     
     html += `<tr style="background:#10b981;color:white;font-weight:700;font-size:16px;"><td colspan="4">TOTAL</td><td>${totalGeneral.toFixed(2)}€</td></tr>`;
