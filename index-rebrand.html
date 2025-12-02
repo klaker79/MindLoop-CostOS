@@ -1592,42 +1592,84 @@ table tbody td:first-child {
 <div id="tab-balance" class="tab-content">
   <div class="top-bar">
     <h2>💵 Balance Financiero</h2>
-    <p>Resumen de ingresos, costos y rentabilidad</p>
+    <p>Análisis completo de la salud financiera del negocio</p>
   </div>
   
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
-  <div class="card" style="text-align: center; padding: 30px;">
-    <h4 style="margin-bottom: 10px; color: #666;">💰 Ingresos</h4>
-    <p id="balance-ingresos" style="font-size: 32px; font-weight: bold; color: #27ae60; margin: 0;">-</p>
-  </div>
-  <div class="card" style="text-align: center; padding: 30px;">
-    <h4 style="margin-bottom: 10px; color: #666;">📉 Costos</h4>
-    <p id="balance-costos" style="font-size: 32px; font-weight: bold; color: #e74c3c; margin: 0;">-</p>
-  </div>
-  <div class="card" style="text-align: center; padding: 30px;">
-    <h4 style="margin-bottom: 10px; color: #666;">💵 Ganancia</h4>
-    <p id="balance-ganancia" style="font-size: 32px; font-weight: bold; color: #3498db; margin: 0;">-</p>
-  </div>
-  <div class="card" style="text-align: center; padding: 30px;">
-    <h4 style="margin-bottom: 10px; color: #666;">📊 Margen</h4>
-    <p id="balance-margen" style="font-size: 32px; font-weight: bold; color: #9b59b6; margin: 0;">-</p>
-  </div>
-</div>
-
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-  <div class="card">
-    <h3>📦 Valor Inventario</h3>
-    <p style="font-size: 24px; font-weight: bold; color: #f39c12; margin-top: 15px;" id="balance-inventario">-</p>
-  </div>
-  <div class="card">
-    <h3>🏆 Plato Más Vendido</h3>
-    <p style="font-size: 18px; margin-top: 15px;" id="balance-plato-vendido">-</p>
-  </div>
-</div>
-</div>
-
+  <!-- Grid Principal de Métricas -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 32px;">
+    
+    <!-- Card Ingresos -->
+    <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border-radius: 20px; padding: 32px; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25); position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -20px; right: -20px; font-size: 120px; opacity: 0.1;">💰</div>
+      <div style="position: relative; z-index: 1;">
+        <div style="color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Ingresos Totales</div>
+        <div id="balance-ingresos" style="color: white; font-size: 48px; font-weight: 800; line-height: 1; margin-bottom: 8px;">-</div>
+        <div style="color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 500;">Este mes</div>
+      </div>
     </div>
+
+    <!-- Card Costos -->
+    <div style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); border-radius: 20px; padding: 32px; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25); position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -20px; right: -20px; font-size: 120px; opacity: 0.1;">📉</div>
+      <div style="position: relative; z-index: 1;">
+        <div style="color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Costos Totales</div>
+        <div id="balance-costos" style="color: white; font-size: 48px; font-weight: 800; line-height: 1; margin-bottom: 8px;">-</div>
+        <div style="color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 500;">Este mes</div>
+      </div>
+    </div>
+
+    <!-- Card Ganancia -->
+    <div style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); border-radius: 20px; padding: 32px; box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25); position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -20px; right: -20px; font-size: 120px; opacity: 0.1;">💵</div>
+      <div style="position: relative; z-index: 1;">
+        <div style="color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Ganancia Neta</div>
+        <div id="balance-ganancia" style="color: white; font-size: 48px; font-weight: 800; line-height: 1; margin-bottom: 8px;">-</div>
+        <div style="color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 500;">Este mes</div>
+      </div>
+    </div>
+
+    <!-- Card Margen -->
+    <div style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); border-radius: 20px; padding: 32px; box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25); position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -20px; right: -20px; font-size: 120px; opacity: 0.1;">📊</div>
+      <div style="position: relative; z-index: 1;">
+        <div style="color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Margen Bruto</div>
+        <div id="balance-margen" style="color: white; font-size: 48px; font-weight: 800; line-height: 1; margin-bottom: 8px;">-</div>
+        <div style="color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 500;">Porcentaje</div>
+      </div>
+    </div>
+
   </div>
+
+  <!-- Grid Secundario -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    
+    <!-- Card Inventario -->
+    <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); border: 2px solid #F59E0B;">
+      <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px;">📦</div>
+        <div>
+          <div style="color: #64748B; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Valor Inventario</div>
+          <div id="balance-inventario" style="color: #F59E0B; font-size: 36px; font-weight: 800; line-height: 1;">-</div>
+        </div>
+      </div>
+      <div style="height: 4px; background: linear-gradient(90deg, #F59E0B 0%, #FDE68A 100%); border-radius: 2px;"></div>
+    </div>
+
+    <!-- Card Plato Más Vendido -->
+    <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); border: 2px solid #FF6B35;">
+      <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #FFF7ED, #FFEDD5); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px;">🏆</div>
+        <div style="flex: 1;">
+          <div style="color: #64748B; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Plato Más Vendido</div>
+          <div id="balance-plato-vendido" style="color: #1E293B; font-size: 18px; font-weight: 700; line-height: 1.3;">-</div>
+        </div>
+      </div>
+      <div style="height: 4px; background: linear-gradient(90deg, #FF6B35 0%, #FFEDD5 100%); border-radius: 2px;"></div>
+    </div>
+
+  </div>
+
+</div>
   
   <!-- Modales (simplificados) -->
   <div id="modal-producir" class="modal">
