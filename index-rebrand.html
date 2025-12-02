@@ -3437,7 +3437,7 @@ window.renderizarBalance = async function() {
           }
           
           htmlPrint += `</td>`;
-          htmlPrint += `<td>${precio.toFixed(2)} €/${ing.unidad}`;
+          htmlPrint += `<td>${parseFloat(precio || 0).toFixed(2)} €/${ing.unidad}`;
           
           if (esRecibido && item.precioUnitario && Math.abs(precio - item.precioUnitario) > 0.01) {
             const diff = precio - item.precioUnitario;
