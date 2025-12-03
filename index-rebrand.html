@@ -3410,6 +3410,212 @@ window.renderizarBalance = async function() {
       body { padding: 20px; }
       button { display: none; }
     }
+    /* === RESPONSIVE MOBILE === */
+@media (max-width: 768px) {
+  /* Container */
+  .container { padding: 12px; }
+  
+  /* Header */
+  .header {
+    padding: 16px;
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .header h1 { font-size: 32px; }
+  .header p { font-size: 14px; }
+  
+  /* KPI Dashboard */
+  .kpi-dashboard {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 0 12px;
+    margin: 16px 0;
+  }
+  
+  .kpi-card {
+    padding: 16px;
+  }
+  
+  .kpi-icon { font-size: 24px; margin-bottom: 8px; }
+  .kpi-label { font-size: 11px; }
+  .kpi-value { font-size: 28px; }
+  .kpi-trend { font-size: 12px; }
+  
+  /* Tabs */
+  .tabs {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding: 12px 12px 0;
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .tabs::-webkit-scrollbar { display: none; }
+  
+  .tab {
+    padding: 10px 16px;
+    font-size: 13px;
+    display: inline-block;
+  }
+  
+  /* Main Card */
+  .main-card {
+    padding: 16px;
+    border-radius: 16px 16px 0 0;
+  }
+  
+  /* Top Bar */
+  .top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .top-bar h2 { font-size: 22px; }
+  .top-bar p { font-size: 13px; }
+  
+  /* Buttons */
+  .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+    font-size: 14px;
+  }
+  
+  .btn-small {
+    width: auto;
+    padding: 10px 16px;
+  }
+  
+  /* Search Box */
+  .search-box {
+    max-width: 100%;
+    margin: 16px 0;
+  }
+  
+  /* Form Grid */
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .form-card {
+    padding: 16px;
+  }
+  
+  /* Tables */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table thead th {
+    padding: 12px 16px;
+    font-size: 10px;
+  }
+  
+  table tbody td {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  
+  /* Actions */
+  .actions {
+    gap: 6px;
+  }
+  
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  /* Stats Grid */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  /* Charts Grid */
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  /* Balance Cards */
+  [id^="tab-balance"] > div[style*="grid"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  /* Balance Cards Gradient */
+  [id="tab-balance"] > div:nth-child(2) > div {
+    padding: 24px !important;
+  }
+  
+  [id="tab-balance"] > div:nth-child(2) > div > div:first-child {
+    font-size: 100px !important;
+  }
+  
+  [id="tab-balance"] > div:nth-child(2) > div [id^="balance-"] {
+    font-size: 36px !important;
+  }
+  
+  /* Modals */
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+    max-height: 90vh;
+  }
+  
+  /* Ingrediente Item */
+  .ingrediente-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .ingrediente-item select,
+  .ingrediente-item input {
+    width: 100%;
+  }
+  
+  /* Toast Container */
+  .toast-container {
+    top: 60px;
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
+  
+  .toast {
+    padding: 12px 16px;
+  }
+  
+  /* Summary */
+  .summary {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra pequeño */
+  .kpi-dashboard {
+    grid-template-columns: 1fr;
+  }
+  
+  .header h1 { font-size: 28px; }
+  
+  .kpi-value { font-size: 32px; }
+}
   </style>
 </head>
 <body>
