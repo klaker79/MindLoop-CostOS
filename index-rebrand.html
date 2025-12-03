@@ -2180,6 +2180,17 @@ window.renderizarBalance = async function() {
     document.getElementById('balance-ganancia').textContent = balance.ganancia.toFixed(2) + '€';
     document.getElementById('balance-margen').textContent = balance.margen.toFixed(1) + '%';
     document.getElementById('balance-inventario').textContent = balance.valor_inventario.toFixed(2) + '€';
+
+      // Calcular compras del mes
+      const ahora = new Date();
+      const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
+      const pedidosRecibidos = window.pedidos.filter(p => 
+        p.estado === 'recibido' && 
+        p.fecha_recepcion && 
+        p.fecha_recepcion.split('T')[0] >= inicioMes
+      );
+      const comprasMes = pedidosRecibidos.reduce((sum, p) => sum + parseFloat(p.total || 0), 0);
+      document.getElementById('balance-compras').textContent = comprasMes.toFixed(2) + '€';
     
     if (balance.plato_mas_vendido) {
       document.getElementById('balance-plato-vendido').textContent = 
