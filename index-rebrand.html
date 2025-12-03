@@ -2018,7 +2018,7 @@ window.renderizarVentas = async function() {
       ventasPorDia[dia].push(v);
     });
     
-    let html = '<table><thead><tr><th>Fecha</th><th>Hora</th><th>Plato</th><th>Cantidad</th><th>Total</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>Fecha</th><th>Hora</th><th>Plato</th><th>Cantidad</th><th>Total</th><th>Acciones</th></tr></thead><tbody>';
     let totalGeneral = 0;
     
     Object.keys(ventasPorDia).sort().reverse().forEach(dia => {
@@ -2029,7 +2029,7 @@ window.renderizarVentas = async function() {
       ventasPorDia[dia].forEach(v => {
         const hora = new Date(v.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
         const fecha = new Date(v.fecha).toLocaleDateString('es-ES');
-        html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fecha}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${v.receta_nombre}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${parseFloat(v.total).toFixed(2)}€</strong></td></tr>`;
+        html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fecha}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${v.receta_nombre}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${parseFloat(v.total).toFixed(2)}€</strong></td><td style="padding:8px 16px;text-align:center;"><button class="icon-btn delete" onclick="window.eliminarVenta(${v.id})" title="Eliminar">🗑️</button></td></tr>`;
         totalGeneral += parseFloat(v.total);
       });
     });
@@ -2040,6 +2040,21 @@ window.renderizarVentas = async function() {
     document.getElementById('tabla-ventas').innerHTML = html;
   } catch (error) {
     document.getElementById('tabla-ventas').innerHTML = '<p style="color:#ef4444;">Error cargando ventas</p>';
+  }
+};
+      window.eliminarVenta = async function(id) {
+  if (!confirm('¿Eliminar esta venta? El stock NO se restaurará automáticamente.')) return;
+  
+  try {
+    await api.deleteSale(id);
+    await cargarDatos();
+    renderizarVentas();
+    renderizarIngredientes();
+    window.actualizarKPIs();
+    showToast('Venta eliminada', 'success');
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Error eliminando venta', 'error');
   }
 };
 // === BALANCE ===
