@@ -1911,7 +1911,7 @@ table tbody td:first-child {
 
         // 3. STOCK BAJO
         const stockBajo = ingredientes.filter(ing => 
-          ing.stockActual <= ing.stockMinimo
+          ing.stock_actual <= ing.stock_minimo
         ).length;
         document.getElementById('kpi-stock').textContent = stockBajo;
         document.getElementById('kpi-stock-msg').textContent = 
