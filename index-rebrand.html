@@ -2096,7 +2096,7 @@ window.renderizarBalance = async function() {
         renderizarIngredientes();
         window.actualizarKPIs();
         e.target.reset();
-        alert('Venta registrada correctamente');
+        showToast('Venta registrada correctamente', 'success');
       } catch (error) {
         alert('Error: ' + error.message);
       }
@@ -3785,7 +3785,7 @@ html += `<td><div class="actions">`;
           html += '</tr></thead><tbody>';
 
           filtrados.forEach(ped => {
-            const prov = proveedores.find(p => p.id === ped.proveedorId);
+            const prov = proveedores.find(p => p.id === (ped.proveedor_id || ped.proveedorId));
             const nombreProv = prov ? prov.nombre : 'Desconocido';
             
             html += '<tr>';
