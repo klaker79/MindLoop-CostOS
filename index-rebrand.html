@@ -1210,6 +1210,59 @@ table tbody td:first-child {
         </div>
       </div>
     </div>
+    <!-- Dashboard Expandido -->
+    <div id="dashboard-expandido" class="dashboard-expandido" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 0 32px 24px 32px;">
+      
+      <!-- Alertas de Stock -->
+      <div class="dashboard-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+        <h3 style="margin: 0 0 16px 0; font-size: 16px; color: #1E293B; display: flex; align-items: center; gap: 8px;">
+          🚨 Alertas de Stock
+        </h3>
+        <div id="alertas-stock-lista" style="max-height: 150px; overflow-y: auto; font-size: 14px;">
+          <p style="color: #64748B; margin: 0;">Cargando...</p>
+        </div>
+      </div>
+
+      <!-- Resumen del Día -->
+      <div class="dashboard-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+        <h3 style="margin: 0 0 16px 0; font-size: 16px; color: #1E293B; display: flex; align-items: center; gap: 8px;">
+          📊 Resumen de Hoy
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="text-align: center; padding: 12px; background: #F0FDF4; border-radius: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: #10B981;" id="ventas-hoy">0</div>
+            <div style="font-size: 12px; color: #64748B;">Ventas</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background: #EFF6FF; border-radius: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: #3B82F6;" id="ingresos-hoy">0€</div>
+            <div style="font-size: 12px; color: #64748B;">Ingresos</div>
+          </div>
+        </div>
+        <div style="margin-top: 12px; padding: 12px; background: #FFF7ED; border-radius: 8px; text-align: center;">
+          <div style="font-size: 12px; color: #64748B;">Plato estrella hoy</div>
+          <div style="font-size: 14px; font-weight: 600; color: #F59E0B;" id="plato-estrella-hoy">-</div>
+        </div>
+      </div>
+
+      <!-- Accesos Rápidos -->
+      <div class="dashboard-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+        <h3 style="margin: 0 0 16px 0; font-size: 16px; color: #1E293B; display: flex; align-items: center; gap: 8px;">
+          ⚡ Acciones Rápidas
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button onclick="window.cambiarTab('ventas'); document.getElementById('venta-receta').focus();" style="padding: 12px; background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
+            💰 Nueva Venta
+          </button>
+          <button onclick="window.cambiarTab('pedidos'); window.mostrarFormularioPedido && window.mostrarFormularioPedido();" style="padding: 12px; background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
+            📦 Nuevo Pedido
+          </button>
+          <button onclick="window.cambiarTab('inventario');" style="padding: 12px; background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
+            🔍 Ver Inventario
+          </button>
+        </div>
+      </div>
+
+    </div>
     <div class="tabs">
       <button id="tab-btn-ingredientes" class="tab active" onclick="window.cambiarTab('ingredientes')">📦 Ingredientes</button>
       <button id="tab-btn-recetas" class="tab" onclick="window.cambiarTab('recetas')">👨‍🍳 Recetas</button>
@@ -4112,6 +4165,43 @@ html += `<td><div class="actions">`;
 
       // Event listener para búsqueda de inventario
       document.getElementById('busqueda-inventario').addEventListener('input', window.renderizarInventario);
+
+    // Dashboard expandido - actualizar datos
+    window.actualizarDashboardExpandido = async function() {
+      try {
+        const ventas = await api.getSales();
+        const hoy = new Date().toISOString().split('T')[0];
+        const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoy);
+        
+        document.getElementById('ventas-hoy').textContent = ventasHoy.length;
+        const ingresosHoy = ventasHoy.reduce((sum, v) => sum + parseFloat(v.total), 0);
+        document.getElementById('ingresos-hoy').textContent = ingresosHoy.toFixed(2) + '€';
+        
+        const platosHoy = {};
+        ventasHoy.forEach(v => {
+          platosHoy[v.receta_nombre] = (platosHoy[v.receta_nombre] || 0) + v.cantidad;
+        });
+        const platoEstrella = Object.entries(platosHoy).sort((a,b) => b[1] - a[1])[0];
+        document.getElementById('plato-estrella-hoy').textContent = platoEstrella ? platoEstrella[0] + ' (' + platoEstrella[1] + ')' : 'Sin ventas';
+        
+        const alertas = window.ingredientes.filter(ing => {
+          const stockActual = parseFloat(ing.stock_actual) || 0;
+          const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+          return stockMinimo > 0 && stockActual <= stockMinimo;
+        });
+        
+        const listaAlertas = document.getElementById('alertas-stock-lista');
+        if (alertas.length === 0) {
+          listaAlertas.innerHTML = '<p style="color: #10B981; margin: 0;">✅ Todo el stock OK</p>';
+        } else {
+          listaAlertas.innerHTML = alertas.map(ing => 
+            '<div style="padding: 8px; margin-bottom: 6px; background: #FEF2F2; border-radius: 6px; border-left: 3px solid #EF4444;"><strong>' + ing.nombre + '</strong>: ' + parseFloat(ing.stock_actual).toFixed(1) + ' ' + ing.unidad + '</div>'
+          ).join('');
+        }
+      } catch (e) {
+        console.error('Error dashboard:', e);
+      }
+    };
 
     init();
     })();
