@@ -2410,12 +2410,13 @@ window.renderizarBalance = async function() {
             html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad + ' -' : ''}</td>`;
             html += `<td>`;
             if (ing.stockActual) {
-              html += `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stockActual} ${ing.unidad}</span>`;
-              if (stockBajo && ing.stockMinimo) html += ` ⚠️`;
-            } else {
-              html += '-';
-            }
+            html += `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stockActual} ${ing.unidad}</span>`;
+            if (stockBajo && ing.stockMinimo) html += ` ⚠️`;
+          } else {
+            html += '-';
+          }
             html += `</td>`;
+            }
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})">✏️</button>`;
             html += `<button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})">🗑️</button>`;
