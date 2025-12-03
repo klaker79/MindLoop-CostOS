@@ -2158,8 +2158,10 @@ window.renderizarVentas = async function() {
     await cargarDatos();
     renderizarVentas();
     renderizarIngredientes();
-    window.actualizarKPIs();
-    showToast('Venta eliminada', 'success');
+      renderizarInventario();
+      window.actualizarKPIs();
+      window.actualizarDashboardExpandido();
+      showToast('Venta eliminada', 'success');
   } catch (error) {
     console.error('Error:', error);
     showToast('Error eliminando venta', 'error');
