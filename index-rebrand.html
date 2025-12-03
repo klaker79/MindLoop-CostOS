@@ -4018,10 +4018,10 @@ html += `<td><div class="actions">`;
           let estadoClass = 'stock-ok';
           let estadoIcon = '🟢';
           
-          if (ing.stockActual <= 0) {
+          if (ing.stock_actual <= 0) {
             estadoClass = 'stock-critico';
             estadoIcon = '🔴';
-          } else if (ing.stockActual <= ing.stockMinimo) {
+          } else if (ing.stock_actual <= ing.stock_minimo) {
             estadoClass = 'stock-bajo';
             estadoIcon = '🟡';
           }
@@ -4029,8 +4029,8 @@ html += `<td><div class="actions">`;
           html += '<tr>';
           html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
           html += `<td><strong>${ing.nombre}</strong></td>`;
-          html += `<td><span class="stock-value">${parseFloat(ing.stockActual || 0).toFixed(2)}</span></td>`;
-          html += `<td>${ing.stockMinimo}</td>`;
+          html += `<td><span class="stock-value">${parseFloat(ing.stock_actual || 0).toFixed(2)}</span></td>`;
+          html += `<td>${ing.stock_minimo}</td>`;
           html += `<td>${ing.unidad}</td>`;
           html += '</tr>';
         });
