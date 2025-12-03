@@ -4146,13 +4146,16 @@ html += `<td><div class="actions">`;
           let estadoClass = 'stock-ok';
           let estadoIcon = '🟢';
           
-          if (ing.stock_actual <= 0) {
-            estadoClass = 'stock-critico';
-            estadoIcon = '🔴';
-          } else if (ing.stock_actual <= ing.stock_minimo) {
-            estadoClass = 'stock-bajo';
-            estadoIcon = '🟡';
-          }
+          const stockActual = parseFloat(ing.stock_actual) || 0;
+      const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+      
+      if (stockMinimo > 0 && stockActual <= 0) {
+        estadoClass = 'stock-critico';
+        estadoIcon = '🔴';
+      } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
+        estadoClass = 'stock-bajo';
+        estadoIcon = '🟡';
+      }
           
           html += '<tr>';
           html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
