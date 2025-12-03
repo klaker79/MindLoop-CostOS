@@ -2402,16 +2402,16 @@ window.renderizarBalance = async function() {
           html += '</tr></thead><tbody>';
 
           filtrados.forEach(ing => {
-            const stockBajo = ing.stockActual <= ing.stockMinimo;
+            const stockBajo = ing.stock_actual <= ing.stock_minimo;
             
             html += '<tr>';
             html += `<td><strong>${ing.nombre}</strong></td>`;
-            html += `<td>${getNombreProveedor(ing.proveedorId)}</td>`;
+            html += `<td>${getNombreProveedor(ing.proveedor_id)}</td>`;
             html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad + ' -' : ''}</td>`;
            html += `<td>`;
-if (ing.stockActual) {
-  html += `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stockActual} ${ing.unidad}</span>`;
-  if (stockBajo && ing.stockMinimo) html += ` ⚠️`;
+if (ing.stock_actual) {
+  html += `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${ing.unidad}</span>`;
+  if (stockBajo && ing.stock_minimo) html += ` ⚠️`;
 } else {
   html += '-';
 }
