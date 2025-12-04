@@ -2453,31 +2453,32 @@ window.renderizarBalance = async function() {
         },
         
         async createIngrediente(ingrediente) {
-          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/ingredients', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ingrediente)
-          });
-          if (!res.ok) throw new Error('Error creando ingrediente');
-          return await res.json();
+            const res = await fetch(API_BASE + '/ingredients', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(ingrediente)
+            });
+            if (!res.ok) throw new Error('Error creando ingrediente');
+            return await res.json();
         },
         
-        async updateIngrediente(id, ingrediente) {
-          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/ingredients/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ingrediente)
-          });
-          if (!res.ok) throw new Error('Error actualizando ingrediente');
-          return await res.json();
+       async updateIngrediente(id, ingrediente) {
+            const res = await fetch(API_BASE + `/ingredients/${id}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(ingrediente)
+            });
+            if (!res.ok) throw new Error('Error actualizando ingrediente');
+            return await res.json();
         },
         
         async deleteIngrediente(id) {
-          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/ingredients/${id}`, {
-            method: 'DELETE'
-          });
-          if (!res.ok) throw new Error('Error eliminando ingrediente');
-          return await res.json();
+            const res = await fetch(API_BASE + `/ingredients/${id}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            if (!res.ok) throw new Error('Error eliminando ingrediente');
+            return await res.json();
         },
         
         async getRecetas() {
