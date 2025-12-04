@@ -2290,11 +2290,11 @@ window.renderizarVentas = async function() {
 // === BALANCE ===
 window.renderizarBalance = async function() {
   try {
-    const API_URL = 'https://lacaleta-api.mindloop.cloud/api';
-    
     // Obtener balance del mes actual
-    const resBalance = await fetch(`${API_URL}/balance/mes`);
-    const balance = await resBalance.json();
+        const resBalance = await fetch(API_BASE + '/balance/mes', {
+            headers: getAuthHeaders()
+        });
+        const balance = await resBalance.json();
     
     // Actualizar métricas
     document.getElementById('balance-ingresos').textContent = balance.ingresos.toFixed(2) + '€';
