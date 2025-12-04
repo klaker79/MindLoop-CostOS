@@ -2434,10 +2434,22 @@ window.renderizarBalance = async function() {
         }
       }
      // API helper para balance
-      window.api = {
+    const API_BASE = 'https://lacaleta-api.mindloop.cloud/api';
+    
+    function getAuthHeaders() {
+        const token = localStorage.getItem('token');
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': token ? 'Bearer ' + token : ''
+        };
+    }
+    
+    window.api = {
         async getIngredientes() {
-          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/ingredients');
-          return await res.json();
+            const res = await fetch(API_BASE + '/ingredients', {
+                headers: getAuthHeaders()
+            });
+            return await res.json();
         },
         
         async createIngrediente(ingrediente) {
