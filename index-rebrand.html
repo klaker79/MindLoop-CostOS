@@ -2326,7 +2326,58 @@ window.renderizarBalance = async function() {
   }
 };
 
-      async function init() {
+    // ========== AUTENTICACIÓN ==========
+    const API_AUTH_URL = 'https://lacaleta-api.mindloop.cloud/api/auth';
+    
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (token) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+        return true;
+      }
+      return false;
+    }
+    
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const errorEl = document.getElementById('login-error');
+      
+      try {
+        const res = await fetch(API_AUTH_URL + '/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          errorEl.textContent = data.error || 'Error al iniciar sesión';
+          return;
+        }
+        
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+        
+        init();
+      } catch (err) {
+        errorEl.textContent = 'Error de conexión';
+      }
+    });
+    
+    window.logout = function() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      location.reload();
+    };
+
+    async function init() {
         await cargarDatos();
         renderizarIngredientes();
         renderizarRecetas();
