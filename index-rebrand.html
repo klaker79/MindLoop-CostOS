@@ -2482,28 +2482,30 @@ window.renderizarBalance = async function() {
         },
         
         async getRecetas() {
-          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/recipes');
-          return await res.json();
+            const res = await fetch(API_BASE + '/recipes', {
+                headers: getAuthHeaders()
+            });
+            return await res.json();
         },
         
-        async createReceta(receta) {
-          const res = await fetch('https://lacaleta-api.mindloop.cloud/api/recipes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(receta)
-          });
-          if (!res.ok) throw new Error('Error creando receta');
-          return await res.json();
+       async createReceta(receta) {
+            const res = await fetch(API_BASE + '/recipes', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(receta)
+            });
+            if (!res.ok) throw new Error('Error creando receta');
+            return await res.json();
         },
         
         async updateReceta(id, receta) {
-          const res = await fetch(`https://lacaleta-api.mindloop.cloud/api/recipes/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(receta)
-          });
-          if (!res.ok) throw new Error('Error actualizando receta');
-          return await res.json();
+            const res = await fetch(API_BASE + `/recipes/${id}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(receta)
+            });
+            if (!res.ok) throw new Error('Error actualizando receta');
+            return await res.json();
         },
         
         async deleteReceta(id) {
