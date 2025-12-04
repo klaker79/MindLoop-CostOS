@@ -2554,7 +2554,9 @@ window.renderizarBalance = async function() {
           html += '</tr></thead><tbody>';
 
           filtrados.forEach(ing => {
-            const stockBajo = ing.stock_actual <= ing.stock_minimo;
+            const stockActual = parseFloat(ing.stock_actual) || 0;
+      const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+      const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
             
             html += '<tr>';
             html += `<td><strong>${ing.nombre}</strong></td>`;
