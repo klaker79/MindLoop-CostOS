@@ -2382,7 +2382,13 @@ window.renderizarBalance = async function() {
     };
 
     async function init() {
-        await cargarDatos();
+      // Mostrar nombre del restaurante
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.restaurante) {
+        document.getElementById('user-restaurant').textContent = '🍽️ ' + user.restaurante;
+      }
+      
+      await cargarDatos();
         renderizarIngredientes();
         renderizarRecetas();
         renderizarProveedores();
