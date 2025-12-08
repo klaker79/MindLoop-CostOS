@@ -2440,7 +2440,7 @@ window.renderizarBalance = async function() {
    const API_BASE = 'https://lacaleta-api.mindloop.cloud/api';
     
     function getAuthHeaders() {
-        const token = localStorage.getItem('jwt_token');
+        const token = localStorage.getItem('token');
         return {
             'Content-Type': 'application/json',
             'Authorization': token ? 'Bearer ' + token : ''
