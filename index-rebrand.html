@@ -2787,50 +2787,6 @@ window.renderizarBalance = async function() {
     showToast('Error guardando ingrediente: ' + error.message, 'error');
   }
 };
-      window.editarIngrediente = function(id) {
-        const ing = ingredientes.find(i => i.id === id);
-        if (!ing) return;
-        
-        actualizarSelectProveedores();
-        document.getElementById('ing-nombre').value = ing.nombre;
-        document.getElementById('ing-proveedor-select').value = ing.proveedorId || '';
-        document.getElementById('ing-precio').value = ing.precio || '';
-        document.getElementById('ing-unidad').value = ing.unidad;
-        document.getElementById('ing-stockActual').value = ing.stockActual || '';
-        document.getElementById('ing-stockMinimo').value = ing.stockMinimo || '';
-        
-        editandoIngredienteId = id;
-        document.getElementById('form-title-ingrediente').textContent = 'Editar Ingrediente';
-        document.getElementById('btn-text-ingrediente').textContent = 'Guardar';
-        window.mostrarFormularioIngrediente();
-      };
-
-      window.eliminarIngrediente = async function(id) {
-        if (confirm('¿Eliminar?')) {
-          showLoading();
-          try {
-            await api.deleteIngrediente(id);
-            await cargarDatos();
-          renderizarIngredientes();
-          renderizarInventario();
-        window.actualizarKPIs();
-        window.actualizarDashboardExpandido();
-          hideLoading();
-          showToast('Ingrediente eliminado', 'success');
-          } catch (error) {
-            hideLoading();
-            console.error('Error:', error);
-            showToast('Error eliminando ingrediente: ' + error.message, 'error');
-          }
-        }
-      };
-
-      function getNombreProveedor(proveedorId) {
-        if (!proveedorId) return '-';
-        const prov = proveedores.find(p => p.id == proveedorId);
-        return prov ? prov.nombre : '-';
-      }
-
       window.renderizarIngredientes = function() {
       const busqueda = document.getElementById('busqueda-ingredientes').value.toLowerCase();
       const filtrados = ingredientes.filter(ing => {
@@ -2844,8 +2800,8 @@ window.renderizarBalance = async function() {
         container.innerHTML = 
           '<div class="empty-state">' +
             '<div class="icon">📦</div>' +
-            '<h3>${busqueda ? \'No encontrados\' : \'Aún no hay ingredientes\'}</h3>' +
-            '<p>${busqueda ? \'Otra búsqueda\' : \'Añade tu primer ingrediente\'}</p>' +
+            '<h3>' + (busqueda ? 'No encontrados' : 'Aún no hay ingredientes') + '</h3>' +
+            '<p>' + (busqueda ? 'Otra búsqueda' : 'Añade tu primer ingrediente') + '</p>' +
           '</div>';
         document.getElementById('resumen-ingredientes').style.display = 'none';
       } else {
@@ -2855,7 +2811,7 @@ window.renderizarBalance = async function() {
 
         filtrados.forEach(ing => {
           const stockVirtual = parseFloat(ing.stock_virtual || ing.stock_actual) || 0;
-          const stockReal = parseFloat(ing.stock_real) || null;
+          const stockReal = ing.stock_real !== null && ing.stock_real !== undefined ? parseFloat(ing.stock_real) : null;
           const stockMinimo = parseFloat(ing.stock_minimo) || 0;
           const diferencia = stockReal !== null ? (stockVirtual - stockReal).toFixed(2) : '-';
           const precioMedio = parseFloat(ing.precio_medio || ing.precio) || 0;
@@ -2863,36 +2819,39 @@ window.renderizarBalance = async function() {
           const stockBajo = stockMinimo > 0 && stockVirtual <= stockMinimo;
 
           html += '<tr>';
-          html += '<td><strong>${ing.nombre}</strong></td>';
-          html += '<td>${getNombreProveedor(ing.proveedor_id)}</td>';
-          html += '<td>${stockVirtual.toFixed(2)} ${ing.unidad}</td>';
+          
+          // Estado
+          if (stockVirtual > 0) {
+            html += '<td><span class="stock-badge ' + (stockBajo ? 'stock-low' : 'stock-ok') + '">' + stockVirtual.toFixed(2) + ' ' + ing.unidad + '</span>';
+            if (stockBajo && ing.stock_minimo) html += ' ⚠️';
+            html += '</td>';
+          } else {
+            html += '<td>--</td>';
+          }
+          
+          html += '<td><strong>' + ing.nombre + '</strong></td>';
+          html += '<td>' + stockVirtual.toFixed(2) + ' ' + ing.unidad + '</td>';
           
           // Stock Real (editable)
-          html += '<td><input type="number" step="0.01" value="${stockReal !== null ? stockReal : \'\'}" placeholder="--" class="stock-real-input" data-id="${ing.id}" style="width:80px; padding:4px; border:1px solid #ddd; border-radius:4px;"></td>';
+          const stockRealValue = stockReal !== null ? stockReal : '';
+          html += '<td><input type="number" step="0.01" value="' + stockRealValue + '" placeholder="--" class="stock-real-input" data-id="' + ing.id + '"></td>';
           
           // Diferencia
           if (diferencia !== '-') {
-            const difClass = Math.abs(parseFloat(diferencia)) < 0.5 ? 'dif-ok' : (parseFloat(diferencia) > 0 ? 'dif-positiva' : 'dif-negativa');
-            html += '<td class="${difClass}">${diferencia > 0 ? \'+\' : \'\'}${diferencia}</td>';
+            const difNum = parseFloat(diferencia);
+            const difClass = Math.abs(difNum) < 0.5 ? 'dif-ok' : (difNum > 0 ? 'dif-positiva' : 'dif-negativa');
+            html += '<td class="' + difClass + '">' + (difNum > 0 ? '+' : '') + diferencia + '</td>';
           } else {
             html += '<td>-</td>';
           }
           
-          html += '<td>${stockMinimo} ${ing.unidad}</td>';
-          html += '<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>';
-          html += '<td><strong>${valorStock}€</strong></td>';
-          
-          if (ing.stock_actual) {
-            html += '<td><span class="stock-badge ${stockBajo ? \'stock-low\' : \'stock-ok\'}">${stockVirtual} ${ing.unidad}</span>';
-            if (stockBajo && ing.stock_minimo) html += ' ⚠️';
-          } else {
-            html += '<td>--';
-          }
+          html += '<td>' + stockMinimo + ' ' + ing.unidad + '</td>';
+          html += '<td>' + precioMedio.toFixed(2) + '€/' + ing.unidad + '</td>';
+          html += '<td><strong>' + valorStock + '€</strong></td>';
           
           html += '<td><div class="actions">';
-          html += '<td><div class="actions">';
-          html += '<button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})">✏️</button>';
-          html += '<button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})">🗑️</button>';
+          html += '<button class="icon-btn edit" onclick="window.editarIngrediente(' + ing.id + ')">✏️</button>';
+          html += '<button class="icon-btn delete" onclick="window.eliminarIngrediente(' + ing.id + ')">🗑️</button>';
           html += '</div></td>';
           html += '</tr>';
         });
@@ -2915,6 +2874,20 @@ window.renderizarBalance = async function() {
             }
           });
         });
+
+        document.getElementById('resumen-ingredientes').innerHTML = 
+          '<div>Total: <strong>' + ingredientes.length + '</strong></div>' +
+          '<div>Mostrando: <strong>' + filtrados.length + '</strong></div>';
+        document.getElementById('resumen-ingredientes').style.display = 'flex';
+      }
+    };
+```
+
+---
+
+**Commit message:**
+```
+fix: corregir template literals en renderizarIngredientes
 
         document.getElementById('resumen-ingredientes').innerHTML = `
           <div>Total: <strong>${ingredientes.length}</strong></div>
