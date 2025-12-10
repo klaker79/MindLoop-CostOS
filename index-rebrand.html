@@ -2627,20 +2627,16 @@ window.renderizarBalance = async function() {
       };
 
       async function cargarDatos() {
-        
-        try {
-          window.ingredientes = await api.getIngredientes();
-          window.recetas = await api.getRecetas();
-          window.proveedores = await api.getProveedores();
-          window.pedidos = await api.getPedidos();
-          hideLoading();
-        } catch (error) {
-          hideLoading();
-          console.error('Error cargando datos:', error);
-         showToast('Error conectando con la API', 'error');
-        }
-      }
-
+  try {
+    window.ingredientes = await api.getIngredientes();
+    window.recetas = await api.getRecetas();
+    window.proveedores = await api.getProveedores();
+    window.pedidos = await api.getPedidos();
+  } catch (error) {
+    console.error('Error cargando datos:', error);
+    showToast('Error conectando con la API', 'error');
+  }
+}
       window.cambiarTab = function(tab) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
