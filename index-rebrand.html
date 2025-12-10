@@ -2627,12 +2627,16 @@ window.renderizarBalance = async function() {
       };
 
       async function cargarDatos() {
+        showLoading();
+        
         try {
           window.ingredientes = await api.getIngredientes();
           window.recetas = await api.getRecetas();
           window.proveedores = await api.getProveedores();
           window.pedidos = await api.getPedidos();
+          hideLoading();
         } catch (error) {
+          hideLoading();
           console.error('Error cargando datos:', error);
          showToast('Error conectando con la API', 'error');
         }
@@ -2705,7 +2709,9 @@ window.renderizarBalance = async function() {
       return;
     }
 
-    try {
+  showLoading();
+
+  try {
           if (editandoIngredienteId !== null) {
             await api.updateIngrediente(editandoIngredienteId, ingrediente);
           } else {
@@ -2716,13 +2722,15 @@ window.renderizarBalance = async function() {
       renderizarInventario();
       window.actualizarKPIs();
       window.actualizarDashboardExpandido();
+    hideLoading();
+    showToast(editandoIngredienteId ? 'Ingrediente actualizado' : 'Ingrediente creado', 'success');
       window.cerrarFormularioIngrediente();
         } catch (error) {
-          console.error('Error:', error);
-          alert('Error guardando ingrediente');
-        }
-      };
-
+    hideLoading();
+    console.error('Error:', error);
+    showToast('Error guardando ingrediente: ' + error.message, 'error');
+  }
+};
       window.editarIngrediente = function(id) {
         const ing = ingredientes.find(i => i.id === id);
         if (!ing) return;
@@ -2743,16 +2751,20 @@ window.renderizarBalance = async function() {
 
       window.eliminarIngrediente = async function(id) {
         if (confirm('¿Eliminar?')) {
+          showLoading();
           try {
             await api.deleteIngrediente(id);
             await cargarDatos();
-            renderizarIngredientes();
-        renderizarInventario();
+          renderizarIngredientes();
+          renderizarInventario();
         window.actualizarKPIs();
         window.actualizarDashboardExpandido();
+          hideLoading();
+          showToast('Ingrediente eliminado', 'success');
           } catch (error) {
+            hideLoading();
             console.error('Error:', error);
-            showToast('Error eliminando ingrediente', 'error');
+            showToast('Error eliminando ingrediente: ' + error.message, 'error');
           }
         }
       };
@@ -2939,6 +2951,8 @@ html += `<td><div class="actions">`;
           porciones: parseInt(document.getElementById('rec-porciones').value) || 1,
           ingredientes: ingredientesReceta
         };
+        
+        showLoading();
 
         try {
           if (editandoRecetaId !== null) {
@@ -2948,10 +2962,13 @@ html += `<td><div class="actions">`;
           }
           await cargarDatos();
           renderizarRecetas();
+          hideLoading();
+          showToast(editandoRecetaId ? 'Receta actualizada' : 'Receta creada', 'success');
           window.cerrarFormularioReceta();
         } catch (error) {
+          hideLoading();
           console.error('Error:', error);
-          alert('Error guardando receta');
+          showToast('Error guardando receta: ' + error.message, 'error');
         }
       };
 
@@ -2981,13 +2998,17 @@ html += `<td><div class="actions">`;
 
       window.eliminarReceta = async function(id) {
         if (confirm('¿Eliminar?')) {
+          showLoading();
           try {
             await api.deleteReceta(id);
             await cargarDatos();
             renderizarRecetas();
+            hideLoading();
+            showToast('Receta eliminada', 'success');
           } catch (error) {
+            hideLoading();
             console.error('Error:', error);
-           showToast('Error guardando receta', 'error');
+            showToast('Error eliminando receta: ' + error.message, 'error');
 
           }
         }
@@ -3101,6 +3122,8 @@ html += `<td><div class="actions">`;
           alert(msg);
           return;
         }
+
+        showLoading();
         
         try {
           for (const item of rec.ingredientes) {
@@ -3116,11 +3139,13 @@ html += `<td><div class="actions">`;
           
           await cargarDatos();
           renderizarIngredientes();
+          hideLoading();
           window.cerrarModalProducir();
           showToast(`Producidas ${cant} unidades de ${rec.nombre}`, 'success');
         } catch (error) {
+          hideLoading();
           console.error('Error:', error);
-          showToast('Error actualizando stock', 'error');
+         showToast('Error actualizando stock: ' + error.message, 'error');
         }
       };
 
@@ -3185,6 +3210,8 @@ html += `<td><div class="actions">`;
           ingredientes: ingredientesIds
         };
 
+        showLoading();
+
         try {
           if (editandoProveedorId !== null) {
             await api.updateProveedor(editandoProveedorId, proveedor);
@@ -3193,10 +3220,13 @@ html += `<td><div class="actions">`;
           }
           await cargarDatos();
           renderizarProveedores();
+          hideLoading();
+          showToast(editandoProveedorId ? 'Proveedor actualizado' : 'Proveedor creado', 'success');
           window.cerrarFormularioProveedor();
         } catch (error) {
+          hideLoading();
           console.error('Error:', error);
-          showToast('Error guardando proveedor', 'error');
+         showToast('Error guardando proveedor: ' + error.message, 'error');
         }
       };
 
@@ -3221,14 +3251,18 @@ html += `<td><div class="actions">`;
 
       window.eliminarProveedor = async function(id) {
         if (confirm('¿Eliminar?')) {
+          showLoading();
           try {
             await api.deleteProveedor(id);
             await cargarDatos();
             renderizarProveedores();
             renderizarIngredientes();
-          } catch (error) {
-            console.error('Error:', error);
-            showToast('Error eliminando proveedor', 'error');
+            hideLoading();
+            showToast('Proveedor eliminado', 'success');
+         } catch (error) {
+      hideLoading();
+      console.error('Error:', error);
+      showToast('Error eliminando proveedor: ' + error.message, 'error');
           }
         }
       };
@@ -3474,16 +3508,19 @@ html += `<td><div class="actions">`;
           total: total,
           estado: 'pendiente'
         };
+        
+        showLoading();
 
         try {
           await api.createPedido(pedido);
-          await cargarDatos();
           renderizarPedidos();
           window.cerrarFormularioPedido();
-         showToast('Pedido creado correctamente', 'success');
+          hideLoading();
+          showToast('Pedido creado correctamente', 'success');
         } catch (error) {
+          hideLoading();
           console.error('Error:', error);
-         showToast('Error creando pedido', 'error');
+          showToast('Error creando pedido: ' + error.message, 'error');
         }
       };
 
@@ -3628,6 +3665,8 @@ html += `<td><div class="actions">`;
         
         // Actualizar stock con cantidades reales recibidas
         let totalRecibido = 0;
+
+        showLoading();
         
         try {
           const items = pedido.itemsRecepcion || pedido.ingredientes;
@@ -3655,27 +3694,33 @@ html += `<td><div class="actions">`;
           await cargarDatos();
           renderizarPedidos();
           renderizarIngredientes();
-      renderizarInventario();
+          renderizarInventario();
       window.actualizarKPIs();
       window.actualizarDashboardExpandido();
       window.cerrarModalRecibirPedido();
-          
+          hideLoading();
           showToast('Pedido recibido y stock actualizado correctamente', 'success');
         } catch (error) {
+          hideLoading();
           console.error('Error:', error);
-          showToast('Error confirmando recepción', 'error');
+         showToast('Error confirmando recepción: ' + error.message, 'error');
         }
       };
 
       window.eliminarPedido = async function(id) {
         if (confirm('¿Eliminar este pedido?')) {
+           showLoading();
+          
           try {
             await api.deletePedido(id);
             await cargarDatos();
             renderizarPedidos();
+            hideLoading();
+            showToast('Pedido eliminado', 'success');
           } catch (error) {
+            hideLoading();
             console.error('Error:', error);
-            showToast('Error eliminando pedido', 'error');
+           showToast('Error eliminando pedido: ' + error.message, 'error');
           }
         }
       };
