@@ -1250,49 +1250,6 @@ table tbody td:first-child {
     text-decoration: none;
     font-weight: 600;
   }
-    /* === INVENTARIO AVANZADO === */
-    .stock-real-input {
-      width: 80px;
-      padding: 4px 8px;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      text-align: center;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 14px;
-    }
-
-    .stock-real-input:focus {
-      outline: none;
-      border-color: #4F46E5;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-
-    .dif-ok {
-      color: #10b981;
-      font-weight: 600;
-    }
-
-    .dif-positiva {
-      color: #f59e0b;
-      font-weight: 600;
-    }
-
-    .dif-negativa {
-      color: #ef4444;
-      font-weight: 600;
-    }
-
-    #tabla-ingredientes th {
-      font-size: 11px;
-      text-transform: uppercase;
-      padding: 12px 8px;
-      white-space: nowrap;
-    }
-
-    #tabla-ingredientes td {
-      padding: 12px 8px;
-      font-size: 14px;
-    }
 
   </style>
   </style>
@@ -2526,24 +2483,6 @@ window.renderizarBalance = async function() {
             if (!res.ok) throw new Error('Error eliminando ingrediente');
             return await res.json();
         },
-      // Inventario completo con precio medio y stock real
-    async getInventarioCompleto() {
-        const res = await fetch(API_BASE + '/inventory/complete', {
-            headers: getAuthHeaders()
-        });
-        return await res.json();
-    },
-
-    // Actualizar stock real de un ingrediente
-    async updateStockReal(id, stockReal) {
-        const res = await fetch(API_BASE + `/inventory/${id}/stock-real`, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ stock_real: stockReal })
-        });
-        if (!res.ok) throw new Error('Error actualizando stock real');
-        return await res.json();
-    },
         
         async getRecetas() {
             const res = await fetch(API_BASE + '/recipes', {
@@ -2689,7 +2628,7 @@ window.renderizarBalance = async function() {
 
       async function cargarDatos() {
   try {
-   window.ingredientes = await api.getInventarioCompleto();
+    window.ingredientes = await api.getIngredientes();
     window.recetas = await api.getRecetas();
     window.proveedores = await api.getProveedores();
     window.pedidos = await api.getPedidos();
@@ -2787,109 +2726,108 @@ window.renderizarBalance = async function() {
     showToast('Error guardando ingrediente: ' + error.message, 'error');
   }
 };
-      window.renderizarIngredientes = function() {
-      const busqueda = document.getElementById('busqueda-ingredientes').value.toLowerCase();
-      const filtrados = ingredientes.filter(ing => {
-        return ing.nombre.toLowerCase().includes(busqueda);
-      });
-
-      const container = document.getElementById('tabla-ingredientes');
-
-      if (filtrados.length === 0) {
-        container.innerHTML = 
-          '<div class="empty-state">' +
-            '<div class="icon">📦</div>' +
-            '<h3>' + (busqueda ? 'No encontrados' : 'Aún no hay ingredientes') + '</h3>' +
-            '<p>' + (busqueda ? 'Otra búsqueda' : 'Añade tu primer ingrediente') + '</p>' +
-          '</div>';
-        document.getElementById('resumen-ingredientes').style.display = 'none';
-      } else {
-        let html = '<table><thead><tr>';
-        html += '<th>Estado</th><th>Ingrediente</th><th>Stock Virtual</th><th>Stock Real</th><th>Diferencia</th><th>Stock Mín.</th><th>Precio Medio</th><th>Valor Stock</th><th>Acciones</th>';
-        html += '</tr></thead><tbody>';
-
-        filtrados.forEach(ing => {
-          const stockVirtual = parseFloat(ing.stock_virtual || ing.stock_actual) || 0;
-          const stockReal = ing.stock_real !== null && ing.stock_real !== undefined ? parseFloat(ing.stock_real) : null;
-          const stockMinimo = parseFloat(ing.stock_minimo) || 0;
-          const diferencia = stockReal !== null ? (stockVirtual - stockReal).toFixed(2) : '-';
-          const precioMedio = parseFloat(ing.precio_medio || ing.precio) || 0;
-          const valorStock = (stockVirtual * precioMedio).toFixed(2);
-          const stockBajo = stockMinimo > 0 && stockVirtual <= stockMinimo;
-
-          html += '<tr>';
-          
-          // Estado
-          if (stockVirtual > 0) {
-            html += '<td><span class="stock-badge ' + (stockBajo ? 'stock-low' : 'stock-ok') + '">' + stockVirtual.toFixed(2) + ' ' + ing.unidad + '</span>';
-            if (stockBajo && ing.stock_minimo) html += ' ⚠️';
-            html += '</td>';
-          } else {
-            html += '<td>--</td>';
-          }
-          
-          html += '<td><strong>' + ing.nombre + '</strong></td>';
-          html += '<td>' + stockVirtual.toFixed(2) + ' ' + ing.unidad + '</td>';
-          
-          // Stock Real (editable)
-          const stockRealValue = stockReal !== null ? stockReal : '';
-          html += '<td><input type="number" step="0.01" value="' + stockRealValue + '" placeholder="--" class="stock-real-input" data-id="' + ing.id + '"></td>';
-          
-          // Diferencia
-          if (diferencia !== '-') {
-            const difNum = parseFloat(diferencia);
-            const difClass = Math.abs(difNum) < 0.5 ? 'dif-ok' : (difNum > 0 ? 'dif-positiva' : 'dif-negativa');
-            html += '<td class="' + difClass + '">' + (difNum > 0 ? '+' : '') + diferencia + '</td>';
-          } else {
-            html += '<td>-</td>';
-          }
-          
-          html += '<td>' + stockMinimo.toFixed(2) + ' ' + ing.unidad + '</td>';
-          html += '<td>' + precioMedio.toFixed(2) + '€/' + ing.unidad + '</td>';
-          html += '<td><strong>' + valorStock + '€</strong></td>';
-          
-          html += '<td><div class="actions">';
-          html += '<button class="icon-btn edit" onclick="window.editarIngrediente(' + ing.id + ')">✏️</button>';
-          html += '<button class="icon-btn delete" onclick="window.eliminarIngrediente(' + ing.id + ')">🗑️</button>';
-          html += '</div></td>';
-          html += '</tr>';
-        });
-
-        html += '</tbody></table>';
-        container.innerHTML = html;
+      window.editarIngrediente = function(id) {
+        const ing = ingredientes.find(i => i.id === id);
+        if (!ing) return;
         
-        // Listener para actualizar stock real
-        document.querySelectorAll('.stock-real-input').forEach(input => {
-          input.addEventListener('change', async (e) => {
-            const id = e.target.dataset.id;
-            const stockReal = parseFloat(e.target.value) || null;
-            try {
-              showLoading();
-              await api.updateStockReal(id, stockReal);
-              await cargarDatos();
-              renderizarIngredientes();
-              hideLoading();
-              showToast('Stock real actualizado', 'success');
-            } catch (error) {
-              hideLoading();
-              showToast('Error: ' + error.message, 'error');
-            }
-          });
+        actualizarSelectProveedores();
+        document.getElementById('ing-nombre').value = ing.nombre;
+        document.getElementById('ing-proveedor-select').value = ing.proveedorId || '';
+        document.getElementById('ing-precio').value = ing.precio || '';
+        document.getElementById('ing-unidad').value = ing.unidad;
+        document.getElementById('ing-stockActual').value = ing.stockActual || '';
+        document.getElementById('ing-stockMinimo').value = ing.stockMinimo || '';
+        
+        editandoIngredienteId = id;
+        document.getElementById('form-title-ingrediente').textContent = 'Editar Ingrediente';
+        document.getElementById('btn-text-ingrediente').textContent = 'Guardar';
+        window.mostrarFormularioIngrediente();
+      };
+
+      window.eliminarIngrediente = async function(id) {
+        if (confirm('¿Eliminar?')) {
+          showLoading();
+          try {
+            await api.deleteIngrediente(id);
+            await cargarDatos();
+          renderizarIngredientes();
+          renderizarInventario();
+        window.actualizarKPIs();
+        window.actualizarDashboardExpandido();
+          hideLoading();
+          showToast('Ingrediente eliminado', 'success');
+          } catch (error) {
+            hideLoading();
+            console.error('Error:', error);
+            showToast('Error eliminando ingrediente: ' + error.message, 'error');
+          }
+        }
+      };
+
+      function getNombreProveedor(proveedorId) {
+        if (!proveedorId) return '-';
+        const prov = proveedores.find(p => p.id == proveedorId);
+        return prov ? prov.nombre : '-';
+      }
+
+      window.renderizarIngredientes = function() {
+        const busqueda = document.getElementById('busqueda-ingredientes').value.toLowerCase();
+        const filtrados = ingredientes.filter(ing => {
+          const nombreProv = getNombreProveedor(ing.proveedorId).toLowerCase();
+          return ing.nombre.toLowerCase().includes(busqueda) || nombreProv.includes(busqueda);
         });
 
-        document.getElementById('resumen-ingredientes').innerHTML = 
-          '<div>Total: <strong>' + ingredientes.length + '</strong></div>' +
-          '<div>Mostrando: <strong>' + filtrados.length + '</strong></div>';
-        document.getElementById('resumen-ingredientes').style.display = 'flex';
-      }
-    };
-```
+        const container = document.getElementById('tabla-ingredientes');
+        
+        if (filtrados.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📦</div>
+              <h3>${busqueda ? 'No encontrados' : 'Aún no hay ingredientes'}</h3>
+              <p>${busqueda ? 'Otra búsqueda' : 'Añade tu primer ingrediente'}</p>
+            </div>
+          `;
+          document.getElementById('resumen-ingredientes').style.display = 'none';
+        } else {
+          let html = '<table><thead><tr>';
+          html += '<th>Ingrediente</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Acciones</th>';
+          html += '</tr></thead><tbody>';
 
----
+          filtrados.forEach(ing => {
+            const stockActual = parseFloat(ing.stock_actual) || 0;
+      const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+      const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
+            
+            html += '<tr>';
+            html += `<td><strong>${ing.nombre}</strong></td>`;
+            html += `<td>${getNombreProveedor(ing.proveedor_id)}</td>`;
+            html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad + ' -' : ''}</td>`;
+           html += `<td>`;
+if (ing.stock_actual) {
+  html += `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${ing.unidad}</span>`;
+  if (stockBajo && ing.stock_minimo) html += ` ⚠️`;
+} else {
+  html += '-';
+}
+html += `</td>`;
+html += `<td><div class="actions">`;
+            html += `<td><div class="actions">`;
+            html += `<button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})">✏️</button>`;
+            html += `<button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})">🗑️</button>`;
+            html += '</div></td>';
+            html += '</tr>';
+          });
 
-**Commit message:**
-```
-fix: corregir función renderizarIngredientes sin dependencias
+          html += '</tbody></table>';
+          container.innerHTML = html;
+
+          document.getElementById('resumen-ingredientes').innerHTML = `
+            <div>Total: <strong>${ingredientes.length}</strong></div>
+            <div>Mostrando: <strong>${filtrados.length}</strong></div>
+          `;
+          document.getElementById('resumen-ingredientes').style.display = 'flex';
+        }
+      };
 
       // ========== RECETAS (resumido) ==========
       window.mostrarFormularioReceta = function() {
@@ -3570,7 +3508,6 @@ fix: corregir función renderizarIngredientes sin dependencias
 
         try {
           await api.createPedido(pedido);
-          await cargarDatos();
           renderizarPedidos();
           window.cerrarFormularioPedido();
           hideLoading();
