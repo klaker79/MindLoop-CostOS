@@ -2790,8 +2790,7 @@ window.renderizarBalance = async function() {
       window.renderizarIngredientes = function() {
       const busqueda = document.getElementById('busqueda-ingredientes').value.toLowerCase();
       const filtrados = ingredientes.filter(ing => {
-        const nombreProv = getNombreProveedor(ing.proveedor_id).toLowerCase();
-        return ing.nombre.toLowerCase().includes(busqueda) || nombreProv.includes(busqueda);
+        return ing.nombre.toLowerCase().includes(busqueda);
       });
 
       const container = document.getElementById('tabla-ingredientes');
@@ -2845,7 +2844,7 @@ window.renderizarBalance = async function() {
             html += '<td>-</td>';
           }
           
-          html += '<td>' + stockMinimo + ' ' + ing.unidad + '</td>';
+          html += '<td>' + stockMinimo.toFixed(2) + ' ' + ing.unidad + '</td>';
           html += '<td>' + precioMedio.toFixed(2) + '€/' + ing.unidad + '</td>';
           html += '<td><strong>' + valorStock + '€</strong></td>';
           
@@ -2865,12 +2864,15 @@ window.renderizarBalance = async function() {
             const id = e.target.dataset.id;
             const stockReal = parseFloat(e.target.value) || null;
             try {
+              showLoading();
               await api.updateStockReal(id, stockReal);
               await cargarDatos();
               renderizarIngredientes();
+              hideLoading();
               showToast('Stock real actualizado', 'success');
             } catch (error) {
-              showToast('Error actualizando stock: ' + error.message, 'error');
+              hideLoading();
+              showToast('Error: ' + error.message, 'error');
             }
           });
         });
@@ -2881,6 +2883,13 @@ window.renderizarBalance = async function() {
         document.getElementById('resumen-ingredientes').style.display = 'flex';
       }
     };
+```
+
+---
+
+**Commit message:**
+```
+fix: corregir función renderizarIngredientes sin dependencias
 
       // ========== RECETAS (resumido) ==========
       window.mostrarFormularioReceta = function() {
