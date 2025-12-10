@@ -3508,7 +3508,7 @@ html += `<td><div class="actions">`;
 
         try {
           await api.createPedido(pedido);
-          renderPedidos();
+          renderizarPedidos();
           window.cerrarFormularioPedido();
           hideLoading();
           showToast('Pedido creado correctamente', 'success');
