@@ -2624,35 +2624,7 @@ window.renderizarBalance = async function() {
             if (!res.ok) throw new Error('Error al eliminar venta');
             return await res.json();
         },
-      
-      // INVENTARIO AVANZADO
-      async getInventoryComplete() {
-        const res = await fetch(API_BASE + '/inventory/complete', {
-          headers: getAuthHeaders()
-        });
-        if (!res.ok) throw new Error('Error cargando inventario');
-        return await res.json();
-      },
-      
-      async updateStockReal(id, stock_real) {
-        const res = await fetch(API_BASE + `/inventory/${id}/stock-real`, {
-          method: 'PUT',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ stock_real })
-        });
-        if (!res.ok) throw new Error('Error actualizando stock real');
-        return await res.json();
-      },
-      
-      async bulkUpdateStockReal(stocks) {
-        const res = await fetch(API_BASE + '/inventory/bulk-update-stock', {
-          method: 'PUT',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ stocks })
-        });
-        if (!res.ok) throw new Error('Error en actualización masiva');
-        return await res.json();
-      }};
+      };
 
       async function cargarDatos() {
   try {
@@ -4434,13 +4406,11 @@ html += `<td><div class="actions">`;
       }
 
       // ========== INVENTARIO ==========
-      window.renderizarInventario = async function() {
-  try {
-    const inventario = await api.getInventoryComplete();
+      window.renderizarInventario = function() {
         const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
-    const filtrados = inventario.filter(ing =>
-      ing.nombre.toLowerCase().includes(busqueda)
-    );
+        const filtrados = ingredientes.filter(ing => 
+          ing.nombre.toLowerCase().includes(busqueda)
+        );
 
         const container = document.getElementById('tabla-inventario');
         
@@ -4495,7 +4465,7 @@ html += `<td><div class="actions">`;
         }
 
         let html = '<table><thead><tr>';
-       html += '<th>Estado</th><th>Ingrediente</th><th>Stock Virtual</th><th>Stock Real</th><th>Diferencia</th><th>Precio Medio</th><th>Valor Stock</th><th>Unidad</th>';
+        html += '<th>Estado</th><th>Ingrediente</th><th>Stock Actual</th><th>Stock Mínimo</th><th>Unidad</th><th>Acciones</th>';
         html += '</tr></thead><tbody>';
 
         filtrados.forEach(ing => {
@@ -4513,40 +4483,16 @@ html += `<td><div class="actions">`;
         estadoIcon = '🟡';
       }
           
-          const precioMedio = parseFloat(ing.precio_medio || 0);
-const valorStock = parseFloat(ing.valor_stock || 0);
-const diferencia = parseFloat(ing.diferencia || 0);
-const stockReal = ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '';
-
-html += '<tr>';
-html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
-html += `<td><strong>${ing.nombre}</strong></td>`;
-html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
-html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;" onchange="actualizarStockReal(${ing.id}, this.value)"></td>`;
-html += `<td style="color:${diferencia > 0 ? '#10b981' : diferencia < 0 ? '#ef4444' : '#666'};">${diferencia !== 0 ? diferencia.toFixed(2) : '-'}</td>`;
-html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
-html += `<td><strong>${valorStock.toFixed(2)}€</strong></td>`;
-html += `<td>${ing.unidad}</td>`;
-html += '</tr>';
+          html += '<tr>';
+          html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
+          html += `<td><strong>${ing.nombre}</strong></td>`;
+          html += `<td><span class="stock-value">${parseFloat(ing.stock_actual || 0).toFixed(2)}</span></td>`;
+          html += `<td>${ing.stock_minimo}</td>`;
+          html += `<td>${ing.unidad}</td>`;
+          html += '</tr>';
         });
 
         container.innerHTML = html;
-    } catch(error) {
-    console.error('Error:', error);
-    document.getElementById('tabla-inventario').innerHTML = '<p style="color:#ef4444;">Error cargando inventario</p>';
-  }
-      };
-
-      // Función global para actualizar stock real
-      window.actualizarStockReal = async function(id, valor) {
-        if (!valor || valor === '') return;
-        try {
-          await api.updateStockReal(id, parseFloat(valor));
-          await window.renderizarInventario();
-          showToast('Stock real actualizado', 'success');
-        } catch(error) {
-          showToast('Error actualizando stock', 'error');
-        }
       };
 
 
