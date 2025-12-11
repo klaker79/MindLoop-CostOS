@@ -4406,7 +4406,10 @@ html += `<td><div class="actions">`;
       }
 
       // ========== INVENTARIO ==========
-      window.renderizarInventario = async function() {
+     let cargandoInventario = false;
+    window.renderizarInventario = async function() {
+      if (cargandoInventario) return;
+      cargandoInventario = true;
         const busqueda = document.getElementById('busqueda-inventario')?.value.toLowerCase() || '';
 
 try {
@@ -4523,6 +4526,9 @@ html += `<td><strong>${valorStock.toFixed(2)} €</strong></td>`;
     console.error('Error cargando inventario:', error);
     document.getElementById('tabla-inventario').innerHTML = 
       '<p style="color:#ef4444;">Error cargando inventario</p>';
+  } finally {
+    cargandoInventario = false;
+  }
 };
 
         // Actualizar stock real de un ingrediente
