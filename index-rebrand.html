@@ -2716,7 +2716,7 @@ window.renderizarBalance = async function() {
           renderizarIngredientes();
       renderizarInventario();
       window.actualizarKPIs();
-      window.actualizarDashboardExpandido();
+      // window.actualizarDashboardExpandido();
     hideLoading();
     showToast(editandoIngredienteId ? 'Ingrediente actualizado' : 'Ingrediente creado', 'success');
       window.cerrarFormularioIngrediente();
@@ -2753,7 +2753,7 @@ window.renderizarBalance = async function() {
           renderizarIngredientes();
           renderizarInventario();
         window.actualizarKPIs();
-        window.actualizarDashboardExpandido();
+        // window.actualizarDashboardExpandido();
           hideLoading();
           showToast('Ingrediente eliminado', 'success');
           } catch (error) {
@@ -3692,7 +3692,7 @@ html += `<td><div class="actions">`;
           renderizarIngredientes();
           renderizarInventario();
       window.actualizarKPIs();
-      window.actualizarDashboardExpandido();
+      // window.actualizarDashboardExpandido();
       window.cerrarModalRecibirPedido();
           hideLoading();
           showToast('Pedido recibido y stock actualizado correctamente', 'success');
