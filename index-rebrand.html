@@ -4519,6 +4519,12 @@ html += `<td><strong>${valorStock.toFixed(2)} €</strong></td>`;
         container.innerHTML = html;
       };
 
+        } catch (error) {
+    console.error('Error cargando inventario:', error);
+    document.getElementById('tabla-inventario').innerHTML = 
+      '<p style="color:#ef4444;">Error cargando inventario</p>';
+  }
+
         // Actualizar stock real de un ingrediente
 window.actualizarStockReal = async function(ingredienteId, nuevoStockReal) {
   const valor = parseFloat(nuevoStockReal);
