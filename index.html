@@ -2283,8 +2283,7 @@ window.renderizarVentas = async function() {
     renderizarIngredientes();
       renderizarInventario();
       window.actualizarKPIs();
-  
-     // window.actualizarDashboardExpandido();
+      window.actualizarDashboardExpandido();
       showToast('Venta eliminada', 'success');
   } catch (error) {
     console.error('Error:', error);
@@ -2401,7 +2400,7 @@ window.renderizarBalance = async function() {
         renderizarVentas();
         renderizarBalance();
         actualizarKPIs();
-      // window.actualizarDashboardExpandido();
+      window.actualizarDashboardExpandido();
         document.getElementById('form-venta').addEventListener('submit', async (e) => {
       e.preventDefault();
       const recetaId = document.getElementById('venta-receta').value;
@@ -2717,7 +2716,7 @@ window.renderizarBalance = async function() {
           renderizarIngredientes();
       renderizarInventario();
       window.actualizarKPIs();
-      // window.actualizarDashboardExpandido();
+      window.actualizarDashboardExpandido();
     hideLoading();
     showToast(editandoIngredienteId ? 'Ingrediente actualizado' : 'Ingrediente creado', 'success');
       window.cerrarFormularioIngrediente();
@@ -2754,7 +2753,7 @@ window.renderizarBalance = async function() {
           renderizarIngredientes();
           renderizarInventario();
         window.actualizarKPIs();
-        // window.actualizarDashboardExpandido();
+        window.actualizarDashboardExpandido();
           hideLoading();
           showToast('Ingrediente eliminado', 'success');
           } catch (error) {
@@ -3693,7 +3692,7 @@ html += `<td><div class="actions">`;
           renderizarIngredientes();
           renderizarInventario();
       window.actualizarKPIs();
-      // window.actualizarDashboardExpandido();
+      window.actualizarDashboardExpandido();
       window.cerrarModalRecibirPedido();
           hideLoading();
           showToast('Pedido recibido y stock actualizado correctamente', 'success');
@@ -4407,21 +4406,11 @@ html += `<td><div class="actions">`;
       }
 
       // ========== INVENTARIO ==========
-     let cargandoInventario = false;
-    window.renderizarInventario = async function() {
-      if (cargandoInventario) return;
-      cargandoInventario = true;
-        const busqueda = document.getElementById('busqueda-inventario')?.value.toLowerCase() || '';
-
-try {
-  const response = await fetch(API_BASE + '/inventory/complete', {
-    headers: getAuthHeaders()
-  });
-  const inventarioCompleto = await response.json();
-  
-  const filtrados = inventarioCompleto.filter(ing => 
-    ing.nombre.toLowerCase().includes(busqueda)
-  );
+      window.renderizarInventario = function() {
+        const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
+        const filtrados = ingredientes.filter(ing => 
+          ing.nombre.toLowerCase().includes(busqueda)
+        );
 
         const container = document.getElementById('tabla-inventario');
         
@@ -4429,12 +4418,12 @@ try {
         let stockBajo = 0;
         let stockCritico = 0;
         
-        inventarioCompleto.forEach(ing => {
-          const stockVirtual = parseFloat(ing.stock_virtual) || 0;
+        window.ingredientes.forEach(ing => {
+          const stockActual = parseFloat(ing.stock_actual) || 0;
           const stockMinimo = parseFloat(ing.stock_minimo) || 0;
           // Solo contar si tiene mínimo configurado
-          if (stockMinimo > 0 && stockVirtual <= stockMinimo) {
-            if (stockVirtual <= 0) {
+          if (stockMinimo > 0 && stockActual <= stockMinimo) {
+            if (stockActual <= 0) {
               stockCritico++;
             } else {
               stockBajo++;
@@ -4476,98 +4465,35 @@ try {
         }
 
         let html = '<table><thead><tr>';
-        html += '<th>Estado</th><th>Ingrediente</th><th>Stock Virtual</th><th>Stock Real</th><th>Diferencia</th><th>Stock Mínimo</th><th>Precio Medio</th><th>Valor Stock</th><th>Unidad</th>';
+        html += '<th>Estado</th><th>Ingrediente</th><th>Stock Actual</th><th>Stock Mínimo</th><th>Unidad</th><th>Acciones</th>';
         html += '</tr></thead><tbody>';
 
         filtrados.forEach(ing => {
           let estadoClass = 'stock-ok';
           let estadoIcon = '🟢';
           
-          const stockVirtual = parseFloat(ing.stock_virtual) || 0;
-          const stockReal = parseFloat(ing.stock_real) || 0;
-          const stockMinimo = parseFloat(ing.stock_minimo) || 0;
-          const diferencia = parseFloat(ing.diferencia) || 0;
-          const precioMedio = parseFloat(ing.precio_medio) || 0;
-          const valorStock = parseFloat(ing.valor_stock) || 0;
+          const stockActual = parseFloat(ing.stock_actual) || 0;
+      const stockMinimo = parseFloat(ing.stock_minimo) || 0;
       
-       if (stockMinimo > 0 && stockVirtual <= 0) {
-       estadoClass = 'stock-critico';
-       estadoIcon = '🔴';
-     } else if (stockMinimo > 0 && stockVirtual <= stockMinimo) {
-       estadoClass = 'stock-bajo';
-       estadoIcon = '🟡';
-  }
+      if (stockMinimo > 0 && stockActual <= 0) {
+        estadoClass = 'stock-critico';
+        estadoIcon = '🔴';
+      } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
+        estadoClass = 'stock-bajo';
+        estadoIcon = '🟡';
+      }
           
           html += '<tr>';
           html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
           html += `<td><strong>${ing.nombre}</strong></td>`;
-          html += `<td><span class="stock-value">${stockVirtual.toFixed(2)}</span></td>`;
-          html += `<td>
-  <input type="number" 
-         class="stock-real-input" 
-         value="${stockReal.toFixed(2)}" 
-         step="0.01" 
-         min="0"
-         data-id="${ing.id}"
-         onchange="actualizarStockReal(${ing.id}, this.value)"
-         style="width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
-</td>`;
-const diffColor = Math.abs(diferencia) < 0.1 ? '#10b981' : (diferencia > 0 ? '#f59e0b' : '#ef4444');
-html += `<td style="color: ${diffColor}; font-weight: bold;">${diferencia > 0 ? '+' : ''}${diferencia.toFixed(2)}</td>`;
-html += `<td>${stockMinimo.toFixed(2)}</td>`;
-html += `<td><strong>${precioMedio.toFixed(2)} €</strong></td>`;
-html += `<td><strong>${valorStock.toFixed(2)} €</strong></td>`;
+          html += `<td><span class="stock-value">${parseFloat(ing.stock_actual || 0).toFixed(2)}</span></td>`;
+          html += `<td>${ing.stock_minimo}</td>`;
+          html += `<td>${ing.unidad}</td>`;
           html += '</tr>';
         });
 
         container.innerHTML = html;
-        
-
-        } catch (error) {
-    console.error('Error cargando inventario:', error);
-    document.getElementById('tabla-inventario').innerHTML = 
-      '<p style="color:#ef4444;">Error cargando inventario</p>';
-  } finally {
-    cargandoInventario = false;
-  }
-};
-
-        // Actualizar stock real de un ingrediente
-window.actualizarStockReal = async function(ingredienteId, nuevoStockReal) {
-  const valor = parseFloat(nuevoStockReal);
-  
-  if (isNaN(valor) || valor < 0) {
-    showToast('El stock debe ser un número válido mayor o igual a 0', 'error');
-    return;
-  }
-  
-  try {
-    showLoading();
-    
-    const response = await fetch(API_BASE + `/inventory/${ingredienteId}/stock-real`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ stock_real: valor })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Error actualizando stock real');
-    }
-    
-    await response.json();
-    
-    // Recargar inventario
-    await window.renderizarInventario();
-    
-    hideLoading();
-    showToast('Stock real actualizado correctamente', 'success');
-    
-  } catch (error) {
-    hideLoading();
-    console.error('Error actualizando stock real:', error);
-    showToast('Error al actualizar el stock real', 'error');
-  }
-};
+      };
 
 
       // Event listener para búsqueda de inventario
@@ -4614,8 +4540,7 @@ window.actualizarStockReal = async function(ingredienteId, nuevoStockReal) {
     if (checkAuth()) {
       init();
     }
-        
-});
+    })();
     
   </script>
   <!-- Toast Container -->
