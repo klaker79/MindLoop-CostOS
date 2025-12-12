@@ -1638,37 +1638,10 @@
       font-size: 14px;
     }
 
-
     .login-footer a {
       color: #667eea;
       text-decoration: none;
       font-weight: 600;
-    }
-
-    /* === STOCK REAL FEATURE === */
-    .stock-real-item {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 12px;
-      background: white;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      border: 1px solid #e0e0e0;
-    }
-
-    .stock-real-item:hover {
-      background: #f9fafb;
-    }
-
-    .perdida-item {
-      margin-bottom: 10px;
-    }
-
-    .input-stock-real:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
   </style>
   </style>
@@ -2165,8 +2138,7 @@
           </div>
         </div>
 
-        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-          <button class="btn btn-primary" onclick="window.mostrarModalStockReal()">📝 Actualizar Stock Real</button>
+        <div style="margin-bottom: 15px;">
           <button class="btn btn-secondary" onclick="window.mostrarModalInventarioMasivo()">📊 Actualizar Inventario
             Masivo</button>
         </div>
@@ -2460,119 +2432,15 @@
         </div>
       </div>
     </div>
-
-    <!-- MODAL: Actualizar Stock Real -->
-    <div id="modal-stock-real" class="modal">
-      <div class="modal-content" style="max-width: 900px;">
-        <h3>📝 Actualizar Stock Real</h3>
-        <p style="margin-bottom: 20px; color: #666;">
-          Introduce el stock real de cada ingrediente. El sistema comparará con el stock ficticio actual.
-        </p>
-
-        <div
-          style="max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; background: #f9f9f9;">
-          <div id="lista-stock-real"></div>
-        </div>
-
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-          <button class="btn btn-secondary" onclick="cerrarModalStockReal()">Cancelar</button>
-          <button class="btn btn-success" onclick="procesarStockReal()">Procesar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL: Confirmación de Pérdidas -->
-    <!-- MODAL: Confirmación de Ajustes (Unificado) -->
-    <div id="modal-perdidas-stock" class="modal">
-      <div class="modal-content" style="max-width: 800px;">
-        <h3>⚠️ Confirmar Ajustes de Stock</h3>
-        <p style="margin-bottom: 20px; color: #666;">
-          Revisa los cambios detectados. Confirma para actualizar el inventario.
-        </p>
-
-        <div style="max-height: 400px; overflow-y: auto;">
-          <div id="lista-perdidas-stock"></div>
-        </div>
-
-        <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; margin-top: 20px;">
-          <p style="margin: 0; font-size: 14px; color: #92400E;">
-            <strong>💡 Nota:</strong> Al confirmar, se actualizará el stock ficticio al valor real introducido.
-          </p>
-        </div>
-
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-          <button class="btn btn-secondary" onclick="cerrarModalPerdidas()">Cancelar</button>
-          <button class="btn btn-success" onclick="confirmarAjustes()">Confirmar TODO</button>
-        </div>
-      </div>
-    </div>
-
     <script>
       // Código JavaScript completo (por brevedad, incluyo versión funcional comprimida)
       // El código completo está disponible en el archivo descargable
 
       (function () {
-        // === MOCK API PARA MODO DEMO (SIN BACKEND) ===
-        // Esto permite usar la app sin servidor Node.js ni base de datos
-        window.api = {
-          login: async (email, password) => {
-            console.log("Simulando login...", email);
-            await new Promise(r => setTimeout(r, 800)); // Simular delay
-
-            // Usuario ficticio
-            const mockUser = {
-              id: 1,
-              email: email,
-              nombre: "Usuario Demo",
-              restaurante_id: 1,
-              restaurante_nombre: "Restaurante Demo",
-              token: "mock-token-12345"
-            };
-
-            localStorage.setItem('token', mockUser.token);
-            localStorage.setItem('user', JSON.stringify(mockUser));
-            return mockUser;
-          },
-
-          register: async (data) => {
-            await new Promise(r => setTimeout(r, 800));
-            return {
-              id: 1,
-              ...data,
-              token: "mock-token-12345"
-            };
-          },
-
-          getIngredients: async () => window.ingredientes || [],
-          saveIngredient: async (ing) => { ing.id = Date.now(); return ing; },
-          updateIngredient: async (ing) => ing,
-          deleteIngredient: async (id) => true,
-
-          getRecipes: async () => [],
-          saveRecipe: async (rec) => { rec.id = Date.now(); return rec; },
-          updateRecipe: async (rec) => rec,
-          deleteRecipe: async (id) => true,
-
-          getSales: async () => [],
-
-          // Soporte para nuestra nueva funcionalidad de stock
-          updateInventoryStock: async (id, stock) => true
-        };
-
-        // Sobrescribir fetch para interceptar llamadas si es necesario
-        // window.fetch = ... (no necesario si usamos el objeto api directamente)
-
-        window.ingredientes = [
-          { id: 1, nombre: "Tomate", stock_actual: 10.5, unidad: "kg", precio: 2.50 },
-          { id: 2, nombre: "Queso Mozzarella", stock_actual: 5.0, unidad: "kg", precio: 8.90 },
-          { id: 3, nombre: "Harina", stock_actual: 25.0, unidad: "kg", precio: 0.80 },
-          { id: 4, nombre: "Aceite de Oliva", stock_actual: 12.0, unidad: "L", precio: 5.50 }
-        ];
-
+        window.ingredientes = [];
         window.recetas = [];
         window.proveedores = [];
         window.pedidos = [];
-
         let editandoIngredienteId = null;
         let editandoRecetaId = null;
         let editandoProveedorId = null;
@@ -2965,35 +2833,30 @@
           const email = document.getElementById('login-email').value;
           const password = document.getElementById('login-password').value;
           const errorEl = document.getElementById('login-error');
-          const btn = e.target.querySelector('button');
 
           try {
-            btn.innerHTML = '⏳ Iniciando...';
-            btn.disabled = true;
+            const res = await fetch(API_AUTH_URL + '/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, password })
+            });
 
-            // Usar nuestra API mock en lugar de fetch real
-            const user = await window.api.login(email, password);
+            const data = await res.json();
 
-            // Guardar sesión
-            localStorage.setItem('token', user.token);
-            localStorage.setItem('user', JSON.stringify(user));
+            if (!res.ok) {
+              errorEl.textContent = data.error || 'Error al iniciar sesión';
+              return;
+            }
+
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
 
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'block';
 
-            // Inicializar la aplicación
-            if (typeof init === 'function') {
-              init();
-            } else {
-              // Fallback si init no está definido aún
-              location.reload();
-            }
-
+            init();
           } catch (err) {
-            console.error(err);
-            errorEl.textContent = 'Error: ' + err.message;
-            btn.innerHTML = 'Iniciar Sesión';
-            btn.disabled = false;
+            errorEl.textContent = 'Error de conexión';
           }
         });
 
@@ -4477,18 +4340,6 @@
           <div style="margin-top: 30px; padding: 20px; background: #F0FDF4; border: 2px solid #10B981; border-radius: 12px; text-align: right;">
             <strong style="color: #666; font-size: 16px;">Total del Pedido:</strong><br>
             <span style="font-size: 32px; font-weight: bold; color: #059669;">${total.toFixed(2)} €</span>
-            <span style="font-size: 32px; font-weight: bold; color: #059669;">${total.toFixed(2)} €</span>
-          </div>
-          
-          <div style="text-align: right; margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
-             ${pedido.estado === 'recibido' ? `
-                <button onclick="window.descargarPedidoExcel(${pedido.id})" style="background: #10B981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500;">
-                  📊 Excel
-                </button>
-                <button onclick="window.enviarADrive(${pedido.id})" style="background: #2563EB; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500;">
-                  ☁️ Drive
-                </button>
-             ` : ''}
           </div>
         `;
 
@@ -4836,18 +4687,18 @@
 
           htmlPrint += '</tbody></table>';
 
-          if (pedido.estado === 'recibido') {
-            const varianza = totalFinal - pedido.total;
+          if (pedido.estado === 'recibido' && pedido.totalRecibido !== undefined) {
+            const varianza = pedido.totalRecibido - pedido.total;
             htmlPrint += `
   <div class="total-box">
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center;">
       <div>
         <strong style="color:#666;font-size:14px;">Total Original</strong><br>
-        <span style="font-size:20px;">${parseFloat(pedido.total).toFixed(2)} €</span>
+        <span style="font-size:20px;">${pedido.total.toFixed(2)} €</span>
       </div>
       <div>
         <strong style="color:#059669;font-size:14px;">Total Recibido</strong><br>
-        <strong>${totalFinal.toFixed(2)} €</strong>
+        <strong>${pedido.totalRecibido.toFixed(2)} €</strong>
       </div>
       <div>
         <strong style="color:#666;font-size:14px;">Varianza</strong><br>
@@ -4861,7 +4712,6 @@
    <strong>Total del Pedido: ${parseFloat(pedido.total).toFixed(2)} €</strong>
   </div>`;
           }
-
 
           htmlPrint += `
   <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center;">
@@ -4893,27 +4743,17 @@
 
           if (filtrados.length === 0) {
             container.innerHTML = `
-<div class="empty-state">
-  <div class="icon">📋</div>
-  <h3>${busqueda ? 'No encontrados' : 'Aún no hay pedidos'}</h3>
-  <p>${busqueda ? 'Otra búsqueda' : 'Crea tu primer pedido'}</p>
-</div>
-`;
+            <div class="empty-state">
+              <div class="icon">📋</div>
+              <h3>${busqueda ? 'No encontrados' : 'Aún no hay pedidos'}</h3>
+              <p>${busqueda ? 'Otra búsqueda' : 'Crea tu primer pedido'}</p>
+            </div>
+          `;
             document.getElementById('resumen-pedidos').style.display = 'none';
           } else {
-            let html = `<table>
-              <thead>
-                <tr>`;
-            html += '<th>Fecha</th>';
-            html += '<th>Proveedor</th>';
-            html += '<th>Items</th>';
-            html += '<th>Total</th>';
-            html += '<th>Estado</th>';
-            html += '<th>Acciones</th>';
-            html += `
-                </tr>
-              </thead>
-              <tbody>`;
+            let html = '<table><thead><tr>';
+            html += '<th>Fecha</th><th>Proveedor</th><th>Items</th><th>Total</th><th>Estado</th><th>Acciones</th>';
+            html += '</tr></thead><tbody>';
 
             filtrados.forEach(ped => {
               const prov = proveedores.find(p => p.id === (ped.proveedor_id || ped.proveedorId));
@@ -4924,35 +4764,28 @@
               html += `<td><strong>${nombreProv}</strong></td>`;
               html += `<td>${ped.ingredientes.length} ingredientes</td>`;
               html += `<td><strong>${parseFloat(ped.total).toFixed(2)} €</strong></td>`;
-              html += `<td><span class="badge ${ped.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${ped.estado
-                === 'recibido' ? 'Recibido' : 'Pendiente'}</span></td>`;
-              html += `<td>
-        <div class="actions">`;
-              html += `<button class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})"
-            title="Ver detalles">👁️</button>`;
+              html += `<td><span class="badge ${ped.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${ped.estado === 'recibido' ? 'Recibido' : 'Pendiente'}</span></td>`;
+              html += `<td><div class="actions">`;
+              html += `<button class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="Ver detalles">👁️</button>`;
               if (ped.estado === 'pendiente') {
-                html += `<button class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})"
-            title="Recibir pedido">📥</button>`;
+                html += `<button class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir pedido">📥</button>`;
               }
-              html += `<button class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})"
-            title="Eliminar">🗑️</button>`;
-              html += `</div>
-      </td>`;
+              html += `<button class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})" title="Eliminar">🗑️</button>`;
+              html += '</div></td>';
               html += '</tr>';
             });
 
-            html += `</tbody>
-</table>`;
+            html += '</tbody></table>';
             container.innerHTML = html;
 
             const totalPendientes = pedidos.filter(p => p.estado === 'pendiente').length;
             const totalRecibidos = pedidos.filter(p => p.estado === 'recibido').length;
 
             document.getElementById('resumen-pedidos').innerHTML = `
-<div>Total: <strong>${pedidos.length}</strong></div>
-<div>Pendientes: <strong>${totalPendientes}</strong></div>
-<div>Recibidos: <strong>${totalRecibidos}</strong></div>
-`;
+            <div>Total: <strong>${pedidos.length}</strong></div>
+            <div>Pendientes: <strong>${totalPendientes}</strong></div>
+            <div>Recibidos: <strong>${totalRecibidos}</strong></div>
+          `;
             document.getElementById('resumen-pedidos').style.display = 'flex';
           }
         }
@@ -5081,19 +4914,9 @@
         function renderTablaRentabilidad(datos) {
           const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
 
-          let html = `<table>
-  <thead>
-    <tr>`;
-          html += '<th>#</th>';
-          html += '<th>Plato</th>';
-          html += '<th>Coste</th>';
-          html += '<th>Precio</th>';
-          html += '<th>Margen €</th>';
-          html += '<th>Margen %</th>';
-          html += `
-    </tr>
-  </thead>
-  <tbody>`;
+          let html = '<table><thead><tr>';
+          html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
+          html += '</tr></thead><tbody>';
 
           ordenados.forEach((rec, idx) => {
             html += '<tr>';
@@ -5102,14 +4925,11 @@
             html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
             html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
             html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
-            html += `<td><span
-          class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct
-              || 0).toFixed(1)}%</span></td>`;
+            html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
             html += '</tr>';
           });
 
-          html += `</tbody>
-</table>`;
+          html += '</tbody></table>';
           document.getElementById('tabla-rentabilidad').innerHTML = html;
         }
 
@@ -5132,13 +4952,16 @@
               const stockActual = parseFloat(ing.stock_actual) || 0;
               const stockMinimo = parseFloat(ing.stock_minimo) || 0;
               // Solo contar si tiene mínimo configurado
-              if (stockActual <= 0) { stockCritico++; } else if (stockMinimo > 0 && stockActual <= stockMinimo) { stockBajo++; }
+              if (stockActual <= 0) {
+                stockCritico++;
+              } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
+                stockBajo++;
+              }
             });
 
-            // Actualizar badge 
+            // Actualizar badge
             const totalAlertas = stockBajo + stockCritico;
             const badge = document.getElementById('badge-inventario');
-
             if (totalAlertas > 0) {
               badge.textContent = totalAlertas;
               badge.style.display = 'inline-block';
@@ -5150,9 +4973,9 @@
             const resumen = document.getElementById('resumen-inventario');
             if (stockBajo > 0 || stockCritico > 0) {
               resumen.innerHTML = `
-    <div style="color: #f59e0b;">⚠️ Stock bajo: <strong>${stockBajo}</strong></div>
-    <div style="color: #ef4444;">🔴 Stock crítico: <strong>${stockCritico}</strong></div>
-    `;
+            <div style="color: #f59e0b;">⚠️ Stock bajo: <strong>${stockBajo}</strong></div>
+            <div style="color: #ef4444;">🔴 Stock crítico: <strong>${stockCritico}</strong></div>
+          `;
               resumen.style.display = 'flex';
             } else {
               resumen.style.display = 'none';
@@ -5160,30 +4983,18 @@
 
             if (filtrados.length === 0) {
               container.innerHTML = `
-    <div class="empty-state">
-      <div class="icon">📦</div>
-      <h3>No hay ingredientes</h3>
-      <p>Añade ingredientes para gestionar el inventario</p>
-    </div>
-    `;
+            <div class="empty-state">
+              <div class="icon">📦</div>
+              <h3>No hay ingredientes</h3>
+              <p>Añade ingredientes para gestionar el inventario</p>
+            </div>
+          `;
               return;
             }
 
-            let html = `<table>
-      <thead>
-        <tr>`;
-            html += '<th>Estado</th>';
-            html += '<th>Ingrediente</th>';
-            html += '<th>Stock Virtual</th>';
-            html += '<th>Stock Real</th>';
-            html += '<th>Diferencia</th>';
-            html += '<th>Precio Medio</th>';
-            html += '<th>Valor Stock</th>';
-            html += '<th>Unidad</th>';
-            html += `
-        </tr>
-      </thead>
-      <tbody>`;
+            let html = '<table><thead><tr>';
+            html += '<th>Estado</th><th>Ingrediente</th><th>Stock Virtual</th><th>Stock Real</th><th>Diferencia</th><th>Precio Medio</th><th>Valor Stock</th><th>Unidad</th>';
+            html += '</tr></thead><tbody>';
 
             filtrados.forEach(ing => {
               let estadoClass = 'stock-ok';
@@ -5192,18 +5003,25 @@
               const stockActual = parseFloat(ing.stock_virtual) || 0;
               const stockMinimo = parseFloat(ing.stock_minimo) || 0;
 
-              if (stockActual <= 0) { estadoClass = 'stock-critico'; estadoIcon = '🔴'; } else if (stockMinimo > 0 && stockActual
-                <= stockMinimo) { estadoClass = 'stock-bajo'; estadoIcon = '🟡'; } const precioMedio = parseFloat(ing.precio_medio
-                  || 0); const valorStock = parseFloat(ing.valor_stock || 0); const diferencia = parseFloat(ing.diferencia || 0);
-              const stockReal = ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : ''; html += '<tr>'; html
-                += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
+              if (stockActual <= 0) {
+                estadoClass = 'stock-critico';
+                estadoIcon = '🔴';
+              } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
+                estadoClass = 'stock-bajo';
+                estadoIcon = '🟡';
+              }
+
+              const precioMedio = parseFloat(ing.precio_medio || 0);
+              const valorStock = parseFloat(ing.valor_stock || 0);
+              const diferencia = parseFloat(ing.diferencia || 0);
+              const stockReal = ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '';
+
+              html += '<tr>';
+              html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
               html += `<td><strong>${ing.nombre}</strong></td>`;
               html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
-              html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos"
-                style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"
-                onchange="actualizarStockReal(${ing.id}, this.value)"></td>`;
-              html += `<td style="color:${diferencia > 0 ? '#10b981' : diferencia < 0 ? '#ef4444' : '#666'};">${diferencia
-                !== 0 ? diferencia.toFixed(2) : '-'}</td>`;
+              html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;" onchange="actualizarStockReal(${ing.id}, this.value)"></td>`;
+              html += `<td style="color:${diferencia > 0 ? '#10b981' : diferencia < 0 ? '#ef4444' : '#666'};">${diferencia !== 0 ? diferencia.toFixed(2) : '-'}</td>`;
               html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
               const valorStockReal = (parseFloat(stockReal) || 0) * precioMedio;
               html += `<td><strong>${valorStockReal.toFixed(2)}€</strong></td>`;
@@ -5214,8 +5032,7 @@
             container.innerHTML = html;
           } catch (error) {
             console.error('Error:', error);
-            document.getElementById('tabla-inventario').innerHTML = `<p style="color:#ef4444;">Error cargando inventario
-            </p>`;
+            document.getElementById('tabla-inventario').innerHTML = '<p style="color:#ef4444;">Error cargando inventario</p>';
           }
         };
 
@@ -5251,22 +5068,20 @@
               platosHoy[v.receta_nombre] = (platosHoy[v.receta_nombre] || 0) + v.cantidad;
             });
             const platoEstrella = Object.entries(platosHoy).sort((a, b) => b[1] - a[1])[0];
-            document.getElementById('plato-estrella-hoy').textContent = platoEstrella ? platoEstrella[0] + ' (' +
-              platoEstrella[1] + ')' : 'Sin ventas';
+            document.getElementById('plato-estrella-hoy').textContent = platoEstrella ? platoEstrella[0] + ' (' + platoEstrella[1] + ')' : 'Sin ventas';
 
             const alertas = window.ingredientes.filter(ing => {
               const stockActual = parseFloat(ing.stock_actual) || 0;
               const stockMinimo = parseFloat(ing.stock_minimo) || 0;
               return stockMinimo > 0 && stockActual <= stockMinimo;
-            }); const
-              listaAlertas = document.getElementById('alertas-stock-lista'); if (alertas.length === 0) {
-                listaAlertas.innerHTML = '<p style="color: #10B981; margin: 0;">✅ Todo el stock OK</p>';
-              } else {
+            });
+
+            const listaAlertas = document.getElementById('alertas-stock-lista');
+            if (alertas.length === 0) {
+              listaAlertas.innerHTML = '<p style="color: #10B981; margin: 0;">✅ Todo el stock OK</p>';
+            } else {
               listaAlertas.innerHTML = alertas.map(ing =>
-                `<div
-                style = "padding: 8px; margin-bottom: 6px; background: #FEF2F2; border-radius: 6px; border-left: 3px solid #EF4444;" >
-                <strong>${ing.nombre}</strong>: ${parseFloat(ing.stock_actual).toFixed(1)} ${ing.unidad}
-              </div>`
+                '<div style="padding: 8px; margin-bottom: 6px; background: #FEF2F2; border-radius: 6px; border-left: 3px solid #EF4444;"><strong>' + ing.nombre + '</strong>: ' + parseFloat(ing.stock_actual).toFixed(1) + ' ' + ing.unidad + '</div>'
               ).join('');
             }
           } catch (e) {
@@ -5307,8 +5122,7 @@
               onchange="window.procesarArchivoInventario(this)">
             <label for="file-inventario-masivo" style="cursor: pointer;">
               <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar
-                archivo</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo</div>
               <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
             </label>
           </div>
@@ -5337,8 +5151,7 @@
 
         <div style="margin: 20px 0;">
           <p style="color: #64748b; margin-bottom: 15px;">
-            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>,
-            <strong>Precio</strong>,
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>, <strong>Precio</strong>,
             <strong>Unidad</strong>, <strong>Stock Actual</strong>, <strong>Stock Mínimo</strong>
           </p>
 
@@ -5348,8 +5161,7 @@
               onchange="window.procesarArchivoIngredientes(this)">
             <label for="file-importar-ingredientes" style="cursor: pointer;">
               <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar
-                archivo</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo</div>
               <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
             </label>
           </div>
@@ -5378,8 +5190,7 @@
 
         <div style="margin: 20px 0;">
           <p style="color: #64748b; margin-bottom: 15px;">
-            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>,
-            <strong>Categoría</strong>,
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>, <strong>Categoría</strong>,
             <strong>Precio Venta</strong>, <strong>Porciones</strong>
           </p>
 
@@ -5389,8 +5200,7 @@
               onchange="window.procesarArchivoRecetas(this)">
             <label for="file-importar-recetas" style="cursor: pointer;">
               <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar
-                archivo</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo</div>
               <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
             </label>
           </div>
@@ -5511,23 +5321,23 @@
       const invalidos = datos.filter(d => !d.valido).length;
 
       let html = `
-                      < div style = "margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 6px;" >
+                <div style="margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 6px;">
                     <strong>Resumen:</strong> 
                     <span style="color: #10b981; margin-left: 10px;">✓ ${validos} válidos</span>
                     ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
-                </div >
-                      <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                          <tr style="background: #f1f5f9;">
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f1f5f9;">
                             <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Estado</th>
                             <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ingrediente</th>
                             <th style="padding: 10px; text-align: right; border-bottom: 2px solid #e2e8f0;">Stock Actual</th>
                             <th style="padding: 10px; text-align: right; border-bottom: 2px solid #e2e8f0;">Stock Nuevo</th>
                             <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Observación</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          `;
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
 
       datos.forEach(item => {
         const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
@@ -5535,28 +5345,28 @@
         const iconColor = item.valido ? '#10b981' : '#ef4444';
 
         html += `
-                          <tr style="background: ${bgColor};">
-                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
-                              <span style="color: ${iconColor}; font-size: 18px;">${icon}</span>
-                            </td>
-                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${item.ingrediente}</td>
-                            <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0;">
-                              ${item.stockActual !== null ? item.stockActual : '-'}
-                            </td>
-                            <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: 600;">
-                              ${item.stockReal}
-                            </td>
-                            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: ${item.valido ? '#10b981' : '#ef4444'};">
-                              ${item.error || 'OK'}
-                            </td>
-                          </tr>
-                          `;
+                    <tr style="background: ${bgColor};">
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: ${iconColor}; font-size: 18px;">${icon}</span>
+                        </td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${item.ingrediente}</td>
+                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0;">
+                            ${item.stockActual !== null ? item.stockActual : '-'}
+                        </td>
+                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: 600;">
+                            ${item.stockReal}
+                        </td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: ${item.valido ? '#10b981' : '#ef4444'};">
+                            ${item.error || 'OK'}
+                        </td>
+                    </tr>
+                `;
       });
 
       html += `
-                        </tbody>
-                      </table>
-                    `;
+                    </tbody>
+                </table>
+            `;
 
       document.getElementById('preview-table-container').innerHTML = html;
       document.getElementById('preview-inventario-masivo').style.display = 'block';
@@ -5582,7 +5392,7 @@
         return;
       }
 
-      if (!confirm(`¿Confirmar actualización de ${datosValidos.length} ingredientes ? `)) {
+      if (!confirm(`¿Confirmar actualización de ${datosValidos.length} ingredientes?`)) {
         return;
       }
 
@@ -5687,23 +5497,23 @@
       const invalidos = datos.filter(d => !d.valido).length;
 
       let html = `
-                      < div style = "padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;" >
+        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
           <strong>Resumen:</strong> 
           <span style="color: #10b981;">✓ ${validos} válidos</span>
           ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
-        </div >
-                      <table style="width: 100%; font-size: 13px;">
-                        <thead>
-                          <tr style="background: #f1f5f9;">
-                            <th style="padding: 10px; text-align: left;">Estado</th>
-                            <th style="padding: 10px; text-align: left;">Nombre</th>
-                            <th style="padding: 10px; text-align: right;">Precio</th>
-                            <th style="padding: 10px; text-align: center;">Unidad</th>
-                            <th style="padding: 10px; text-align: right;">Stock</th>
-                            <th style="padding: 10px; text-align: left;">Observación</th>
-                          </tr>
-                        </thead>
-                        <tbody>`;
+        </div>
+        <table style="width: 100%; font-size: 13px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="padding: 10px; text-align: left;">Estado</th>
+              <th style="padding: 10px; text-align: left;">Nombre</th>
+              <th style="padding: 10px; text-align: right;">Precio</th>
+              <th style="padding: 10px; text-align: center;">Unidad</th>
+              <th style="padding: 10px; text-align: right;">Stock</th>
+              <th style="padding: 10px; text-align: left;">Observación</th>
+            </tr>
+          </thead>
+          <tbody>`;
 
       datos.forEach(item => {
         const icon = item.valido ? '✓' : '✗';
@@ -5711,14 +5521,14 @@
         const iconColor = item.valido ? '#10b981' : '#ef4444';
 
         html += `
-                          <tr style="background: ${bgColor};">
-                            <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
-                            <td style="padding: 10px;">${item.nombre || '-'}</td>
-                            <td style="padding: 10px; text-align: right;">${item.precio.toFixed(2)}€</td>
-                            <td style="padding: 10px; text-align: center;">${item.unidad}</td>
-                            <td style="padding: 10px; text-align: right;">${item.stockActual}</td>
-                            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${item.error || 'OK'}</td>
-                          </tr>`;
+          <tr style="background: ${bgColor};">
+            <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
+            <td style="padding: 10px;">${item.nombre || '-'}</td>
+            <td style="padding: 10px; text-align: right;">${item.precio.toFixed(2)}€</td>
+            <td style="padding: 10px; text-align: center;">${item.unidad}</td>
+            <td style="padding: 10px; text-align: right;">${item.stockActual}</td>
+            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${item.error || 'OK'}</td>
+          </tr>`;
       });
 
       html += '</tbody></table>';
@@ -5913,330 +5723,6 @@
     window.cancelarImportarRecetas = function () {
       document.getElementById('modal-importar-recetas').classList.remove('active');
       datosImportarRecetas = [];
-    };
-
-
-
-    window.descargarPedidoExcel = function (pedidoId) {
-      const pedido = window.pedidos.find(p => p.id === pedidoId);
-      if (!pedido) { alert('Error: Pedido no encontrado'); return; }
-
-      // BOM para que Excel reconozca caracteres latinos
-      let csv = '\uFEFFIngrediente;Cantidad;Precio Unitario;Subtotal\n';
-
-      if (pedido.ingredientes) {
-        pedido.ingredientes.forEach(ing => {
-          let precio = typeof ing.precio === 'string' ? parseFloat(ing.precio) : ing.precio;
-          let coste = typeof ing.coste === 'string' ? parseFloat(ing.coste) : ing.coste;
-
-          // Safety check
-          if (isNaN(precio)) precio = 0;
-          if (isNaN(coste)) coste = 0;
-
-          csv += `${ing.nombre};${ing.cantidad};${precio.toFixed(2)};${coste.toFixed(2)}\n`;
-        });
-      }
-
-      const totalNum = parseFloat(pedido.total || 0);
-      csv += `\n;;Total Original;${totalNum.toFixed(2)}`;
-
-      const fechaStr = pedido.fecha ? pedido.fecha.split('T')[0] : 'fecha-desconocida';
-
-      // Crear blob y descargar
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", `Pedido_${pedido.id}_${fechaStr}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-
-    // Nueva función para Drive
-    window.enviarADrive = async function (pedidoId) {
-      const pedido = window.pedidos.find(p => p.id === pedidoId);
-      if (!pedido) { alert('Error: Pedido no encontrado en memoria'); return; }
-
-      let webhookUrl = localStorage.getItem('n8n_webhook');
-      if (!webhookUrl) {
-        webhookUrl = prompt("⚙️ Introduce tu URL de n8n para subir a Drive:", "");
-        if (!webhookUrl) return;
-        localStorage.setItem('n8n_webhook', webhookUrl);
-      }
-
-      const btn = document.querySelector(`button[onclick="window.enviarADrive(${pedidoId})"]`);
-      const originalText = btn ? btn.innerHTML : '';
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Subiendo...';
-      }
-
-      try {
-        const res = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: "upload_invoice",
-            ...pedido
-          })
-        });
-
-        if (res.ok) {
-          alert('✅ Factura subida a Drive correctamente');
-        } else {
-          throw new Error('Respuesta del servidor no válida');
-        }
-      } catch (e) {
-        alert('❌ Error al subir: ' + e.message);
-        if (confirm("¿Quieres cambiar la URL del Webhook?")) {
-          localStorage.removeItem('n8n_webhook');
-        }
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '☁️ Subir a Drive';
-        }
-      }
-    };
-
-    // ========== FUNCIONALIDAD: ACTUALIZACIÓN DE STOCK REAL ==========
-
-    window.mostrarModalStockReal = function () {
-      const modal = document.getElementById('modal-stock-real');
-      const listaIngredientes = document.getElementById('lista-stock-real');
-
-      listaIngredientes.innerHTML = '';
-      ingredientes.forEach(ing => {
-        const div = document.createElement('div');
-        div.className = 'stock-real-item';
-        div.innerHTML = `
-          <div style="flex: 2; font-weight: 600;">${ing.nombre}</div>
-          <div style="flex: 1; text-align: center;">
-            <span style="color: #666;">Ficticio: ${ing.stock_actual} ${ing.unidad}</span>
-          </div>
-          <div style="flex: 1;">
-            <input type="number" 
-                   step="0.01" 
-                   placeholder="Stock real"
-                   data-ing-id="${ing.id}"
-                   class="input-stock-real"
-                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-          </div>
-        `;
-        listaIngredientes.appendChild(div);
-      });
-
-      modal.classList.add('active');
-    };
-
-    window.cerrarModalStockReal = function () {
-      document.getElementById('modal-stock-real').classList.remove('active');
-    };
-
-    window.procesarStockReal = async function () {
-      const inputs = document.querySelectorAll('.input-stock-real');
-      const diferencias = [];
-
-      inputs.forEach(input => {
-        const valorReal = parseFloat(input.value);
-        if (!isNaN(valorReal) && valorReal >= 0) {
-          const ingId = parseInt(input.dataset.ingId);
-          const ingrediente = ingredientes.find(i => i.id === ingId);
-
-          if (ingrediente) {
-            const diferencia = valorReal - ingrediente.stock_actual;
-
-            if (diferencia !== 0) {
-              diferencias.push({
-                ingrediente,
-                stockActual: ingrediente.stock_actual,
-                stockReal: valorReal,
-                diferencia
-              });
-            }
-          }
-        }
-      });
-
-      if (diferencias.length === 0) {
-        if (window.showToast) window.showToast('No hay diferencias para procesar', 'info');
-        else alert('No hay diferencias para procesar');
-        cerrarModalStockReal();
-        return;
-      }
-
-      // Mostrar TODO en el modal unificado
-      const negativas = diferencias.filter(d => d.diferencia < 0);
-      const positivas = diferencias.filter(d => d.diferencia > 0);
-
-      mostrarModalConfirmacionAjustes(negativas, positivas);
-    };
-
-    function mostrarModalConfirmacionAjustes(negativas, positivas) {
-      const modal = document.getElementById('modal-perdidas-stock');
-      const lista = document.getElementById('lista-perdidas-stock');
-
-      lista.innerHTML = '';
-
-      // SECCIÓN 1: Negativos (Pérdidas potenciales)
-      if (negativas.length > 0) {
-        const headerNeg = document.createElement('h4');
-        headerNeg.innerText = '📉 Diferencias Negativas (Faltantes)';
-        headerNeg.style.color = '#DC2626';
-        headerNeg.style.borderBottom = '1px solid #FECACA';
-        headerNeg.style.paddingBottom = '5px';
-        headerNeg.style.marginTop = '0';
-        lista.appendChild(headerNeg);
-
-        negativas.forEach(dif => {
-          const div = document.createElement('div');
-          div.className = 'perdida-item';
-          div.innerHTML = `
-              <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                  <div>
-                    <strong style="font-size: 16px; color: #7F1D1D;">${dif.ingrediente.nombre}</strong><br>
-                    <div style="color: #666; font-size: 14px; margin-top: 5px;">
-                      Ficticio: <strong>${dif.stockActual.toFixed(2)}</strong> → Real: <strong>${dif.stockReal.toFixed(2)}</strong> ${dif.ingrediente.unidad}
-                    </div>
-                  </div>
-                  <div style="text-align: right;">
-                    <span style="color: #DC2626; font-weight: 800; font-size: 16px;">
-                      ${dif.diferencia.toFixed(2)} ${dif.ingrediente.unidad}
-                    </span>
-                  </div>
-                </div>
-                
-                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid #FCA5A5; display: flex; align-items: center; gap: 10px;">
-                  <input type="checkbox" 
-                         class="check-perdida" 
-                         id="chk-perdida-${dif.ingrediente.id}"
-                         data-ing-id="${dif.ingrediente.id}"
-                         data-diferencia="${dif.diferencia}"
-                         style="width: 18px; height: 18px; cursor: pointer;">
-                  <label for="chk-perdida-${dif.ingrediente.id}" style="cursor: pointer; font-weight: 500; color: #7F1D1D; font-size: 14px;">
-                    ¿Registrar falta como PÉRDIDA?
-                  </label>
-                </div>
-              </div>
-            `;
-          lista.appendChild(div);
-        });
-      }
-
-      // SECCIÓN 2: Positivos (Sobrantes/Ajustes)
-      if (positivas.length > 0) {
-        const headerPos = document.createElement('h4');
-        headerPos.innerText = '📈 Diferencias Positivas (Sobrantes)';
-        headerPos.style.color = '#059669';
-        headerPos.style.borderBottom = '1px solid #A7F3D0';
-        headerPos.style.paddingBottom = '5px';
-        headerPos.style.marginTop = '20px';
-        lista.appendChild(headerPos);
-
-        positivas.forEach(dif => {
-          const div = document.createElement('div');
-          div.style.marginBottom = '10px';
-          div.innerHTML = `
-              <div style="background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <strong style="font-size: 16px; color: #065F46;">${dif.ingrediente.nombre}</strong><br>
-                  <div style="color: #666; font-size: 14px; margin-top: 5px;">
-                      Ficticio: <strong>${dif.stockActual.toFixed(2)}</strong> → Real: <strong>${dif.stockReal.toFixed(2)}</strong> ${dif.ingrediente.unidad}
-                  </div>
-                </div>
-                <div style="text-align: right;">
-                  <span style="color: #059669; font-weight: 800; font-size: 16px;">
-                    +${dif.diferencia.toFixed(2)} ${dif.ingrediente.unidad}
-                  </span>
-                  <div style="font-size: 12px; color: #059669; font-weight: 600;">Se ajustará</div>
-                </div>
-              </div>
-            `;
-          lista.appendChild(div);
-        });
-      }
-
-      modal.dataset.positivas = JSON.stringify(positivas);
-      modal.dataset.negativas = JSON.stringify(negativas);
-      modal.classList.add('active');
-    }
-
-    window.cerrarModalPerdidas = function () {
-      document.getElementById('modal-perdidas-stock').classList.remove('active');
-    };
-
-    window.confirmarAjustes = async function () { // Renombramos para reflejar que es general
-      const modal = document.getElementById('modal-perdidas-stock');
-      const checkboxes = document.querySelectorAll('.check-perdida');
-
-      const positivas = JSON.parse(modal.dataset.positivas || '[]');
-      const negativas = JSON.parse(modal.dataset.negativas || '[]');
-
-      let perdidasRegistradas = 0;
-      let totalActualizados = 0;
-
-      // 1. Procesar Negativos
-      for (const dif of negativas) {
-        const checkbox = Array.from(checkboxes).find(ch => parseInt(ch.dataset.ingId) === dif.ingrediente.id);
-        const esPerdida = checkbox && checkbox.checked;
-
-        if (window.api && window.api.updateIngredient) {
-          const ingActualizado = {
-            ...dif.ingrediente,
-            stock_actual: dif.stockReal,
-            stock_real: dif.stockReal,
-            ultima_actualizacion_stock: new Date().toISOString()
-          };
-          await window.api.updateIngredient(ingActualizado);
-
-          // Update local memory
-          const localIng = window.ingredientes.find(i => i.id === dif.ingrediente.id);
-          if (localIng) {
-            localIng.stock_actual = dif.stockReal;
-            localIng.stock_real = dif.stockReal;
-          }
-          totalActualizados++;
-        }
-
-        if (esPerdida) {
-          console.log(`Pérdida registrada: ${dif.ingrediente.nombre}`);
-          perdidasRegistradas++;
-        }
-      }
-
-      // 2. Procesar Positivos (Aquí estaba el fallo antes, ahora se procesan explícitamente al confirmar)
-      for (const dif of positivas) {
-        if (window.api && window.api.updateIngredient) {
-          const ingActualizado = {
-            ...dif.ingrediente,
-            stock_actual: dif.stockReal,
-            stock_real: dif.stockReal,
-            ultima_actualizacion_stock: new Date().toISOString()
-          };
-          await window.api.updateIngredient(ingActualizado);
-
-          // Update local memory
-          const localIng = window.ingredientes.find(i => i.id === dif.ingrediente.id);
-          if (localIng) {
-            localIng.stock_actual = dif.stockReal;
-            localIng.stock_real = dif.stockReal;
-          }
-          totalActualizados++;
-        }
-      }
-
-      cerrarModalPerdidas();
-      cerrarModalStockReal();
-
-      const msg = `Se actualizaron ${totalActualizados} ingredientes. (${perdidasRegistradas} marcados como pérdida)`;
-
-      if (window.showToast) window.showToast(msg, 'success');
-      else alert(msg);
-
-      if (window.renderizarInventario) window.renderizarInventario();
     };
 
   </script>
