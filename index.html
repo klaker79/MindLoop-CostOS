@@ -4723,9 +4723,6 @@
   <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center;">
     Generado el ${new Date().toLocaleDateString('es-ES')} - La Caleta 102 Dashboard
   </div>
-  </div>
-  \`;
-  htmlPrint += \`
   <script>
     async function enviarAn8n(pedido) {
       const webhookUrl = prompt("Introduce tu URL del Webhook de n8n:", localStorage.getItem('n8n_webhook') || '');
