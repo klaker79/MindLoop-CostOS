@@ -4754,369 +4754,374 @@
 
 </html>`;
 
-// Abrir en nueva ventana para imprimir/guardar PDF
-const ventana = window.open('', '_blank');
-ventana.document.write(htmlPrint);
-ventana.document.close();
+          // Abrir en nueva ventana para imprimir/guardar PDF
+          const ventana = window.open('', '_blank');
+          ventana.document.write(htmlPrint);
+          ventana.document.close();
 
-// Esperar a que se cargue y abrir diálogo de impresión
-setTimeout(() => {
-ventana.print();
-}, 250);
-};
+          // Esperar a que se cargue y abrir diálogo de impresión
+          setTimeout(() => {
+            ventana.print();
+          }, 250);
+        };
 
-window.renderizarPedidos = function () {
-const busqueda = document.getElementById('busqueda-pedidos').value.toLowerCase();
-const filtrados = pedidos.filter(ped => {
-const prov = proveedores.find(p => p.id === ped.proveedorId);
-const nombreProv = prov ? prov.nombre.toLowerCase() : '';
-return nombreProv.includes(busqueda) || ped.estado.includes(busqueda);
-});
+        window.renderizarPedidos = function () {
+          const busqueda = document.getElementById('busqueda-pedidos').value.toLowerCase();
+          const filtrados = pedidos.filter(ped => {
+            const prov = proveedores.find(p => p.id === ped.proveedorId);
+            const nombreProv = prov ? prov.nombre.toLowerCase() : '';
+            return nombreProv.includes(busqueda) || ped.estado.includes(busqueda);
+          });
 
-const container = document.getElementById('tabla-pedidos');
+          const container = document.getElementById('tabla-pedidos');
 
-if (filtrados.length === 0) {
-container.innerHTML = `
+          if (filtrados.length === 0) {
+            container.innerHTML = `
 <div class="empty-state">
   <div class="icon">📋</div>
   <h3>${busqueda ? 'No encontrados' : 'Aún no hay pedidos'}</h3>
   <p>${busqueda ? 'Otra búsqueda' : 'Crea tu primer pedido'}</p>
 </div>
 `;
-document.getElementById('resumen-pedidos').style.display = 'none';
-} else {
+            document.getElementById('resumen-pedidos').style.display = 'none';
+          } else {
             let html = `<table>
               <thead>
                 <tr>`;
-                  html += '<th>Fecha</th>';
-                  html += '<th>Proveedor</th>';
-                  html += '<th>Items</th>';
-                  html += '<th>Total</th>';
-                  html += '<th>Estado</th>';
-                  html += '<th>Acciones</th>';
-                  html += `
+            html += '<th>Fecha</th>';
+            html += '<th>Proveedor</th>';
+            html += '<th>Items</th>';
+            html += '<th>Total</th>';
+            html += '<th>Estado</th>';
+            html += '<th>Acciones</th>';
+            html += `
                 </tr>
               </thead>
               <tbody>`;
 
-    filtrados.forEach(ped => {
-    const prov = proveedores.find(p => p.id === (ped.proveedor_id || ped.proveedorId));
-    const nombreProv = prov ? prov.nombre : 'Desconocido';
+            filtrados.forEach(ped => {
+              const prov = proveedores.find(p => p.id === (ped.proveedor_id || ped.proveedorId));
+              const nombreProv = prov ? prov.nombre : 'Desconocido';
 
-    html += '<tr>';
-      html += `<td>${new Date(ped.fecha).toLocaleDateString('es-ES')}</td>`;
-      html += `<td><strong>${nombreProv}</strong></td>`;
-      html += `<td>${ped.ingredientes.length} ingredientes</td>`;
-      html += `<td><strong>${parseFloat(ped.total).toFixed(2)} €</strong></td>`;
-      html += `<td><span class="badge ${ped.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${ped.estado
-          === 'recibido' ? 'Recibido' : 'Pendiente'}</span></td>`;
-      html += `<td>
+              html += '<tr>';
+              html += `<td>${new Date(ped.fecha).toLocaleDateString('es-ES')}</td>`;
+              html += `<td><strong>${nombreProv}</strong></td>`;
+              html += `<td>${ped.ingredientes.length} ingredientes</td>`;
+              html += `<td><strong>${parseFloat(ped.total).toFixed(2)} €</strong></td>`;
+              html += `<td><span class="badge ${ped.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${ped.estado
+                === 'recibido' ? 'Recibido' : 'Pendiente'}</span></td>`;
+              html += `<td>
         <div class="actions">`;
-          html += `<button class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})"
+              html += `<button class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})"
             title="Ver detalles">👁️</button>`;
-          if (ped.estado === 'pendiente') {
-          html += `<button class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})"
+              if (ped.estado === 'pendiente') {
+                html += `<button class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})"
             title="Recibir pedido">📥</button>`;
-          }
-          html += `<button class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})"
+              }
+              html += `<button class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})"
             title="Eliminar">🗑️</button>`;
-          html += `</div>
+              html += `</div>
       </td>`;
-      html += '</tr>';
-    });
+              html += '</tr>';
+            });
 
-    html += `</tbody>
+            html += `</tbody>
 </table>`;
-container.innerHTML = html;
+            container.innerHTML = html;
 
-const totalPendientes = pedidos.filter(p => p.estado === 'pendiente').length;
-const totalRecibidos = pedidos.filter(p => p.estado === 'recibido').length;
+            const totalPendientes = pedidos.filter(p => p.estado === 'pendiente').length;
+            const totalRecibidos = pedidos.filter(p => p.estado === 'recibido').length;
 
-document.getElementById('resumen-pedidos').innerHTML = `
+            document.getElementById('resumen-pedidos').innerHTML = `
 <div>Total: <strong>${pedidos.length}</strong></div>
 <div>Pendientes: <strong>${totalPendientes}</strong></div>
 <div>Recibidos: <strong>${totalRecibidos}</strong></div>
 `;
-document.getElementById('resumen-pedidos').style.display = 'flex';
-}
-}
+            document.getElementById('resumen-pedidos').style.display = 'flex';
+          }
+        }
 
-// ========== ANÁLISIS (resumido) ==========
-window.renderizarAnalisis = function () {
-if (recetas.length === 0 || ingredientes.length === 0) {
-document.getElementById('analisis-vacio').style.display = 'block';
-document.getElementById('analisis-contenido').style.display = 'none';
-return;
-}
+        // ========== ANÁLISIS (resumido) ==========
+        window.renderizarAnalisis = function () {
+          if (recetas.length === 0 || ingredientes.length === 0) {
+            document.getElementById('analisis-vacio').style.display = 'block';
+            document.getElementById('analisis-contenido').style.display = 'none';
+            return;
+          }
 
-document.getElementById('analisis-vacio').style.display = 'none';
-document.getElementById('analisis-contenido').style.display = 'block';
+          document.getElementById('analisis-vacio').style.display = 'none';
+          document.getElementById('analisis-contenido').style.display = 'block';
 
-let totalMargen = 0;
-let totalCoste = 0;
-const datosRecetas = recetas.map(rec => {
-const coste = calcularCosteRecetaCompleto(rec);
-const margen = rec.precio_venta - coste;
-const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
-totalMargen += margenPct;
-totalCoste += coste;
-return { ...rec, coste, margen, margenPct };
-});
+          let totalMargen = 0;
+          let totalCoste = 0;
+          const datosRecetas = recetas.map(rec => {
+            const coste = calcularCosteRecetaCompleto(rec);
+            const margen = rec.precio_venta - coste;
+            const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
+            totalMargen += margenPct;
+            totalCoste += coste;
+            return { ...rec, coste, margen, margenPct };
+          });
 
-const margenPromedio = (totalMargen / recetas.length).toFixed(1);
-const costePromedio = (totalCoste / recetas.length).toFixed(2);
+          const margenPromedio = (totalMargen / recetas.length).toFixed(1);
+          const costePromedio = (totalCoste / recetas.length).toFixed(2);
 
-document.getElementById('stat-total-recetas').textContent = recetas.length;
-document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
-document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
-document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
+          document.getElementById('stat-total-recetas').textContent = recetas.length;
+          document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
+          document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
+          document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
 
-renderRevenueChart();
-renderChartRentabilidad(datosRecetas);
-renderChartIngredientes();
-renderTablaRentabilidad(datosRecetas);
-};
+          renderRevenueChart();
+          renderChartRentabilidad(datosRecetas);
+          renderChartIngredientes();
+          renderTablaRentabilidad(datosRecetas);
+        };
 
-function renderChartRentabilidad(datos) {
-const ctx = document.getElementById('chart-rentabilidad');
-if (!ctx) return;
+        function renderChartRentabilidad(datos) {
+          const ctx = document.getElementById('chart-rentabilidad');
+          if (!ctx) return;
 
-const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct).slice(0, 10);
+          const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct).slice(0, 10);
 
-if (chartRentabilidad) chartRentabilidad.destroy();
+          if (chartRentabilidad) chartRentabilidad.destroy();
 
-chartRentabilidad = new Chart(ctx, {
-type: 'bar',
-data: {
-labels: ordenados.map(r => r.nombre),
-datasets: [{
-label: 'Margen (%)',
-data: ordenados.map(r => r.margenPct.toFixed(1)),
-backgroundColor: ordenados.map(r => r.margenPct > 50 ? '#10b981' : r.margenPct > 30 ? '#f59e0b' : '#ef4444')
-}]
-},
-options: {
-responsive: true,
-maintainAspectRatio: true,
-plugins: {
-legend: { display: false }
-},
-scales: {
-y: {
-beginAtZero: true,
-ticks: {
-callback: function (value) {
-return value + '%';
-}
-}
-}
-}
-}
-});
-}
+          chartRentabilidad = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ordenados.map(r => r.nombre),
+              datasets: [{
+                label: 'Margen (%)',
+                data: ordenados.map(r => r.margenPct.toFixed(1)),
+                backgroundColor: ordenados.map(r => r.margenPct > 50 ? '#10b981' : r.margenPct > 30 ? '#f59e0b' : '#ef4444')
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                legend: { display: false }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: function (value) {
+                      return value + '%';
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
 
-function renderChartIngredientes() {
-const ctx = document.getElementById('chart-ingredientes');
-if (!ctx) return;
+        function renderChartIngredientes() {
+          const ctx = document.getElementById('chart-ingredientes');
+          if (!ctx) return;
 
-const ordenados = [...ingredientes]
-.filter(ing => ing.precio > 0)
-.sort((a, b) => b.precio - a.precio)
-.slice(0, 10);
+          const ordenados = [...ingredientes]
+            .filter(ing => ing.precio > 0)
+            .sort((a, b) => b.precio - a.precio)
+            .slice(0, 10);
 
-if (chartIngredientes) chartIngredientes.destroy();
+          if (chartIngredientes) chartIngredientes.destroy();
 
-chartIngredientes = new Chart(ctx, {
-type: 'doughnut',
-data: {
-labels: ordenados.map(i => i.nombre),
-datasets: [{
-data: ordenados.map(i => i.precio),
-backgroundColor: [
-'#c35a3f', '#d47157', '#10b981', '#3b82f6', '#f59e0b',
-'#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
-]
-}]
-},
-options: {
-responsive: true,
-maintainAspectRatio: true,
-plugins: {
-legend: {
-position: 'right',
-labels: {
-font: {
-size: 11
-}
-}
-},
-tooltip: {
-callbacks: {
-label: function (context) {
-return context.label + ': ' + context.parsed.toFixed(2) + ' €';
-}
-}
-}
-}
-}
-});
-}
+          chartIngredientes = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: ordenados.map(i => i.nombre),
+              datasets: [{
+                data: ordenados.map(i => i.precio),
+                backgroundColor: [
+                  '#c35a3f', '#d47157', '#10b981', '#3b82f6', '#f59e0b',
+                  '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+                ]
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                legend: {
+                  position: 'right',
+                  labels: {
+                    font: {
+                      size: 11
+                    }
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function (context) {
+                      return context.label + ': ' + context.parsed.toFixed(2) + ' €';
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
 
-function renderTablaRentabilidad(datos) {
-const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
+        function renderTablaRentabilidad(datos) {
+          const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
 
-let html = '<table>
+          let html = `<table>
   <thead>
-    <tr>';
-      html += '<th>#</th>
-      <th>Plato</th>
-      <th>Coste</th>
-      <th>Precio</th>
-      <th>Margen €</th>
-      <th>Margen %</th>';
-      html += '
+    <tr>`;
+          html += '<th>#</th>';
+          html += '<th>Plato</th>';
+          html += '<th>Coste</th>';
+          html += '<th>Precio</th>';
+          html += '<th>Margen €</th>';
+          html += '<th>Margen %</th>';
+          html += `
     </tr>
   </thead>
-  <tbody>';
+  <tbody>`;
 
-    ordenados.forEach((rec, idx) => {
-    html += '<tr>';
-      html += `<td><strong>#${idx + 1}</strong></td>`;
-      html += `<td>${rec.nombre}</td>`;
-      html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
-      html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
-      html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
-      html += `<td><span
+          ordenados.forEach((rec, idx) => {
+            html += '<tr>';
+            html += `<td><strong>#${idx + 1}</strong></td>`;
+            html += `<td>${rec.nombre}</td>`;
+            html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
+            html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
+            html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
+            html += `<td><span
           class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct
-          || 0).toFixed(1)}%</span></td>`;
-      html += '</tr>';
-    });
+              || 0).toFixed(1)}%</span></td>`;
+            html += '</tr>';
+          });
 
-    html += '</tbody>
-</table>';
-document.getElementById('tabla-rentabilidad').innerHTML = html;
-}
+          html += `</tbody>
+</table>`;
+          document.getElementById('tabla-rentabilidad').innerHTML = html;
+        }
 
-// ========== INVENTARIO ==========
-window.renderizarInventario = async function () {
-try {
-const inventario = await api.getInventoryComplete();
-const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
-const filtrados = inventario.filter(ing =>
-ing.nombre.toLowerCase().includes(busqueda)
-);
+        // ========== INVENTARIO ==========
+        window.renderizarInventario = async function () {
+          try {
+            const inventario = await api.getInventoryComplete();
+            const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
+            const filtrados = inventario.filter(ing =>
+              ing.nombre.toLowerCase().includes(busqueda)
+            );
 
-const container = document.getElementById('tabla-inventario');
+            const container = document.getElementById('tabla-inventario');
 
-// Calcular alertas
-let stockBajo = 0;
-let stockCritico = 0;
+            // Calcular alertas
+            let stockBajo = 0;
+            let stockCritico = 0;
 
-window.ingredientes.forEach(ing => {
-const stockActual = parseFloat(ing.stock_actual) || 0;
-const stockMinimo = parseFloat(ing.stock_minimo) || 0;
-// Solo contar si tiene mínimo configurado
-if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual <= stockMinimo) { stockBajo++; } }); //
-    Actualizar badge const totalAlertas=stockBajo + stockCritico; const
-    badge=document.getElementById('badge-inventario'); if (totalAlertas> 0) {
-    badge.textContent = totalAlertas;
-    badge.style.display = 'inline-block';
-    } else {
-    badge.style.display = 'none';
-    }
+            window.ingredientes.forEach(ing => {
+              const stockActual = parseFloat(ing.stock_actual) || 0;
+              const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+              // Solo contar si tiene mínimo configurado
+              if (stockActual <= 0) { stockCritico++; } else if (stockMinimo > 0 && stockActual <= stockMinimo) { stockBajo++; }
+            });
 
-    // Actualizar resumen
-    const resumen = document.getElementById('resumen-inventario');
-    if (stockBajo > 0 || stockCritico > 0) {
-    resumen.innerHTML = `
+            // Actualizar badge 
+            const totalAlertas = stockBajo + stockCritico;
+            const badge = document.getElementById('badge-inventario');
+
+            if (totalAlertas > 0) {
+              badge.textContent = totalAlertas;
+              badge.style.display = 'inline-block';
+            } else {
+              badge.style.display = 'none';
+            }
+
+            // Actualizar resumen
+            const resumen = document.getElementById('resumen-inventario');
+            if (stockBajo > 0 || stockCritico > 0) {
+              resumen.innerHTML = `
     <div style="color: #f59e0b;">⚠️ Stock bajo: <strong>${stockBajo}</strong></div>
     <div style="color: #ef4444;">🔴 Stock crítico: <strong>${stockCritico}</strong></div>
     `;
-    resumen.style.display = 'flex';
-    } else {
-    resumen.style.display = 'none';
-    }
+              resumen.style.display = 'flex';
+            } else {
+              resumen.style.display = 'none';
+            }
 
-    if (filtrados.length === 0) {
-    container.innerHTML = `
+            if (filtrados.length === 0) {
+              container.innerHTML = `
     <div class="empty-state">
       <div class="icon">📦</div>
       <h3>No hay ingredientes</h3>
       <p>Añade ingredientes para gestionar el inventario</p>
     </div>
     `;
-    return;
-    }
+              return;
+            }
 
-    let html = '<table>
+            let html = `<table>
       <thead>
-        <tr>';
-          html += '<th>Estado</th>
-          <th>Ingrediente</th>
-          <th>Stock Virtual</th>
-          <th>Stock Real</th>
-          <th>Diferencia</th>
-          <th>Precio Medio</th>
-          <th>Valor Stock</th>
-          <th>Unidad</th>';
-          html += '
+        <tr>`;
+            html += '<th>Estado</th>';
+            html += '<th>Ingrediente</th>';
+            html += '<th>Stock Virtual</th>';
+            html += '<th>Stock Real</th>';
+            html += '<th>Diferencia</th>';
+            html += '<th>Precio Medio</th>';
+            html += '<th>Valor Stock</th>';
+            html += '<th>Unidad</th>';
+            html += `
         </tr>
       </thead>
-      <tbody>';
+      <tbody>`;
 
-        filtrados.forEach(ing => {
-        let estadoClass = 'stock-ok';
-        let estadoIcon = '🟢';
+            filtrados.forEach(ing => {
+              let estadoClass = 'stock-ok';
+              let estadoIcon = '🟢';
 
-        const stockActual = parseFloat(ing.stock_virtual) || 0;
-        const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+              const stockActual = parseFloat(ing.stock_virtual) || 0;
+              const stockMinimo = parseFloat(ing.stock_minimo) || 0;
 
-        if (stockActual <= 0) { estadoClass='stock-critico' ; estadoIcon='🔴' ; } else if (stockMinimo> 0 && stockActual
-          <= stockMinimo) { estadoClass='stock-bajo' ; estadoIcon='🟡' ; } const precioMedio=parseFloat(ing.precio_medio
-            || 0); const valorStock=parseFloat(ing.valor_stock || 0); const diferencia=parseFloat(ing.diferencia || 0);
-            const stockReal=ing.stock_real !==null ? parseFloat(ing.stock_real).toFixed(2) : '' ; html +='<tr>' ; html
-            +=`<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
-            html += `<td><strong>${ing.nombre}</strong></td>`;
-            html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
-            html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos"
+              if (stockActual <= 0) { estadoClass = 'stock-critico'; estadoIcon = '🔴'; } else if (stockMinimo > 0 && stockActual
+                <= stockMinimo) { estadoClass = 'stock-bajo'; estadoIcon = '🟡'; } const precioMedio = parseFloat(ing.precio_medio
+                  || 0); const valorStock = parseFloat(ing.valor_stock || 0); const diferencia = parseFloat(ing.diferencia || 0);
+              const stockReal = ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : ''; html += '<tr>'; html
+                += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
+              html += `<td><strong>${ing.nombre}</strong></td>`;
+              html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
+              html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos"
                 style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"
                 onchange="actualizarStockReal(${ing.id}, this.value)"></td>`;
-            html += `<td style="color:${diferencia > 0 ? '#10b981' : diferencia < 0 ? '#ef4444' : '#666'};">${diferencia
-              !== 0 ? diferencia.toFixed(2) : '-'}</td>`;
-            html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
-            const valorStockReal = (parseFloat(stockReal) || 0) * precioMedio;
-            html += `<td><strong>${valorStockReal.toFixed(2)}€</strong></td>`;
-            html += `<td>${ing.unidad}</td>`;
-            html += '</tr>';
+              html += `<td style="color:${diferencia > 0 ? '#10b981' : diferencia < 0 ? '#ef4444' : '#666'};">${diferencia
+                !== 0 ? diferencia.toFixed(2) : '-'}</td>`;
+              html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
+              const valorStockReal = (parseFloat(stockReal) || 0) * precioMedio;
+              html += `<td><strong>${valorStockReal.toFixed(2)}€</strong></td>`;
+              html += `<td>${ing.unidad}</td>`;
+              html += '</tr>';
             });
 
             container.innerHTML = html;
-            } catch (error) {
+          } catch (error) {
             console.error('Error:', error);
-            document.getElementById('tabla-inventario').innerHTML = '<p style="color:#ef4444;">Error cargando inventario
-            </p>';
-            }
-            };
+            document.getElementById('tabla-inventario').innerHTML = `<p style="color:#ef4444;">Error cargando inventario
+            </p>`;
+          }
+        };
 
-            // Función global para actualizar stock real
-            window.actualizarStockReal = async function (id, valor) {
-            if (!valor || valor === '') return;
-            try {
+        // Función global para actualizar stock real
+        window.actualizarStockReal = async function (id, valor) {
+          if (!valor || valor === '') return;
+          try {
             await api.updateStockReal(id, parseFloat(valor));
             await window.renderizarInventario();
             showToast('Stock real actualizado', 'success');
-            } catch (error) {
+          } catch (error) {
             showToast('Error actualizando stock', 'error');
-            }
-            };
+          }
+        };
 
 
-            // Event listener para búsqueda de inventario
-            document.getElementById('busqueda-inventario').addEventListener('input', window.renderizarInventario);
+        // Event listener para búsqueda de inventario
+        document.getElementById('busqueda-inventario').addEventListener('input', window.renderizarInventario);
 
-            // Dashboard expandido - actualizar datos
-            window.actualizarDashboardExpandido = async function () {
-            try {
+        // Dashboard expandido - actualizar datos
+        window.actualizarDashboardExpandido = async function () {
+          try {
             const ventas = await api.getSales();
             const hoy = new Date().toISOString().split('T')[0];
             const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoy);
@@ -5127,170 +5132,170 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
 
             const platosHoy = {};
             ventasHoy.forEach(v => {
-            platosHoy[v.receta_nombre] = (platosHoy[v.receta_nombre] || 0) + v.cantidad;
+              platosHoy[v.receta_nombre] = (platosHoy[v.receta_nombre] || 0) + v.cantidad;
             });
             const platoEstrella = Object.entries(platosHoy).sort((a, b) => b[1] - a[1])[0];
             document.getElementById('plato-estrella-hoy').textContent = platoEstrella ? platoEstrella[0] + ' (' +
-            platoEstrella[1] + ')' : 'Sin ventas';
+              platoEstrella[1] + ')' : 'Sin ventas';
 
             const alertas = window.ingredientes.filter(ing => {
-            const stockActual = parseFloat(ing.stock_actual) || 0;
-            const stockMinimo = parseFloat(ing.stock_minimo) || 0;
-            return stockMinimo > 0 && stockActual <= stockMinimo; }); const
-              listaAlertas=document.getElementById('alertas-stock-lista'); if (alertas.length===0) {
-              listaAlertas.innerHTML='<p style="color: #10B981; margin: 0;">✅ Todo el stock OK</p>' ; } else {
-              listaAlertas.innerHTML=alertas.map(ing=>
-              '<div
-                style="padding: 8px; margin-bottom: 6px; background: #FEF2F2; border-radius: 6px; border-left: 3px solid #EF4444;">
-                <strong>' + ing.nombre + '</strong>: ' + parseFloat(ing.stock_actual).toFixed(1) + ' ' + ing.unidad + '
-              </div>'
+              const stockActual = parseFloat(ing.stock_actual) || 0;
+              const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+              return stockMinimo > 0 && stockActual <= stockMinimo;
+            }); const
+              listaAlertas = document.getElementById('alertas-stock-lista'); if (alertas.length === 0) {
+                listaAlertas.innerHTML = '<p style="color: #10B981; margin: 0;">✅ Todo el stock OK</p>';
+              } else {
+              listaAlertas.innerHTML = alertas.map(ing =>
+                `<div
+                style = "padding: 8px; margin-bottom: 6px; background: #FEF2F2; border-radius: 6px; border-left: 3px solid #EF4444;" >
+                <strong>${ing.nombre}</strong>: ${parseFloat(ing.stock_actual).toFixed(1)} ${ing.unidad}
+              </div>`
               ).join('');
-              }
-              } catch (e) {
-              console.error('Error dashboard:', e);
-              }
-              };
+            }
+          } catch (e) {
+            console.error('Error dashboard:', e);
+          }
+        };
 
-              // Verificar autenticación al cargar
-              if (checkAuth()) {
-              init();
-              }
-              })();
+        // Verificar autenticación al cargar
+        if (checkAuth()) {
+          init();
+        }
+      })();
 
-              </script>
-              <!-- Toast Container -->
-              <div class="toast-container" id="toast-container"></div>
+    </script>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
 
-              <!-- Loading Overlay -->
-              <div class="loading-overlay" id="loading-overlay">
-                <div class="spinner"></div>
-              </div>
-              <!-- Modal: Actualizar Inventario Masivo -->
-              <div id="modal-inventario-masivo" class="modal">
-                <div class="modal-content" style="max-width: 900px;">
-                  <span class="close"
-                    onclick="document.getElementById('modal-inventario-masivo').classList.remove('active')">&times;</span>
-                  <h2>📊 Actualizar Inventario Masivo</h2>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+    <!-- Modal: Actualizar Inventario Masivo -->
+    <div id="modal-inventario-masivo" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <span class="close"
+          onclick="document.getElementById('modal-inventario-masivo').classList.remove('active')">&times;</span>
+        <h2>📊 Actualizar Inventario Masivo</h2>
 
-                  <div style="margin: 20px 0;">
-                    <p style="color: #64748b; margin-bottom: 15px;">
-                      Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Ingrediente</strong> y <strong>Stock
-                        Real</strong>
-                    </p>
+        <div style="margin: 20px 0;">
+          <p style="color: #64748b; margin-bottom: 15px;">
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Ingrediente</strong> y <strong>Stock
+              Real</strong>
+          </p>
 
-                    <div
-                      style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-                      <input type="file" id="file-inventario-masivo" accept=".xlsx,.csv" style="display: none;"
-                        onchange="window.procesarArchivoInventario(this)">
-                      <label for="file-inventario-masivo" style="cursor: pointer;">
-                        <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-                        <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar
-                          archivo</div>
-                        <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-                      </label>
-                    </div>
-                  </div>
+          <div
+            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+            <input type="file" id="file-inventario-masivo" accept=".xlsx,.csv" style="display: none;"
+              onchange="window.procesarArchivoInventario(this)">
+            <label for="file-inventario-masivo" style="cursor: pointer;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar
+                archivo</div>
+              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+            </label>
+          </div>
+        </div>
 
-                  <div id="preview-inventario-masivo" style="display: none; margin-top: 20px;">
-                    <h3>Vista Previa de Cambios</h3>
-                    <div id="preview-table-container"
-                      style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+        <div id="preview-inventario-masivo" style="display: none; margin-top: 20px;">
+          <h3>Vista Previa de Cambios</h3>
+          <div id="preview-table-container"
+            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
-                    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                      <button class="btn btn-secondary" onclick="window.cancelarInventarioMasivo()">Cancelar</button>
-                      <button class="btn btn-primary" onclick="window.confirmarInventarioMasivo()"
-                        id="btn-confirmar-masivo">✓
-                        Confirmar Actualización</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="window.cancelarInventarioMasivo()">Cancelar</button>
+            <button class="btn btn-primary" onclick="window.confirmarInventarioMasivo()" id="btn-confirmar-masivo">✓
+              Confirmar Actualización</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-              <!-- Modal: Importar Ingredientes -->
-              <div id="modal-importar-ingredientes" class="modal">
-                <div class="modal-content" style="max-width: 900px;">
-                  <span class="close"
-                    onclick="document.getElementById('modal-importar-ingredientes').classList.remove('active')">&times;</span>
-                  <h2>📤 Importar Ingredientes desde Excel</h2>
+    <!-- Modal: Importar Ingredientes -->
+    <div id="modal-importar-ingredientes" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <span class="close"
+          onclick="document.getElementById('modal-importar-ingredientes').classList.remove('active')">&times;</span>
+        <h2>📤 Importar Ingredientes desde Excel</h2>
 
-                  <div style="margin: 20px 0;">
-                    <p style="color: #64748b; margin-bottom: 15px;">
-                      Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>,
-                      <strong>Precio</strong>,
-                      <strong>Unidad</strong>, <strong>Stock Actual</strong>, <strong>Stock Mínimo</strong>
-                    </p>
+        <div style="margin: 20px 0;">
+          <p style="color: #64748b; margin-bottom: 15px;">
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>,
+            <strong>Precio</strong>,
+            <strong>Unidad</strong>, <strong>Stock Actual</strong>, <strong>Stock Mínimo</strong>
+          </p>
 
-                    <div
-                      style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-                      <input type="file" id="file-importar-ingredientes" accept=".xlsx,.csv" style="display: none;"
-                        onchange="window.procesarArchivoIngredientes(this)">
-                      <label for="file-importar-ingredientes" style="cursor: pointer;">
-                        <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-                        <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar
-                          archivo</div>
-                        <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-                      </label>
-                    </div>
-                  </div>
+          <div
+            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+            <input type="file" id="file-importar-ingredientes" accept=".xlsx,.csv" style="display: none;"
+              onchange="window.procesarArchivoIngredientes(this)">
+            <label for="file-importar-ingredientes" style="cursor: pointer;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar
+                archivo</div>
+              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+            </label>
+          </div>
+        </div>
 
-                  <div id="preview-importar-ingredientes" style="display: none; margin-top: 20px;">
-                    <h3>Vista Previa de Ingredientes</h3>
-                    <div id="preview-ingredientes-container"
-                      style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+        <div id="preview-importar-ingredientes" style="display: none; margin-top: 20px;">
+          <h3>Vista Previa de Ingredientes</h3>
+          <div id="preview-ingredientes-container"
+            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
-                    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                      <button class="btn btn-secondary"
-                        onclick="window.cancelarImportarIngredientes()">Cancelar</button>
-                      <button class="btn btn-primary" onclick="window.confirmarImportarIngredientes()"
-                        id="btn-confirmar-importar-ingredientes">✓ Importar Ingredientes</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="window.cancelarImportarIngredientes()">Cancelar</button>
+            <button class="btn btn-primary" onclick="window.confirmarImportarIngredientes()"
+              id="btn-confirmar-importar-ingredientes">✓ Importar Ingredientes</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-              <!-- Modal: Importar Recetas -->
-              <div id="modal-importar-recetas" class="modal">
-                <div class="modal-content" style="max-width: 900px;">
-                  <span class="close"
-                    onclick="document.getElementById('modal-importar-recetas').classList.remove('active')">&times;</span>
-                  <h2>📤 Importar Recetas desde Excel</h2>
+    <!-- Modal: Importar Recetas -->
+    <div id="modal-importar-recetas" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <span class="close"
+          onclick="document.getElementById('modal-importar-recetas').classList.remove('active')">&times;</span>
+        <h2>📤 Importar Recetas desde Excel</h2>
 
-                  <div style="margin: 20px 0;">
-                    <p style="color: #64748b; margin-bottom: 15px;">
-                      Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>,
-                      <strong>Categoría</strong>,
-                      <strong>Precio Venta</strong>, <strong>Porciones</strong>
-                    </p>
+        <div style="margin: 20px 0;">
+          <p style="color: #64748b; margin-bottom: 15px;">
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>,
+            <strong>Categoría</strong>,
+            <strong>Precio Venta</strong>, <strong>Porciones</strong>
+          </p>
 
-                    <div
-                      style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-                      <input type="file" id="file-importar-recetas" accept=".xlsx,.csv" style="display: none;"
-                        onchange="window.procesarArchivoRecetas(this)">
-                      <label for="file-importar-recetas" style="cursor: pointer;">
-                        <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-                        <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar
-                          archivo</div>
-                        <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-                      </label>
-                    </div>
-                  </div>
+          <div
+            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+            <input type="file" id="file-importar-recetas" accept=".xlsx,.csv" style="display: none;"
+              onchange="window.procesarArchivoRecetas(this)">
+            <label for="file-importar-recetas" style="cursor: pointer;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar
+                archivo</div>
+              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+            </label>
+          </div>
+        </div>
 
-                  <div id="preview-importar-recetas" style="display: none; margin-top: 20px;">
-                    <h3>Vista Previa de Recetas</h3>
-                    <div id="preview-recetas-container"
-                      style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+        <div id="preview-importar-recetas" style="display: none; margin-top: 20px;">
+          <h3>Vista Previa de Recetas</h3>
+          <div id="preview-recetas-container"
+            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
-                    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                      <button class="btn btn-secondary" onclick="window.cancelarImportarRecetas()">Cancelar</button>
-                      <button class="btn btn-primary" onclick="window.confirmarImportarRecetas()"
-                        id="btn-confirmar-importar-recetas">✓ Importar Recetas</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              </script>
-              </div>
-              <script>
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="window.cancelarImportarRecetas()">Cancelar</button>
+            <button class="btn btn-primary" onclick="window.confirmarImportarRecetas()"
+              id="btn-confirmar-importar-recetas">✓ Importar Recetas</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </script>
+  </div>
+  <script>
 
     // ========== INVENTARIO MASIVO ==========
 
@@ -5393,7 +5398,7 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
                       < div style = "margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 6px;" >
                     <strong>Resumen:</strong> 
                     <span style="color: #10b981; margin-left: 10px;">✓ ${validos} válidos</span>
-                    ${ invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : '' }
+                    ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
                 </div >
                       <table style="width: 100%; border-collapse: collapse;">
                         <thead>
@@ -5410,10 +5415,10 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
 
       datos.forEach(item => {
         const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
-                          const icon = item.valido ? '✓' : '✗';
-                          const iconColor = item.valido ? '#10b981' : '#ef4444';
+        const icon = item.valido ? '✓' : '✗';
+        const iconColor = item.valido ? '#10b981' : '#ef4444';
 
-                          html += `
+        html += `
                           <tr style="background: ${bgColor};">
                             <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
                               <span style="color: ${iconColor}; font-size: 18px;">${icon}</span>
@@ -5432,7 +5437,7 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
                           `;
       });
 
-                          html += `
+      html += `
                         </tbody>
                       </table>
                     `;
@@ -5461,7 +5466,7 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
         return;
       }
 
-      if (!confirm(`¿Confirmar actualización de ${ datosValidos.length } ingredientes ? `)) {
+      if (!confirm(`¿Confirmar actualización de ${datosValidos.length} ingredientes ? `)) {
         return;
       }
 
@@ -5476,7 +5481,7 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
         await window.api.bulkUpdateStockReal(updates);
 
         document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(`✓ ${ datosValidos.length } ingredientes actualizados correctamente`, 'success');
+        window.showToast(`✓ ${datosValidos.length} ingredientes actualizados correctamente`, 'success');
 
         document.getElementById('modal-inventario-masivo').classList.remove('active');
         await window.renderizarInventario();
@@ -5569,7 +5574,7 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
                       < div style = "padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;" >
           <strong>Resumen:</strong> 
           <span style="color: #10b981;">✓ ${validos} válidos</span>
-          ${ invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : '' }
+          ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
         </div >
                       <table style="width: 100%; font-size: 13px;">
                         <thead>
@@ -5586,10 +5591,10 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
 
       datos.forEach(item => {
         const icon = item.valido ? '✓' : '✗';
-                          const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
-                          const iconColor = item.valido ? '#10b981' : '#ef4444';
+        const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
+        const iconColor = item.valido ? '#10b981' : '#ef4444';
 
-                          html += `
+        html += `
                           <tr style="background: ${bgColor};">
                             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
                             <td style="padding: 10px;">${item.nombre || '-'}</td>
@@ -5600,112 +5605,112 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
                           </tr>`;
       });
 
-                          html += '</tbody></table>';
+      html += '</tbody></table>';
 
-                    document.getElementById('preview-ingredientes-container').innerHTML = html;
-                    document.getElementById('preview-importar-ingredientes').style.display = 'block';
+      document.getElementById('preview-ingredientes-container').innerHTML = html;
+      document.getElementById('preview-importar-ingredientes').style.display = 'block';
 
-                    const hayValidos = datos.some(d => d.valido);
-                    const btn = document.getElementById('btn-confirmar-importar-ingredientes');
-                    btn.disabled = !hayValidos;
-                    btn.style.opacity = hayValidos ? '1' : '0.5';
-                  }
+      const hayValidos = datos.some(d => d.valido);
+      const btn = document.getElementById('btn-confirmar-importar-ingredientes');
+      btn.disabled = !hayValidos;
+      btn.style.opacity = hayValidos ? '1' : '0.5';
+    }
 
-                  window.confirmarImportarIngredientes = async function () {
-                    const datosValidos = datosImportarIngredientes.filter(d => d.valido);
+    window.confirmarImportarIngredientes = async function () {
+      const datosValidos = datosImportarIngredientes.filter(d => d.valido);
 
-                    if (datosValidos.length === 0) {
-                      window.showToast('No hay ingredientes válidos para importar', 'error');
-                      return;
-                    }
+      if (datosValidos.length === 0) {
+        window.showToast('No hay ingredientes válidos para importar', 'error');
+        return;
+      }
 
-                    if (!confirm(`¿Importar ${datosValidos.length} ingredientes?`)) {
-                      return;
-                    }
+      if (!confirm(`¿Importar ${datosValidos.length} ingredientes?`)) {
+        return;
+      }
 
-                    document.getElementById('loading-overlay').classList.add('active');
+      document.getElementById('loading-overlay').classList.add('active');
 
-                    try {
-                      let importados = 0;
-                      for (const ing of datosValidos) {
-                        await window.api.createIngrediente({
-                          nombre: ing.nombre,
-                          precio: ing.precio,
-                          unidad: ing.unidad,
-                          stockActual: ing.stockActual,
-                          stockMinimo: ing.stockMinimo
-                        });
-                        importados++;
-                      }
+      try {
+        let importados = 0;
+        for (const ing of datosValidos) {
+          await window.api.createIngrediente({
+            nombre: ing.nombre,
+            precio: ing.precio,
+            unidad: ing.unidad,
+            stockActual: ing.stockActual,
+            stockMinimo: ing.stockMinimo
+          });
+          importados++;
+        }
 
-                      document.getElementById('loading-overlay').classList.remove('active');
-                      window.showToast(`✓ ${importados} ingredientes importados correctamente`, 'success');
-                      document.getElementById('modal-importar-ingredientes').classList.remove('active');
-                      await window.renderizarIngredientes();
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast(`✓ ${importados} ingredientes importados correctamente`, 'success');
+        document.getElementById('modal-importar-ingredientes').classList.remove('active');
+        await window.renderizarIngredientes();
 
-                    } catch (error) {
-                      document.getElementById('loading-overlay').classList.remove('active');
-                      window.showToast('Error importando: ' + error.message, 'error');
-                    }
-                  };
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error importando: ' + error.message, 'error');
+      }
+    };
 
-                  window.cancelarImportarIngredientes = function () {
-                    document.getElementById('modal-importar-ingredientes').classList.remove('active');
-                    datosImportarIngredientes = [];
-                  };
+    window.cancelarImportarIngredientes = function () {
+      document.getElementById('modal-importar-ingredientes').classList.remove('active');
+      datosImportarIngredientes = [];
+    };
 
-                  // ========== IMPORTAR RECETAS ==========
-                  let datosImportarRecetas = [];
+    // ========== IMPORTAR RECETAS ==========
+    let datosImportarRecetas = [];
 
-                  window.mostrarModalImportarRecetas = function () {
-                    document.getElementById('modal-importar-recetas').classList.add('active');
-                    document.getElementById('preview-importar-recetas').style.display = 'none';
-                    document.getElementById('file-importar-recetas').value = '';
-                    datosImportarRecetas = [];
-                  };
+    window.mostrarModalImportarRecetas = function () {
+      document.getElementById('modal-importar-recetas').classList.add('active');
+      document.getElementById('preview-importar-recetas').style.display = 'none';
+      document.getElementById('file-importar-recetas').value = '';
+      datosImportarRecetas = [];
+    };
 
-                  window.procesarArchivoRecetas = async function (input) {
-                    const file = input.files[0];
-                    if (!file) return;
+    window.procesarArchivoRecetas = async function (input) {
+      const file = input.files[0];
+      if (!file) return;
 
-                    document.getElementById('loading-overlay').classList.add('active');
+      document.getElementById('loading-overlay').classList.add('active');
 
-                    try {
-                      const data = await leerArchivoGenerico(file);
-                      datosImportarRecetas = validarDatosRecetas(data);
-                      mostrarPreviewRecetas(datosImportarRecetas);
-                      document.getElementById('loading-overlay').classList.remove('active');
-                    } catch (error) {
-                      document.getElementById('loading-overlay').classList.remove('active');
-                      window.showToast('Error procesando archivo: ' + error.message, 'error');
-                    }
-                  };
+      try {
+        const data = await leerArchivoGenerico(file);
+        datosImportarRecetas = validarDatosRecetas(data);
+        mostrarPreviewRecetas(datosImportarRecetas);
+        document.getElementById('loading-overlay').classList.remove('active');
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error procesando archivo: ' + error.message, 'error');
+      }
+    };
 
-                  function validarDatosRecetas(data) {
-                    return data.map(row => {
-                      const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
-                      const categoria = row['Categoría'] || row['categoria'] || row['Categoria'] || 'principal';
-                      const precioVenta = parseFloat(row['Precio Venta'] || row['precio_venta'] || row['Precio'] || 0);
-                      const porciones = parseInt(row['Porciones'] || row['porciones'] || 1);
+    function validarDatosRecetas(data) {
+      return data.map(row => {
+        const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
+        const categoria = row['Categoría'] || row['categoria'] || row['Categoria'] || 'principal';
+        const precioVenta = parseFloat(row['Precio Venta'] || row['precio_venta'] || row['Precio'] || 0);
+        const porciones = parseInt(row['Porciones'] || row['porciones'] || 1);
 
-                      const valido = nombre.trim().length > 0;
-                      return {
-                        nombre: nombre.trim(),
-                        categoria: categoria,
-                        precioVenta: isNaN(precioVenta) ? 0 : precioVenta,
-                        porciones: isNaN(porciones) || porciones < 1 ? 1 : porciones,
-                        ingredientes: [],
-                        valido: valido,
-                        error: valido ? null : 'Nombre requerido'
-                      };
-                    });
-                  }
+        const valido = nombre.trim().length > 0;
+        return {
+          nombre: nombre.trim(),
+          categoria: categoria,
+          precioVenta: isNaN(precioVenta) ? 0 : precioVenta,
+          porciones: isNaN(porciones) || porciones < 1 ? 1 : porciones,
+          ingredientes: [],
+          valido: valido,
+          error: valido ? null : 'Nombre requerido'
+        };
+      });
+    }
 
-                  function mostrarPreviewRecetas(datos) {
-                    const validos = datos.filter(d => d.valido).length;
-                    const invalidos = datos.filter(d => !d.valido).length;
+    function mostrarPreviewRecetas(datos) {
+      const validos = datos.filter(d => d.valido).length;
+      const invalidos = datos.filter(d => !d.valido).length;
 
-                    let html = `
+      let html = `
         <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
           <strong>Resumen:</strong> 
           <span style="color: #10b981;">✓ ${validos} válidos</span>
@@ -5724,12 +5729,12 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
           </thead>
           <tbody>`;
 
-                    datos.forEach(item => {
-                      const icon = item.valido ? '✓' : '✗';
-                      const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
-                      const iconColor = item.valido ? '#10b981' : '#ef4444';
+      datos.forEach(item => {
+        const icon = item.valido ? '✓' : '✗';
+        const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
+        const iconColor = item.valido ? '#10b981' : '#ef4444';
 
-                      html += `
+        html += `
           <tr style="background: ${bgColor};">
             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
             <td style="padding: 10px;">${item.nombre || '-'}</td>
@@ -5738,63 +5743,63 @@ if (stockActual <= 0) { stockCritico++; } else if (stockMinimo> 0 && stockActual
             <td style="padding: 10px; text-align: center;">${item.porciones}</td>
             <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${item.error || 'OK'}</td>
           </tr>`;
-                    });
+      });
 
-                    html += '</tbody></table>';
+      html += '</tbody></table>';
 
-                    document.getElementById('preview-recetas-container').innerHTML = html;
-                    document.getElementById('preview-importar-recetas').style.display = 'block';
+      document.getElementById('preview-recetas-container').innerHTML = html;
+      document.getElementById('preview-importar-recetas').style.display = 'block';
 
-                    const hayValidos = datos.some(d => d.valido);
-                    const btn = document.getElementById('btn-confirmar-importar-recetas');
-                    btn.disabled = !hayValidos;
-                    btn.style.opacity = hayValidos ? '1' : '0.5';
-                  }
+      const hayValidos = datos.some(d => d.valido);
+      const btn = document.getElementById('btn-confirmar-importar-recetas');
+      btn.disabled = !hayValidos;
+      btn.style.opacity = hayValidos ? '1' : '0.5';
+    }
 
-                  window.confirmarImportarRecetas = async function () {
-                    const datosValidos = datosImportarRecetas.filter(d => d.valido);
+    window.confirmarImportarRecetas = async function () {
+      const datosValidos = datosImportarRecetas.filter(d => d.valido);
 
-                    if (datosValidos.length === 0) {
-                      window.showToast('No hay recetas válidas para importar', 'error');
-                      return;
-                    }
+      if (datosValidos.length === 0) {
+        window.showToast('No hay recetas válidas para importar', 'error');
+        return;
+      }
 
-                    if (!confirm(`¿Importar ${datosValidos.length} recetas?`)) {
-                      return;
-                    }
+      if (!confirm(`¿Importar ${datosValidos.length} recetas?`)) {
+        return;
+      }
 
-                    document.getElementById('loading-overlay').classList.add('active');
+      document.getElementById('loading-overlay').classList.add('active');
 
-                    try {
-                      let importados = 0;
-                      for (const rec of datosValidos) {
-                        await window.api.createReceta({
-                          nombre: rec.nombre,
-                          categoria: rec.categoria,
-                          precio_venta: rec.precioVenta,
-                          porciones: rec.porciones,
-                          ingredientes: []
-                        });
-                        importados++;
-                      }
+      try {
+        let importados = 0;
+        for (const rec of datosValidos) {
+          await window.api.createReceta({
+            nombre: rec.nombre,
+            categoria: rec.categoria,
+            precio_venta: rec.precioVenta,
+            porciones: rec.porciones,
+            ingredientes: []
+          });
+          importados++;
+        }
 
-                      document.getElementById('loading-overlay').classList.remove('active');
-                      window.showToast(`✓ ${importados} recetas importadas correctamente`, 'success');
-                      document.getElementById('modal-importar-recetas').classList.remove('active');
-                      await window.renderizarRecetas();
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast(`✓ ${importados} recetas importadas correctamente`, 'success');
+        document.getElementById('modal-importar-recetas').classList.remove('active');
+        await window.renderizarRecetas();
 
-                    } catch (error) {
-                      document.getElementById('loading-overlay').classList.remove('active');
-                      window.showToast('Error importando: ' + error.message, 'error');
-                    }
-                  };
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error importando: ' + error.message, 'error');
+      }
+    };
 
-                  window.cancelarImportarRecetas = function () {
-                    document.getElementById('modal-importar-recetas').classList.remove('active');
-                    datosImportarRecetas = [];
-                  };
+    window.cancelarImportarRecetas = function () {
+      document.getElementById('modal-importar-recetas').classList.remove('active');
+      datosImportarRecetas = [];
+    };
 
-              </script>
-              </body>
+  </script>
+</body>
 
-              </html>
+</html>
