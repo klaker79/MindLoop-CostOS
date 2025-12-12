@@ -3319,7 +3319,7 @@
             document.getElementById('resumen-ingredientes').style.display = 'none';
           } else {
             let html = '<table><thead><tr>';
-            html += '<th>Ingrediente</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Acciones</th>';
+            html += '<th>Ingrediente</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Stock Mínimo</th>';
             html += '</tr></thead><tbody>';
 
             filtrados.forEach(ing => {
@@ -3328,7 +3328,7 @@
               const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
 
               html += '<tr>';
-              html += `<td><strong>${ing.nombre}</strong></td>`;
+              html += `<td><strong style="cursor: pointer; color: #6366f1;" onclick="window.editarIngrediente(${ing.id})">${ing.nombre}</strong></td>`;
               html += `<td>${getNombreProveedor(ing.proveedor_id)}</td>`;
               html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad + ' -' : ''}</td>`;
               html += `<td>`;
@@ -3339,11 +3339,7 @@
                 html += '-';
               }
               html += `</td>`;
-              html += `<td><div class="actions">`;
-              html += `<td><div class="actions">`;
-              html += `<button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})">✏️</button>`;
-              html += `<button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})">🗑️</button>`;
-              html += '</div></td>';
+              html += `<td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + ing.unidad : '-'}</td>`;
               html += '</tr>';
             });
 
