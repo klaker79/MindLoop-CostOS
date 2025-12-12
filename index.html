@@ -4715,11 +4715,11 @@
 
           htmlPrint += `
   <div style="text-align: right; margin-top: 20px; margin-bottom: 20px;">
-    <button onclick="window.descargarPedidoExcel(${JSON.stringify(pedido).replace(/"/g, '&quot;')})" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; margin-right: 10px;">
+    <button onclick="window.descargarPedidoExcel(${pedido.id})" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; margin-right: 10px;">
       📊 Descargar Excel
     </button>
-    <button onclick="window.enviarAn8n(${JSON.stringify(pedido).replace(/"/g, '&quot;')})" style="background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
-      ☁️ Enviar a n8n
+    <button onclick="window.enviarADrive(${pedido.id})" style="background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">
+      ☁️ Subir a Drive
     </button>
   </div>
 
@@ -4727,31 +4727,59 @@
     Generado el ${new Date().toLocaleDateString('es-ES')} - La Caleta 102 Dashboard
   </div>
   <script>
-    async function enviarAn8n(pedido) {
-      const webhookUrl = prompt("Introduce tu URL del Webhook de n8n:", localStorage.getItem('n8n_webhook') || '');
-      if(!webhookUrl) return;
-      localStorage.setItem('n8n_webhook', webhookUrl); 
+  <script>
+    // Configuración n8n
+    const N8N_DEFAULT_WEBHOOK = "https://tu-usuario.app.n8n.cloud/webhook/drive-upload" // Placeholder
+    
+    async function enviarADrive(pedidoId) {
+       // Buscar pedido en memoria
+       const pedido = window.pedidos.find(p => p.id === pedidoId);
+       if(!pedido) { alert('Error: Pedido no encontrado en memoria'); return; }
+
+       // Lógica de URL Webhook
+       let webhookUrl = localStorage.getItem('n8n_webhook');
+       if (!webhookUrl) {
+          webhookUrl = prompt("⚙️ Configuración Única:\nIntroduce tu URL del Webhook de n8n para subir a Drive:", "");
+          if(!webhookUrl) return;
+          localStorage.setItem('n8n_webhook', webhookUrl); 
+       }
       
-      const btn = document.querySelector('button[onclick*="enviarAn8n"]');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '⏳ Enviando...';
-      btn.disabled = true;
+      const btn = document.querySelector(`button[onclick = "window.enviarADrive(${pedidoId})"]`);
+      if(btn) {
+         btn.disabled = true;
+         btn.innerHTML = '⏳ Subiendo...';
+      }
 
       try {
          const res = await fetch(webhookUrl, {
            method: 'POST',
            headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify(pedido)
+           body: JSON.stringify({
+             action: "upload_invoice", // Tag para que n8n sepa qué hacer
+             ...pedido
+           })
          });
-         if(res.ok) alert('✅ Pedido enviado a n8n correctamente');
-         else alert('❌ Error al enviar a n8n');
+         
+         if(res.ok) {
+             alert('✅ Factura subida a Drive correctamente');
+         } else {
+             throw new Error('Respuesta del servidor no válida');
+         }
       } catch(e) { 
-        alert('❌ Error: ' + e.message); 
+        alert('❌ Error al subir: ' + e.message + '\nVerifica tu URL de n8n o tu conexión.');
+        // Opción de resetear URL si falló
+        if(confirm("¿Quieres cambiar la URL del Webhook?")) {
+            localStorage.removeItem('n8n_webhook');
+        }
       } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        if(btn) {
+             btn.disabled = false;
+             btn.innerHTML = '☁️ Subir a Drive';
+        }
       }
     }
+   // <\/script> escapado
+  <\/script>
     <\/script>
 </body>
 
@@ -5803,30 +5831,89 @@
     };
 
 
-    window.descargarPedidoExcel = function (pedido) {
+
+    window.descargarPedidoExcel = function (pedidoId) {
+      const pedido = window.pedidos.find(p => p.id === pedidoId);
+      if (!pedido) { alert('Error: Pedido no encontrado'); return; }
+
       // BOM para que Excel reconozca caracteres latinos
       let csv = '\uFEFFIngrediente;Cantidad;Precio Unitario;Subtotal\n';
 
-      pedido.ingredientes.forEach(ing => {
-        // Asegurar que usamos coma decimal si el usuario tiene Excel en español, 
-        // o punto si es inglés. Por estándar CSV en español usamos ; como separador y , o . en nros.
-        // Aquí forzamos punto para compatibilidad universal básica, pero el BOM ayuda.
-        csv += `${ing.nombre};${ing.cantidad};${parseFloat(ing.precio).toFixed(2)};${parseFloat(ing.coste).toFixed(2)}\n`;
-      });
+      if (pedido.ingredientes) {
+        pedido.ingredientes.forEach(ing => {
+          let precio = typeof ing.precio === 'string' ? parseFloat(ing.precio) : ing.precio;
+          let coste = typeof ing.coste === 'string' ? parseFloat(ing.coste) : ing.coste;
 
-      const totalNum = parseFloat(pedido.total);
+          // Safety check
+          if (isNaN(precio)) precio = 0;
+          if (isNaN(coste)) coste = 0;
+
+          csv += `${ing.nombre};${ing.cantidad};${precio.toFixed(2)};${coste.toFixed(2)}\n`;
+        });
+      }
+
+      const totalNum = parseFloat(pedido.total || 0);
       csv += `\n;;Total Original;${totalNum.toFixed(2)}`;
+
+      const fechaStr = pedido.fecha ? pedido.fecha.split('T')[0] : 'fecha-desconocida';
 
       // Crear blob y descargar
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       link.setAttribute("href", url);
-      link.setAttribute("download", `Pedido_${pedido.id}_${pedido.fecha.split('T')[0]}.csv`);
+      link.setAttribute("download", `Pedido_${pedido.id}_${fechaStr}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    };
+
+    // Nueva función para Drive
+    window.enviarADrive = async function (pedidoId) {
+      const pedido = window.pedidos.find(p => p.id === pedidoId);
+      if (!pedido) { alert('Error: Pedido no encontrado en memoria'); return; }
+
+      let webhookUrl = localStorage.getItem('n8n_webhook');
+      if (!webhookUrl) {
+        webhookUrl = prompt("⚙️ Introduce tu URL de n8n para subir a Drive:", "");
+        if (!webhookUrl) return;
+        localStorage.setItem('n8n_webhook', webhookUrl);
+      }
+
+      const btn = document.querySelector(`button[onclick="window.enviarADrive(${pedidoId})"]`);
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Subiendo...';
+      }
+
+      try {
+        const res = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: "upload_invoice",
+            ...pedido
+          })
+        });
+
+        if (res.ok) {
+          alert('✅ Factura subida a Drive correctamente');
+        } else {
+          throw new Error('Respuesta del servidor no válida');
+        }
+      } catch (e) {
+        alert('❌ Error al subir: ' + e.message);
+        if (confirm("¿Quieres cambiar la URL del Webhook?")) {
+          localStorage.removeItem('n8n_webhook');
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '☁️ Subir a Drive';
+        }
+      }
     };
 
   </script>
