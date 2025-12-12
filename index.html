@@ -3328,7 +3328,7 @@
               const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
 
               html += '<tr>';
-              html += `<td><strong style="cursor: pointer; color: #6366f1;" onclick="window.editarIngrediente(${ing.id})">${ing.nombre}</strong></td>`;
+              html += `<td><strong style="cursor: pointer;" onclick="window.editarIngrediente(${ing.id})">${ing.nombre}</strong></td>`;
               html += `<td>${getNombreProveedor(ing.proveedor_id)}</td>`;
               html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad + ' -' : ''}</td>`;
               html += `<td>`;
