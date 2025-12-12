@@ -4820,13 +4820,13 @@ document.getElementById('resumen-pedidos').style.display = 'none';
           }
           html += `<button class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})"
             title="Eliminar">🗑️</button>`;
-          html += '</div>
-      </td>';
+          html += `</div>
+      </td>`;
       html += '</tr>';
     });
 
-    html += '</tbody>
-</table>';
+    html += `</tbody>
+</table>`;
 container.innerHTML = html;
 
 const totalPendientes = pedidos.filter(p => p.estado === 'pendiente').length;
