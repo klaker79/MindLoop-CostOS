@@ -4657,14 +4657,14 @@ html += '</tr>';
             const file = input.files[0];
             if (!file) return;
             
-            showLoading();
+            document.getElementById('loading-overlay').classList.add('active');
             
             try {
                 const data = await leerArchivoInventario(file);
                 datosInventarioMasivo = await validarDatosInventario(data);
                 mostrarPreviewInventario(datosInventarioMasivo);
             } catch (error) {
-                hideLoading();
+                document.getElementById('loading-overlay').classList.remove('active');
                 showToast('Error procesando archivo: ' + error.message, 'error');
             }
         };
@@ -4735,7 +4735,7 @@ html += '</tr>';
         }
         
         function mostrarPreviewInventario(datos) {
-            hideLoading();
+            document.getElementById('loading-overlay').classList.remove('active');
             
             const validos = datos.filter(d => d.valido).length;
             const invalidos = datos.filter(d => !d.valido).length;
@@ -4807,7 +4807,7 @@ html += '</tr>';
                 return;
             }
             
-            showLoading();
+            document.getElementById('loading-overlay').classList.add('active');
             
             try {
                 const updates = datosValidos.map(d => ({
@@ -4817,14 +4817,21 @@ html += '</tr>';
                 
                 await api.bulkUpdateStockReal(updates);
                 
-                hideLoading();
+               document.getElementById('loading-overlay').classList.remove('active');
                 showToast(`✓ ${datosValidos.length} ingredientes actualizados correctamente`, 'success');
                 
                 document.getElementById('modal-inventario-masivo').classList.remove('active');
                 await window.renderizarInventario();
                 
             } catch (error) {
-                hideLoading();
+                document.getElementById('loading-overlay').classList.remove('active');
+```
+
+**Ahora haz commit y push:**
+```
+git add index.html
+git commit -m "Fix: Use direct DOM manipulation for loading overlay in bulk inventory"
+git push origin main
                 showToast('Error actualizando inventario: ' + error.message, 'error');
             }
         };
