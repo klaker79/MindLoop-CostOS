@@ -2557,7 +2557,30 @@
           getSales: async () => [],
 
           // Soporte para nuestra nueva funcionalidad de stock
-          updateInventoryStock: async (id, stock) => true
+          updateInventoryStock: async (id, stock) => true,
+
+          // Métodos restaurados para funcionamiento del inventario
+          getInventoryComplete: async () => {
+            // Simular retardo de red
+            await new Promise(r => setTimeout(r, 200));
+            return window.ingredientes.map(ing => ({
+              ...ing,
+              // Mapear stock_actual a stock_virtual para la vista
+              stock_virtual: ing.stock_actual,
+              stock_real: ing.stock_real !== undefined ? ing.stock_real : null,
+              diferencia: (ing.stock_real !== undefined && ing.stock_real !== null) ? (ing.stock_real - ing.stock_actual) : 0,
+              valor_stock: (ing.stock_actual * ing.precio).toFixed(2)
+            }));
+          },
+
+          updateStockReal: async (id, stockReal) => {
+            const ing = window.ingredientes.find(i => i.id === id);
+            if (ing) {
+              ing.stock_real = stockReal;
+              // Recalculamos diferencia si es necesario o actualizamos timestamp
+            }
+            return true;
+          }
         };
 
         // Sobrescribir fetch para interceptar llamadas si es necesario
