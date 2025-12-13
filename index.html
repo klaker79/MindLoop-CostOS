@@ -2613,16 +2613,45 @@
           // Soporte para nuestra nueva funcionalidad de stock
           updateInventoryStock: async (id, stock) => true,
 
-          // API de Mermas y Pérdidas
+          // API de Mermas y Pérdidas (con Persistencia Local)
           createLoss: async (lossData) => {
-            // Simular guardado
             lossData.id = Date.now();
             lossData.fecha = new Date().toISOString();
+
+            // Guardar en memoria
             window.perdidas.push(lossData);
+
+            // Guardar en LocalStorage
+            localStorage.setItem('perdidas_demo', JSON.stringify(window.perdidas));
+
             return lossData;
           },
 
-          getLosses: async () => window.perdidas,
+          getLosses: async () => {
+            // Recuperar de LocalStorage si la memoria está vacía (inicio)
+            if (window.perdidas.length === 0) {
+              const stored = localStorage.getItem('perdidas_demo');
+              if (stored) {
+                window.perdidas = JSON.parse(stored);
+              } else {
+                // Datos de ejemplo iniciales para que el usuario vea algo
+                window.perdidas = [
+                  {
+                    id: 1700000000000,
+                    fecha: new Date().toISOString(), // Hoy
+                    ingrediente_nombre: "Tomate (Ejemplo de Merma)",
+                    cantidad: 2.50,
+                    unidad: "kg",
+                    motivo: "caducidad",
+                    nota: "Se puso malo en cámara (Ejemplo)",
+                    coste_estimado: 6.25
+                  }
+                ];
+                localStorage.setItem('perdidas_demo', JSON.stringify(window.perdidas));
+              }
+            }
+            return window.perdidas;
+          },
 
           // Métodos restaurados para funcionamiento del inventario
           getInventoryComplete: async () => {
