@@ -2172,6 +2172,9 @@
           <button class="btn btn-secondary" onclick="window.mostrarModalInventarioMasivo()">
             📊 Importar Inventario Masivo
           </button>
+          <button class="btn btn-warning" onclick="window.mostrarHistorialPerdidas()">
+            📉 Ver Historial Mermas
+          </button>
         </div>
 
         <div id="resumen-inventario" style="display: none; gap: 20px;"></div>
@@ -2511,6 +2514,54 @@
       </div>
     </div>
 
+    <!-- MODAL: Historial de Mermas -->
+    <div id="modal-historial-perdidas" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2>📉 Historial de Mermas y Consumos</h2>
+          <span class="close"
+            onclick="document.getElementById('modal-historial-perdidas').classList.remove('active')">&times;</span>
+        </div>
+
+        <!-- KPIs de Conciencia -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+          <div style="background: #FEF2F2; padding: 20px; border-radius: 12px; border-left: 5px solid #EF4444;">
+            <h4 style="color: #7F1D1D; margin-bottom: 5px;">💸 Dinero Tirado</h4>
+            <p style="font-size: 13px; color: #991B1B; margin-bottom: 10px;">(Merma, Caducidad, Error, Rotura)</p>
+            <strong style="font-size: 28px; color: #DC2626;" id="kpi-dinero-tirado">0.00 €</strong>
+          </div>
+          <div style="background: #EFF6FF; padding: 20px; border-radius: 12px; border-left: 5px solid #3B82F6;">
+            <h4 style="color: #1E3A8A; margin-bottom: 5px;">🤝 Consumo Interno</h4>
+            <p style="font-size: 13px; color: #1E40AF; margin-bottom: 10px;">(Invitación, Personal)</p>
+            <strong style="font-size: 28px; color: #2563EB;" id="kpi-consumo-interno">0.00 €</strong>
+          </div>
+        </div>
+
+        <div style="max-height: 400px; overflow-y: auto;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8fafc; position: sticky; top: 0;">
+              <tr>
+                <th style="padding: 12px; text-align: left;">Fecha</th>
+                <th style="padding: 12px; text-align: left;">Ingrediente</th>
+                <th style="padding: 12px; text-align: left;">Causa</th>
+                <th style="padding: 12px; text-align: right;">Cantidad</th>
+                <th style="padding: 12px; text-align: right;">Valor (€)</th>
+                <th style="padding: 12px; text-align: left;">Notas</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-historial-perdidas-body">
+              <!-- JS injected -->
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top: 20px; text-align: right;">
+          <button class="btn btn-secondary"
+            onclick="document.getElementById('modal-historial-perdidas').classList.remove('active')">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       // Código JavaScript completo (por brevedad, incluyo versión funcional comprimida)
       // El código completo está disponible en el archivo descargable
@@ -2562,6 +2613,17 @@
           // Soporte para nuestra nueva funcionalidad de stock
           updateInventoryStock: async (id, stock) => true,
 
+          // API de Mermas y Pérdidas
+          createLoss: async (lossData) => {
+            // Simular guardado
+            lossData.id = Date.now();
+            lossData.fecha = new Date().toISOString();
+            window.perdidas.push(lossData);
+            return lossData;
+          },
+
+          getLosses: async () => window.perdidas,
+
           // Métodos restaurados para funcionamiento del inventario
           getInventoryComplete: async () => {
             // Simular retardo de red
@@ -2599,6 +2661,7 @@
         window.recetas = [];
         window.proveedores = [];
         window.pedidos = [];
+        window.perdidas = []; // Historial de mermas
 
         let editandoIngredienteId = null;
         let editandoRecetaId = null;
@@ -6172,17 +6235,31 @@
               </div>
               
               <select id="motivo-perdida-${dif.ingrediente.id}" class="select-motivo-perdida" disabled
-                      style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                      style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; margin-bottom: 5px;">
                 <option value="">Selecciona el motivo...</option>
-                <option value="merma">Merma (Producción/Cocina)</option>
-                <option value="caducidad">Caducidad</option>
-                <option value="rotura">Rotura / Accidente</option>
-                <option value="robo">Robo / Desconocido</option>
+                <option value="caducidad">Caducidad (Se tiró)</option>
+                <option value="merma">Merma (Producción/Rotura)</option>
+                <option value="error">Error (Cocina/Pedido)</option>
+                <option value="invitacion">Invitación (Cliente)</option>
+                <option value="comida_personal">Comida Personal</option>
+                <option value="otros">Otros</option>
               </select>
+              <input type="text" id="nota-perdida-${dif.ingrediente.id}" disabled
+                     placeholder="Detalles opcionales..."
+                     style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
             </div>
           </div>
         `;
         lista.appendChild(div);
+      });
+
+      // Habilitar nota si se marca check
+      lista.querySelectorAll('.check-perdida').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+          const id = e.target.dataset.ingId;
+          document.getElementById(`motivo-perdida-${id}`).disabled = !e.target.checked;
+          document.getElementById(`nota-perdida-${id}`).disabled = !e.target.checked;
+        });
       });
 
       modal.dataset.negativas = JSON.stringify(negativas);
@@ -6227,10 +6304,20 @@
         if (esPerdida) {
           // Validar que haya motivo
           const motivoTexto = motivo || 'Sin especificar';
-          console.log(`Pérdida registrada: ${dif.ingrediente.nombre}. Motivo: ${motivoTexto}`);
-          // Aquí iría la llamada a api.createLoss(...) pasando el motivo
+          const cantidad = Math.abs(dif.diferencia);
+          const nota = document.getElementById(`nota-perdida-${dif.ingrediente.id}`).value || '';
 
-          if (window.showToast) window.showToast(`Pérdida de ${dif.ingrediente.nombre} (${motivoTexto})`, 'warning');
+          if (window.api && window.api.createLoss) {
+            await window.api.createLoss({
+              ingrediente_id: dif.ingrediente.id,
+              ingrediente_nombre: dif.ingrediente.nombre,
+              cantidad: cantidad,
+              unidad: dif.ingrediente.unidad,
+              motivo: motivo,
+              nota: nota,
+              coste_estimado: (cantidad * dif.ingrediente.precio)
+            });
+          }
 
           perdidasRegistradas++;
         }
@@ -6239,11 +6326,70 @@
       cerrarModalPerdidas();
       cerrarModalStockReal();
 
-      const msg = `Stock actualizado. (${perdidasRegistradas} pérdidas registradas)`;
+      const msg = `Stock actualizado. (${perdidasRegistradas} mermas registradas)`;
       if (window.showToast) window.showToast(msg, perdidasRegistradas > 0 ? 'warning' : 'success');
       else alert(msg);
 
       if (window.renderizarInventario) window.renderizarInventario();
+    };
+
+    // ========== HISTORIAL DE MERMAS ==========
+    window.mostrarHistorialPerdidas = async function () {
+      const modal = document.getElementById('modal-historial-perdidas');
+      const tbody = document.getElementById('tabla-historial-perdidas-body');
+      const kpiTirado = document.getElementById('kpi-dinero-tirado');
+      const kpiConsumo = document.getElementById('kpi-consumo-interno');
+
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">Cargando...</td></tr>';
+      modal.classList.add('active');
+
+      try {
+        const perdidas = await window.api.getLosses();
+
+        let totalTirado = 0;
+        let totalConsumo = 0;
+
+        if (perdidas.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#666;">No hay historial de mermas</td></tr>';
+        } else {
+          tbody.innerHTML = '';
+          // Ordenar por fecha reciente
+          perdidas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+          perdidas.forEach(p => {
+            const fecha = new Date(p.fecha).toLocaleString();
+            const coste = parseFloat(p.coste_estimado || 0);
+
+            // Clasificar para KPIs
+            const esConsumo = ['invitacion', 'comida_personal'].includes(p.motivo);
+            if (esConsumo) totalConsumo += coste;
+            else totalTirado += coste;
+
+            const row = `
+                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                       <td style="padding:12px; font-size:13px; color:#64748b;">${fecha}</td>
+                       <td style="padding:12px; font-weight:600;">${p.ingrediente_nombre}</td>
+                       <td style="padding:12px;">
+                          <span class="badge ${esConsumo ? 'badge-primary' : 'badge-warning'}">
+                             ${p.motivo.replace('_', ' ').toUpperCase()}
+                          </span>
+                       </td>
+                       <td style="padding:12px; text-align:right;">${parseFloat(p.cantidad).toFixed(2)} ${p.unidad}</td>
+                       <td style="padding:12px; text-align:right; font-weight:600;">${coste.toFixed(2)} €</td>
+                       <td style="padding:12px; font-size:13px; color:#666; font-style:italic;">${p.nota || '-'}</td>
+                    </tr>
+                 `;
+            tbody.insertAdjacentHTML('beforeend', row);
+          });
+        }
+
+        kpiTirado.textContent = totalTirado.toFixed(2) + ' €';
+        kpiConsumo.textContent = totalConsumo.toFixed(2) + ' €';
+
+      } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Error cargando historial</td></tr>';
+      }
     };
 
     async function ajustarStockPositivo(positivas) {
