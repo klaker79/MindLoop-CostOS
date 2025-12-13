@@ -2631,10 +2631,18 @@
             // Recuperar de LocalStorage si la memoria está vacía (inicio)
             if (window.perdidas.length === 0) {
               const stored = localStorage.getItem('perdidas_demo');
+              let loadedData = [];
+
               if (stored) {
-                window.perdidas = JSON.parse(stored);
+                try {
+                  loadedData = JSON.parse(stored);
+                } catch (e) { console.error("Error parsing perdidas", e); }
+              }
+
+              if (loadedData.length > 0) {
+                window.perdidas = loadedData;
               } else {
-                // Datos de ejemplo iniciales para que el usuario vea algo
+                // Si no hay datos (ni en RAM ni en Disco), forzar ejemplo
                 window.perdidas = [
                   {
                     id: 1700000000000,
