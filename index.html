@@ -5139,7 +5139,7 @@
         // ========== INVENTARIO ==========
         window.renderizarInventario = async function () {
           try {
-            const inventario = await api.getInventoryComplete();
+            const inventario = await window.api.getInventoryComplete();
             const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
             const filtrados = inventario.filter(ing =>
               ing.nombre.toLowerCase().includes(busqueda)
@@ -5219,13 +5219,14 @@
               if (stockActual <= 0) { estadoClass = 'stock-critico'; estadoIcon = '🔴'; } else if (stockMinimo > 0 && stockActual
                 <= stockMinimo) { estadoClass = 'stock-bajo'; estadoIcon = '🟡'; } const precioMedio = parseFloat(ing.precio_medio
                   || 0); const valorStock = parseFloat(ing.valor_stock || 0); const diferencia = parseFloat(ing.diferencia || 0);
+              const valorStockReal = (parseFloat(ing.stock_real) || 0) * precioMedio;
               const stockReal = ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : ''; html += '<tr>'; html
                 += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
               html += `<td><strong>${ing.nombre}</strong></td>`;
               html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
               html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos"
                 style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"
-                onchange="actualizarStockReal(${ing.id}, this.value)"></td>`;
+                onchange="window.actualizarStockReal(${ing.id}, this.value)"></td>`;
               html += `<td style="color:${diferencia > 0 ? '#10b981' : diferencia < 0 ? '#ef4444' : '#666'};">${diferencia
                 !== 0 ? diferencia.toFixed(2) : '-'}</td>`;
               html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
@@ -5237,8 +5238,7 @@
             container.innerHTML = html;
           } catch (error) {
             console.error('Error:', error);
-            document.getElementById('tabla-inventario').innerHTML = `<p style="color:#ef4444;">Error cargando inventario
-            </p>`;
+            document.getElementById('tabla-inventario').innerHTML = `<p style="color:#ef4444;">Error cargando inventario: ${error.message}</p>`;
           }
         };
 
@@ -5246,11 +5246,11 @@
         window.actualizarStockReal = async function (id, valor) {
           if (!valor || valor === '') return;
           try {
-            await api.updateStockReal(id, parseFloat(valor));
+            await window.api.updateStockReal(id, parseFloat(valor));
             await window.renderizarInventario();
-            showToast('Stock real actualizado', 'success');
+            window.showToast('Stock real actualizado', 'success');
           } catch (error) {
-            showToast('Error actualizando stock', 'error');
+            window.showToast('Error actualizando stock: ' + error.message, 'error');
           }
         };
 
