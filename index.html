@@ -5395,11 +5395,11 @@ window.descargarPedidoPDF = async function() {
         Object.values(containers).forEach(c => c.innerHTML = '');
 
         const consejos = {
-          'estrella': '⭐ <strong>Consejo:</strong> Son tus mejores platos. Mantén la calidad y la visibilidad.',
-          'caballo': '🐎 <strong>Consejo:</strong> Intenta subir el precio o reducir coste.',
-          'puzzle': '❓ <strong>Consejo:</strong> Necesitan marketing: mejora la foto o visibilidad.',
-          'perro': '🐶 <strong>Consejo:</strong> Considera retirarlos o reinventarlos.'
-        };
+  'estrella': '⭐ <strong>Consejo:</strong> Estos son tus platos estrella - generan buenos márgenes y se venden mucho. Estrategia: Mantén la calidad constante, destácalos en el menú principal, considera subirlos ligeramente de precio (tienen demanda), capacita al equipo para recomendarlos, y usa fotos atractivas en redes sociales para aprovechar su popularidad.',
+  'caballo': '🐴 <strong>Consejo:</strong> Se venden mucho pero ganan poco - peligro de trabajar sin beneficio. Estrategia urgente: Renegocia con proveedores para reducir coste, optimiza las porciones sin afectar percepción de calidad, sube el precio gradualmente (5-10%), o rediseña la receta con ingredientes más económicos manteniendo el sabor. Son candidatos a retirar si no mejora la rentabilidad.',
+  'puzzle': '❓ <strong>Consejo:</strong> Platos rentables pero poco vendidos - tienen potencial sin explotar. Estrategia: Mejora la visibilidad (posición destacada en carta, descripción más apetecible, foto profesional), forma al personal para recomendarlos activamente, crea combos con platos populares, o considera cambiar el nombre para hacerlo más atractivo. Si tras estos cambios no mejoran, evalúa retirarlos.',
+  'perro': '🐕 <strong>Consejo:</strong> No se venden y no ganan - están ocupando espacio valioso en tu carta. Acción recomendada: Retíralos del menú cuanto antes. Están consumiendo inventario, tiempo de cocina y espacio en carta sin aportar valor. Libera recursos para potenciar tus Estrellas o mejorar tus Puzzles. Si tienen valor sentimental, considera ofrecerlos solo como especial del día ocasional.'
+};
 
         // Añadir consejos DENTRO del contenedor limpio, al principio
         containers['estrella'].innerHTML = `<div style="font-size: 11px; margin-bottom: 8px; color: #065f46; width:100%;">${consejos['estrella']}</div>`;
