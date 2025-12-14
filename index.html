@@ -2029,6 +2029,9 @@
             <p>Gestiona tus pedidos y actualiza stock automáticamente</p>
           </div>
           <button class="btn btn-primary" onclick="window.mostrarFormularioPedido()">+ Nuevo Pedido</button>
+          <button class="btn btn-secondary" onclick="window.mostrarModalImportarCompras()">
+          📤 Importar Compras (Excel)
+          </button>
         </div>
 
         <div class="search-box">
@@ -2079,6 +2082,40 @@
 
         <div id="tabla-pedidos"></div>
         <div id="resumen-pedidos" class="summary" style="display: none;"></div>
+        </div>
+
+    <!-- Modal: Importar Compras desde Excel -->
+    <div id="modal-importar-compras" class="modal">
+      <div class="modal-content" style="max-width: 600px;">
+        <h3>📤 Importar Compras desde Excel</h3>
+        <p style="color: #666; margin-bottom: 20px;">
+          Sube un archivo Excel (.xlsx, .xls, .csv) con las compras del día.<br>
+          <strong>Columnas requeridas:</strong> Fecha, Proveedor, Ingrediente, Cantidad, Precio Unit, Total
+        </p>
+        
+        <div class="form-group">
+          <label>Archivo Excel/CSV</label>
+          <input type="file" id="file-compras-excel" accept=".xlsx,.xls,.csv" class="form-control">
+        </div>
+        
+        <div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 15px; margin: 20px 0; border-radius: 4px;">
+          <strong>💡 Formato del Excel:</strong><br>
+          • <strong>Fecha:</strong> 2025-12-14 o 14/12/2025<br>
+          • <strong>Proveedor:</strong> Nombre exacto del proveedor<br>
+          • <strong>Ingrediente:</strong> Nombre exacto del ingrediente<br>
+          • <strong>Cantidad:</strong> Número (ej: 5)<br>
+          • <strong>Precio Unit:</strong> Precio por unidad (ej: 12.50)<br>
+          • <strong>Total:</strong> Cantidad × Precio Unit
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button class="btn btn-secondary" onclick="window.cerrarModalImportarCompras()">Cancelar</button>
+          <button class="btn btn-primary" onclick="window.procesarExcelCompras()">📤 Importar</button>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- Cierre de tab-pedidos -->
       </div>
 
       <!-- TAB: ANÁLISIS -->
@@ -6754,6 +6791,140 @@ window.descargarPedidoPDF = async function() {
       document.getElementById('modal-importar-recetas').classList.remove('active');
       datosImportarRecetas = [];
     };
+    // ========== IMPORTAR COMPRAS DESDE EXCEL ==========
+
+window.mostrarModalImportarCompras = function() {
+  document.getElementById('modal-importar-compras').classList.add('active');
+};
+
+window.cerrarModalImportarCompras = function() {
+  document.getElementById('modal-importar-compras').classList.remove('active');
+  document.getElementById('file-compras-excel').value = '';
+};
+
+window.procesarExcelCompras = async function() {
+  const fileInput = document.getElementById('file-compras-excel');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    showToast('Selecciona un archivo Excel', 'error');
+    return;
+  }
+  
+  showLoading();
+  
+  try {
+    // Leer archivo Excel
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(firstSheet);
+    
+    if (rows.length === 0) {
+      throw new Error('El archivo está vacío');
+    }
+    
+    // Agrupar por fecha y proveedor
+    const pedidosAgrupados = {};
+    
+    for (const row of rows) {
+      // Extraer datos (normalizar nombres de columnas)
+      const fecha = row.Fecha || row.fecha || row.FECHA;
+      const proveedorNombre = row.Proveedor || row.proveedor || row.PROVEEDOR;
+      const ingredienteNombre = row.Ingrediente || row.ingrediente || row.INGREDIENTE;
+      const cantidad = parseFloat(row.Cantidad || row.cantidad || row.CANTIDAD || 0);
+      const precioUnit = parseFloat(row['Precio Unit'] || row['precio_unitario'] || row['PRECIO UNIT'] || 0);
+      
+      if (!fecha || !proveedorNombre || !ingredienteNombre) {
+        console.warn('Fila ignorada (faltan datos):', row);
+        continue;
+      }
+      
+      // Buscar proveedor por nombre
+      const prov = proveedores.find(p => 
+        p.nombre.toLowerCase().trim() === proveedorNombre.toLowerCase().trim()
+      );
+      
+      if (!prov) {
+        showToast(`Proveedor no encontrado: "${proveedorNombre}". Créalo primero en la pestaña Proveedores.`, 'error');
+        continue;
+      }
+      
+      // Buscar ingrediente por nombre
+      const ing = ingredientes.find(i => 
+        i.nombre.toLowerCase().trim() === ingredienteNombre.toLowerCase().trim()
+      );
+      
+      if (!ing) {
+        showToast(`Ingrediente no encontrado: "${ingredienteNombre}". Créalo primero en la pestaña Ingredientes.`, 'error');
+        continue;
+      }
+      
+      // Agrupar por fecha + proveedor
+      const key = `${fecha}_${prov.id}`;
+      
+      if (!pedidosAgrupados[key]) {
+        pedidosAgrupados[key] = {
+          fecha: fecha,
+          proveedor_id: prov.id,
+          ingredientes: []
+        };
+      }
+      
+      pedidosAgrupados[key].ingredientes.push({
+        ingredienteId: ing.id,
+        cantidad: cantidad,
+        precioUnitario: precioUnit,
+        subtotal: cantidad * precioUnit
+      });
+    }
+    
+    // Guardar cada pedido agrupado
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    let pedidosCreados = 0;
+    
+    for (const pedido of Object.values(pedidosAgrupados)) {
+      const response = await fetch(`${API_URL}/pedidos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...pedido,
+          restaurante_id: user.restaurante_id,
+          estado: 'pendiente'
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Error guardando pedido: ${error}`);
+      }
+      
+      pedidosCreados++;
+    }
+    
+    hideLoading();
+    cerrarModalImportarCompras();
+    showToast(`✅ ${pedidosCreados} pedido(s) importado(s) correctamente`, 'success');
+    
+    // Recargar pedidos
+    await cargarPedidos();
+    renderizarPedidos();
+    
+  } catch (error) {
+    hideLoading();
+    console.error('Error:', error);
+    showToast('Error procesando Excel: ' + error.message, 'error');
+  }
+};
+```
+
+**Añádelo y haz COMMIT:**
+```
+Añadir importación de compras desde Excel en pestaña Pedidos
 
   </script>
 </body>
