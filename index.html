@@ -5142,10 +5142,12 @@
               html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
 
               // Input con evento ONINPUT para cálculo dinámico
+              // Input con evento ONINPUT para cálculo dinámico
               html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
                         class="input-stock-real" 
                         data-id="${ing.id}" 
                         data-stock-virtual="${ing.stock_virtual || 0}" 
+                        data-precio="${precioMedio}"
                         oninput="window.updateDifferenceCell(this)"
                         style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"></td>`;
 
@@ -5164,8 +5166,12 @@
               html += `<td id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
 
               html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
-              const valorStockReal = (parseFloat(stockReal) || 0) * precioMedio;
-              html += `<td><strong>${valorStockReal.toFixed(2)}€</strong></td>`;
+
+              // Valor Stock: Por defecto usa Virtual. Si hay Real guardado, usa Real.
+              const cantidadParaValor = (stockReal !== '' && stockReal !== null) ? parseFloat(stockReal) : parseFloat(ing.stock_virtual || 0);
+              const valorStockDisplay = (cantidadParaValor * precioMedio).toFixed(2);
+
+              html += `<td id="val-cell-${ing.id}"><strong>${valorStockDisplay}€</strong></td>`;
               html += `<td>${ing.unidad}</td>`;
               html += '</tr>';
             });
@@ -5181,21 +5187,32 @@
           const id = input.dataset.id;
           const virtual = parseFloat(input.dataset.stockVirtual) || 0;
           const val = input.value;
-          const cell = document.getElementById(`diff-cell-${id}`);
+          const cellDiff = document.getElementById(`diff-cell-${id}`);
+          const cellVal = document.getElementById(`val-cell-${id}`);
+
+          // Precio Medio (lo extraemos de la celda vecina o mejor, lo pasamos por data attribute.
+          // Hack rápido: obtenemos valor de la celda de precio (indice 5, pero variable)
+          // Mejor: Agregamos data-precio al input
+          const precio = parseFloat(input.dataset.precio || 0);
 
           if (val === '' || val === null) {
-            cell.textContent = '-';
-            cell.style.color = '#666';
+            cellDiff.textContent = '-';
+            cellDiff.style.color = '#666';
+            // Si borra, volvemos a mostrar valor VIRTUAL
+            cellVal.innerHTML = `<strong>${(virtual * precio).toFixed(2)}€</strong>`;
             return;
           }
 
           const real = parseFloat(val);
-          const diff = real - virtual; // Real - Teórico
+          const diff = real - virtual;
 
-          cell.textContent = diff.toFixed(2);
-          if (diff < 0) cell.style.color = '#ef4444'; // Rojo (Falta)
-          else if (diff > 0) cell.style.color = '#10b981'; // Verde (Sobra)
-          else cell.style.color = '#666'; // Cero
+          cellDiff.textContent = diff.toFixed(2);
+          if (diff < 0) cellDiff.style.color = '#ef4444';
+          else if (diff > 0) cellDiff.style.color = '#10b981';
+          else cellDiff.style.color = '#666';
+
+          // Actualizar Valor Stock (REAL * Precio)
+          cellVal.innerHTML = `<strong>${(real * precio).toFixed(2)}€</strong>`;
         };
 
         // Función global para actualizar stock real
