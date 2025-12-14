@@ -4918,6 +4918,20 @@
           document.getElementById('lista-puzzle').innerHTML = '';
           document.getElementById('lista-perro').innerHTML = '';
 
+          const consejos = {
+            'estrella': '⭐ <strong>Consejo:</strong> Son tus mejores platos. Mantén la calidad y la visibilidad. ¡No toques la receta!',
+            'caballo': '🐎 <strong>Consejo:</strong> Populares pero poco rentables. Intenta <strong>subir el precio</strong> ligeramente o reducir el coste (porción/ingredientes) sin bajar calidad.',
+            'puzzle': '❓ <strong>Consejo:</strong> Rentables pero poco populares. Necesitan marketing: <strong>mejora la foto</strong>, el nombre en carta, o sugerencia del camarero.',
+            'perro': '🐶 <strong>Consejo:</strong> Ni rentables ni populares. ¿Merece la pena mantenerlos? Considera <strong>retirarlos</strong> o reinventarlos completamente.'
+          };
+
+          // Añadir consejos a los contenedores
+          document.getElementById('lista-estrella').parentNode.querySelector('h4').insertAdjacentHTML('afterend', `<div style="font-size: 11px; margin-bottom: 8px; color: #065f46;">${consejos['estrella']}</div>`);
+          document.getElementById('lista-caballo').parentNode.querySelector('h4').insertAdjacentHTML('afterend', `<div style="font-size: 11px; margin-bottom: 8px; color: #9a3412;">${consejos['caballo']}</div>`);
+          document.getElementById('lista-puzzle').parentNode.querySelector('h4').insertAdjacentHTML('afterend', `<div style="font-size: 11px; margin-bottom: 8px; color: #1e40af;">${consejos['puzzle']}</div>`);
+          document.getElementById('lista-perro').parentNode.querySelector('h4').insertAdjacentHTML('afterend', `<div style="font-size: 11px; margin-bottom: 8px; color: #991b1b;">${consejos['perro']}</div>`);
+
+
           data.forEach(item => {
             const el = document.createElement('div');
             el.className = 'bcg-item';
@@ -5325,6 +5339,40 @@
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loading-overlay">
       <div class="spinner"></div>
+    </div>
+
+    <!-- Modal: Confirmar Mermas Avanzado -->
+    <div id="modal-confirmar-mermas" class="modal">
+      <div class="modal-content" style="max-width: 800px;">
+        <span class="close"
+          onclick="document.getElementById('modal-confirmar-mermas').classList.remove('active')">&times;</span>
+        <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px;">⚠️ Confirmar Mermas/Pérdidas</h2>
+        <p style="color: #64748b; margin-bottom: 20px;">Se han detectado diferencias negativas en el inventario. Por
+          favor, especifica el motivo de cada pérdida para el control de costes.</p>
+
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8fafc; position: sticky; top: 0;">
+              <tr>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ingrediente</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Diferencia</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Motivo</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Notas</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-mermas-body">
+              <!-- Se llena dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-secondary"
+            onclick="document.getElementById('modal-confirmar-mermas').classList.remove('active')">Cancelar</button>
+          <button class="btn btn-primary" style="background: #ef4444;" onclick="window.confirmarMermasFinal()">Confirmar
+            Pérdidas</button>
+        </div>
+      </div>
     </div>
     <!-- Modal: Actualizar Inventario Masivo -->
     <div id="modal-inventario-masivo" class="modal">
