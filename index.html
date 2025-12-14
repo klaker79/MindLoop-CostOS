@@ -2393,85 +2393,137 @@
           </div>
         </div>
 
-        <!-- SIMULADOR FINANCIERO -->
+
+        <!-- SIMULADOR FINANCIERO PREMIUM -->
         <div
-          style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 32px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+          style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 24px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); margin-bottom: 32px; border: 1px solid #e2e8f0; position: relative; overflow: hidden;">
+
+          <!-- Decoración Fondo -->
+          <div
+            style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, rgba(255,255,255,0) 70%); border-radius: 50%;">
+          </div>
+
+          <div
+            style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:40px; position: relative; z-index: 1;">
             <div>
-              <h3 style="font-size: 24px; color: #1f2937; margin-bottom: 8px;">🎛️ Simulador de Rentabilidad Real</h3>
-              <p style="color: #6b7280;">Ajusta tus costos fijos para descubrir tu punto de equilibrio real.</p>
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <span style="font-size: 28px; background: #EEF2FF; padding: 12px; border-radius: 16px;">🎛️</span>
+                <div>
+                  <h3 style="font-size: 24px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; margin: 0;">
+                    Simulador de Rentabilidad</h3>
+                  <p style="color: #64748b; margin: 4px 0 0 0; font-size: 14px;">Ajusta tus costos fijos para descubrir
+                    tu punto de equilibrio real.</p>
+                </div>
+              </div>
             </div>
-            <div style="text-align:right;">
-              <div style="font-size: 14px; color: #6b7280; margin-bottom:4px;">Punto de Equilibrio</div>
-              <div id="break-even-display" style="font-size: 28px; font-weight:800; color:#333;">0.00 €</div>
+
+            <div
+              style="text-align:right; background: #1e293b; padding: 16px 24px; border-radius: 16px; box-shadow: 0 10px 20px rgba(30, 41, 59, 0.15);">
+              <div
+                style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 4px;">
+                Punto de Equilibrio</div>
+              <div id="break-even-display" style="font-size: 32px; font-weight:800; color:#fff; letter-spacing: -1px;">
+                0.00 €</div>
+              <div style="font-size: 12px; color: #10b981;">Facturación necesaria</div>
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-            <!-- Controles -->
-            <div style="display:flex; flex-direction:column; gap:25px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px;">
+            <!-- Controles (Izquierda) -->
+            <div style="display:flex; flex-direction:column; gap:30px;">
+
+              <!-- Slider Alquiler -->
               <div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                  <label style="font-weight:600; color:#4b5563;">🏢 Alquiler Local</label>
-                  <span id="label-alquiler" style="font-weight:700; color:#c35a3f;">1500 €</span>
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items: flex-end;">
+                  <label style="font-weight:600; color:#1e293b; font-size: 15px;">🏢 Alquiler Local</label>
+                  <span id="label-alquiler"
+                    style="font-weight:800; color:#6366f1; background: #EEF2FF; padding: 4px 12px; border-radius: 8px; font-size: 14px;">1500
+                    €</span>
                 </div>
                 <input type="range" id="input-alquiler" min="0" max="10000" step="50" value="1500"
-                  style="width:100%; accent-color: #c35a3f;" oninput="window.actualizarSimulador()">
+                  style="width:100%; height: 8px; background: #e2e8f0; border-radius: 4px; appearance: none; cursor: pointer; accent-color: #6366f1;"
+                  oninput="window.actualizarSimulador()">
               </div>
 
+              <!-- Slider Personal -->
               <div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                  <label style="font-weight:600; color:#4b5563;">👨‍🍳 Personal (Nóminas)</label>
-                  <span id="label-personal" style="font-weight:700; color:#c35a3f;">4500 €</span>
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items: flex-end;">
+                  <label style="font-weight:600; color:#1e293b; font-size: 15px;">👨‍🍳 Personal (Nóminas)</label>
+                  <span id="label-personal"
+                    style="font-weight:800; color:#ec4899; background: #FDF2F8; padding: 4px 12px; border-radius: 8px; font-size: 14px;">4500
+                    €</span>
                 </div>
                 <input type="range" id="input-personal" min="0" max="20000" step="100" value="4500"
-                  style="width:100%; accent-color: #c35a3f;" oninput="window.actualizarSimulador()">
+                  style="width:100%; height: 8px; background: #e2e8f0; border-radius: 4px; appearance: none; cursor: pointer; accent-color: #ec4899;"
+                  oninput="window.actualizarSimulador()">
               </div>
 
+              <!-- Slider Suministros -->
               <div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                  <label style="font-weight:600; color:#4b5563;">💡 Suministros (Luz/Agua/Gas)</label>
-                  <span id="label-suministros" style="font-weight:700; color:#c35a3f;">800 €</span>
+                <div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items: flex-end;">
+                  <label style="font-weight:600; color:#1e293b; font-size: 15px;">💡 Suministros</label>
+                  <span id="label-suministros"
+                    style="font-weight:800; color:#f59e0b; background: #FFFBEB; padding: 4px 12px; border-radius: 8px; font-size: 14px;">800
+                    €</span>
                 </div>
                 <input type="range" id="input-suministros" min="0" max="5000" step="50" value="800"
-                  style="width:100%; accent-color: #c35a3f;" oninput="window.actualizarSimulador()">
+                  style="width:100%; height: 8px; background: #e2e8f0; border-radius: 4px; appearance: none; cursor: pointer; accent-color: #f59e0b;"
+                  oninput="window.actualizarSimulador()">
               </div>
             </div>
 
-            <!-- Visualización -->
-            <div
-              style="background: #f9fafb; border-radius:16px; padding:24px; display:flex; flex-direction:column; justify-content:center;">
-              <div style="margin-bottom:20px;">
-                <span
-                  style="display:block; font-size:13px; color:#6b7280; font-weight:600; text-transform:uppercase;">Margen
-                  Bruto (Ingresos - Comida)</span>
-                <span id="sim-margen-bruto" style="font-size:24px; font-weight:700; color:#10b981;">0.00 €</span>
-              </div>
+            <!-- Visualización (Derecha) -->
+            <div style="position: relative;">
+              <!-- Card Resultado -->
+              <div
+                style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #f1f5f9;">
 
-              <div style="margin-bottom:20px;">
-                <span
-                  style="display:block; font-size:13px; color:#6b7280; font-weight:600; text-transform:uppercase;">Costos
-                  Fijos Totales</span>
-                <span id="sim-costos-fijos" style="font-size:24px; font-weight:700; color:#ef4444;">0.00 €</span>
-              </div>
-
-              <div style="height:2px; background:#e5e7eb; margin:10px 0 20px 0;"></div>
-
-              <div>
-                <span
-                  style="display:block; font-size:13px; color:#6b7280; font-weight:600; text-transform:uppercase;">Resultado
-                  Neto Estimado</span>
-                <span id="sim-resultado-neto" style="font-size:32px; font-weight:800; color:#6366f1;">0.00 €</span>
-                <div id="sim-barra-progreso"
-                  style="height:8px; background:#e5e7eb; border-radius:4px; margin-top:10px; overflow:hidden;">
-                  <div id="sim-progreso-fill"
-                    style="height:100%; background:#10b981; width:0%; transition: width 0.5s ease;"></div>
+                <div style="margin-bottom: 24px;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Margen
+                      Bruto (Real)</span>
+                    <span id="sim-margen-bruto" style="font-size: 16px; font-weight: 700; color: #1e293b;">0.00 €</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Costos
+                      Fijos</span>
+                    <span id="sim-costos-fijos" style="font-size: 16px; font-weight: 700; color: #ef4444;">0.00 €</span>
+                  </div>
                 </div>
-                <p id="sim-analytics" style="font-size:13px; color:#6b7280; margin-top:8px;">Cargando análisis...</p>
+
+                <div style="height: 1px; background: #e2e8f0; margin-bottom: 24px;"></div>
+
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <div
+                    style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">
+                    Beneficio Neto Estimado</div>
+                  <div id="sim-resultado-neto"
+                    style="font-size: 48px; font-weight: 900; color: #6366f1; line-height: 1; letter-spacing: -2px;">
+                    0.00 €</div>
+                </div>
+
+                <!-- Barra Progreso Termómetro -->
+                <div
+                  style="position: relative; height: 12px; background: #f1f5f9; border-radius: 6px; overflow: hidden; margin-bottom: 16px;">
+                  <!-- Marcas de 0, 50, 100 -->
+                  <div
+                    style="position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(0,0,0,0.05);">
+                  </div>
+                  <div id="sim-progreso-fill"
+                    style="height: 100%; background: linear-gradient(90deg, #6366f1 0%, #ec4899 100%); width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);">
+                  </div>
+                </div>
+
+                <p id="sim-analytics"
+                  style="text-align: center; font-size: 14px; font-weight: 500; color: #64748b; margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <span>⏳</span> Calculando viabilidad...
+                </p>
+
               </div>
             </div>
           </div>
-        </div> <!-- Card Margen -->
+        </div>
+        <!-- Card Margen -->
         <div
           style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); border-radius: 20px; padding: 32px; box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25); position: relative; overflow: hidden;">
           <div style="position: absolute; top: -20px; right: -20px; font-size: 120px; opacity: 0.1;">📊</div>
@@ -3200,20 +3252,26 @@
         document.getElementById('label-personal').textContent = personal.toLocaleString('es-ES') + ' €';
         document.getElementById('label-suministros').textContent = suministros.toLocaleString('es-ES') + ' €';
 
+
         // Obtener Margen Bruto (Ingresos - Coste Recetas)
-        // Usamos el valor calculado previamente en renderizarBalance o un valor por defecto
+        // Usamos el valor calculado previamente en renderizarBalance
         const margenBrutoElem = document.getElementById('balance-ganancia');
         let margenBruto = 0;
 
         if (margenBrutoElem) {
-          // Intentar parsear el valor existente (e.g. "1.230,00 €" -> 1230.00)
-          const text = margenBrutoElem.textContent.replace('€', '').replace(/\./g, '').replace(',', '.').trim();
-          margenBruto = parseFloat(text);
+          // El valor en balance-ganancia viene de .toFixed(2) + '€' -> "2172.01€"
+          // OJO: Si se cambia el locale, esto podría variar. Asumimos formato standard JS (punto decimal)
+          // Si fuera locale string (con puntos de mil), habría que limpiar puntos y cambiar coma por punto.
+          // Para seguridad, limpiamos todo excepto dígitos, punto y menos.
+          const text = margenBrutoElem.textContent;
+          // Si contiene "€", lo quitamos.
+          // Si el formato es "2.172,01" (ES) vs "2172.01" (US/JS)
+          // renderizarBalance usa .toFixed(2) -> "2172.01" (US format)
+          const cleanText = text.replace('€', '').trim();
+          margenBruto = parseFloat(cleanText);
+
           if (isNaN(margenBruto)) margenBruto = 0;
         }
-
-        // Si el margen bruto es 0 (no cargó aún), intentamos leer del objeto global si existiera, o esperamos
-        // Para este ejemplo, asumimos que renderizarBalance() ya corrió.
 
         const costosFijos = alquiler + personal + suministros;
         const neto = margenBruto - costosFijos;
@@ -3225,15 +3283,31 @@
         const netoElem = document.getElementById('sim-resultado-neto');
         netoElem.textContent = neto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
 
-        // Color Dinámico
+        // Color Dinámico y Barra Progreso
+        const progressBar = document.getElementById('sim-progreso-fill');
+        const analytics = document.getElementById('sim-analytics');
+
+        let porcentajeCubierto = 0;
+        if (costosFijos > 0) {
+          porcentajeCubierto = (margenBruto / costosFijos) * 100;
+        } else {
+          porcentajeCubierto = 100; // Si no hay costos, cubrimos "todo"
+        }
+
+        // Limitamos visualmente al 100% para la barra interna (aunque conceptualmente puede pasar)
+        const widthPct = Math.min(Math.max(porcentajeCubierto, 0), 100);
+        progressBar.style.width = widthPct + '%';
+
         if (neto >= 0) {
           netoElem.style.color = '#10b981'; // Verde
-          document.getElementById('sim-analytics').textContent = '✅ ¡Estás en zona de beneficios!';
-          document.getElementById('sim-analytics').style.color = '#10b981';
+          progressBar.style.background = 'linear-gradient(90deg, #10b981 0%, #34d399 100%)';
+          analytics.innerHTML = '<span>🚀</span> ¡Beneficio! Cubres el <strong>' + porcentajeCubierto.toFixed(0) + '%</strong> de tus costes fijos.';
+          analytics.style.color = '#059669';
         } else {
           netoElem.style.color = '#ef4444'; // Rojo
-          document.getElementById('sim-analytics').textContent = '⚠️ Necesitas aumentar ingresos o reducir costos.';
-          document.getElementById('sim-analytics').style.color = '#ef4444';
+          progressBar.style.background = 'linear-gradient(90deg, #ef4444 0%, #f87171 100%)';
+          analytics.innerHTML = '<span>🚑</span> Pérdidas. Solo cubres el <strong>' + porcentajeCubierto.toFixed(0) + '%</strong> de tus costos fijos.';
+          analytics.style.color = '#dc2626';
         }
 
         // Break-Even Display
@@ -3242,7 +3316,8 @@
         const ingresosElem = document.getElementById('balance-ingresos');
         let ingresos = 0;
         if (ingresosElem) {
-          const textIng = ingresosElem.textContent.replace('€', '').replace(/\./g, '').replace(',', '.').trim();
+          // Mismo fix de parsing
+          const textIng = ingresosElem.textContent.replace('€', '').trim();
           ingresos = parseFloat(textIng) || 0;
         }
 
