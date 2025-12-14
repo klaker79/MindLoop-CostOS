@@ -2823,6 +2823,26 @@
       let recetaProduciendo = null;
       let chartRentabilidad = null;
       let chartIngredientes = null;
+      // ========== CAMBIAR PESTAÑAS ==========
+window.cambiarTab = function(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('tab-btn-' + tab).classList.add('active');
+  
+  switch(tab) {
+    case 'ingredientes': renderizarIngredientes(); break;
+    case 'recetas': renderizarRecetas(); break;
+    case 'proveedores': renderizarProveedores(); break;
+    case 'pedidos': renderizarPedidos(); break;
+    case 'analisis': renderChartRentabilidad(window.recetas); break;
+    case 'inventario': cargarInventario(); break;
+    case 'ventas': cargarVentas(); break;
+    case 'balance': cargarBalance(); break;
+    case 'compras': cargarCompras(); break;
+  }
+};
 
       // === UTILIDADES ===
       window.showToast = function showToast(message, type = 'success') {
@@ -6719,6 +6739,332 @@ window.descargarPedidoPDF = async function() {
 
     // ========== IMPORTAR RECETAS ==========
     let datosImportarRecetas = [];
+    // ========== FUNCIONES: COMPRAS DIARIAS ==========
+
+let comprasFiltradas = [];
+
+window.cargarCompras = async function() {
+  try {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    const response = await fetch(`${API_URL}/pedidos?restaurante_id=${user.restaurante_id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) throw new Error('Error cargando compras');
+    
+    const data = await response.json();
+    comprasFiltradas = data;
+    renderizarCompras();
+    actualizarResumenCompras();
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Error cargando compras', 'error');
+  }
+};
+
+window.renderizarCompras = function() {
+  const tbody = document.getElementById('tabla-compras-body');
+  
+  if (comprasFiltradas.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
+          No hay compras registradas
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  let html = '';
+  
+  comprasFiltradas.forEach(compra => {
+    const prov = proveedores.find(p => p.id === compra.proveedor_id);
+    const numItems = compra.ingredientes ? compra.ingredientes.length : 0;
+    
+    // Calcular total
+    let total = 0;
+    if (compra.ingredientes) {
+      compra.ingredientes.forEach(item => {
+        total += (item.cantidad || 0) * (item.precioUnitario || 0);
+      });
+    }
+    
+    const estadoBadge = compra.estado === 'recibido' 
+      ? '<span class="badge badge-success">Recibido</span>'
+      : '<span class="badge badge-warning">Pendiente</span>';
+    
+    html += `
+      <tr>
+        <td>${new Date(compra.fecha).toLocaleDateString('es-ES')}</td>
+        <td>${prov ? prov.nombre : 'Desconocido'}</td>
+        <td>${numItems} items</td>
+        <td style="font-weight: bold; color: #059669;">${total.toFixed(2)} €</td>
+        <td>${estadoBadge}</td>
+        <td class="actions">
+          <button class="icon-btn view" onclick="window.verDetalleCompra(${compra.id})" title="Ver detalles">
+            👁
+          </button>
+          <button class="icon-btn delete" onclick="window.eliminarCompra(${compra.id})" title="Eliminar">
+            🗑
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  
+  tbody.innerHTML = html;
+};
+
+window.actualizarResumenCompras = function() {
+  let totalCompras = 0;
+  const proveedoresSet = new Set();
+  
+  comprasFiltradas.forEach(compra => {
+    if (compra.ingredientes) {
+      compra.ingredientes.forEach(item => {
+        totalCompras += (item.cantidad || 0) * (item.precioUnitario || 0);
+      });
+    }
+    if (compra.proveedor_id) {
+      proveedoresSet.add(compra.proveedor_id);
+    }
+  });
+  
+  document.getElementById('compras-total').textContent = totalCompras.toFixed(2) + ' €';
+  document.getElementById('compras-count').textContent = comprasFiltradas.length;
+  document.getElementById('compras-proveedores').textContent = proveedoresSet.size;
+};
+
+window.filtrarCompras = function() {
+  const fechaDesde = document.getElementById('compras-fecha-desde').value;
+  const fechaHasta = document.getElementById('compras-fecha-hasta').value;
+  
+  comprasFiltradas = pedidos.filter(p => {
+    const fecha = new Date(p.fecha);
+    let cumple = true;
+    
+    if (fechaDesde) {
+      cumple = cumple && fecha >= new Date(fechaDesde);
+    }
+    if (fechaHasta) {
+      cumple = cumple && fecha <= new Date(fechaHasta);
+    }
+    
+    return cumple;
+  });
+  
+  renderizarCompras();
+  actualizarResumenCompras();
+};
+
+window.limpiarFiltrosCompras = function() {
+  document.getElementById('compras-fecha-desde').value = '';
+  document.getElementById('compras-fecha-hasta').value = '';
+  comprasFiltradas = pedidos;
+  renderizarCompras();
+  actualizarResumenCompras();
+};
+
+window.mostrarModalSubirCompra = function() {
+  document.getElementById('modal-subir-compra').classList.add('active');
+};
+
+window.cerrarModalSubirCompra = function() {
+  document.getElementById('modal-subir-compra').classList.remove('active');
+  document.getElementById('compra-archivo').value = '';
+};
+
+window.procesarCompraExcel = async function() {
+  const fileInput = document.getElementById('compra-archivo');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    showToast('Selecciona un archivo', 'error');
+    return;
+  }
+  
+  showLoading();
+  
+  try {
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(firstSheet);
+    
+    if (rows.length === 0) {
+      throw new Error('El archivo está vacío');
+    }
+    
+    // Agrupar por fecha y proveedor
+    const agrupado = {};
+    
+    for (const row of rows) {
+      const fecha = row.Fecha || row.fecha;
+      const proveedorNombre = row.Proveedor || row.proveedor;
+      const ingredienteNombre = row.Ingrediente || row.ingrediente;
+      const cantidad = parseFloat(row.Cantidad || row.cantidad || 0);
+      const precioUnit = parseFloat(row['Precio Unit'] || row.precio_unitario || 0);
+      
+      // Buscar proveedor
+      const prov = proveedores.find(p => 
+        p.nombre.toLowerCase() === proveedorNombre.toLowerCase()
+      );
+      
+      if (!prov) {
+        showToast(`Proveedor no encontrado: ${proveedorNombre}`, 'error');
+        continue;
+      }
+      
+      // Buscar ingrediente
+      const ing = ingredientes.find(i => 
+        i.nombre.toLowerCase() === ingredienteNombre.toLowerCase()
+      );
+      
+      if (!ing) {
+        showToast(`Ingrediente no encontrado: ${ingredienteNombre}`, 'error');
+        continue;
+      }
+      
+      const key = `${fecha}_${prov.id}`;
+      
+      if (!agrupado[key]) {
+        agrupado[key] = {
+          fecha: fecha,
+          proveedor_id: prov.id,
+          ingredientes: []
+        };
+      }
+      
+      agrupado[key].ingredientes.push({
+        ingredienteId: ing.id,
+        cantidad: cantidad,
+        precioUnitario: precioUnit,
+        subtotal: cantidad * precioUnit
+      });
+    }
+    
+    // Guardar cada pedido
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    for (const pedido of Object.values(agrupado)) {
+      const response = await fetch(`${API_URL}/pedidos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...pedido,
+          restaurante_id: user.restaurante_id,
+          estado: 'pendiente'
+        })
+      });
+      
+      if (!response.ok) throw new Error('Error guardando pedido');
+    }
+    
+    hideLoading();
+    cerrarModalSubirCompra();
+    showToast('Compras importadas correctamente', 'success');
+    await cargarPedidos();
+    await cargarCompras();
+    
+  } catch (error) {
+    hideLoading();
+    console.error('Error:', error);
+    showToast('Error procesando Excel: ' + error.message, 'error');
+  }
+};
+
+window.verDetalleCompra = function(id) {
+  const compra = pedidos.find(p => p.id === id);
+  if (!compra) return;
+  
+  const prov = proveedores.find(p => p.id === compra.proveedor_id);
+  
+  let html = `
+    <div style="margin-bottom: 20px;">
+      <strong>Proveedor:</strong> ${prov ? prov.nombre : 'Desconocido'}<br>
+      <strong>Fecha:</strong> ${new Date(compra.fecha).toLocaleDateString('es-ES')}<br>
+      <strong>Estado:</strong> ${compra.estado}
+    </div>
+    
+    <h4>Ingredientes del pedido:</h4>
+    <table style="width: 100%; margin-top: 10px;">
+      <thead>
+        <tr>
+          <th>Ingrediente</th>
+          <th>Cantidad</th>
+          <th>Precio Unit.</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  
+  let total = 0;
+  
+  if (compra.ingredientes) {
+    compra.ingredientes.forEach(item => {
+      const ing = ingredientes.find(i => i.id === item.ingredienteId);
+      const subtotal = item.cantidad * item.precioUnitario;
+      total += subtotal;
+      
+      html += `
+        <tr>
+          <td>${ing ? ing.nombre : 'Desconocido'}</td>
+          <td>${item.cantidad} ${ing ? ing.unidad : ''}</td>
+          <td>${item.precioUnitario.toFixed(2)} €</td>
+          <td>${subtotal.toFixed(2)} €</td>
+        </tr>
+      `;
+    });
+  }
+  
+  html += `
+      </tbody>
+    </table>
+    <div style="text-align: right; margin-top: 20px; font-size: 18px; font-weight: bold;">
+      Total: ${total.toFixed(2)} €
+    </div>
+  `;
+  
+  document.getElementById('modal-ver-compra-contenido').innerHTML = html;
+  document.getElementById('modal-ver-compra').classList.add('active');
+};
+
+window.cerrarModalVerCompra = function() {
+  document.getElementById('modal-ver-compra').classList.remove('active');
+};
+
+window.eliminarCompra = async function(id) {
+  if (!confirm('¿Eliminar esta compra?')) return;
+  
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/pedidos/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) throw new Error('Error eliminando');
+    
+    showToast('Compra eliminada', 'success');
+    await cargarPedidos();
+    await cargarCompras();
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('Error eliminando compra', 'error');
+  }
+};
 
     window.mostrarModalImportarRecetas = function () {
       document.getElementById('modal-importar-recetas').classList.add('active');
