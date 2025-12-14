@@ -5140,8 +5140,29 @@
               html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
               html += `<td><strong>${ing.nombre}</strong></td>`;
               html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
-              html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" class="input-stock-real" data-id="${ing.id}" data-stock-virtual="${ing.stock_virtual || 0}" style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"></td>`;
-              html += `<td style="color:${diferencia > 0 ? '#10b981' : diferencia < 0 ? '#ef4444' : '#666'};">${diferencia !== 0 ? diferencia.toFixed(2) : '-'}</td>`;
+
+              // Input con evento ONINPUT para cálculo dinámico
+              html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
+                        class="input-stock-real" 
+                        data-id="${ing.id}" 
+                        data-stock-virtual="${ing.stock_virtual || 0}" 
+                        oninput="window.updateDifferenceCell(this)"
+                        style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"></td>`;
+
+              // Celda de Diferencia con ID único para actualizar
+              let diffDisplay = '-';
+              let diffColor = '#666';
+
+              // Si viene calculado de backend (porque había stock_real guardado)
+              if (ing.diferencia !== null && ing.diferencia !== undefined) {
+                const d = parseFloat(ing.diferencia);
+                diffDisplay = d.toFixed(2);
+                if (d < 0) diffColor = '#ef4444'; // Negativo (Falta) -> Rojo
+                else if (d > 0) diffColor = '#10b981'; // Positivo (Sobra) -> Verde
+              }
+
+              html += `<td id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
+
               html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
               const valorStockReal = (parseFloat(stockReal) || 0) * precioMedio;
               html += `<td><strong>${valorStockReal.toFixed(2)}€</strong></td>`;
@@ -5154,6 +5175,27 @@
             console.error('Error:', error);
             document.getElementById('tabla-inventario').innerHTML = '<p style="color:#ef4444;">Error cargando inventario</p>';
           }
+        };
+
+        window.updateDifferenceCell = function (input) {
+          const id = input.dataset.id;
+          const virtual = parseFloat(input.dataset.stockVirtual) || 0;
+          const val = input.value;
+          const cell = document.getElementById(`diff-cell-${id}`);
+
+          if (val === '' || val === null) {
+            cell.textContent = '-';
+            cell.style.color = '#666';
+            return;
+          }
+
+          const real = parseFloat(val);
+          const diff = real - virtual; // Real - Teórico
+
+          cell.textContent = diff.toFixed(2);
+          if (diff < 0) cell.style.color = '#ef4444'; // Rojo (Falta)
+          else if (diff > 0) cell.style.color = '#10b981'; // Verde (Sobra)
+          else cell.style.color = '#666'; // Cero
         };
 
         // Función global para actualizar stock real
