@@ -5189,6 +5189,11 @@
               Real</strong>
           </p>
 
+          <div style="text-align: right; margin-bottom: 10px;">
+            <button class="btn btn-secondary btn-small" onclick="window.descargarPlantillaStock()">📥 Descargar
+              Plantilla</button>
+          </div>
+
           <div
             style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
             <input type="file" id="file-inventario-masivo" accept=".xlsx,.csv" style="display: none;"
@@ -5378,7 +5383,10 @@
         return {
           ...item,
           ingredienteId: ing ? ing.id : null,
-          stockActual: ing ? ing.stock_real : null,
+          // Guardamos el Virtual para comparar pérdidas
+          stockVirtual: ing ? (parseFloat(ing.stock_actual || ing.stock_virtual || 0)) : 0,
+          // stockActual aqui se refiere al que mostramos como ref en la tabla de preview (sistema)
+          stockActual: ing ? (parseFloat(ing.stock_actual || ing.stock_virtual || 0)) : null,
           valido: !!ing && !isNaN(item.stockReal) && item.stockReal >= 0,
           error: !ing ? 'Ingrediente no encontrado' :
             isNaN(item.stockReal) ? 'Stock inválido' :
@@ -5386,6 +5394,27 @@
         };
       });
     }
+
+    window.descargarPlantillaStock = function () {
+      if (!window.ingredientes || window.ingredientes.length === 0) {
+        showToast('No hay ingredientes para descargar', 'warning');
+        return;
+      }
+
+      const datos = window.ingredientes.map(ing => ({
+        'Ingrediente': ing.nombre,
+        'Stock Real': '' // Dejar vacío para que lo rellenen, o poner ing.stock_real si quisieran editar
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(datos);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Plantilla Stock");
+
+      // Ajustar ancho
+      ws['!cols'] = [{ wch: 30 }, { wch: 15 }];
+
+      XLSX.writeFile(wb, `Plantilla_Inventario_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
 
     function mostrarPreviewInventario(datos) {
       document.getElementById('loading-overlay').classList.remove('active');
@@ -5465,22 +5494,41 @@
         return;
       }
 
-      if (!confirm(`¿Confirmar actualización de ${datosValidos.length} ingredientes?`)) {
+      // Preparar datos para consolidación
+      const adjustments = datosValidos.map(d => ({
+        id: d.ingredienteId,
+        stock_real: d.stockReal
+      }));
+
+      const mermas = [];
+      datosValidos.forEach(d => {
+        if (d.stockReal < d.stockVirtual) {
+          mermas.push({
+            nombre: d.ingrediente,
+            diferencia: (d.stockVirtual - d.stockReal).toFixed(2)
+          });
+        }
+      });
+
+      let mensaje = `¿Confirmar actualización de ${datosValidos.length} ingredientes?`;
+      if (mermas.length > 0) {
+        mensaje += `\n\n⚠️ SE DETECTARON ${mermas.length} MERMAS (Stock Real < Sistema).\nSe registrarán como pérdidas.`;
+      } else {
+        mensaje += `\n\nEl stock del sistema se ajustará al stock real importado.`;
+      }
+
+      if (!confirm(mensaje)) {
         return;
       }
 
       document.getElementById('loading-overlay').classList.add('active');
 
       try {
-        const updates = datosValidos.map(d => ({
-          id: d.ingredienteId,
-          stock_real: d.stockReal
-        }));
-
-        await window.api.bulkUpdateStockReal(updates);
+        // Usar consolidación
+        await window.api.consolidateStock(adjustments);
 
         document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(`✓ ${datosValidos.length} ingredientes actualizados correctamente`, 'success');
+        window.showToast(`✓ ${datosValidos.length} ingredientes actualizados y consolidados`, 'success');
 
         document.getElementById('modal-inventario-masivo').classList.remove('active');
         await window.renderizarInventario();
