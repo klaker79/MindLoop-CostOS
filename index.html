@@ -6136,239 +6136,147 @@
       }
     };
 
-    // ========== FUNCIONALIDAD: ACTUALIZACIÓN DE STOCK REAL ==========
+<!-- ========== HTML: MODALES Y BOTÓN PARA ACTUALIZACIÓN DE STOCK REAL ========== -->
 
-    window.mostrarModalStockReal = function () {
-      const modal = document.getElementById('modal-stock-real');
-      const listaIngredientes = document.getElementById('lista-stock-real');
+    < !--BOTÓN: Agregar este botón en la sección de inventario(tab - inventario)-- >
+    < !--Colocar debajo del título de la pestaña inventario o al lado de búsqueda-- >
+    <button class="btn btn-primary" onclick="mostrarModalStockReal()" style="margin-bottom: 20px;">
+      📝 Actualizar Stock Real
+    </button>
 
-      listaIngredientes.innerHTML = '';
-      ingredientes.forEach(ing => {
-        const div = document.createElement('div');
-        div.className = 'stock-real-item';
-        div.innerHTML = `
-          <div style="flex: 2; font-weight: 600;">${ing.nombre}</div>
-          <div style="flex: 1; text-align: center;">
-            <span style="color: #666;">Ficticio: ${ing.stock_actual} ${ing.unidad}</span>
-          </div>
-          <div style="flex: 1;">
-            <input type="number" 
-                   step="0.01" 
-                   placeholder="Stock real"
-                   data-ing-id="${ing.id}"
-                   class="input-stock-real"
-                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-          </div>
-        `;
-        listaIngredientes.appendChild(div);
-      });
+    <!--MODAL 1: Introducir Stock Real(Paso 1)-- >
+    <div id="modal-stock-real" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <h3>📝 Actualizar Stock Real (Paso 1/2)</h3>
+        <p style="margin-bottom: 20px; color: #666;">
+          Introduce el recuento físico (real). El sistema calculará las diferencias.
+        </p>
 
-      modal.classList.add('active');
-    };
+        <div
+          style="max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; background: #f9f9f9;">
+          <div id="lista-stock-real"></div>
+        </div>
 
-    window.cerrarModalStockReal = function () {
-      document.getElementById('modal-stock-real').classList.remove('active');
-    };
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button class="btn btn-secondary" onclick="cerrarModalStockReal()">Cancelar</button>
+          <button class="btn btn-success" onclick="procesarStockReal()">Siguiente: Desglosar Ajustes →</button>
+        </div>
+      </div>
+    </div>
 
-    window.procesarStockReal = async function () {
-      const inputs = document.querySelectorAll('.input-stock-real-table');
-      const diferencias = [];
+    <!--MODAL 2: Desglose de Ajustes(Paso 2)-- >
+    <div id="modal-ajustes-stock" class="modal">
+      <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+        <h3>🔍 Desglosar Diferencias de Inventario (Paso 2/2)</h3>
+        <p style="margin-bottom: 20px; color: #666;">
+          El stock real no coincide con el sistema. Desglosa la diferencia en mermas, invitaciones o errores.
+          <br><small>Debes justificar el total de la diferencia para continuar.</small>
+        </p>
 
-      inputs.forEach(input => {
-        const valorReal = parseFloat(input.value);
-        if (!isNaN(valorReal) && valorReal >= 0) {
-          const ingId = parseInt(input.dataset.ingId);
-          const ingrediente = ingredientes.find(i => i.id === ingId);
+        <!-- Contenedor de items con diferencia -->
+        <div id="contenedor-ajustes-items" style="max-height: 500px; overflow-y: auto; padding-right: 5px;"></div>
 
-          if (ingrediente) {
-            const stockActual = parseFloat(ingrediente.stock_actual);
-            const diferencia = valorReal - stockActual;
-
-            // Solo si hay diferencia y el valor no es el placeholder (ignorar vacíos si se desea, 
-            // pero aquí input.value tiene valorReal). 
-            // IMPORTANTE: Si es igual, no hacemos nada.
-
-            if (Math.abs(diferencia) > 0.001) { // Tolerancia a float
-              diferencias.push({
-                ingrediente,
-                stockActual: stockActual,
-                stockReal: valorReal,
-                diferencia
-              });
-            }
-          }
-        }
-      });
-
-      if (diferencias.length === 0) {
-        const msg = 'No hay diferencias para procesar';
-        if (window.showToast) window.showToast(msg, 'info');
-        else alert(msg);
-        cerrarModalStockReal();
-        return;
-      }
-
-      const negativas = diferencias.filter(d => d.diferencia < 0);
-      const positivas = diferencias.filter(d => d.diferencia > 0);
-
-      // 1. AJUSTE AUTOMÁTICO DE POSITIVOS (Sobrantes)
-      // "Si el stock real es mayor que el ficticio, que se ajusten"
-      if (positivas.length > 0) {
-        await ajustarStockPositivo(positivas);
-      }
-
-      // 2. GESTIÓN DE NEGATIVOS (Faltantes)
-      // "Si el stock real es menor... pregunte si va a pérdidas"
-      if (negativas.length > 0) {
-        mostrarModalPerdidasStockReal(negativas);
-      } else {
-        // Si no hay negativos, cerramos todo y notificamos
-        cerrarModalStockReal();
-
-        const msg = `Stock actualizado correctamente. (${positivas.length} ajustes automáticos)`;
-        if (window.showToast) window.showToast(msg, 'success');
-        else alert(msg);
-
-        if (window.renderizarInventario) window.renderizarInventario();
-      }
-    };
-
-    function mostrarModalPerdidasStockReal(negativas) {
-      const modal = document.getElementById('modal-perdidas-stock');
-      const lista = document.getElementById('lista-perdidas-stock');
-
-      lista.innerHTML = '';
-
-      negativas.forEach(dif => {
-        const div = document.createElement('div');
-        div.className = 'perdida-item';
-        div.innerHTML = `
-          <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-              <div>
-                <strong style="font-size: 16px; color: #7F1D1D;">${dif.ingrediente.nombre}</strong><br>
-                <div style="color: #666; font-size: 14px; margin-top: 5px;">
-                  Ficticio: <strong>${dif.stockActual.toFixed(2)}</strong> → Real: <strong>${dif.stockReal.toFixed(2)}</strong> ${dif.ingrediente.unidad}
-                </div>
-              </div>
-              <div style="text-align: right;">
-                <span style="color: #DC2626; font-weight: 800; font-size: 16px;">
-                  ${dif.diferencia.toFixed(2)} ${dif.ingrediente.unidad}
-                </span>
-              </div>
+        <div
+          style="background: #f0fdf4; border: 1px solid #10b981; padding: 15px; border-radius: 8px; margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>Resumen de Ajustes:</strong>
+              <div id="resumen-ajustes-texto" style="font-size: 14px; color: #666; margin-top: 4px;">Calculando...</div>
             </div>
-            
-            <div style="background: white; padding: 10px; border-radius: 6px; border: 1px solid #FCA5A5; display: flex; flex-direction: column; gap: 10px;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" 
-                       class="check-perdida" 
-                       id="chk-perdida-${dif.ingrediente.id}"
-                       data-ing-id="${dif.ingrediente.id}"
-                       style="width: 18px; height: 18px; cursor: pointer;"
-                       onchange="document.getElementById('motivo-perdida-${dif.ingrediente.id}').disabled = !this.checked">
-                <label for="chk-perdida-${dif.ingrediente.id}" style="cursor: pointer; font-weight: 500; color: #7F1D1D; font-size: 14px;">
-                  Registrar como PÉRDIDA
-                </label>
-              </div>
-              
-              <select id="motivo-perdida-${dif.ingrediente.id}" class="select-motivo-perdida" disabled
-                      style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; margin-bottom: 5px;">
-                <option value="">Selecciona el motivo...</option>
-                <option value="caducidad">Caducidad (Se tiró)</option>
-                <option value="merma">Merma (Producción/Rotura)</option>
-                <option value="error">Error (Cocina/Pedido)</option>
-                <option value="invitacion">Invitación (Cliente)</option>
-                <option value="comida_personal">Comida Personal</option>
-                <option value="otros">Otros</option>
-              </select>
-              <input type="text" id="nota-perdida-${dif.ingrediente.id}" disabled
-                     placeholder="Detalles opcionales..."
-                     style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+            <div style="text-align: right;">
+              <div id="estado-validacion-global" style="font-weight: bold; font-size: 14px;"></div>
             </div>
           </div>
-        `;
-        lista.appendChild(div);
-      });
+        </div>
 
-      // Habilitar nota si se marca check
-      lista.querySelectorAll('.check-perdida').forEach(chk => {
-        chk.addEventListener('change', (e) => {
-          const id = e.target.dataset.ingId;
-          document.getElementById(`motivo-perdida-${id}`).disabled = !e.target.checked;
-          document.getElementById(`nota-perdida-${id}`).disabled = !e.target.checked;
-        });
-      });
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button class="btn btn-secondary" onclick="cerrarModalAjustes()">Atrás</button>
+          <button id="btn-confirmar-ajustes" class="btn btn-success" disabled onclick="confirmarAjustesFinal()">
+            ✅ Confirmar y Actualizar Stock
+          </button>
+        </div>
+      </div>
+    </div>
 
-      modal.dataset.negativas = JSON.stringify(negativas);
-      modal.classList.add('active');
-    }
-
-    window.cerrarModalPerdidas = function () {
-      document.getElementById('modal-perdidas-stock').classList.remove('active');
-    };
-
-    window.confirmarPerdidas = async function () {
-      const modal = document.getElementById('modal-perdidas-stock');
-      const checkboxes = document.querySelectorAll('.check-perdida');
-      const negativas = JSON.parse(modal.dataset.negativas || '[]');
-
-      let perdidasRegistradas = 0;
-
-      for (const dif of negativas) {
-        const checkbox = Array.from(checkboxes).find(ch => parseInt(ch.dataset.ingId) === dif.ingrediente.id);
-        const esPerdida = checkbox && checkbox.checked;
-        const motivoSelect = document.getElementById(`motivo-perdida-${dif.ingrediente.id}`);
-        const motivo = motivoSelect ? motivoSelect.value : '';
-
-        // Siempre actualizamos stock al real
-        if (window.api && window.api.updateIngredient) {
-          const ingActualizado = {
-            ...dif.ingrediente,
-            stock_actual: dif.stockReal,
-            stock_real: dif.stockReal,
-            ultima_actualizacion_stock: new Date().toISOString()
-          };
-          await window.api.updateIngredient(ingActualizado);
-
-          // Actualizar local
-          const localIng = window.ingredientes.find(i => i.id === dif.ingrediente.id);
-          if (localIng) {
-            localIng.stock_actual = dif.stockReal;
-            localIng.stock_real = dif.stockReal;
-          }
-        }
-
-        if (esPerdida) {
-          // Validar que haya motivo
-          const motivoTexto = motivo || 'Sin especificar';
-          const cantidad = Math.abs(dif.diferencia);
-          const nota = document.getElementById(`nota-perdida-${dif.ingrediente.id}`).value || '';
-
-          if (window.api && window.api.createLoss) {
-            await window.api.createLoss({
-              ingrediente_id: dif.ingrediente.id,
-              ingrediente_nombre: dif.ingrediente.nombre,
-              cantidad: cantidad,
-              unidad: dif.ingrediente.unidad,
-              motivo: motivo,
-              nota: nota,
-              coste_estimado: (cantidad * dif.ingrediente.precio)
-            });
-          }
-
-          perdidasRegistradas++;
-        }
+    <!--TEMPLATES Y ESTILOS-- >
+      <style>
+        .stock-real-item {
+          display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px;
+        background: white;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        border: 1px solid #e0e0e0;
       }
 
-      cerrarModalPerdidas();
-      cerrarModalStockReal();
+        .item-ajuste-container {
+          background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
 
-      const msg = `Stock actualizado. (${perdidasRegistradas} mermas registradas)`;
-      if (window.showToast) window.showToast(msg, perdidasRegistradas > 0 ? 'warning' : 'success');
-      else alert(msg);
+        .item-ajuste-header {
+          background: #f8fafc;
+        padding: 15px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-      if (window.renderizarInventario) window.renderizarInventario();
-    };
+        .fila-ajuste {
+          display: grid;
+        grid-template-columns: 1fr 1fr 2fr 40px;
+        gap: 10px;
+        padding: 10px 15px;
+        border-bottom: 1px solid #f1f5f9;
+        align-items: center;
+        background: #fff;
+      }
+
+        .fila-ajuste:last-child {
+          border - bottom: none;
+      }
+
+        .btn-add-line {
+          background: #eff6ff;
+        color: #3b82f6;
+        border: 1px dashed #3b82f6;
+        width: 100%;
+        padding: 8px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.2s;
+      }
+
+        .btn-add-line:hover {
+          background: #dbeafe;
+      }
+
+        .status-badge {
+          padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+        .status-ok {
+          background: #dcfce7;
+        color: #166534;
+      }
+
+        .status-pending {
+          background: #fee2e2;
+        color: #991b1b;
+      }
+      </style>
 
     // ========== HISTORIAL DE MERMAS ==========
     window.mostrarHistorialPerdidas = async function () {
@@ -6456,4 +6364,534 @@
   </script>
 </body>
 
+<!-- ========== HTML: MODALES Y BOTÓN PARA ACTUALIZACIÓN DE STOCK REAL ========== -->
+
+<!-- BOTÓN: Agregar este botón en la sección de inventario (tab-inventario) -->
+<!-- Colocar debajo del título de la pestaña inventario o al lado de búsqueda -->
+<button class="btn btn-primary" onclick="mostrarModalStockReal()" style="margin-bottom: 20px;">
+  📝 Actualizar Stock Real
+</button>
+
+<!-- MODAL 1: Introducir Stock Real (Paso 1) -->
+<div id="modal-stock-real" class="modal">
+  <div class="modal-content" style="max-width: 900px;">
+    <h3>📝 Actualizar Stock Real (Paso 1/2)</h3>
+    <p style="margin-bottom: 20px; color: #666;">
+      Introduce el recuento físico (real). El sistema calculará las diferencias.
+    </p>
+
+    <div
+      style="max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; background: #f9f9f9;">
+      <div id="lista-stock-real"></div>
+    </div>
+
+    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+      <button class="btn btn-secondary" onclick="cerrarModalStockReal()">Cancelar</button>
+      <button class="btn btn-success" onclick="procesarStockReal()">Siguiente: Desglosar Ajustes →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2: Desglose de Ajustes (Paso 2) -->
+<div id="modal-ajustes-stock" class="modal">
+  <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+    <h3>🔍 Desglosar Diferencias de Inventario (Paso 2/2)</h3>
+    <p style="margin-bottom: 20px; color: #666;">
+      El stock real no coincide con el sistema. Desglosa la diferencia en mermas, invitaciones o errores.
+      <br><small>Debes justificar el total de la diferencia para continuar.</small>
+    </p>
+
+    <!-- Contenedor de items con diferencia -->
+    <div id="contenedor-ajustes-items" style="max-height: 500px; overflow-y: auto; padding-right: 5px;"></div>
+
+    <div style="background: #f0fdf4; border: 1px solid #10b981; padding: 15px; border-radius: 8px; margin-top: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong>Resumen de Ajustes:</strong>
+          <div id="resumen-ajustes-texto" style="font-size: 14px; color: #666; margin-top: 4px;">Calculando...</div>
+        </div>
+        <div style="text-align: right;">
+          <div id="estado-validacion-global" style="font-weight: bold; font-size: 14px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+      <button class="btn btn-secondary" onclick="cerrarModalAjustes()">Atrás</button>
+      <button id="btn-confirmar-ajustes" class="btn btn-success" disabled onclick="confirmarAjustesFinal()">
+        ✅ Confirmar y Actualizar Stock
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATES Y ESTILOS -->
+<style>
+  .stock-real-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .item-ajuste-container {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+
+  .item-ajuste-header {
+    background: #f8fafc;
+    padding: 15px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .fila-ajuste {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr 40px;
+    gap: 10px;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    align-items: center;
+    background: #fff;
+  }
+
+  .fila-ajuste:last-child {
+    border-bottom: none;
+  }
+
+  .btn-add-line {
+    background: #eff6ff;
+    color: #3b82f6;
+    border: 1px dashed #3b82f6;
+    width: 100%;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+
+  .btn-add-line:hover {
+    background: #dbeafe;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .status-ok {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-pending {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+</style>
+
+<script>
+  // ========== FUNCIONALIDAD: ACTUALIZACIÓN DE STOCK REAL (REFACTORIZADO) ==========
+
+  // Estado global para los ajustes pendientes
+  // Estructura: { [ingredienteId]: { diferenciaTotal: number, ajustes: [{ id, cantidad, motivo, detalle }] } }
+  let estadoAjustes = {};
+
+  // Modal 1: Introducir Stock Real (Igual que antes pero limpia el estado)
+  function mostrarModalStockReal() {
+    const modal = document.getElementById('modal-stock-real');
+    const listaIngredientes = document.getElementById('lista-stock-real');
+
+    // Resetear estado
+    estadoAjustes = {};
+
+    listaIngredientes.innerHTML = '';
+
+    // Ordenar alfabéticamente
+    const ingredientesOrdenados = [...window.ingredientes].sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    ingredientesOrdenados.forEach(ing => {
+      const div = document.createElement('div');
+      div.className = 'stock-real-item';
+      div.innerHTML = `
+      <div style="flex: 2; font-weight: 600;">${ing.nombre}</div>
+      <div style="flex: 1; text-align: center;">
+        <span style="color: #666; font-size: 12px;">Sistema:</span><br>
+        <strong>${parseFloat(ing.stock_actual).toFixed(2)}</strong> <small>${ing.unidad}</small>
+      </div>
+      <div style="flex: 1;">
+        <input type="number" 
+               step="0.01" 
+               placeholder="Real"
+               data-ing-id="${ing.id}"
+               class="input-stock-real"
+               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-weight: bold;">
+      </div>
+    `;
+      listaIngredientes.appendChild(div);
+    });
+
+    modal.classList.add('active');
+  }
+
+  function cerrarModalStockReal() {
+    document.getElementById('modal-stock-real').classList.remove('active');
+  }
+
+  // Paso 1 -> Paso 2: Calcular diferencias y preparar desglose
+  async function procesarStockReal() {
+    const inputs = document.querySelectorAll('.input-stock-real');
+    const itemsConDiferencia = [];
+
+    // Recopilar diferencias
+    inputs.forEach(input => {
+      const valorReal = parseFloat(input.value);
+      if (!isNaN(valorReal) && valorReal >= 0) {
+        const ingId = parseInt(input.dataset.ingId);
+        const ingrediente = window.ingredientes.find(i => i.id === ingId);
+
+        if (ingrediente) {
+          const stockActual = parseFloat(ingrediente.stock_actual || 0);
+          const diferencia = valorReal - stockActual;
+
+          // Tolerancia pequeña para float
+          if (Math.abs(diferencia) > 0.001) {
+            itemsConDiferencia.push({
+              ingrediente,
+              stockActual,
+              stockReal: valorReal,
+              diferencia
+            });
+          }
+        }
+      }
+    });
+
+    if (itemsConDiferencia.length === 0) {
+      if (window.showToast) window.showToast('No hay diferencias. Todo el stock cuadra.', 'success');
+      cerrarModalStockReal();
+      return;
+    }
+
+    // Inicializar estado de ajustes
+    itemsConDiferencia.forEach(item => {
+      estadoAjustes[item.ingrediente.id] = {
+        ingrediente: item.ingrediente,
+        stockReal: item.stockReal,
+        diferenciaTotal: item.diferencia,
+        ajustes: [] // Empezamos vacíos
+      };
+    });
+
+    cerrarModalStockReal();
+    mostrarModalAjustes();
+  }
+
+  // Modal 2: Desglose
+  function mostrarModalAjustes() {
+    const modal = document.getElementById('modal-ajustes-stock');
+    const contenedor = document.getElementById('contenedor-ajustes-items');
+
+    contenedor.innerHTML = '';
+
+    Object.values(estadoAjustes).forEach(item => {
+      const id = item.ingrediente.id;
+      const colorDif = item.diferenciaTotal < 0 ? '#ef4444' : '#10b981';
+      const signo = item.diferenciaTotal > 0 ? '+' : '';
+
+      const div = document.createElement('div');
+      div.className = 'item-ajuste-container';
+      div.id = `container-ajuste-${id}`;
+
+      div.innerHTML = `
+            <div class="item-ajuste-header">
+                <div>
+                    <strong style="font-size: 16px;">${item.ingrediente.nombre}</strong><br>
+                    <span style="font-size: 13px; color: #666;">
+                        Sistema: ${item.ingrediente.stock_actual} → Real: <strong>${item.stockReal}</strong>
+                    </span>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 12px; color: #666;">Diferencia Total</div>
+                    <div style="font-size: 18px; font-weight: 800; color: ${colorDif};">
+                        ${signo}${item.diferenciaTotal.toFixed(2)} ${item.ingrediente.unidad}
+                    </div>
+                </div>
+            </div>
+            
+            <div id="filas-ajustes-${id}" style="background: #f8fafc;">
+                <!-- Aquí van las filas dinámicas -->
+            </div>
+            
+            <div id="btn-add-${id}" class="btn-add-line" onclick="agregarFilaAjuste(${id})">
+                + Añadir línea de ajuste
+            </div>
+            
+            <div style="padding: 10px 15px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 13px;">
+                <span id="label-restante-${id}">Por justificar: <strong>${Math.abs(item.diferenciaTotal).toFixed(2)}</strong></span>
+                <span id="status-badge-${id}" class="status-badge status-pending">Pendiente</span>
+            </div>
+        `;
+
+      contenedor.appendChild(div);
+
+      // Añadir automáticamente una primera fila sugerida con el total restante
+      agregarFilaAjuste(id, Math.abs(item.diferenciaTotal));
+    });
+
+    actualizarValidacionGlobal();
+    modal.classList.add('active');
+  }
+
+  function cerrarModalAjustes() {
+    document.getElementById('modal-ajustes-stock').classList.remove('active');
+    // Volver al paso 1
+    mostrarModalStockReal();
+  }
+
+  function agregarFilaAjuste(ingId, cantidadSugerida = 0) {
+    const contenedorFilas = document.getElementById(`filas-ajustes-${ingId}`);
+    const estado = estadoAjustes[ingId];
+
+    // Calcular cuánto queda por asignar si no se pasa sugerencia
+    if (cantidadSugerida === 0) {
+      const asignado = estado.ajustes.reduce((sum, aj) => sum + aj.cantidad, 0);
+      cantidadSugerida = Math.abs(Math.abs(estado.diferenciaTotal) - asignado);
+      if (cantidadSugerida < 0) cantidadSugerida = 0;
+    }
+
+    const rowId = Date.now() + Math.random().toString(36).substr(2, 5);
+
+    // Determinar signo visual (solo informativo, el input es positivo y la lógica maneja el signo según diferencia total)
+
+    const div = document.createElement('div');
+    div.className = 'fila-ajuste';
+    div.id = `row-${rowId}`;
+
+    div.innerHTML = `
+        <input type="number" 
+               step="0.01" 
+               class="input-ajuste-cantidad" 
+               value="${cantidadSugerida.toFixed(2)}"
+               oninput="actualizarEstadoIngrediente(${ingId})"
+               placeholder="Cant."
+               style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+               
+        <select class="input-ajuste-motivo" 
+                onchange="actualizarEstadoIngrediente(${ingId})"
+                style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+            <option value="">Motivo...</option>
+            ${generarOpcionesMotivo()}
+        </select>
+        
+        <input type="text" 
+               class="input-ajuste-detalle" 
+               placeholder="Detalle (ej. Caducado lote X)"
+               style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px;">
+               
+        <button onclick="eliminarFilaAjuste('${rowId}', ${ingId})" 
+                style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-weight: bold;">
+            ✕
+        </button>
+    `;
+
+    contenedorFilas.appendChild(div);
+    actualizarEstadoIngrediente(ingId);
+  }
+
+  function eliminarFilaAjuste(rowId, ingId) {
+    document.getElementById(`row-${rowId}`).remove();
+    actualizarEstadoIngrediente(ingId);
+  }
+
+  function generarOpcionesMotivo() {
+    return `
+        <option value="caducidad">Caducidad</option>
+        <option value="merma_produccion">Merma Producción</option>
+        <option value="rotura">Rotura / Accidente</option>
+        <option value="invitacion">Invitación Cliente</option>
+        <option value="comida_personal">Comida Personal</option>
+        <option value="error_cocina">Error Cocina</option>
+        <option value="ajuste_inventario">Ajuste Inventario (Otro)</option>
+    `;
+  }
+
+  function actualizarEstadoIngrediente(ingId) {
+    const contenedor = document.getElementById(`filas-ajustes-${ingId}`);
+    const filas = contenedor.querySelectorAll('.fila-ajuste');
+    const estado = estadoAjustes[ingId];
+
+    let sumaAsignada = 0;
+    const nuevosAjustes = [];
+
+    filas.forEach(fila => {
+      const cant = parseFloat(fila.querySelector('.input-ajuste-cantidad').value) || 0;
+      const motivo = fila.querySelector('.input-ajuste-motivo').value;
+      const detalle = fila.querySelector('.input-ajuste-detalle').value;
+
+      sumaAsignada += cant; // Trabajamos siempre en positivo para la suma del desglose
+
+      nuevosAjustes.push({
+        cantidad: cant,
+        motivo,
+        detalle
+      });
+    });
+
+    estado.ajustes = nuevosAjustes;
+
+    // Validación: La suma debe igualar el valor absoluto de la diferencia total
+    // Permitimos un margen de error minúsculo por float
+    const diferenciaAbsoluta = Math.abs(estado.diferenciaTotal);
+    const diferenciaRestante = diferenciaAbsoluta - sumaAsignada;
+
+    const labelRestante = document.getElementById(`label-restante-${ingId}`);
+    const badge = document.getElementById(`status-badge-${ingId}`);
+
+    if (Math.abs(diferenciaRestante) < 0.01) {
+      labelRestante.innerHTML = `<span style="color: #166534;">✅ Desglose completo</span>`;
+      badge.className = 'status-badge status-ok';
+      badge.textContent = 'OK';
+      estado.valido = true;
+    } else if (diferenciaRestante > 0) {
+      labelRestante.innerHTML = `Falta asignar: <strong style="color: #ef4444;">${diferenciaRestante.toFixed(2)}</strong>`;
+      badge.className = 'status-badge status-pending';
+      badge.textContent = 'Incompleto';
+      estado.valido = false;
+    } else {
+      labelRestante.innerHTML = `Exceso asignado: <strong style="color: #ef4444;">${Math.abs(diferenciaRestante).toFixed(2)}</strong>`;
+      badge.className = 'status-badge status-pending';
+      badge.textContent = 'Exceso';
+      estado.valido = false;
+    }
+
+    actualizarValidacionGlobal();
+  }
+
+  function actualizarValidacionGlobal() {
+    const ingredientes = Object.values(estadoAjustes);
+    const todosValidos = ingredientes.every(i => i.valido);
+    const incompletos = ingredientes.filter(i => !i.valido).length;
+
+    const textoResumen = document.getElementById('resumen-ajustes-texto');
+    const estadoGlobal = document.getElementById('estado-validacion-global');
+    const btn = document.getElementById('btn-confirmar-ajustes');
+
+    textoResumen.textContent = `${ingredientes.length} ingredientes con diferencias.`;
+
+    if (todosValidos) {
+      estadoGlobal.innerHTML = `<span style="color: #10b981;">✓ Todo cuadrado</span>`;
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    } else {
+      estadoGlobal.innerHTML = `<span style="color: #ef4444;">Faltan cuadrar ${incompletos} items</span>`;
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
+    }
+  }
+
+  async function confirmarAjustesFinal() {
+    if (!confirm('¿Estás seguro de registrar estos ajustes y actualizar el stock? Esta acción no se puede deshacer.')) return;
+
+    const btn = document.getElementById('btn-confirmar-ajustes');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Procesando...';
+
+    try {
+      let ajustesRegistrados = 0;
+
+      // Procesar cada ingrediente
+      for (const ingId in estadoAjustes) {
+        const estado = estadoAjustes[ingId];
+
+        // 1. Actualizar Stock Real (PUT)
+        if (window.api && window.api.updateIngredient) {
+          const ingActualizado = {
+            ...estado.ingrediente,
+            stock_actual: estado.stockReal,
+            stock_real: estado.stockReal,
+            ultima_actualizacion_stock: new Date().toISOString()
+          };
+          await window.api.updateIngredient(ingActualizado);
+
+          // Actualizar localmente también para reflejar en UI inmediata
+          const localIng = window.ingredientes.find(i => i.id == ingId);
+          if (localIng) {
+            localIng.stock_actual = estado.stockReal;
+            localIng.stock_real = estado.stockReal;
+          }
+        }
+
+        // 2. Registrar cada línea de ajuste (POST)
+        // La diferencia total nos dice si es pérdida (negativo) o sobrante (positivo).
+        const esSalida = estado.diferenciaTotal < 0;
+        const factor = esSalida ? -1 : 1;
+
+        for (const ajuste of estado.ajustes) {
+          if (ajuste.cantidad <= 0) continue;
+
+          if (window.api && window.api.createLoss) {
+            // Usamos createLoss para registrar movimientos.
+            await window.api.createLoss({
+              ingrediente_id: parseInt(ingId),
+              ingrediente_nombre: estado.ingrediente.nombre,
+              cantidad: ajuste.cantidad * factor, // Guardamos con signo
+              unidad: estado.ingrediente.unidad,
+              motivo: ajuste.motivo || 'ajuste_inventario',
+              nota: ajuste.detalle || 'Ajuste inventario mensual',
+              coste_estimado: (ajuste.cantidad * estado.ingrediente.precio)
+            });
+            ajustesRegistrados++;
+          }
+        }
+      }
+
+      document.getElementById('modal-ajustes-stock').classList.remove('active');
+      if (window.showToast) window.showToast(`Inventario actualizado. ${ajustesRegistrados} ajustes registrados.`, 'success');
+
+      // Recargar vista
+      if (window.renderizarInventario) window.renderizarInventario();
+
+    } catch (e) {
+      console.error(e);
+      if (window.showToast) window.showToast('Error al guardar ajustes: ' + e.message, 'error');
+      else alert('Error: ' + e.message);
+    } finally {
+      btn.innerHTML = '✅ Confirmar y Actualizar Stock';
+      btn.disabled = false;
+    }
+  }
+
+  // Exponer funciones globales
+  window.mostrarModalStockReal = mostrarModalStockReal;
+  window.cerrarModalStockReal = cerrarModalStockReal;
+  window.procesarStockReal = procesarStockReal;
+  window.cerrarModalAjustes = cerrarModalAjustes;
+  window.agregarFilaAjuste = agregarFilaAjuste;
+  window.eliminarFilaAjuste = eliminarFilaAjuste;
+  window.actualizarEstadoIngrediente = actualizarEstadoIngrediente;
+  window.confirmarAjustesFinal = confirmarAjustesFinal;
+
+  console.log('Sistema de Stock Real 2.0 cargado correcamente');
+</script>
+</body>
+
 </html>
+```
