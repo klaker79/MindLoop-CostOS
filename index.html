@@ -3134,6 +3134,16 @@
             });
             if (!res.ok) throw new Error('Error en actualización masiva');
             return await res.json();
+          },
+
+          async consolidateStock(adjustments) {
+            const res = await fetch(API_BASE + '/inventory/consolidate', {
+              method: 'POST',
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ adjustments })
+            });
+            if (!res.ok) throw new Error('Error en consolidación de stock');
+            return await res.json();
           }
         };
 
@@ -5020,7 +5030,7 @@
               html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
               html += `<td><strong>${ing.nombre}</strong></td>`;
               html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
-              html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" class="input-stock-real" data-id="${ing.id}" style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"></td>`;
+              html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" class="input-stock-real" data-id="${ing.id}" data-stock-virtual="${ing.stock_virtual || 0}" style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"></td>`;
               html += `<td style="color:${diferencia > 0 ? '#10b981' : diferencia < 0 ? '#ef4444' : '#666'};">${diferencia !== 0 ? diferencia.toFixed(2) : '-'}</td>`;
               html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
               const valorStockReal = (parseFloat(stockReal) || 0) * precioMedio;
@@ -5038,43 +5048,77 @@
 
         // Función global para actualizar stock real
         // Función para guardar stock masivo
+        // Función para guardar stock masivo con lógica de mermas
         window.guardarCambiosStock = async function () {
           const inputs = document.querySelectorAll('.input-stock-real');
-          const updates = [];
-          
+          const adjustments = [];
+          const mermas = [];
+
           inputs.forEach(input => {
             const val = input.value;
             if (val !== '' && val !== null) {
-              updates.push({
-                id: parseInt(input.dataset.id),
-                stock_real: parseFloat(val)
-              });
+              const nuevoReal = parseFloat(val);
+              const dataId = parseInt(input.dataset.id);
+              const stockVirtual = parseFloat(input.dataset.stockVirtual || 0);
+
+              // Solo nos importa si hay cambios (aunque la lógica pide ajustar si es positivo, 
+              // asumimos que si el usuario escribe algo es porque quiere fijarlo)
+              // Pero podemos optimizar enviando solo lo que difiere o todo lo escrito.
+              // El usuario dijo "Update Stock" button allow users to edit multiple...
+              // Enviamos todo lo que tenga valor explícito en el input.
+
+              const item = {
+                id: dataId,
+                stock_real: nuevoReal
+              };
+              adjustments.push(item);
+
+              // Detectar mermas (Real < Ficticio)
+              // Nota: Javascript floats pueden ser tricky, usamos una pequeña tolerancia o simple comparación
+              if (nuevoReal < stockVirtual) {
+                const nombreIng = window.ingredientes.find(i => i.id === dataId)?.nombre || 'Ingrediente ' + dataId;
+                mermas.push({ nombre: nombreIng, diferencia: (stockVirtual - nuevoReal).toFixed(2) });
+              }
             }
           });
 
-          if (updates.length === 0) {
+          if (adjustments.length === 0) {
             showToast('No hay datos para guardar', 'info');
             return;
           }
 
-          if (!confirm(`¿Guardar stock de ${updates.length} ingredientes?`)) return;
+          // Lógica de confirmación
+          let mensajeConfirmacion = `¿Actualizar stock de ${adjustments.length} ingredientes?`;
+
+          if (mermas.length > 0) {
+            mensajeConfirmacion += `\n\n⚠️ SE DETECTARON MERMAS EN ${mermas.length} INGREDIENTES:\n`;
+            mermas.forEach(m => {
+              mensajeConfirmacion += `- ${m.nombre}: Falta ${m.diferencia}\n`;
+            });
+            mensajeConfirmacion += `\n¿Registrar estas diferencias como PÉRDIDAS y ajustar el inventario?`;
+          } else {
+            mensajeConfirmacion += `\n\nEl stock ficticio se ajustará automáticamente al stock real ingresado.`;
+          }
+
+          if (!confirm(mensajeConfirmacion)) return;
 
           try {
             showLoading();
-            await api.bulkUpdateStockReal(updates);
+            // Usamos el endpoint de consolidación que actualiza AMBOS (read y actual)
+            await api.consolidateStock(adjustments);
             await window.renderizarInventario();
             hideLoading();
-            showToast('Stock actualizado correctamente', 'success');
+            showToast('Inventario consolidado correctamente', 'success');
           } catch (error) {
             hideLoading();
-            showToast('Error actualizando stock: ' + error.message, 'error');
+            showToast('Error: ' + error.message, 'error');
           }
         };
 
         // Función individual (deprecada para uso directo, pero mantenida por compatibilidad si se necesitara)
         window.actualizarStockReal = async function (id, valor) {
-           // Mantenemos vacía o redirigimos a lógica de guardado si fuera necesario, 
-           // pero ahora la UI usa el botón de guardar.
+          // Mantenemos vacía o redirigimos a lógica de guardado si fuera necesario, 
+          // pero ahora la UI usa el botón de guardar.
         };
 
 
