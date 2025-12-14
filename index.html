@@ -6745,19 +6745,8 @@ let comprasFiltradas = [];
 
 window.cargarCompras = async function() {
   try {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user'));
-    
-    const response = await fetch(`${API_URL}/pedidos?restaurante_id=${user.restaurante_id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    if (!response.ok) throw new Error('Error cargando compras');
-    
-    const data = await response.json();
-    comprasFiltradas = data;
+    // Usar los pedidos ya cargados
+    comprasFiltradas = [...pedidos];
     renderizarCompras();
     actualizarResumenCompras();
   } catch (error) {
