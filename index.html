@@ -3174,11 +3174,11 @@
             return await res.json();
           },
 
-          async consolidateStock(adjustments, mermas = []) {
+          async consolidateStock(adjustments, snapshots = [], finalStock = []) {
             const res = await fetch(API_BASE + '/inventory/consolidate', {
               method: 'POST',
               headers: getAuthHeaders(),
-              body: JSON.stringify({ adjustments, mermas })
+              body: JSON.stringify({ adjustments, snapshots, finalStock })
             });
             if (!res.ok) throw new Error('Error en consolidación de stock');
             return await res.json();
@@ -5220,69 +5220,248 @@
           }
         };
 
-        // Variables para el modal de mermas
-        let mermasPendientes = [];
-        let adjustmentsPendientes = [];
+        // Variables para el modal de mermas (Snapshot y Ajustes)
+        let currentSnapshots = [];
+        let currentAdjustmentsMap = {}; // Map ingId -> Array of reasons
 
-        window.mostrarModalConfirmarMermas = function (adjustments, mermas) {
-          adjustmentsPendientes = adjustments;
-          mermasPendientes = mermas;
+        window.mostrarModalConfirmarMermas = function (snapshotsData) {
+          currentSnapshots = snapshotsData;
+          currentAdjustmentsMap = {};
 
-          const tbody = document.getElementById('tabla-mermas-body');
-          tbody.innerHTML = '';
-
-          mermas.forEach((m, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                    <td style="padding: 10px;">${m.nombre}</td>
-                    <td style="padding: 10px; color: #ef4444; font-weight: bold;">-${m.diferencia}</td>
-                    <td style="padding: 10px;">
-                        <select class="motivo-merma-select" data-index="${index}" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
-                            <option value="Caduco">Caduco</option>
-                            <option value="Invitacion">Invitación</option>
-                            <option value="Accidente">Accidente</option>
-                            <option value="Error">Error de mesa/cliente</option>
-                            <option value="Otros">Otros</option>
-                        </select>
-                    </td>
-                    <td style="padding: 10px;">
-                        <input type="text" class="notas-merma-input" data-index="${index}" placeholder="Detalles opcionales..." style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
-                    </td>
-                `;
-            tbody.appendChild(tr);
+          // Inicializar ajustes vacíos
+          currentSnapshots.forEach(snap => {
+            const diff = snap.stock_real - snap.stock_virtual;
+            // Si falta stock (diff negativa), proponemos una fila inicial por defecto
+            if (diff < 0) {
+              currentAdjustmentsMap[snap.id] = [{
+                id: Date.now() + Math.random(),
+                cantidad: Math.abs(diff), // Sugerimos todo como una causa inicial
+                motivo: 'Caduco',
+                notas: ''
+              }];
+            } else {
+              // Si sobra stock (diff positiva), también se debe justificar
+              currentAdjustmentsMap[snap.id] = [{
+                id: Date.now() + Math.random(),
+                cantidad: diff,
+                motivo: 'Error de Inventario', // Default positivo
+                notas: ''
+              }];
+            }
           });
 
+          window.renderTablaSplits();
           document.getElementById('modal-confirmar-mermas').classList.add('active');
         };
 
-        window.confirmarMermasFinal = async function () {
-          // Recopilar motivos y notas
-          const selects = document.querySelectorAll('.motivo-merma-select');
-          const inputs = document.querySelectorAll('.notas-merma-input');
+        window.renderTablaSplits = function () {
+          const tbody = document.getElementById('tabla-mermas-body');
+          tbody.innerHTML = '';
 
-          mermasPendientes.forEach((m, i) => {
-            m.motivo = selects[i].value;
-            m.notas = inputs[i].value;
+          let totalValid = true;
+
+          currentSnapshots.forEach(snap => {
+            const ing = ingredientes.find(i => i.id === snap.id);
+            const nombre = ing ? ing.nombre : 'Unknown';
+            const diffTotal = snap.stock_real - snap.stock_virtual;
+            const isNegative = diffTotal < 0;
+            const sign = isNegative ? '-' : '+';
+            const color = isNegative ? '#ef4444' : '#10b981';
+
+            // Calcular cuánto llevamos asignado
+            const asignado = currentAdjustmentsMap[snap.id].reduce((sum, adj) => sum + parseFloat(adj.cantidad || 0), 0);
+            // La suma de ajustes (siempre positivos en input) debe igualar el valor absoluto de la diferencia
+            const target = Math.abs(diffTotal);
+            const restante = target - asignado;
+            const isMatch = Math.abs(restante) < 0.01;
+
+            if (!isMatch) totalValid = false;
+
+            // Fila Cabecera Ingrediente
+            const trHeader = document.createElement('tr');
+            trHeader.style.background = '#f1f5f9';
+            trHeader.innerHTML = `
+                    <td colspan="4" style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong>${nombre}</strong>
+                            <span>Diff: <strong style="color:${color}">${sign}${Math.abs(diffTotal).toFixed(2)} ${ing.unidad}</strong></span>
+                        </div>
+                         <div style="font-size:12px; color: ${isMatch ? '#059669' : '#dc2626'}; margin-top:4px;">
+                            ${isMatch ? '✓ Cuadrado' : `⚠️ Faltan por asignar: ${restante.toFixed(2)} ${ing.unidad}`}
+                        </div>
+                    </td>
+                `;
+            tbody.appendChild(trHeader);
+
+            // Filas de Ajustes (Splits)
+            currentAdjustmentsMap[snap.id].forEach((adj, idx) => {
+              const trAdj = document.createElement('tr');
+              trAdj.innerHTML = `
+                        <td style="padding-left: 20px;">
+                            <span style="color:#aaa; font-size:12px;">↳ Ajuste ${idx + 1}</span>
+                        </td>
+                         <td style="padding: 5px;">
+                            <input type="number" step="0.01" value="${adj.cantidad}" 
+                                onchange="window.updateSplitAmount(${snap.id}, ${adj.id}, this.value)"
+                                style="width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"> 
+                            <span style="font-size:11px">${ing.unidad}</span>
+                        </td>
+                        <td style="padding: 5px;">
+                            <select onchange="window.updateSplitReason(${snap.id}, ${adj.id}, this.value)"
+                                style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="Caduco" ${adj.motivo === 'Caduco' ? 'selected' : ''}>Caduco</option>
+                                <option value="Invitacion" ${adj.motivo === 'Invitacion' ? 'selected' : ''}>Invitación</option>
+                                <option value="Accidente" ${adj.motivo === 'Accidente' ? 'selected' : ''}>Accidente</option>
+                                <option value="Error Cocina" ${adj.motivo === 'Error Cocina' ? 'selected' : ''}>Error Cocina</option>
+                                <option value="Error Inventario" ${adj.motivo === 'Error Inventario' ? 'selected' : ''}>Error Conteo</option>
+                                <option value="Robo" ${adj.motivo === 'Robo' ? 'selected' : ''}>Robo / Desconocido</option>
+                                <option value="Otros" ${adj.motivo === 'Otros' ? 'selected' : ''}>Otros</option>
+                            </select>
+                        </td>
+                        <td style="padding: 5px; display: flex; gap: 5px;">
+                            <input type="text" value="${adj.notas}" placeholder="Nota..."
+                                onchange="window.updateSplitNote(${snap.id}, ${adj.id}, this.value)"
+                                style="flex:1; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                            <button onclick="window.removeSplit(${snap.id}, ${adj.id})" style="background:none; border:none; cursor:pointer;">❌</button>
+                        </td>
+                    `;
+              tbody.appendChild(trAdj);
+            });
+
+            // Botón añadir split
+            const trAdd = document.createElement('tr');
+            trAdd.innerHTML = `
+                    <td colspan="4" style="text-align:right; padding:5px; border-bottom: 2px solid #e2e8f0;">
+                        <button onclick="window.addSplit(${snap.id})" style="font-size:12px; color:#3b82f6; background:none; border:none; cursor:pointer; font-weight:600;">+ Dividir diferencia</button>
+                    </td>
+                 `;
+            tbody.appendChild(trAdd);
           });
+
+          const btn = document.getElementById('btn-confirmar-split');
+          const alertBox = document.getElementById('mermas-alert-box');
+
+          if (totalValid) {
+            btn.disabled = false;
+            btn.style.opacity = 1;
+            alertBox.style.display = 'none';
+          } else {
+            btn.disabled = true;
+            btn.style.opacity = 0.5;
+            alertBox.textContent = '⚠️ Debes asignar la cantidad exacta total para todos los ingredientes antes de confirmar.';
+            alertBox.style.display = 'block';
+          }
+        };
+
+        window.updateSplitAmount = (ingId, adjId, val) => {
+          const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
+          if (adj) adj.cantidad = parseFloat(val);
+          window.renderTablaSplits();
+        };
+
+        window.updateSplitReason = (ingId, adjId, val) => {
+          const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
+          if (adj) adj.motivo = val;
+        };
+
+        window.updateSplitNote = (ingId, adjId, val) => {
+          const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
+          if (adj) adj.notas = val;
+        };
+
+        window.addSplit = (ingId) => {
+          currentAdjustmentsMap[ingId].push({
+            id: Date.now(),
+            cantidad: 0,
+            motivo: 'Caduco',
+            notas: ''
+          });
+          window.renderTablaSplits();
+        };
+
+        window.removeSplit = (ingId, adjId) => {
+          currentAdjustmentsMap[ingId] = currentAdjustmentsMap[ingId].filter(a => a.id !== adjId);
+          window.renderTablaSplits();
+        };
+
+        window.confirmarMermasFinal = async function () {
+          // Flatten de todos los ajustes para enviar
+          const finalAdjustments = [];
+
+          Object.keys(currentAdjustmentsMap).forEach(ingIdStr => {
+            const ingId = parseInt(ingIdStr);
+            currentAdjustmentsMap[ingId].forEach(adj => {
+              // Importante: Si la diferencia original era NEGATIVA, los ajustes son SALIDAS (negativos).
+              // Si era POSITIVA, son ENTRADAS (positivos).
+              // La UI muestra valores absolutos para simplificar, aquí aplicamos el signo.
+              const snap = currentSnapshots.find(s => s.id === ingId);
+              const isNegative = (snap.stock_real - snap.stock_virtual) < 0;
+
+              finalAdjustments.push({
+                ingrediente_id: ingId,
+                cantidad: isNegative ? -Math.abs(adj.cantidad) : Math.abs(adj.cantidad),
+                motivo: adj.motivo,
+                notas: adj.notas
+              });
+            });
+          });
+
+          // Preparar payload para consolidate (Snapshots + Splits)
+          // FinalStock is just the target state for updating the master table
+          const finalStock = currentSnapshots.map(s => ({
+            id: s.id,
+            stock_real: s.stock_real
+          }));
 
           try {
             document.getElementById('modal-confirmar-mermas').classList.remove('active');
             showLoading();
-            // Enviar adjustments + mermas detalladas
-            await api.consolidateStock(adjustmentsPendientes, mermasPendientes);
+
+            await api.consolidateStock(finalAdjustments, currentSnapshots, finalStock);
+
             await window.renderizarInventario();
             hideLoading();
-            showToast('Inventario actualizado y mermas registradas', 'success');
+            showToast('Ajustes de inventario registrados correctamente', 'success');
           } catch (error) {
             hideLoading();
             showToast('Error: ' + error.message, 'error');
           }
         };
 
-        // Función individual (deprecada para uso directo, pero mantenida por compatibilidad si se necesitara)
-        window.actualizarStockReal = async function (id, valor) {
-          // Mantenemos vacía o redirigimos a lógica de guardado si fuera necesario, 
-          // pero ahora la UI usa el botón de guardar.
+        // MODIFICACION EN CLAVE: guardarCambiosStock (Nueva Lógica)
+        window.guardarCambiosStock = async function (id, nuevoStock) {
+          // Nota: Esta función solía manejar uno solo o el botón general.
+          // Ahora reutilizamos la lógica del botón "Actualizar Stock" principal.
+          // Si llamamos desde el botón global:
+        };
+
+        // ... pero necesitamos interceptar el click del botón "Actualizar Stock" del DOM
+        document.getElementById('btn-actualizar-stock').onclick = async function () {
+          const inputs = document.querySelectorAll('.stock-real-input');
+          const changes = [];
+
+          inputs.forEach(input => {
+            const id = parseInt(input.dataset.id);
+            const virtual = parseFloat(input.dataset.stockVirtual);
+            const real = parseFloat(input.value);
+
+            // Solo procesamos si hay cambio real
+            if (!isNaN(real) && Math.abs(real - virtual) > 0.001) {
+              changes.push({
+                id: id,
+                stock_virtual: virtual,
+                stock_real: real
+              });
+            }
+          });
+
+          if (changes.length === 0) {
+            showToast('No hay cambios en el stock para registrar', 'info');
+            return;
+          }
+
+          // ABRIMOS DIRECTAMENTE EL CHECKER (Modal Split)
+          window.mostrarModalConfirmarMermas(changes);
         };
 
 
@@ -5366,11 +5545,15 @@
           </table>
         </div>
 
+        <div id="mermas-alert-box"
+          style="display:none; margin-top: 10px; padding: 10px; background: #fee2e2; color: #b91c1c; border-radius: 6px; font-size: 13px;">
+        </div>
+
         <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
           <button class="btn btn-secondary"
             onclick="document.getElementById('modal-confirmar-mermas').classList.remove('active')">Cancelar</button>
-          <button class="btn btn-primary" style="background: #ef4444;" onclick="window.confirmarMermasFinal()">Confirmar
-            Pérdidas</button>
+          <button class="btn btn-primary" id="btn-confirmar-split" style="background: #ef4444;"
+            onclick="window.confirmarMermasFinal()">Confirmar Ajustes</button>
         </div>
       </div>
     </div>
