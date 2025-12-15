@@ -1800,129 +1800,14 @@
       <button id="tab-btn-inventario" class="tab" onclick="window.cambiarTab('inventario')">📦 Inventario<span
           id="badge-inventario" class="tab-badge" style="display:none;">0</span></button>
       <button id="tab-btn-ventas" class="tab" onclick="window.cambiarTab('ventas')">💰 Ventas</button>
-      <button id="tab-btn-balance" class="tab" onclick="window.cambiarTab('balance')">💵 Balance</button>
+      <button id="tab-btn-balance" class="tab" onclick="window.cambiarTab('balance')">💵 Finanzas</button>
       <button id="tab-btn-configuracion" class="tab" onclick="window.cambiarTab('configuracion')">⚙️
         Configuración</button>
-      <button id="tab-btn-simulador" class="tab" onclick="window.cambiarTab('simulador')">📈 Simulador</button>
     </div>
 
     <div class="main-card">
 
-      <!-- TAB: SIMULADOR FINANCIERO -->
-      <div id="tab-simulador" class="tab-content">
-        <div class="top-bar">
-          <div>
-            <h2>Simulador Financiero</h2>
-            <p>Calcula tu punto de equilibrio y proyecta la viabilidad de tu negocio</p>
-          </div>
-        </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-          <!-- Panel de Control -->
-          <div style="background: #F8FAFC; padding: 25px; border-radius: 16px; border: 1px solid #E2E8F0;">
-            <h3 style="margin-bottom: 20px; color: #1E293B; font-size: 18px;">1. Estructura de Costes</h3>
-
-            <div class="form-group" style="margin-bottom: 15px;">
-              <label style="display: flex; justify-content: space-between;">
-                <span>Alquiler Local</span>
-                <span style="color: #64748B; font-weight: 400;">€/mes</span>
-              </label>
-              <input type="number" id="sim-alquiler" class="sim-input" value="1500" step="50">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 15px;">
-              <label style="display: flex; justify-content: space-between;">
-                <span>Personal (Nóminas + SS)</span>
-                <span style="color: #64748B; font-weight: 400;">€/mes</span>
-              </label>
-              <input type="number" id="sim-personal" class="sim-input" value="4500" step="100">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 15px;">
-              <label style="display: flex; justify-content: space-between;">
-                <span>Suministros (Luz, Agua, Gas)</span>
-                <span style="color: #64748B; font-weight: 400;">€/mes</span>
-              </label>
-              <input type="number" id="sim-suministros" class="sim-input" value="800" step="50">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 25px;">
-              <label style="display: flex; justify-content: space-between;">
-                <span>Otros Gastos Fijos</span>
-                <span style="color: #64748B; font-weight: 400;">€/mes</span>
-              </label>
-              <input type="number" id="sim-otros" class="sim-input" value="500" step="50">
-            </div>
-
-            <div style="border-top: 2px dashed #CBD5E1; margin: 20px 0;"></div>
-
-            <h3 style="margin-bottom: 20px; color: #1E293B; font-size: 18px;">2. Margen Objetivo</h3>
-
-            <div class="form-group">
-              <label style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <span>Margen Bruto Promedio</span>
-                <span id="sim-margen-valor" style="color: #c35a3f; font-weight: 700; font-size: 18px;">70%</span>
-              </label>
-              <input type="range" id="sim-margen" min="10" max="90" value="70" step="1"
-                style="width: 100%; accent-color: #c35a3f;">
-              <p style="font-size: 12px; color: #64748B; margin-top: 5px;">
-                El dinero que te queda después de pagar el producto (Food Cost).
-              </p>
-            </div>
-          </div>
-
-          <!-- Panel de Resultados -->
-          <div style="display: flex; flex-direction: column; gap: 20px;">
-
-            <!-- Tarjeta Principal: Punto de Equilibrio -->
-            <div
-              style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #E2E8F0; text-align: center;">
-              <div
-                style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #64748B; font-weight: 600; margin-bottom: 10px;">
-                Punto de Equilibrio</div>
-              <div id="sim-resultado-equilibrio"
-                style="font-size: 48px; font-weight: 800; color: #1E293B; line-height: 1;">0€</div>
-              <div style="font-size: 16px; color: #64748B; margin-top: 5px;">facturación mensual necesaria</div>
-
-              <div
-                style="margin-top: 25px; padding: 15px; background: #F1F5F9; border-radius: 12px; display: inline-block;">
-                <span style="font-size: 24px; font-weight: 700; color: #334155;" id="sim-ventas-diarias">0€</span>
-                <span style="font-size: 14px; color: #64748B;"> / día (aprox)</span>
-              </div>
-            </div>
-
-            <!-- Semáforo / Diagnóstico -->
-            <div id="sim-estado-card"
-              style="background: #FEF2F2; padding: 25px; border-radius: 16px; border-left: 6px solid #EF4444; transition: all 0.3s ease;">
-              <h3 id="sim-estado-titulo" style="margin: 0 0 10px 0; color: #991B1B; font-size: 20px;">⚠️ Zona de Peligro
-              </h3>
-              <p id="sim-estado-desc" style="margin: 0; color: #7F1D1D; line-height: 1.5;">
-                Con tu estructura actual, necesitas facturar más para cubrir costes. Revisa tus gastos fijos o mejora tu
-                margen.
-              </p>
-            </div>
-
-            <!-- Explicación Pedagógica -->
-            <div style="background: #EFF6FF; padding: 20px; border-radius: 16px; border: 1px solid #BFDBFE;">
-              <h4 style="margin: 0 0 10px 0; color: #1E40AF; display: flex; align-items: center; gap: 8px;">
-                💡 ¿Qué significa esto?
-              </h4>
-              <p style="font-size: 13px; color: #1E3A8A; margin-bottom: 8px;">
-                <strong>Margen Bruto:</strong> Dinero real que te queda tras pagar la comida/bebida. Es con lo que pagas
-                el resto.
-              </p>
-              <p style="font-size: 13px; color: #1E3A8A; margin-bottom: 8px;">
-                <strong>Costes Fijos:</strong> Gastos que tienes abras o no (Alquiler, Personal, Luz...).
-              </p>
-              <p style="font-size: 13px; color: #1E3A8A; margin: 0;">
-                <strong>Equilibrio:</strong> Si facturas menos de lo indicado arriba, pierdes dinero. Si facturas más,
-                empiezas a ganar.
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </div>
 
       <!-- TAB: INGREDIENTES (código anterior simplificado por brevedad) -->
       <div id="tab-ingredientes" class="tab-content active">
@@ -2723,6 +2608,119 @@
 
     </div>
 
+    <!-- SECCIÓN SIMULADOR (Integrado) -->
+    <div style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 30px;">
+      <div style="margin-bottom: 20px;">
+        <h2 style="color: #1e293b; font-size: 24px; margin-bottom: 5px;">🔮 Simulador & Proyecciones</h2>
+        <p style="color: #64748b; margin: 0;">Proyecta el futuro de tu negocio basándote en tus datos reales</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+        <!-- Panel de Control -->
+        <div style="background: #F8FAFC; padding: 25px; border-radius: 16px; border: 1px solid #E2E8F0;">
+          <h3 style="margin-bottom: 20px; color: #1E293B; font-size: 18px;">1. Estructura de Costes</h3>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: flex; justify-content: space-between;">
+              <span>Alquiler Local</span>
+              <span style="color: #64748B; font-weight: 400;">€/mes</span>
+            </label>
+            <input type="number" id="sim-alquiler" class="sim-input" value="1500" step="50">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: flex; justify-content: space-between;">
+              <span>Personal (Nóminas + SS)</span>
+              <span style="color: #64748B; font-weight: 400;">€/mes</span>
+            </label>
+            <input type="number" id="sim-personal" class="sim-input" value="4500" step="100">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: flex; justify-content: space-between;">
+              <span>Suministros (Luz, Agua, Gas)</span>
+              <span style="color: #64748B; font-weight: 400;">€/mes</span>
+            </label>
+            <input type="number" id="sim-suministros" class="sim-input" value="800" step="50">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 25px;">
+            <label style="display: flex; justify-content: space-between;">
+              <span>Otros Gastos Fijos</span>
+              <span style="color: #64748B; font-weight: 400;">€/mes</span>
+            </label>
+            <input type="number" id="sim-otros" class="sim-input" value="500" step="50">
+          </div>
+
+          <div style="border-top: 2px dashed #CBD5E1; margin: 20px 0;"></div>
+
+          <h3 style="margin-bottom: 20px; color: #1E293B; font-size: 18px;">2. Margen Objetivo</h3>
+
+          <div class="form-group">
+            <label style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+              <span>Margen Bruto Promedio</span>
+              <span id="sim-margen-valor" style="color: #c35a3f; font-weight: 700; font-size: 18px;">70%</span>
+            </label>
+            <input type="range" id="sim-margen" min="10" max="90" value="70" step="1"
+              style="width: 100%; accent-color: #c35a3f;">
+            <p style="font-size: 12px; color: #64748B; margin-top: 5px;">
+              El dinero que te queda después de pagar el producto (Food Cost).
+            </p>
+          </div>
+        </div>
+
+        <!-- Panel de Resultados -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+
+          <!-- Tarjeta Principal: Punto de Equilibrio -->
+          <div
+            style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #E2E8F0; text-align: center;">
+            <div
+              style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #64748B; font-weight: 600; margin-bottom: 10px;">
+              Punto de Equilibrio</div>
+            <div id="sim-resultado-equilibrio"
+              style="font-size: 48px; font-weight: 800; color: #1E293B; line-height: 1;">0€</div>
+            <div style="font-size: 16px; color: #64748B; margin-top: 5px;">facturación mensual necesaria</div>
+
+            <div
+              style="margin-top: 25px; padding: 15px; background: #F1F5F9; border-radius: 12px; display: inline-block;">
+              <span style="font-size: 24px; font-weight: 700; color: #334155;" id="sim-ventas-diarias">0€</span>
+              <span style="font-size: 14px; color: #64748B;"> / día (aprox)</span>
+            </div>
+          </div>
+
+          <!-- Semáforo / Diagnóstico -->
+          <div id="sim-estado-card"
+            style="background: #FEF2F2; padding: 25px; border-radius: 16px; border-left: 6px solid #EF4444; transition: all 0.3s ease;">
+            <h3 id="sim-estado-titulo" style="margin: 0 0 10px 0; color: #991B1B; font-size: 20px;">⚠️ Zona de Peligro
+            </h3>
+            <p id="sim-estado-desc" style="margin: 0; color: #7F1D1D; line-height: 1.5;">
+              Con tu estructura actual, necesitas facturar más para cubrir costes. Revisa tus gastos fijos o mejora tu
+              margen.
+            </p>
+          </div>
+
+          <!-- Explicación Pedagógica -->
+          <div style="background: #EFF6FF; padding: 20px; border-radius: 16px; border: 1px solid #BFDBFE;">
+            <h4 style="margin: 0 0 10px 0; color: #1E40AF; display: flex; align-items: center; gap: 8px;">
+              💡 ¿Qué significa esto?
+            </h4>
+            <p style="font-size: 13px; color: #1E3A8A; margin-bottom: 8px;">
+              <strong>Margen Bruto:</strong> Dinero real que te queda tras pagar la comida/bebida. Es con lo que pagas
+              el resto.
+            </p>
+            <p style="font-size: 13px; color: #1E3A8A; margin-bottom: 8px;">
+              <strong>Costes Fijos:</strong> Gastos que tienes abras o no (Alquiler, Personal, Luz...).
+            </p>
+            <p style="font-size: 13px; color: #1E3A8A; margin: 0;">
+              <strong>Equilibrio:</strong> Si facturas menos de lo indicado arriba, pierdes dinero. Si facturas más,
+              empiezas a ganar.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Modales (simplificados) -->
@@ -4014,7 +4012,7 @@
         if (tab === 'ventas') window.renderizarVentas();
         if (tab === 'balance') window.renderizarBalance();
         if (tab === 'configuracion') window.renderizarEquipo();
-        if (tab === 'simulador') window.actualizarSimulador();
+
       };
 
       // ========== INGREDIENTES (código completo pero resumido visualmente) ==========
