@@ -4974,9 +4974,20 @@
           pedidoViendoId = null;
         };
 
+        // Función auxiliar para calcular coste completo de receta
+        window.calcularCosteRecetaCompleto = function (receta) {
+          if (!receta || !receta.ingredientes) return 0;
+          return receta.ingredientes.reduce((total, item) => {
+            const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+            const precio = ing ? parseFloat(ing.precio) : 0;
+            return total + (precio * item.cantidad);
+          }, 0);
+        };
+
         window.descargarPedidoPDF = function () {
           if (pedidoViendoId === null) return;
 
+          const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
           const pedido = pedidos.find(p => p.id === pedidoViendoId);
           const prov = proveedores.find(p => p.id === pedido.proveedorId);
 
@@ -7299,15 +7310,16 @@
             window.proveedores.push(nuevoProv);
           }
 
-          await window.api.createOrder({
+          await window.api.createPedido({
             proveedorId: provId,
             fecha: pedido.fecha,
             estado: 'recibido', // Importante: ya está recibido
-            items: [{
+            ingredientes: [{
               ingredienteId: ingId,
               cantidad: pedido.cantidad,
               precio: pedido.precio > 0 ? pedido.precio : (pedido.total / pedido.cantidad)
-            }]
+            }],
+            total: pedido.total
           });
 
           importados++;
