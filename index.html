@@ -1862,6 +1862,13 @@
                 </select>
               </div>
               <div class="form-group">
+                <label>Familia</label>
+                <select id="ing-familia">
+                  <option value="alimento">Alimento</option>
+                  <option value="bebida">Bebida</option>
+                </select>
+              </div>
+              <div class="form-group">
                 <label>Stock actual</label>
                 <input type="number" id="ing-stockActual" step="0.01" min="0">
               </div>
@@ -3828,6 +3835,7 @@
           proveedorId: document.getElementById('ing-proveedor-select').value || null,
           precio: parseFloat(document.getElementById('ing-precio').value) || 0,
           unidad: document.getElementById('ing-unidad').value,
+          familia: document.getElementById('ing-familia').value || 'alimento',
           stockActual: parseFloat(document.getElementById('ing-stockActual').value) || 0,
           stockMinimo: parseFloat(document.getElementById('ing-stockMinimo').value) || 0
         };
@@ -3899,6 +3907,7 @@
         document.getElementById('ing-proveedor-select').value = ing.proveedorId || '';
         document.getElementById('ing-precio').value = ing.precio || '';
         document.getElementById('ing-unidad').value = ing.unidad;
+        document.getElementById('ing-familia').value = ing.familia || 'alimento';
         document.getElementById('ing-stockActual').value = ing.stockActual || '';
         document.getElementById('ing-stockMinimo').value = ing.stockMinimo || '';
 
@@ -3954,7 +3963,7 @@
           document.getElementById('resumen-ingredientes').style.display = 'none';
         } else {
           let html = '<table><thead><tr>';
-          html += '<th>Ingrediente</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Stock Mínimo</th>';
+          html += '<th>Ingrediente</th><th>Familia</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Stock Mínimo</th>';
           html += '</tr></thead><tbody>';
 
           filtrados.forEach(ing => {
@@ -3964,6 +3973,7 @@
 
             html += '<tr>';
             html += `<td><strong style="cursor: pointer;" onclick="window.editarIngrediente(${ing.id})">${ing.nombre}</strong></td>`;
+            html += `<td><span class="badge ${ing.familia === 'bebida' ? 'badge-info' : 'badge-success'}">${ing.familia || 'alimento'}</span></td>`;
             html += `<td>${getNombreProveedor(ing.proveedor_id)}</td>`;
             html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad + ' -' : ''}</td>`;
             html += `<td>`;
