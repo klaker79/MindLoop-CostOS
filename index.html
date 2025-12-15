@@ -1803,9 +1803,126 @@
       <button id="tab-btn-balance" class="tab" onclick="window.cambiarTab('balance')">💵 Balance</button>
       <button id="tab-btn-configuracion" class="tab" onclick="window.cambiarTab('configuracion')">⚙️
         Configuración</button>
+      <button id="tab-btn-simulador" class="tab" onclick="window.cambiarTab('simulador')">📈 Simulador</button>
     </div>
 
     <div class="main-card">
+
+      <!-- TAB: SIMULADOR FINANCIERO -->
+      <div id="tab-simulador" class="tab-content">
+        <div class="top-bar">
+          <div>
+            <h2>Simulador Financiero</h2>
+            <p>Calcula tu punto de equilibrio y proyecta la viabilidad de tu negocio</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+          <!-- Panel de Control -->
+          <div style="background: #F8FAFC; padding: 25px; border-radius: 16px; border: 1px solid #E2E8F0;">
+            <h3 style="margin-bottom: 20px; color: #1E293B; font-size: 18px;">1. Estructura de Costes</h3>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label style="display: flex; justify-content: space-between;">
+                <span>Alquiler Local</span>
+                <span style="color: #64748B; font-weight: 400;">€/mes</span>
+              </label>
+              <input type="number" id="sim-alquiler" class="sim-input" value="1500" step="50">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label style="display: flex; justify-content: space-between;">
+                <span>Personal (Nóminas + SS)</span>
+                <span style="color: #64748B; font-weight: 400;">€/mes</span>
+              </label>
+              <input type="number" id="sim-personal" class="sim-input" value="4500" step="100">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label style="display: flex; justify-content: space-between;">
+                <span>Suministros (Luz, Agua, Gas)</span>
+                <span style="color: #64748B; font-weight: 400;">€/mes</span>
+              </label>
+              <input type="number" id="sim-suministros" class="sim-input" value="800" step="50">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 25px;">
+              <label style="display: flex; justify-content: space-between;">
+                <span>Otros Gastos Fijos</span>
+                <span style="color: #64748B; font-weight: 400;">€/mes</span>
+              </label>
+              <input type="number" id="sim-otros" class="sim-input" value="500" step="50">
+            </div>
+
+            <div style="border-top: 2px dashed #CBD5E1; margin: 20px 0;"></div>
+
+            <h3 style="margin-bottom: 20px; color: #1E293B; font-size: 18px;">2. Margen Objetivo</h3>
+
+            <div class="form-group">
+              <label style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>Margen Bruto Promedio</span>
+                <span id="sim-margen-valor" style="color: #c35a3f; font-weight: 700; font-size: 18px;">70%</span>
+              </label>
+              <input type="range" id="sim-margen" min="10" max="90" value="70" step="1"
+                style="width: 100%; accent-color: #c35a3f;">
+              <p style="font-size: 12px; color: #64748B; margin-top: 5px;">
+                El dinero que te queda después de pagar el producto (Food Cost).
+              </p>
+            </div>
+          </div>
+
+          <!-- Panel de Resultados -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+
+            <!-- Tarjeta Principal: Punto de Equilibrio -->
+            <div
+              style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #E2E8F0; text-align: center;">
+              <div
+                style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #64748B; font-weight: 600; margin-bottom: 10px;">
+                Punto de Equilibrio</div>
+              <div id="sim-resultado-equilibrio"
+                style="font-size: 48px; font-weight: 800; color: #1E293B; line-height: 1;">0€</div>
+              <div style="font-size: 16px; color: #64748B; margin-top: 5px;">facturación mensual necesaria</div>
+
+              <div
+                style="margin-top: 25px; padding: 15px; background: #F1F5F9; border-radius: 12px; display: inline-block;">
+                <span style="font-size: 24px; font-weight: 700; color: #334155;" id="sim-ventas-diarias">0€</span>
+                <span style="font-size: 14px; color: #64748B;"> / día (aprox)</span>
+              </div>
+            </div>
+
+            <!-- Semáforo / Diagnóstico -->
+            <div id="sim-estado-card"
+              style="background: #FEF2F2; padding: 25px; border-radius: 16px; border-left: 6px solid #EF4444; transition: all 0.3s ease;">
+              <h3 id="sim-estado-titulo" style="margin: 0 0 10px 0; color: #991B1B; font-size: 20px;">⚠️ Zona de Peligro
+              </h3>
+              <p id="sim-estado-desc" style="margin: 0; color: #7F1D1D; line-height: 1.5;">
+                Con tu estructura actual, necesitas facturar más para cubrir costes. Revisa tus gastos fijos o mejora tu
+                margen.
+              </p>
+            </div>
+
+            <!-- Explicación Pedagógica -->
+            <div style="background: #EFF6FF; padding: 20px; border-radius: 16px; border: 1px solid #BFDBFE;">
+              <h4 style="margin: 0 0 10px 0; color: #1E40AF; display: flex; align-items: center; gap: 8px;">
+                💡 ¿Qué significa esto?
+              </h4>
+              <p style="font-size: 13px; color: #1E3A8A; margin-bottom: 8px;">
+                <strong>Margen Bruto:</strong> Dinero real que te queda tras pagar la comida/bebida. Es con lo que pagas
+                el resto.
+              </p>
+              <p style="font-size: 13px; color: #1E3A8A; margin-bottom: 8px;">
+                <strong>Costes Fijos:</strong> Gastos que tienes abras o no (Alquiler, Personal, Luz...).
+              </p>
+              <p style="font-size: 13px; color: #1E3A8A; margin: 0;">
+                <strong>Equilibrio:</strong> Si facturas menos de lo indicado arriba, pierdes dinero. Si facturas más,
+                empiezas a ganar.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
 
       <!-- TAB: INGREDIENTES (código anterior simplificado por brevedad) -->
       <div id="tab-ingredientes" class="tab-content active">
@@ -3100,6 +3217,101 @@
         }
       };
 
+      // ========== SIMULADOR FINANCIERO ==========
+      window.actualizarSimulador = function () {
+        // 1. Obtener valores
+        const alquiler = parseFloat(document.getElementById('sim-alquiler').value) || 0;
+        const personal = parseFloat(document.getElementById('sim-personal').value) || 0;
+        const suministros = parseFloat(document.getElementById('sim-suministros').value) || 0;
+        const otros = parseFloat(document.getElementById('sim-otros').value) || 0;
+        const margenPorcentaje = parseFloat(document.getElementById('sim-margen').value) || 0;
+
+        // Actualizar etiqueta del slider
+        document.getElementById('sim-margen-valor').textContent = margenPorcentaje + '%';
+
+        // 2. Calcular Costes Fijos Totales
+        const costesFijos = alquiler + personal + suministros + otros;
+
+        // 3. Calcular Punto de Equilibrio (Break Even Point)
+        // Fórmula: Costes Fijos / (Margen / 100)
+        let puntoEquilibrio = 0;
+        if (margenPorcentaje > 0) {
+          puntoEquilibrio = costesFijos / (margenPorcentaje / 100);
+        }
+
+        // 4. Mostrar Resultados
+        document.getElementById('sim-resultado-equilibrio').textContent = puntoEquilibrio.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+
+        const ventasDiarias = puntoEquilibrio / 30; // Estimación simple
+        document.getElementById('sim-ventas-diarias').textContent = ventasDiarias.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+
+        // 5. Diagnóstico (Semáforo)
+        // Comparamos con la facturación REAL del mes actual (si existe)
+        // Si no hay datos reales, usamos una simulación basada en el input para dar feedback visual
+
+        const estadoCard = document.getElementById('sim-estado-card');
+        const estadoTitulo = document.getElementById('sim-estado-titulo');
+        const estadoDesc = document.getElementById('sim-estado-desc');
+
+        // Para el semáforo, vamos a usar un ratio ficticio si no hay ventas, 
+        // o comparar con las ventas reales si las tenemos cargadas.
+        // Por ahora, para que sea útil "en vacío", daremos feedback sobre la VIABILIDAD del punto de equilibrio.
+        // Si el punto de equilibrio es muy alto (> 20.000€ por decir algo arbitrario para un local pequeño) avisamos.
+        // PERO, lo ideal es comparar con INGRESOS REALES.
+
+        // Intentamos obtener ingresos reales del mes
+        let ingresosReales = 0;
+        const kpiIngresos = document.getElementById('kpi-ingresos');
+        if (kpiIngresos) {
+          // Parsear "1.200,00€" -> 1200.00
+          const texto = kpiIngresos.textContent.replace('€', '').replace('.', '').replace(',', '.');
+          ingresosReales = parseFloat(texto) || 0;
+        }
+
+        // Si no hay ingresos reales (0), mostramos modo "Simulación Pura"
+        if (ingresosReales === 0) {
+          estadoCard.style.background = '#EFF6FF';
+          estadoCard.style.borderLeftColor = '#3B82F6';
+          estadoTitulo.style.color = '#1E40AF';
+          estadoTitulo.textContent = 'ℹ️ Modo Simulación';
+          estadoDesc.style.color = '#1E3A8A';
+          estadoDesc.textContent = 'Introduce tus costes reales para ver cuánto necesitas facturar. Cuando registres ventas reales, te diré si eres rentable.';
+        } else {
+          const ratio = ingresosReales / puntoEquilibrio;
+
+          if (ratio >= 1.2) {
+            // > 120% -> Crece (Verde)
+            estadoCard.style.background = '#F0FDF4';
+            estadoCard.style.borderLeftColor = '#10B981';
+            estadoTitulo.style.color = '#065F46';
+            estadoTitulo.textContent = '🚀 Negocio Sano (Crece)';
+            estadoDesc.style.color = '#064E3B';
+            estadoDesc.textContent = `¡Felicidades! Facturas un ${(ratio * 100).toFixed(0)}% de tu punto de equilibrio. Tu negocio es rentable y escalable.`;
+          } else if (ratio >= 1.0) {
+            // 100% - 120% -> Vive (Amarillo/Naranja)
+            estadoCard.style.background = '#FFF7ED';
+            estadoCard.style.borderLeftColor = '#F59E0B';
+            estadoTitulo.style.color = '#9A3412';
+            estadoTitulo.textContent = '✅ Negocio Estable (Vive)';
+            estadoDesc.style.color = '#7C2D12';
+            estadoDesc.textContent = `Cubres gastos, pero el margen es ajustado (${(ratio * 100).toFixed(0)}%). Controla los costes para empezar a crecer.`;
+          } else {
+            // < 100% -> Sobrevive (Rojo)
+            estadoCard.style.background = '#FEF2F2';
+            estadoCard.style.borderLeftColor = '#EF4444';
+            estadoTitulo.style.color = '#991B1B';
+            estadoTitulo.textContent = '⚠️ Zona de Peligro (Sobrevive)';
+            estadoDesc.style.color = '#7F1D1D';
+            estadoDesc.textContent = `Estás facturando solo el ${(ratio * 100).toFixed(0)}% de lo necesario. Necesitas vender más o reducir costes fijos urgentemente.`;
+          }
+        }
+      };
+
+      // Event Listeners para el simulador
+      ['sim-alquiler', 'sim-personal', 'sim-suministros', 'sim-otros', 'sim-margen'].forEach(id => {
+        document.getElementById(id).addEventListener('input', window.actualizarSimulador);
+      });
+
       // ========== AUTENTICACIÓN ==========
       const API_AUTH_URL = 'https://lacaleta-api.mindloop.cloud/api/auth';
 
@@ -3802,6 +4014,7 @@
         if (tab === 'ventas') window.renderizarVentas();
         if (tab === 'balance') window.renderizarBalance();
         if (tab === 'configuracion') window.renderizarEquipo();
+        if (tab === 'simulador') window.actualizarSimulador();
       };
 
       // ========== INGREDIENTES (código completo pero resumido visualmente) ==========
@@ -5509,11 +5722,11 @@
         Object.values(containers).forEach(c => c.innerHTML = '');
 
         const consejos = {
-       'estrella': '⭐ <strong>Consejo:</strong> Estos son tus platos estrella - generan buenos márgenes y se venden mucho. Estrategia: Mantén la calidad constante, destácalos en el menú principal, considera subirlos ligeramente de precio (tienen demanda), capacita al equipo para recomendarlos, y usa fotos atractivas en redes sociales para aprovechar su popularidad.',
-       'caballo': '🐴 <strong>Consejo:</strong> Se venden mucho pero ganan poco - peligro de trabajar sin beneficio. Estrategia urgente: Renegocia con proveedores para reducir coste, optimiza las porciones sin afectar percepción de calidad, sube el precio gradualmente (5-10%), o rediseña la receta con ingredientes más económicos manteniendo el sabor. Son candidatos a retirar si no mejora la rentabilidad.',
-       'puzzle': '❓ <strong>Consejo:</strong> Platos rentables pero poco vendidos - tienen potencial sin explotar. Estrategia: Mejora la visibilidad (posición destacada en carta, descripción más apetecible, foto profesional), forma al personal para recomendarlos activamente, crea combos con platos populares, o considera cambiar el nombre para hacerlo más atractivo. Si tras estos cambios no mejoran, evalúa retirarlos.',
-       'perro': '🐕 <strong>Consejo:</strong> No se venden y no ganan - están ocupando espacio valioso en tu carta. Acción recomendada: Retíralos del menú cuanto antes. Están consumiendo inventario, tiempo de cocina y espacio en carta sin aportar valor. Libera recursos para potenciar tus Estrellas o mejorar tus Puzzles. Si tienen valor sentimental, considera ofrecerlos solo como especial del día ocasional.'
-};
+          'estrella': '⭐ <strong>Consejo:</strong> Estos son tus platos estrella - generan buenos márgenes y se venden mucho. Estrategia: Mantén la calidad constante, destácalos en el menú principal, considera subirlos ligeramente de precio (tienen demanda), capacita al equipo para recomendarlos, y usa fotos atractivas en redes sociales para aprovechar su popularidad.',
+          'caballo': '🐴 <strong>Consejo:</strong> Se venden mucho pero ganan poco - peligro de trabajar sin beneficio. Estrategia urgente: Renegocia con proveedores para reducir coste, optimiza las porciones sin afectar percepción de calidad, sube el precio gradualmente (5-10%), o rediseña la receta con ingredientes más económicos manteniendo el sabor. Son candidatos a retirar si no mejora la rentabilidad.',
+          'puzzle': '❓ <strong>Consejo:</strong> Platos rentables pero poco vendidos - tienen potencial sin explotar. Estrategia: Mejora la visibilidad (posición destacada en carta, descripción más apetecible, foto profesional), forma al personal para recomendarlos activamente, crea combos con platos populares, o considera cambiar el nombre para hacerlo más atractivo. Si tras estos cambios no mejoran, evalúa retirarlos.',
+          'perro': '🐕 <strong>Consejo:</strong> No se venden y no ganan - están ocupando espacio valioso en tu carta. Acción recomendada: Retíralos del menú cuanto antes. Están consumiendo inventario, tiempo de cocina y espacio en carta sin aportar valor. Libera recursos para potenciar tus Estrellas o mejorar tus Puzzles. Si tienen valor sentimental, considera ofrecerlos solo como especial del día ocasional.'
+        };
 
         // Añadir consejos DENTRO del contenedor limpio, al principio
         containers['estrella'].innerHTML = `<div style="font-size: 11px; margin-bottom: 8px; color: #065f46; width:100%;">${consejos['estrella']}</div>`;
@@ -6872,4 +7085,4 @@
   </script>
 </body>
 
-  </html>
+</html>
