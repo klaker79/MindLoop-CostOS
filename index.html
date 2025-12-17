@@ -1801,6 +1801,7 @@
           id="badge-inventario" class="tab-badge" style="display:none;">0</span></button>
       <button id="tab-btn-ventas" class="tab" onclick="window.cambiarTab('ventas')">💰 Ventas</button>
       <button id="tab-btn-balance" class="tab" onclick="window.cambiarTab('balance')">💵 Finanzas</button>
+      <button id="tab-btn-diario" class="tab" onclick="window.cambiarTab('diario')">📈 Diario</button>
       <button id="tab-btn-configuracion" class="tab" onclick="window.cambiarTab('configuracion')">⚙️
         Configuración</button>
     </div>
@@ -2259,6 +2260,95 @@
             <button class="btn btn-secondary" onclick="exportarVentas()">📥 Exportar Excel</button>
           </div>
           <div id="tabla-ventas"></div>
+        </div>
+      </div>
+
+      <!-- TAB: DIARIO (Tracking de Costes/Ventas por Día) -->
+      <div id="tab-diario" class="tab-content">
+        <div class="top-bar">
+          <div>
+            <h2>📈 Control Diario</h2>
+            <p>Tracking de compras y ventas por día - Vista tipo Excel</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <select id="diario-mes" class="form-control"
+              style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+              <option value="1">Enero</option>
+              <option value="2">Febrero</option>
+              <option value="3">Marzo</option>
+              <option value="4">Abril</option>
+              <option value="5">Mayo</option>
+              <option value="6">Junio</option>
+              <option value="7">Julio</option>
+              <option value="8">Agosto</option>
+              <option value="9">Septiembre</option>
+              <option value="10">Octubre</option>
+              <option value="11">Noviembre</option>
+              <option value="12">Diciembre</option>
+            </select>
+            <select id="diario-ano" class="form-control"
+              style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+              <option value="2024">2024</option>
+              <option value="2025" selected>2025</option>
+              <option value="2026">2026</option>
+            </select>
+            <button class="btn btn-primary" onclick="window.cargarResumenMensual()">🔄 Cargar</button>
+            <button class="btn btn-secondary" onclick="window.exportarDiarioExcel()">📥 Exportar Excel</button>
+          </div>
+        </div>
+
+        <!-- Selector de Vista -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <button id="btn-vista-compras" class="btn btn-primary" onclick="window.cambiarVistaDiario('compras')">🛒
+            Compras (Costes)</button>
+          <button id="btn-vista-ventas" class="btn btn-secondary" onclick="window.cambiarVistaDiario('ventas')">💰
+            Ventas (Ingresos)</button>
+          <button id="btn-vista-combinada" class="btn btn-secondary" onclick="window.cambiarVistaDiario('combinada')">📊
+            P&L Diario</button>
+        </div>
+
+        <!-- Resumen Rápido -->
+        <div class="stats-grid" id="diario-resumen">
+          <div class="stat-card">
+            <h3>Total Compras Mes</h3>
+            <div class="value" id="diario-total-compras">0.00 €</div>
+          </div>
+          <div class="stat-card green">
+            <h3>Total Ventas Mes</h3>
+            <div class="value" id="diario-total-ventas">0.00 €</div>
+          </div>
+          <div class="stat-card blue">
+            <h3>Beneficio Bruto</h3>
+            <div class="value" id="diario-beneficio">0.00 €</div>
+          </div>
+          <div class="stat-card orange">
+            <h3>Food Cost</h3>
+            <div class="value" id="diario-food-cost">0.0%</div>
+          </div>
+        </div>
+
+        <!-- Vista Compras -->
+        <div id="vista-compras" class="diario-vista" style="display: block;">
+          <h3 style="margin-bottom: 15px;">🛒 Precio de Compra por Ingrediente / Día</h3>
+          <div id="tabla-compras-diarias" style="overflow-x: auto;">
+            <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+          </div>
+        </div>
+
+        <!-- Vista Ventas -->
+        <div id="vista-ventas" class="diario-vista" style="display: none;">
+          <h3 style="margin-bottom: 15px;">💰 Ventas por Receta / Día</h3>
+          <div id="tabla-ventas-diarias" style="overflow-x: auto;">
+            <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+          </div>
+        </div>
+
+        <!-- Vista Combinada (P&L) -->
+        <div id="vista-combinada" class="diario-vista" style="display: none;">
+          <h3 style="margin-bottom: 15px;">📊 Cuenta de Resultados Diaria</h3>
+          <div id="tabla-pl-diario" style="overflow-x: auto;">
+            <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+          </div>
         </div>
       </div>
 
@@ -7348,6 +7438,295 @@
     window.cancelarImportarPedidos = function () {
       document.getElementById('modal-importar-pedidos').classList.remove('active');
       datosImportarPedidos = [];
+    };
+
+    // ========== MÓDULO DIARIO: Tracking de Costes/Ventas por Día ==========
+
+    let datosResumenMensual = null;
+
+    // Inicializar mes actual en los selectores
+    (function initDiario() {
+      const mesSelect = document.getElementById('diario-mes');
+      const anoSelect = document.getElementById('diario-ano');
+      if (mesSelect) {
+        mesSelect.value = (new Date().getMonth() + 1).toString();
+      }
+      if (anoSelect) {
+        anoSelect.value = new Date().getFullYear().toString();
+      }
+    })();
+
+    // Cargar resumen mensual desde la API
+    window.cargarResumenMensual = async function () {
+      const mes = document.getElementById('diario-mes').value;
+      const ano = document.getElementById('diario-ano').value;
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        window.showToast('Sesión expirada', 'error');
+        return;
+      }
+
+      try {
+        window.showToast('Cargando datos...', 'info');
+
+        const response = await fetch(`${API_URL}/api/monthly/summary?mes=${mes}&ano=${ano}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Error cargando datos');
+
+        datosResumenMensual = await response.json();
+
+        // Actualizar KPIs
+        document.getElementById('diario-total-compras').textContent =
+          (datosResumenMensual.compras?.total || 0).toFixed(2) + ' €';
+        document.getElementById('diario-total-ventas').textContent =
+          (datosResumenMensual.ventas?.totalIngresos || 0).toFixed(2) + ' €';
+        document.getElementById('diario-beneficio').textContent =
+          (datosResumenMensual.ventas?.beneficioBruto || 0).toFixed(2) + ' €';
+        document.getElementById('diario-food-cost').textContent =
+          (datosResumenMensual.resumen?.foodCost || 0) + '%';
+
+        // Renderizar tablas
+        renderizarTablaComprasDiarias();
+        renderizarTablaVentasDiarias();
+        renderizarTablaPLDiario();
+
+        window.showToast('Datos cargados', 'success');
+      } catch (error) {
+        console.error('Error cargando resumen mensual:', error);
+        window.showToast('Error cargando datos', 'error');
+      }
+    };
+
+    // Cambiar entre vistas (Compras, Ventas, P&L)
+    window.cambiarVistaDiario = function (vista) {
+      // Ocultar todas las vistas
+      document.querySelectorAll('.diario-vista').forEach(el => el.style.display = 'none');
+
+      // Resetear botones
+      document.getElementById('btn-vista-compras').className = 'btn btn-secondary';
+      document.getElementById('btn-vista-ventas').className = 'btn btn-secondary';
+      document.getElementById('btn-vista-combinada').className = 'btn btn-secondary';
+
+      // Mostrar vista seleccionada
+      if (vista === 'compras') {
+        document.getElementById('vista-compras').style.display = 'block';
+        document.getElementById('btn-vista-compras').className = 'btn btn-primary';
+      } else if (vista === 'ventas') {
+        document.getElementById('vista-ventas').style.display = 'block';
+        document.getElementById('btn-vista-ventas').className = 'btn btn-primary';
+      } else if (vista === 'combinada') {
+        document.getElementById('vista-combinada').style.display = 'block';
+        document.getElementById('btn-vista-combinada').className = 'btn btn-primary';
+      }
+    };
+
+    // Renderizar tabla de compras diarias (tipo Excel)
+    function renderizarTablaComprasDiarias() {
+      const container = document.getElementById('tabla-compras-diarias');
+      if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
+        container.innerHTML = '<p class="empty-state">No hay datos de compras para este mes</p>';
+        return;
+      }
+
+      const dias = datosResumenMensual.dias;
+      const ingredientes = datosResumenMensual.compras?.ingredientes || {};
+
+      let html = '<table style="min-width: 100%; border-collapse: collapse;">';
+
+      // Header con días
+      html += '<thead><tr><th style="position: sticky; left: 0; background: #f8f8f8; z-index: 1;">Ingrediente</th>';
+      dias.forEach(dia => {
+        const fecha = new Date(dia);
+        html += `<th style="min-width: 80px; text-align: center;">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
+      });
+      html += '<th style="background: #e8f5e9; font-weight: bold;">TOTAL</th></tr></thead>';
+
+      // Filas de ingredientes
+      html += '<tbody>';
+      for (const [nombre, data] of Object.entries(ingredientes)) {
+        html += `<tr><td style="position: sticky; left: 0; background: white; font-weight: 500;">${nombre}</td>`;
+        dias.forEach(dia => {
+          const diaData = data.dias[dia];
+          if (diaData) {
+            html += `<td style="text-align: center; background: #fff3e0;">${diaData.precio.toFixed(2)}€<br><small style="color:#666;">${diaData.cantidad}</small></td>`;
+          } else {
+            html += '<td style="text-align: center; color: #ccc;">-</td>';
+          }
+        });
+        html += `<td style="text-align: center; background: #e8f5e9; font-weight: bold;">${data.total.toFixed(2)}€</td>`;
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+
+      container.innerHTML = html;
+    }
+
+    // Renderizar tabla de ventas diarias (tipo Excel)
+    function renderizarTablaVentasDiarias() {
+      const container = document.getElementById('tabla-ventas-diarias');
+      if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
+        container.innerHTML = '<p class="empty-state">No hay datos de ventas para este mes</p>';
+        return;
+      }
+
+      const dias = datosResumenMensual.dias;
+      const recetas = datosResumenMensual.ventas?.recetas || {};
+
+      let html = '<table style="min-width: 100%; border-collapse: collapse;">';
+
+      // Header con días
+      html += '<thead><tr><th style="position: sticky; left: 0; background: #f8f8f8; z-index: 1;">Receta</th>';
+      dias.forEach(dia => {
+        const fecha = new Date(dia);
+        html += `<th style="min-width: 100px; text-align: center;">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
+      });
+      html += '<th style="background: #e8f5e9; font-weight: bold;">TOTAL</th></tr></thead>';
+
+      // Filas de recetas
+      html += '<tbody>';
+      for (const [nombre, data] of Object.entries(recetas)) {
+        html += `<tr><td style="position: sticky; left: 0; background: white; font-weight: 500;">${nombre}</td>`;
+        dias.forEach(dia => {
+          const diaData = data.dias[dia];
+          if (diaData) {
+            html += `<td style="text-align: center;">
+              <div style="color: #2e7d32; font-weight: 500;">${diaData.ingresos.toFixed(2)}€</div>
+              <small style="color:#666;">${diaData.vendidas} uds</small>
+            </td>`;
+          } else {
+            html += '<td style="text-align: center; color: #ccc;">-</td>';
+          }
+        });
+        html += `<td style="text-align: center; background: #e8f5e9;">
+          <div style="font-weight: bold;">${data.totalIngresos.toFixed(2)}€</div>
+          <small>${data.totalVendidas} uds</small>
+        </td>`;
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+
+      container.innerHTML = html;
+    }
+
+    // Renderizar P&L diario
+    function renderizarTablaPLDiario() {
+      const container = document.getElementById('tabla-pl-diario');
+      if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
+        container.innerHTML = '<p class="empty-state">No hay datos para este mes</p>';
+        return;
+      }
+
+      const dias = datosResumenMensual.dias;
+      const recetas = datosResumenMensual.ventas?.recetas || {};
+
+      // Calcular totales por día
+      const totalesPorDia = {};
+      dias.forEach(dia => {
+        totalesPorDia[dia] = { ingresos: 0, costes: 0, beneficio: 0 };
+      });
+
+      for (const [nombre, data] of Object.entries(recetas)) {
+        for (const [dia, diaData] of Object.entries(data.dias)) {
+          if (totalesPorDia[dia]) {
+            totalesPorDia[dia].ingresos += diaData.ingresos;
+            totalesPorDia[dia].costes += diaData.coste;
+            totalesPorDia[dia].beneficio += diaData.beneficio;
+          }
+        }
+      }
+
+      let html = '<table style="min-width: 100%; border-collapse: collapse;">';
+
+      // Header
+      html += '<thead><tr><th style="position: sticky; left: 0; background: #f8f8f8;">Concepto</th>';
+      dias.forEach(dia => {
+        const fecha = new Date(dia);
+        html += `<th style="min-width: 90px; text-align: center;">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
+      });
+      html += '<th style="background: #1565c0; color: white;">TOTAL MES</th></tr></thead>';
+
+      // Fila Ingresos
+      let totalIngresos = 0, totalCostes = 0, totalBeneficio = 0;
+      html += '<tbody>';
+      html += '<tr style="background: #e8f5e9;"><td style="position: sticky; left: 0; background: #e8f5e9; font-weight: bold;">📈 INGRESOS</td>';
+      dias.forEach(dia => {
+        const val = totalesPorDia[dia].ingresos;
+        totalIngresos += val;
+        html += `<td style="text-align: center; font-weight: 500; color: #2e7d32;">${val.toFixed(2)}€</td>`;
+      });
+      html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalIngresos.toFixed(2)}€</td></tr>`;
+
+      // Fila Costes
+      html += '<tr style="background: #ffebee;"><td style="position: sticky; left: 0; background: #ffebee; font-weight: bold;">📉 COSTES</td>';
+      dias.forEach(dia => {
+        const val = totalesPorDia[dia].costes;
+        totalCostes += val;
+        html += `<td style="text-align: center; color: #c62828;">${val.toFixed(2)}€</td>`;
+      });
+      html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalCostes.toFixed(2)}€</td></tr>`;
+
+      // Fila Beneficio
+      html += '<tr style="background: #e3f2fd;"><td style="position: sticky; left: 0; background: #e3f2fd; font-weight: bold;">💰 BENEFICIO</td>';
+      dias.forEach(dia => {
+        const val = totalesPorDia[dia].beneficio;
+        totalBeneficio += val;
+        const color = val >= 0 ? '#1565c0' : '#c62828';
+        html += `<td style="text-align: center; font-weight: bold; color: ${color};">${val.toFixed(2)}€</td>`;
+      });
+      html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalBeneficio.toFixed(2)}€</td></tr>`;
+
+      html += '</tbody></table>';
+
+      container.innerHTML = html;
+    }
+
+    // Exportar a Excel
+    window.exportarDiarioExcel = function () {
+      if (!datosResumenMensual) {
+        window.showToast('Primero carga los datos', 'warning');
+        return;
+      }
+
+      // Crear workbook con los datos
+      const wb = XLSX.utils.book_new();
+
+      // Hoja de compras
+      const comprasData = [];
+      comprasData.push(['Ingrediente', ...datosResumenMensual.dias, 'TOTAL']);
+      for (const [nombre, data] of Object.entries(datosResumenMensual.compras?.ingredientes || {})) {
+        const fila = [nombre];
+        datosResumenMensual.dias.forEach(dia => {
+          fila.push(data.dias[dia]?.precio || '');
+        });
+        fila.push(data.total);
+        comprasData.push(fila);
+      }
+      const wsCompras = XLSX.utils.aoa_to_sheet(comprasData);
+      XLSX.utils.book_append_sheet(wb, wsCompras, 'Compras');
+
+      // Hoja de ventas
+      const ventasData = [];
+      ventasData.push(['Receta', ...datosResumenMensual.dias, 'TOTAL']);
+      for (const [nombre, data] of Object.entries(datosResumenMensual.ventas?.recetas || {})) {
+        const fila = [nombre];
+        datosResumenMensual.dias.forEach(dia => {
+          fila.push(data.dias[dia]?.ingresos || '');
+        });
+        fila.push(data.totalIngresos);
+        ventasData.push(fila);
+      }
+      const wsVentas = XLSX.utils.aoa_to_sheet(ventasData);
+      XLSX.utils.book_append_sheet(wb, wsVentas, 'Ventas');
+
+      // Descargar
+      const mes = document.getElementById('diario-mes').value;
+      const ano = document.getElementById('diario-ano').value;
+      XLSX.writeFile(wb, `Control_Diario_${ano}-${mes.padStart(2, '0')}.xlsx`);
+
+      window.showToast('Excel exportado', 'success');
     };
 
   </script>
