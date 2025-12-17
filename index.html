@@ -1922,10 +1922,6 @@
                 <input type="text" id="rec-nombre" required>
               </div>
               <div class="form-group">
-                <label>Código TPV</label>
-                <input type="text" id="rec-codigo" placeholder="Ej: 101">
-              </div>
-              <div class="form-group">
                 <label>Categoría</label>
                 <select id="rec-categoria">
                   <option value="entrante">Entrante</option>
@@ -2039,11 +2035,7 @@
             <h2>Pedidos a Proveedores</h2>
             <p>Gestiona tus pedidos y actualiza stock automáticamente</p>
           </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" onclick="window.mostrarFormularioPedido()">+ Nuevo Pedido</button>
-            <button class="btn btn-secondary" onclick="window.mostrarModalImportarPedidos()">📤 Importar
-              Pedidos</button>
-          </div>
+          <button class="btn btn-primary" onclick="window.mostrarFormularioPedido()">+ Nuevo Pedido</button>
         </div>
 
         <div class="search-box">
@@ -2215,12 +2207,8 @@
       <!-- TAB: VENTAS -->
       <div id="tab-ventas" class="tab-content">
         <div class="top-bar">
-          <div>
-            <h2>💰 Ventas</h2>
-            <p>Registro diario de ventas</p>
-          </div>
-          <button class="btn btn-secondary" onclick="window.mostrarModalImportarVentas()">📤 Importar Ventas
-            TPV</button>
+          <h2>💰 Ventas</h2>
+          <p>Registro diario de ventas</p>
         </div>
 
         <div class="card">
@@ -4070,7 +4058,6 @@
           editandoRecetaId = null;
           // Limpiar campos del formulario
           document.getElementById('rec-nombre').value = '';
-          document.getElementById('rec-codigo').value = ''; // Reset código
           document.getElementById('rec-categoria').value = 'entrante';
           document.getElementById('rec-precio_venta').value = '';
           document.getElementById('rec-porciones').value = '1';
@@ -4079,7 +4066,64 @@
           document.getElementById('btn-text-receta').textContent = 'Guardar';
         };
 
-        // ... (agregarIngredienteReceta y calcularCosteReceta sin cambios)
+        window.agregarIngredienteReceta = function () {
+          const container = document.getElementById('lista-ingredientes-receta');
+          const div = document.createElement('div');
+          div.className = 'ingrediente-item';
+
+          let opciones = '<option value="">Seleccionar...</option>';
+          ingredientes.forEach(ing => {
+            opciones += `<option value="${ing.id}">${ing.nombre} (${ing.unidad})</option>`;
+          });
+
+          div.innerHTML = `
+          <select onchange="window.calcularCosteReceta()">${opciones}</select>
+          <input type="number" placeholder="Cantidad" step="0.01" min="0" oninput="window.calcularCosteReceta()">
+          <span style="font-size: 12px; color: #666;"></span>
+          <button type="button" onclick="this.parentElement.remove(); window.calcularCosteReceta()">×</button>
+        `;
+
+          container.appendChild(div);
+        };
+
+        window.calcularCosteReceta = function () {
+          const items = document.querySelectorAll('#lista-ingredientes-receta .ingrediente-item');
+          let costeTotal = 0;
+          let hayDatos = false;
+
+          items.forEach(item => {
+            const select = item.querySelector('select');
+            const input = item.querySelector('input');
+            const span = item.querySelector('span');
+
+            if (select.value && input.value) {
+              hayDatos = true;
+              const ing = ingredientes.find(i => i.id == select.value);
+              const cantidad = parseFloat(input.value);
+              const coste = (ing.precio * cantidad).toFixed(2);
+              costeTotal += parseFloat(coste);
+              span.textContent = `${coste} €`;
+            } else {
+              span.textContent = '';
+            }
+          });
+
+          const precio_venta = parseFloat(document.getElementById('rec-precio_venta').value) || 0;
+          const margen = precio_venta - costeTotal;
+          const margenPct = precio_venta > 0 ? ((margen / precio_venta) * 100).toFixed(1) : 0;
+
+          if (hayDatos) {
+            document.getElementById('coste-calculado-form').style.display = 'block';
+            document.getElementById('coste-calculado-form').innerHTML = `
+            <h4>💰 Cálculo</h4>
+            <div class="coste-row"><span>Coste:</span><strong>${costeTotal.toFixed(2)} €</strong></div>
+            <div class="coste-row"><span>Precio:</span><strong>${precio_venta.toFixed(2)} €</strong></div>
+            <div class="coste-row"><span>Margen:</span><strong>${margen.toFixed(2)} € (${margenPct}%)</strong></div>
+          `;
+          } else {
+            document.getElementById('coste-calculado-form').style.display = 'none';
+          }
+        };
 
         window.guardarReceta = async function (event) {
           event.preventDefault();
@@ -4105,7 +4149,6 @@
 
           const receta = {
             nombre: document.getElementById('rec-nombre').value,
-            codigo: document.getElementById('rec-codigo').value, // Guardar código
             categoria: document.getElementById('rec-categoria').value,
             precio_venta: parseFloat(document.getElementById('rec-precio_venta').value) || 0,
             porciones: parseInt(document.getElementById('rec-porciones').value) || 1,
@@ -4137,7 +4180,6 @@
           if (!rec) return;
 
           document.getElementById('rec-nombre').value = rec.nombre;
-          document.getElementById('rec-codigo').value = rec.codigo || ''; // Cargar código
           document.getElementById('rec-categoria').value = rec.categoria;
           document.getElementById('rec-precio_venta').value = rec.precio_venta;
           document.getElementById('rec-porciones').value = rec.porciones;
@@ -4157,14 +4199,36 @@
           window.mostrarFormularioReceta();
         };
 
-        // ... (eliminarReceta y calcularCosteRecetaCompleto sin cambios)
+        window.eliminarReceta = async function (id) {
+          if (confirm('¿Eliminar?')) {
+            showLoading();
+            try {
+              await api.deleteReceta(id);
+              await cargarDatos();
+              renderizarRecetas();
+              hideLoading();
+              showToast('Receta eliminada', 'success');
+            } catch (error) {
+              hideLoading();
+              console.error('Error:', error);
+              showToast('Error eliminando receta: ' + error.message, 'error');
+
+            }
+          }
+        };
+
+        function calcularCosteRecetaCompleto(receta) {
+          let total = 0;
+          receta.ingredientes.forEach(item => {
+            const ing = ingredientes.find(i => i.id === item.ingredienteId);
+            if (ing) total += ing.precio * item.cantidad;
+          });
+          return total;
+        }
 
         window.renderizarRecetas = function () {
           const busqueda = document.getElementById('busqueda-recetas').value.toLowerCase();
-          const filtradas = recetas.filter(r =>
-            r.nombre.toLowerCase().includes(busqueda) ||
-            (r.codigo && r.codigo.toString().includes(busqueda)) // Buscar por código
-          );
+          const filtradas = recetas.filter(r => r.nombre.toLowerCase().includes(busqueda));
 
           const container = document.getElementById('tabla-recetas');
 
@@ -4178,7 +4242,7 @@
             document.getElementById('resumen-recetas').style.display = 'none';
           } else {
             let html = '<table><thead><tr>';
-            html += '<th>Cód.</th><th>Plato</th><th>Categoría</th><th>Coste</th><th>Precio</th><th>Margen</th><th>Acciones</th>';
+            html += '<th>Plato</th><th>Categoría</th><th>Coste</th><th>Precio</th><th>Margen</th><th>Acciones</th>';
             html += '</tr></thead><tbody>';
 
             filtradas.forEach(rec => {
@@ -4187,7 +4251,6 @@
               const pct = rec.precio_venta > 0 ? ((margen / rec.precio_venta) * 100).toFixed(0) : 0;
 
               html += '<tr>';
-              html += `<td><span style="color:#666;font-size:12px;">${rec.codigo || '-'}</span></td>`;
               html += `<td><strong>${rec.nombre}</strong></td>`;
               html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
               html += `<td>${coste.toFixed(2)} €</td>`;
@@ -4200,7 +4263,6 @@
               html += '</div></td>';
               html += '</tr>';
             });
-
 
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -4974,20 +5036,9 @@
           pedidoViendoId = null;
         };
 
-        // Función auxiliar para calcular coste completo de receta
-        window.calcularCosteRecetaCompleto = function (receta) {
-          if (!receta || !receta.ingredientes) return 0;
-          return receta.ingredientes.reduce((total, item) => {
-            const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
-            const precio = ing ? parseFloat(ing.precio) : 0;
-            return total + (precio * item.cantidad);
-          }, 0);
-        };
-
         window.descargarPedidoPDF = function () {
           if (pedidoViendoId === null) return;
 
-          const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
           const pedido = pedidos.find(p => p.id === pedidoViendoId);
           const prov = proveedores.find(p => p.id === pedido.proveedorId);
 
@@ -6307,84 +6358,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Modal: Importar Ventas TPV -->
-    <div id="modal-importar-ventas" class="modal">
-      <div class="modal-content" style="max-width: 900px;">
-        <span class="close"
-          onclick="document.getElementById('modal-importar-ventas').classList.remove('active')">&times;</span>
-        <h2>📤 Importar Ventas TPV</h2>
-
-        <div style="margin: 20px 0;">
-          <p style="color: #64748b; margin-bottom: 15px;">
-            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Código</strong> (opcional),
-            <strong>Nombre</strong>, <strong>Cantidad</strong>, <strong>Total</strong>
-          </p>
-
-          <div
-            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-            <input type="file" id="file-importar-ventas" accept=".xlsx,.csv" style="display: none;"
-              onchange="window.procesarArchivoVentas(this)">
-            <label for="file-importar-ventas" style="cursor: pointer;">
-              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo</div>
-              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-            </label>
-          </div>
-        </div>
-
-        <div id="preview-importar-ventas" style="display: none; margin-top: 20px;">
-          <h3>Vista Previa de Ventas</h3>
-          <div id="preview-ventas-container"
-            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
-
-          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" onclick="window.cancelarImportarVentas()">Cancelar</button>
-            <button class="btn btn-primary" onclick="window.confirmarImportarVentas()"
-              id="btn-confirmar-importar-ventas">✓ Importar Ventas</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: Importar Pedidos (Compras) -->
-    <div id="modal-importar-pedidos" class="modal">
-      <div class="modal-content" style="max-width: 900px;">
-        <span class="close"
-          onclick="document.getElementById('modal-importar-pedidos').classList.remove('active')">&times;</span>
-        <h2>📤 Importar Pedidos (Compras)</h2>
-
-        <div style="margin: 20px 0;">
-          <p style="color: #64748b; margin-bottom: 15px;">
-            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Fecha</strong>, <strong>Proveedor</strong>,
-            <strong>Ingrediente</strong>, <strong>Cantidad</strong>, <strong>Precio</strong>, <strong>Total</strong>
-          </p>
-
-          <div
-            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-            <input type="file" id="file-importar-pedidos" accept=".xlsx,.csv" style="display: none;"
-              onchange="window.procesarArchivoPedidos(this)">
-            <label for="file-importar-pedidos" style="cursor: pointer;">
-              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo</div>
-              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-            </label>
-          </div>
-        </div>
-
-        <div id="preview-importar-pedidos" style="display: none; margin-top: 20px;">
-          <h3>Vista Previa de Pedidos</h3>
-          <div id="preview-pedidos-container"
-            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
-
-          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" onclick="window.cancelarImportarPedidos()">Cancelar</button>
-            <button class="btn btn-primary" onclick="window.confirmarImportarPedidos()"
-              id="btn-confirmar-importar-pedidos">✓ Importar Pedidos</button>
-          </div>
-        </div>
-      </div>
-    </div>
     </script>
   </div>
   <script>
@@ -6891,8 +6864,6 @@
       btn.style.opacity = hayValidos ? '1' : '0.5';
     }
 
-
-
     window.confirmarImportarRecetas = async function () {
       const datosValidos = datosImportarRecetas.filter(d => d.valido);
 
@@ -6936,416 +6907,7 @@
       datosImportarRecetas = [];
     };
 
-
-    // ========== IMPORTAR VENTAS TPV ==========
-    let datosImportarVentas = [];
-
-    window.mostrarModalImportarVentas = function () {
-      document.getElementById('modal-importar-ventas').classList.add('active');
-      document.getElementById('preview-importar-ventas').style.display = 'none';
-      document.getElementById('file-importar-ventas').value = '';
-      datosImportarVentas = [];
-    };
-
-    window.procesarArchivoVentas = async function (input) {
-      const file = input.files[0];
-      if (!file) return;
-
-      document.getElementById('loading-overlay').classList.add('active');
-
-      try {
-        const data = await leerArchivoGenerico(file);
-        datosImportarVentas = validarDatosVentas(data);
-        mostrarPreviewVentas(datosImportarVentas);
-        document.getElementById('loading-overlay').classList.remove('active');
-      } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast('Error procesando archivo: ' + error.message, 'error');
-      }
-    };
-
-    function validarDatosVentas(data) {
-      return data.map(row => {
-        // Mapeo flexible de columnas
-        const codigo = row['Código'] || row['codigo'] || row['Codigo'] || row['CODIGO'] || '';
-        const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || row['Articulo'] || row['Artículo'] || '';
-        const cantidad = parseFloat(row['Cantidad'] || row['cantidad'] || row['CANTIDAD'] || row['Unidades'] || 0);
-        const total = parseFloat(row['Total'] || row['total'] || row['TOTAL'] || row['Importe'] || 0);
-
-        // Intentar vincular con receta existente
-        let recetaEncontrada = null;
-
-        // 1. Buscar por código exacto si existe
-        if (codigo) {
-          recetaEncontrada = window.recetas.find(r => r.codigo && String(r.codigo) === String(codigo));
-        }
-
-        // 2. Si no, buscar por nombre (exacto o aproximado)
-        if (!recetaEncontrada && nombre) {
-          const nombreNorm = nombre.toLowerCase().trim();
-          recetaEncontrada = window.recetas.find(r => r.nombre.toLowerCase().trim() === nombreNorm);
-        }
-
-        const valido = cantidad > 0 && (recetaEncontrada || nombre.length > 0);
-
-        return {
-          codigo: codigo,
-          nombre: nombre,
-          cantidad: isNaN(cantidad) ? 0 : cantidad,
-          total: isNaN(total) ? 0 : total,
-          recetaId: recetaEncontrada ? recetaEncontrada.id : null,
-          recetaNombre: recetaEncontrada ? recetaEncontrada.nombre : null,
-          valido: valido,
-          error: !valido ? 'Cantidad inválida' : (!recetaEncontrada ? '⚠️ No vinculado (se registrará como genérico)' : null)
-        };
-      });
-    }
-
-    function mostrarPreviewVentas(datos) {
-      const validos = datos.filter(d => d.valido).length;
-      const vinculados = datos.filter(d => d.recetaId).length;
-      const noVinculados = validos - vinculados;
-
-      let html = `
-        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-          <strong>Resumen:</strong> 
-          <span style="color: #10b981;">✓ ${validos} registros válidos</span>
-          <span style="color: #3b82f6; margin-left: 10px;">🔗 ${vinculados} vinculados a recetas</span>
-          ${noVinculados > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠️ ${noVinculados} sin vincular (solo financiero)</span>` : ''}
-        </div>
-        <table style="width: 100%; font-size: 13px;">
-          <thead>
-            <tr style="background: #f1f5f9;">
-              <th style="padding: 10px; text-align: left;">Estado</th>
-              <th style="padding: 10px; text-align: left;">TPV (Cód/Nombre)</th>
-              <th style="padding: 10px; text-align: left;">Receta Vinculada</th>
-              <th style="padding: 10px; text-align: right;">Cant.</th>
-              <th style="padding: 10px; text-align: right;">Total</th>
-            </tr>
-          </thead>
-          <tbody>`;
-
-      datos.forEach(item => {
-        const icon = item.valido ? '✓' : '✗';
-        const bgColor = item.valido ? (item.recetaId ? '#f0fdf4' : '#fffbeb') : '#fef2f2';
-        const iconColor = item.valido ? '#10b981' : '#ef4444';
-
-        html += `
-          <tr style="background: ${bgColor};">
-            <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
-            <td style="padding: 10px;">
-              ${item.codigo ? `<span style="font-family:monospace; background:#eee; padding:2px 4px; border-radius:4px;">${item.codigo}</span> ` : ''}
-              ${item.nombre}
-            </td>
-            <td style="padding: 10px;">
-              ${item.recetaId ? `<strong>${item.recetaNombre}</strong>` : '<span style="color:#999; font-style:italic;">No encontrado</span>'}
-            </td>
-            <td style="padding: 10px; text-align: right;">${item.cantidad}</td>
-            <td style="padding: 10px; text-align: right;">${item.total.toFixed(2)}€</td>
-          </tr>`;
-      });
-
-      html += '</tbody></table>';
-
-      document.getElementById('preview-ventas-container').innerHTML = html;
-      document.getElementById('preview-importar-ventas').style.display = 'block';
-
-      const hayValidos = datos.some(d => d.valido);
-      const btn = document.getElementById('btn-confirmar-importar-ventas');
-      btn.disabled = !hayValidos;
-      btn.style.opacity = hayValidos ? '1' : '0.5';
-    }
-
-    window.confirmarImportarVentas = async function () {
-      const datosValidos = datosImportarVentas.filter(d => d.valido);
-
-      if (datosValidos.length === 0) {
-        window.showToast('No hay ventas válidas para importar', 'error');
-        return;
-      }
-
-      if (!confirm(`¿Importar ${datosValidos.length} registros de venta?\nSe actualizará el stock de los artículos vinculados.`)) {
-        return;
-      }
-
-      document.getElementById('loading-overlay').classList.add('active');
-
-      try {
-        let importados = 0;
-        const fechaHoy = new Date().toISOString();
-
-        // Procesar en lotes o uno a uno (por ahora uno a uno para simplicidad, idealmente batch en backend)
-        // Nota: La API actual de createSale espera un solo objeto.
-        // Podríamos crear un endpoint batch, pero usaremos el existente en bucle por ahora.
-
-        for (const venta of datosValidos) {
-          // Si está vinculado, registramos venta normal (descuenta stock)
-          if (venta.recetaId) {
-            await window.api.createSale({
-              recetaId: venta.recetaId,
-              cantidad: venta.cantidad,
-              total: venta.total, // Opcional si el backend lo recalcula, pero útil si el precio TPV varía
-              fecha: fechaHoy
-            });
-          } else {
-            // Si NO está vinculado, solo registramos financieramente (TODO: Backend support for generic sales)
-            // Por ahora, para no perder el dato financiero, podríamos asignarlo a una receta "Varios" o similar,
-            // o simplemente ignorar el descuento de stock pero sumar al total.
-            // Como el backend actual requiere recetaId, saltaremos los no vinculados o crearemos una receta dummy.
-            // ESTRATEGIA: Crear venta con recetaId nulo si el backend lo permite, o loguear error.
-            // Revisando server.js: receta_id es INTEGER NOT NULL.
-            // Solución temporal: Solo importar vinculados.
-            console.warn('Venta no vinculada omitida de stock (se requiere receta):', venta.nombre);
-            continue;
-          }
-          importados++;
-        }
-
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(`✓ ${importados} ventas importadas correctamente`, 'success');
-        document.getElementById('modal-importar-ventas').classList.remove('active');
-
-        // Actualizar UI
-        await window.renderizarVentas();
-        window.actualizarKPIs();
-        window.actualizarDashboardExpandido();
-
-      } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast('Error importando ventas: ' + error.message, 'error');
-      }
-    };
-
-    window.cancelarImportarVentas = function () {
-      document.getElementById('modal-importar-ventas').classList.remove('active');
-      datosImportarVentas = [];
-    };
-
-
-    // ========== IMPORTAR PEDIDOS (COMPRAS) ==========
-    let datosImportarPedidos = [];
-
-    window.mostrarModalImportarPedidos = function () {
-      document.getElementById('modal-importar-pedidos').classList.add('active');
-      document.getElementById('preview-importar-pedidos').style.display = 'none';
-      document.getElementById('file-importar-pedidos').value = '';
-      datosImportarPedidos = [];
-    };
-
-    window.procesarArchivoPedidos = async function (input) {
-      const file = input.files[0];
-      if (!file) return;
-
-      document.getElementById('loading-overlay').classList.add('active');
-
-      try {
-        const data = await leerArchivoGenerico(file);
-        datosImportarPedidos = validarDatosPedidos(data);
-        mostrarPreviewPedidos(datosImportarPedidos);
-        document.getElementById('loading-overlay').classList.remove('active');
-      } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast('Error procesando archivo: ' + error.message, 'error');
-      }
-    };
-
-    function validarDatosPedidos(data) {
-      return data.map(row => {
-        // Mapeo flexible de columnas
-        const fecha = row['Fecha'] || row['fecha'] || row['FECHA'] || new Date().toISOString().split('T')[0];
-        const proveedor = row['Proveedor'] || row['proveedor'] || row['PROVEEDOR'] || 'Varios';
-        const ingredienteNombre = row['Ingrediente'] || row['ingrediente'] || row['INGREDIENTE'] || row['Articulo'] || row['Concepto'] || '';
-        const cantidad = parseFloat(row['Cantidad'] || row['cantidad'] || row['CANTIDAD'] || row['Unidades'] || 0);
-        const precio = parseFloat(row['Precio'] || row['precio'] || row['PRECIO'] || row['Precio Unitario'] || 0);
-        const total = parseFloat(row['Total'] || row['total'] || row['TOTAL'] || row['Importe'] || 0);
-
-        // Intentar vincular con ingrediente existente
-        let ingredienteEncontrado = null;
-        if (ingredienteNombre) {
-          const nombreNorm = ingredienteNombre.toLowerCase().trim();
-          ingredienteEncontrado = window.ingredientes.find(i => i.nombre.toLowerCase().trim() === nombreNorm);
-        }
-
-        const valido = cantidad > 0 && ingredienteNombre.length > 0;
-
-        return {
-          fecha: fecha,
-          proveedor: proveedor,
-          ingredienteNombre: ingredienteNombre,
-          cantidad: isNaN(cantidad) ? 0 : cantidad,
-          precio: isNaN(precio) ? 0 : precio,
-          total: isNaN(total) ? 0 : total,
-          ingredienteId: ingredienteEncontrado ? ingredienteEncontrado.id : null,
-          ingredienteUnidad: ingredienteEncontrado ? ingredienteEncontrado.unidad : 'unidad',
-          valido: valido,
-          error: !valido ? 'Datos incompletos' : (!ingredienteEncontrado ? '⚠️ Nuevo ingrediente (se creará)' : null)
-        };
-      });
-    }
-
-    function mostrarPreviewPedidos(datos) {
-      const validos = datos.filter(d => d.valido).length;
-      const vinculados = datos.filter(d => d.ingredienteId).length;
-      const nuevos = validos - vinculados;
-
-      let html = `
-        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-          <strong>Resumen:</strong> 
-          <span style="color: #10b981;">✓ ${validos} registros válidos</span>
-          <span style="color: #3b82f6; margin-left: 10px;">🔗 ${vinculados} vinculados</span>
-          ${nuevos > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">✨ ${nuevos} nuevos ingredientes</span>` : ''}
-        </div>
-        <table style="width: 100%; font-size: 13px;">
-          <thead>
-            <tr style="background: #f1f5f9;">
-              <th style="padding: 10px; text-align: left;">Estado</th>
-              <th style="padding: 10px; text-align: left;">Fecha</th>
-              <th style="padding: 10px; text-align: left;">Proveedor</th>
-              <th style="padding: 10px; text-align: left;">Ingrediente</th>
-              <th style="padding: 10px; text-align: right;">Cant.</th>
-              <th style="padding: 10px; text-align: right;">Total</th>
-            </tr>
-          </thead>
-          <tbody>`;
-
-      datos.forEach(item => {
-        const icon = item.valido ? '✓' : '✗';
-        const bgColor = item.valido ? (item.ingredienteId ? '#f0fdf4' : '#fffbeb') : '#fef2f2';
-        const iconColor = item.valido ? '#10b981' : '#ef4444';
-
-        html += `
-          <tr style="background: ${bgColor};">
-            <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
-            <td style="padding: 10px;">${item.fecha}</td>
-            <td style="padding: 10px;">${item.proveedor}</td>
-            <td style="padding: 10px;">
-              ${item.ingredienteNombre}
-              ${!item.ingredienteId ? '<br><span style="font-size:11px; color:#f59e0b;">(Se creará nuevo)</span>' : ''}
-            </td>
-            <td style="padding: 10px; text-align: right;">${item.cantidad} ${item.ingredienteUnidad}</td>
-            <td style="padding: 10px; text-align: right;">${item.total.toFixed(2)}€</td>
-          </tr>`;
-      });
-
-      html += '</tbody></table>';
-
-      document.getElementById('preview-pedidos-container').innerHTML = html;
-      document.getElementById('preview-importar-pedidos').style.display = 'block';
-
-      const hayValidos = datos.some(d => d.valido);
-      const btn = document.getElementById('btn-confirmar-importar-pedidos');
-      btn.disabled = !hayValidos;
-      btn.style.opacity = hayValidos ? '1' : '0.5';
-    }
-
-    window.confirmarImportarPedidos = async function () {
-      const datosValidos = datosImportarPedidos.filter(d => d.valido);
-
-      if (datosValidos.length === 0) {
-        window.showToast('No hay pedidos válidos para importar', 'error');
-        return;
-      }
-
-      if (!confirm(`¿Importar ${datosValidos.length} pedidos?\nSe actualizará el stock y se crearán los ingredientes nuevos.`)) {
-        return;
-      }
-
-      document.getElementById('loading-overlay').classList.add('active');
-
-      try {
-        let importados = 0;
-
-        for (const pedido of datosValidos) {
-          let ingId = pedido.ingredienteId;
-
-          // 1. Si no existe ingrediente, crearlo
-          if (!ingId) {
-            // Buscar proveedor ID o crear (simplificado: asignamos string por ahora o null)
-            // Para simplificar, creamos el ingrediente con datos básicos
-            const nuevoIng = await window.api.createIngrediente({
-              nombre: pedido.ingredienteNombre,
-              precio: pedido.total / pedido.cantidad, // Precio unitario calculado
-              unidad: 'unidad', // Default, usuario deberá corregir
-              stockActual: 0,
-              stockMinimo: 0,
-              familia: 'alimento' // Default
-            });
-            ingId = nuevoIng.id;
-          }
-
-          // 2. Crear el pedido (que actualiza stock en backend si está configurado, 
-          // pero la API actual de createOrder es compleja (cabecera + lineas).
-          // SIMPLIFICACION: Usaremos una lógica directa de actualización de stock + registro de gasto?
-          // No, lo correcto es crear un pedido.
-          // Pero createOrder espera { proveedorId, fecha, items: [{ingredienteId, cantidad, precio}] }
-          // Aquí tenemos una lista plana. Agruparemos por proveedor y fecha?
-          // Para MVP: Importación línea a línea creando 1 pedido por línea es ineficiente pero seguro.
-          // MEJOR: Agrupar por (Fecha, Proveedor).
-
-          // Por ahora, para no complicar, asumiremos que el backend tiene un endpoint 'registrarCompra' o similar?
-          // No. Usaremos la API existente.
-          // Vamos a actualizar el stock directamente y registrar el gasto como "Otros Gastos" o crear un pedido dummy?
-          // Lo ideal es crear el pedido real.
-
-          // ESTRATEGIA: Crear un pedido por cada línea (simple) o agrupar.
-          // Vamos a crear un pedido por línea para asegurar trazabilidad individual.
-
-          // Buscar ID proveedor
-          let provId = null;
-          const prov = window.proveedores.find(p => p.nombre.toLowerCase() === pedido.proveedor.toLowerCase());
-          if (prov) {
-            provId = prov.id;
-          } else {
-            // Crear proveedor si no existe
-            const nuevoProv = await window.api.createProveedor({
-              nombre: pedido.proveedor,
-              contacto: '',
-              telefono: '',
-              email: '',
-              direccion: '',
-              notas: 'Importado automáticamente'
-            });
-            provId = nuevoProv.id;
-            // Recargar proveedores localmente
-            window.proveedores.push(nuevoProv);
-          }
-
-          await window.api.createPedido({
-            proveedorId: provId,
-            fecha: pedido.fecha,
-            estado: 'recibido', // Importante: ya está recibido
-            ingredientes: [{
-              ingredienteId: ingId,
-              cantidad: pedido.cantidad,
-              precio: pedido.precio > 0 ? pedido.precio : (pedido.total / pedido.cantidad)
-            }],
-            total: pedido.total
-          });
-
-          importados++;
-        }
-
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(`✓ ${importados} pedidos importados correctamente`, 'success');
-        document.getElementById('modal-importar-pedidos').classList.remove('active');
-
-        // Actualizar UI
-        await window.renderizarIngredientes(); // Stock actualizado
-        await window.renderizarPedidos();
-        await window.renderizarBalance(); // P&L actualizado
-
-      } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast('Error importando pedidos: ' + error.message, 'error');
-      }
-    };
-
-    window.cancelarImportarPedidos = function () {
-      document.getElementById('modal-importar-pedidos').classList.remove('active');
-      datosImportarPedidos = [];
-    };
-
   </script>
 </body>
 
-  </html>
+</html>
