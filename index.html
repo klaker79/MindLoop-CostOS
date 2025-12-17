@@ -2817,71 +2817,112 @@
 
           showToast('Excel descargado correctamente', 'success');
         }
+        // === EXPORTACIONES ESTANDARIZADAS (Formato TPV) ===
         function exportarIngredientes() {
           const columnas = [
+            { header: 'ID', key: 'id' },
+            { header: 'Código', value: (ing) => `ING-${String(ing.id).padStart(4, '0')}` },
             { header: 'Nombre', key: 'nombre' },
-            { header: 'Categoría', key: 'categoria' },
+            { header: 'Categoría', value: (ing) => ing.familia || ing.categoria || 'alimento' },
             {
               header: 'Proveedor', value: (ing) => {
                 const prov = window.proveedores.find(p => p.id === ing.proveedor_id);
                 return prov ? prov.nombre : 'Sin proveedor';
               }
             },
-            { header: 'Precio (€)', value: (ing) => parseFloat(ing.precio || 0).toFixed(2) },
+            { header: 'Precio Unitario (€)', value: (ing) => parseFloat(ing.precio || 0).toFixed(2) },
             { header: 'Unidad', key: 'unidad' },
-            { header: 'Stock Actual', value: (ing) => parseFloat(ing.stockActual || 0).toFixed(2) },
-            { header: 'Stock Mínimo', value: (ing) => parseFloat(ing.stockMinimo || 0).toFixed(2) }
+            { header: 'Stock Actual', value: (ing) => parseFloat(ing.stock_actual || ing.stockActual || 0).toFixed(2) },
+            { header: 'Stock Mínimo', value: (ing) => parseFloat(ing.stock_minimo || ing.stockMinimo || 0).toFixed(2) },
+            { header: 'Fecha Actualización', value: () => new Date().toLocaleDateString('es-ES') }
           ];
-
-          exportarAExcel(window.ingredientes, 'Ingredientes_CostOS', columnas);
+          exportarAExcel(window.ingredientes, 'Ingredientes_LaCaleta', columnas);
         }
+
         function exportarRecetas() {
           const columnas = [
+            { header: 'ID', key: 'id' },
+            { header: 'Código', value: (rec) => rec.codigo || `REC-${String(rec.id).padStart(4, '0')}` },
             { header: 'Nombre', key: 'nombre' },
             { header: 'Categoría', key: 'categoria' },
             { header: 'Precio Venta (€)', value: (rec) => parseFloat(rec.precio_venta || 0).toFixed(2) },
             {
               header: 'Coste (€)', value: (rec) => {
-                return rec.ingredientes.reduce((sum, item) => {
+                return (rec.ingredientes || []).reduce((sum, item) => {
                   const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
-                  return sum + (ing ? ing.precio * item.cantidad : 0);
+                  return sum + (ing ? parseFloat(ing.precio) * parseFloat(item.cantidad) : 0);
                 }, 0).toFixed(2);
               }
             },
             {
-              header: 'Margen (%)', value: (rec) => {
-                const coste = rec.ingredientes.reduce((sum, item) => {
+              header: 'Margen (€)', value: (rec) => {
+                const coste = (rec.ingredientes || []).reduce((sum, item) => {
                   const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
-                  return sum + (ing ? ing.precio * item.cantidad : 0);
+                  return sum + (ing ? parseFloat(ing.precio) * parseFloat(item.cantidad) : 0);
+                }, 0);
+                return (parseFloat(rec.precio_venta || 0) - coste).toFixed(2);
+              }
+            },
+            {
+              header: 'Margen (%)', value: (rec) => {
+                const coste = (rec.ingredientes || []).reduce((sum, item) => {
+                  const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+                  return sum + (ing ? parseFloat(ing.precio) * parseFloat(item.cantidad) : 0);
                 }, 0);
                 const margen = rec.precio_venta > 0 ? ((parseFloat(rec.precio_venta) - coste) / parseFloat(rec.precio_venta) * 100) : 0;
                 return margen.toFixed(1) + '%';
               }
             },
-            { header: 'Ingredientes', value: (rec) => rec.ingredientes.length }
+            { header: 'Porciones', key: 'porciones' },
+            { header: 'Nº Ingredientes', value: (rec) => (rec.ingredientes || []).length }
           ];
-
-          exportarAExcel(window.recetas, 'Recetas_CostOS', columnas);
+          exportarAExcel(window.recetas, 'Recetas_LaCaleta', columnas);
         }
+
         function exportarVentas() {
           const columnas = [
-            { header: 'Fecha', key: 'fecha' },
+            { header: 'ID', key: 'id' },
+            { header: 'Fecha', value: (v) => new Date(v.fecha).toLocaleDateString('es-ES') },
+            { header: 'Hora', value: (v) => new Date(v.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) },
             {
-              header: 'Receta', value: (venta) => {
-                const rec = window.recetas.find(r => r.id === venta.receta_id);
-                return rec ? rec.nombre : 'Desconocida';
+              header: 'Código Receta', value: (v) => {
+                const rec = window.recetas.find(r => r.id === v.receta_id);
+                return rec?.codigo || `REC-${String(v.receta_id).padStart(4, '0')}`;
               }
             },
+            { header: 'Descripción', value: (v) => v.receta_nombre || (window.recetas.find(r => r.id === v.receta_id)?.nombre || 'Desconocida') },
             { header: 'Cantidad', key: 'cantidad' },
-            { header: 'Total (€)', value: (venta) => parseFloat(venta.total).toFixed(2) }
+            { header: 'Precio Unitario (€)', value: (v) => parseFloat(v.precio_unitario || 0).toFixed(2) },
+            { header: 'Total (€)', value: (v) => parseFloat(v.total || 0).toFixed(2) }
           ];
-
-          api.getSales().then(ventas => exportarAExcel(ventas, 'Ventas_CostOS', columnas));
+          api.getSales().then(ventas => exportarAExcel(ventas, 'Ventas_LaCaleta', columnas));
         }
+
+        // Exportar Pedidos (nueva función)
+        function exportarPedidos() {
+          const columnas = [
+            { header: 'ID', key: 'id' },
+            { header: 'Fecha Pedido', value: (p) => new Date(p.fecha).toLocaleDateString('es-ES') },
+            {
+              header: 'Proveedor', value: (p) => {
+                const prov = window.proveedores.find(pr => pr.id === p.proveedor_id);
+                return prov ? prov.nombre : 'Sin proveedor';
+              }
+            },
+            { header: 'Estado', key: 'estado' },
+            { header: 'Nº Ingredientes', value: (p) => (p.ingredientes || []).length },
+            { header: 'Total (€)', value: (p) => parseFloat(p.total || 0).toFixed(2) },
+            { header: 'Total Recibido (€)', value: (p) => parseFloat(p.total_recibido || 0).toFixed(2) },
+            { header: 'Fecha Recepción', value: (p) => p.fecha_recepcion ? new Date(p.fecha_recepcion).toLocaleDateString('es-ES') : '-' }
+          ];
+          exportarAExcel(window.pedidos, 'Pedidos_LaCaleta', columnas);
+        }
+
         // Exponer funciones globalmente
         window.exportarIngredientes = exportarIngredientes;
         window.exportarRecetas = exportarRecetas;
         window.exportarVentas = exportarVentas;
+        window.exportarPedidos = exportarPedidos;
         // === ACTUALIZAR KPIs ===
         window.actualizarKPIs = function () {
           // 1. INGRESOS TOTALES (suma de ventas)
