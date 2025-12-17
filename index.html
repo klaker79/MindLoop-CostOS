@@ -4215,7 +4215,62 @@
           document.getElementById('btn-text-receta').textContent = 'Guardar';
         };
 
-        // ... (agregarIngredienteReceta y calcularCosteReceta sin cambios)
+        // Agregar fila de ingrediente en formulario de receta
+        window.agregarIngredienteReceta = function () {
+          const lista = document.getElementById('lista-ingredientes-receta');
+          const item = document.createElement('div');
+          item.className = 'ingrediente-item';
+          item.style.cssText = 'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;';
+
+          let optionsHtml = '<option value="">Selecciona ingrediente...</option>';
+          window.ingredientes.forEach(ing => {
+            optionsHtml += `<option value="${ing.id}">${ing.nombre} (${parseFloat(ing.precio || 0).toFixed(2)}€/${ing.unidad})</option>`;
+          });
+
+          item.innerHTML = `
+            <select style="flex: 2; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.calcularCosteReceta()">
+              ${optionsHtml}
+            </select>
+            <input type="number" step="0.01" min="0" placeholder="Cantidad" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.calcularCosteReceta()">
+            <button type="button" onclick="this.parentElement.remove(); window.calcularCosteReceta();" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">✕</button>
+          `;
+
+          lista.appendChild(item);
+        };
+
+        // Calcular coste de receta desde ingredientes seleccionados
+        window.calcularCosteReceta = function () {
+          const items = document.querySelectorAll('#lista-ingredientes-receta .ingrediente-item');
+          let costeTotal = 0;
+
+          items.forEach(item => {
+            const select = item.querySelector('select');
+            const input = item.querySelector('input');
+            if (select.value && input.value) {
+              const ing = window.ingredientes.find(i => i.id === parseInt(select.value));
+              if (ing) {
+                costeTotal += parseFloat(ing.precio || 0) * parseFloat(input.value || 0);
+              }
+            }
+          });
+
+          const costeDiv = document.getElementById('coste-calculado-form');
+          if (costeDiv) {
+            costeDiv.style.display = costeTotal > 0 ? 'block' : 'none';
+            const costeSpan = document.getElementById('coste-receta-valor');
+            if (costeSpan) costeSpan.textContent = costeTotal.toFixed(2) + '€';
+
+            const precioVenta = parseFloat(document.getElementById('rec-precio_venta')?.value || 0);
+            const margenSpan = document.getElementById('margen-receta-valor');
+            if (margenSpan && precioVenta > 0) {
+              const margen = ((precioVenta - costeTotal) / precioVenta * 100);
+              margenSpan.textContent = margen.toFixed(1) + '%';
+              margenSpan.style.color = margen >= 60 ? '#10b981' : margen >= 40 ? '#f59e0b' : '#ef4444';
+            }
+          }
+
+          return costeTotal;
+        };
 
         window.guardarReceta = async function (event) {
           event.preventDefault();
