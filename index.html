@@ -7470,7 +7470,7 @@
       try {
         window.showToast('Cargando datos...', 'info');
 
-        const response = await fetch(`${API_URL}/api/monthly/summary?mes=${mes}&ano=${ano}`, {
+        const response = await fetch(`${API_BASE}/monthly/summary?mes=${mes}&ano=${ano}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
