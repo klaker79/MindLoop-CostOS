@@ -5079,36 +5079,41 @@
                     if (!confirm('¿Confirmar recepción del pedido? Esto actualizará el stock con las cantidades recibidas.')) return;
 
                     const pedido = pedidos.find(p => p.id === pedidoRecibiendoId);
-
-                    // Actualizar stock con cantidades reales recibidas
-                    let totalRecibido = 0;
+                    if (!pedido) {
+                        showToast('Pedido no encontrado', 'error');
+                        return;
+                    }
 
                     showLoading();
 
                     try {
-                        const items = pedido.itemsRecepcion || pedido.ingredientes;
+                        const items = pedido.itemsRecepcion || pedido.ingredientes || [];
+
+                        // Calcular total recibido
+                        let totalRecibido = 0;
                         for (const item of items) {
                             if (item.estado !== 'no-entregado') {
-                                const ing = ingredientes.find(i => i.id === item.ingredienteId);
-                                if (ing) {
-                                    await api.updateIngrediente(ing.id, {
-                                        ...ing,
-                                        stock_actual: parseFloat(ing.stock_actual || 0) + parseFloat(item.cantidadRecibida || item.cantidad || 0)
-                                    });
-                                }
-                                totalRecibido += item.cantidadRecibida * item.precioReal;
+                                const cantidadRecibida = parseFloat(item.cantidadRecibida || item.cantidad || 0);
+                                const precioReal = parseFloat(item.precioReal || item.precioUnitario || 0);
+                                totalRecibido += cantidadRecibida * precioReal;
                             }
                         }
 
-                        // Actualizar pedido
+                        // Preparar ingredientes con formato correcto
+                        const ingredientesFormateados = items.map(item => ({
+                            ingredienteId: item.ingredienteId || item.id,
+                            cantidad: parseFloat(item.cantidadRecibida || item.cantidad || 0),
+                            precioReal: parseFloat(item.precioReal || item.precioUnitario || 0),
+                            precioUnitario: parseFloat(item.precioUnitario || item.precioReal || 0),
+                            estado: item.estado
+                        }));
+
+                        // Actualizar pedido (el servidor actualiza el stock automáticamente)
                         await api.updatePedido(pedidoRecibiendoId, {
-                            ...pedido,
                             estado: 'recibido',
                             totalRecibido: totalRecibido,
-                            ingredientes: pedido.itemsRecepcion.map(item => ({
-                                ...item,
-                                precioReal: item.precioReal || item.precioUnitario
-                            }))
+                            fechaRecepcion: new Date().toISOString(),
+                            ingredientes: ingredientesFormateados
                         });
 
                         await cargarDatos();
