@@ -272,6 +272,52 @@ async function bulkSales(ventas) {
 }
 
 /**
+ * Pedidos (Orders)
+ */
+async function createPedido(data) {
+    return await fetchAPI('/api/orders', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+}
+
+async function updatePedido(id, data) {
+    return await fetchAPI(`/api/orders/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+}
+
+async function deletePedido(id) {
+    return await fetchAPI(`/api/orders/${id}`, {
+        method: 'DELETE'
+    });
+}
+
+/**
+ * Proveedores (Suppliers)
+ */
+async function createProveedor(data) {
+    return await fetchAPI('/api/suppliers', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+}
+
+async function updateProveedor(id, data) {
+    return await fetchAPI(`/api/suppliers/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+}
+
+async function deleteProveedor(id) {
+    return await fetchAPI(`/api/suppliers/${id}`, {
+        method: 'DELETE'
+    });
+}
+
+/**
  * Autenticación
  */
 async function login(email, password) {
@@ -403,6 +449,12 @@ window.API = {
     deleteRecipe,
     createSale,
     bulkSales,
+    createPedido,
+    updatePedido,
+    deletePedido,
+    createProveedor,
+    updateProveedor,
+    deleteProveedor,
     login,
     logout,
     initAuth,
