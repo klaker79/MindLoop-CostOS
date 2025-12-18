@@ -1,466 +1,242 @@
 /**
- * API Client Robusto para MindLoop CostOS
- * Maneja errores, reintenta conexiones, y previene TypeErrors
- * 
- * INSTRUCCIONES:
- * 1. Incluir este archivo en tu index.html ANTES del script principal
- * 2. O copiar el contenido dentro de <script> en index.html
+ * MindLoop CostOS - API Client V2
+ * Cliente profesional optimizado para seguridad y robustez.
  */
 
-const API_BASE = 'https://lacaleta-api.mindloop.cloud';
+const API_CONFIG = {
+    // Detecta automáticamente si está en localhost o producción
+    BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:3000'
+        : 'https://lacaleta-api.mindloop.cloud', // URL de producción por defecto
+    TIMEOUT: 15000, // 15 segundos
+    RETRY_ATTEMPTS: 2
+};
 
-// Estado global de la aplicación
+// Estado global reactivo (básico)
 const AppState = {
     token: localStorage.getItem('token'),
     user: JSON.parse(localStorage.getItem('user') || 'null'),
-    isAuthenticated: false,
-    lastError: null
+    isAuthenticated: !!localStorage.getItem('token')
 };
 
 /**
- * Inicializa el estado de autenticación
+ * Wrapper principal para peticiones Fetch con manejo de errores centralizado
  */
-async function initAuth() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        AppState.isAuthenticated = false;
-        return false;
-    }
+async function fetchAPI(endpoint, options = {}, retries = API_CONFIG.RETRY_ATTEMPTS) {
+    const url = `${API_CONFIG.BASE_URL}${endpoint}`;
 
-    try {
-        const result = await fetchAPI('/api/auth/verify', { method: 'GET' });
-        if (result.valid) {
-            AppState.isAuthenticated = true;
-            AppState.token = token;
-            return true;
-        }
-    } catch (e) {
-        console.warn('Token inválido o expirado, limpiando sesión...');
-        logout();
-    }
-    return false;
-}
-
-/**
- * Cliente API con manejo robusto de errores
- * @param {string} endpoint - Ruta del API (ej: '/api/ingredients')
- * @param {object} options - Opciones de fetch
- * @returns {Promise<any>} - Datos de respuesta o array/objeto vacío en caso de error
- */
-async function fetchAPI(endpoint, options = {}) {
-    const token = localStorage.getItem('token');
-
-    const defaultHeaders = {
+    const headers = {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        ...options.headers
     };
 
-    if (token) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
+    if (AppState.token) {
+        headers['Authorization'] = `Bearer ${AppState.token}`;
     }
 
     const config = {
         ...options,
-        headers: {
-            ...defaultHeaders,
-            ...options.headers
-        }
+        headers
     };
 
     try {
-        const response = await fetch(`${API_BASE}${endpoint}`, config);
+        const response = await fetch(url, config);
 
-        // Intentar parsear JSON
-        let data;
-        try {
-            data = await response.json();
-        } catch (parseError) {
-            console.error(`Error parseando respuesta de ${endpoint}:`, parseError);
-            return getDefaultResponse(endpoint);
-        }
-
-        // Manejar errores de autenticación
+        // Si es 401 (No autorizado) -> Probablemente token expirado
         if (response.status === 401) {
-            console.warn(`Auth error en ${endpoint}:`, data.error || 'Token inválido');
-            AppState.lastError = {
-                code: data.code || 'AUTH_ERROR',
-                message: data.error || 'Error de autenticación'
-            };
-
-            // Token expirado o inválido
-            if (data.code === 'TOKEN_EXPIRED' || data.code === 'INVALID_TOKEN') {
-                showToast('Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.', 'error');
-                logout();
-            }
-
-            return getDefaultResponse(endpoint);
+            handleAuthError();
+            throw new Error('Sesión expirada o inválida');
         }
 
-        // Manejar otros errores HTTP
+        // Si no es OK, intentar leer el error del cuerpo
         if (!response.ok) {
-            console.error(`Error HTTP ${response.status} en ${endpoint}:`, data.error || response.statusText);
-            AppState.lastError = {
-                code: response.status,
-                message: data.error || response.statusText
-            };
-
-            // Si la respuesta tiene datos a pesar del error, usarlos
-            if (data && !data.error) {
-                return data;
-            }
-
-            return getDefaultResponse(endpoint);
+            let errorMsg = `Error ${response.status}: ${response.statusText}`;
+            try {
+                const errorBody = await response.json();
+                errorMsg = errorBody.error || errorMsg;
+            } catch (e) { /* No es JSON */ }
+            throw new Error(errorMsg);
         }
 
-        // Éxito - limpiar último error
-        AppState.lastError = null;
+        // Si es 204 (No Content)
+        if (response.status === 204) return null;
 
-        return data;
+        return await response.json();
 
-    } catch (networkError) {
-        console.error(`Error de red en ${endpoint}:`, networkError);
-        AppState.lastError = {
-            code: 'NETWORK_ERROR',
-            message: 'Error de conexión. Verifica tu internet.'
-        };
+    } catch (error) {
+        // Lógica de reintento para errores de red (no errores de cliente 4xx)
+        if (retries > 0 && isNetworkError(error)) {
+            console.warn(`Reintentando ${endpoint} (${retries} restantes)...`);
+            await new Promise(r => setTimeout(r, 1000));
+            return fetchAPI(endpoint, options, retries - 1);
+        }
 
-        showToast('Error de conexión con el servidor', 'error');
-
-        return getDefaultResponse(endpoint);
+        console.error(`API Error (${endpoint}):`, error.message);
+        showToast(error.message, 'error');
+        throw error; // Re-lanzar para que el componente lo maneje si quiere
     }
 }
 
-/**
- * Retorna respuesta por defecto según el tipo de endpoint
- * Previene TypeErrors como "ingredients.filter is not a function"
- */
-function getDefaultResponse(endpoint) {
-    // Endpoints que devuelven arrays
-    const arrayEndpoints = [
-        '/api/ingredients',
-        '/api/recipes',
-        '/api/suppliers',
-        '/api/orders',
-        '/api/sales',
-        '/api/team',
-        '/api/inventory/complete',
-        '/api/balance/comparativa',
-        '/api/analysis/menu-engineering'
-    ];
-
-    // Verificar si el endpoint devuelve array
-    for (const path of arrayEndpoints) {
-        if (endpoint.includes(path)) {
-            return [];
-        }
-    }
-
-    // Por defecto, devolver objeto vacío
-    return {};
+function isNetworkError(error) {
+    return error.message === 'Failed to fetch' || error.message.includes('NetworkError');
 }
 
-/**
- * Funciones helper para cada tipo de recurso
- */
-async function getIngredients() {
-    const data = await fetchAPI('/api/ingredients');
-    return Array.isArray(data) ? data : [];
+function handleAuthError() {
+    console.warn('Cerrando sesión por error de autenticación 401');
+    logout();
 }
 
-async function getRecipes() {
-    const data = await fetchAPI('/api/recipes');
-    return Array.isArray(data) ? data : [];
-}
+// ==========================================
+// FUNCIONES DE AUTENTICACIÓN
+// ==========================================
 
-async function getSuppliers() {
-    const data = await fetchAPI('/api/suppliers');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getOrders() {
-    const data = await fetchAPI('/api/orders');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getSales(fecha = null) {
-    const query = fecha ? `?fecha=${fecha}` : '';
-    const data = await fetchAPI(`/api/sales${query}`);
-    return Array.isArray(data) ? data : [];
-}
-
-async function getInventoryComplete() {
-    const data = await fetchAPI('/api/inventory/complete');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getTeam() {
-    const data = await fetchAPI('/api/team');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getBalance(mes, ano) {
-    const params = new URLSearchParams();
-    if (mes) params.append('mes', mes);
-    if (ano) params.append('ano', ano);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return await fetchAPI(`/api/balance/mes${query}`);
-}
-
-async function getMonthlySummary(mes, ano) {
-    const params = new URLSearchParams();
-    if (mes) params.append('mes', mes);
-    if (ano) params.append('ano', ano);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return await fetchAPI(`/api/monthly/summary${query}`);
-}
-
-/**
- * Funciones de modificación
- */
-async function createIngredient(data) {
-    return await fetchAPI('/api/ingredients', {
-        method: 'POST',
-        body: JSON.stringify(data)
-    });
-}
-
-async function updateIngredient(id, data) {
-    return await fetchAPI(`/api/ingredients/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-    });
-}
-
-async function deleteIngredient(id) {
-    return await fetchAPI(`/api/ingredients/${id}`, {
-        method: 'DELETE'
-    });
-}
-
-async function createRecipe(data) {
-    return await fetchAPI('/api/recipes', {
-        method: 'POST',
-        body: JSON.stringify(data)
-    });
-}
-
-async function updateRecipe(id, data) {
-    return await fetchAPI(`/api/recipes/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-    });
-}
-
-async function deleteRecipe(id) {
-    return await fetchAPI(`/api/recipes/${id}`, {
-        method: 'DELETE'
-    });
-}
-
-async function createSale(recetaId, cantidad) {
-    return await fetchAPI('/api/sales', {
-        method: 'POST',
-        body: JSON.stringify({ recetaId, cantidad })
-    });
-}
-
-async function bulkSales(ventas) {
-    return await fetchAPI('/api/sales/bulk', {
-        method: 'POST',
-        body: JSON.stringify({ ventas })
-    });
-}
-
-/**
- * Pedidos (Orders)
- */
-async function createPedido(data) {
-    return await fetchAPI('/api/orders', {
-        method: 'POST',
-        body: JSON.stringify(data)
-    });
-}
-
-async function updatePedido(id, data) {
-    return await fetchAPI(`/api/orders/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-    });
-}
-
-async function deletePedido(id) {
-    return await fetchAPI(`/api/orders/${id}`, {
-        method: 'DELETE'
-    });
-}
-
-/**
- * Proveedores (Suppliers)
- */
-async function createProveedor(data) {
-    return await fetchAPI('/api/suppliers', {
-        method: 'POST',
-        body: JSON.stringify(data)
-    });
-}
-
-async function updateProveedor(id, data) {
-    return await fetchAPI(`/api/suppliers/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-    });
-}
-
-async function deleteProveedor(id) {
-    return await fetchAPI(`/api/suppliers/${id}`, {
-        method: 'DELETE'
-    });
-}
-
-/**
- * Autenticación
- */
 async function login(email, password) {
-    const result = await fetchAPI('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-    });
+    try {
+        const data = await fetchAPI('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password })
+        }, 0); // No reintentar POST de login
 
-    if (result.token) {
-        localStorage.setItem('token', result.token);
-        localStorage.setItem('user', JSON.stringify(result.user));
-        AppState.token = result.token;
-        AppState.user = result.user;
-        AppState.isAuthenticated = true;
-        return { success: true, user: result.user };
+        if (data.token) {
+            AppState.token = data.token;
+            AppState.user = data.user;
+            AppState.isAuthenticated = true;
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            return { success: true, user: data.user };
+        }
+    } catch (e) {
+        return { success: false, error: e.message };
     }
-
-    return { success: false, error: result.error || 'Error de autenticación' };
 }
 
 function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     AppState.token = null;
     AppState.user = null;
     AppState.isAuthenticated = false;
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.reload(); // Recargar para limpiar estado de UI
+}
 
-    // Mostrar pantalla de login
-    if (typeof mostrarLogin === 'function') {
-        mostrarLogin();
-    } else {
-        // Fallback: recargar página
-        window.location.reload();
+async function checkAuth() {
+    if (!AppState.token) return false;
+    try {
+        await fetchAPI('/api/auth/verify', { method: 'GET' });
+        return true;
+    } catch (e) {
+        return false;
     }
 }
 
-/**
- * Toast/Notificaciones
- */
+// ==========================================
+// RECURSOS API (CRUD Helpers)
+// ==========================================
+
+const API = {
+    auth: {
+        login,
+        logout,
+        check: checkAuth
+    },
+    ingredients: {
+        list: () => fetchAPI('/api/ingredients')
+            .then(data => Array.isArray(data) ? data : [])
+            .catch(() => []), // Fallback seguro a array
+        create: (data) => fetchAPI('/api/ingredients', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id, data) => fetchAPI(`/api/ingredients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+        delete: (id) => fetchAPI(`/api/ingredients/${id}`, { method: 'DELETE' })
+    },
+    recipes: {
+        list: () => fetchAPI('/api/recipes')
+            .then(data => Array.isArray(data) ? data : [])
+            .catch(() => []),
+        create: (data) => fetchAPI('/api/recipes', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id, data) => fetchAPI(`/api/recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+        delete: (id) => fetchAPI(`/api/recipes/${id}`, { method: 'DELETE' })
+    },
+    suppliers: {
+        list: () => fetchAPI('/api/suppliers')
+            .then(data => Array.isArray(data) ? data : [])
+            .catch(() => []),
+        create: (data) => fetchAPI('/api/suppliers', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id, data) => fetchAPI(`/api/suppliers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+        delete: (id) => fetchAPI(`/api/suppliers/${id}`, { method: 'DELETE' })
+    },
+    orders: {
+        list: () => fetchAPI('/api/orders')
+            .then(data => Array.isArray(data) ? data : [])
+            .catch(() => []),
+        create: (data) => fetchAPI('/api/orders', { method: 'POST', body: JSON.stringify(data) })
+    },
+    sales: {
+        create: (data) => fetchAPI('/api/sales', { method: 'POST', body: JSON.stringify(data) }),
+        // Bulk es un array de ventas
+        createBulk: async (ventas) => {
+            const promises = ventas.map(v => API.sales.create(v));
+            // Esperar todas, capturando errores individuales si es necesario
+            return Promise.allSettled(promises);
+        }
+    },
+    monthly: {
+        summary: (mes, ano) => fetchAPI(`/api/monthly/summary?mes=${mes}&ano=${ano}`)
+            .catch(() => ({})) // Fallback a objeto vacío
+    }
+};
+
+// ==========================================
+// UTILIDADES UI (TOASTS)
+// ==========================================
+
 function showToast(message, type = 'info') {
-    // Buscar contenedor de toast existente o crear uno
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
-        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;';
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;gap:10px;display:flex;flex-direction:column;pointer-events:none;';
         document.body.appendChild(container);
     }
 
     const toast = document.createElement('div');
-    const colors = {
-        info: '#3498db',
-        success: '#27ae60',
-        error: '#e74c3c',
-        warning: '#f39c12'
-    };
+    const colors = { info: '#3b82f6', success: '#10b981', error: '#ef4444', warning: '#f59e0b' };
 
     toast.style.cssText = `
         background: ${colors[type] || colors.info};
         color: white;
         padding: 12px 20px;
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        font-family: system-ui, -apple-system, sans-serif;
         font-size: 14px;
-        animation: slideIn 0.3s ease;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+        pointer-events: auto;
         max-width: 350px;
     `;
     toast.textContent = message;
 
     container.appendChild(toast);
 
-    // Auto-remove después de 5 segundos
-    setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 5000);
-}
-
-// CSS para animaciones
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes fadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
-
-/**
- * Generar token de API para n8n (solo admin)
- */
-async function generateAPIToken(nombre = 'n8n Integration', duracionDias = 365) {
-    const result = await fetchAPI('/api/auth/api-token', {
-        method: 'POST',
-        body: JSON.stringify({ nombre, duracionDias })
+    // Animación entrada
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
     });
 
-    if (result.apiToken) {
-        console.log('✅ Token generado exitosamente');
-        console.log('📋 Copia este token para n8n:', result.apiToken);
-        return result;
-    }
-
-    return null;
+    // Auto eliminar
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
 }
 
-// Exponer funciones globalmente
-window.API = {
-    fetch: fetchAPI,
-    getIngredients,
-    getRecipes,
-    getSuppliers,
-    getOrders,
-    getSales,
-    getInventoryComplete,
-    getTeam,
-    getBalance,
-    getMonthlySummary,
-    createIngredient,
-    updateIngredient,
-    deleteIngredient,
-    createRecipe,
-    updateRecipe,
-    deleteRecipe,
-    createSale,
-    bulkSales,
-    createPedido,
-    updatePedido,
-    deletePedido,
-    createProveedor,
-    updateProveedor,
-    deleteProveedor,
-    login,
-    logout,
-    initAuth,
-    generateAPIToken,
-    showToast,
-    state: AppState
-};
+// Exponer globalmente
+window.API = API;
+window.showToast = showToast; // Helper global útil
+window.AppState = AppState;
 
-console.log('🚀 API Client cargado. Usa window.API para acceder a las funciones.');
+console.log('✅ MindLoop API Client v2 cargado');
