@@ -3583,38 +3583,6 @@
               actualizarKPIs();
               window.actualizarDashboardExpandido();
 
-              // Event delegation para botones de pedidos
-              document.getElementById('tabla-pedidos').addEventListener('click', function(e) {
-                console.log('Click detectado en tabla-pedidos', e.target);
-
-                let btn = e.target;
-                // Si clickeamos en el emoji, subir al botón
-                if (!btn.classList.contains('icon-btn')) {
-                  btn = btn.parentElement;
-                }
-
-                if (!btn || !btn.classList.contains('icon-btn')) {
-                  console.log('No es un icon-btn');
-                  return;
-                }
-
-                const action = btn.getAttribute('data-action');
-                const id = parseInt(btn.getAttribute('data-id'));
-
-                console.log('Acción:', action, 'ID:', id);
-
-                if (action === 'ver') {
-                  console.log('Llamando verDetallesPedido');
-                  window.verDetallesPedido(id);
-                } else if (action === 'recibir') {
-                  console.log('Llamando marcarPedidoRecibido');
-                  window.marcarPedidoRecibido(id);
-                } else if (action === 'eliminar') {
-                  console.log('Llamando eliminarPedido');
-                  window.eliminarPedido(id);
-                }
-              });
-
               document.getElementById('form-venta').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const recetaId = document.getElementById('venta-receta').value;
@@ -4002,6 +3970,8 @@
                 showToast('Error conectando con la API', 'error');
               }
             }
+            let pedidosListenerAgregado = false;
+
             window.cambiarTab = function (tab) {
               document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
               document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -4016,7 +3986,45 @@
                 // Llama al análisis avanzado si está disponible
                 api.getMenuEngineering().then(data => window.renderMenuEngineeringUI(data)).catch(e => console.log('Error bcg', e));
               }
-              if (tab === 'pedidos') renderizarPedidos();
+              if (tab === 'pedidos') {
+                renderizarPedidos();
+
+                // Agregar event listener solo la primera vez
+                if (!pedidosListenerAgregado) {
+                  console.log('Agregando event listener a tabla-pedidos');
+                  document.getElementById('tabla-pedidos').addEventListener('click', function(e) {
+                    console.log('Click detectado en tabla-pedidos', e.target);
+
+                    let btn = e.target;
+                    // Si clickeamos en el emoji, subir al botón
+                    if (!btn.classList.contains('icon-btn')) {
+                      btn = btn.parentElement;
+                    }
+
+                    if (!btn || !btn.classList.contains('icon-btn')) {
+                      console.log('No es un icon-btn');
+                      return;
+                    }
+
+                    const action = btn.getAttribute('data-action');
+                    const id = parseInt(btn.getAttribute('data-id'));
+
+                    console.log('Acción:', action, 'ID:', id);
+
+                    if (action === 'ver') {
+                      console.log('Llamando verDetallesPedido');
+                      window.verDetallesPedido(id);
+                    } else if (action === 'recibir') {
+                      console.log('Llamando marcarPedidoRecibido');
+                      window.marcarPedidoRecibido(id);
+                    } else if (action === 'eliminar') {
+                      console.log('Llamando eliminarPedido');
+                      window.eliminarPedido(id);
+                    }
+                  });
+                  pedidosListenerAgregado = true;
+                }
+              }
               if (tab === 'inventario') window.renderizarInventario();
               if (tab === 'ventas') window.renderizarVentas();
               // if (tab === 'balance') window.renderizarBalance(); // DESACTIVADO - Sección P&L eliminada
