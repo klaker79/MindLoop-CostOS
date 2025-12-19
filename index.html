@@ -8276,12 +8276,16 @@ window.cargarGastosFinanzas = async function() {
         gastos.forEach(g => {
             const inputId = mapa[g.concepto];
             if (inputId) {
-                const elem = document.getElementById(inputId);
-                if (elem) elem.value = parseFloat(g.monto_mensual);
+                setTimeout(() => {
+                    const elem = document.getElementById(inputId);
+                    if (elem) elem.value = parseFloat(g.monto_mensual);
+                }, 100);
             }
         });
         
-        if (typeof window.calcularPnL === 'function') window.calcularPnL();
+        setTimeout(() => {
+            if (typeof window.calcularPnL === 'function') window.calcularPnL();
+        }, 200);
     } catch (error) {
         console.error('Error cargando gastos:', error);
     }
