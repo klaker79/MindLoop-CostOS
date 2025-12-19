@@ -7889,15 +7889,42 @@
         });
         html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalCostes.toFixed(2)}€</td></tr>`;
 
-        // Fila Beneficio
-        html += '<tr style="background: #e3f2fd;"><td style="position: sticky; left: 0; background: #e3f2fd; font-weight: bold;">💰 BENEFICIO</td>';
+        // Obtener gastos fijos mensuales desde localStorage
+        const opexData = JSON.parse(localStorage.getItem('opex_inputs') || '{"alquiler":0,"personal":0,"suministros":0,"otros":0}');
+        const gastosFijosMes = parseFloat(opexData.alquiler || 0) + parseFloat(opexData.personal || 0) + parseFloat(opexData.suministros || 0) + parseFloat(opexData.otros || 0);
+
+        // Calcular gastos fijos por día
+        const diasEnMes = dias.length;
+        const gastosFijosDia = diasEnMes > 0 ? (gastosFijosMes / diasEnMes) : 0;
+
+        // Fila Beneficio BRUTO (antes de gastos fijos)
+        html += '<tr style="background: #fff3e0;"><td style="position: sticky; left: 0; background: #fff3e0; font-weight: bold;">💰 BENEFICIO BRUTO</td>';
         dias.forEach(dia => {
           const val = totalesPorDia[dia].beneficio;
           totalBeneficio += val;
-          const color = val >= 0 ? '#1565c0' : '#c62828';
+          const color = val >= 0 ? '#f57c00' : '#c62828';
           html += `<td style="text-align: center; font-weight: bold; color: ${color};">${val.toFixed(2)}€</td>`;
         });
         html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalBeneficio.toFixed(2)}€</td></tr>`;
+
+        // Fila Gastos Fijos Diarios
+        html += '<tr style="background: #fce4ec;"><td style="position: sticky; left: 0; background: #fce4ec; font-weight: bold;">🏢 GASTOS FIJOS/DÍA</td>';
+        const totalGastosFijos = gastosFijosDia * diasEnMes;
+        dias.forEach(() => {
+          html += `<td style="text-align: center; color: #c62828;">${gastosFijosDia.toFixed(2)}€</td>`;
+        });
+        html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalGastosFijos.toFixed(2)}€</td></tr>`;
+
+        // Fila Beneficio NETO (después de gastos fijos)
+        html += '<tr style="background: #e3f2fd; border-top: 3px solid #1565c0;"><td style="position: sticky; left: 0; background: #e3f2fd; font-weight: bold; font-size: 16px;">✅ BENEFICIO NETO</td>';
+        let totalBeneficioNeto = 0;
+        dias.forEach(dia => {
+          const beneficioNeto = totalesPorDia[dia].beneficio - gastosFijosDia;
+          totalBeneficioNeto += beneficioNeto;
+          const color = beneficioNeto >= 0 ? '#1565c0' : '#c62828';
+          html += `<td style="text-align: center; font-weight: bold; font-size: 15px; color: ${color};">${beneficioNeto.toFixed(2)}€</td>`;
+        });
+        html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold; font-size: 16px;">${totalBeneficioNeto.toFixed(2)}€</td></tr>`;
 
         html += '</tbody></table>';
 
