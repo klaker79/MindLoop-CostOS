@@ -2394,13 +2394,10 @@
         </div>
 
         <!-- 💰 BENEFICIO NETO POR DÍA (MOVIDA ABAJO) -->
-        <div
-          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; margin-top: 20px; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);">
-          <h3 style="margin: 0 0 16px 0; font-size: 16px; color: white; display: flex; align-items: center; gap: 8px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; margin-top: 20px; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);"><h3 style="margin: 0 0 16px 0; font-size: 16px; color: white; display: flex; align-items: center; gap: 8px;">
             💰 Beneficio Neto por Día
           </h3>
-          <div id="beneficio-neto-diario-lista"
-            style="max-height: 300px; overflow-y: auto; background: white; border-radius: 12px; padding: 12px;">
+          <div id="beneficio-neto-diario-lista" style="max-height: 300px; overflow-y: auto; background: white; border-radius: 12px; padding: 12px;">
             <p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos</p>
           </div>
         </div>
@@ -3675,31 +3672,6 @@
               if (document.getElementById('ped-fecha')) {
                 document.getElementById('ped-fecha').value = hoy;
               }
-
-              // ✅ PRODUCTION FIX #2: Recuperar draft de inventario al cargar
-              setTimeout(() => {
-                const draft = localStorage.getItem('inventory_draft');
-                if (draft) {
-                  try {
-                    const changes = JSON.parse(draft);
-                    if (changes && changes.length > 0) {
-                      if (confirm(`Tienes ${changes.length} cambios de inventario sin guardar. ¿Continuar donde lo dejaste?`)) {
-                        // Rellenar inputs con valores del draft
-                        changes.forEach(c => {
-                          const input = document.querySelector(`.input-stock-real[data-id="${c.id}"]`);
-                          if (input) input.value = c.stock_real;
-                        });
-                        showToast(`Recuperados ${changes.length} cambios de inventario`, 'info');
-                      } else {
-                        localStorage.removeItem('inventory_draft');
-                      }
-                    }
-                  } catch (e) {
-                    console.error('Error recuperando draft:', e);
-                    localStorage.removeItem('inventory_draft');
-                  }
-                }
-              }, 2000); // Esperar 2s para que la tabla se renderice
             }
             // API helper para balance
             const API_BASE = 'https://lacaleta-api.mindloop.cloud/api';
@@ -4085,17 +4057,6 @@
                 stockActual: parseFloat(document.getElementById('ing-stockActual').value) || 0,
                 stockMinimo: parseFloat(document.getElementById('ing-stockMinimo').value) || 0
               };
-
-              // ✅ PRODUCTION FIX #3: Validación de precios realistas
-              if (ingrediente.precio > 1000) {
-                if (!confirm(`⚠️ PRECIO MUY ALTO: ${ingrediente.precio.toFixed(2)}€\n\n¿Estás seguro que es correcto?\n(Precios típicos: <100€)`)) {
-                  return;
-                }
-              } else if (ingrediente.precio < 0.01 && ingrediente.precio !== 0) {
-                if (!confirm(`⚠️ PRECIO MUY BAJO: ${ingrediente.precio.toFixed(2)}€\n\nVerifica la unidad:\n¿Es por KG o por unidad?`)) {
-                  return;
-                }
-              }
 
               // Validaciones
               if (!ingrediente.nombre || ingrediente.nombre.trim() === '') {
@@ -8350,9 +8311,8 @@
           }
         };
 
-        // ✅ CRITICAL FIX #1: Función centralizada única para calcular gastos fijos
-        // Esta es la ÚNICA fuente de verdad - todas las demás funciones deben llamar a esta
-        function calcularTotalGastosFijos() {
+        // Función para actualizar el total de gastos fijos
+        function actualizarTotalGastosFijos() {
           try {
             const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
             const total = (parseFloat(opex.alquiler) || 0) +
@@ -8360,29 +8320,12 @@
               (parseFloat(opex.suministros) || 0) +
               (parseFloat(opex.otros) || 0);
 
-            // ✅ CRITICAL FIX #3: Validar resultado
-            if (isNaN(total) || total < 0) {
-              console.error('Error: Gastos fijos inválidos', opex);
-              return 0;
-            }
-
-            return total;
-          } catch (error) {
-            console.error('Error calculando gastos fijos:', error);
-            return 0;
-          }
-        }
-
-        // Actualizar el display del total (usa la función centralizada)
-        function actualizarTotalGastosFijos() {
-          try {
-            const total = calcularTotalGastosFijos(); // ← Usar función central
             const elem = document.getElementById('diario-gastos-fijos-total');
             if (elem) {
               elem.textContent = total.toFixed(2) + ' €';
             }
           } catch (error) {
-            console.error('Error actualizando display:', error);
+            console.error('Error calculando total gastos fijos:', error);
           }
         }
 
@@ -8444,33 +8387,18 @@
             return;
           }
 
-
           const dias = datosResumenMensual.dias;
+          const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+          const gastosFijosMes = (parseFloat(opex.alquiler) || 0) +
+            (parseFloat(opex.personal) || 0) +
+            (parseFloat(opex.suministros) || 0) +
+            (parseFloat(opex.otros) || 0);
 
-          // ✅ CRITICAL FIX #1: Usar función centralizada (elimina duplicación)
-          const gastosFijosMes = calcularTotalGastosFijos();
-
-          // ✅ CRITICAL FIX #2: Calcular días con validación robusta
+          // Calcular días totales del mes correctamente
           const mes = parseInt(document.getElementById('diario-mes')?.value || new Date().getMonth() + 1);
           const ano = parseInt(document.getElementById('diario-ano')?.value || new Date().getFullYear());
-
-          // ✅ CRITICAL FIX #3: Validar mes/año ANTES de calcular días
-          if (!mes || !ano || mes < 1 || mes > 12 || ano < 2020 || ano > 2030) {
-            console.error('Mes o año inválido:', mes, ano);
-            container.innerHTML = '<p style="color: #ef4444; text-align: center; padding: 20px;">Error: Mes o año inválido</p>';
-            return;
-          }
-
           const diasTotalesMes = new Date(ano, mes, 0).getDate();
-
-          // ✅ CRITICAL FIX #3: Validar división por cero
-          if (!diasTotalesMes || isNaN(diasTotalesMes) || diasTotalesMes <= 0) {
-            console.error('ERROR CRÍTICO: Días del mes inválido', { diasTotalesMes, mes, ano });
-            container.innerHTML = '<p style="color: #ef4444; text-align: center; padding: 20px;">Error calculando días del mes</p>';
-            return;
-          }
-
-          const gastosFijosDia = gastosFijosMes / diasTotalesMes; // Ahora seguro
+          const gastosFijosDia = diasTotalesMes > 0 ? (gastosFijosMes / diasTotalesMes) : 0;
 
           let html = '';
           let acumulado = 0;
@@ -8578,37 +8506,6 @@
           container.innerHTML = headerHTML + html;
         }
 
-
-        // ✅ PRODUCTION FIX #1: Auto-refresh de JWT Token
-        function parseJwt(token) {
-          try {
-            const base64Url = token.split(".")[1];
-            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-            return JSON.parse(window.atob(base64));
-          } catch (e) { return null; }
-        }
-
-        setInterval(async () => {
-          const token = localStorage.getItem("token");
-          if (!token) return;
-          try {
-            const decoded = parseJwt(token);
-            if (!decoded?.exp) return;
-            const expiresIn = decoded.exp * 1000 - Date.now();
-            if (expiresIn < 5 * 60 * 1000 && expiresIn > 0) {
-              console.log("🔄 Renovando token...");
-              const response = await fetch(API_BASE + "/api/auth/refresh", {
-                method: "POST",
-                headers: { "Authorization": "Bearer " + token }
-              });
-              if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem("token", data.token);
-                window.showToast("Sesión renovada", "info");
-              }
-            }
-          } catch (e) { console.log("ℹ️ Auto-refresh no disponible"); }
-        }, 4 * 60 * 1000);
       </script>
 </body>
 
