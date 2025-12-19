@@ -3675,6 +3675,31 @@
               if (document.getElementById('ped-fecha')) {
                 document.getElementById('ped-fecha').value = hoy;
               }
+
+              // ✅ PRODUCTION FIX #2: Recuperar draft de inventario al cargar
+              setTimeout(() => {
+                const draft = localStorage.getItem('inventory_draft');
+                if (draft) {
+                  try {
+                    const changes = JSON.parse(draft);
+                    if (changes && changes.length > 0) {
+                      if (confirm(`Tienes ${changes.length} cambios de inventario sin guardar. ¿Continuar donde lo dejaste?`)) {
+                        // Rellenar inputs con valores del draft
+                        changes.forEach(c => {
+                          const input = document.querySelector(`.input-stock-real[data-id="${c.id}"]`);
+                          if (input) input.value = c.stock_real;
+                        });
+                        showToast(`Recuperados ${changes.length} cambios de inventario`, 'info');
+                      } else {
+                        localStorage.removeItem('inventory_draft');
+                      }
+                    }
+                  } catch (e) {
+                    console.error('Error recuperando draft:', e);
+                    localStorage.removeItem('inventory_draft');
+                  }
+                }
+              }, 2000); // Esperar 2s para que la tabla se renderice
             }
             // API helper para balance
             const API_BASE = 'https://lacaleta-api.mindloop.cloud/api';
@@ -4060,6 +4085,17 @@
                 stockActual: parseFloat(document.getElementById('ing-stockActual').value) || 0,
                 stockMinimo: parseFloat(document.getElementById('ing-stockMinimo').value) || 0
               };
+
+              // ✅ PRODUCTION FIX #3: Validación de precios realistas
+              if (ingrediente.precio > 1000) {
+                if (!confirm(`⚠️ PRECIO MUY ALTO: ${ingrediente.precio.toFixed(2)}€\n\n¿Estás seguro que es correcto?\n(Precios típicos: <100€)`)) {
+                  return;
+                }
+              } else if (ingrediente.precio < 0.01 && ingrediente.precio !== 0) {
+                if (!confirm(`⚠️ PRECIO MUY BAJO: ${ingrediente.precio.toFixed(2)}€\n\nVerifica la unidad:\n¿Es por KG o por unidad?`)) {
+                  return;
+                }
+              }
 
               // Validaciones
               if (!ingrediente.nombre || ingrediente.nombre.trim() === '') {
@@ -8542,6 +8578,37 @@
           container.innerHTML = headerHTML + html;
         }
 
+
+        // ✅ PRODUCTION FIX #1: Auto-refresh de JWT Token
+        function parseJwt(token) {
+          try {
+            const base64Url = token.split(".")[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            return JSON.parse(window.atob(base64));
+          } catch (e) { return null; }
+        }
+
+        setInterval(async () => {
+          const token = localStorage.getItem("token");
+          if (!token) return;
+          try {
+            const decoded = parseJwt(token);
+            if (!decoded?.exp) return;
+            const expiresIn = decoded.exp * 1000 - Date.now();
+            if (expiresIn < 5 * 60 * 1000 && expiresIn > 0) {
+              console.log("🔄 Renovando token...");
+              const response = await fetch(API_BASE + "/api/auth/refresh", {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + token }
+              });
+              if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem("token", data.token);
+                window.showToast("Sesión renovada", "info");
+              }
+            }
+          } catch (e) { console.log("ℹ️ Auto-refresh no disponible"); }
+        }, 4 * 60 * 1000);
       </script>
 </body>
 
