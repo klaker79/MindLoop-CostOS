@@ -650,15 +650,22 @@
     }
 
     .icon-btn {
-      background: none;
-      border: none;
+      background: transparent;
+      border: 1px solid #E2E8F0;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       cursor: pointer;
-      padding: 5px;
-      transition: all 0.2s;
+      font-size: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
     }
 
     .icon-btn:hover {
-      transform: scale(1.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .icon-btn.edit {
@@ -679,6 +686,21 @@
 
     .icon-btn.receive {
       color: #10b981;
+    }
+
+    .icon-btn.view:hover {
+      background: #EFF6FF;
+      border: 1px solid #3B82F6;
+    }
+
+    .icon-btn.receive:hover {
+      background: #ECFDF5;
+      border: 1px solid #10B981;
+    }
+
+    .icon-btn.delete:hover {
+      background: #FEF2F2;
+      border: 1px solid #EF4444;
     }
 
     .empty-state {
