@@ -8262,34 +8262,7 @@ window.guardarGastoFinanzas = async function(concepto, inputId) {
     }
 };
 
-window.cargarGastosFinanzas = async function() {
-    try {
-        const gastos = await window.API.getGastosFijos();
-        
-        const mapa = {
-            'Alquiler': 'p1-input-alquiler',
-            'Personal': 'p1-input-personal',
-            'Suministros': 'p1-input-suministros',
-            'Otros': 'p1-input-otros'
-        };
-        
-        gastos.forEach(g => {
-            const inputId = mapa[g.concepto];
-            if (inputId) {
-                setTimeout(() => {
-                    const elem = document.getElementById(inputId);
-                    if (elem) elem.value = parseFloat(g.monto_mensual);
-                }, 100);
-            }
-        });
-        
-        setTimeout(() => {
-            if (typeof window.calcularPnL === 'function') window.calcularPnL();
-        }, 200);
-    } catch (error) {
-        console.error('Error cargando gastos:', error);
-    }
-};
+
 </script>
 </body>
 
