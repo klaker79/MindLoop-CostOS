@@ -8374,61 +8374,59 @@
 
 
 
+
+        // ✅ Renderizar beneficio neto ACUMULADO por día
+        function renderizarBeneficioNetoDiario() {
+          const container = document.getElementById('beneficio-neto-diario-lista');
+          if (!container) return;
+
+          if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
+            container.innerHTML = '<p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos</p>';
+            return;
+          }
+
+          const dias = datosResumenMensual.dias;
+          const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+          const gastosFijosMes = (parseFloat(opex.alquiler) || 0) + 
+                                  (parseFloat(opex.personal) || 0) + 
+                                  (parseFloat(opex.suministros) || 0) + 
+                                  (parseFloat(opex.otros) || 0);
+          const diasMes = dias.length;
+          const gastosFijosDia = diasMes > 0 ? (gastosFijosMes / diasMes) : 0;
+
+          let html = '';
+          let acumulado = 0;
+
+          dias.forEach((dia, idx) => {
+            const ingresos = dia.ingresos || 0;
+            const costos = dia.costos || 0;
+            const beneficioNeto = ingresos - costos - gastosFijosDia;
+            acumulado += beneficioNeto;
+
+            const color = acumulado >= 0 ? '#10b981' : '#ef4444';
+            const icono = beneficioNeto >= 0 ? '✅' : '❌';
+
+            html += `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">
+                <div>
+                  <span style="color: #64748B; font-size: 13px;">${icono} Día ${idx + 1}</span>
+                  <span style="color: #94a3b8; font-size: 11px; margin-left: 8px;">${beneficioNeto >= 0 ? '+' : ''}${beneficioNeto.toFixed(2)}€</span>
+                </div>
+                <span style="color: ${color}; font-weight: 700; font-size: 14px;">${acumulado.toFixed(2)} €</span>
+              </div>
+            `;
+          });
+
+          const finalColor = acumulado >= 0 ? '#059669' : '#dc2626';
+          const finalBg = acumulado >= 0 ? '#ecfdf5' : '#fef2f2';
+          const finalIcon = acumulado >= 0 ? '✨' : '⚠️';
+
+          html = `<div style="background: ${finalBg}; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 12px; color: ${finalColor}; font-weight: 600;">${finalIcon} Total acumulado: ${acumulado.toFixed(2)}€</div>` + html;
+
+          container.innerHTML = html;
+        }
+
       </script>
 </body>
 
-</html>// ✅ Renderizar beneficio neto ACUMULADO por día
-function renderizarBeneficioNetoDiario() {
-const container = document.getElementById('beneficio-neto-diario-lista');
-if (!container) return;
-
-if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
-container.innerHTML = '<p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver
-    los datos</p>';
-return;
-}
-
-const dias = datosResumenMensual.dias;
-const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
-const gastosFijosMes = (parseFloat(opex.alquiler) || 0) +
-(parseFloat(opex.personal) || 0) +
-(parseFloat(opex.suministros) || 0) +
-(parseFloat(opex.otros) || 0);
-const diasMes = dias.length;
-const gastosFijosDia = diasMes > 0 ? (gastosFijosMes / diasMes) : 0;
-
-let html = '';
-let acumulado = 0;
-
-dias.forEach((dia, idx) => {
-const ingresos = dia.ingresos || 0;
-const costos = dia.costos || 0;
-const beneficioNeto = ingresos - costos - gastosFijosDia;
-acumulado += beneficioNeto;
-
-const color = acumulado >= 0 ? '#10b981' : '#ef4444';
-const icono = beneficioNeto >= 0 ? '✅' : '❌';
-
-html += `
-<div
-    style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">
-    <div>
-        <span style="color: #64748B; font-size: 13px;">${icono} Día ${idx + 1}</span>
-        <span style="color: #94a3b8; font-size: 11px; margin-left: 8px;">${beneficioNeto >= 0 ? '+' :
-            ''}${beneficioNeto.toFixed(2)}€</span>
-    </div>
-    <span style="color: ${color}; font-weight: 700; font-size: 14px;">${acumulado.toFixed(2)} €</span>
-</div>
-`;
-});
-
-const finalColor = acumulado >= 0 ? '#059669' : '#dc2626';
-const finalBg = acumulado >= 0 ? '#ecfdf5' : '#fef2f2';
-const finalIcon = acumulado >= 0 ? '✨' : '⚠️';
-
-html = `<div
-    style="background: ${finalBg}; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 12px; color: ${finalColor}; font-weight: 600;">
-    ${finalIcon} Total acumulado: ${acumulado.toFixed(2)}€</div>` + html;
-
-container.innerHTML = html;
-}
+</html>
