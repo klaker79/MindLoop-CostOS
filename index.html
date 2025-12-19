@@ -8376,42 +8376,48 @@
 
 
 
-        // ✅ Renderizar beneficio neto ACUMULADO por día
-        function renderizarBeneficioNetoDiario() {
-          const container = document.getElementById('beneficio-neto-diario-lista');
-          if (!container) return;
 
-          if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
-            container.innerHTML = '<p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos</p>';
-            return;
-          }
+// ✅ Renderizar beneficio neto ACUMULADO por día (VERSIÓN PRO)
+function renderizarBeneficioNetoDiario() {
+    const container = document.getElementById('beneficio-neto-diario-lista');
+    if (!container) return;
 
-          const dias = datosResumenMensual.dias;
-          const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
-          const gastosFijosMes = (parseFloat(opex.alquiler) || 0) +
-            (parseFloat(opex.personal) || 0) +
-            (parseFloat(opex.suministros) || 0) +
-            (parseFloat(opex.otros) || 0);
+    if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
+        container.innerHTML = '<p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos</p>';
+        return;
+    }
 
-          // ✅ CORREGIDO: Usar días TOTALES del mes, no días con datos
-          const mes = parseInt(document.getElementById('diario-mes')?.value || new Date().getMonth() + 1);
-          const ano = parseInt(document.getElementById('diario-ano')?.value || new Date().getFullYear());
-          const diasTotalesMes = new Date(ano, mes, 0).getDate(); // Días reales del mes (28-31)
-          const gastosFijosDia = diasTotalesMes > 0 ? (gastosFijosMes / diasTotalesMes) : 0;
+    const dias = datosResumenMensual.dias;
+    const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+    const gastosFijosMes = (parseFloat(opex.alquiler) || 0) +
+        (parseFloat(opex.personal) || 0) +
+        (parseFloat(opex.suministros) || 0) +
+        (parseFloat(opex.otros) || 0);
 
-          let html = '';
-          let acumulado = 0;
+    // Calcular días totales del mes correctamente
+    const mes = parseInt(document.getElementById('diario-mes')?.value || new Date().getMonth() + 1);
+    const ano = parseInt(document.getElementById('diario-ano')?.value || new Date().getFullYear());
+    const diasTotalesMes = new Date(ano, mes, 0).getDate();
+    const gastosFijosDia = diasTotalesMes > 0 ? (gastosFijosMes / diasTotalesMes) : 0;
 
-          dias.forEach((dia, idx) => {
-            const ingresos = dia.ingresos || 0;
-            const costos = dia.costos || 0;
-            const beneficioNeto = ingresos - costos - gastosFijosDia;
-            acumulado += beneficioNeto;
+    let html = '';
+    let acumulado = 0;
+    let sumaTotal = 0;
+    const beneficiosPorDia = [];
 
-            const color = acumulado >= 0 ? '#10b981' : '#ef4444';
-            const icono = beneficioNeto >= 0 ? '✅' : '❌';
+    // Calcular beneficios y acumulados
+    dias.forEach((dia, idx) => {
+        const ingresos = dia.ingresos || 0;
+        const costos = dia.costos || 0;
+        const beneficioNeto = ingresos - costos - gastosFijosDia;
+        acumulado += beneficioNeto;
+        sumaTotal += beneficioNeto;
+        beneficiosPorDia.push(beneficioNeto);
 
-            html += `
+        const color = acumulado >= 0 ? '#10b981' : '#ef4444';
+        const icono = beneficioNeto >= 0 ? '✅' : '❌';
+
+        html += `
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">
                 <div>
                   <span style="color: #64748B; font-size: 13px;">${icono} Día ${idx + 1}</span>
@@ -8420,16 +8426,85 @@
                 <span style="color: ${color}; font-weight: 700; font-size: 14px;">${acumulado.toFixed(2)} €</span>
               </div>
             `;
-          });
+    });
 
-          const finalColor = acumulado >= 0 ? '#059669' : '#dc2626';
-          const finalBg = acumulado >= 0 ? '#ecfdf5' : '#fef2f2';
-          const finalIcon = acumulado >= 0 ? '✨' : '⚠️';
+    // ✅ 1. PROYECCIÓN A FIN DE MES
+    const diasConDatos = dias.length;
+    const promedioDiario = diasConDatos > 0 ? (sumaTotal / diasConDatos) : 0;
+    const diasRestantes = diasTotalesMes - diasConDatos;
+    const proyeccionRestante = promedioDiario * diasRestantes;
+    const proyeccionFinMes = acumulado + proyeccionRestante;
 
-          html = `<div style="background: ${finalBg}; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 12px; color: ${finalColor}; font-weight: 600;">${finalIcon} Total acumulado: ${acumulado.toFixed(2)}€</div>` + html;
+    // ✅ 5. GRÁFICO DE TENDENCIA (últimos 7 días o todos si hay menos)
+    const diasParaTendencia = Math.min(7, beneficiosPorDia.length);
+    const beneficiosRecientes = beneficiosPorDia.slice(-diasParaTendencia);
 
-          container.innerHTML = html;
+    // Normalizar para el gráfico (encontrar min y max)
+    const min = Math.min(...beneficiosRecientes);
+    const max = Math.max(...beneficiosRecientes);
+    const rango = max - min;
+
+    let tendenciaHTML = '';
+    if (diasParaTendencia > 0 && rango > 0) {
+        const barras = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+        beneficiosRecientes.forEach(b => {
+            const normalizado = (b - min) / rango;
+            const indice = Math.min(Math.floor(normalizado * barras.length), barras.length - 1);
+            const color = b >= 0 ? '#10b981' : '#ef4444';
+            tendenciaHTML += `<span style="color: ${color}; font-size: 18px;">${barras[indice]}</span>`;
+        });
+    } else {
+        tendenciaHTML = '<span style="color: #94a3b8;">─────</span>';
+    }
+
+    // Calcular si la tendencia es alcista o bajista
+    let tendenciaTexto = '';
+    if (beneficiosRecientes.length >= 2) {
+        const primero = beneficiosRecientes[0];
+        const ultimo = beneficiosRecientes[beneficiosRecientes.length - 1];
+        if (ultimo > primero) {
+            tendenciaTexto = '<span style="color: #10b981;">↗ Mejorando</span>';
+        } else if (ultimo < primero) {
+            tendenciaTexto = '<span style="color: #ef4444;">↘ Empeorando</span>';
+        } else {
+            tendenciaTexto = '<span style="color: #94a3b8;">→ Estable</span>';
         }
+    }
+
+    // Header con todas las métricas
+    const finalColor = acumulado >= 0 ? '#059669' : '#dc2626';
+    const finalBg = acumulado >= 0 ? '#ecfdf5' : '#fef2f2';
+    const finalIcon = acumulado >= 0 ? '✨' : '⚠️';
+
+    const proyColor = proyeccionFinMes >= 0 ? '#059669' : '#dc2626';
+    const proyBg = proyeccionFinMes >= 0 ? '#ecfdf5' : '#fef2f2';
+    const proyIcon = proyeccionFinMes >= 0 ? '🎯' : '⚠️';
+
+    const headerHTML = `
+            <div style="background: ${finalBg}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+              <div style="text-align: center; font-size: 13px; color: ${finalColor}; font-weight: 600; margin-bottom: 8px;">
+                ${finalIcon} Total acumulado: ${acumulado.toFixed(2)}€
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
+                  <div style="color: #64748B;">📊 Promedio/día</div>
+                  <div style="color: #1e293b; font-weight: 700;">${promedioDiario.toFixed(2)}€</div>
+                </div>
+                <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
+                  <div style="color: #64748B;">📈 Tendencia</div>
+                  <div style="font-weight: 600;">${tendenciaTexto}</div>
+                </div>
+              </div>
+            </div>
+            <div style="background: ${proyBg}; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
+              <div style="font-size: 11px; color: #64748B; margin-bottom: 4px;">Proyección fin de mes (${diasRestantes} días restantes)</div>
+              <div style="font-size: 14px; color: ${proyColor}; font-weight: 700;">${proyIcon} ${proyeccionFinMes.toFixed(2)}€</div>
+              <div style="margin-top: 8px; font-size: 10px;">${tendenciaHTML}</div>
+            </div>
+          `;
+
+    container.innerHTML = headerHTML + html;
+}
 
       </script>
 </body>
