@@ -3582,6 +3582,24 @@
               // renderizarBalance(); // DESACTIVADO - Sección P&L eliminada
               actualizarKPIs();
               window.actualizarDashboardExpandido();
+
+              // Event delegation para botones de pedidos
+              document.getElementById('tabla-pedidos').addEventListener('click', function(e) {
+                const btn = e.target.closest('.icon-btn');
+                if (!btn) return;
+
+                const action = btn.dataset.action;
+                const id = parseInt(btn.dataset.id);
+
+                if (action === 'ver') {
+                  window.verDetallesPedido(id);
+                } else if (action === 'recibir') {
+                  window.marcarPedidoRecibido(id);
+                } else if (action === 'eliminar') {
+                  window.eliminarPedido(id);
+                }
+              });
+
               document.getElementById('form-venta').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const recetaId = document.getElementById('venta-receta').value;
@@ -5641,23 +5659,6 @@
                 document.getElementById('resumen-pedidos').style.display = 'flex';
               }
             }
-
-            // Event delegation para botones de pedidos
-            document.getElementById('tabla-pedidos').addEventListener('click', function(e) {
-              const btn = e.target.closest('.icon-btn');
-              if (!btn) return;
-
-              const action = btn.dataset.action;
-              const id = parseInt(btn.dataset.id);
-
-              if (action === 'ver') {
-                window.verDetallesPedido(id);
-              } else if (action === 'recibir') {
-                window.marcarPedidoRecibido(id);
-              } else if (action === 'eliminar') {
-                window.eliminarPedido(id);
-              }
-            });
 
             // ========== ANÁLISIS (resumido) ==========
             window.renderizarAnalisis = async function () {
