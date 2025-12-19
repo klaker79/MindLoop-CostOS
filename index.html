@@ -3972,6 +3972,11 @@
             }
 
             window.cambiarTab = function (tab) {
+              // Cerrar todos los modales al cambiar de tab
+              document.querySelectorAll('.modal.active').forEach(modal => {
+                modal.classList.remove('active');
+              });
+
               document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
               document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
@@ -4910,8 +4915,6 @@
               }
 
               renderItemsRecepcion();
-              // Asegurar que el tab de pedidos esté activo cuando se abre el modal
-              window.cambiarTab('pedidos');
               document.getElementById('modal-recibir-pedido').classList.add('active');
             };
 
@@ -5188,8 +5191,6 @@
         `;
 
               document.getElementById('modal-ver-pedido-contenido').innerHTML = html;
-              // Asegurar que el tab de pedidos esté activo cuando se abre el modal
-              window.cambiarTab('pedidos');
               document.getElementById('modal-ver-pedido').classList.add('active');
               pedidoViendoId = pedidoId;
             };
