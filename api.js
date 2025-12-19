@@ -249,6 +249,34 @@ async function deleteRecipe(id) {
     });
 }
 
+
+// ==================== GASTOS FIJOS ====================
+async function getGastosFijos() {
+    return await fetchAPI('/api/gastos-fijos', { method: 'GET' });
+}
+
+async function createGastoFijo(concepto, montoMensual) {
+    return await fetchAPI('/api/gastos-fijos', {
+        method: 'POST',
+        body: JSON.stringify({ concepto, monto_mensual: montoMensual })
+    });
+}
+
+async function updateGastoFijo(id, concepto, montoMensual) {
+    return await fetchAPI(`/api/gastos-fijos/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ concepto, monto_mensual: montoMensual })
+    });
+}
+
+async function deleteGastoFijo(id) {
+    return await fetchAPI(`/api/gastos-fijos/${id}`, { method: 'DELETE' });
+}
+
+async function getTotalGastosFijos() {
+    return await fetchAPI('/api/gastos-fijos/total', { method: 'GET' });
+}
+
 async function createSale(recetaId, cantidad) {
     return await fetchAPI('/api/sales', {
         method: 'POST',
@@ -399,6 +427,11 @@ window.API = {
     initAuth,
     generateAPIToken,
     showToast,
+    getGastosFijos,
+    createGastoFijo,
+    updateGastoFijo,
+    deleteGastoFijo,
+    getTotalGastosFijos,
     state: AppState
 };
 
