@@ -4910,6 +4910,8 @@
               }
 
               renderItemsRecepcion();
+              // Asegurar que el tab de pedidos esté activo cuando se abre el modal
+              window.cambiarTab('pedidos');
               document.getElementById('modal-recibir-pedido').classList.add('active');
             };
 
