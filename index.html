@@ -3972,6 +3972,9 @@
             }
 
             window.cambiarTab = function (tab) {
+              console.log('🔄 cambiarTab llamado con:', tab);
+              console.trace('📍 Stack trace de cambiarTab:');
+
               // COMENTADO TEMPORALMENTE - Cerrar todos los modales al cambiar de tab
               // document.querySelectorAll('.modal.active').forEach(modal => {
               //   modal.classList.remove('active');
@@ -4895,6 +4898,7 @@
             let pedidoRecibiendoId = null;
 
             window.marcarPedidoRecibido = function (id) {
+              console.log('📥 marcarPedidoRecibido llamado con id:', id);
               pedidoRecibiendoId = id;
               const pedido = pedidos.find(p => p.id === id);
               const prov = proveedores.find(p => p.id === pedido.proveedorId);
@@ -4915,20 +4919,26 @@
               }
 
               renderItemsRecepcion();
+              console.log('✅ Abriendo modal-recibir-pedido');
               document.getElementById('modal-recibir-pedido').classList.add('active');
 
               // FORZAR que la pestaña Pedidos permanezca activa
               setTimeout(() => {
+                console.log('⏰ setTimeout ejecutándose para forzar tab pedidos');
                 const tabPedidos = document.getElementById('tab-pedidos');
                 const btnPedidos = document.getElementById('tab-btn-pedidos');
+                console.log('📊 Tab pedidos activo?', tabPedidos?.classList.contains('active'));
+
                 if (tabPedidos && !tabPedidos.classList.contains('active')) {
-                  console.log('🔧 Forzando tab de pedidos a estar activo');
+                  console.log('🔧 FORZANDO tab de pedidos a estar activo');
                   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                   tabPedidos.classList.add('active');
                   if (btnPedidos) btnPedidos.classList.add('active');
+                } else {
+                  console.log('✅ Tab pedidos ya está activo, no hace falta forzar');
                 }
-              }, 10);
+              }, 100);
             };
 
             function renderItemsRecepcion() {
@@ -5112,6 +5122,7 @@
             let pedidoViendoId = null;
 
             window.verDetallesPedido = function (pedidoId) {
+              console.log('👁️ verDetallesPedido llamado con id:', pedidoId);
               const pedido = pedidos.find(p => p.id === pedidoId);
               if (!pedido) {
                 showToast('Pedido no encontrado', 'error');
