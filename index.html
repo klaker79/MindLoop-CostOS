@@ -4118,7 +4118,8 @@
   if (confirmado) {
     try {
       await api.deleteIngredient(id);
-      await window.cargarIngredientes();
+      await cargarDatos();
+      window.renderizarIngredientes();
       showToast(`✅ Ingrediente "${ing.nombre}" eliminado correctamente`, 'success');
     } catch (error) {
       showToast('❌ Error al eliminar ingrediente', 'error');
