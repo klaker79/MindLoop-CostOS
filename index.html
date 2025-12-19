@@ -3972,10 +3972,10 @@
             }
 
             window.cambiarTab = function (tab) {
-              // Cerrar todos los modales al cambiar de tab
-              document.querySelectorAll('.modal.active').forEach(modal => {
-                modal.classList.remove('active');
-              });
+              // COMENTADO TEMPORALMENTE - Cerrar todos los modales al cambiar de tab
+              // document.querySelectorAll('.modal.active').forEach(modal => {
+              //   modal.classList.remove('active');
+              // });
 
               document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
               document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
