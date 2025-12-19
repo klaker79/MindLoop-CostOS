@@ -8231,8 +8231,9 @@ async function actualizarBeneficioRealDiario() {
         const elemGastos = document.getElementById('diario-gastos-fijos');
         if (elemGastos) elemGastos.textContent = gastosDiario.toFixed(2) + ' €';
         
-        const beneficioBruto = parseFloat(document.getElementById('diario-beneficio')?.textContent || '0');
-        const beneficioReal = beneficioBruto - gastosDiario;
+                const beneficioBrutoMensual = parseFloat(document.getElementById('diario-beneficio')?.textContent || '0');
+        const beneficioBrutoDiario = beneficioBrutoMensual / 30;
+        const beneficioReal = beneficioBrutoDiario - gastosDiario;
         
         const elemBeneficio = document.getElementById('diario-beneficio-real');
         const cardBeneficio = document.getElementById('card-beneficio-real');
