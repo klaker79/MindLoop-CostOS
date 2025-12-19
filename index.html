@@ -2376,6 +2376,14 @@
             <h3>Food Cost</h3>
             <div class="value" id="diario-food-cost">0.0%</div>
           </div>
+                  <div class="stat-card orange">
+            <h3>Gastos Fijos/Día</h3>
+            <div class="value" id="diario-gastos-fijos">0.00 €</div>
+        </div>
+        <div class="stat-card" id="card-beneficio-real">
+            <h3>Beneficio Real</h3>
+            <div class="value" id="diario-beneficio-real">0.00 €</div>
+        </div>
         </div>
 
         <!-- Vista Compras -->
@@ -8212,6 +8220,33 @@ async function confirmarEliminarGastoFijo(id, concepto) {
 }
 
 window.cargarGastosFijos = cargarGastosFijos;
+
+  
+// Actualizar beneficio real con gastos fijos en Diario
+async function actualizarBeneficioRealDiario() {
+    try {
+        const totales = await window.API.getTotalGastosFijos();
+        const gastosDiario = totales.total_diario || 0;
+        
+        const elemGastos = document.getElementById('diario-gastos-fijos');
+        if (elemGastos) elemGastos.textContent = gastosDiario.toFixed(2) + ' €';
+        
+        const beneficioBruto = parseFloat(document.getElementById('diario-beneficio')?.textContent || '0');
+        const beneficioReal = beneficioBruto - gastosDiario;
+        
+        const elemBeneficio = document.getElementById('diario-beneficio-real');
+        const cardBeneficio = document.getElementById('card-beneficio-real');
+        
+        if (elemBeneficio) elemBeneficio.textContent = beneficioReal.toFixed(2) + ' €';
+        if (cardBeneficio) {
+            cardBeneficio.className = beneficioReal < 0 ? 'stat-card red' : 'stat-card green';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+setInterval(actualizarBeneficioRealDiario, 2000);
 </script>
 </body>
 
