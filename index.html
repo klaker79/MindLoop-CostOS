@@ -7918,6 +7918,33 @@ window.renderizarIngredientes();
   </div>
 </div>
 <style>
+
+  <!-- Modal Gasto Fijo -->
+<div id="modal-gasto-fijo" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarFormularioGastoFijo()">&times;</span>
+        <h2 id="titulo-modal-gasto">Añadir Gasto Fijo</h2>
+        
+        <form id="form-gasto-fijo" onsubmit="guardarGastoFijo(event)">
+            <input type="hidden" id="gasto-id">
+            
+            <div class="form-group">
+                <label for="gasto-concepto">Concepto *</label>
+                <input type="text" id="gasto-concepto" required placeholder="ej: Alquiler, Nóminas, Luz...">
+            </div>
+            
+            <div class="form-group">
+                <label for="gasto-monto">Monto Mensual (€) *</label>
+                <input type="number" id="gasto-monto" step="0.01" min="0" required placeholder="0.00">
+            </div>
+            
+            <div style="display:flex;gap:10px;margin-top:20px">
+                <button type="submit" class="btn-primary">Guardar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarFormularioGastoFijo()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
 .modal-overlay-custom {
   position: fixed;
   top: 0;
@@ -8062,6 +8089,129 @@ window.confirmarEliminacion = function(config) {
     btnConfirmar.addEventListener('click', handleConfirm);
   });
 };
+
+  
+// ==================== GASTOS FIJOS ====================
+let gastosFijos = [];
+
+async function cargarGastosFijos() {
+    try {
+        gastosFijos = await window.API.getGastosFijos();
+        renderizarGastosFijos();
+        actualizarTotalesGastosFijos();
+    } catch (error) {
+        console.error('Error cargando gastos fijos:', error);
+    }
+}
+
+function renderizarGastosFijos() {
+    const tbody = document.getElementById('tabla-gastos-fijos');
+    if (!tbody) return;
+    
+    if (gastosFijos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:40px;color:#999"><div style="font-size:48px">💰</div><div>Aún no hay gastos fijos</div></td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = gastosFijos.map(g => {
+        const costeDiario = (parseFloat(g.monto_mensual) / 30).toFixed(2);
+        return `<tr>
+            <td><strong>${g.concepto}</strong></td>
+            <td>${parseFloat(g.monto_mensual).toFixed(2)}€</td>
+            <td>${costeDiario}€</td>
+            <td>
+                <button class="btn-icon" onclick="editarGastoFijo(${g.id})">✏️</button>
+                <button class="btn-icon" onclick="confirmarEliminarGastoFijo(${g.id}, '${g.concepto}')">🗑️</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function actualizarTotalesGastosFijos() {
+    const totalMensual = gastosFijos.reduce((sum, g) => sum + parseFloat(g.monto_mensual || 0), 0);
+    const totalDiario = totalMensual / 30;
+    
+    const elemMensual = document.getElementById('total-mensual-gastos');
+    const elemDiario = document.getElementById('total-diario-gastos');
+    if (elemMensual) elemMensual.textContent = totalMensual.toFixed(2) + '€';
+    if (elemDiario) elemDiario.textContent = totalDiario.toFixed(2) + '€';
+}
+
+function abrirFormularioGastoFijo(id = null) {
+    const modal = document.getElementById('modal-gasto-fijo');
+    const titulo = document.getElementById('titulo-modal-gasto');
+    const form = document.getElementById('form-gasto-fijo');
+    
+    form.reset();
+    
+    if (id) {
+        titulo.textContent = 'Editar Gasto Fijo';
+        const gasto = gastosFijos.find(g => g.id === id);
+        if (gasto) {
+            document.getElementById('gasto-id').value = gasto.id;
+            document.getElementById('gasto-concepto').value = gasto.concepto;
+            document.getElementById('gasto-monto').value = parseFloat(gasto.monto_mensual);
+        }
+    } else {
+        titulo.textContent = 'Añadir Gasto Fijo';
+        document.getElementById('gasto-id').value = '';
+    }
+    
+    modal.style.display = 'block';
+}
+
+function cerrarFormularioGastoFijo() {
+    document.getElementById('modal-gasto-fijo').style.display = 'none';
+}
+
+async function guardarGastoFijo(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('gasto-id').value;
+    const concepto = document.getElementById('gasto-concepto').value;
+    const monto = parseFloat(document.getElementById('gasto-monto').value);
+    
+    try {
+        if (id) {
+            await window.API.updateGastoFijo(id, concepto, monto);
+            showToast('✅ Gasto fijo actualizado', 'success');
+        } else {
+            await window.API.createGastoFijo(concepto, monto);
+            showToast('✅ Gasto fijo creado', 'success');
+        }
+        
+        cerrarFormularioGastoFijo();
+        await cargarGastosFijos();
+    } catch (error) {
+        showToast('❌ Error guardando gasto', 'error');
+    }
+}
+
+function editarGastoFijo(id) {
+    abrirFormularioGastoFijo(id);
+}
+
+async function confirmarEliminarGastoFijo(id, concepto) {
+    const confirmado = await window.confirmarEliminacion({
+        titulo: 'Eliminar Gasto Fijo',
+        tipo: 'el gasto fijo',
+        nombre: concepto
+    });
+    
+    if (confirmado) {
+        try {
+            await window.API.deleteGastoFijo(id);
+            gastosFijos = gastosFijos.filter(g => g.id !== id);
+            renderizarGastosFijos();
+            actualizarTotalesGastosFijos();
+            showToast(`✅ Gasto "${concepto}" eliminado`, 'success');
+        } catch (error) {
+            showToast('❌ Error eliminando', 'error');
+        }
+    }
+}
+
+window.cargarGastosFijos = cargarGastosFijos;
 </script>
 </body>
 
