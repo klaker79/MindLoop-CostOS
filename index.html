@@ -3222,7 +3222,7 @@
                   });
                 }
               } catch (error) {
-                console.warn('Error cargando gastos fijos desde BD, usando localStorage:', error);
+                console.warn('Using localStorage for gastos fijos:', error.message);
                 // Fallback a localStorage si falla la BD
                 const savedOpex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
                 const alquilerEl = document.getElementById('pl-input-alquiler');
@@ -4065,42 +4065,55 @@
               return await res.json();
             },
 
-            // GASTOS FIJOS (Fixed Expenses)
+            // GASTOS FIJOS (Fixed Expenses) - LocalStorage based
             async getGastosFijos() {
-              const res = await fetch(API_BASE + '/gastos-fijos', {
-                headers: getAuthHeaders()
-              });
-              if (!res.ok) throw new Error('Error cargando gastos fijos');
-              return await res.json();
+              try {
+                const stored = localStorage.getItem('gastos_fijos');
+                return stored ? JSON.parse(stored) : [];
+              } catch (error) {
+                console.warn('Error loading gastos fijos from localStorage:', error);
+                return [];
+              }
             },
 
             async createGastoFijo(concepto, monto_mensual) {
-              const res = await fetch(API_BASE + '/gastos-fijos', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ concepto, monto_mensual })
-              });
-              if (!res.ok) throw new Error('Error creando gasto fijo');
-              return await res.json();
+              try {
+                const gastos = await this.getGastosFijos();
+                const newGasto = {
+                  id: Date.now(),
+                  concepto,
+                  monto_mensual: parseFloat(monto_mensual)
+                };
+                gastos.push(newGasto);
+                localStorage.setItem('gastos_fijos', JSON.stringify(gastos));
+                return newGasto;
+              } catch (error) {
+                throw new Error('Error creando gasto fijo: ' + error.message);
+              }
             },
 
             async updateGastoFijo(id, concepto, monto_mensual) {
-              const res = await fetch(API_BASE + `/gastos-fijos/${id}`, {
-                method: 'PUT',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ concepto, monto_mensual })
-              });
-              if (!res.ok) throw new Error('Error actualizando gasto fijo');
-              return await res.json();
+              try {
+                const gastos = await this.getGastosFijos();
+                const index = gastos.findIndex(g => g.id === id);
+                if (index === -1) throw new Error('Gasto no encontrado');
+                gastos[index] = { id, concepto, monto_mensual: parseFloat(monto_mensual) };
+                localStorage.setItem('gastos_fijos', JSON.stringify(gastos));
+                return gastos[index];
+              } catch (error) {
+                throw new Error('Error actualizando gasto fijo: ' + error.message);
+              }
             },
 
             async deleteGastoFijo(id) {
-              const res = await fetch(API_BASE + `/gastos-fijos/${id}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders()
-              });
-              if (!res.ok) throw new Error('Error eliminando gasto fijo');
-              return await res.json();
+              try {
+                const gastos = await this.getGastosFijos();
+                const filtered = gastos.filter(g => g.id !== id);
+                localStorage.setItem('gastos_fijos', JSON.stringify(filtered));
+                return { success: true };
+              } catch (error) {
+                throw new Error('Error eliminando gasto fijo: ' + error.message);
+              }
             }
           };
 
