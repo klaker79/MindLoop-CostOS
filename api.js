@@ -401,5 +401,3 @@ window.API = {
     showToast,
     state: AppState
 };
-
-console.log('🚀 API Client cargado. Usa window.API para acceder a las funciones.');
