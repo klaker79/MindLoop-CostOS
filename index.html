@@ -2366,6 +2366,42 @@
           <button id="btn-vista-combinada" class="btn btn-secondary" onclick="window.cambiarVistaDiario('combinada')">📊
             P&L Diario</button>
         </div>
+        <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
+        <div style="margin-top: 30px;">
+          <!-- Vista Compras -->
+          <div id="vista-compras" class="diario-vista" style="display: block;">
+            <h3 style="margin-bottom: 15px;">🛒 Precio de Compra por Ingrediente / Día</h3>
+            <div id="tabla-compras-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
+              <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+            </div>
+          </div>
+
+          <!-- Vista Ventas -->
+          <div id="vista-ventas" class="diario-vista" style="display: none;">
+            <h3 style="margin-bottom: 15px;">💰 Ventas por Receta / Día</h3>
+            <div id="tabla-ventas-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
+              <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+            </div>
+          </div>
+
+          <!-- Vista Combinada (P&L) -->
+          <div id="vista-combinada" class="diario-vista" style="display: none;">
+            <h3 style="margin-bottom: 15px;">📊 Cuenta de Resultados Diaria</h3>
+            <div id="tabla-pl-diario" style="overflow-x: auto; width: 100%; max-width: 100%;">
+              <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 💰 BENEFICIO NETO POR DÍA (MOVIDA ABAJO) -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; margin-top: 20px; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);"><h3 style="margin: 0 0 16px 0; font-size: 16px; color: white; display: flex; align-items: center; gap: 8px;">
+            💰 Beneficio Neto por Día
+          </h3>
+          <div id="beneficio-neto-diario-lista" style="max-height: 300px; overflow-y: auto; background: white; border-radius: 12px; padding: 12px;">
+            <p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos</p>
+          </div>
+        </div>
+
 
 
         <!-- 💰 GASTOS FIJOS MENSUALES -->
@@ -2448,42 +2484,6 @@
             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
             <h3 style="color: rgba(255,255,255,0.9);">💰 Gastos Fijos Totales</h3>
             <div class="value" id="diario-gastos-fijos-total" style="color: white;">0.00 €</div>
-          </div>
-        </div>
-
-        <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
-        <div style="margin-top: 30px;">
-          <!-- Vista Compras -->
-          <div id="vista-compras" class="diario-vista" style="display: block;">
-            <h3 style="margin-bottom: 15px;">🛒 Precio de Compra por Ingrediente / Día</h3>
-            <div id="tabla-compras-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
-              <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
-            </div>
-          </div>
-
-          <!-- Vista Ventas -->
-          <div id="vista-ventas" class="diario-vista" style="display: none;">
-            <h3 style="margin-bottom: 15px;">💰 Ventas por Receta / Día</h3>
-            <div id="tabla-ventas-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
-              <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
-            </div>
-          </div>
-
-          <!-- Vista Combinada (P&L) -->
-          <div id="vista-combinada" class="diario-vista" style="display: none;">
-            <h3 style="margin-bottom: 15px;">📊 Cuenta de Resultados Diaria</h3>
-            <div id="tabla-pl-diario" style="overflow-x: auto; width: 100%; max-width: 100%;">
-              <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- 💰 BENEFICIO NETO POR DÍA (MOVIDA ABAJO) -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; margin-top: 20px; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);"><h3 style="margin: 0 0 16px 0; font-size: 16px; color: white; display: flex; align-items: center; gap: 8px;">
-            💰 Beneficio Neto por Día
-          </h3>
-          <div id="beneficio-neto-diario-lista" style="max-height: 300px; overflow-y: auto; background: white; border-radius: 12px; padding: 12px;">
-            <p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos</p>
           </div>
         </div>
 
