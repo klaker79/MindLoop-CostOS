@@ -1848,6 +1848,16 @@
         </div>
       </div>
 
+      <!-- 💰 Beneficio Neto Diario -->
+      <div class="dashboard-card"
+        style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);"><h3 style="margin: 0 0 16px 0; font-size: 16px; color: #1E293B; display: flex; align-items: center; gap: 8px;">
+          💰 Beneficio Neto por Día
+        </h3>
+        <div id="beneficio-neto-diario-lista" style="max-height: 200px; overflow-y: auto; font-size: 13px;">
+          <p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un més para ver los datos</p>
+        </div>
+      </div>
+
     </div>
     <div class="tabs">
       <button id="tab-btn-ingredientes" class="tab active" onclick="window.cambiarTab('ingredientes')">📦
@@ -8317,6 +8327,50 @@
             console.error('Error calculando total gastos fijos:', error);
           }
         }
+
+
+        // Cargar valores guardados en los sliders al iniciar
+        function cargarValoresGastosFijos() {
+          try {
+            const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+
+            if (opex.alquiler) {
+              const slider = document.getElementById('gf-alquiler');
+              if (slider) {
+                slider.value = opex.alquiler;
+                document.getElementById('gf-alquiler-valor').textContent = opex.alquiler + '€';
+              }
+            }
+            if (opex.personal) {
+              const slider = document.getElementById('gf-personal');
+              if (slider) {
+                slider.value = opex.personal;
+                document.getElementById('gf-personal-valor').textContent = opex.personal + '€';
+              }
+            }
+            if (opex.suministros) {
+              const slider = document.getElementById('gf-suministros');
+              if (slider) {
+                slider.value = opex.suministros;
+                document.getElementById('gf-suministros-valor').textContent = opex.suministros + '€';
+              }
+            }
+            if (opex.otros) {
+              const slider = document.getElementById('gf-otros');
+              if (slider) {
+                slider.value = opex.otros;
+                document.getElementById('gf-otros-valor').textContent = opex.otros + '€';
+              }
+            }
+
+            actualizarTotalGastosFijos();
+          } catch (error) {
+            console.error('Error cargando gastos fijos:', error);
+          }
+        }
+
+        // Llamar al cargar la página
+        setTimeout(cargarValoresGastosFijos, 500);
 
 
 
