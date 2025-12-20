@@ -650,15 +650,22 @@
     }
 
     .icon-btn {
-      background: none;
-      border: none;
+      background: transparent;
+      border: 1px solid #E2E8F0;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       cursor: pointer;
-      padding: 5px;
-      transition: all 0.2s;
+      font-size: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
     }
 
     .icon-btn:hover {
-      transform: scale(1.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .icon-btn.edit {
@@ -679,6 +686,21 @@
 
     .icon-btn.receive {
       color: #10b981;
+    }
+
+    .icon-btn.view:hover {
+      background: #EFF6FF;
+      border: 1px solid #3B82F6;
+    }
+
+    .icon-btn.receive:hover {
+      background: #ECFDF5;
+      border: 1px solid #10B981;
+    }
+
+    .icon-btn.delete:hover {
+      background: #FEF2F2;
+      border: 1px solid #EF4444;
     }
 
     .empty-state {
@@ -775,30 +797,35 @@
     }
 
     .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
+      display: none !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      background: rgba(0, 0, 0, 0.5) !important;
+      z-index: 999999 !important;
+      align-items: center !important;
+      justify-content: center !important;
+      opacity: 1 !important;
+      visibility: visible !important;
     }
 
     .modal.active {
-      display: flex;
+      display: flex !important;
     }
 
     .modal-content {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      max-width: 600px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
+      background: white !important;
+      padding: 30px !important;
+      border-radius: 10px !important;
+      width: 800px !important;
+      min-width: 800px !important;
+      max-width: 90vw !important;
+      max-height: 80vh !important;
+      overflow-y: auto !important;
+      position: relative !important;
+      margin: auto !important;
     }
 
     .modal-content h3 {
@@ -1208,47 +1235,6 @@
       font-weight: 600;
     }
 
-    /* Actions buttons */
-    .actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-
-    .icon-btn {
-      background: transparent;
-      border: 1px solid #E2E8F0;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
-
-    .icon-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .icon-btn.edit:hover {
-      background: #FFF7ED;
-      border-color: #F59E0B;
-    }
-
-    .icon-btn.delete:hover {
-      background: #FEF2F2;
-      border-color: #EF4444;
-    }
-
-    .icon-btn.view:hover {
-      background: #EFF6FF;
-      border-color: #3B82F6;
-    }
-
     table tbody tr {
       background: white;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1274,51 +1260,6 @@
 
     table tbody td:first-child {
       font-weight: 600;
-    }
-
-    /* Actions buttons */
-    .actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-
-    .icon-btn {
-      background: transparent;
-      border: 1px solid #E2E8F0;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
-
-    .icon-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .icon-btn.edit:hover {
-      background: #FFF7ED;
-      border-color: #F59E0B;
-    }
-
-    .icon-btn.delete:hover {
-      background: #FEF2F2;
-      border-color: #EF4444;
-    }
-
-    .icon-btn.view:hover {
-      background: #EFF6FF;
-      border-color: #3B82F6;
-    }
-
-    background: #EFF6FF;
-    border-color: #3B82F6;
     }
 
     /* === ANIMACIONES DE ENTRADA === */
@@ -2685,11 +2626,13 @@
         <script src="api.js"></script>
 
         <script>
+          console.log('🚀 SCRIPT INICIANDO - JavaScript cargado correctamente');
           // Código JavaScript completo (por brevedad, incluyo versión funcional comprimida)
           // El código completo está disponible en el archivo descargable
 
 
           (function () {
+            console.log('🎯 IIFE iniciado - funciones globales cargándose');
             window.ingredientes = [];
             window.recetas = [];
             window.proveedores = [];
@@ -3641,6 +3584,7 @@
               // renderizarBalance(); // DESACTIVADO - Sección P&L eliminada
               actualizarKPIs();
               window.actualizarDashboardExpandido();
+
               document.getElementById('form-venta').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const recetaId = document.getElementById('venta-receta').value;
@@ -4028,7 +3972,16 @@
                 showToast('Error conectando con la API', 'error');
               }
             }
+
             window.cambiarTab = function (tab) {
+              console.log('🔄 cambiarTab llamado con:', tab);
+              console.trace('📍 Stack trace de cambiarTab:');
+
+              // COMENTADO TEMPORALMENTE - Cerrar todos los modales al cambiar de tab
+              // document.querySelectorAll('.modal.active').forEach(modal => {
+              //   modal.classList.remove('active');
+              // });
+
               document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
               document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
@@ -4946,7 +4899,9 @@
 
             let pedidoRecibiendoId = null;
 
+            console.log('✅ Definiendo window.marcarPedidoRecibido');
             window.marcarPedidoRecibido = function (id) {
+              console.log('📥 marcarPedidoRecibido llamado con id:', id);
               pedidoRecibiendoId = id;
               const pedido = pedidos.find(p => p.id === id);
               const prov = proveedores.find(p => p.id === pedido.proveedorId);
@@ -4967,7 +4922,26 @@
               }
 
               renderItemsRecepcion();
+              console.log('✅ Abriendo modal-recibir-pedido');
               document.getElementById('modal-recibir-pedido').classList.add('active');
+
+              // FORZAR que la pestaña Pedidos permanezca activa
+              setTimeout(() => {
+                console.log('⏰ setTimeout ejecutándose para forzar tab pedidos');
+                const tabPedidos = document.getElementById('tab-pedidos');
+                const btnPedidos = document.getElementById('tab-btn-pedidos');
+                console.log('📊 Tab pedidos activo?', tabPedidos?.classList.contains('active'));
+
+                if (tabPedidos && !tabPedidos.classList.contains('active')) {
+                  console.log('🔧 FORZANDO tab de pedidos a estar activo');
+                  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                  tabPedidos.classList.add('active');
+                  if (btnPedidos) btnPedidos.classList.add('active');
+                } else {
+                  console.log('✅ Tab pedidos ya está activo, no hace falta forzar');
+                }
+              }, 100);
             };
 
             function renderItemsRecepcion() {
@@ -5151,6 +5125,7 @@
             let pedidoViendoId = null;
 
             window.verDetallesPedido = function (pedidoId) {
+              console.log('👁️ verDetallesPedido llamado con id:', pedidoId);
               const pedido = pedidos.find(p => p.id === pedidoId);
               if (!pedido) {
                 showToast('Pedido no encontrado', 'error');
@@ -5245,6 +5220,19 @@
               document.getElementById('modal-ver-pedido-contenido').innerHTML = html;
               document.getElementById('modal-ver-pedido').classList.add('active');
               pedidoViendoId = pedidoId;
+
+              // FORZAR que la pestaña Pedidos permanezca activa
+              setTimeout(() => {
+                const tabPedidos = document.getElementById('tab-pedidos');
+                const btnPedidos = document.getElementById('tab-btn-pedidos');
+                if (tabPedidos && !tabPedidos.classList.contains('active')) {
+                  console.log('🔧 Forzando tab de pedidos a estar activo');
+                  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                  tabPedidos.classList.add('active');
+                  if (btnPedidos) btnPedidos.classList.add('active');
+                }
+              }, 10);
             };
 
             window.cerrarModalVerPedido = function () {
@@ -5677,11 +5665,11 @@
                   html += `<td><strong>${parseFloat(ped.total).toFixed(2)} €</strong></td>`;
                   html += `<td><span class="badge ${ped.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${ped.estado === 'recibido' ? 'Recibido' : 'Pendiente'}</span></td>`;
                   html += `<td><div class="actions">`;
-                  html += `<button class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="Ver detalles">👁️</button>`;
+                  html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="Ver detalles">👁️</button>`;
                   if (ped.estado === 'pendiente') {
-                    html += `<button class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir pedido">📥</button>`;
+                    html += `<button type="button" class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir pedido">📥</button>`;
                   }
-                  html += `<button class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})" title="Eliminar">🗑️</button>`;
+                  html += `<button type="button" class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})" title="Eliminar">🗑️</button>`;
                   html += '</div></td>';
                   html += '</tr>';
                 });
