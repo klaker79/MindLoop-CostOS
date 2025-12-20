@@ -3,8 +3,8 @@
  * Operaciones de crear, editar y eliminar ingredientes
  */
 
-import { showToast } from '../ui/toast.js';
-import { getElement, getInputValue } from '../utils/dom-helpers.js';
+import { showToast } from '../../ui/toast.js';
+import { getElement, getInputValue } from '../../utils/dom-helpers.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
 
 /**

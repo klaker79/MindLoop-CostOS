@@ -3,8 +3,8 @@
  * Funciones de renderizado e interfaz de usuario
  */
 
-import { showToast } from '../ui/toast.js';
-import { getElement, setElementHTML, hideElement, showElement } from '../utils/dom-helpers.js';
+import { showToast } from '../../ui/toast.js';
+import { getElement, setElementHTML, hideElement, showElement } from '../../utils/dom-helpers.js';
 
 // Variable local para ingrediente siendo editado
 let editandoIngredienteId = null;
@@ -164,5 +164,5 @@ export function getEditandoIngredienteId() {
 }
 
 export function setEditandoIngredienteId(id) {
-  editandoIngredienteId = id;
+    editandoIngredienteId = id;
 }
