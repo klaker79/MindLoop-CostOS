@@ -2626,11 +2626,13 @@
         <script src="api.js"></script>
 
         <script>
+          console.log('🚀 SCRIPT INICIANDO - JavaScript cargado correctamente');
           // Código JavaScript completo (por brevedad, incluyo versión funcional comprimida)
           // El código completo está disponible en el archivo descargable
 
 
           (function () {
+            console.log('🎯 IIFE iniciado - funciones globales cargándose');
             window.ingredientes = [];
             window.recetas = [];
             window.proveedores = [];
@@ -4897,6 +4899,7 @@
 
             let pedidoRecibiendoId = null;
 
+            console.log('✅ Definiendo window.marcarPedidoRecibido');
             window.marcarPedidoRecibido = function (id) {
               console.log('📥 marcarPedidoRecibido llamado con id:', id);
               pedidoRecibiendoId = id;
