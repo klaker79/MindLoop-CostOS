@@ -139,9 +139,11 @@ export function renderizarRecetas() {
             html += `<td><span class="badge ${margen > 0 ? 'badge-success' : 'badge-warning'}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
+            html += `<button class="icon-btn view" onclick="window.descargarPDFReceta(${rec.id})" title="Descargar PDF">📄</button>`;
             html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
             html += `<button class="icon-btn delete" onclick="window.eliminarReceta(${rec.id})">🗑️</button>`;
             html += '</div></td>';
+
             html += '</tr>';
         });
 

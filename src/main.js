@@ -129,3 +129,7 @@ window.generarPDFIngredientes = PDFGenerator.generarPDFIngredientes;
 
 console.log('✅ Módulo Export PDF integrado');
 console.log('🚀 Todos los módulos cargados exitosamente');
+
+// Import PDF helper
+import { descargarPDFReceta } from './modules/export/pdf-helper.js';
+window.descargarPDFReceta = descargarPDFReceta;
