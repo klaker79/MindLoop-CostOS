@@ -117,3 +117,15 @@ console.log('✅ Módulo Ventas integrado');
 // Exponer módulo de dashboard globalmente
 window.actualizarKPIs = Dashboard.actualizarKPIs;
 console.log('✅ Módulo Dashboard integrado');
+
+// ============================================
+// MÓDULO EXPORT PDF
+// ============================================
+import * as PDFGenerator from './modules/export/pdf-generator.js';
+
+// Exponer funciones PDF globalmente
+window.generarPDFReceta = PDFGenerator.generarPDFReceta;
+window.generarPDFIngredientes = PDFGenerator.generarPDFIngredientes;
+
+console.log('✅ Módulo Export PDF integrado');
+console.log('🚀 Todos los módulos cargados exitosamente');
