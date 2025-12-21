@@ -27,6 +27,9 @@ import * as ProveedoresCRUD from './modules/proveedores/proveedores-crud.js';
 import * as VentasUI from './modules/ventas/ventas-ui.js';
 import * as VentasCRUD from './modules/ventas/ventas-crud.js';
 
+// Importar módulo de dashboard
+import * as Dashboard from './modules/dashboard/dashboard.js';
+
 // Hacer disponibles globalmente para compatibilidad con código existente
 window.showToast = showToast;
 window.DOM = DOM;
@@ -110,3 +113,7 @@ window.exportarVentas = VentasUI.exportarVentas;
 
 window.eliminarVenta = VentasCRUD.eliminarVenta;
 console.log('✅ Módulo Ventas integrado');
+
+// Exponer módulo de dashboard globalmente
+window.actualizarKPIs = Dashboard.actualizarKPIs;
+console.log('✅ Módulo Dashboard integrado');
