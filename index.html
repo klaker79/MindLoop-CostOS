@@ -615,34 +615,87 @@
       }
     }
 
+    /* ========================================
+       TABLAS PROFESIONALES PREMIUM
+       ======================================== */
     table {
       width: 100%;
       min-width: 800px;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       font-size: 14px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.06),
+        0 1px 2px rgba(0, 0, 0, 0.04);
     }
 
     thead {
-      background: #f8f8f8;
-      border-bottom: 2px solid #e0e0e0;
+      background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+      border-bottom: 2px solid #CBD5E1;
     }
 
     th {
-      padding: 12px;
+      padding: 16px 18px;
       text-align: left;
       font-size: 12px;
-      font-weight: 600;
-      color: #666;
+      font-weight: 700;
+      color: #475569;
       text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 2px solid #E2E8F0;
+      white-space: nowrap;
+    }
+
+    th:first-child {
+      padding-left: 24px;
+    }
+
+    th:last-child {
+      padding-right: 24px;
     }
 
     td {
-      padding: 15px 12px;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 18px;
+      border-bottom: 1px solid #F1F5F9;
+      color: #1E293B;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    td:first-child {
+      padding-left: 24px;
+      font-weight: 600;
+    }
+
+    td:last-child {
+      padding-right: 24px;
+    }
+
+    tbody tr {
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #FAFBFC;
     }
 
     tbody tr:hover {
-      background: #f9f9f9;
+      background: linear-gradient(90deg, #FFF5F2 0%, #FFFBF7 100%);
+      border-left-color: #FF6B35;
+      transform: translateX(2px);
+      box-shadow: 0 2px 8px rgba(255, 107, 53, 0.08);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover td {
+      color: #0F172A;
     }
 
     .actions {
@@ -964,7 +1017,7 @@
       background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
       border-radius: 20px;
       padding: 32px 24px;
-      box-shadow: 
+      box-shadow:
         0 4px 20px rgba(0, 0, 0, 0.08),
         0 1px 3px rgba(0, 0, 0, 0.05);
       transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -987,7 +1040,7 @@
 
     .kpi-card:hover {
       transform: translateY(-8px) scale(1.02);
-      box-shadow: 
+      box-shadow:
         0 20px 40px rgba(255, 107, 53, 0.15),
         0 8px 16px rgba(0, 0, 0, 0.1);
       border-color: rgba(255, 107, 53, 0.2);
@@ -1062,8 +1115,15 @@
     }
 
     @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.2);
+      }
     }
 
     .header p {
@@ -7905,30 +7965,38 @@
       const dias = datosResumenMensual.dias;
       const ingredientes = datosResumenMensual.compras?.ingredientes || {};
 
-      let html = '<table style="min-width: 100%; border-collapse: collapse;">';
+      let html = '<table style="min-width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden;">';
 
       // Header con días
-      html += '<thead><tr><th style="position: sticky; left: 0; background: #f8f8f8; z-index: 1;">Ingrediente</th>';
+      html += '<thead><tr><th style="position: sticky; left: 0; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); z-index: 1; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 16px;">Ingrediente</th>';
       dias.forEach(dia => {
         const fecha = new Date(dia);
-        html += `<th style="min-width: 80px; text-align: center;">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
+        html += `<th style="min-width: 80px; text-align: center; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 16px; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
       });
-      html += '<th style="background: #e8f5e9; font-weight: bold;">TOTAL</th></tr></thead>';
+      html += '<th style="background: #e8f5e9; font-weight: bold; border-bottom: 2px solid #CBD5E1; padding: 16px;">TOTAL</th></tr></thead>';
 
       // Filas de ingredientes
       html += '<tbody>';
+      let rowIndex = 0;
       for (const [nombre, data] of Object.entries(ingredientes)) {
-        html += `<tr><td style="position: sticky; left: 0; background: white; font-weight: 500;">${nombre}</td>`;
+        const bgColor = rowIndex % 2 === 0 ? '#FFFFFF' : '#FAFBFC';
+        html += `<tr style="border-bottom: 1px solid #F1F5F9;"><td style="position: sticky; left: 0; background: ${bgColor}; font-weight: 600; padding: 18px; border-right: 1px solid #E2E8F0;">${nombre}</td>`;
+
+        // Buscar unidad del ingrediente
+        const ing = window.ingredientes.find(i => i.nombre === nombre);
+        const unidad = ing?.unidad || 'kg';
+
         dias.forEach(dia => {
           const diaData = data.dias[dia];
           if (diaData) {
-            html += `<td style="text-align: center; background: #fff3e0;">${diaData.precio.toFixed(2)}€<br><small style="color:#666;">${diaData.cantidad}</small></td>`;
+            html += `<td style="text-align: center; background: #FFF5F2; padding: 18px; border-right: 1px solid #E2E8F0;">${diaData.precio.toFixed(2)}€<br><small style="color:#64748B; font-weight: 600;">${diaData.cantidad} ${unidad}</small></td>`;
           } else {
-            html += '<td style="text-align: center; color: #ccc;">-</td>';
+            html += '<td style="text-align: center; color: #CBD5E1; padding: 18px; border-right: 1px solid #E2E8F0;">-</td>';
           }
         });
-        html += `<td style="text-align: center; background: #e8f5e9; font-weight: bold;">${data.total.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; background: #e8f5e9; font-weight: bold; padding: 18px;">${data.total.toFixed(2)}€</td>`;
         html += '</tr>';
+        rowIndex++;
       }
       html += '</tbody></table>';
 
@@ -8660,10 +8728,16 @@
         const color = acumulado >= 0 ? '#10b981' : '#ef4444';
         const icono = beneficioNeto >= 0 ? '✅' : '❌';
 
+        // Extraer fecha real del objeto dia
+        const fechaDia = dia.fecha ? new Date(dia.fecha) : new Date(datosResumenMensual.dias[idx]);
+        const diaNum = fechaDia.getDate();
+        const mesNum = fechaDia.getMonth() + 1;
+        const fechaFormateada = `${diaNum}/${mesNum}`;
+
         html += `
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">
                 <div>
-                  <span style="color: #64748B; font-size: 13px;">${icono} Día ${idx + 1}</span>
+                  <span style="color: #64748B; font-size: 13px;">${icono} ${fechaFormateada}</span>
                   <span style="color: #94a3b8; font-size: 11px; margin-left: 8px;">${beneficioNeto >= 0 ? '+' : ''}${beneficioNeto.toFixed(2)}€</span>
                 </div>
                 <span style="color: ${color}; font-weight: 700; font-size: 14px;">${acumulado.toFixed(2)} €</span>
