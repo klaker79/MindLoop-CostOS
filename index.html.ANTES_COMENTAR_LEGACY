@@ -2964,12 +2964,6 @@
         window.exportarVentas = exportarVentas;
         window.exportarPedidos = exportarPedidos;
         // === ACTUALIZAR KPIs ===
-
-        /* ========================================
-         * CÓDIGO LEGACY - DASHBOARD (COMENTADO)
-         * ✅ AHORA EN: src/modules/dashboard/
-         * Fecha migración: 2025-12-21
-         * ======================================== */
         window.actualizarKPIs = function () {
           // 1. INGRESOS TOTALES (suma de ventas)
           api.getSales().then(ventas => {
@@ -3103,12 +3097,6 @@
           });
         }
         // === VENTAS ===
-
-        /* ========================================
-         * CÓDIGO LEGACY - VENTAS (COMENTADO)
-         * ✅ AHORA EN: src/modules/ventas/
-         * Fecha migración: 2025-12-21
-         * ======================================== */
         window.renderizarVentas = async function () {
           const select = getElement('venta-receta');
           if (select) {
@@ -4207,15 +4195,6 @@
           });
         }
 
-
-        /* ========================================
-         * CÓDIGO LEGACY - INGREDIENTES (COMENTADO)
-         * ✅ AHORA EN: src/modules/ingredientes/
-         * Fecha migración: 2025-12-21
-         * NO BORRAR hasta validar 100% producción
-         * Funciones: guardarIngrediente, editarIngrediente, 
-         *           eliminarIngrediente, renderizarIngredientes
-         * ======================================== */
         window.guardarIngrediente = async function (event) {
           event.preventDefault();
 
@@ -4405,13 +4384,6 @@
         };
 
         // ========== RECETAS (resumido) ==========
-
-        /* ========================================
-         * CÓDIGO LEGACY - RECETAS (COMENTADO)
-         * ✅ AHORA EN: src/modules/recetas/
-         * Fecha migración: 2025-12-21
-         * NO BORRAR hasta validar 100% producción
-         * ======================================== */
         window.mostrarFormularioReceta = function () {
           if (ingredientes.length === 0) {
             showToast('Primero añade ingredientes', 'warning');
@@ -4708,13 +4680,6 @@
         };
 
         // ========== PROVEEDORES (resumido) ==========
-
-        /* ========================================
-         * CÓDIGO LEGACY - PROVEEDORES (COMENTADO)
-         * ✅ AHORA EN: src/modules/proveedores/
-         * Fecha migración: 2025-12-21
-         * NO BORRAR hasta validar 100% producción
-         * ======================================== */
         window.mostrarFormularioProveedor = function () {
           document.getElementById('formulario-proveedor').style.display = 'block';
           cargarIngredientesProveedor();
@@ -4924,12 +4889,6 @@
         };
 
         // ========== PEDIDOS ==========
-
-        /* ========================================
-         * CÓDIGO LEGACY - PEDIDOS (COMENTADO)
-         * ✅ AHORA EN: src/modules/pedidos/
-         * Fecha migración: 2025-12-21
-         * ======================================== */
         window.mostrarFormularioPedido = function () {
           if (proveedores.length === 0) {
             showToast('Primero añade proveedores', 'warning');
