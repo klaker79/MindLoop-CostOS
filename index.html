@@ -121,31 +121,142 @@
     }
 
     /* Tabs con animación */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.08),
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
     .tab {
       position: relative;
       overflow: hidden;
+      padding: 12px 20px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Montserrat', sans-serif;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
     }
 
+    .tab:hover {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+      color: #7c3aed;
+      transform: translateY(-2px);
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
+      box-shadow:
+        0 4px 15px rgba(249, 115, 22, 0.35),
+        0 2px 4px rgba(249, 115, 22, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .tab.active:hover {
+      background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+      box-shadow:
+        0 6px 20px rgba(249, 115, 22, 0.4),
+        0 3px 6px rgba(249, 115, 22, 0.25);
+    }
+
+    /* Eliminar el underline anterior y usar solo pill */
     .tab::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      width: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      transition: all 0.3s ease;
-      transform: translateX(-50%);
-      border-radius: 3px 3px 0 0;
+      display: none;
     }
 
-    .tab:hover::after {
-      width: 80%;
+    /* Badge de notificación elegante */
+    .tab-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 11px;
+      margin-left: 6px;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+      animation: badge-pulse 2s ease-in-out infinite;
     }
 
-    .tab.active::after {
-      width: 100%;
-      background: #c35a3f;
+    .tab.active .tab-badge {
+      background: rgba(255, 255, 255, 0.25);
+      box-shadow: none;
+      animation: none;
+    }
+
+    @keyframes badge-pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.1);
+      }
+    }
+
+    /* Iconos en tabs */
+    .tab span:first-child,
+    .tab::first-letter {
+      font-size: 16px;
+    }
+
+    /* Responsive: tabs más compactas en móvil */
+    @media (max-width: 768px) {
+      .tabs {
+        padding: 12px;
+        gap: 6px;
+        border-radius: 12px;
+      }
+
+      .tab {
+        padding: 10px 14px;
+        font-size: 13px;
+        border-radius: 10px;
+      }
+
+      .tab-badge {
+        min-width: 18px;
+        height: 18px;
+        font-size: 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .tabs {
+        padding: 10px;
+        gap: 4px;
+      }
+
+      .tab {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
     }
 
     /* Botones con pulse effect */
@@ -2541,39 +2652,321 @@
             <div id="tabla-rentabilidad"></div>
           </div>
 
-          <!-- Matriz BCG -->
+          <!-- Matriz BCG - Rediseño Profesional -->
           <div class="chart-card" id="bcg-matrix-container" style="margin-top: 20px;">
-            <h3>🏆 Ingeniería de Menú (Matriz BCG)</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-              <!-- Estrellas -->
-              <div style="background: #ecfdf5; padding: 15px; border-radius: 8px; border: 1px solid #10b981;">
-                <h4 style="color: #047857; margin: 0 0 10px 0;">⭐ Estrellas (Alta Rentabilidad, Alta Popularidad)</h4>
-                <div id="lista-estrella" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <div>
+                <h3 style="margin: 0;">🏆 Ingeniería de Menú</h3>
+                <p style="margin: 5px 0 0; font-size: 13px; color: #64748b;">Optimiza tu carta con datos reales</p>
               </div>
-              <!-- Puzzles -->
-              <div style="background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #3b82f6;">
-                <h4 style="color: #1d4ed8; margin: 0 0 10px 0;">❓ Puzzles (Alta Rentabilidad, Baja Popularidad)</h4>
-                <div id="lista-puzzle" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-              </div>
-              <!-- Caballos -->
-              <div style="background: #fff7ed; padding: 15px; border-radius: 8px; border: 1px solid #f97316;">
-                <h4 style="color: #c2410c; margin: 0 0 10px 0;">🐎 Caballos (Baja Rentabilidad, Alta Popularidad)</h4>
-                <div id="lista-caballo" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-              </div>
-              <!-- Perros -->
-              <div style="background: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #ef4444;">
-                <h4 style="color: #b91c1c; margin: 0 0 10px 0;">🐶 Perros (Baja Rentabilidad, Baja Popularidad)</h4>
-                <div id="lista-perro" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+              <div style="display: flex; gap: 8px;">
+                <span class="bcg-legend-item" style="--color: #22c55e;">⭐ Estrellas</span>
+                <span class="bcg-legend-item" style="--color: #3b82f6;">❓ Puzzles</span>
+                <span class="bcg-legend-item" style="--color: #f97316;">🐎 Caballos</span>
+                <span class="bcg-legend-item" style="--color: #ef4444;">🐶 Perros</span>
               </div>
             </div>
+
+            <!-- Scatter Plot Container -->
+            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px;">
+              <!-- Gráfico Scatter -->
+              <div
+                style="background: #f8fafc; border-radius: 16px; padding: 20px; position: relative; min-height: 350px;">
+                <div
+                  style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #64748b; font-weight: 600;">
+                  📈 ALTA RENTABILIDAD
+                </div>
+                <div
+                  style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #64748b; font-weight: 600;">
+                  📉 BAJA RENTABILIDAD
+                </div>
+                <div
+                  style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%) rotate(-90deg); font-size: 11px; color: #64748b; font-weight: 600;">
+                  🔻 BAJA POPULARIDAD
+                </div>
+                <div
+                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%) rotate(90deg); font-size: 11px; color: #64748b; font-weight: 600;">
+                  🔺 ALTA POPULARIDAD
+                </div>
+                <canvas id="bcg-scatter-chart" style="width: 100%; height: 300px;"></canvas>
+              </div>
+
+              <!-- Panel de Acciones Rápidas -->
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Acción Estrellas -->
+                <div class="bcg-action-card bcg-action-estrella" onclick="this.classList.toggle('expanded')">
+                  <div class="bcg-action-header">
+                    <span class="bcg-action-icon">⭐</span>
+                    <span class="bcg-action-title">Estrellas</span>
+                    <span class="bcg-action-count" id="count-estrella">0</span>
+                    <span class="bcg-expand-icon">▼</span>
+                  </div>
+                  <div class="bcg-action-text">Mantén y destaca</div>
+                  <div class="bcg-action-detail" id="detail-estrella">
+                    <strong>Estrategia recomendada:</strong>
+                    <ul>
+                      <li>Mantén la calidad constante</li>
+                      <li>Destácalos en el menú principal</li>
+                      <li>Considera subir precio (+5-10%)</li>
+                      <li>Capacita al equipo para recomendarlos</li>
+                      <li>Usa fotos en redes sociales</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Acción Puzzles -->
+                <div class="bcg-action-card bcg-action-puzzle" onclick="this.classList.toggle('expanded')">
+                  <div class="bcg-action-header">
+                    <span class="bcg-action-icon">❓</span>
+                    <span class="bcg-action-title">Puzzles</span>
+                    <span class="bcg-action-count" id="count-puzzle">0</span>
+                    <span class="bcg-expand-icon">▼</span>
+                  </div>
+                  <div class="bcg-action-text">Promociona más</div>
+                  <div class="bcg-action-detail" id="detail-puzzle">
+                    <strong>Estrategia recomendada:</strong>
+                    <ul>
+                      <li>Mejora la visibilidad en la carta</li>
+                      <li>Añade foto profesional</li>
+                      <li>Forma al personal para recomendarlos</li>
+                      <li>Crea combos con platos populares</li>
+                      <li>Si no mejoran, evalúa retirarlos</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Acción Caballos -->
+                <div class="bcg-action-card bcg-action-caballo" onclick="this.classList.toggle('expanded')">
+                  <div class="bcg-action-header">
+                    <span class="bcg-action-icon">🐎</span>
+                    <span class="bcg-action-title">Caballos</span>
+                    <span class="bcg-action-count" id="count-caballo">0</span>
+                    <span class="bcg-expand-icon">▼</span>
+                  </div>
+                  <div class="bcg-action-text">Sube el precio</div>
+                  <div class="bcg-action-detail" id="detail-caballo">
+                    <strong>⚠️ Atención:</strong> Trabajan mucho pero ganan poco.
+                    <ul>
+                      <li>Sube el precio gradualmente (5-10%)</li>
+                      <li>Renegocia con proveedores</li>
+                      <li>Reduce porciones sin afectar percepción</li>
+                      <li>Usa ingredientes más económicos</li>
+                      <li>Candidatos a retirar si no mejoran</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Acción Perros -->
+                <div class="bcg-action-card bcg-action-perro" onclick="this.classList.toggle('expanded')">
+                  <div class="bcg-action-header">
+                    <span class="bcg-action-icon">🐶</span>
+                    <span class="bcg-action-title">Perros</span>
+                    <span class="bcg-action-count" id="count-perro">0</span>
+                    <span class="bcg-expand-icon">▼</span>
+                  </div>
+                  <div class="bcg-action-text">Retira o reforma</div>
+                  <div class="bcg-action-detail" id="detail-perro">
+                    <strong>🚨 Acción urgente:</strong> Ocupan espacio sin aportar valor.
+                    <ul>
+                      <li>Retíralos del menú cuanto antes</li>
+                      <li>Liberan inventario y tiempo de cocina</li>
+                      <li>Si tienen valor sentimental: especial del día</li>
+                      <li>Reformula completamente la receta</li>
+                      <li>Redirige recursos a tus Estrellas</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel de Recomendaciones Inteligentes -->
+            <div id="bcg-recommendations"
+              style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border-radius: 12px; border: 1px solid #c4b5fd;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <span style="font-size: 20px;">💡</span>
+                <strong style="color: #5b21b6;">Recomendaciones Inteligentes</strong>
+              </div>
+              <div id="bcg-recommendations-list" style="font-size: 13px; color: #4c1d95; line-height: 1.6;"></div>
+            </div>
+
+            <!-- Lista detallada colapsable -->
+            <details style="margin-top: 16px;">
+              <summary style="cursor: pointer; font-weight: 600; color: #64748b; padding: 10px 0;">
+                📋 Ver lista detallada de platos por categoría
+              </summary>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <!-- Estrellas -->
+                <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border: 2px solid #22c55e;">
+                  <h4 style="color: #15803d; margin: 0 0 10px 0; font-size: 14px;">⭐ Estrellas</h4>
+                  <div id="lista-estrella" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                </div>
+                <!-- Puzzles -->
+                <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 2px solid #3b82f6;">
+                  <h4 style="color: #1d4ed8; margin: 0 0 10px 0; font-size: 14px;">❓ Puzzles</h4>
+                  <div id="lista-puzzle" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                </div>
+                <!-- Caballos -->
+                <div style="background: #fff7ed; padding: 15px; border-radius: 12px; border: 2px solid #f97316;">
+                  <h4 style="color: #c2410c; margin: 0 0 10px 0; font-size: 14px;">🐎 Caballos</h4>
+                  <div id="lista-caballo" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                </div>
+                <!-- Perros -->
+                <div style="background: #fef2f2; padding: 15px; border-radius: 12px; border: 2px solid #ef4444;">
+                  <h4 style="color: #b91c1c; margin: 0 0 10px 0; font-size: 14px;">🐶 Perros</h4>
+                  <div id="lista-perro" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                </div>
+              </div>
+            </details>
+
             <style>
+              .bcg-legend-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 11px;
+                padding: 4px 10px;
+                background: white;
+                border-radius: 20px;
+                border: 2px solid var(--color);
+                color: var(--color);
+                font-weight: 600;
+              }
+
+              .bcg-action-card {
+                padding: 12px 16px;
+                border-radius: 12px;
+                transition: all 0.2s ease;
+                cursor: pointer;
+              }
+
+              .bcg-action-card:hover {
+                transform: translateX(4px);
+              }
+
+              .bcg-action-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              }
+
+              .bcg-action-icon {
+                font-size: 18px;
+              }
+
+              .bcg-action-title {
+                font-weight: 600;
+                font-size: 14px;
+                flex: 1;
+              }
+
+              .bcg-action-count {
+                background: rgba(255, 255, 255, 0.5);
+                padding: 2px 10px;
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 700;
+              }
+
+              .bcg-action-text {
+                font-size: 12px;
+                margin-top: 4px;
+                opacity: 0.8;
+              }
+
+              .bcg-action-estrella {
+                background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+                border: 1px solid #86efac;
+                color: #15803d;
+              }
+
+              .bcg-action-puzzle {
+                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                border: 1px solid #93c5fd;
+                color: #1d4ed8;
+              }
+
+              .bcg-action-caballo {
+                background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+                border: 1px solid #fdba74;
+                color: #c2410c;
+              }
+
+              .bcg-action-perro {
+                background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+                border: 1px solid #fca5a5;
+                color: #b91c1c;
+              }
+
+              /* Estilos para paneles expandibles */
+              .bcg-expand-icon {
+                font-size: 10px;
+                opacity: 0.6;
+                transition: transform 0.3s ease;
+              }
+
+              .bcg-action-card.expanded .bcg-expand-icon {
+                transform: rotate(180deg);
+              }
+
+              .bcg-action-detail {
+                display: none;
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px dashed currentColor;
+                font-size: 12px;
+                line-height: 1.5;
+                opacity: 0.9;
+              }
+
+              .bcg-action-detail ul {
+                margin: 8px 0 0 0;
+                padding-left: 18px;
+              }
+
+              .bcg-action-detail li {
+                margin-bottom: 4px;
+              }
+
+              .bcg-action-card.expanded .bcg-action-detail {
+                display: block;
+                animation: fadeIn 0.3s ease;
+              }
+
+              @keyframes fadeIn {
+                from {
+                  opacity: 0;
+                  transform: translateY(-5px);
+                }
+
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+
               .bcg-item {
                 background: white;
-                padding: 6px 10px;
-                border-radius: 20px;
+                padding: 8px 12px;
+                border-radius: 8px;
                 font-size: 12px;
-                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                 border: 1px solid rgba(0, 0, 0, 0.05);
+                transition: transform 0.2s;
+              }
+
+              .bcg-item:hover {
+                transform: scale(1.02);
+              }
+
+              @media (max-width: 768px) {
+                #bcg-matrix-container>div:first-of-type {
+                  flex-direction: column;
+                  gap: 15px;
+                }
+
+                #bcg-matrix-container>div>div:first-child {
+                  grid-template-columns: 1fr;
+                }
               }
             </style>
           </div>
@@ -4883,6 +5276,9 @@
             showToast('Error conectando con la API', 'error');
           }
         }
+        
+        // Exponer cargarDatos globalmente para los módulos CRUD
+        window.cargarDatos = cargarDatos;
 
         window.cambiarTab = function (tab) {
           document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -6670,9 +7066,9 @@
 
         window.renderMenuEngineeringUI = function (data) {
           const container = document.getElementById('bcg-matrix-container');
-          if (!container) return;
+          if (!container || !data || data.length === 0) return;
 
-          // Limpiar contenedores
+          // Contenedores
           const containers = {
             'estrella': document.getElementById('lista-estrella'),
             'caballo': document.getElementById('lista-caballo'),
@@ -6680,21 +7076,164 @@
             'perro': document.getElementById('lista-perro')
           };
 
-          Object.values(containers).forEach(c => c.innerHTML = '');
+          // Limpiar listas
+          Object.values(containers).forEach(c => { if (c) c.innerHTML = ''; });
 
-          const consejos = {
-            'estrella': '⭐ <strong>Consejo:</strong> Estos son tus platos estrella - generan buenos márgenes y se venden mucho. Estrategia: Mantén la calidad constante, destácalos en el menú principal, considera subirlos ligeramente de precio (tienen demanda), capacita al equipo para recomendarlos, y usa fotos atractivas en redes sociales para aprovechar su popularidad.',
-            'caballo': '🐴 <strong>Consejo:</strong> Se venden mucho pero ganan poco - peligro de trabajar sin beneficio. Estrategia urgente: Renegocia con proveedores para reducir coste, optimiza las porciones sin afectar percepción de calidad, sube el precio gradualmente (5-10%), o rediseña la receta con ingredientes más económicos manteniendo el sabor. Son candidatos a retirar si no mejora la rentabilidad.',
-            'puzzle': '❓ <strong>Consejo:</strong> Platos rentables pero poco vendidos - tienen potencial sin explotar. Estrategia: Mejora la visibilidad (posición destacada en carta, descripción más apetecible, foto profesional), forma al personal para recomendarlos activamente, crea combos con platos populares, o considera cambiar el nombre para hacerlo más atractivo. Si tras estos cambios no mejoran, evalúa retirarlos.',
-            'perro': '🐕 <strong>Consejo:</strong> No se venden y no ganan - están ocupando espacio valioso en tu carta. Acción recomendada: Retíralos del menú cuanto antes. Están consumiendo inventario, tiempo de cocina y espacio en carta sin aportar valor. Libera recursos para potenciar tus Estrellas o mejorar tus Puzzles. Si tienen valor sentimental, considera ofrecerlos solo como especial del día ocasional.'
+          // Contar por categoría
+          const counts = { estrella: 0, puzzle: 0, caballo: 0, perro: 0 };
+          const colorMap = {
+            'estrella': 'rgba(34, 197, 94, 0.8)',
+            'puzzle': 'rgba(59, 130, 246, 0.8)',
+            'caballo': 'rgba(249, 115, 22, 0.8)',
+            'perro': 'rgba(239, 68, 68, 0.8)'
           };
 
-          // Añadir consejos DENTRO del contenedor limpio, al principio
-          containers['estrella'].innerHTML = `<div style="font-size: 11px; margin-bottom: 8px; color: #065f46; width:100%;">${consejos['estrella']}</div>`;
-          containers['caballo'].innerHTML = `<div style="font-size: 11px; margin-bottom: 8px; color: #9a3412; width:100%;">${consejos['caballo']}</div>`;
-          containers['puzzle'].innerHTML = `<div style="font-size: 11px; margin-bottom: 8px; color: #1e40af; width:100%;">${consejos['puzzle']}</div>`;
-          containers['perro'].innerHTML = `<div style="font-size: 11px; margin-bottom: 8px; color: #991b1b; width:100%;">${consejos['perro']}</div>`;
+          // Procesar datos para scatter
+          const scatterData = data.map(item => {
+            counts[item.clasificacion] = (counts[item.clasificacion] || 0) + 1;
+            return {
+              x: item.popularidad,
+              y: item.margen,
+              nombre: item.nombre,
+              clasificacion: item.clasificacion,
+              backgroundColor: colorMap[item.clasificacion] || 'rgba(100,100,100,0.5)'
+            };
+          });
 
+          // Actualizar contadores
+          document.getElementById('count-estrella').textContent = counts.estrella || 0;
+          document.getElementById('count-puzzle').textContent = counts.puzzle || 0;
+          document.getElementById('count-caballo').textContent = counts.caballo || 0;
+          document.getElementById('count-perro').textContent = counts.perro || 0;
+
+          // Renderizar Scatter Plot con Chart.js y etiquetas
+          const ctx = document.getElementById('bcg-scatter-chart');
+          if (ctx) {
+            // Destruir chart anterior si existe
+            if (window.bcgScatterChart) {
+              window.bcgScatterChart.destroy();
+            }
+
+            // Plugin personalizado para dibujar etiquetas
+            const labelPlugin = {
+              id: 'bcgLabels',
+              afterDatasetsDraw: function (chart) {
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach((dataset, i) => {
+                  const meta = chart.getDatasetMeta(i);
+                  meta.data.forEach((element, index) => {
+                    const item = scatterData[index];
+                    const nombre = item.nombre.length > 10 ? item.nombre.substring(0, 9) + '...' : item.nombre;
+
+                    ctx.save();
+                    ctx.font = 'bold 10px Montserrat, sans-serif';
+                    ctx.fillStyle = '#1e293b';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(nombre, element.x, element.y - 14);
+                    ctx.restore();
+                  });
+                });
+              }
+            };
+
+            window.bcgScatterChart = new Chart(ctx, {
+              type: 'scatter',
+              plugins: [labelPlugin],
+              data: {
+                datasets: [{
+                  label: 'Platos',
+                  data: scatterData.map(d => ({ x: d.x, y: d.y })),
+                  backgroundColor: scatterData.map(d => d.backgroundColor),
+                  pointRadius: 14,
+                  pointHoverRadius: 18,
+                  pointStyle: 'circle',
+                  borderWidth: 2,
+                  borderColor: scatterData.map(d => d.backgroundColor.replace('0.8', '1'))
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                  padding: { top: 30, right: 20, bottom: 10, left: 10 }
+                },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: false,
+                    callbacks: {
+                      label: function (context) {
+                        const idx = context.dataIndex;
+                        const item = scatterData[idx];
+                        return [
+                          item.nombre,
+                          `Margen: ${item.y.toFixed(2)}€`,
+                          `Ventas: ${item.x}`
+                        ];
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  x: {
+                    title: { display: true, text: 'Popularidad (Ventas)', font: { size: 12 } },
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    beginAtZero: true
+                  },
+                  y: {
+                    title: { display: true, text: 'Margen (€)', font: { size: 12 } },
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    beginAtZero: true
+                  }
+                }
+              }
+            });
+          }
+
+          // Generar recomendaciones inteligentes
+          const recsEl = document.getElementById('bcg-recommendations-list');
+          if (recsEl) {
+            const recs = [];
+
+            // Recomendación si hay perros
+            if (counts.perro > 0) {
+              const perros = data.filter(d => d.clasificacion === 'perro').map(d => d.nombre).slice(0, 3);
+              recs.push(`🚨 <strong>Retira o reforma ${counts.perro} plato(s):</strong> ${perros.join(', ')}${counts.perro > 3 ? '...' : ''} - No generan beneficio ni se venden.`);
+            }
+
+            // Recomendación si hay caballos
+            if (counts.caballo > 0) {
+              const caballos = data.filter(d => d.clasificacion === 'caballo').map(d => d.nombre).slice(0, 2);
+              recs.push(`💰 <strong>Sube el precio de:</strong> ${caballos.join(', ')} - Se venden bien pero tu margen es bajo.`);
+            }
+
+            // Recomendación si hay puzzles
+            if (counts.puzzle > 0) {
+              const puzzles = data.filter(d => d.clasificacion === 'puzzle').map(d => d.nombre).slice(0, 2);
+              recs.push(`📢 <strong>Promociona más:</strong> ${puzzles.join(', ')} - Tienen buen margen pero poca visibilidad.`);
+            }
+
+            // Recomendación positiva si hay estrellas
+            if (counts.estrella > 0) {
+              recs.push(`✨ <strong>¡Excelente!</strong> Tienes ${counts.estrella} plato(s) estrella. Manténlos destacados en la carta.`);
+            }
+
+            // Si no hay datos significativos
+            if (recs.length === 0) {
+              recs.push('📊 Registra más ventas para obtener recomendaciones personalizadas.');
+            }
+
+            recsEl.innerHTML = recs.map(r => `<div style="margin-bottom: 8px;">${r}</div>`).join('');
+          }
+
+          // Poblar listas detalladas
           data.forEach(item => {
             const el = document.createElement('div');
             el.className = 'bcg-item';

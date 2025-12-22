@@ -6,8 +6,127 @@
 import { showToast } from '../../ui/toast.js';
 import { getElement, setElementHTML, hideElement, showElement } from '../../utils/dom-helpers.js';
 
+// Variables para paginación y filtros
+let paginaActualIngredientes = 1;
+const ITEMS_POR_PAGINA = 25;
+let filtroCategoria = 'todas';
+
 // Variable local para ingrediente siendo editado
 let editandoIngredienteId = null;
+
+/**
+ * Obtiene todas las categorías únicas de ingredientes
+ */
+function obtenerCategorias() {
+    const ingredientes = window.ingredientes || [];
+    const categorias = new Set();
+    ingredientes.forEach(ing => {
+        if (ing.categoria) {
+            categorias.add(ing.categoria);
+        }
+    });
+    return Array.from(categorias).sort();
+}
+
+/**
+ * Renderiza los filtros por familia (alimento/bebida)
+ */
+function renderizarFiltrosCategorias(container) {
+    let html = '<div class="filtros-ingredientes" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center;">';
+    html += '<span style="font-weight: 600; color: #64748b; margin-right: 8px;">Filtrar:</span>';
+
+    // Botón "Todas"
+    html += `<button class="filtro-btn ${filtroCategoria === 'todas' ? 'active' : ''}" onclick="window.filtrarPorCategoria('todas')">🔍 Todas</button>`;
+
+    // Filtros basados en campo 'familia' del formulario
+    html += `<button class="filtro-btn grupo ${filtroCategoria === 'alimento' ? 'active' : ''}" onclick="window.filtrarPorCategoria('alimento')" style="background: #dcfce7; border-color: #22c55e;">🥬 Alimentos</button>`;
+    html += `<button class="filtro-btn grupo ${filtroCategoria === 'bebida' ? 'active' : ''}" onclick="window.filtrarPorCategoria('bebida')" style="background: #dbeafe; border-color: #3b82f6;">🍺 Bebidas</button>`;
+
+    html += '</div>';
+
+    // Añadir estilos para los filtros
+    html += `<style>
+        .filtro-btn {
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .filtro-btn:hover {
+            border-color: #667eea;
+            background: #f8fafc;
+        }
+        .filtro-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+        .filtro-btn.grupo {
+            font-weight: 600;
+        }
+        .paginacion {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        .paginacion button {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .paginacion button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .paginacion button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .paginacion .pagina-info {
+            font-weight: 600;
+            color: #64748b;
+            padding: 0 16px;
+        }
+    </style>`;
+
+    return html;
+}
+
+/**
+ * Filtra por categoría
+ */
+window.filtrarPorCategoria = function (categoria) {
+    filtroCategoria = categoria;
+    paginaActualIngredientes = 1;
+    renderizarIngredientes();
+};
+
+/**
+ * Cambia de página
+ */
+window.cambiarPaginaIngredientes = function (direccion) {
+    paginaActualIngredientes += direccion;
+    if (paginaActualIngredientes < 1) paginaActualIngredientes = 1;
+    renderizarIngredientes();
+};
+
+window.irAPaginaIngredientes = function (pagina) {
+    paginaActualIngredientes = pagina;
+    renderizarIngredientes();
+};
 
 /**
  * Renderiza la lista de ingredientes en la tabla
@@ -17,36 +136,63 @@ export function renderizarIngredientes() {
     const ingredientes = window.ingredientes || [];
     const proveedores = window.proveedores || [];
 
-    const filtrados = ingredientes.filter(ing => {
+    // Filtrar por búsqueda y familia
+    let filtrados = ingredientes.filter(ing => {
         const nombreProv = getNombreProveedor(ing.proveedor_id, proveedores).toLowerCase();
-        return ing.nombre.toLowerCase().includes(busqueda) || nombreProv.includes(busqueda);
+        const familiaIng = (ing.familia || 'alimento').toLowerCase();
+        const matchBusqueda = ing.nombre.toLowerCase().includes(busqueda) ||
+            nombreProv.includes(busqueda) ||
+            familiaIng.includes(busqueda);
+
+        if (!matchBusqueda) return false;
+
+        // Filtrar por familia (alimento/bebida)
+        if (filtroCategoria === 'todas') return true;
+
+        // Comparar directamente con el valor de familia
+        return familiaIng === filtroCategoria;
     });
 
     const container = getElement('tabla-ingredientes');
     if (!container) return;
 
+    // Calcular paginación
+    const totalItems = filtrados.length;
+    const totalPaginas = Math.ceil(totalItems / ITEMS_POR_PAGINA);
+    if (paginaActualIngredientes > totalPaginas) paginaActualIngredientes = Math.max(1, totalPaginas);
+
+    const inicio = (paginaActualIngredientes - 1) * ITEMS_POR_PAGINA;
+    const fin = inicio + ITEMS_POR_PAGINA;
+    const paginados = filtrados.slice(inicio, fin);
+
     if (filtrados.length === 0) {
-        container.innerHTML = `
+        container.innerHTML = renderizarFiltrosCategorias() + `
       <div class="empty-state">
         <div class="icon">📦</div>
-        <h3>${busqueda ? 'No encontrados' : 'Aún no hay ingredientes'}</h3>
-        <p>${busqueda ? 'Prueba otra búsqueda' : 'Añade tu primer ingrediente'}</p>
+        <h3>${busqueda || filtroCategoria !== 'todas' ? 'No encontrados' : 'Aún no hay ingredientes'}</h3>
+        <p>${busqueda ? 'Prueba otra búsqueda' : filtroCategoria !== 'todas' ? 'No hay ingredientes en esta categoría' : 'Añade tu primer ingrediente'}</p>
       </div>
     `;
         const resumen = getElement('resumen-ingredientes');
         if (resumen) resumen.style.display = 'none';
     } else {
-        let html = '<table><thead><tr>';
-        html += '<th>Ingrediente</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Stock Mínimo</th>';
+        let html = renderizarFiltrosCategorias();
+
+        html += '<table><thead><tr>';
+        html += '<th>Ingrediente</th><th>Familia</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Stock Mínimo</th><th>Acciones</th>';
         html += '</tr></thead><tbody>';
 
-        filtrados.forEach(ing => {
+        paginados.forEach(ing => {
             const stockActual = parseFloat(ing.stock_actual) || 0;
             const stockMinimo = parseFloat(ing.stock_minimo) || 0;
             const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
+            const familia = ing.familia || 'alimento';
+            const familiaBadge = familia === 'bebida' ? 'badge-info' : 'badge-success';
+            const familiaLabel = familia === 'bebida' ? '🍺 Bebida' : '🥬 Alimento';
 
             html += '<tr>';
-            html += `<td><strong style="cursor: pointer;" onclick="window.editarIngrediente(${ing.id})">${ing.nombre}</strong></td>`;
+            html += `<td><strong>${ing.nombre}</strong></td>`;
+            html += `<td><span class="badge ${familiaBadge}">${familiaLabel}</span></td>`;
             html += `<td>${getNombreProveedor(ing.proveedor_id, proveedores)}</td>`;
             html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad : '-'}</td>`;
             html += `<td>`;
@@ -58,17 +204,42 @@ export function renderizarIngredientes() {
             }
             html += `</td>`;
             html += `<td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + ing.unidad : '-'}</td>`;
+            html += `<td>
+                <button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})" title="Editar">✏️</button>
+                <button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})" title="Eliminar">🗑️</button>
+            </td>`;
             html += '</tr>';
         });
 
         html += '</tbody></table>';
+
+        // Añadir paginación si hay más de una página
+        if (totalPaginas > 1) {
+            html += '<div class="paginacion">';
+            html += `<button onclick="window.cambiarPaginaIngredientes(-1)" ${paginaActualIngredientes <= 1 ? 'disabled' : ''}>◀ Anterior</button>`;
+
+            // Mostrar números de página
+            for (let i = 1; i <= totalPaginas; i++) {
+                if (i === 1 || i === totalPaginas || (i >= paginaActualIngredientes - 2 && i <= paginaActualIngredientes + 2)) {
+                    html += `<button onclick="window.irAPaginaIngredientes(${i})" style="${i === paginaActualIngredientes ? 'background: #667eea; color: white; border-color: #667eea;' : ''}">${i}</button>`;
+                } else if (i === paginaActualIngredientes - 3 || i === paginaActualIngredientes + 3) {
+                    html += '<span style="padding: 0 8px;">...</span>';
+                }
+            }
+
+            html += `<button onclick="window.cambiarPaginaIngredientes(1)" ${paginaActualIngredientes >= totalPaginas ? 'disabled' : ''}>Siguiente ▶</button>`;
+            html += `<span class="pagina-info">${inicio + 1}-${Math.min(fin, totalItems)} de ${totalItems}</span>`;
+            html += '</div>';
+        }
+
         container.innerHTML = html;
 
         const resumen = getElement('resumen-ingredientes');
         if (resumen) {
             resumen.innerHTML = `
         <div>Total: <strong>${ingredientes.length}</strong></div>
-        <div>Mostrando: <strong>${filtrados.length}</strong></div>
+        <div>Filtrados: <strong>${filtrados.length}</strong></div>
+        <div>Mostrando: <strong>${paginados.length}</strong></div>
       `;
             resumen.style.display = 'flex';
         }

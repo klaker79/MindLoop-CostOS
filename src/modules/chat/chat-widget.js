@@ -195,6 +195,7 @@ function createChatStyles() {
         .chat-messages {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -251,6 +252,11 @@ function createChatStyles() {
             line-height: 1.5;
             color: #1e293b;
             white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+            overflow-x: hidden;
         }
         
         .chat-message.user .chat-message-content {
