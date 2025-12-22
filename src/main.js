@@ -1,6 +1,6 @@
 /**
  * ============================================
- * main.js - Punto de Entrada de LaCaletaCost
+ * main.js - Punto de Entrada de MindLoop CostOS
  * ============================================
  * 
  * Este archivo es el CONTROLADOR CENTRAL de la aplicación.
@@ -17,7 +17,7 @@
  * - No edites el código legacy en index.html
  * - Ver ARQUITECTURA.md para más detalles
  * 
- * @author LaCaletaCost Team
+ * @author MindLoopIA
  * @version 2.0.0 (Arquitectura Modular)
  * @date 2025-12-21
  */
@@ -109,24 +109,20 @@ window.eliminarProveedor = ProveedoresCRUD.eliminarProveedor;
 import * as PedidosUI from './modules/pedidos/pedidos-ui.js';
 import * as PedidosCRUD from './modules/pedidos/pedidos-crud.js';
 
-// UI
+// PEDIDOS: Solo funciones que NO están en legacy
+// El resto se mantiene en código legacy para evitar conflictos
 window.renderizarPedidos = PedidosUI.renderizarPedidos;
-window.mostrarFormularioPedido = PedidosUI.mostrarFormularioPedido;
-window.cerrarFormularioPedido = PedidosUI.cerrarFormularioPedido;
-window.cargarIngredientesPedido = PedidosUI.cargarIngredientesPedido;
-window.agregarIngredientePedido = PedidosUI.agregarIngredientePedido;
-window.calcularTotalPedido = PedidosUI.calcularTotalPedido;
 window.exportarPedidos = PedidosUI.exportarPedidos;
-
-// CRUD
-window.guardarPedido = PedidosCRUD.guardarPedido;
-window.eliminarPedido = PedidosCRUD.eliminarPedido;
-window.marcarPedidoRecibido = PedidosCRUD.marcarPedidoRecibido;
-window.cerrarModalRecibirPedido = PedidosCRUD.cerrarModalRecibirPedido;
-window.confirmarRecepcionPedido = PedidosCRUD.confirmarRecepcionPedido;
 window.verDetallesPedido = PedidosCRUD.verDetallesPedido;
 window.cerrarModalVerPedido = PedidosCRUD.cerrarModalVerPedido;
 window.descargarPedidoPDF = PedidosCRUD.descargarPedidoPDF;
+
+// Las siguientes funciones se mantienen en código legacy (index.html):
+// - mostrarFormularioPedido, cerrarFormularioPedido
+// - cargarIngredientesPedido, agregarIngredientePedido
+// - calcularTotalPedido, guardarPedido
+// - marcarPedidoRecibido, confirmarRecepcionPedido
+// - eliminarPedido
 
 // ============================================
 // MÓDULO: VENTAS ⚙️ (Híbrido - ES6 tiene prioridad)
@@ -167,10 +163,24 @@ window.editandoPedidoId = null;
 window.editandoProveedorId = null;
 
 // ============================================
+// MÓDULO: CHAT IA 🤖
+// ============================================
+import { initChatWidget, clearChatHistory } from './modules/chat/chat-widget.js';
+
+// Inicializar chat cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initChatWidget);
+} else {
+    setTimeout(initChatWidget, 1000); // Esperar a que cargue todo
+}
+
+window.clearChatHistory = clearChatHistory;
+
+// ============================================
 // LOG DE INICIALIZACIÓN
 // ============================================
 console.log('');
-console.log('🍽️ LaCaletaCost v2.0.0');
+console.log('🚀 MindLoop CostOS v2.0.0');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log('✅ Módulo Ingredientes - ACTIVO');
 console.log('✅ Módulo Recetas - ACTIVO');
@@ -179,6 +189,8 @@ console.log('✅ Módulo Pedidos - ACTIVO');
 console.log('✅ Módulo Ventas - ACTIVO');
 console.log('✅ Módulo Dashboard - ACTIVO');
 console.log('✅ Módulo Export PDF - ACTIVO');
+console.log('✅ Módulo Chat IA - ACTIVO');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log('🚀 Todos los módulos cargados');
 console.log('');
+

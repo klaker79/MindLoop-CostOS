@@ -1,4 +1,4 @@
-# 🏗️ Arquitectura del Proyecto LaCaletaCost
+# 🏗️ Arquitectura del Proyecto MindLoop CostOS
 
 ## Estado Actual: Arquitectura Híbrida
 

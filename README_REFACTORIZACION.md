@@ -1,4 +1,4 @@
-# Refactorización Arquitectónica - Lacaleta App
+# Refactorización Arquitectónica - MindLoop CostOS
 
 ## 📁 Nueva Estructura
 

@@ -198,5 +198,5 @@ export function exportarRecetas() {
         { header: 'Nº Ingredientes', value: (rec) => (rec.ingredientes || []).length }
     ];
 
-    window.exportarAExcel(window.recetas, 'Recetas_LaCaleta', columnas);
+    window.exportarAExcel(window.recetas, `Recetas_${window.getRestaurantNameForFile()}`, columnas);
 }

@@ -53,25 +53,19 @@
 
     body {
       font-family: 'Montserrat', sans-serif;
+      /* Gradiente estático para mejor rendimiento en scroll */
       background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-      background-size: 200% 200%;
-      animation: gradient 15s ease infinite;
+      background-attachment: fixed;
       min-height: 100vh;
     }
 
+    /* Animación de gradiente comentada por rendimiento
     @keyframes gradient {
-      0% {
-        background-position: 0% 50%;
-      }
-
-      50% {
-        background-position: 100% 50%;
-      }
-
-      100% {
-        background-position: 0% 50%;
-      }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
+    */
 
     .container {
       max-width: 1200px;
@@ -108,8 +102,8 @@
 
     .dashboard-card {
       transition: transform 0.3s ease, box-shadow 0.3s ease;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.98);
+      /* backdrop-filter removido para mejor rendimiento en scroll */
       border: 1px solid rgba(255, 255, 255, 0.8);
       border-radius: 20px;
       box-shadow:
@@ -2040,19 +2034,23 @@
   </div>
 
   <div class="container" id="app-container" style="display: none;">
-    <div class="header" style="justify-content: space-between;">
-      <div style="display: flex; align-items: center; flex: 1;">
-        <img src="logosincirculo-removebg-preview.png" alt="MindLoopIA"
-          style="height: 120px; width: auto; margin-right: 20px; background: transparent; padding: 0; box-shadow: none;">
+    <div class="header" style="justify-content: space-between; padding: 20px 30px;">
+      <div style="display: flex; align-items: center; flex: 1; gap: 20px;">
         <div>
-          <h1 style="margin: 0;">MindLoop CostOS</h1>
-          <p style="margin: 0;">Restaurant Intelligence Platform</p>
+          <h1
+            style="margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(135deg, #ff8c42 0%, #ffb347 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            MindLoop CostOS</h1>
+          <p
+            style="margin: 4px 0 0 0; font-size: 0.95rem; color: rgba(255,255,255,0.85); font-weight: 500; letter-spacing: 0.5px;">
+            Restaurant Intelligence Platform</p>
         </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 15px;">
-        <span id="user-restaurant" style="color: #666; font-size: 14px;"></span>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <span id="user-restaurant" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;"></span>
         <button onclick="logout()"
-          style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px;">Cerrar
+          style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 4px 15px rgba(239,68,68,0.4); transition: all 0.3s ease;"
+          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.5)';"
+          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239,68,68,0.4)';">Cerrar
           Sesión</button>
       </div>
     </div>
@@ -2197,8 +2195,8 @@
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
-          <input type="text" id="busqueda-ingredientes" placeholder="Buscar..."
-            oninput="window.renderizarIngredientes()">
+          <input type="search" id="busqueda-ingredientes" name="busqueda_ing_nocache" placeholder="Buscar..."
+            autocomplete="off" oninput="window.renderizarIngredientes()">
         </div>
         <div id="formulario-ingrediente" class="form-card" style="display: none;">
           <h3>
@@ -2276,7 +2274,8 @@
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
-          <input type="text" id="busqueda-recetas" placeholder="Buscar..." oninput="window.renderizarRecetas()">
+          <input type="search" id="busqueda-recetas" name="busqueda_rec_nocache" placeholder="Buscar..."
+            autocomplete="off" oninput="window.renderizarRecetas()">
         </div>
         <div id="formulario-receta" class="form-card" style="display: none;">
           <h3>
@@ -2369,7 +2368,8 @@
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
-          <input type="text" id="busqueda-proveedores" placeholder="Buscar..." oninput="window.renderizarProveedores()">
+          <input type="search" id="busqueda-proveedores" name="busqueda_prov_nocache" placeholder="Buscar..."
+            autocomplete="off" oninput="window.renderizarProveedores()">
         </div>
         <div id="formulario-proveedor" class="form-card" style="display: none;">
           <h3>
@@ -2445,7 +2445,8 @@
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.35-4.35" />
           </svg>
-          <input type="text" id="busqueda-pedidos" placeholder="Buscar pedidos..." oninput="window.renderizarPedidos()">
+          <input type="search" id="busqueda-pedidos" name="busqueda_ped_nocache" placeholder="Buscar pedidos..."
+            autocomplete="off" oninput="window.renderizarPedidos()">
         </div>
 
         <div id="formulario-pedido" class="form-card" style="display: none;">
@@ -2891,7 +2892,7 @@
           </div>
           <div class="form-group" style="margin-bottom:15px;">
             <label style="display:block; margin-bottom:5px; font-weight:bold;">Email Corporativo</label>
-            <input type="email" id="team-email" class="form-control" placeholder="juan@lacaleta.com"
+            <input type="email" id="team-email" class="form-control" placeholder="usuario@restaurante.com"
               style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
           </div>
           <div class="form-group" style="margin-bottom:15px;">
@@ -3218,6 +3219,17 @@
           }
         }
 
+        // === HELPER MULTI-TENANT ===
+        function getRestaurantNameForFile() {
+          try {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const name = user.restaurante || user.nombre || 'MiRestaurante';
+            return name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_áéíóúÁÉÍÓÚñÑ]/g, '');
+          } catch {
+            return 'MiRestaurante';
+          }
+        }
+
         // === EXPORTACIONES ESTANDARIZADAS (Formato TPV) ===
         function exportarIngredientes() {
           const columnas = [
@@ -3237,7 +3249,7 @@
             { header: 'Stock Mínimo', value: (ing) => parseFloat(ing.stock_minimo || ing.stockMinimo || 0).toFixed(2) },
             { header: 'Fecha Actualización', value: () => new Date().toLocaleDateString('es-ES') }
           ];
-          exportarAExcel(window.ingredientes, 'Ingredientes_LaCaleta', columnas);
+          exportarAExcel(window.ingredientes, `Ingredientes_${getRestaurantNameForFile()}`, columnas);
         }
 
         function exportarRecetas() {
@@ -3277,7 +3289,7 @@
             { header: 'Porciones', key: 'porciones' },
             { header: 'Nº Ingredientes', value: (rec) => (rec.ingredientes || []).length }
           ];
-          exportarAExcel(window.recetas, 'Recetas_LaCaleta', columnas);
+          exportarAExcel(window.recetas, `Recetas_${getRestaurantNameForFile()}`, columnas);
         }
 
         function exportarVentas() {
@@ -3296,7 +3308,7 @@
             { header: 'Precio Unitario (€)', value: (v) => parseFloat(v.precio_unitario || 0).toFixed(2) },
             { header: 'Total (€)', value: (v) => parseFloat(v.total || 0).toFixed(2) }
           ];
-          api.getSales().then(ventas => exportarAExcel(ventas, 'Ventas_LaCaleta', columnas));
+          api.getSales().then(ventas => exportarAExcel(ventas, `Ventas_${getRestaurantNameForFile()}`, columnas));
         }
 
         // Exportar Pedidos (nueva función)
@@ -3316,7 +3328,7 @@
             { header: 'Total Recibido (€)', value: (p) => parseFloat(p.total_recibido || 0).toFixed(2) },
             { header: 'Fecha Recepción', value: (p) => p.fecha_recepcion ? new Date(p.fecha_recepcion).toLocaleDateString('es-ES') : '-' }
           ];
-          exportarAExcel(window.pedidos, 'Pedidos_LaCaleta', columnas);
+          exportarAExcel(window.pedidos, `Pedidos_${getRestaurantNameForFile()}`, columnas);
         }
 
         // Exponer funciones globalmente
@@ -4061,89 +4073,398 @@
             <head>
               <meta charset="UTF-8">
               <base href="${window.location.href}">
-              <title>Dossier Técnico - MindLoop CostOS</title>
+              <title>Dossier Técnico Completo - MindLoop CostOS</title>
               <style>
-                body { font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; color: #333; }
-                h1 { border-bottom: 2px solid #6366f1; padding-bottom: 10px; color: #1e293b; margin-top: 10px; }
-                .logo-header { text-align: center; margin-bottom: 20px; }
-                .logo-header img { max-height: 80px; }
-                h2 { margin-top: 30px; color: #334155; border-left: 4px solid #6366f1; padding-left: 10px; }
-                h3 { color: #64748b; margin-top: 20px; }
-                .formula { background: #f1f5f9; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 1.1em; border: 1px solid #e2e8f0; margin: 10px 0; }
-                .example { background: #ecfdf5; padding: 15px; border-radius: 8px; font-size: 0.9em; border: 1px solid #a7f3d0; margin-top: 10px; color: #065f46; }
-                @media print { body { max-width: 100%; margin: 20px; } .no-print { display: none; } }
+                * { box-sizing: border-box; }
+                body { font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.7; max-width: 900px; margin: 40px auto; color: #1e293b; padding: 0 20px; }
+                .cover { text-align: center; padding: 60px 20px; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border-radius: 16px; margin-bottom: 40px; }
+                .cover h1 { font-size: 2.5em; margin: 0 0 10px; }
+                .cover .subtitle { font-size: 1.2em; opacity: 0.9; }
+                .cover .version { margin-top: 20px; font-size: 0.9em; opacity: 0.7; }
+                .toc { background: #f8fafc; padding: 30px; border-radius: 12px; margin-bottom: 40px; border: 1px solid #e2e8f0; }
+                .toc h2 { margin-top: 0; color: #7c3aed; }
+                .toc ul { list-style: none; padding: 0; }
+                .toc li { padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+                .toc li:last-child { border-bottom: none; }
+                .toc a { color: #334155; text-decoration: none; }
+                .toc a:hover { color: #7c3aed; }
+                h2 { margin-top: 50px; color: #1e293b; border-left: 5px solid #7c3aed; padding-left: 15px; font-size: 1.6em; }
+                h3 { color: #475569; margin-top: 25px; font-size: 1.2em; }
+                h4 { color: #64748b; margin-top: 20px; font-size: 1em; }
+                .section-intro { background: #f0f9ff; padding: 20px; border-radius: 10px; border-left: 4px solid #0ea5e9; margin: 20px 0; }
+                .formula { background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; font-size: 1.1em; border: 2px solid #cbd5e1; margin: 15px 0; text-align: center; }
+                .formula-name { font-weight: bold; color: #7c3aed; margin-bottom: 10px; display: block; }
+                .example { background: #ecfdf5; padding: 20px; border-radius: 10px; border: 1px solid #a7f3d0; margin: 15px 0; }
+                .example-title { font-weight: bold; color: #059669; margin-bottom: 10px; }
+                .warning { background: #fef3c7; padding: 20px; border-radius: 10px; border: 1px solid #fcd34d; margin: 15px 0; }
+                .warning-title { font-weight: bold; color: #d97706; margin-bottom: 10px; }
+                .tip { background: #ede9fe; padding: 20px; border-radius: 10px; border: 1px solid #c4b5fd; margin: 15px 0; }
+                .tip-title { font-weight: bold; color: #7c3aed; margin-bottom: 10px; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th { background: #7c3aed; color: white; padding: 12px; text-align: left; }
+                td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+                tr:nth-child(even) { background: #f8fafc; }
+                .icon-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }
+                .icon-card { background: white; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; text-align: center; }
+                .icon-card .emoji { font-size: 2em; margin-bottom: 10px; }
+                .icon-card h4 { margin: 0 0 5px; color: #334155; }
+                .icon-card p { margin: 0; font-size: 0.9em; color: #64748b; }
+                footer { margin-top: 60px; text-align: center; padding: 30px; background: #f8fafc; border-radius: 12px; font-size: 0.9em; color: #64748b; }
+                @media print { 
+                  body { max-width: 100%; margin: 15px; } 
+                  .no-print { display: none !important; } 
+                  .cover { padding: 40px; }
+                  h2 { page-break-before: always; }
+                }
               </style>
             </head>
             <body>
-              <div class="no-print" style="margin-bottom: 30px; padding: 20px; background: #EEF2FF; border-radius: 8px; border: 1px solid #C7D2FE;">
+              <div class="no-print" style="margin-bottom: 30px; padding: 20px; background: #EEF2FF; border-radius: 12px; border: 1px solid #C7D2FE;">
                  <p style="margin-top:0;"><strong>💡 Para guardar como PDF:</strong></p>
                  <ol style="margin-bottom:15px;">
                    <li>Haz clic en el botón <strong>"Imprimir"</strong> de abajo.</li>
                    <li>En "Destino" o "Impresora", selecciona <strong>"Guardar como PDF"</strong>.</li>
                    <li>Haz clic en "Guardar".</li>
                  </ol>
-                 <button onclick="window.print()" style="padding:10px 20px; background:#6366f1; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">🖨️ Imprimir / Guardar PDF</button>
+                 <button onclick="window.print()" style="padding:12px 24px; background:linear-gradient(135deg, #7c3aed, #a855f7); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size: 1em;">🖨️ Imprimir / Guardar PDF</button>
               </div>
 
-              <div class="logo-header">
-                <img src="logo.png" onerror="this.style.display='none'">
+              <!-- PORTADA -->
+              <div class="cover">
+                <h1>📘 Dossier Técnico</h1>
+                <p class="subtitle">Guía Completa de Fórmulas, Cálculos y Uso de MindLoop CostOS</p>
+                <p class="version">Versión 2.0 | ${new Date().toLocaleDateString('es-ES')}</p>
               </div>
 
-              <h1>📘 Dossier Técnico: Fórmulas y Cálculos</h1>
-              <p>Documento generado automáticamente por <strong>MindLoop CostOS</strong> para transparencia del cliente.</p>
+              <!-- ÍNDICE -->
+              <div class="toc">
+                <h2>📑 Índice de Contenidos</h2>
+                <ul>
+                  <li><a href="#intro">1. Introducción al Sistema</a></li>
+                  <li><a href="#ingredientes">2. Gestión de Ingredientes</a></li>
+                  <li><a href="#recetas">3. Recetas y Costing</a></li>
+                  <li><a href="#pedidos">4. Gestión de Pedidos y Varianzas</a></li>
+                  <li><a href="#inventario">5. Control de Inventario</a></li>
+                  <li><a href="#ventas">6. Registro de Ventas</a></li>
+                  <li><a href="#finanzas">7. Análisis Financiero</a></li>
+                  <li><a href="#dashboard">8. Dashboard y KPIs</a></li>
+                  <li><a href="#menu">9. Ingeniería de Menú (Matriz BCG)</a></li>
+                  <li><a href="#alertas">10. Sistema de Alertas</a></li>
+                  <li><a href="#faq">11. Preguntas Frecuentes</a></li>
+                </ul>
+              </div>
 
-              <h2>1. 🥘 Gestión de Recetas (Costing)</h2>
-              <h3>Coste de Receta (Food Cost)</h3>
-              <p>Suma del coste individual de cada ingrediente según su porción.</p>
-              <div class="formula">Coste Receta = Σ (Cantidad Ingrediente × Precio Unitario)</div>
+              <!-- 1. INTRODUCCIÓN -->
+              <h2 id="intro">1. 🎯 Introducción al Sistema</h2>
+              <div class="section-intro">
+                <p><strong>MindLoop CostOS</strong> es una herramienta profesional de gestión de costes para restaurantes. Permite controlar ingredientes, calcular el coste real de cada plato, gestionar pedidos con proveedores, y obtener análisis financieros en tiempo real.</p>
+              </div>
+              
+              <div class="icon-grid">
+                <div class="icon-card">
+                  <div class="emoji">🥬</div>
+                  <h4>Ingredientes</h4>
+                  <p>Gestión de stock y precios</p>
+                </div>
+                <div class="icon-card">
+                  <div class="emoji">🍽️</div>
+                  <h4>Recetas</h4>
+                  <p>Costing y márgenes</p>
+                </div>
+                <div class="icon-card">
+                  <div class="emoji">📦</div>
+                  <h4>Pedidos</h4>
+                  <p>Control de varianzas</p>
+                </div>
+                <div class="icon-card">
+                  <div class="emoji">📊</div>
+                  <h4>Análisis</h4>
+                  <p>Dashboard financiero</p>
+                </div>
+              </div>
 
-              <h3>Margen de Beneficio (€) y (%)</h3>
-              <p>Ganancia bruta tras descontar el coste de la materia prima.</p>
+              <!-- 2. INGREDIENTES -->
+              <h2 id="ingredientes">2. 🥬 Gestión de Ingredientes</h2>
+              <div class="section-intro">
+                <p>Los ingredientes son la base del sistema. Cada ingrediente tiene un precio unitario que se actualiza automáticamente con cada pedido recibido.</p>
+              </div>
+              
+              <h3>Campos de un Ingrediente</h3>
+              <table>
+                <tr><th>Campo</th><th>Descripción</th><th>Ejemplo</th></tr>
+                <tr><td><strong>Nombre</strong></td><td>Identificador del ingrediente</td><td>Mejillón de Roca</td></tr>
+                <tr><td><strong>Categoría</strong></td><td>Clasificación para organización</td><td>Mariscos</td></tr>
+                <tr><td><strong>Unidad</strong></td><td>Unidad de medida base</td><td>kg, L, ud</td></tr>
+                <tr><td><strong>Precio</strong></td><td>Coste por unidad de medida</td><td>8.50 €/kg</td></tr>
+                <tr><td><strong>Stock</strong></td><td>Cantidad disponible actual</td><td>25.00 kg</td></tr>
+                <tr><td><strong>Stock Mínimo</strong></td><td>Umbral para alertas</td><td>5.00 kg</td></tr>
+                <tr><td><strong>Proveedor</strong></td><td>Proveedor preferente</td><td>Pescadería Mar</td></tr>
+              </table>
+
+              <h3>Actualización Automática de Precios</h3>
               <div class="formula">
-                Margen (€) = PVP - Coste Receta<br>
-                Margen (%) = (Margen € / PVP) × 100
+                <span class="formula-name">Precio Actualizado</span>
+                Precio = Importe Factura ÷ Cantidad Recibida
               </div>
-
-              <h2>2. 📦 Inventario y Stock</h2>
-              <h3>Stock Virtual (Teórico)</h3>
-              <div class="formula">Stock Virtual = Stock Anterior + Compras - Ventas (Recetas)</div>
-
-              <h3>Diferencia (Mermas)</h3>
-              <div class="formula">Diferencia = Stock Real (Conteo Físico) - Stock Virtual</div>
-
-              <h2>3. ⚖️ Simulador Financiero</h2>
-              <h3>Resultado Neto Estimado</h3>
-              <div class="formula">Resultado Neto = Margen Bruto Real - Costos Fijos (Alquiler + Personal + Suministros)</div>
-
-              <h3>Punto de Equilibrio (Break-Even) 🌟</h3>
-              <p>Facturación necesaria para cubrir todos los gastos (Beneficio 0€).</p>
-              <div class="formula">Punto Equilibrio (€) = Costos Fijos / % Margen Bruto Real</div>
               <div class="example">
-                <strong>Ejemplo:</strong> Costos Fijos 6.000€ / Margen 0.70 (70%) = <strong>8.571€</strong> de facturación necesaria.
+                <div class="example-title">📌 Ejemplo:</div>
+                Si recibes 10 kg de mejillón por 85€, el nuevo precio será: <strong>85 ÷ 10 = 8.50 €/kg</strong>
               </div>
 
-              <h2>5. ❓ Preguntas Frecuentes (FAQ)</h2>
-              
-              <h3>¿Cómo "adivina" el futuro el Simulador?</h3>
-              <p>El sistema no adivina, utiliza tus datos actuales para proyectar:</p>
-              <ul>
-                <li><strong>1. Analiza tu "Mix":</strong> Revisa qué estás vendiendo hoy (si vendes más platos de alto margen o de bajo margen).</li>
-                <li><strong>2. Proyecta:</strong> Asume que seguirás vendiendo con esa misma rentabilidad el resto del mes.</li>
-                <li><strong>3. Calcula:</strong> Cruza tus gastos fijos con ese margen promedio real.</li>
-              </ul>
-              <p><em>Si tu margen cambia mañana (porque vendes platos más rentables), el Punto de Equilibrio bajará automáticamente.</em></p>
+              <!-- 3. RECETAS -->
+              <h2 id="recetas">3. 🍽️ Recetas y Costing</h2>
+              <div class="section-intro">
+                <p>El sistema calcula automáticamente el coste de cada plato sumando el coste de todos sus ingredientes según las cantidades definidas.</p>
+              </div>
 
-              <h2>6. 📊 Ingeniería de Menú (Matriz BCG)</h2>
-              <p>Clasificación automática de platos:</p>
-              <ul>
-                <li><strong>⭐ Estrellas:</strong> Alta Rentabilidad + Alta Popularidad</li>
-                <li><strong>🐎 Caballos:</strong> Baja Rentabilidad + Alta Popularidad</li>
-                <li><strong>❓ Puzzles:</strong> Alta Rentabilidad + Baja Popularidad</li>
-                <li><strong>🐶 Perros:</strong> Baja Rentabilidad + Baja Popularidad</li>
-              </ul>
+              <h3>Coste de Receta (Food Cost)</h3>
+              <div class="formula">
+                <span class="formula-name">Coste Total de la Receta</span>
+                Coste = Σ (Cantidad Ingrediente × Precio Unitario)
+              </div>
+              <div class="example">
+                <div class="example-title">📌 Ejemplo: Mejillones al Vapor</div>
+                <table>
+                  <tr><th>Ingrediente</th><th>Cantidad</th><th>Precio Unit.</th><th>Coste</th></tr>
+                  <tr><td>Mejillón</td><td>0.400 kg</td><td>8.50 €/kg</td><td>3.40 €</td></tr>
+                  <tr><td>Vino Blanco</td><td>0.050 L</td><td>4.00 €/L</td><td>0.20 €</td></tr>
+                  <tr><td>Ajo</td><td>0.010 kg</td><td>6.00 €/kg</td><td>0.06 €</td></tr>
+                  <tr><td>Perejil</td><td>0.005 kg</td><td>12.00 €/kg</td><td>0.06 €</td></tr>
+                  <tr><td colspan="3" style="text-align:right;"><strong>TOTAL:</strong></td><td><strong>3.72 €</strong></td></tr>
+                </table>
+              </div>
+
+              <h3>Margen de Beneficio</h3>
+              <div class="formula">
+                <span class="formula-name">Margen en Euros y Porcentaje</span>
+                Margen (€) = PVP - Coste Receta<br>
+                Margen (%) = (Margen € ÷ PVP) × 100
+              </div>
+              <div class="example">
+                <div class="example-title">📌 Ejemplo:</div>
+                PVP: 14.00€ | Coste: 3.72€<br>
+                <strong>Margen:</strong> 14.00 - 3.72 = <strong>10.28€ (73.4%)</strong>
+              </div>
+
+              <div class="tip">
+                <div class="tip-title">💡 Consejo Profesional</div>
+                El <strong>food cost ideal</strong> en restauración está entre el <strong>25% y 35%</strong>. Si tu coste supera el 35%, considera ajustar porciones o negociar precios con proveedores.
+              </div>
+
+              <!-- 4. PEDIDOS -->
+              <h2 id="pedidos">4. 📦 Gestión de Pedidos y Varianzas</h2>
+              <div class="section-intro">
+                <p>El sistema permite registrar pedidos a proveedores y, al recibirlos, detectar automáticamente diferencias entre lo pedido y lo entregado.</p>
+              </div>
+
+              <h3>Estados de un Pedido</h3>
+              <table>
+                <tr><th>Estado</th><th>Descripción</th></tr>
+                <tr><td>🟡 <strong>Pendiente</strong></td><td>Pedido creado, esperando recepción</td></tr>
+                <tr><td>🟢 <strong>Recibido</strong></td><td>Pedido consolidado con datos reales</td></tr>
+              </table>
+
+              <h3>Control de Varianzas</h3>
+              <p>Al recibir un pedido, puedes registrar la cantidad y precio real de cada ingrediente:</p>
               
-              <footer style="margin-top: 50px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">
-                Generado por MindLoop CostOS - ${new Date().toLocaleDateString('es-ES')}
+              <div class="formula">
+                <span class="formula-name">Varianza de Cantidad</span>
+                Varianza Cantidad = Cantidad Recibida - Cantidad Pedida
+              </div>
+              <div class="formula">
+                <span class="formula-name">Varianza de Precio</span>
+                Varianza Precio = (Precio Real - Precio Original) × Cantidad
+              </div>
+              <div class="formula">
+                <span class="formula-name">Varianza Total del Pedido</span>
+                Varianza Total = Total Recibido - Total Original
+              </div>
+
+              <h3>Estados por Ítem</h3>
+              <table>
+                <tr><th>Estado</th><th>Significado</th></tr>
+                <tr><td>✅ <strong>OK</strong></td><td>Cantidad y precio coinciden con lo pedido</td></tr>
+                <tr><td>⚠️ <strong>Varianza</strong></td><td>Hay diferencia en cantidad o precio</td></tr>
+                <tr><td>❌ <strong>No Entregado</strong></td><td>El ingrediente no fue entregado</td></tr>
+              </table>
+
+              <!-- 5. INVENTARIO -->
+              <h2 id="inventario">5. 📋 Control de Inventario</h2>
+              <div class="section-intro">
+                <p>El inventario permite comparar el stock teórico (calculado) con el stock real (conteo físico) para detectar mermas o pérdidas.</p>
+              </div>
+
+              <h3>Stock Teórico vs Real</h3>
+              <div class="formula">
+                <span class="formula-name">Stock Teórico (Virtual)</span>
+                Stock Teórico = Stock Anterior + Compras - Consumo (Ventas)
+              </div>
+              <div class="formula">
+                <span class="formula-name">Diferencia (Merma)</span>
+                Diferencia = Stock Real - Stock Teórico
+              </div>
+
+              <div class="warning">
+                <div class="warning-title">⚠️ Interpretación de Diferencias</div>
+                <ul>
+                  <li><strong>Diferencia Negativa:</strong> Falta stock (posibles mermas, robos, o consumos no registrados)</li>
+                  <li><strong>Diferencia Positiva:</strong> Sobra stock (posibles errores en registro de ventas)</li>
+                  <li><strong>Diferencia = 0:</strong> Stock perfectamente cuadrado ✅</li>
+                </ul>
+              </div>
+
+              <!-- 6. VENTAS -->
+              <h2 id="ventas">6. 💰 Registro de Ventas</h2>
+              <div class="section-intro">
+                <p>Cada venta registrada descuenta automáticamente los ingredientes consumidos del stock y actualiza los KPIs del dashboard.</p>
+              </div>
+
+              <h3>Impacto de una Venta</h3>
+              <table>
+                <tr><th>Acción</th><th>Resultado</th></tr>
+                <tr><td>Registrar venta de 1 plato</td><td>Se descuentan todos los ingredientes de la receta</td></tr>
+                <tr><td>Ingresos</td><td>Se suma el PVP a los ingresos del día</td></tr>
+                <tr><td>Margen</td><td>Se calcula el margen ganado</td></tr>
+              </table>
+
+              <div class="formula">
+                <span class="formula-name">Descuento de Stock por Venta</span>
+                Nuevo Stock = Stock Actual - (Cantidad Receta × Unidades Vendidas)
+              </div>
+
+              <!-- 7. FINANZAS -->
+              <h2 id="finanzas">7. 💼 Análisis Financiero</h2>
+              <div class="section-intro">
+                <p>La pestaña de Finanzas permite configurar los costes fijos del negocio y calcular el punto de equilibrio.</p>
+              </div>
+
+              <h3>Costes Fijos</h3>
+              <table>
+                <tr><th>Concepto</th><th>Descripción</th><th>Ejemplo</th></tr>
+                <tr><td>🏠 Alquiler</td><td>Coste mensual del local</td><td>2,000 €</td></tr>
+                <tr><td>👥 Personal</td><td>Nóminas y SS</td><td>5,500 €</td></tr>
+                <tr><td>⚡ Suministros</td><td>Luz, agua, gas, internet</td><td>800 €</td></tr>
+                <tr><td>📋 Otros</td><td>Seguros, gestoría, etc.</td><td>500 €</td></tr>
+              </table>
+
+              <h3>Punto de Equilibrio (Break-Even)</h3>
+              <div class="formula">
+                <span class="formula-name">Facturación Mínima para Beneficio 0</span>
+                Punto de Equilibrio = Costes Fijos ÷ % Margen Bruto
+              </div>
+              <div class="example">
+                <div class="example-title">📌 Ejemplo:</div>
+                Costes Fijos: 8,800€ mensuales<br>
+                Margen Bruto Promedio: 65% (0.65)<br>
+                <strong>Punto de Equilibrio:</strong> 8,800 ÷ 0.65 = <strong>13,538€</strong><br>
+                <em>Debes facturar al menos 13,538€ para no tener pérdidas.</em>
+              </div>
+
+              <h3>Resultado Neto</h3>
+              <div class="formula">
+                <span class="formula-name">Beneficio o Pérdida del Período</span>
+                Resultado Neto = Margen Bruto Total - Costes Fijos
+              </div>
+
+              <!-- 8. DASHBOARD -->
+              <h2 id="dashboard">8. 📊 Dashboard y KPIs</h2>
+              <div class="section-intro">
+                <p>El dashboard muestra métricas clave en tiempo real para una visión rápida del estado del negocio.</p>
+              </div>
+
+              <h3>KPIs Principales</h3>
+              <table>
+                <tr><th>KPI</th><th>Fórmula</th><th>Objetivo</th></tr>
+                <tr><td>💵 Ingresos</td><td>Suma de PVP de todas las ventas</td><td>Máximo posible</td></tr>
+                <tr><td>📦 Pedidos Activos</td><td>Conteo de pedidos pendientes</td><td>Bajo (procesados rápido)</td></tr>
+                <tr><td>⚠️ Stock Bajo</td><td>Ingredientes bajo mínimo</td><td>0 (todo abastecido)</td></tr>
+                <tr><td>📈 Food Cost %</td><td>(Coste MP ÷ Ingresos) × 100</td><td>25% - 35%</td></tr>
+              </table>
+
+              <!-- 9. MATRIZ BCG -->
+              <h2 id="menu">9. 📈 Ingeniería de Menú (Matriz BCG)</h2>
+              <div class="section-intro">
+                <p>Clasificación automática de platos según su rentabilidad y popularidad para optimizar la carta.</p>
+              </div>
+
+              <div class="icon-grid">
+                <div class="icon-card" style="border-color: #22c55e; background: #f0fdf4;">
+                  <div class="emoji">⭐</div>
+                  <h4>Estrellas</h4>
+                  <p>Alta Rentabilidad + Alta Popularidad</p>
+                  <p><em>Mantener y promocionar</em></p>
+                </div>
+                <div class="icon-card" style="border-color: #f59e0b; background: #fffbeb;">
+                  <div class="emoji">🐎</div>
+                  <h4>Caballos de Batalla</h4>
+                  <p>Baja Rentabilidad + Alta Popularidad</p>
+                  <p><em>Subir precio o reducir coste</em></p>
+                </div>
+                <div class="icon-card" style="border-color: #3b82f6; background: #eff6ff;">
+                  <div class="emoji">❓</div>
+                  <h4>Puzzles</h4>
+                  <p>Alta Rentabilidad + Baja Popularidad</p>
+                  <p><em>Promocionar más</em></p>
+                </div>
+                <div class="icon-card" style="border-color: #ef4444; background: #fef2f2;">
+                  <div class="emoji">🐶</div>
+                  <h4>Perros</h4>
+                  <p>Baja Rentabilidad + Baja Popularidad</p>
+                  <p><em>Eliminar o reformular</em></p>
+                </div>
+              </div>
+
+              <!-- 10. ALERTAS -->
+              <h2 id="alertas">10. 🚨 Sistema de Alertas</h2>
+              <div class="section-intro">
+                <p>El sistema genera alertas automáticas para ayudarte a tomar decisiones proactivas.</p>
+              </div>
+
+              <table>
+                <tr><th>Tipo de Alerta</th><th>Condición</th><th>Acción Sugerida</th></tr>
+                <tr><td>🔴 Stock Crítico</td><td>Stock = 0</td><td>Pedir urgente</td></tr>
+                <tr><td>🟠 Stock Bajo</td><td>Stock < Mínimo</td><td>Incluir en próximo pedido</td></tr>
+                <tr><td>🟡 Margen Bajo</td><td>Margen < 50%</td><td>Revisar costes o PVP</td></tr>
+                <tr><td>🔵 Pedido Pendiente</td><td>Más de 3 días</td><td>Contactar proveedor</td></tr>
+              </table>
+
+              <!-- 11. FAQ -->
+              <h2 id="faq">11. ❓ Preguntas Frecuentes</h2>
+              
+              <h3>¿Cómo calcula el sistema el punto de equilibrio en tiempo real?</h3>
+              <p>El sistema analiza tu <strong>mix de ventas actual</strong> (qué platos vendes y con qué margen) y proyecta cuánto necesitas facturar para cubrir tus costes fijos. Si vendes platos más rentables, el punto de equilibrio baja automáticamente.</p>
+
+              <h3>¿Por qué el stock teórico no coincide con el real?</h3>
+              <p>Las diferencias pueden deberse a:</p>
+              <ul>
+                <li><strong>Mermas:</strong> Producto estropeado o caducado</li>
+                <li><strong>Porciones irregulares:</strong> Se sirve más/menos de lo definido en la receta</li>
+                <li><strong>Pérdidas:</strong> Robos o consumo no registrado</li>
+                <li><strong>Errores de registro:</strong> Ventas no registradas o compras mal introducidas</li>
+              </ul>
+
+              <h3>¿Cómo mejoro mi food cost?</h3>
+              <div class="tip">
+                <div class="tip-title">💡 Estrategias para reducir el food cost:</div>
+                <ul>
+                  <li>Negociar mejores precios con proveedores</li>
+                  <li>Estandarizar porciones con fichas técnicas</li>
+                  <li>Reducir mermas con mejor gestión de stock</li>
+                  <li>Promocionar platos de alto margen</li>
+                  <li>Revisar recetas con ingredientes muy caros</li>
+                </ul>
+              </div>
+
+              <h3>¿Cada cuánto debo hacer inventario?</h3>
+              <p>Lo ideal es hacer un <strong>conteo semanal</strong> de los ingredientes de alto valor y un <strong>inventario completo mensual</strong>. Esto permite detectar problemas a tiempo.</p>
+
+              <!-- FOOTER -->
+              <footer>
+                <img src="logo.png" onerror="this.style.display='none'" style="max-height: 60px; margin-bottom: 15px;"><br>
+                <strong>MindLoop CostOS</strong><br>
+                Sistema Profesional de Gestión de Costes para Restauración<br><br>
+                Documento generado automáticamente el ${new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}<br>
+                © ${new Date().getFullYear()} MindLoop. Todos los derechos reservados.
               </footer>
             </body>
             </html>
@@ -4161,7 +4482,7 @@
             console.warn('user localStorage corrupto en init:', parseError.message);
           }
           if (user.restaurante) {
-            document.getElementById('user-restaurant').textContent = '🍽️ ' + user.restaurante;
+            document.getElementById('user-restaurant').textContent = user.restaurante;
           }
 
           await cargarDatos();
@@ -5520,7 +5841,8 @@
         window.marcarPedidoRecibido = function (id) {
           pedidoRecibiendoId = id;
           const pedido = pedidos.find(p => p.id === id);
-          const prov = proveedores.find(p => p.id === pedido.proveedorId);
+          const provId = pedido.proveedorId || pedido.proveedor_id;
+          const prov = proveedores.find(p => p.id === provId);
 
           // Llenar información del pedido
           setElementText('modal-rec-proveedor', prov ? prov.nombre : 'Desconocido');
@@ -5529,12 +5851,17 @@
 
           // Crear copia de items para edición
           if (!pedido.itemsRecepcion) {
-            pedido.itemsRecepcion = pedido.ingredientes.map(item => ({
-              ...item,
-              cantidadRecibida: item.cantidad,
-              precioReal: item.precioUnitario,
-              estado: 'consolidado'
-            }));
+            pedido.itemsRecepcion = pedido.ingredientes.map(item => {
+              const precioUnit = parseFloat(item.precioUnitario || item.precio_unitario || item.precio || 0);
+              return {
+                ...item,
+                ingredienteId: item.ingredienteId || item.ingrediente_id,
+                precioUnitario: precioUnit,
+                cantidadRecibida: parseFloat(item.cantidad || 0),
+                precioReal: precioUnit,
+                estado: 'consolidado'
+              };
+            });
           }
 
           renderItemsRecepcion();
@@ -5862,7 +6189,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Pedido - La Caleta 102</title>
+  <title>Pedido - ${getRestaurantNameForFile()}</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 40px; }
     .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #c35a3f; padding-bottom: 20px; }
@@ -9269,6 +9596,14 @@
         }
       } catch (e) { console.log("ℹ️ Auto-refresh no disponible"); }
     }, 4 * 60 * 1000);
+
+    // Limpiar campos de búsqueda al cargar (combate autocompletado de Chrome)
+    setTimeout(function () {
+      ['busqueda-ingredientes', 'busqueda-recetas', 'busqueda-proveedores', 'busqueda-pedidos'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+    }, 100);
   </script>
 </body>
 

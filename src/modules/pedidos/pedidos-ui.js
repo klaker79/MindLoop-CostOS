@@ -12,6 +12,16 @@ export function mostrarFormularioPedido() {
         window.cambiarTab('proveedores');
         return;
     }
+
+    // Cargar select de proveedores
+    const select = document.getElementById('ped-proveedor');
+    if (select) {
+        select.innerHTML = '<option value="">Seleccionar proveedor...</option>';
+        window.proveedores.forEach(prov => {
+            select.innerHTML += `<option value="${prov.id}">${prov.nombre}</option>`;
+        });
+    }
+
     document.getElementById('formulario-pedido').style.display = 'block';
     window.cargarIngredientesPedido();
     document.getElementById('ped-proveedor').focus();
@@ -27,68 +37,95 @@ export function cerrarFormularioPedido() {
 }
 
 /**
- * Carga lista de ingredientes con checkboxes para pedido
+ * Carga lista de ingredientes según el proveedor seleccionado
  */
 export function cargarIngredientesPedido() {
+    const proveedorId = parseInt(document.getElementById('ped-proveedor')?.value);
+    const containerWrapper = document.getElementById('container-ingredientes-pedido');
     const container = document.getElementById('lista-ingredientes-pedido');
-    if (window.ingredientes.length === 0) {
-        container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">Primero añade ingredientes</p>';
+
+    if (!proveedorId) {
+        if (containerWrapper) containerWrapper.style.display = 'none';
         return;
     }
 
-    let html = '';
-    window.ingredientes.forEach(ing => {
-        html += `
-      <div class="ingrediente-check">
-        <input type="checkbox" id="ing-${ing.id}" value="${ing.id}" onchange="window.calcularTotalPedido()">
-        <label for="ing-${ing.id}">${ing.nombre} (${ing.precio}€/${ing.unidad})</label>
-        <input type="number" step="0.01" min="0" placeholder="Cantidad" disabled 
-               data-ing-id="${ing.id}" class="cantidad-pedido" onchange="window.calcularTotalPedido()">
-      </div>
-    `;
-    });
-    container.innerHTML = html;
+    const proveedor = window.proveedores.find(p => p.id === proveedorId);
+    if (!proveedor || !proveedor.ingredientes || proveedor.ingredientes.length === 0) {
+        if (containerWrapper) containerWrapper.style.display = 'none';
+        window.showToast('Este proveedor no tiene ingredientes asignados', 'warning');
+        return;
+    }
 
-    // Enable cantidad input cuando se marca checkbox
-    container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', (e) => {
-            const cantidadInput = container.querySelector(`input.cantidad-pedido[data-ing-id="${e.target.value}"]`);
-            if (cantidadInput) {
-                cantidadInput.disabled = !e.target.checked;
-                if (!e.target.checked) cantidadInput.value = '';
-            }
-        });
-    });
+    // Mostrar contenedor
+    if (containerWrapper) containerWrapper.style.display = 'block';
+    if (container) container.innerHTML = '';
+
+    // Agregar primera fila de ingrediente
+    window.agregarIngredientePedido();
 }
 
 /**
- * Agrega un ingrediente al pedido (alternativa simplificada)
+ * Agrega una fila de ingrediente al pedido
  */
 export function agregarIngredientePedido() {
-    // Versión simplificada - la UI principal usa cargarIngredientesPedido
-    window.calcularTotalPedido();
+    const proveedorId = parseInt(document.getElementById('ped-proveedor')?.value);
+    if (!proveedorId) return;
+
+    const proveedor = window.proveedores.find(p => p.id === proveedorId);
+    if (!proveedor || !proveedor.ingredientes) return;
+
+    const ingredientesProveedor = window.ingredientes.filter(ing =>
+        proveedor.ingredientes.includes(ing.id)
+    );
+
+    const container = document.getElementById('lista-ingredientes-pedido');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = 'ingrediente-item';
+    div.style.cssText = 'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;';
+
+    let opciones = '<option value="">Seleccionar...</option>';
+    ingredientesProveedor.forEach(ing => {
+        opciones += `<option value="${ing.id}">${ing.nombre} (${parseFloat(ing.precio || 0).toFixed(2)}€/${ing.unidad})</option>`;
+    });
+
+    div.innerHTML = `
+      <select style="flex: 2; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.calcularTotalPedido()">${opciones}</select>
+      <input type="number" placeholder="Cantidad" step="0.01" min="0" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" oninput="window.calcularTotalPedido()">
+      <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
+    `;
+
+    container.appendChild(div);
 }
 
 /**
  * Calcula el total del pedido
  */
 export function calcularTotalPedido() {
-    const checks = document.querySelectorAll('#lista-ingredientes-pedido input[type="checkbox"]:checked');
+    const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
     let total = 0;
 
-    checks.forEach(cb => {
-        const cantidadInput = document.querySelector(`input.cantidad-pedido[data-ing-id="${cb.value}"]`);
-        if (cantidadInput && cantidadInput.value) {
-            const ing = window.ingredientes.find(i => i.id === parseInt(cb.value));
+    items.forEach(item => {
+        const select = item.querySelector('select');
+        const input = item.querySelector('input[type="number"]');
+        if (select && select.value && input && input.value) {
+            const ing = window.ingredientes.find(i => i.id === parseInt(select.value));
             if (ing) {
-                total += parseFloat(ing.precio || 0) * parseFloat(cantidadInput.value || 0);
+                total += parseFloat(ing.precio || 0) * parseFloat(input.value || 0);
             }
         }
     });
 
+    // Actualizar display del total
     const totalDiv = document.getElementById('total-pedido');
-    if (totalDiv) {
-        totalDiv.textContent = total.toFixed(2) + '€';
+    if (totalDiv) totalDiv.textContent = total.toFixed(2) + '€';
+
+    const totalForm = document.getElementById('total-pedido-form');
+    if (totalForm) {
+        totalForm.style.display = total > 0 ? 'block' : 'none';
+        const valorSpan = document.getElementById('total-pedido-value');
+        if (valorSpan) valorSpan.textContent = total.toFixed(2) + ' €';
     }
 
     return total;
@@ -138,7 +175,7 @@ export function renderizarPedidos() {
         html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="Ver detalles">👁️</button>`;
 
         if (ped.estado === 'pendiente') {
-            html += `<button type="button" class="icon-btn success" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir">✅</button>`;
+            html += `<button type="button" class="icon-btn success" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir">➡️</button>`;
         }
 
         html += `<button type="button" class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})">🗑️</button>`;
@@ -170,5 +207,5 @@ export function exportarPedidos() {
         { header: 'Fecha Recepción', value: (p) => p.fecha_recepcion ? new Date(p.fecha_recepcion).toLocaleDateString('es-ES') : '-' }
     ];
 
-    window.exportarAExcel(window.pedidos, 'Pedidos_LaCaleta', columnas);
+    window.exportarAExcel(window.pedidos, `Pedidos_${window.getRestaurantNameForFile()}`, columnas);
 }

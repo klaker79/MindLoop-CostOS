@@ -73,6 +73,6 @@ export function exportarVentas() {
             { header: 'Total (€)', value: (v) => parseFloat(v.total || 0).toFixed(2) }
         ];
 
-        window.exportarAExcel(ventas, 'Ventas_LaCaleta', columnas);
+        window.exportarAExcel(ventas, `Ventas_${window.getRestaurantNameForFile()}`, columnas);
     });
 }

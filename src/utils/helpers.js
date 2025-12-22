@@ -1,7 +1,32 @@
 /**
- * Utilidades Compartidas - LaCaleta App
+ * Utilidades Compartidas - MindLoop CostOS
  * Funciones de UI y exportación usadas en toda la aplicación
+ * @copyright MindLoopIA
  */
+
+/**
+ * Obtiene el nombre del restaurante del usuario actual
+ * Usado para exports, PDFs, y cualquier referencia dinámica
+ * @returns {string} Nombre del restaurante o fallback genérico
+ */
+export function getRestaurantName() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        return user.restaurante || user.nombre || 'Mi Restaurante';
+    } catch {
+        return 'Mi Restaurante';
+    }
+}
+
+/**
+ * Obtiene nombre sanitizado para archivos (sin espacios ni caracteres especiales)
+ * @returns {string} Nombre seguro para archivos
+ */
+export function getRestaurantNameForFile() {
+    return getRestaurantName()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_áéíóúÁÉÍÓÚñÑ]/g, '');
+}
 
 /**
  * Muestra un toast de notificación
@@ -166,4 +191,6 @@ if (typeof window !== 'undefined') {
     window.formatDate = formatDate;
     window.formatDateTime = formatDateTime;
     window.debounce = debounce;
+    window.getRestaurantName = getRestaurantName;
+    window.getRestaurantNameForFile = getRestaurantNameForFile;
 }
