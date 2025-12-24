@@ -155,7 +155,9 @@ export function generarPDFReceta(receta, ingredientes) {
     yPos += 8;
     doc.setTextColor(...colorText);
     doc.text(`MARGEN:`, 20, yPos);
-    doc.setTextColor(margen >= 25 ? [16, 185, 129] : margen >= 15 ? [245, 158, 11] : [239, 68, 68]);
+    // Colores basados en Food Cost: ≤28% verde brillante, ≤33% verde, ≤38% amarillo, >38% rojo
+    const foodCost = precioVenta > 0 ? (costoTotal / precioVenta * 100) : 100;
+    doc.setTextColor(foodCost <= 28 ? [5, 150, 105] : foodCost <= 33 ? [16, 185, 129] : foodCost <= 38 ? [245, 158, 11] : [239, 68, 68]);
     doc.text(`${margen.toFixed(1)}%`, 100, yPos, { align: 'right' });
 
     // === FOOTER ===

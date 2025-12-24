@@ -103,8 +103,10 @@ export function calcularCosteReceta() {
         const margenSpan = document.getElementById('margen-receta-valor');
         if (margenSpan && precioVenta > 0) {
             const margen = ((precioVenta - costeTotal) / precioVenta * 100);
+            const foodCost = (costeTotal / precioVenta * 100);
             margenSpan.textContent = margen.toFixed(1) + '%';
-            margenSpan.style.color = margen >= 60 ? '#10b981' : margen >= 40 ? '#f59e0b' : '#ef4444';
+            // Colores basados en Food Cost: ≤28% verde brillante, ≤33% verde, ≤38% amarillo, >38% rojo
+            margenSpan.style.color = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#10b981' : foodCost <= 38 ? '#f59e0b' : '#ef4444';
         }
     }
 
@@ -144,6 +146,9 @@ export function renderizarRecetas() {
             const coste = window.calcularCosteRecetaCompleto(rec);
             const margen = rec.precio_venta - coste;
             const pct = rec.precio_venta > 0 ? ((margen / rec.precio_venta) * 100).toFixed(0) : 0;
+            const foodCost = rec.precio_venta > 0 ? (coste / rec.precio_venta * 100) : 100;
+            // Badge basado en Food Cost: ≤33% success, ≤38% warning, >38% danger
+            const badgeClass = foodCost <= 33 ? 'badge-success' : foodCost <= 38 ? 'badge-warning' : 'badge-danger';
 
             html += '<tr>';
             html += `<td><span style="color:#666;font-size:12px;">${rec.codigo || '-'}</span></td>`;
@@ -151,7 +156,7 @@ export function renderizarRecetas() {
             html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
             html += `<td>${coste.toFixed(2)} €</td>`;
             html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
-            html += `<td><span class="badge ${margen > 0 ? 'badge-success' : 'badge-warning'}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
+            html += `<td><span class="badge ${badgeClass}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
             html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
