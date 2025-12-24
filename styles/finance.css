@@ -1,0 +1,3047 @@
+    body { font-family: Arial, sans-serif; padding: 40px; }
+    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #c35a3f; padding-bottom: 20px; }
+    .header h1 { color: #c35a3f; margin: 0; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; background: #f8f8f8; padding: 20px; border-radius: 5px; }
+    .info-item { margin-bottom: 10px; }
+    .info-item strong { display: block; color: #666; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: #f8f8f8; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 12px; color: #666; }
+    td { padding: 12px; border-bottom: 1px solid #eee; }
+    .total-box { background: #f0fdf4; border: 2px solid #10b981; padding: 20px; border-radius: 5px; text-align: right; }
+    .total-box strong { font-size: 24px; color: #059669; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .badge-received { background: #d1fae5; color: #059669; }
+    .badge-pending { background: #fef3c7; color: #d97706; }
+    .varianza { font-size: 11px; }
+    .varianza.pos { color: #10b981; }
+    .varianza.neg { color: #ef4444; }
+    @media print {
+      body { padding: 20px; }
+      button { display: none; }
+    }
+    /* === RESPONSIVE MOBILE === */
+        @media(max - width: 768px) {
+  /* Container */
+  .container { padding: 12px; }
+
+  /* Header */
+  .header {
+            padding: 8px 32px;
+            flex - direction: column;
+            text - align: center;
+            gap: 12px;
+          }
+  
+  .header h1 { font - size: 32px; }
+  .header p { font - size: 14px; }
+
+  /* KPI Dashboard */
+  .kpi - dashboard {
+            grid - template - columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 0 12px;
+            margin: 16px 0;
+          }
+  
+  .kpi - card {
+            padding: 16px;
+          }
+  
+  .kpi - icon { font - size: 24px; margin - bottom: 8px; }
+  .kpi - label { font - size: 11px; }
+  .kpi - value { font - size: 28px; }
+  .kpi - trend { font - size: 12px; }
+
+  /* Tabs */
+  .tabs {
+            overflow - x: auto;
+            overflow - y: hidden;
+            white - space: nowrap;
+            padding: 12px 12px 0;
+            gap: 8px;
+            -webkit - overflow - scrolling: touch;
+            scrollbar - width: none;
+          }
+  
+  .tabs:: -webkit - scrollbar { display: none; }
+  
+  .tab {
+            padding: 10px 16px;
+            font - size: 13px;
+            display: inline - block;
+          }
+
+  /* Main Card */
+  .main - card {
+            padding: 16px;
+            border - radius: 16px 16px 0 0;
+          }
+
+  /* Top Bar */
+  .top - bar {
+            flex - direction: column;
+            align - items: flex - start;
+            gap: 12px;
+            margin - bottom: 20px;
+          }
+  
+  .top - bar h2 { font - size: 22px; }
+  .top - bar p { font - size: 13px; }
+
+  /* Buttons */
+  .btn {
+            width: 100 %;
+            justify - content: center;
+            padding: 14px 20px;
+            font - size: 14px;
+          }
+  
+  .btn - small {
+            width: auto;
+            padding: 10px 16px;
+          }
+
+  /* Search Box */
+  .search - box {
+            max - width: 100 %;
+            margin: 16px 0;
+          }
+
+  /* Form Grid */
+  .form - grid {
+            grid - template - columns: 1fr;
+            gap: 12px;
+          }
+  
+  .form - card {
+            padding: 16px;
+          }
+
+  /* Tables */
+  table {
+            display: block;
+            overflow - x: auto;
+            white - space: nowrap;
+            -webkit - overflow - scrolling: touch;
+          }
+  
+  table thead th {
+            padding: 12px 16px;
+            font - size: 10px;
+          }
+  
+  table tbody td {
+            padding: 12px 16px;
+            font - size: 13px;
+          }
+
+  /* Actions */
+  .actions {
+            gap: 6px;
+          }
+  
+  .icon - btn {
+            width: 32px;
+            height: 32px;
+            font - size: 14px;
+          }
+
+  /* Stats Grid */
+  .stats - grid {
+            grid - template - columns: 1fr;
+            gap: 16px;
+          }
+
+  /* Charts Grid */
+  .charts - grid {
+            grid - template - columns: 1fr;
+            gap: 16px;
+          }
+
+          /* Balance Cards */
+          [id ^= "tab-balance"] > div[style *= "grid"] {
+            grid - template - columns: 1fr!important;
+            gap: 16px!important;
+          }
+
+          /* Balance Cards Gradient */
+          [id = "tab-balance"] > div: nth - child(2) > div {
+            padding: 24px!important;
+          }
+
+          [id = "tab-balance"] > div: nth - child(2) > div > div: first - child {
+            font - size: 100px!important;
+          }
+
+          [id = "tab-balance"] > div: nth - child(2) > div[id ^= "balance-"] {
+            font - size: 36px!important;
+          }
+
+
+  /* Ingrediente Item */
+  .ingrediente - item {
+            grid - template - columns: 1fr;
+            gap: 8px;
+          }
+  
+  .ingrediente - item select,
+  .ingrediente - item input {
+            width: 100 %;
+          }
+
+  /* Toast Container */
+  .toast - container {
+            top: 60px;
+            right: 12px;
+            left: 12px;
+            max - width: none;
+          }
+  
+  .toast {
+            padding: 12px 16px;
+          }
+
+  /* Summary */
+  .summary {
+            flex - direction: column;
+            gap: 8px;
+            align - items: flex - start;
+          }
+        }
+
+        @media(max - width: 480px) {
+  /* Extra pequeño */
+  .kpi - dashboard {
+            grid - template - columns: 1fr;
+          }
+  
+  .header h1 { font - size: 28px; }
+  
+  .kpi - value { font - size: 32px; }
+        }
+  </style >
+</head >
+          <body>
+            <div class="header">
+              <img src="logo.png" onerror="this.style.display='none'">
+                <h1>${currentUser.restaurante || 'Mi Restaurante'}</h1>
+                <p>Pedido a Proveedor</p>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>Proveedor</strong>
+                ${prov ? prov.nombre : 'Desconocido'}
+              </div>
+              <div class="info-item">
+                <strong>Fecha del Pedido</strong>
+                ${new Date(pedido.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+              </div>
+              <div class="info-item">
+                <strong>Estado</strong>
+                <span class="badge ${pedido.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">
+                  ${pedido.estado === 'recibido' ? 'Recibido' : 'Pendiente'}
+                </span>
+              </div>
+              ${pedido.estado === 'recibido' && pedido.fechaRecepcion ? `
+    <div class="info-item">
+      <strong>Fecha de Recepción</strong>
+      ${new Date(pedido.fechaRecepcion).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+    </div>
+    ` : ''}
+            </div>
+
+            <h3>Detalle del Pedido</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Ingrediente</th>
+                  <th>Cantidad</th>
+                  <th>Precio Unitario</th>
+                  <th>Subtotal</th>
+                  ${pedido.estado === 'recibido' ? '<th>Estado</th>' : ''}
+                </tr>
+              </thead>
+              <tbody>`;
+
+          const items = pedido.ingredientes;
+          let totalFinal = 0;
+
+          items.forEach(item => {
+            const ing = ingredientes.find(i => i.id === item.ingredienteId);
+            if (!ing) return;
+
+            const esRecibido = pedido.estado === 'recibido' && item.cantidadRecibida !== undefined;
+            const cantidad = esRecibido ? item.cantidadRecibida : item.cantidad;
+            const precio = esRecibido && item.precioReal ? item.precioReal : item.precioUnitario;
+            const subtotal = cantidad * precio;
+
+            if (item.estado !== 'no-entregado') {
+              totalFinal += subtotal;
+            }
+
+            htmlPrint += '<tr>';
+            htmlPrint += `<td>${ing.nombre}</td>`;
+            htmlPrint += `<td>${cantidad} ${ing.unidad}`;
+
+            if (esRecibido && item.cantidad && Math.abs(cantidad - item.cantidad) > 0.01) {
+              const diff = cantidad - item.cantidad;
+              htmlPrint += `<br><span class="varianza ${diff > 0 ? 'pos' : 'neg'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)})</span>`;
+            }
+
+            htmlPrint += `</td>`;
+            htmlPrint += `<td>${parseFloat(precio || 0).toFixed(2)} €/${ing.unidad}`;
+
+            if (esRecibido && item.precioUnitario && Math.abs(precio - item.precioUnitario) > 0.01) {
+              const diff = precio - item.precioUnitario;
+              htmlPrint += `<br><span class="varianza ${diff > 0 ? 'neg' : 'pos'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)} €)</span>`;
+            }
+
+            htmlPrint += `</td>`;
+            htmlPrint += `<td>${item.estado === 'no-entregado' ? '0.00' : subtotal.toFixed(2)} €</td>`;
+
+            if (esRecibido) {
+              let estadoText = '';
+              if (item.estado === 'consolidado') estadoText = '✅ OK';
+              else if (item.estado === 'varianza') estadoText = '⚠️ Varianza';
+              else if (item.estado === 'no-entregado') estadoText = '❌ No entregado';
+              htmlPrint += `<td>${estadoText}</td>`;
+            }
+
+            htmlPrint += '</tr>';
+          });
+
+          htmlPrint += '</tbody></table>';
+
+          if (pedido.estado === 'recibido' && pedido.totalRecibido !== undefined) {
+            const varianza = pedido.totalRecibido - pedido.total;
+            htmlPrint += `
+            <div class="total-box">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center;">
+                <div>
+                  <strong style="color:#666;font-size:14px;">Total Original</strong><br>
+                    <span style="font-size:20px;">${pedido.total.toFixed(2)} €</span>
+                </div>
+                <div>
+                  <strong style="color:#059669;font-size:14px;">Total Recibido</strong><br>
+                    <strong>${pedido.totalRecibido.toFixed(2)} €</strong>
+                </div>
+                <div>
+                  <strong style="color:#666;font-size:14px;">Varianza</strong><br>
+                    <span style="font-size:20px;color:${varianza >= 0 ? '#ef4444' : '#10b981'};">${varianza >= 0 ? '+' : ''}${varianza.toFixed(2)} €</span>
+                </div>
+              </div>
+            </div>`;
+          } else {
+            htmlPrint += `
+  <div class="total-box">
+   <strong>Total del Pedido: ${parseFloat(pedido.total).toFixed(2)} €</strong>
+  </div>`;
+          }
+
+          htmlPrint += `
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center;">
+              Generado el ${new Date().toLocaleDateString('es-ES')} - ${currentUser.restaurante || 'MindLoop Dashboard'}
+            </div>
+          </body>
+</html > `;
+
+          // Abrir en nueva ventana para imprimir/guardar PDF
+          const ventana = window.open('', '_blank');
+          ventana.document.write(htmlPrint);
+          ventana.document.close();
+
+          // Esperar a que se cargue y abrir diálogo de impresión
+          setTimeout(() => {
+            ventana.print();
+          }, 250);
+        };
+
+        window.renderizarPedidos = function () {
+          const busqueda = document.getElementById('busqueda-pedidos').value.toLowerCase();
+          const filtrados = pedidos.filter(ped => {
+            const prov = proveedores.find(p => p.id === ped.proveedorId);
+            const nombreProv = prov ? prov.nombre.toLowerCase() : '';
+            return nombreProv.includes(busqueda) || ped.estado.includes(busqueda);
+          });
+
+          const container = document.getElementById('tabla-pedidos');
+
+          if (filtrados.length === 0) {
+            container.innerHTML = `
+          < div class="empty-state" >
+              <div class="icon">📋</div>
+              <h3>${busqueda ? 'No encontrados' : 'Aún no hay pedidos'}</h3>
+              <p>${busqueda ? 'Otra búsqueda' : 'Crea tu primer pedido'}</p>
+            </div >
+          `;
+            document.getElementById('resumen-pedidos').style.display = 'none';
+          } else {
+            let html = '<table><thead><tr>';
+            html += '<th>Fecha</th><th>Proveedor</th><th>Items</th><th>Total</th><th>Estado</th><th>Acciones</th>';
+            html += '</tr></thead><tbody>';
+
+            filtrados.forEach(ped => {
+              const prov = proveedores.find(p => p.id === (ped.proveedor_id || ped.proveedorId));
+              const nombreProv = prov ? prov.nombre : 'Desconocido';
+
+              html += '<tr>';
+              html += `< td > ${new Date(ped.fecha).toLocaleDateString('es-ES')}</td > `;
+              html += `< td > <strong>${nombreProv}</strong></td > `;
+              html += `< td > ${ped.ingredientes.length} ingredientes</td > `;
+              html += `< td > <strong>${parseFloat(ped.total).toFixed(2)} €</strong></td > `;
+              html += `< td > <span class="badge ${ped.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${ped.estado === 'recibido' ? 'Recibido' : 'Pendiente'}</span></td > `;
+              html += `< td > <div class="actions">`;
+              html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="Ver detalles">👁️</button>`;
+              if (ped.estado === 'pendiente') {
+                html += `<button type="button" class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir pedido">📥</button>`;
+              }
+              html += `<button type="button" class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})" title="Eliminar">🗑️</button>`;
+              html += '</div></td > ';
+              html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+
+            const totalPendientes = pedidos.filter(p => p.estado === 'pendiente').length;
+            const totalRecibidos = pedidos.filter(p => p.estado === 'recibido').length;
+
+            document.getElementById('resumen-pedidos').innerHTML = `
+            <div>Total: <strong>${pedidos.length}</strong></div>
+            <div>Pendientes: <strong>${totalPendientes}</strong></div>
+            <div>Recibidos: <strong>${totalRecibidos}</strong></div>
+          `;
+            document.getElementById('resumen-pedidos').style.display = 'flex';
+          }
+        }
+        /* ======================================== */
+
+        // ========== ANÁLISIS (resumido) ==========
+        window.renderizarAnalisis = async function () {
+          if (recetas.length === 0 || ingredientes.length === 0) {
+            document.getElementById('analisis-vacio').style.display = 'block';
+            document.getElementById('analisis-contenido').style.display = 'none';
+            return;
+          }
+
+          document.getElementById('analisis-vacio').style.display = 'none';
+          document.getElementById('analisis-contenido').style.display = 'block';
+
+          let totalMargen = 0;
+          let totalCoste = 0;
+          const datosRecetas = recetas.map(rec => {
+            const coste = calcularCosteRecetaCompleto(rec);
+            const margen = rec.precio_venta - coste;
+            const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
+            totalMargen += margenPct;
+            totalCoste += coste;
+            return { ...rec, coste, margen, margenPct };
+          });
+
+          try {
+            const menuAnalysis = await api.getMenuEngineering(); // Nueva llamada a la API
+
+            let totalMargen = 0;
+            let totalCoste = 0;
+            const datosRecetas = recetas.map(rec => {
+              const coste = calcularCosteRecetaCompleto(rec);
+              const margen = rec.precio_venta - coste;
+              const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
+              totalMargen += margenPct;
+              totalCoste += coste;
+              return { ...rec, coste, margen, margenPct };
+            });
+
+            const margenPromedio = (totalMargen / recetas.length).toFixed(1);
+            const costePromedio = (totalCoste / recetas.length).toFixed(2);
+
+            document.getElementById('stat-total-recetas').textContent = menuAnalysis.length;
+            document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
+            document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
+            document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
+
+            // Renderizar Gráficos existentes
+            renderRevenueChart();
+            renderChartRentabilidad(datosRecetas);
+            renderChartIngredientes();
+            renderTablaRentabilidad(datosRecetas);
+
+            // RENDERIZAR INGENIERÍA DE MENÚ (Matriz BCG)
+            renderMenuEngineeringUI(menuAnalysis);
+
+          } catch (error) {
+            console.error('Error renderizando análisis:', error);
+          }
+        };
+
+        window.renderMenuEngineeringUI = function (data) {
+          const container = document.getElementById('bcg-matrix-container');
+          if (!container || !data || data.length === 0) return;
+
+          // Contenedores
+          const containers = {
+            'estrella': document.getElementById('lista-estrella'),
+            'caballo': document.getElementById('lista-caballo'),
+            'puzzle': document.getElementById('lista-puzzle'),
+            'perro': document.getElementById('lista-perro')
+          };
+
+          // Limpiar listas
+          Object.values(containers).forEach(c => { if (c) c.innerHTML = ''; });
+
+          // Contar por categoría
+          const counts = { estrella: 0, puzzle: 0, caballo: 0, perro: 0 };
+          const colorMap = {
+            'estrella': 'rgba(34, 197, 94, 0.8)',
+            'puzzle': 'rgba(59, 130, 246, 0.8)',
+            'caballo': 'rgba(249, 115, 22, 0.8)',
+            'perro': 'rgba(239, 68, 68, 0.8)'
+          };
+
+          // Procesar datos para scatter
+          const scatterData = data.map(item => {
+            counts[item.clasificacion] = (counts[item.clasificacion] || 0) + 1;
+            return {
+              x: item.popularidad,
+              y: item.margen,
+              nombre: item.nombre,
+              clasificacion: item.clasificacion,
+              backgroundColor: colorMap[item.clasificacion] || 'rgba(100,100,100,0.5)'
+            };
+          });
+
+          // Actualizar contadores
+          document.getElementById('count-estrella').textContent = counts.estrella || 0;
+          document.getElementById('count-puzzle').textContent = counts.puzzle || 0;
+          document.getElementById('count-caballo').textContent = counts.caballo || 0;
+          document.getElementById('count-perro').textContent = counts.perro || 0;
+
+          // Renderizar Scatter Plot con Chart.js y etiquetas
+          const ctx = document.getElementById('bcg-scatter-chart');
+          if (ctx) {
+            // Destruir chart anterior si existe
+            if (window.bcgScatterChart) {
+              window.bcgScatterChart.destroy();
+            }
+
+            // Plugin personalizado para dibujar etiquetas
+            const labelPlugin = {
+              id: 'bcgLabels',
+              afterDatasetsDraw: function (chart) {
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach((dataset, i) => {
+                  const meta = chart.getDatasetMeta(i);
+                  meta.data.forEach((element, index) => {
+                    const item = scatterData[index];
+                    const nombre = item.nombre.length > 10 ? item.nombre.substring(0, 9) + '...' : item.nombre;
+
+                    ctx.save();
+                    ctx.font = 'bold 10px Montserrat, sans-serif';
+                    ctx.fillStyle = '#1e293b';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(nombre, element.x, element.y - 14);
+                    ctx.restore();
+                  });
+                });
+              }
+            };
+
+            window.bcgScatterChart = new Chart(ctx, {
+              type: 'scatter',
+              plugins: [labelPlugin],
+              data: {
+                datasets: [{
+                  label: 'Platos',
+                  data: scatterData.map(d => ({ x: d.x, y: d.y })),
+                  backgroundColor: scatterData.map(d => d.backgroundColor),
+                  pointRadius: 14,
+                  pointHoverRadius: 18,
+                  pointStyle: 'circle',
+                  borderWidth: 2,
+                  borderColor: scatterData.map(d => d.backgroundColor.replace('0.8', '1'))
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                  padding: { top: 30, right: 20, bottom: 10, left: 10 }
+                },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: false,
+                    callbacks: {
+                      label: function (context) {
+                        const idx = context.dataIndex;
+                        const item = scatterData[idx];
+                        return [
+                          item.nombre,
+                          `Margen: ${item.y.toFixed(2)}€`,
+                          `Ventas: ${item.x}`
+                        ];
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  x: {
+                    title: { display: true, text: 'Popularidad (Ventas)', font: { size: 12 } },
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    beginAtZero: true
+                  },
+                  y: {
+                    title: { display: true, text: 'Margen (€)', font: { size: 12 } },
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    beginAtZero: true
+                  }
+                }
+              }
+            });
+          }
+
+          // Generar recomendaciones inteligentes
+          const recsEl = document.getElementById('bcg-recommendations-list');
+          if (recsEl) {
+            const recs = [];
+
+            // Recomendación si hay perros
+            if (counts.perro > 0) {
+              const perros = data.filter(d => d.clasificacion === 'perro').map(d => d.nombre).slice(0, 3);
+              recs.push(`🚨 <strong>Retira o reforma ${counts.perro} plato(s):</strong> ${perros.join(', ')}${counts.perro > 3 ? '...' : ''} - No generan beneficio ni se venden.`);
+            }
+
+            // Recomendación si hay caballos
+            if (counts.caballo > 0) {
+              const caballos = data.filter(d => d.clasificacion === 'caballo').map(d => d.nombre).slice(0, 2);
+              recs.push(`💰 <strong>Sube el precio de:</strong> ${caballos.join(', ')} - Se venden bien pero tu margen es bajo.`);
+            }
+
+            // Recomendación si hay puzzles
+            if (counts.puzzle > 0) {
+              const puzzles = data.filter(d => d.clasificacion === 'puzzle').map(d => d.nombre).slice(0, 2);
+              recs.push(`📢 <strong>Promociona más:</strong> ${puzzles.join(', ')} - Tienen buen margen pero poca visibilidad.`);
+            }
+
+            // Recomendación positiva si hay estrellas
+            if (counts.estrella > 0) {
+              recs.push(`✨ <strong>¡Excelente!</strong> Tienes ${counts.estrella} plato(s) estrella. Manténlos destacados en la carta.`);
+            }
+
+            // Si no hay datos significativos
+            if (recs.length === 0) {
+              recs.push('📊 Registra más ventas para obtener recomendaciones personalizadas.');
+            }
+
+            recsEl.innerHTML = recs.map(r => `<div style="margin-bottom: 8px;">${r}</div>`).join('');
+          }
+
+          // Poblar listas detalladas
+          data.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'bcg-item';
+            el.innerHTML = `<strong>${item.nombre}</strong><br><span style="font-size:11px">Mg: ${item.margen.toFixed(2)}€ | Ventas: ${item.popularidad}</span>`;
+
+            if (containers[item.clasificacion]) {
+              containers[item.clasificacion].appendChild(el);
+            }
+          });
+        }
+
+        function renderChartRentabilidad(datos) {
+          const ctx = document.getElementById('chart-rentabilidad');
+          if (!ctx) return;
+
+          const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct).slice(0, 10);
+
+          if (chartRentabilidad) chartRentabilidad.destroy();
+
+          chartRentabilidad = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ordenados.map(r => r.nombre),
+              datasets: [{
+                label: 'Margen (%)',
+                data: ordenados.map(r => r.margenPct.toFixed(1)),
+                backgroundColor: ordenados.map(r => r.margenPct > 50 ? '#10b981' : r.margenPct > 30 ? '#f59e0b' : '#ef4444'),
+                borderWidth: 0,
+                borderRadius: 8,
+                hoverBackgroundColor: ordenados.map(r => r.margenPct > 50 ? '#059669' : r.margenPct > 30 ? '#d97706' : '#dc2626')
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  enabled: true,
+                  backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                  titleColor: '#fff',
+                  bodyColor: '#fff',
+                  padding: 16,
+                  cornerRadius: 12,
+                  displayColors: false,
+                  borderColor: '#FF6B35',
+                  borderWidth: 2,
+                  titleFont: { size: 14, weight: 'bold' },
+                  bodyFont: { size: 13 },
+                  callbacks: {
+                    label: function (context) {
+                      return 'Margen: ' + context.parsed.y + '%';
+                    }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                  ticks: {
+                    callback: function (value) {
+                      return value + '%';
+                    },
+                    font: { size: 12 }
+                  }
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: { font: { size: 12 } }
+                }
+              }
+            }
+          });
+        }
+
+        function renderChartIngredientes() {
+          const ctx = document.getElementById('chart-ingredientes');
+          if (!ctx) return;
+
+          const ordenados = [...ingredientes]
+            .filter(ing => ing.precio > 0)
+            .sort((a, b) => b.precio - a.precio)
+            .slice(0, 10);
+
+          if (chartIngredientes) chartIngredientes.destroy();
+
+          chartIngredientes = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: ordenados.map(i => i.nombre),
+              datasets: [{
+                data: ordenados.map(i => i.precio),
+                backgroundColor: [
+                  '#FF6B35', '#F7931E', '#10b981', '#3b82f6', '#f59e0b',
+                  '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+                ],
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverOffset: 15,
+                hoverBorderWidth: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              animation: {
+                duration: 1200,
+                easing: 'easeInOutQuart',
+                animateRotate: true,
+                animateScale: true
+              },
+              plugins: {
+                legend: {
+                  position: 'right',
+                  labels: {
+                    font: {
+                      size: 11
+                    }
+                  }
+                },
+                tooltip: {
+                  enabled: true,
+                  backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                  titleColor: '#fff',
+                  bodyColor: '#fff',
+                  padding: 16,
+                  cornerRadius: 12,
+                  displayColors: true,
+                  borderColor: '#FF6B35',
+                  borderWidth: 2,
+                  titleFont: { size: 14, weight: 'bold' },
+                  bodyFont: { size: 13 },
+                  callbacks: {
+                    label: function (context) {
+                      return context.label + ': ' + context.parsed.toFixed(2) + '€';
+                    }
+                  }
+                },
+                cutout: '65%'
+              }
+            }
+          });
+        }
+
+        function renderTablaRentabilidad(datos) {
+          const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
+
+          let html = '<table><thead><tr>';
+          html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
+          html += '</tr></thead><tbody>';
+
+          ordenados.forEach((rec, idx) => {
+            html += '<tr>';
+            html += `<td><strong>#${idx + 1}</strong></td>`;
+            html += `<td>${rec.nombre}</td>`;
+            html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
+            html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
+            html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
+            html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+            html += '</tr>';
+          });
+
+          html += '</tbody></table>';
+          document.getElementById('tabla-rentabilidad').innerHTML = html;
+        }
+
+        // ========== INVENTARIO ==========
+        window.renderizarInventario = async function () {
+          try {
+            const inventario = await api.getInventoryComplete();
+            const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
+            const filtrados = inventario.filter(ing =>
+              ing.nombre.toLowerCase().includes(busqueda)
+            );
+
+            const container = document.getElementById('tabla-inventario');
+
+            // Calcular alertas
+            let stockBajo = 0;
+            let stockCritico = 0;
+
+            window.ingredientes.forEach(ing => {
+              const stockActual = parseFloat(ing.stock_actual) || 0;
+              const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+              // Solo contar si tiene mínimo configurado
+              if (stockActual <= 0) {
+                stockCritico++;
+              } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
+                stockBajo++;
+              }
+            });
+
+            // Actualizar badge
+            const totalAlertas = stockBajo + stockCritico;
+            const badge = document.getElementById('badge-inventario');
+            if (totalAlertas > 0) {
+              badge.textContent = totalAlertas;
+              badge.style.display = 'inline-block';
+            } else {
+              badge.style.display = 'none';
+            }
+
+            // Actualizar resumen
+            const resumen = document.getElementById('resumen-inventario');
+            if (stockBajo > 0 || stockCritico > 0) {
+              resumen.innerHTML = `
+            <div style="color: #f59e0b;">⚠️ Stock bajo: <strong>${stockBajo}</strong></div>
+            <div style="color: #ef4444;">🔴 Stock crítico: <strong>${stockCritico}</strong></div>
+          `;
+              resumen.style.display = 'flex';
+            } else {
+              resumen.style.display = 'none';
+            }
+
+            if (filtrados.length === 0) {
+              container.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📦</div>
+              <h3>No hay ingredientes</h3>
+              <p>Añade ingredientes para gestionar el inventario</p>
+            </div>
+          `;
+              return;
+            }
+
+            let html = '<table><thead><tr>';
+            html += '<th>Estado</th><th>Ingrediente</th><th>Stock Virtual</th><th>Stock Real</th><th>Diferencia</th><th>Precio Medio</th><th>Valor Stock</th><th>Unidad</th>';
+            html += '</tr></thead><tbody>';
+
+            filtrados.forEach(ing => {
+              let estadoClass = 'stock-ok';
+              let estadoIcon = '🟢';
+
+              const stockActual = parseFloat(ing.stock_virtual) || 0;
+              const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+
+              if (stockActual <= 0) {
+                estadoClass = 'stock-critico';
+                estadoIcon = '🔴';
+              } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
+                estadoClass = 'stock-bajo';
+                estadoIcon = '🟡';
+              }
+
+              const precioMedio = parseFloat(ing.precio_medio || 0);
+              const valorStock = parseFloat(ing.valor_stock || 0);
+              const diferencia = parseFloat(ing.diferencia || 0);
+              const stockReal = ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '';
+
+              html += '<tr>';
+              html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
+              html += `<td><strong>${ing.nombre}</strong></td>`;
+              html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
+
+              // Input con evento ONINPUT para cálculo dinámico
+              // Input con evento ONINPUT para cálculo dinámico
+              html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
+                        class="input-stock-real" 
+                        data-id="${ing.id}" 
+                        data-stock-virtual="${ing.stock_virtual || 0}" 
+                        data-precio="${precioMedio}"
+                        oninput="window.updateDifferenceCell(this)"
+                        style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"></td>`;
+
+              // Celda de Diferencia con ID único para actualizar
+              let diffDisplay = '-';
+              let diffColor = '#666';
+
+              // Si viene calculado de backend (porque había stock_real guardado)
+              if (ing.diferencia !== null && ing.diferencia !== undefined) {
+                const d = parseFloat(ing.diferencia);
+                diffDisplay = d.toFixed(2);
+                if (d < 0) diffColor = '#ef4444'; // Negativo (Falta) -> Rojo
+                else if (d > 0) diffColor = '#10b981'; // Positivo (Sobra) -> Verde
+              }
+
+              html += `<td id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
+
+              html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
+
+              // Valor Stock: Por defecto usa Virtual. Si hay Real guardado, usa Real.
+              const cantidadParaValor = (stockReal !== '' && stockReal !== null) ? parseFloat(stockReal) : parseFloat(ing.stock_virtual || 0);
+              const valorStockDisplay = (cantidadParaValor * precioMedio).toFixed(2);
+
+              html += `<td id="val-cell-${ing.id}"><strong>${valorStockDisplay}€</strong></td>`;
+              html += `<td>${ing.unidad}</td>`;
+              html += '</tr>';
+            });
+
+            container.innerHTML = html;
+          } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('tabla-inventario').innerHTML = '<p style="color:#ef4444;">Error cargando inventario</p>';
+          }
+        };
+
+        window.updateDifferenceCell = function (input) {
+          const id = input.dataset.id;
+          const virtual = parseFloat(input.dataset.stockVirtual) || 0;
+          const val = input.value;
+          const cellDiff = document.getElementById(`diff-cell-${id}`);
+          const cellVal = document.getElementById(`val-cell-${id}`);
+
+          // Precio Medio (lo extraemos de la celda vecina o mejor, lo pasamos por data attribute.
+          // Hack rápido: obtenemos valor de la celda de precio (indice 5, pero variable)
+          // Mejor: Agregamos data-precio al input
+          const precio = parseFloat(input.dataset.precio || 0);
+
+          if (val === '' || val === null) {
+            cellDiff.textContent = '-';
+            cellDiff.style.color = '#666';
+            // Si borra, volvemos a mostrar valor VIRTUAL
+            cellVal.innerHTML = `<strong>${(virtual * precio).toFixed(2)}€</strong>`;
+            return;
+          }
+
+          const real = parseFloat(val);
+          const diff = real - virtual;
+
+          cellDiff.textContent = diff.toFixed(2);
+          if (diff < 0) cellDiff.style.color = '#ef4444';
+          else if (diff > 0) cellDiff.style.color = '#10b981';
+          else cellDiff.style.color = '#666';
+
+          // Actualizar Valor Stock (REAL * Precio)
+          cellVal.innerHTML = `<strong>${(real * precio).toFixed(2)}€</strong>`;
+        };
+
+        // Función global para actualizar stock real
+        // Función para guardar stock masivo
+        // Función para guardar stock masivo con lógica de mermas
+        window.guardarCambiosStock = async function () {
+          const inputs = document.querySelectorAll('.input-stock-real');
+          const adjustments = [];
+          const mermas = [];
+
+          inputs.forEach(input => {
+            const val = input.value;
+            if (val !== '' && val !== null) {
+              const nuevoReal = parseFloat(val);
+              const dataId = parseInt(input.dataset.id);
+              const stockVirtual = parseFloat(input.dataset.stockVirtual || 0);
+
+              // Solo nos importa si hay cambios (aunque la lógica pide ajustar si es positivo, 
+              // asumimos que si el usuario escribe algo es porque quiere fijarlo)
+              // Pero podemos optimizar enviando solo lo que difiere o todo lo escrito.
+              // El usuario dijo "Update Stock" button allow users to edit multiple...
+              // Enviamos todo lo que tenga valor explícito en el input.
+
+              const item = {
+                id: dataId,
+                stock_real: nuevoReal
+              };
+              adjustments.push(item);
+
+              // Detectar mermas (Real < Ficticio)
+              // Nota: Javascript floats pueden ser tricky, usamos una pequeña tolerancia o simple comparación
+              if (nuevoReal < stockVirtual) {
+                const nombreIng = window.ingredientes.find(i => i.id === dataId)?.nombre || 'Ingrediente ' + dataId;
+                mermas.push({ id: dataId, nombre: nombreIng, diferencia: (stockVirtual - nuevoReal).toFixed(2) });
+              }
+            }
+          });
+
+          if (adjustments.length === 0) {
+            showToast('No hay datos para guardar', 'info');
+            return;
+          }
+
+          // Lógica de confirmación
+          if (mermas.length > 0) {
+            // Abrir modal de gestión de mermas
+            window.mostrarModalConfirmarMermas(adjustments, mermas);
+            return;
+          }
+
+          let mensajeConfirmacion = `¿Actualizar stock de ${adjustments.length} ingredientes?`;
+          mensajeConfirmacion += `\n\nEl stock ficticio se ajustará automáticamente al stock real ingresado.`;
+
+          if (!confirm(mensajeConfirmacion)) return;
+
+          try {
+            showLoading();
+            // Usamos el endpoint de consolidación que actualiza AMBOS (read y actual)
+            await api.consolidateStock(adjustments);
+            await window.renderizarInventario();
+            hideLoading();
+            showToast('Inventario consolidado correctamente', 'success');
+          } catch (error) {
+            hideLoading();
+            showToast('Error: ' + error.message, 'error');
+          }
+        };
+
+        // Variables para el modal de mermas (Snapshot y Ajustes)
+        let currentSnapshots = [];
+        let currentAdjustmentsMap = {}; // Map ingId -> Array of reasons
+
+        window.mostrarModalConfirmarMermas = function (snapshotsData) {
+          currentSnapshots = snapshotsData;
+          currentAdjustmentsMap = {};
+
+          // Inicializar ajustes vacíos
+          currentSnapshots.forEach(snap => {
+            const diff = snap.stock_real - snap.stock_virtual;
+            // Si falta stock (diff negativa), proponemos una fila inicial por defecto
+            if (diff < 0) {
+              currentAdjustmentsMap[snap.id] = [{
+                id: Date.now() + Math.random(),
+                cantidad: Math.abs(diff), // Sugerimos todo como una causa inicial
+                motivo: 'Caduco',
+                notas: ''
+              }];
+            } else {
+              // Si sobra stock (diff positiva), también se debe justificar
+              currentAdjustmentsMap[snap.id] = [{
+                id: Date.now() + Math.random(),
+                cantidad: diff,
+                motivo: 'Error de Inventario', // Default positivo
+                notas: ''
+              }];
+            }
+          });
+
+          window.renderTablaSplits();
+          document.getElementById('modal-confirmar-mermas').classList.add('active');
+        };
+
+        window.renderTablaSplits = function () {
+          const tbody = document.getElementById('tabla-mermas-body');
+          tbody.innerHTML = '';
+
+          let totalValid = true;
+
+          currentSnapshots.forEach(snap => {
+            const ing = ingredientes.find(i => i.id === snap.id);
+            const nombre = ing ? ing.nombre : 'Unknown';
+            const diffTotal = snap.stock_real - snap.stock_virtual;
+            const isNegative = diffTotal < 0;
+            const sign = isNegative ? '-' : '+';
+            const color = isNegative ? '#ef4444' : '#10b981';
+
+            // Calcular cuánto llevamos asignado
+            const asignado = currentAdjustmentsMap[snap.id].reduce((sum, adj) => sum + parseFloat(adj.cantidad || 0), 0);
+            // La suma de ajustes (siempre positivos en input) debe igualar el valor absoluto de la diferencia
+            const target = Math.abs(diffTotal);
+            const restante = target - asignado;
+            const isMatch = Math.abs(restante) < 0.01;
+
+            if (!isMatch) totalValid = false;
+
+            // Fila Cabecera Ingrediente
+            const trHeader = document.createElement('tr');
+            trHeader.style.background = '#f1f5f9';
+            trHeader.innerHTML = `
+                    <td colspan="4" style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong>${nombre}</strong>
+                            <span>Diff: <strong style="color:${color}">${sign}${Math.abs(diffTotal).toFixed(2)} ${ing.unidad}</strong></span>
+                        </div>
+                         <div style="font-size:12px; color: ${isMatch ? '#059669' : '#dc2626'}; margin-top:4px;">
+                            ${isMatch ? '✓ Cuadrado' : `⚠️ Faltan por asignar: ${restante.toFixed(2)} ${ing.unidad}`}
+                        </div>
+                    </td>
+                `;
+            tbody.appendChild(trHeader);
+
+            // Filas de Ajustes (Splits)
+            currentAdjustmentsMap[snap.id].forEach((adj, idx) => {
+              const trAdj = document.createElement('tr');
+              trAdj.innerHTML = `
+                        <td style="padding-left: 20px;">
+                            <span style="color:#aaa; font-size:12px;">↳ Ajuste ${idx + 1}</span>
+                        </td>
+                         <td style="padding: 5px;">
+                            <input type="number" step="0.01" value="${(adj.cantidad || 0)}" 
+                                onchange="window.updateSplitAmount(${snap.id}, ${adj.id}, this.value)"
+                                style="width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"> 
+                            <span style="font-size:11px">${ing.unidad}</span>
+                        </td>
+                        <td style="padding: 5px;">
+                            <select onchange="window.updateSplitReason(${snap.id}, ${adj.id}, this.value)"
+                                style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="Caduco" ${adj.motivo === 'Caduco' ? 'selected' : ''}>Caduco</option>
+                                <option value="Invitacion" ${adj.motivo === 'Invitacion' ? 'selected' : ''}>Invitación</option>
+                                <option value="Accidente" ${adj.motivo === 'Accidente' ? 'selected' : ''}>Accidente</option>
+                                <option value="Error Cocina" ${adj.motivo === 'Error Cocina' ? 'selected' : ''}>Error Cocina</option>
+                                <option value="Error Inventario" ${adj.motivo === 'Error Inventario' ? 'selected' : ''}>Error Conteo</option>
+                                <option value="Robo" ${adj.motivo === 'Robo' ? 'selected' : ''}>Robo / Desconocido</option>
+                                <option value="Otros" ${adj.motivo === 'Otros' ? 'selected' : ''}>Otros</option>
+                            </select>
+                        </td>
+                        <td style="padding: 5px; display: flex; gap: 5px;">
+                            <input type="text" value="${adj.notas}" placeholder="Nota..."
+                                onchange="window.updateSplitNote(${snap.id}, ${adj.id}, this.value)"
+                                style="flex:1; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                            <button onclick="window.removeSplit(${snap.id}, ${adj.id})" style="background:none; border:none; cursor:pointer;">❌</button>
+                        </td>
+                    `;
+              tbody.appendChild(trAdj);
+            });
+
+            // Botón añadir split
+            const trAdd = document.createElement('tr');
+            trAdd.innerHTML = `
+                    <td colspan="4" style="text-align:right; padding:5px; border-bottom: 2px solid #e2e8f0;">
+                        <button onclick="window.addSplit(${snap.id})" style="font-size:12px; color:#3b82f6; background:none; border:none; cursor:pointer; font-weight:600;">+ Dividir diferencia</button>
+                    </td>
+                 `;
+            tbody.appendChild(trAdd);
+          });
+
+          const btn = document.getElementById('btn-confirmar-split');
+          const alertBox = document.getElementById('mermas-alert-box');
+
+          if (totalValid) {
+            btn.disabled = false;
+            btn.style.opacity = 1;
+            alertBox.style.display = 'none';
+          } else {
+            btn.disabled = true;
+            btn.style.opacity = 0.5;
+            alertBox.textContent = '⚠️ Debes asignar la cantidad exacta total para todos los ingredientes antes de confirmar.';
+            alertBox.style.display = 'block';
+          }
+        };
+
+        window.updateSplitAmount = (ingId, adjId, val) => {
+          const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
+          // Si val es vacío o inválido, usamos 0
+          if (adj) adj.cantidad = parseFloat(val) || 0;
+          window.renderTablaSplits();
+        };
+
+        window.updateSplitReason = (ingId, adjId, val) => {
+          const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
+          if (adj) adj.motivo = val;
+        };
+
+        window.updateSplitNote = (ingId, adjId, val) => {
+          const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
+          if (adj) adj.notas = val;
+        };
+
+        window.addSplit = (ingId) => {
+          currentAdjustmentsMap[ingId].push({
+            id: Date.now(),
+            cantidad: 0,
+            motivo: 'Caduco',
+            notas: ''
+          });
+          window.renderTablaSplits();
+        };
+
+        window.removeSplit = (ingId, adjId) => {
+          currentAdjustmentsMap[ingId] = currentAdjustmentsMap[ingId].filter(a => a.id !== adjId);
+          window.renderTablaSplits();
+        };
+
+        window.confirmarMermasFinal = async function () {
+          // Flatten de todos los ajustes para enviar
+          const finalAdjustments = [];
+
+          Object.keys(currentAdjustmentsMap).forEach(ingIdStr => {
+            const ingId = parseInt(ingIdStr);
+            currentAdjustmentsMap[ingId].forEach(adj => {
+              // Importante: Si la diferencia original era NEGATIVA, los ajustes son SALIDAS (negativos).
+              // Si era POSITIVA, son ENTRADAS (positivos).
+              // La UI muestra valores absolutos para simplificar, aquí aplicamos el signo.
+              const snap = currentSnapshots.find(s => s.id === ingId);
+              const isNegative = (snap.stock_real - snap.stock_virtual) < 0;
+
+              finalAdjustments.push({
+                ingrediente_id: ingId,
+                cantidad: isNegative ? -Math.abs(adj.cantidad) : Math.abs(adj.cantidad),
+                motivo: adj.motivo,
+                notas: adj.notas
+              });
+            });
+          });
+
+          // Preparar payload para consolidate (Snapshots + Splits)
+          // FinalStock is just the target state for updating the master table
+          const finalStock = currentSnapshots.map(s => ({
+            id: s.id,
+            stock_real: s.stock_real
+          }));
+
+          try {
+            document.getElementById('modal-confirmar-mermas').classList.remove('active');
+            showLoading();
+
+            await api.consolidateStock(finalAdjustments, currentSnapshots, finalStock);
+
+            await window.renderizarInventario();
+            hideLoading();
+            showToast('Ajustes de inventario registrados correctamente', 'success');
+          } catch (error) {
+            hideLoading();
+            showToast('Error: ' + error.message, 'error');
+          }
+        };
+
+        // MODIFICACION EN CLAVE: guardarCambiosStock (Nueva Lógica)
+        window.guardarCambiosStock = async function () {
+          const inputs = document.querySelectorAll('.input-stock-real');
+          const changes = [];
+
+          inputs.forEach(input => {
+            const id = parseInt(input.dataset.id);
+            // Validación anti-NaN: Si dataset.stockVirtual falla, asumimos 0
+            const virtual = parseFloat(input.dataset.stockVirtual) || 0;
+            const real = parseFloat(input.value);
+
+            // Solo procesamos si hay cambio real
+            if (!isNaN(real) && Math.abs(real - virtual) > 0.001) {
+              changes.push({
+                id: id,
+                stock_virtual: virtual,
+                stock_real: real
+              });
+            }
+          });
+
+          if (changes.length === 0) {
+            showToast('No hay cambios en el stock para registrar', 'info');
+            return;
+          }
+
+          // ABRIMOS DIRECTAMENTE EL CHECKER (Modal Split)
+          window.mostrarModalConfirmarMermas(changes);
+        };
+
+
+        // Event listener para búsqueda de inventario
+        document.getElementById('busqueda-inventario').addEventListener('input', window.renderizarInventario);
+
+        // Dashboard expandido - actualizar datos
+        window.actualizarDashboardExpandido = async function () {
+          try {
+            // Verificar que los elementos existan antes de continuar
+            const ventasHoyEl = document.getElementById('ventas-hoy');
+            const ingresosHoyEl = document.getElementById('ingresos-hoy');
+            const platoEstrellaEl = document.getElementById('plato-estrella-hoy');
+            const alertasListaEl = document.getElementById('alertas-stock-lista');
+
+            if (!ventasHoyEl || !ingresosHoyEl || !platoEstrellaEl || !alertasListaEl) {
+              console.warn('Dashboard elements not loaded yet');
+              return;
+            }
+
+            const ventas = await api.getSales();
+            const hoy = new Date().toISOString().split('T')[0];
+            const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoy);
+
+            ventasHoyEl.textContent = ventasHoy.length;
+            const ingresosHoy = ventasHoy.reduce((sum, v) => sum + parseFloat(v.total), 0);
+            ingresosHoyEl.textContent = ingresosHoy.toFixed(2) + '€';
+
+            const platosHoy = {};
+            ventasHoy.forEach(v => {
+              platosHoy[v.receta_nombre] = (platosHoy[v.receta_nombre] || 0) + v.cantidad;
+            });
+            const platoEstrella = Object.entries(platosHoy).sort((a, b) => b[1] - a[1])[0];
+            platoEstrellaEl.textContent = platoEstrella ? platoEstrella[0] + ' (' + platoEstrella[1] + ')' : 'Sin ventas';
+
+            const alertas = window.ingredientes.filter(ing => {
+              const stockActual = parseFloat(ing.stock_actual) || 0;
+              const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+              return stockMinimo > 0 && stockActual <= stockMinimo;
+            });
+
+            if (alertas.length === 0) {
+              alertasListaEl.innerHTML = '<p style="color: #10B981; margin: 0;">✅ Todo el stock OK</p>';
+            } else {
+              alertasListaEl.innerHTML = alertas.map(ing =>
+                '<div style="padding: 8px; margin-bottom: 6px; background: #FEF2F2; border-radius: 6px; border-left: 3px solid #EF4444;"><strong>' + ing.nombre + '</strong>: ' + parseFloat(ing.stock_actual).toFixed(1) + ' ' + ing.unidad + '</div>'
+              ).join('');
+            }
+          } catch (e) {
+            console.error('Error dashboard:', e);
+          }
+        };
+
+        // Verificar autenticación al cargar
+        if (checkAuth()) {
+          init();
+        }
+      })();
+
+    </script>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Modal: Confirmar Mermas Avanzado -->
+    <div id="modal-confirmar-mermas" class="modal">
+      <div class="modal-content" style="max-width: 800px;">
+        <span class="close"
+          onclick="document.getElementById('modal-confirmar-mermas').classList.remove('active')">&times;</span>
+        <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px;">⚠️ Confirmar Mermas/Pérdidas</h2>
+        <p style="color: #64748b; margin-bottom: 20px;">Se han detectado diferencias negativas en el inventario. Por
+          favor, especifica el motivo de cada pérdida para el control de costes.</p>
+
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8fafc; position: sticky; top: 0;">
+              <tr>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ingrediente</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Diferencia</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Motivo</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Notas</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-mermas-body">
+              <!-- Se llena dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="mermas-alert-box"
+          style="display:none; margin-top: 10px; padding: 10px; background: #fee2e2; color: #b91c1c; border-radius: 6px; font-size: 13px;">
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-secondary"
+            onclick="document.getElementById('modal-confirmar-mermas').classList.remove('active')">Cancelar</button>
+          <button class="btn btn-primary" id="btn-confirmar-split" style="background: #ef4444;"
+            onclick="window.confirmarMermasFinal()">Confirmar Ajustes</button>
+        </div>
+      </div>
+    </div>
+    <!-- Modal: Actualizar Inventario Masivo -->
+    <div id="modal-inventario-masivo" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <span class="close"
+          onclick="document.getElementById('modal-inventario-masivo').classList.remove('active')">&times;</span>
+        <h2>📊 Actualizar Inventario Masivo</h2>
+
+        <div style="margin: 20px 0;">
+          <p style="color: #64748b; margin-bottom: 15px;">
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Ingrediente</strong> y <strong>Stock
+              Real</strong>
+          </p>
+
+          <div style="text-align: right; margin-bottom: 10px;">
+            <button class="btn btn-secondary btn-small" onclick="window.descargarPlantillaStock()">📥 Descargar
+              Plantilla</button>
+          </div>
+
+          <div
+            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+            <input type="file" id="file-inventario-masivo" accept=".xlsx,.csv" style="display: none;"
+              onchange="window.procesarArchivoInventario(this)">
+            <label for="file-inventario-masivo" style="cursor: pointer;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+              </div>
+              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+            </label>
+          </div>
+        </div>
+
+        <div id="preview-inventario-masivo" style="display: none; margin-top: 20px;">
+          <h3>Vista Previa de Cambios</h3>
+          <div id="preview-table-container"
+            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="window.cancelarInventarioMasivo()">Cancelar</button>
+            <button class="btn btn-primary" onclick="window.confirmarInventarioMasivo()" id="btn-confirmar-masivo">✓
+              Confirmar Actualización</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Importar Ingredientes -->
+    <div id="modal-importar-ingredientes" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <span class="close"
+          onclick="document.getElementById('modal-importar-ingredientes').classList.remove('active')">&times;</span>
+        <h2>📤 Importar Ingredientes desde Excel</h2>
+
+        <div style="margin: 20px 0;">
+          <p style="color: #64748b; margin-bottom: 15px;">
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>, <strong>Precio</strong>,
+            <strong>Unidad</strong>, <strong>Stock Actual</strong>, <strong>Stock Mínimo</strong>
+          </p>
+
+          <div
+            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+            <input type="file" id="file-importar-ingredientes" accept=".xlsx,.csv" style="display: none;"
+              onchange="window.procesarArchivoIngredientes(this)">
+            <label for="file-importar-ingredientes" style="cursor: pointer;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+              </div>
+              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+            </label>
+          </div>
+        </div>
+
+        <div id="preview-importar-ingredientes" style="display: none; margin-top: 20px;">
+          <h3>Vista Previa de Ingredientes</h3>
+          <div id="preview-ingredientes-container"
+            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="window.cancelarImportarIngredientes()">Cancelar</button>
+            <button class="btn btn-primary" onclick="window.confirmarImportarIngredientes()"
+              id="btn-confirmar-importar-ingredientes">✓ Importar Ingredientes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Importar Recetas -->
+    <div id="modal-importar-recetas" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <span class="close"
+          onclick="document.getElementById('modal-importar-recetas').classList.remove('active')">&times;</span>
+        <h2>📤 Importar Recetas desde Excel</h2>
+
+        <div style="margin: 20px 0;">
+          <p style="color: #64748b; margin-bottom: 15px;">
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>,
+            <strong>Categoría</strong>,
+            <strong>Precio Venta</strong>, <strong>Porciones</strong>
+          </p>
+
+          <div
+            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+            <input type="file" id="file-importar-recetas" accept=".xlsx,.csv" style="display: none;"
+              onchange="window.procesarArchivoRecetas(this)">
+            <label for="file-importar-recetas" style="cursor: pointer;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+              </div>
+              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+            </label>
+          </div>
+        </div>
+
+        <div id="preview-importar-recetas" style="display: none; margin-top: 20px;">
+          <h3>Vista Previa de Recetas</h3>
+          <div id="preview-recetas-container"
+            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="window.cancelarImportarRecetas()">Cancelar</button>
+            <button class="btn btn-primary" onclick="window.confirmarImportarRecetas()"
+              id="btn-confirmar-importar-recetas">✓ Importar Recetas</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Importar Ventas TPV -->
+    <div id="modal-importar-ventas" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <span class="close"
+          onclick="document.getElementById('modal-importar-ventas').classList.remove('active')">&times;</span>
+        <h2>📤 Importar Ventas TPV</h2>
+
+        <div style="margin: 20px 0;">
+          <p style="color: #64748b; margin-bottom: 15px;">
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Código</strong> (opcional),
+            <strong>Nombre</strong>, <strong>Cantidad</strong>, <strong>Total</strong>
+          </p>
+
+          <div
+            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+            <input type="file" id="file-importar-ventas" accept=".xlsx,.csv" style="display: none;"
+              onchange="window.procesarArchivoVentas(this)">
+            <label for="file-importar-ventas" style="cursor: pointer;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+              </div>
+              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+            </label>
+          </div>
+        </div>
+
+        <div id="preview-importar-ventas" style="display: none; margin-top: 20px;">
+          <h3>Vista Previa de Ventas</h3>
+          <div id="preview-ventas-container"
+            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="window.cancelarImportarVentas()">Cancelar</button>
+            <button class="btn btn-primary" onclick="window.confirmarImportarVentas()"
+              id="btn-confirmar-importar-ventas">✓ Importar Ventas</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Importar Pedidos (Compras) -->
+    <div id="modal-importar-pedidos" class="modal">
+      <div class="modal-content" style="max-width: 900px;">
+        <span class="close"
+          onclick="document.getElementById('modal-importar-pedidos').classList.remove('active')">&times;</span>
+        <h2>📤 Importar Pedidos (Compras)</h2>
+
+        <div style="margin: 20px 0;">
+          <p style="color: #64748b; margin-bottom: 15px;">
+            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Fecha</strong>,
+            <strong>Proveedor</strong>,
+            <strong>Ingrediente</strong>, <strong>Cantidad</strong>, <strong>Precio</strong>, <strong>Total</strong>
+          </p>
+
+          <div
+            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+            <input type="file" id="file-importar-pedidos" accept=".xlsx,.csv" style="display: none;"
+              onchange="window.procesarArchivoPedidos(this)">
+            <label for="file-importar-pedidos" style="cursor: pointer;">
+              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+              </div>
+              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+            </label>
+          </div>
+        </div>
+
+        <div id="preview-importar-pedidos" style="display: none; margin-top: 20px;">
+          <h3>Vista Previa de Pedidos</h3>
+          <div id="preview-pedidos-container"
+            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="window.cancelarImportarPedidos()">Cancelar</button>
+            <button class="btn btn-primary" onclick="window.confirmarImportarPedidos()"
+              id="btn-confirmar-importar-pedidos">✓ Importar Pedidos</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </script>
+  </div>
+  <script>
+
+    // ========== INVENTARIO MASIVO ==========
+
+    let datosInventarioMasivo = [];
+
+    window.mostrarModalInventarioMasivo = function () {
+      document.getElementById('modal-inventario-masivo').classList.add('active');
+      document.getElementById('preview-inventario-masivo').style.display = 'none';
+      document.getElementById('file-inventario-masivo').value = '';
+    };
+
+    window.procesarArchivoInventario = async function (input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        const data = await leerArchivoInventario(file);
+        datosInventarioMasivo = await validarDatosInventario(data);
+        mostrarPreviewInventario(datosInventarioMasivo);
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        showToast('Error procesando archivo: ' + error.message, 'error');
+      }
+    };
+
+    async function leerArchivoInventario(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+            // Validar que tenga al menos 2 columnas
+            if (rows.length < 2) {
+              reject(new Error('El archivo debe tener al menos 2 filas (encabezado + datos)'));
+              return;
+            }
+
+            // Parsear datos
+            const result = [];
+            for (let i = 1; i < rows.length; i++) {
+              const row = rows[i];
+              if (row[0] && row[1] !== undefined && row[1] !== null && row[1] !== '') {
+                result.push({
+                  ingrediente: String(row[0]).trim(),
+                  stockReal: parseFloat(row[1])
+                });
+              }
+            }
+
+            if (result.length === 0) {
+              reject(new Error('No se encontraron datos válidos en el archivo'));
+              return;
+            }
+
+            resolve(result);
+          } catch (error) {
+            reject(new Error('Error leyendo el archivo: ' + error.message));
+          }
+        };
+
+        reader.onerror = () => reject(new Error('Error leyendo el archivo'));
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    async function validarDatosInventario(data) {
+      const ingredientesActuales = window.ingredientes || await api.getIngredientes();
+
+      return data.map(item => {
+        const ing = ingredientesActuales.find(i =>
+          i.nombre.toLowerCase() === item.ingrediente.toLowerCase()
+        );
+
+        return {
+          ...item,
+          ingredienteId: ing ? ing.id : null,
+          // Guardamos el Virtual para comparar pérdidas
+          stockVirtual: ing ? (parseFloat(ing.stock_actual || ing.stock_virtual || 0)) : 0,
+          // stockActual aqui se refiere al que mostramos como ref en la tabla de preview (sistema)
+          stockActual: ing ? (parseFloat(ing.stock_actual || ing.stock_virtual || 0)) : null,
+          valido: !!ing && !isNaN(item.stockReal) && item.stockReal >= 0,
+          error: !ing ? 'Ingrediente no encontrado' :
+            isNaN(item.stockReal) ? 'Stock inválido' :
+              item.stockReal < 0 ? 'Stock no puede ser negativo' : null
+        };
+      });
+    }
+
+    window.descargarPlantillaStock = function () {
+      if (!window.ingredientes || window.ingredientes.length === 0) {
+        showToast('No hay ingredientes para descargar', 'warning');
+        return;
+      }
+
+      const datos = window.ingredientes.map(ing => ({
+        'Ingrediente': ing.nombre,
+        'Stock Real': '' // Dejar vacío para que lo rellenen, o poner ing.stock_real si quisieran editar
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(datos);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Plantilla Stock");
+
+      // Ajustar ancho
+      ws['!cols'] = [{ wch: 30 }, { wch: 15 }];
+
+      XLSX.writeFile(wb, `Plantilla_Inventario_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
+    function mostrarPreviewInventario(datos) {
+      document.getElementById('loading-overlay').classList.remove('active');
+
+      const validos = datos.filter(d => d.valido).length;
+      const invalidos = datos.filter(d => !d.valido).length;
+
+      let html = `
+                <div style="margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 6px;">
+                    <strong>Resumen:</strong> 
+                    <span style="color: #10b981; margin-left: 10px;">✓ ${validos} válidos</span>
+                    ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f1f5f9;">
+                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Estado</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ingrediente</th>
+                            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #e2e8f0;">Stock Actual</th>
+                            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #e2e8f0;">Stock Nuevo</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Observación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+      datos.forEach(item => {
+        const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
+        const icon = item.valido ? '✓' : '✗';
+        const iconColor = item.valido ? '#10b981' : '#ef4444';
+
+        html += `
+                    <tr style="background: ${bgColor};">
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: ${iconColor}; font-size: 18px;">${icon}</span>
+                        </td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${item.ingrediente}</td>
+                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0;">
+                            ${item.stockActual !== null ? item.stockActual : '-'}
+                        </td>
+                        <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: 600;">
+                            ${item.stockReal}
+                        </td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: ${item.valido ? '#10b981' : '#ef4444'};">
+                            ${item.error || 'OK'}
+                        </td>
+                    </tr>
+                `;
+      });
+
+      html += `
+                    </tbody>
+                </table>
+            `;
+
+      document.getElementById('preview-table-container').innerHTML = html;
+      document.getElementById('preview-inventario-masivo').style.display = 'block';
+
+      // Solo deshabilitar si NO hay datos válidos, no si hay algunos errores
+      const hayValidos = datosInventarioMasivo.some(d => d.valido);
+      const btnConfirmar = document.getElementById('btn-confirmar-masivo');
+      btnConfirmar.disabled = !hayValidos;
+      if (!hayValidos) {
+        btnConfirmar.style.opacity = '0.5';
+        btnConfirmar.style.cursor = 'not-allowed';
+      } else {
+        btnConfirmar.style.opacity = '1';
+        btnConfirmar.style.cursor = 'pointer';
+      }
+    }
+
+    window.confirmarInventarioMasivo = async function () {
+      const datosValidos = datosInventarioMasivo.filter(d => d.valido);
+
+      if (datosValidos.length === 0) {
+        window.showToast('No hay datos válidos para actualizar', 'error');
+        return;
+      }
+
+      // Preparar datos para consolidación
+      const adjustments = datosValidos.map(d => ({
+        id: d.ingredienteId,
+        stock_real: d.stockReal
+      }));
+
+      const mermas = [];
+      datosValidos.forEach(d => {
+        if (d.stockReal < d.stockVirtual) {
+          mermas.push({
+            nombre: d.ingrediente,
+            diferencia: (d.stockVirtual - d.stockReal).toFixed(2)
+          });
+        }
+      });
+
+      let mensaje = `¿Confirmar actualización de ${datosValidos.length} ingredientes?`;
+      if (mermas.length > 0) {
+        mensaje += `\n\n⚠️ SE DETECTARON ${mermas.length} MERMAS (Stock Real < Sistema).\nSe registrarán como pérdidas.`;
+      } else {
+        mensaje += `\n\nEl stock del sistema se ajustará al stock real importado.`;
+      }
+
+      if (!confirm(mensaje)) {
+        return;
+      }
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        // Usar consolidación
+        await window.api.consolidateStock(adjustments);
+
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast(`✓ ${datosValidos.length} ingredientes actualizados y consolidados`, 'success');
+
+        document.getElementById('modal-inventario-masivo').classList.remove('active');
+        await window.renderizarInventario();
+
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error actualizando inventario: ' + error.message, 'error');
+      }
+    };
+
+    window.cancelarInventarioMasivo = function () {
+      document.getElementById('modal-inventario-masivo').classList.remove('active');
+      datosInventarioMasivo = [];
+    };
+
+    // ========== IMPORTAR INGREDIENTES ==========
+    let datosImportarIngredientes = [];
+
+    window.mostrarModalImportarIngredientes = function () {
+      document.getElementById('modal-importar-ingredientes').classList.add('active');
+      document.getElementById('preview-importar-ingredientes').style.display = 'none';
+      document.getElementById('file-importar-ingredientes').value = '';
+      datosImportarIngredientes = [];
+    };
+
+    window.procesarArchivoIngredientes = async function (input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        const data = await leerArchivoGenerico(file);
+        datosImportarIngredientes = validarDatosIngredientes(data);
+        mostrarPreviewIngredientes(datosImportarIngredientes);
+        document.getElementById('loading-overlay').classList.remove('active');
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error procesando archivo: ' + error.message, 'error');
+      }
+    };
+
+    async function leerArchivoGenerico(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+            resolve(jsonData);
+          } catch (err) {
+            reject(new Error('Error leyendo archivo Excel'));
+          }
+        };
+
+        reader.onerror = () => reject(new Error('Error leyendo archivo'));
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    function validarDatosIngredientes(data) {
+      return data.map(row => {
+        const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
+        const precio = parseFloat(row['Precio'] || row['precio'] || row['PRECIO'] || 0);
+        const unidad = row['Unidad'] || row['unidad'] || row['UNIDAD'] || 'kg';
+        const stockActual = parseFloat(row['Stock Actual'] || row['stock_actual'] || row['Stock'] || 0);
+        const stockMinimo = parseFloat(row['Stock Mínimo'] || row['stock_minimo'] || row['Stock Minimo'] || 0);
+
+        const valido = nombre.trim().length > 0;
+        return {
+          nombre: nombre.trim(),
+          precio: isNaN(precio) ? 0 : precio,
+          unidad: unidad,
+          stockActual: isNaN(stockActual) ? 0 : stockActual,
+          stockMinimo: isNaN(stockMinimo) ? 0 : stockMinimo,
+          valido: valido,
+          error: valido ? null : 'Nombre requerido'
+        };
+      });
+    }
+
+    function mostrarPreviewIngredientes(datos) {
+      const validos = datos.filter(d => d.valido).length;
+      const invalidos = datos.filter(d => !d.valido).length;
+
+      let html = `
+        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+          <strong>Resumen:</strong> 
+          <span style="color: #10b981;">✓ ${validos} válidos</span>
+          ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
+        </div>
+        <table style="width: 100%; font-size: 13px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="padding: 10px; text-align: left;">Estado</th>
+              <th style="padding: 10px; text-align: left;">Nombre</th>
+              <th style="padding: 10px; text-align: right;">Precio</th>
+              <th style="padding: 10px; text-align: center;">Unidad</th>
+              <th style="padding: 10px; text-align: right;">Stock</th>
+              <th style="padding: 10px; text-align: left;">Observación</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      datos.forEach(item => {
+        const icon = item.valido ? '✓' : '✗';
+        const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
+        const iconColor = item.valido ? '#10b981' : '#ef4444';
+
+        html += `
+          <tr style="background: ${bgColor};">
+            <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
+            <td style="padding: 10px;">${item.nombre || '-'}</td>
+            <td style="padding: 10px; text-align: right;">${item.precio.toFixed(2)}€</td>
+            <td style="padding: 10px; text-align: center;">${item.unidad}</td>
+            <td style="padding: 10px; text-align: right;">${item.stockActual}</td>
+            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${item.error || 'OK'}</td>
+          </tr>`;
+      });
+
+      html += '</tbody></table>';
+
+      document.getElementById('preview-ingredientes-container').innerHTML = html;
+      document.getElementById('preview-importar-ingredientes').style.display = 'block';
+
+      const hayValidos = datos.some(d => d.valido);
+      const btn = document.getElementById('btn-confirmar-importar-ingredientes');
+      btn.disabled = !hayValidos;
+      btn.style.opacity = hayValidos ? '1' : '0.5';
+    }
+
+    window.confirmarImportarIngredientes = async function () {
+      const datosValidos = datosImportarIngredientes.filter(d => d.valido);
+
+      if (datosValidos.length === 0) {
+        window.showToast('No hay ingredientes válidos para importar', 'error');
+        return;
+      }
+
+      if (!confirm(`¿Importar ${datosValidos.length} ingredientes?`)) {
+        return;
+      }
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        let importados = 0;
+        for (const ing of datosValidos) {
+          await window.api.createIngrediente({
+            nombre: ing.nombre,
+            precio: ing.precio,
+            unidad: ing.unidad,
+            stockActual: ing.stockActual,
+            stockMinimo: ing.stockMinimo
+          });
+          importados++;
+        }
+
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast(`✓ ${importados} ingredientes importados correctamente`, 'success');
+        document.getElementById('modal-importar-ingredientes').classList.remove('active');
+        await window.renderizarIngredientes();
+
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error importando: ' + error.message, 'error');
+      }
+    };
+
+    window.cancelarImportarIngredientes = function () {
+      document.getElementById('modal-importar-ingredientes').classList.remove('active');
+      datosImportarIngredientes = [];
+    };
+
+    // ========== IMPORTAR RECETAS ==========
+    let datosImportarRecetas = [];
+
+    window.mostrarModalImportarRecetas = function () {
+      document.getElementById('modal-importar-recetas').classList.add('active');
+      document.getElementById('preview-importar-recetas').style.display = 'none';
+      document.getElementById('file-importar-recetas').value = '';
+      datosImportarRecetas = [];
+    };
+
+    window.procesarArchivoRecetas = async function (input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        const data = await leerArchivoGenerico(file);
+        datosImportarRecetas = validarDatosRecetas(data);
+        mostrarPreviewRecetas(datosImportarRecetas);
+        document.getElementById('loading-overlay').classList.remove('active');
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error procesando archivo: ' + error.message, 'error');
+      }
+    };
+
+    function validarDatosRecetas(data) {
+      return data.map(row => {
+        const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
+        const categoria = row['Categoría'] || row['categoria'] || row['Categoria'] || 'principal';
+        const precioVenta = parseFloat(row['Precio Venta'] || row['precio_venta'] || row['Precio'] || 0);
+        const porciones = parseInt(row['Porciones'] || row['porciones'] || 1);
+
+        const valido = nombre.trim().length > 0;
+        return {
+          nombre: nombre.trim(),
+          categoria: categoria,
+          precioVenta: isNaN(precioVenta) ? 0 : precioVenta,
+          porciones: isNaN(porciones) || porciones < 1 ? 1 : porciones,
+          ingredientes: [],
+          valido: valido,
+          error: valido ? null : 'Nombre requerido'
+        };
+      });
+    }
+
+    function mostrarPreviewRecetas(datos) {
+      const validos = datos.filter(d => d.valido).length;
+      const invalidos = datos.filter(d => !d.valido).length;
+
+      let html = `
+        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+          <strong>Resumen:</strong> 
+          <span style="color: #10b981;">✓ ${validos} válidos</span>
+          ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
+        </div>
+        <table style="width: 100%; font-size: 13px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="padding: 10px; text-align: left;">Estado</th>
+              <th style="padding: 10px; text-align: left;">Nombre</th>
+              <th style="padding: 10px; text-align: center;">Categoría</th>
+              <th style="padding: 10px; text-align: right;">Precio Venta</th>
+              <th style="padding: 10px; text-align: center;">Porciones</th>
+              <th style="padding: 10px; text-align: left;">Observación</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      datos.forEach(item => {
+        const icon = item.valido ? '✓' : '✗';
+        const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
+        const iconColor = item.valido ? '#10b981' : '#ef4444';
+
+        html += `
+          <tr style="background: ${bgColor};">
+            <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
+            <td style="padding: 10px;">${item.nombre || '-'}</td>
+            <td style="padding: 10px; text-align: center;">${item.categoria}</td>
+            <td style="padding: 10px; text-align: right;">${item.precioVenta.toFixed(2)}€</td>
+            <td style="padding: 10px; text-align: center;">${item.porciones}</td>
+            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${item.error || 'OK'}</td>
+          </tr>`;
+      });
+
+      html += '</tbody></table>';
+
+      document.getElementById('preview-recetas-container').innerHTML = html;
+      document.getElementById('preview-importar-recetas').style.display = 'block';
+
+      const hayValidos = datos.some(d => d.valido);
+      const btn = document.getElementById('btn-confirmar-importar-recetas');
+      btn.disabled = !hayValidos;
+      btn.style.opacity = hayValidos ? '1' : '0.5';
+    }
+
+
+
+    window.confirmarImportarRecetas = async function () {
+      const datosValidos = datosImportarRecetas.filter(d => d.valido);
+
+      if (datosValidos.length === 0) {
+        window.showToast('No hay recetas válidas para importar', 'error');
+        return;
+      }
+
+      if (!confirm(`¿Importar ${datosValidos.length} recetas?`)) {
+        return;
+      }
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        let importados = 0;
+        for (const rec of datosValidos) {
+          await window.api.createReceta({
+            nombre: rec.nombre,
+            categoria: rec.categoria,
+            precio_venta: rec.precioVenta,
+            porciones: rec.porciones,
+            ingredientes: []
+          });
+          importados++;
+        }
+
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast(`✓ ${importados} recetas importadas correctamente`, 'success');
+        document.getElementById('modal-importar-recetas').classList.remove('active');
+        await window.renderizarRecetas();
+
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error importando: ' + error.message, 'error');
+      }
+    };
+
+    window.cancelarImportarRecetas = function () {
+      document.getElementById('modal-importar-recetas').classList.remove('active');
+      datosImportarRecetas = [];
+    };
+
+
+    // ========== IMPORTAR VENTAS TPV ==========
+    let datosImportarVentas = [];
+
+    window.mostrarModalImportarVentas = function () {
+      document.getElementById('modal-importar-ventas').classList.add('active');
+      document.getElementById('preview-importar-ventas').style.display = 'none';
+      document.getElementById('file-importar-ventas').value = '';
+      datosImportarVentas = [];
+    };
+
+    window.procesarArchivoVentas = async function (input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        const data = await leerArchivoGenerico(file);
+        datosImportarVentas = validarDatosVentas(data);
+        mostrarPreviewVentas(datosImportarVentas);
+        document.getElementById('loading-overlay').classList.remove('active');
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error procesando archivo: ' + error.message, 'error');
+      }
+    };
+
+    function validarDatosVentas(data) {
+      return data.map(row => {
+        // Mapeo flexible de columnas
+        const codigo = row['Código'] || row['codigo'] || row['Codigo'] || row['CODIGO'] || '';
+        const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || row['Articulo'] || row['Artículo'] || '';
+        const cantidad = parseFloat(row['Cantidad'] || row['cantidad'] || row['CANTIDAD'] || row['Unidades'] || 0);
+        const total = parseFloat(row['Total'] || row['total'] || row['TOTAL'] || row['Importe'] || 0);
+
+        // Intentar vincular con receta existente
+        let recetaEncontrada = null;
+
+        // 1. Buscar por código exacto si existe
+        if (codigo) {
+          recetaEncontrada = window.recetas.find(r => r.codigo && String(r.codigo) === String(codigo));
+        }
+
+        // 2. Si no, buscar por nombre (exacto o aproximado)
+        if (!recetaEncontrada && nombre) {
+          const nombreNorm = nombre.toLowerCase().trim();
+          recetaEncontrada = window.recetas.find(r => r.nombre.toLowerCase().trim() === nombreNorm);
+        }
+
+        // Validación: warning si no encuentra receta en importación
+        if (!recetaEncontrada && nombre) {
+          console.warn(`⚠️ Receta no encontrada en importación TPV: "${nombre}"`);
+        }
+
+        const valido = cantidad > 0 && (recetaEncontrada || nombre.length > 0);
+
+        return {
+          codigo: codigo,
+          nombre: nombre,
+          cantidad: isNaN(cantidad) ? 0 : cantidad,
+          total: isNaN(total) ? 0 : total,
+          recetaId: recetaEncontrada ? recetaEncontrada.id : null,
+          recetaNombre: recetaEncontrada ? recetaEncontrada.nombre : null,
+          valido: valido,
+          error: !valido ? 'Cantidad inválida' : (!recetaEncontrada ? '⚠️ No vinculado (se registrará como genérico)' : null)
+        };
+      });
+    }
+
+    function mostrarPreviewVentas(datos) {
+      const validos = datos.filter(d => d.valido).length;
+      const vinculados = datos.filter(d => d.recetaId).length;
+      const noVinculados = validos - vinculados;
+
+      let html = `
+        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+          <strong>Resumen:</strong> 
+          <span style="color: #10b981;">✓ ${validos} registros válidos</span>
+          <span style="color: #3b82f6; margin-left: 10px;">🔗 ${vinculados} vinculados a recetas</span>
+          ${noVinculados > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠️ ${noVinculados} sin vincular (solo financiero)</span>` : ''}
+        </div>
+        <table style="width: 100%; font-size: 13px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="padding: 10px; text-align: left;">Estado</th>
+              <th style="padding: 10px; text-align: left;">TPV (Cód/Nombre)</th>
+              <th style="padding: 10px; text-align: left;">Receta Vinculada</th>
+              <th style="padding: 10px; text-align: right;">Cant.</th>
+              <th style="padding: 10px; text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      datos.forEach(item => {
+        const icon = item.valido ? '✓' : '✗';
+        const bgColor = item.valido ? (item.recetaId ? '#f0fdf4' : '#fffbeb') : '#fef2f2';
+        const iconColor = item.valido ? '#10b981' : '#ef4444';
+
+        html += `
+          <tr style="background: ${bgColor};">
+            <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
+            <td style="padding: 10px;">
+              ${item.codigo ? `<span style="font-family:monospace; background:#eee; padding:2px 4px; border-radius:4px;">${item.codigo}</span> ` : ''}
+              ${item.nombre}
+            </td>
+            <td style="padding: 10px;">
+              ${item.recetaId ? `<strong>${item.recetaNombre}</strong>` : '<span style="color:#999; font-style:italic;">No encontrado</span>'}
+            </td>
+            <td style="padding: 10px; text-align: right;">${item.cantidad}</td>
+            <td style="padding: 10px; text-align: right;">${item.total.toFixed(2)}€</td>
+          </tr>`;
+      });
+
+      html += '</tbody></table>';
+
+      document.getElementById('preview-ventas-container').innerHTML = html;
+      document.getElementById('preview-importar-ventas').style.display = 'block';
+
+      const hayValidos = datos.some(d => d.valido);
+      const btn = document.getElementById('btn-confirmar-importar-ventas');
+      btn.disabled = !hayValidos;
+      btn.style.opacity = hayValidos ? '1' : '0.5';
+    }
+
+    window.confirmarImportarVentas = async function () {
+      const datosValidos = datosImportarVentas.filter(d => d.valido);
+
+      if (datosValidos.length === 0) {
+        window.showToast('No hay ventas válidas para importar', 'error');
+        return;
+      }
+
+      if (!confirm(`¿Importar ${datosValidos.length} registros de venta?\nSe actualizará el stock de los artículos vinculados.`)) {
+        return;
+      }
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        let importados = 0;
+        const fechaHoy = new Date().toISOString();
+
+        // Procesar en lotes o uno a uno (por ahora uno a uno para simplicidad, idealmente batch en backend)
+        // Nota: La API actual de createSale espera un solo objeto.
+        // Podríamos crear un endpoint batch, pero usaremos el existente en bucle por ahora.
+
+        for (const venta of datosValidos) {
+          // Si está vinculado, registramos venta normal (descuenta stock)
+          if (venta.recetaId) {
+            await window.api.createSale({
+              recetaId: venta.recetaId,
+              cantidad: venta.cantidad,
+              total: venta.total, // Opcional si el backend lo recalcula, pero útil si el precio TPV varía
+              fecha: fechaHoy
+            });
+          } else {
+            // Si NO está vinculado, solo registramos financieramente (TODO: Backend support for generic sales)
+            // Por ahora, para no perder el dato financiero, podríamos asignarlo a una receta "Varios" o similar,
+            // o simplemente ignorar el descuento de stock pero sumar al total.
+            // Como el backend actual requiere recetaId, saltaremos los no vinculados o crearemos una receta dummy.
+            // ESTRATEGIA: Crear venta con recetaId nulo si el backend lo permite, o loguear error.
+            // Revisando server.js: receta_id es INTEGER NOT NULL.
+            // Solución temporal: Solo importar vinculados.
+            console.warn('Venta no vinculada omitida de stock (se requiere receta):', venta.nombre);
+            continue;
+          }
+          importados++;
+        }
+
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast(`✓ ${importados} ventas importadas correctamente`, 'success');
+        document.getElementById('modal-importar-ventas').classList.remove('active');
+
+        // Actualizar UI
+        await window.renderizarVentas();
+        window.actualizarKPIs();
+        window.actualizarDashboardExpandido();
+
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error importando ventas: ' + error.message, 'error');
+      }
+    };
+
+    window.cancelarImportarVentas = function () {
+      document.getElementById('modal-importar-ventas').classList.remove('active');
+      datosImportarVentas = [];
+    };
+
+
+    // ========== IMPORTAR PEDIDOS (COMPRAS) ==========
+    let datosImportarPedidos = [];
+
+    window.mostrarModalImportarPedidos = function () {
+      document.getElementById('modal-importar-pedidos').classList.add('active');
+      document.getElementById('preview-importar-pedidos').style.display = 'none';
+      document.getElementById('file-importar-pedidos').value = '';
+      datosImportarPedidos = [];
+    };
+
+    window.procesarArchivoPedidos = async function (input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        const data = await leerArchivoGenerico(file);
+        datosImportarPedidos = validarDatosPedidos(data);
+        mostrarPreviewPedidos(datosImportarPedidos);
+        document.getElementById('loading-overlay').classList.remove('active');
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error procesando archivo: ' + error.message, 'error');
+      }
+    };
+
+    function validarDatosPedidos(data) {
+      return data.map(row => {
+        // Mapeo flexible de columnas
+        const fecha = row['Fecha'] || row['fecha'] || row['FECHA'] || new Date().toISOString().split('T')[0];
+        const proveedor = row['Proveedor'] || row['proveedor'] || row['PROVEEDOR'] || 'Varios';
+        const ingredienteNombre = row['Ingrediente'] || row['ingrediente'] || row['INGREDIENTE'] || row['Articulo'] || row['Concepto'] || '';
+        const cantidad = parseFloat(row['Cantidad'] || row['cantidad'] || row['CANTIDAD'] || row['Unidades'] || 0);
+        const precio = parseFloat(row['Precio'] || row['precio'] || row['PRECIO'] || row['Precio Unitario'] || 0);
+        const total = parseFloat(row['Total'] || row['total'] || row['TOTAL'] || row['Importe'] || 0);
+
+        // Intentar vincular con ingrediente existente
+        let ingredienteEncontrado = null;
+        if (ingredienteNombre) {
+          const nombreNorm = ingredienteNombre.toLowerCase().trim();
+          ingredienteEncontrado = window.ingredientes.find(i => i.nombre.toLowerCase().trim() === nombreNorm);
+        }
+
+
+        // Validación: warning si no encuentra ingrediente en importación
+        if (!ingredienteEncontrado && ingredienteNombre) {
+          console.warn(`⚠️ Ingrediente no encontrado en importación: "${ingredienteNombre}"`);
+        }
+
+        const valido = cantidad > 0 && ingredienteNombre.length > 0;
+
+        return {
+          fecha: fecha,
+          proveedor: proveedor,
+          ingredienteNombre: ingredienteNombre,
+          cantidad: isNaN(cantidad) ? 0 : cantidad,
+          precio: isNaN(precio) ? 0 : precio,
+          total: isNaN(total) ? 0 : total,
+          ingredienteId: ingredienteEncontrado ? ingredienteEncontrado.id : null,
+          ingredienteUnidad: ingredienteEncontrado ? ingredienteEncontrado.unidad : 'unidad',
+          valido: valido,
+          error: !valido ? 'Datos incompletos' : (!ingredienteEncontrado ? '⚠️ Nuevo ingrediente (se creará)' : null)
+        };
+      });
+    }
+
+    function mostrarPreviewPedidos(datos) {
+      const validos = datos.filter(d => d.valido).length;
+      const vinculados = datos.filter(d => d.ingredienteId).length;
+      const nuevos = validos - vinculados;
+
+      let html = `
+        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+          <strong>Resumen:</strong> 
+          <span style="color: #10b981;">✓ ${validos} registros válidos</span>
+          <span style="color: #3b82f6; margin-left: 10px;">🔗 ${vinculados} vinculados</span>
+          ${nuevos > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">✨ ${nuevos} nuevos ingredientes</span>` : ''}
+        </div>
+        <table style="width: 100%; font-size: 13px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="padding: 10px; text-align: left;">Estado</th>
+              <th style="padding: 10px; text-align: left;">Fecha</th>
+              <th style="padding: 10px; text-align: left;">Proveedor</th>
+              <th style="padding: 10px; text-align: left;">Ingrediente</th>
+              <th style="padding: 10px; text-align: right;">Cant.</th>
+              <th style="padding: 10px; text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      datos.forEach(item => {
+        const icon = item.valido ? '✓' : '✗';
+        const bgColor = item.valido ? (item.ingredienteId ? '#f0fdf4' : '#fffbeb') : '#fef2f2';
+        const iconColor = item.valido ? '#10b981' : '#ef4444';
+
+        html += `
+          <tr style="background: ${bgColor};">
+            <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
+            <td style="padding: 10px;">${item.fecha}</td>
+            <td style="padding: 10px;">${item.proveedor}</td>
+            <td style="padding: 10px;">
+              ${item.ingredienteNombre}
+              ${!item.ingredienteId ? '<br><span style="font-size:11px; color:#f59e0b;">(Se creará nuevo)</span>' : ''}
+            </td>
+            <td style="padding: 10px; text-align: right;">${item.cantidad} ${item.ingredienteUnidad}</td>
+            <td style="padding: 10px; text-align: right;">${item.total.toFixed(2)}€</td>
+          </tr>`;
+      });
+
+      html += '</tbody></table>';
+
+      document.getElementById('preview-pedidos-container').innerHTML = html;
+      document.getElementById('preview-importar-pedidos').style.display = 'block';
+
+      const hayValidos = datos.some(d => d.valido);
+      const btn = document.getElementById('btn-confirmar-importar-pedidos');
+      btn.disabled = !hayValidos;
+      btn.style.opacity = hayValidos ? '1' : '0.5';
+    }
+
+    window.confirmarImportarPedidos = async function () {
+      const datosValidos = datosImportarPedidos.filter(d => d.valido);
+
+      if (datosValidos.length === 0) {
+        window.showToast('No hay pedidos válidos para importar', 'error');
+        return;
+      }
+
+      if (!confirm(`¿Importar ${datosValidos.length} pedidos?\nSe actualizará el stock y se crearán los ingredientes nuevos.`)) {
+        return;
+      }
+
+      document.getElementById('loading-overlay').classList.add('active');
+
+      try {
+        let importados = 0;
+
+        for (const pedido of datosValidos) {
+          let ingId = pedido.ingredienteId;
+
+          // 1. Si no existe ingrediente, crearlo
+          if (!ingId) {
+            // Buscar proveedor ID o crear (simplificado: asignamos string por ahora o null)
+            // Para simplificar, creamos el ingrediente con datos básicos
+            const nuevoIng = await window.api.createIngrediente({
+              nombre: pedido.ingredienteNombre,
+              precio: pedido.total / pedido.cantidad, // Precio unitario calculado
+              unidad: 'unidad', // Default, usuario deberá corregir
+              stockActual: 0,
+              stockMinimo: 0,
+              familia: 'alimento' // Default
+            });
+            ingId = nuevoIng.id;
+          }
+
+          // 2. Crear el pedido (que actualiza stock en backend si está configurado, 
+          // pero la API actual de createOrder es compleja (cabecera + lineas).
+          // SIMPLIFICACION: Usaremos una lógica directa de actualización de stock + registro de gasto?
+          // No, lo correcto es crear un pedido.
+          // Pero createOrder espera { proveedorId, fecha, items: [{ingredienteId, cantidad, precio}] }
+          // Aquí tenemos una lista plana. Agruparemos por proveedor y fecha?
+          // Para MVP: Importación línea a línea creando 1 pedido por línea es ineficiente pero seguro.
+          // MEJOR: Agrupar por (Fecha, Proveedor).
+
+          // Por ahora, para no complicar, asumiremos que el backend tiene un endpoint 'registrarCompra' o similar?
+          // No. Usaremos la API existente.
+          // Vamos a actualizar el stock directamente y registrar el gasto como "Otros Gastos" o crear un pedido dummy?
+          // Lo ideal es crear el pedido real.
+
+          // ESTRATEGIA: Crear un pedido por cada línea (simple) o agrupar.
+          // Vamos a crear un pedido por línea para asegurar trazabilidad individual.
+
+          // Buscar ID proveedor
+          let provId = null;
+          const prov = window.proveedores.find(p => p.nombre.toLowerCase() === pedido.proveedor.toLowerCase());
+          if (prov) {
+            provId = prov.id;
+          } else {
+            // Crear proveedor si no existe
+            const nuevoProv = await window.api.createProveedor({
+              nombre: pedido.proveedor,
+              contacto: '',
+              telefono: '',
+              email: '',
+              direccion: '',
+              notas: 'Importado automáticamente'
+            });
+            provId = nuevoProv.id;
+            // Recargar proveedores localmente
+            window.proveedores.push(nuevoProv);
+          }
+
+          await window.api.createPedido({
+            proveedorId: provId,
+            fecha: pedido.fecha,
+            estado: 'recibido', // Importante: ya está recibido
+            ingredientes: [{
+              ingredienteId: ingId,
+              cantidad: pedido.cantidad,
+              precio: pedido.precio > 0 ? pedido.precio : (pedido.total / pedido.cantidad)
+            }],
+            total: pedido.total
+          });
+
+          importados++;
+        }
+
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast(`✓ ${importados} pedidos importados correctamente`, 'success');
+        document.getElementById('modal-importar-pedidos').classList.remove('active');
+
+        // Actualizar UI
+        await window.renderizarIngredientes(); // Stock actualizado
+        await window.renderizarPedidos();
+        // await window.renderizarBalance(); // P&L actualizado - DESACTIVADO
+
+      } catch (error) {
+        document.getElementById('loading-overlay').classList.remove('active');
+        window.showToast('Error importando pedidos: ' + error.message, 'error');
+      }
+    };
+
+    window.cancelarImportarPedidos = function () {
+      document.getElementById('modal-importar-pedidos').classList.remove('active');
+      datosImportarPedidos = [];
+    };
+
+    // ========== MÓDULO DIARIO: Tracking de Costes/Ventas por Día ==========
+
+    let datosResumenMensual = null;
+
+    // Inicializar mes actual en los selectores
+    (function initDiario() {
+      const mesSelect = document.getElementById('diario-mes');
+      const anoSelect = document.getElementById('diario-ano');
+      if (mesSelect) {
+        mesSelect.value = (new Date().getMonth() + 1).toString();
+      }
+      if (anoSelect) {
+        anoSelect.value = new Date().getFullYear().toString();
+      }
+    })();
+
+    // Cargar resumen mensual desde la API
+    window.cargarResumenMensual = async function () {
+      const mes = document.getElementById('diario-mes').value;
+      const ano = document.getElementById('diario-ano').value;
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        window.showToast('Sesión expirada', 'error');
+        return;
+      }
+
+      try {
+        window.showToast('Cargando datos...', 'info');
+
+        const response = await fetch(`https://lacaleta-api.mindloop.cloud/api/monthly/summary?mes=${mes}&ano=${ano}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Error cargando datos');
+
+        datosResumenMensual = await response.json();
+
+        // Actualizar KPIs
+        document.getElementById('diario-total-compras').textContent =
+          (datosResumenMensual.compras?.total || 0).toFixed(2) + ' €';
+        document.getElementById('diario-total-ventas').textContent =
+          (datosResumenMensual.ventas?.totalIngresos || 0).toFixed(2) + ' €';
+        document.getElementById('diario-beneficio').textContent =
+          (datosResumenMensual.ventas?.beneficioBruto || 0).toFixed(2) + ' €';
+        document.getElementById('diario-food-cost').textContent =
+          (datosResumenMensual.resumen?.foodCost || 0) + '%';
+
+        // Renderizar tablas
+        renderizarTablaComprasDiarias();
+        renderizarTablaVentasDiarias();
+        renderizarTablaPLDiario();
+        renderizarBeneficioNetoDiario();
+        window.showToast('Datos cargados', 'success');
+      } catch (error) {
+        console.error('Error cargando resumen mensual:', error);
+        window.showToast('Error cargando datos', 'error');
+      }
+    };
+
+    // Cambiar entre vistas (Compras, Ventas, P&L)
+    window.cambiarVistaDiario = function (vista) {
+      // Ocultar todas las vistas
+      document.querySelectorAll('.diario-vista').forEach(el => el.style.display = 'none');
+
+      // Resetear botones
+      document.getElementById('btn-vista-compras').className = 'btn btn-secondary';
+      document.getElementById('btn-vista-ventas').className = 'btn btn-secondary';
+      document.getElementById('btn-vista-combinada').className = 'btn btn-secondary';
+
+      // Mostrar vista seleccionada
+      if (vista === 'compras') {
+        document.getElementById('vista-compras').style.display = 'block';
+        document.getElementById('btn-vista-compras').className = 'btn btn-primary';
+      } else if (vista === 'ventas') {
+        document.getElementById('vista-ventas').style.display = 'block';
+        document.getElementById('btn-vista-ventas').className = 'btn btn-primary';
+      } else if (vista === 'combinada') {
+        document.getElementById('vista-combinada').style.display = 'block';
+        document.getElementById('btn-vista-combinada').className = 'btn btn-primary';
+      }
+    };
+
+    // Renderizar tabla de compras diarias (tipo Excel)
+    function renderizarTablaComprasDiarias() {
+      const container = document.getElementById('tabla-compras-diarias');
+      if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
+        container.innerHTML = '<p class="empty-state">No hay datos de compras para este mes</p>';
+        return;
+      }
+
+      const dias = datosResumenMensual.dias;
+      const ingredientes = datosResumenMensual.compras?.ingredientes || {};
+
+      let html = '<table style="min-width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden;">';
+
+      // Header con días
+      html += '<thead><tr><th style="position: sticky; left: 0; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); z-index: 1; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 16px;">Ingrediente</th>';
+      dias.forEach(dia => {
+        const fecha = new Date(dia);
+        html += `<th style="min-width: 80px; text-align: center; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 16px; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
+      });
+      html += '<th style="background: #e8f5e9; font-weight: bold; border-bottom: 2px solid #CBD5E1; padding: 16px;">TOTAL</th></tr></thead>';
+
+      // Filas de ingredientes
+      html += '<tbody>';
+      let rowIndex = 0;
+      for (const [nombre, data] of Object.entries(ingredientes)) {
+        const bgColor = rowIndex % 2 === 0 ? '#FFFFFF' : '#FAFBFC';
+        html += `<tr style="border-bottom: 1px solid #F1F5F9;"><td style="position: sticky; left: 0; background: ${bgColor}; font-weight: 600; padding: 18px; border-right: 1px solid #E2E8F0;">${nombre}</td>`;
+
+        // Buscar unidad del ingrediente
+        const ing = window.ingredientes.find(i => i.nombre === nombre);
+        const unidad = ing?.unidad || 'kg';
+
+        dias.forEach(dia => {
+          const diaData = data.dias[dia];
+          if (diaData) {
+            html += `<td style="text-align: center; background: #FFF5F2; padding: 18px; border-right: 1px solid #E2E8F0;">${diaData.precio.toFixed(2)}€<br><small style="color:#64748B; font-weight: 600;">${diaData.cantidad} ${unidad}</small></td>`;
+          } else {
+            html += '<td style="text-align: center; color: #CBD5E1; padding: 18px; border-right: 1px solid #E2E8F0;">-</td>';
+          }
+        });
+        html += `<td style="text-align: center; background: #e8f5e9; font-weight: bold; padding: 18px;">${data.total.toFixed(2)}€</td>`;
+        html += '</tr>';
+        rowIndex++;
+      }
+      html += '</tbody></table>';
+
+      container.innerHTML = html;
+    }
+
+    // Renderizar tabla de ventas diarias (tipo Excel)
+    function renderizarTablaVentasDiarias() {
+      const container = document.getElementById('tabla-ventas-diarias');
+      if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
+        container.innerHTML = '<p class="empty-state">No hay datos de ventas para este mes</p>';
+        return;
+      }
+
+      const dias = datosResumenMensual.dias;
+      const recetas = datosResumenMensual.ventas?.recetas || {};
+
+      let html = '<table style="min-width: 100%; border-collapse: collapse;">';
+
+      // Header con días
+      html += '<thead><tr><th style="position: sticky; left: 0; background: #f8f8f8; z-index: 1;">Receta</th>';
+      dias.forEach(dia => {
+        const fecha = new Date(dia);
+        html += `<th style="min-width: 100px; text-align: center;">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
+      });
+      html += '<th style="background: #e8f5e9; font-weight: bold;">TOTAL</th></tr></thead>';
+
+      // Filas de recetas
+      html += '<tbody>';
+      for (const [nombre, data] of Object.entries(recetas)) {
+        html += `<tr><td style="position: sticky; left: 0; background: white; font-weight: 500;">${nombre}</td>`;
+        dias.forEach(dia => {
+          const diaData = data.dias[dia];
+          if (diaData) {
+            html += `<td style="text-align: center;">
+              <div style="color: #2e7d32; font-weight: 500;">${diaData.ingresos.toFixed(2)}€</div>
+              <small style="color:#666;">${diaData.vendidas} uds</small>
+            </td>`;
+          } else {
+            html += '<td style="text-align: center; color: #ccc;">-</td>';
+          }
+        });
+        html += `<td style="text-align: center; background: #e8f5e9;">
+          <div style="font-weight: bold;">${data.totalIngresos.toFixed(2)}€</div>
+          <small>${data.totalVendidas} uds</small>
+        </td>`;
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+
+      container.innerHTML = html;
+    }
+
+    // Renderizar P&L diario
+    function renderizarTablaPLDiario() {
+      const container = document.getElementById('tabla-pl-diario');
+      if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
+        container.innerHTML = '<p class="empty-state">No hay datos para este mes</p>';
+        return;
+      }
+
+      const dias = datosResumenMensual.dias;
+      const recetas = datosResumenMensual.ventas?.recetas || {};
+
+      // Calcular totales por día
+      const totalesPorDia = {};
+      dias.forEach(dia => {
+        totalesPorDia[dia] = { ingresos: 0, costes: 0, beneficio: 0 };
+      });
+
+      for (const [nombre, data] of Object.entries(recetas)) {
+        for (const [dia, diaData] of Object.entries(data.dias)) {
+          if (totalesPorDia[dia]) {
+            totalesPorDia[dia].ingresos += diaData.ingresos;
+            totalesPorDia[dia].costes += diaData.coste;
+            totalesPorDia[dia].beneficio += diaData.beneficio;
+          }
+        }
+      }
+
+      let html = '<table style="min-width: 100%; border-collapse: collapse;">';
+
+      // Header
+      html += '<thead><tr><th style="position: sticky; left: 0; background: #f8f8f8;">Concepto</th>';
+      dias.forEach(dia => {
+        const fecha = new Date(dia);
+        html += `<th style="min-width: 90px; text-align: center;">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
+      });
+      html += '<th style="background: #1565c0; color: white;">TOTAL MES</th></tr></thead>';
+
+      // Fila Ingresos
+      let totalIngresos = 0, totalCostes = 0, totalBeneficio = 0;
+      html += '<tbody>';
+      html += '<tr style="background: #e8f5e9;"><td style="position: sticky; left: 0; background: #e8f5e9; font-weight: bold;">📈 INGRESOS</td>';
+      dias.forEach(dia => {
+        const val = totalesPorDia[dia].ingresos;
+        totalIngresos += val;
+        html += `<td style="text-align: center; font-weight: 500; color: #2e7d32;">${val.toFixed(2)}€</td>`;
+      });
+      html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalIngresos.toFixed(2)}€</td></tr>`;
+
+      // Fila Costes
+      html += '<tr style="background: #ffebee;"><td style="position: sticky; left: 0; background: #ffebee; font-weight: bold;">📉 COSTES</td>';
+      dias.forEach(dia => {
+        const val = totalesPorDia[dia].costes;
+        totalCostes += val;
+        html += `<td style="text-align: center; color: #c62828;">${val.toFixed(2)}€</td>`;
+      });
+      html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalCostes.toFixed(2)}€</td></tr>`;
+
+      // Obtener gastos fijos mensuales
+      const opexData = JSON.parse(localStorage.getItem('opex_inputs') || '{"alquiler":0,"personal":0,"suministros":0,"otros":0}');
+      const gastosFijosMes = parseFloat(opexData.alquiler || 0) + parseFloat(opexData.personal || 0) + parseFloat(opexData.suministros || 0) + parseFloat(opexData.otros || 0);
+
+      // Calcular gastos fijos por día (días del mes calendario, no solo días con datos)
+      const mesSeleccionado = parseInt(document.getElementById('diario-mes').value);
+      const anoSeleccionado = parseInt(document.getElementById('diario-ano').value);
+      const diasEnMes = new Date(anoSeleccionado, mesSeleccionado, 0).getDate();
+      const gastosFijosDia = diasEnMes > 0 ? (gastosFijosMes / diasEnMes) : 0;
+
+      // Fila Beneficio BRUTO (antes de gastos fijos)
+      html += '<tr style="background: #fff3e0;"><td style="position: sticky; left: 0; background: #fff3e0; font-weight: bold;">💰 BENEFICIO BRUTO</td>';
+      dias.forEach(dia => {
+        const val = totalesPorDia[dia].beneficio;
+        totalBeneficio += val;
+        const color = val >= 0 ? '#f57c00' : '#c62828';
+        html += `<td style="text-align: center; font-weight: bold; color: ${color};">${val.toFixed(2)}€</td>`;
+      });
+      html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalBeneficio.toFixed(2)}€</td></tr>`;
+
+      // Fila Gastos Fijos Diarios
+      html += '<tr style="background: #fce4ec;"><td style="position: sticky; left: 0; background: #fce4ec; font-weight: bold;">🏢 GASTOS FIJOS/DÍA</td>';
+      const totalGastosFijos = gastosFijosDia * dias.length;
+      dias.forEach(() => {
+        html += `<td style="text-align: center; color: #c62828;">${gastosFijosDia.toFixed(2)}€</td>`;
+      });
+      html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalGastosFijos.toFixed(2)}€</td></tr>`;
+
+      // Fila Beneficio NETO (después de gastos fijos)
+      html += '<tr style="background: #e3f2fd; border-top: 3px solid #1565c0;"><td style="position: sticky; left: 0; background: #e3f2fd; font-weight: bold; font-size: 16px;">✅ BENEFICIO NETO</td>';
+      let totalBeneficioNeto = 0;
+      dias.forEach(dia => {
+        const beneficioNeto = totalesPorDia[dia].beneficio - gastosFijosDia;
+        totalBeneficioNeto += beneficioNeto;
+        const color = beneficioNeto >= 0 ? '#1565c0' : '#c62828';
+        html += `<td style="text-align: center; font-weight: bold; font-size: 15px; color: ${color};">${beneficioNeto.toFixed(2)}€</td>`;
+      });
+      html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold; font-size: 16px;">${totalBeneficioNeto.toFixed(2)}€</td></tr>`;
+
+      html += '</tbody></table>';
+
+      container.innerHTML = html;
+    }
+
+    // Exportar a Excel
+    window.exportarDiarioExcel = function () {
+      if (!datosResumenMensual) {
+        window.showToast('Primero carga los datos', 'warning');
+        return;
+      }
+
+      // Crear workbook con los datos
+      const wb = XLSX.utils.book_new();
+
+      // Hoja de compras
+      const comprasData = [];
+      comprasData.push(['Ingrediente', ...datosResumenMensual.dias, 'TOTAL']);
+      for (const [nombre, data] of Object.entries(datosResumenMensual.compras?.ingredientes || {})) {
+        const fila = [nombre];
+        datosResumenMensual.dias.forEach(dia => {
+          fila.push(data.dias[dia]?.precio || '');
+        });
+        fila.push(data.total);
+        comprasData.push(fila);
+      }
+      const wsCompras = XLSX.utils.aoa_to_sheet(comprasData);
+      XLSX.utils.book_append_sheet(wb, wsCompras, 'Compras');
+
+      // Hoja de ventas
+      const ventasData = [];
+      ventasData.push(['Receta', ...datosResumenMensual.dias, 'TOTAL']);
+      for (const [nombre, data] of Object.entries(datosResumenMensual.ventas?.recetas || {})) {
+        const fila = [nombre];
+        datosResumenMensual.dias.forEach(dia => {
+          fila.push(data.dias[dia]?.ingresos || '');
+        });
+        fila.push(data.totalIngresos);
+        ventasData.push(fila);
+      }
+      const wsVentas = XLSX.utils.aoa_to_sheet(ventasData);
+      XLSX.utils.book_append_sheet(wb, wsVentas, 'Ventas');
+
+      // Descargar
+      const mes = document.getElementById('diario-mes').value;
+      const ano = document.getElementById('diario-ano').value;
+      XLSX.writeFile(wb, `Control_Diario_${ano}-${mes.padStart(2, '0')}.xlsx`);
+
+      window.showToast('Excel exportado', 'success');
+    };
+
+  </script>
+  <!-- MODAL DE CONFIRMACIÓN PROFESIONAL -->
+  <div id="modal-confirmacion" class="modal-overlay-custom" style="display: none;">
+    <div class="modal-confirmacion-container">
+      <div class="modal-confirmacion-content">
+        <div class="modal-header-danger">
+          <span class="modal-danger-icon">⚠️</span>
+          <h3 id="confirm-titulo">Confirmar Eliminación</h3>
+        </div>
+        <div class="modal-confirmacion-body">
+          <p id="confirm-mensaje"></p>
+        </div>
+        <div class="modal-confirmacion-footer">
+          <button class="btn-modal-cancel" onclick="window.cerrarConfirmacion()">
+            <span>✖</span> Cancelar
+          </button>
+          <button class="btn-modal-danger" id="btn-confirmar-eliminar">
+            <span>🗑️</span> Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>
+    <!-- Modal Gasto Fijo 
+    -->
+  <div id="modal-gasto-fijo" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarFormularioGastoFijo()">&times;</span>
+      <h2 id="titulo-modal-gasto">Añadir Gasto Fijo</h2>
+
+      <form id="form-gasto-fijo" onsubmit="guardarGastoFijo(event)">
+        <input type="hidden" id="gasto-id">
+
+        <div class="form-group">
+          <label for="gasto-concepto">Concepto *</label>
+          <input type="text" id="gasto-concepto" required placeholder="ej: Alquiler, Nóminas, Luz...">
+        </div>
+
+        <div class="form-group">
+          <label for="gasto-monto">Monto Mensual (€) *</label>
+          <input type="number" id="gasto-monto" step="0.01" min="0" required placeholder="0.00">
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button type="submit" class="btn-primary">Guardar</button>
+          <button type="button" class="btn-secondary" onclick="cerrarFormularioGastoFijo()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  .modal-overlay-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  animation: fadeInModal 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes fadeInModal {
+  from { opacity: 0; backdrop-filter: blur(0); }
+  to { opacity: 1; backdrop-filter: blur(8px); }
+  }
+  .modal-confirmacion-container {
+  animation: slideUpBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes slideUpBounce {
+  0% { transform: translateY(100px) scale(0.8); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .modal-confirmacion-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+  max-width: 520px;
+  width: 92%;
+  overflow: hidden;
+  }
+  .modal-header-danger {
+  background: linear-gradient(145deg, #ff4444 0%, #cc0000 100%);
+  color: white;
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  }
+  .modal-danger-icon {
+  font-size: 2.5rem;
+  animation: shake 0.5s ease-in-out;
+  }
+  @keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+  }
+  .modal-header-danger h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  }
+  .modal-confirmacion-body {
+  padding: 32px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #2c3e50;
+  }
+  .modal-confirmacion-body strong {
+  color: #ff4444;
+  font-weight: 700;
+  }
+  .modal-confirmacion-footer {
+  padding: 20px 32px 28px;
+  border-top: 1px solid #ecf0f1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #f8f9fa;
+  }
+  .btn-modal-cancel, .btn-modal-danger {
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .btn-modal-cancel {
+  background: white;
+  color: #495057;
+  border: 2px solid #dee2e6;
+  }
+  .btn-modal-cancel:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .btn-modal-danger {
+  background: linear-gradient(145deg, #ff4444 0%, #cc0000 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+  }
+  .btn-modal-danger:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 68, 68, 0.4);
+  }

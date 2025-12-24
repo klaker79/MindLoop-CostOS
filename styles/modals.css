@@ -1,0 +1,149 @@
+              .bcg-legend-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 11px;
+                padding: 4px 10px;
+                background: white;
+                border-radius: 20px;
+                border: 2px solid var(--color);
+                color: var(--color);
+                font-weight: 600;
+              }
+
+              .bcg-action-card {
+                padding: 12px 16px;
+                border-radius: 12px;
+                transition: all 0.2s ease;
+                cursor: pointer;
+              }
+
+              .bcg-action-card:hover {
+                transform: translateX(4px);
+              }
+
+              .bcg-action-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              }
+
+              .bcg-action-icon {
+                font-size: 18px;
+              }
+
+              .bcg-action-title {
+                font-weight: 600;
+                font-size: 14px;
+                flex: 1;
+              }
+
+              .bcg-action-count {
+                background: rgba(255, 255, 255, 0.5);
+                padding: 2px 10px;
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 700;
+              }
+
+              .bcg-action-text {
+                font-size: 12px;
+                margin-top: 4px;
+                opacity: 0.8;
+              }
+
+              .bcg-action-estrella {
+                background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+                border: 1px solid #86efac;
+                color: #15803d;
+              }
+
+              .bcg-action-puzzle {
+                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                border: 1px solid #93c5fd;
+                color: #1d4ed8;
+              }
+
+              .bcg-action-caballo {
+                background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+                border: 1px solid #fdba74;
+                color: #c2410c;
+              }
+
+              .bcg-action-perro {
+                background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+                border: 1px solid #fca5a5;
+                color: #b91c1c;
+              }
+
+              /* Estilos para paneles expandibles */
+              .bcg-expand-icon {
+                font-size: 10px;
+                opacity: 0.6;
+                transition: transform 0.3s ease;
+              }
+
+              .bcg-action-card.expanded .bcg-expand-icon {
+                transform: rotate(180deg);
+              }
+
+              .bcg-action-detail {
+                display: none;
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px dashed currentColor;
+                font-size: 12px;
+                line-height: 1.5;
+                opacity: 0.9;
+              }
+
+              .bcg-action-detail ul {
+                margin: 8px 0 0 0;
+                padding-left: 18px;
+              }
+
+              .bcg-action-detail li {
+                margin-bottom: 4px;
+              }
+
+              .bcg-action-card.expanded .bcg-action-detail {
+                display: block;
+                animation: fadeIn 0.3s ease;
+              }
+
+              @keyframes fadeIn {
+                from {
+                  opacity: 0;
+                  transform: translateY(-5px);
+                }
+
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+
+              .bcg-item {
+                background: white;
+                padding: 8px 12px;
+                border-radius: 8px;
+                font-size: 12px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                border: 1px solid rgba(0, 0, 0, 0.05);
+                transition: transform 0.2s;
+              }
+
+              .bcg-item:hover {
+                transform: scale(1.02);
+              }
+
+              @media (max-width: 768px) {
+                #bcg-matrix-container>div:first-of-type {
+                  flex-direction: column;
+                  gap: 15px;
+                }
+
+                #bcg-matrix-container>div>div:first-child {
+                  grid-template-columns: 1fr;
+                }
+              }
