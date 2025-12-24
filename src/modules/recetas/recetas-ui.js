@@ -101,12 +101,25 @@ export function calcularCosteReceta() {
 
         const precioVenta = parseFloat(document.getElementById('rec-precio_venta')?.value || 0);
         const margenSpan = document.getElementById('margen-receta-valor');
-        if (margenSpan && precioVenta > 0) {
+        const foodCostSpan = document.getElementById('foodcost-receta-valor');
+
+        if (precioVenta > 0) {
             const margen = ((precioVenta - costeTotal) / precioVenta * 100);
             const foodCost = (costeTotal / precioVenta * 100);
-            margenSpan.textContent = margen.toFixed(1) + '%';
-            // Colores basados en Food Cost: ≤28% verde brillante, ≤33% verde, ≤38% amarillo, >38% rojo
-            margenSpan.style.color = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#10b981' : foodCost <= 38 ? '#f59e0b' : '#ef4444';
+
+            // Actualizar Margen
+            if (margenSpan) {
+                margenSpan.textContent = margen.toFixed(1) + '%';
+                // Colores basados en Food Cost: ≤28% verde brillante, ≤33% verde, ≤38% amarillo, >38% rojo
+                margenSpan.style.color = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#10b981' : foodCost <= 38 ? '#f59e0b' : '#ef4444';
+            }
+
+            // Actualizar Food Cost
+            if (foodCostSpan) {
+                foodCostSpan.textContent = foodCost.toFixed(1) + '%';
+                // Mismo código de colores
+                foodCostSpan.style.color = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#10b981' : foodCost <= 38 ? '#f59e0b' : '#ef4444';
+            }
         }
     }
 
