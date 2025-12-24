@@ -105,14 +105,14 @@ function createChatStyles() {
             position: fixed;
             bottom: 100px;
             right: 24px;
-            width: 400px;
+            width: 450px;
             height: 550px;
             background: #ffffff;
             border-radius: 20px;
             box-shadow: 0 10px 50px rgba(0, 0, 0, 0.15);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: visible;
             z-index: 9998;
             opacity: 0;
             transform: translateY(20px) scale(0.95);
@@ -206,7 +206,7 @@ function createChatStyles() {
         .chat-message {
             display: flex;
             gap: 10px;
-            max-width: 85%;
+            max-width: 92%;
             animation: messageIn 0.3s ease-out;
         }
         
@@ -251,12 +251,65 @@ function createChatStyles() {
             font-size: 14px;
             line-height: 1.5;
             color: #1e293b;
-            white-space: pre-wrap;
             word-wrap: break-word;
             overflow-wrap: break-word;
             word-break: break-word;
+            white-space: normal;
             max-width: 100%;
-            overflow-x: hidden;
+        }
+        
+        /* Markdown Tables in Chat */
+        .chat-table-wrapper {
+            overflow-x: auto;
+            margin: 8px 0;
+            border-radius: 8px;
+        }
+        
+        .chat-table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .chat-table th, .chat-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .chat-table th {
+            background: #7c3aed;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .chat-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .chat-table tr:nth-child(even) {
+            background: #f1f5f9;
+        }
+        
+        .chat-inline-code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #7c3aed;
+        }
+        
+        .chat-list {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        
+        .chat-list li {
+            margin: 4px 0;
         }
         
         .chat-message.user .chat-message-content {
@@ -545,7 +598,7 @@ function addMessage(type, text, save = true) {
     messageEl.innerHTML = `
         <div class="chat-message-avatar">${type === 'bot' ? '🤖' : '👤'}</div>
         <div>
-            <div class="chat-message-content">${escapeHtml(text)}</div>
+            <div class="chat-message-content">${parseMarkdown(text)}</div>
             <div class="chat-message-time">${time}</div>
         </div>
     `;
@@ -684,12 +737,102 @@ export function clearChatHistory() {
 }
 
 /**
- * Escape HTML
+ * Parse Markdown to HTML (tablas, negritas, listas, código)
+ * Soporta tanto markdown estándar (|) como caracteres Unicode de box-drawing (│─├)
  */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML.replace(/\n/g, '<br>');
+function parseMarkdown(text) {
+    if (!text) return '';
+
+    // Primero detectar si es una tabla con box-drawing Unicode
+    // Caracteres: │ ─ ├ ┤ ┬ ┴ ┼ ┌ ┐ └ ┘
+    const hasBoxDrawing = /[│─├┤┬┴┼┌┐└┘]/.test(text);
+
+    if (hasBoxDrawing) {
+        // Convertir tabla box-drawing a HTML
+        const lines = text.split('\n');
+        let tableRows = [];
+        let isFirstDataRow = true;
+
+        for (const line of lines) {
+            // Ignorar líneas de bordes (solo contienen ─├┼┬┴┐┌└┘)
+            if (/^[─├┼┬┴┐┌└┘\s]+$/.test(line)) continue;
+            if (/^[\-\|\s]+$/.test(line)) continue; // Líneas separadoras markdown
+
+            // Líneas con datos (contienen │)
+            if (line.includes('│') || line.includes('|')) {
+                const cells = line
+                    .split(/[│|]/)
+                    .map(c => c.trim())
+                    .filter(c => c !== '');
+
+                if (cells.length > 0) {
+                    const tag = isFirstDataRow ? 'th' : 'td';
+                    const row = '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+                    tableRows.push(row);
+                    isFirstDataRow = false;
+                }
+            }
+        }
+
+        if (tableRows.length > 0) {
+            // Separar texto antes y después de la tabla
+            const tableStart = text.indexOf('┌') !== -1 ? text.indexOf('┌') :
+                (text.indexOf('│') !== -1 ? text.indexOf('│') : text.indexOf('|'));
+            const lastBoxChar = Math.max(
+                text.lastIndexOf('┘'),
+                text.lastIndexOf('│'),
+                text.lastIndexOf('|')
+            );
+
+            let beforeTable = text.substring(0, tableStart);
+            let afterTable = text.substring(lastBoxChar + 1);
+
+            // Limpiar texto antes/después
+            beforeTable = beforeTable.replace(/[─├┼┬┴┐┌└┘│|]/g, '').trim();
+            afterTable = afterTable.replace(/[─├┼┬┴┐┌└┘│|]/g, '').trim();
+
+            // Formatear texto antes
+            beforeTable = formatTextContent(beforeTable);
+            afterTable = formatTextContent(afterTable);
+
+            const tableHtml = '<div class="chat-table-wrapper"><table class="chat-table"><tbody>' + tableRows.join('') + '</tbody></table></div>';
+            return beforeTable + tableHtml + afterTable;
+        }
+    }
+
+    // Fallback: formateo normal sin tabla
+    return formatTextContent(text);
+}
+
+/**
+ * Formatea contenido de texto (negritas, listas, etc.)
+ */
+function formatTextContent(text) {
+    if (!text) return '';
+
+    let html = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    // Negritas **texto** o __texto__
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+
+    // Código inline `código`
+    html = html.replace(/`([^`]+)`/g, '<code class="chat-inline-code">$1</code>');
+
+    // Listas con •
+    html = html.replace(/•\s+([^\n]+)/g, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>)+/g, '<ul class="chat-list">$&</ul>');
+
+    // Emojis en mayúsculas como títulos (simplificado)
+    html = html.replace(/([📊💰📦📈🏪🎯✅❌⚠️🔴🟢🟡])\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]*:)/g, '<strong>$1 $2</strong>');
+
+    // Saltos de línea
+    html = html.replace(/\n/g, '<br>');
+
+    return html;
 }
 
 // Exportar para uso global

@@ -14,9 +14,11 @@ export async function guardarProveedor(event) {
 
     const proveedor = {
         nombre: document.getElementById('prov-nombre').value,
+        contacto: document.getElementById('prov-contacto').value || '',
         telefono: document.getElementById('prov-telefono').value || '',
         email: document.getElementById('prov-email').value || '',
         direccion: document.getElementById('prov-direccion').value || '',
+        notas: document.getElementById('prov-notas').value || '',
         ingredientes: ingredientesIds
     };
 
@@ -48,10 +50,13 @@ export function editarProveedor(id) {
     const prov = window.proveedores.find(p => p.id === id);
     if (!prov) return;
 
-    document.getElementById('prov-nombre').value = prov.nombre;
+    // Rellenar todos los campos del formulario con los datos existentes
+    document.getElementById('prov-nombre').value = prov.nombre || '';
+    document.getElementById('prov-contacto').value = prov.contacto || '';
     document.getElementById('prov-telefono').value = prov.telefono || '';
     document.getElementById('prov-email').value = prov.email || '';
     document.getElementById('prov-direccion').value = prov.direccion || '';
+    document.getElementById('prov-notas').value = prov.notas || '';
 
     window.cargarIngredientesProveedor(prov.ingredientes || []);
 

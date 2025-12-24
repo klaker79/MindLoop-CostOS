@@ -2115,7 +2115,7 @@
   </style>
 
   <!-- Módulos ES6 -->
-  <script type="module" src="./src/main.js?v=1734737962"></script>
+  <script type="module" src="./src/main.js?v=1735033100"></script>
 </head>
 
 <body>
@@ -2397,6 +2397,7 @@
                   <option value="l">L</option>
                   <option value="ml">ml</option>
                   <option value="unidad">Unidades</option>
+                  <option value="docena">Docena</option>
                 </select>
               </div>
               <div class="form-group">
@@ -2487,29 +2488,53 @@
                 Añadir</button>
             </div>
             <div id="coste-calculado-form" class="coste-calculado" style="display: none;">
-              <h4 style="color: #059669; font-size: 16px; margin-bottom: 15px;">💰 Análisis de Costes</h4>
-
-              <div class="coste-row" style="margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <!-- Panel de Análisis de Costes - Diseño Premium -->
+              <div
+                style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 20px; color: white; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                  <span style="font-size: 28px;">📊</span>
                   <div>
-                    <span style="font-weight: 600;">Coste Total</span>
-                    <div style="font-size: 11px; color: #666; font-style: italic; margin-top: 2px;">
-                      Σ (Precio × Cantidad)
-                    </div>
+                    <h4 style="margin: 0; font-size: 18px; font-weight: 700;">Análisis Financiero</h4>
+                    <p style="margin: 0; font-size: 13px; opacity: 0.9;">Rentabilidad en tiempo real</p>
                   </div>
-                  <strong id="coste-receta-valor" style="font-size: 24px; color: #059669;">0.00€</strong>
                 </div>
-              </div>
 
-              <div class="coste-row" style="padding-top: 15px; border-top: 1px solid #d1fae5;">
-                <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                  <div>
-                    <span style="font-weight: 600;">Margen</span>
-                    <div style="font-size: 11px; color: #666; font-style: italic; margin-top: 2px;">
-                      (PVP - Coste) / PVP × 100
+                <!-- Coste Total -->
+                <div
+                  style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-bottom: 12px; backdrop-filter: blur(10px);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px;">💰</span>
+                        <span style="font-size: 15px; font-weight: 600;">Coste de Producción</span>
+                      </div>
+                      <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
+                        Suma de todos los ingredientes
+                      </p>
+                    </div>
+                    <div style="text-align: right;">
+                      <strong id="coste-receta-valor" style="font-size: 28px; font-weight: 800;">0.00€</strong>
                     </div>
                   </div>
-                  <strong id="margen-receta-valor" style="font-size: 24px; color: #059669;">0.0%</strong>
+                </div>
+
+                <!-- Margen -->
+                <div
+                  style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px;">📈</span>
+                        <span style="font-size: 15px; font-weight: 600;">Margen de Beneficio</span>
+                      </div>
+                      <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
+                        Beneficio por cada venta
+                      </p>
+                    </div>
+                    <div style="text-align: right;">
+                      <strong id="margen-receta-valor" style="font-size: 28px; font-weight: 800;">0.0%</strong>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -5709,9 +5734,16 @@
           item.className = 'ingrediente-item';
           item.style.cssText = 'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;';
 
+          // Ordenar ingredientes alfabéticamente
+          const ingredientesOrdenados = [...(window.ingredientes || [])].sort((a, b) => 
+            a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
+          );
+
           let optionsHtml = '<option value="">Selecciona ingrediente...</option>';
-          window.ingredientes.forEach(ing => {
-            optionsHtml += `<option value="${ing.id}">${ing.nombre} (${parseFloat(ing.precio || 0).toFixed(2)}€/${ing.unidad})</option>`;
+          ingredientesOrdenados.forEach(ing => {
+            const precio = parseFloat(ing.precio || 0).toFixed(2);
+            const unidad = ing.unidad || 'ud';
+            optionsHtml += `<option value="${ing.id}">${ing.nombre} (${precio}€/${unidad})</option>`;
           });
 
           item.innerHTML = `
@@ -10095,7 +10127,7 @@
 
 
 
-    // ✅ Renderizar beneficio neto ACUMULADO por día (VERSIÓN PRO)
+    // ✅ Renderizar beneficio neto ACUMULADO por día (VERSIÓN PRO con Punto de Equilibrio)
     function renderizarBeneficioNetoDiario() {
       const container = document.getElementById('beneficio-neto-diario-lista');
       if (!container) return;
@@ -10105,142 +10137,144 @@
         return;
       }
 
-
       const dias = datosResumenMensual.dias;
-
-      // ✅ CRITICAL FIX #1: Usar función centralizada (elimina duplicación)
       const gastosFijosMes = calcularTotalGastosFijos();
-
-      // ✅ CRITICAL FIX #2: Calcular días con validación robusta
       const mes = parseInt(document.getElementById('diario-mes')?.value || new Date().getMonth() + 1);
       const ano = parseInt(document.getElementById('diario-ano')?.value || new Date().getFullYear());
 
-      // ✅ CRITICAL FIX #3: Validar mes/año ANTES de calcular días
       if (!mes || !ano || mes < 1 || mes > 12 || ano < 2020 || ano > 2030) {
-        console.error('Mes o año inválido:', mes, ano);
         container.innerHTML = '<p style="color: #ef4444; text-align: center; padding: 20px;">Error: Mes o año inválido</p>';
         return;
       }
 
       const diasTotalesMes = new Date(ano, mes, 0).getDate();
-
-      // ✅ CRITICAL FIX #3: Validar división por cero
       if (!diasTotalesMes || isNaN(diasTotalesMes) || diasTotalesMes <= 0) {
-        console.error('ERROR CRÍTICO: Días del mes inválido', { diasTotalesMes, mes, ano });
         container.innerHTML = '<p style="color: #ef4444; text-align: center; padding: 20px;">Error calculando días del mes</p>';
         return;
       }
 
-      const gastosFijosDia = gastosFijosMes / diasTotalesMes; // Ahora seguro
+      const gastosFijosDia = gastosFijosMes / diasTotalesMes;
 
+      // Calcular beneficios y acumulados
       let html = '';
       let acumulado = 0;
       let sumaTotal = 0;
-      const beneficiosPorDia = [];
+      let totalPlatosVendidos = 0;
 
-      // Calcular beneficios y acumulados
       dias.forEach((dia, idx) => {
         const ingresos = dia.ingresos || 0;
         const costos = dia.costos || 0;
         const beneficioNeto = ingresos - costos - gastosFijosDia;
         acumulado += beneficioNeto;
         sumaTotal += beneficioNeto;
-        beneficiosPorDia.push(beneficioNeto);
+        totalPlatosVendidos += (dia.cantidadVendida || 0);
 
         const color = acumulado >= 0 ? '#10b981' : '#ef4444';
         const icono = beneficioNeto >= 0 ? '✅' : '❌';
-
-        // Extraer fecha real del objeto dia
-        const fechaDia = dia.fecha ? new Date(dia.fecha) : new Date(datosResumenMensual.dias[idx]);
-        const diaNum = fechaDia.getDate();
-        const mesNum = fechaDia.getMonth() + 1;
-        const fechaFormateada = `${diaNum}/${mesNum}`;
+        const fechaDia = dia.fecha ? new Date(dia.fecha) : new Date();
+        const fechaFormateada = `${fechaDia.getDate()}/${fechaDia.getMonth() + 1}`;
 
         html += `
-              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">
-                <div>
-                  <span style="color: #64748B; font-size: 13px;">${icono} ${fechaFormateada}</span>
-                  <span style="color: #94a3b8; font-size: 11px; margin-left: 8px;">${beneficioNeto >= 0 ? '+' : ''}${beneficioNeto.toFixed(2)}€</span>
-                </div>
-                <span style="color: ${color}; font-weight: 700; font-size: 14px;">${acumulado.toFixed(2)} €</span>
-              </div>
-            `;
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9;">
+            <div>
+              <span style="color: #64748B; font-size: 13px;">${icono} ${fechaFormateada}</span>
+              <span style="color: #94a3b8; font-size: 11px; margin-left: 8px;">${beneficioNeto >= 0 ? '+' : ''}${beneficioNeto.toFixed(2)}€</span>
+            </div>
+            <span style="color: ${color}; font-weight: 700; font-size: 14px;">${acumulado.toFixed(2)} €</span>
+          </div>
+        `;
       });
 
-      // ✅ 1. PROYECCIÓN A FIN DE MES
+      // ✅ NUEVO: Calcular PUNTO DE EQUILIBRIO
+      let puntoEquilibrioHTML = '';
+      if (window.recetas && window.recetas.length > 0 && gastosFijosMes > 0) {
+        // Calcular margen promedio de todas las recetas
+        let totalMargen = 0;
+        window.recetas.forEach(rec => {
+          const precioVenta = parseFloat(rec.precio_venta) || 0;
+          let costeReceta = 0;
+          if (rec.ingredientes && Array.isArray(rec.ingredientes)) {
+            rec.ingredientes.forEach(ing => {
+              const ingData = window.ingredientes?.find(i => i.id === ing.ingredienteId);
+              if (ingData) {
+                costeReceta += (parseFloat(ingData.precio) || 0) * (ing.cantidad || 0);
+              }
+            });
+          }
+          totalMargen += (precioVenta - costeReceta);
+        });
+        const margenPromedio = totalMargen / window.recetas.length;
+
+        // Punto de equilibrio = Gastos fijos / Margen promedio
+        const puntoEquilibrio = margenPromedio > 0 ? Math.ceil(gastosFijosMes / margenPromedio) : 0;
+
+        // Ventas del mes (cantidad total) - sumar de todas las recetas vendidas
+        let ventasMes = 0;
+        const recetasVendidas = datosResumenMensual.ventas?.recetas || {};
+        for (const [nombre, data] of Object.entries(recetasVendidas)) {
+          ventasMes += (data.totalVendidas || 0);
+        }
+        const progreso = puntoEquilibrio > 0 ? Math.min(100, (ventasMes / puntoEquilibrio) * 100) : 0;
+        const faltantes = Math.max(0, puntoEquilibrio - ventasMes);
+        const ventasFaltantes = faltantes * margenPromedio;
+
+        const progresoColor = progreso >= 100 ? '#10b981' : (progreso >= 50 ? '#f59e0b' : '#ef4444');
+        const progresoIcon = progreso >= 100 ? '🎉' : (progreso >= 50 ? '📈' : '⚠️');
+
+        puntoEquilibrioHTML = `
+          <div style="background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 16px; border-radius: 12px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="color: white; font-weight: 600; font-size: 13px;">🎯 Punto de Equilibrio Mensual</span>
+              <span style="color: ${progresoColor}; font-weight: 700; font-size: 14px;">${progresoIcon} ${progreso.toFixed(0)}%</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; height: 12px; overflow: hidden; margin-bottom: 12px;">
+              <div style="background: linear-gradient(90deg, ${progresoColor}, ${progresoColor}99); height: 100%; width: ${progreso}%; border-radius: 8px; transition: width 0.5s;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.8); font-size: 12px;">
+              <span><strong style="color: white;">${ventasMes}</strong> / ${puntoEquilibrio} platos</span>
+              <span>Margen/plato: <strong style="color: #10b981;">${margenPromedio.toFixed(2)}€</strong></span>
+            </div>
+            ${faltantes > 0 ? `
+              <div style="margin-top: 10px; padding: 8px; background: rgba(239, 68, 68, 0.2); border-radius: 6px; text-align: center;">
+                <span style="color: #fca5a5; font-size: 12px;">Te faltan <strong style="color: white;">${faltantes} platos</strong> (~${ventasFaltantes.toFixed(0)}€ en ventas)</span>
+              </div>
+            ` : `
+              <div style="margin-top: 10px; padding: 8px; background: rgba(16, 185, 129, 0.2); border-radius: 6px; text-align: center;">
+                <span style="color: #6ee7b7; font-size: 12px;">✅ ¡Gastos fijos cubiertos! Todo desde aquí es beneficio</span>
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      // Proyección
       const diasConDatos = dias.length;
       const promedioDiario = diasConDatos > 0 ? (sumaTotal / diasConDatos) : 0;
       const diasRestantes = diasTotalesMes - diasConDatos;
-      const proyeccionRestante = promedioDiario * diasRestantes;
-      const proyeccionFinMes = acumulado + proyeccionRestante;
+      const proyeccionFinMes = acumulado + (promedioDiario * diasRestantes);
 
-      // ✅ 5. GRÁFICO DE TENDENCIA (últimos 7 días o todos si hay menos)
-      const diasParaTendencia = Math.min(7, beneficiosPorDia.length);
-      const beneficiosRecientes = beneficiosPorDia.slice(-diasParaTendencia);
-
-      // Normalizar para el gráfico (encontrar min y max)
-      const min = Math.min(...beneficiosRecientes);
-      const max = Math.max(...beneficiosRecientes);
-      const rango = max - min;
-
-      let tendenciaHTML = '';
-      if (diasParaTendencia > 0 && rango > 0) {
-        const barras = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
-        beneficiosRecientes.forEach(b => {
-          const normalizado = (b - min) / rango;
-          const indice = Math.min(Math.floor(normalizado * barras.length), barras.length - 1);
-          const color = b >= 0 ? '#10b981' : '#ef4444';
-          tendenciaHTML += `<span style="color: ${color}; font-size: 18px;">${barras[indice]}</span>`;
-        });
-      } else {
-        tendenciaHTML = '<span style="color: #94a3b8;">─────</span>';
-      }
-
-      // Calcular si la tendencia es alcista o bajista
-      let tendenciaTexto = '';
-      if (beneficiosRecientes.length >= 2) {
-        const primero = beneficiosRecientes[0];
-        const ultimo = beneficiosRecientes[beneficiosRecientes.length - 1];
-        if (ultimo > primero) {
-          tendenciaTexto = '<span style="color: #10b981;">↗ Mejorando</span>';
-        } else if (ultimo < primero) {
-          tendenciaTexto = '<span style="color: #ef4444;">↘ Empeorando</span>';
-        } else {
-          tendenciaTexto = '<span style="color: #94a3b8;">→ Estable</span>';
-        }
-      }
-
-      // Header con todas las métricas
       const finalColor = acumulado >= 0 ? '#059669' : '#dc2626';
       const finalBg = acumulado >= 0 ? '#ecfdf5' : '#fef2f2';
       const finalIcon = acumulado >= 0 ? '✨' : '⚠️';
 
-      const proyColor = proyeccionFinMes >= 0 ? '#059669' : '#dc2626';
-      const proyBg = proyeccionFinMes >= 0 ? '#ecfdf5' : '#fef2f2';
-      const proyIcon = proyeccionFinMes >= 0 ? '🎯' : '⚠️';
-
       const headerHTML = `
-            <div style="background: ${finalBg}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
-              <div style="text-align: center; font-size: 13px; color: ${finalColor}; font-weight: 600; margin-bottom: 8px;">
-                ${finalIcon} Total acumulado: ${acumulado.toFixed(2)}€
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
-                <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
-                  <div style="color: #64748B;">📊 Promedio/día</div>
-                  <div style="color: #1e293b; font-weight: 700;">${promedioDiario.toFixed(2)}€</div>
-                </div>
-                <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
-                  <div style="color: #64748B;">📈 Tendencia</div>
-                  <div style="font-weight: 600;">${tendenciaTexto}</div>
-                </div>
-              </div>
+        ${puntoEquilibrioHTML}
+        <div style="background: ${finalBg}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+          <div style="text-align: center; font-size: 13px; color: ${finalColor}; font-weight: 600; margin-bottom: 8px;">
+            ${finalIcon} Total acumulado: ${acumulado.toFixed(2)}€
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+            <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
+              <div style="color: #64748B;">📊 Promedio/día</div>
+              <div style="color: #1e293b; font-weight: 700;">${promedioDiario.toFixed(2)}€</div>
             </div>
-            <div style="background: ${proyBg}; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
-              <div style="font-size: 11px; color: #64748B; margin-bottom: 4px;">Proyección fin de mes (${diasRestantes} días restantes)</div>
-              <div style="font-size: 14px; color: ${proyColor}; font-weight: 700;">${proyIcon} ${proyeccionFinMes.toFixed(2)}€</div>
-              <div style="margin-top: 8px; font-size: 10px;">${tendenciaHTML}</div>
+            <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
+              <div style="color: #64748B;">🎯 Proyección</div>
+              <div style="color: ${proyeccionFinMes >= 0 ? '#059669' : '#dc2626'}; font-weight: 700;">${proyeccionFinMes.toFixed(2)}€</div>
             </div>
-          `;
+          </div>
+        </div>
+      `;
 
       container.innerHTML = headerHTML + html;
     }

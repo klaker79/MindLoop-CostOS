@@ -134,23 +134,36 @@ export function editarIngrediente(id) {
  * Elimina un ingrediente
  */
 export async function eliminarIngrediente(id) {
-    if (!confirm('¿Eliminar este ingrediente?')) return;
+    console.log('eliminarIngrediente llamado con id:', id);
 
-    if (typeof window.showLoading === 'function') window.showLoading();
+    // Usar setTimeout para que el confirm no sea bloqueado por Chrome
+    setTimeout(async () => {
+        const confirmar = window.confirm('¿Eliminar este ingrediente?');
+        if (!confirmar) return;
 
-    try {
-        await window.api.deleteIngrediente(id);
-        await window.cargarDatos();
-        window.renderizarIngredientes();
-        if (typeof window.renderizarInventario === 'function') window.renderizarInventario();
-        if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
-        if (typeof window.actualizarDashboardExpandido === 'function') window.actualizarDashboardExpandido();
+        if (typeof window.showLoading === 'function') window.showLoading();
 
-        if (typeof window.hideLoading === 'function') window.hideLoading();
-        showToast('Ingrediente eliminado', 'success');
-    } catch (error) {
-        if (typeof window.hideLoading === 'function') window.hideLoading();
-        console.error('Error:', error);
-        showToast('Error eliminando ingrediente: ' + error.message, 'error');
-    }
+        try {
+            await window.api.deleteIngrediente(id);
+            await window.cargarDatos();
+            window.renderizarIngredientes();
+            if (typeof window.renderizarInventario === 'function') window.renderizarInventario();
+            if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
+            if (typeof window.actualizarDashboardExpandido === 'function') window.actualizarDashboardExpandido();
+
+            if (typeof window.hideLoading === 'function') window.hideLoading();
+            if (typeof showToast === 'function') {
+                showToast('Ingrediente eliminado', 'success');
+            } else if (typeof window.showToast === 'function') {
+                window.showToast('Ingrediente eliminado', 'success');
+            }
+        } catch (error) {
+            if (typeof window.hideLoading === 'function') window.hideLoading();
+            console.error('Error eliminando ingrediente:', error);
+            const toastFn = typeof showToast === 'function' ? showToast : window.showToast;
+            if (typeof toastFn === 'function') {
+                toastFn('Error eliminando ingrediente: ' + error.message, 'error');
+            }
+        }
+    }, 10);
 }

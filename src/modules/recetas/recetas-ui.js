@@ -48,9 +48,16 @@ export function agregarIngredienteReceta() {
     item.className = 'ingrediente-item';
     item.style.cssText = 'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;';
 
+    // Ordenar ingredientes alfabéticamente
+    const ingredientesOrdenados = [...(window.ingredientes || [])].sort((a, b) =>
+        a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
+    );
+
     let optionsHtml = '<option value="">Selecciona ingrediente...</option>';
-    window.ingredientes.forEach(ing => {
-        optionsHtml += `<option value="${ing.id}">${ing.nombre} (${parseFloat(ing.precio || 0).toFixed(2)}€/${ing.unidad})</option>`;
+    ingredientesOrdenados.forEach(ing => {
+        const precio = parseFloat(ing.precio || 0).toFixed(2);
+        const unidad = ing.unidad || 'ud';
+        optionsHtml += `<option value="${ing.id}">${ing.nombre} (${precio}€/${unidad})</option>`;
     });
 
     item.innerHTML = `
