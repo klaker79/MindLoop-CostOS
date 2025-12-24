@@ -1044,71 +1044,73 @@ document.addEventListener('click', (e) => {
 
 /**
  * Parse Markdown to HTML (tablas, negritas, listas, código)
- * Soporta tanto markdown estándar (|) como caracteres Unicode de box-drawing (│─├)
  */
 function parseMarkdown(text) {
     if (!text) return '';
 
-    // Primero detectar si es una tabla con box-drawing Unicode
-    // Caracteres: │ ─ ├ ┤ ┬ ┴ ┼ ┌ ┐ └ ┘
-    const hasBoxDrawing = /[│─├┤┬┴┼┌┐└┘]/.test(text);
+    // Detectar si hay una tabla markdown (líneas con | y separador con ---)
+    const lines = text.split('\n');
+    let tableStartIndex = -1;
+    let tableEndIndex = -1;
+    let hasSeparator = false;
 
-    if (hasBoxDrawing) {
-        // Convertir tabla box-drawing a HTML
-        const lines = text.split('\n');
-        let tableRows = [];
-        let isFirstDataRow = true;
+    // Buscar tabla markdown estándar
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
 
-        for (const line of lines) {
-            // Ignorar líneas de bordes (solo contienen ─├┼┬┴┐┌└┘)
-            if (/^[─├┼┬┴┐┌└┘\s]+$/.test(line)) continue;
-            if (/^[\-\|\s]+$/.test(line)) continue; // Líneas separadoras markdown
+        // Detectar separador de tabla (|---|---|)
+        if (/^\|?[\s\-:]+\|[\s\-:|]+\|?$/.test(line) || /^[\-\|:\s]+$/.test(line)) {
+            if (tableStartIndex === -1 && i > 0) tableStartIndex = i - 1;
+            hasSeparator = true;
+            continue;
+        }
 
-            // Líneas con datos (contienen │)
-            if (line.includes('│') || line.includes('|')) {
-                const cells = line
-                    .split(/[│|]/)
-                    .map(c => c.trim())
-                    .filter(c => c !== '');
+        // Línea con pipes (posible fila de tabla)
+        if (line.includes('|') && hasSeparator) {
+            tableEndIndex = i;
+        } else if (line.includes('|') && tableStartIndex === -1) {
+            tableStartIndex = i;
+        } else if (!line.includes('|') && tableEndIndex > tableStartIndex) {
+            // Fin de la tabla
+            break;
+        }
+    }
 
-                if (cells.length > 0) {
-                    const tag = isFirstDataRow ? 'th' : 'td';
-                    const row = '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
-                    tableRows.push(row);
-                    isFirstDataRow = false;
-                }
+    // Si encontramos una tabla, convertirla
+    if (hasSeparator && tableStartIndex >= 0 && tableEndIndex > tableStartIndex) {
+        const beforeTable = lines.slice(0, tableStartIndex).join('\n');
+        const tableLines = lines.slice(tableStartIndex, tableEndIndex + 1);
+        const afterTable = lines.slice(tableEndIndex + 1).join('\n');
+
+        let tableHtml = '<div class="chat-table-wrapper"><table class="chat-table"><tbody>';
+        let isHeader = true;
+
+        for (const line of tableLines) {
+            // Ignorar separadores
+            if (/^[\s\-:|]+$/.test(line.trim())) continue;
+            if (/^\|?[\s\-:]+\|/.test(line.trim())) continue;
+
+            // Extraer celdas
+            const cells = line.split('|')
+                .map(c => c.trim())
+                .filter(c => c !== '');
+
+            if (cells.length > 0) {
+                const tag = isHeader ? 'th' : 'td';
+                tableHtml += '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+                isHeader = false;
             }
         }
 
-        if (tableRows.length > 0) {
-            // Separar texto antes y después de la tabla
-            const tableStart = text.indexOf('┌') !== -1 ? text.indexOf('┌') :
-                (text.indexOf('│') !== -1 ? text.indexOf('│') : text.indexOf('|'));
-            const lastBoxChar = Math.max(
-                text.lastIndexOf('┘'),
-                text.lastIndexOf('│'),
-                text.lastIndexOf('|')
-            );
+        tableHtml += '</tbody></table></div>';
 
-            let beforeTable = text.substring(0, tableStart);
-            let afterTable = text.substring(lastBoxChar + 1);
-
-            // Limpiar texto antes/después
-            beforeTable = beforeTable.replace(/[─├┼┬┴┐┌└┘│|]/g, '').trim();
-            afterTable = afterTable.replace(/[─├┼┬┴┐┌└┘│|]/g, '').trim();
-
-            // Formatear texto antes
-            beforeTable = formatTextContent(beforeTable);
-            afterTable = formatTextContent(afterTable);
-
-            const tableHtml = '<div class="chat-table-wrapper"><table class="chat-table"><tbody>' + tableRows.join('') + '</tbody></table></div>';
-            return beforeTable + tableHtml + afterTable;
-        }
+        return formatTextContent(beforeTable) + tableHtml + formatTextContent(afterTable);
     }
 
     // Fallback: formateo normal sin tabla
     return formatTextContent(text);
 }
+
 
 /**
  * Formatea contenido de texto (negritas, listas, etc.)
