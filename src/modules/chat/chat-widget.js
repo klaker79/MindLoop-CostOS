@@ -753,9 +753,17 @@ async function executeAction(actionData) {
 
         } else if (action === 'update' && entity === 'receta_ingrediente') {
             // Formato: update|receta_ingrediente|RECETA|INGREDIENTE|cantidad|VALOR
-            const recetaNombre = name;
-            const ingredienteNombre = field;
-            const nuevaCantidad = parseFloat(value);
+            // parts[0]=update, parts[1]=receta_ingrediente, parts[2]=RECETA, parts[3]=INGREDIENTE, parts[4]=cantidad, parts[5]=VALOR
+            const recetaNombre = parts[2];
+            const ingredienteNombre = parts[3];
+            const nuevaCantidad = parseFloat(parts[5]);  // El valor está en parts[5]
+
+            console.log('📝 Actualizando receta_ingrediente:', { recetaNombre, ingredienteNombre, nuevaCantidad });
+
+            if (isNaN(nuevaCantidad)) {
+                console.error('Cantidad inválida:', parts[5]);
+                return false;
+            }
 
             // Buscar receta
             const rec = window.recetas?.find(r =>
@@ -776,19 +784,29 @@ async function executeAction(actionData) {
             }
 
             // Buscar el ingrediente en la receta
-            const ingredienteEnReceta = rec.ingredientes?.find(item =>
+            const ingredienteIdx = rec.ingredientes?.findIndex(item =>
                 item.ingredienteId === ing.id
             );
-            if (!ingredienteEnReceta) {
+            if (ingredienteIdx === -1 || ingredienteIdx === undefined) {
                 console.error('El ingrediente no está en la receta');
                 return false;
             }
 
-            // Actualizar cantidad
-            ingredienteEnReceta.cantidad = nuevaCantidad;
+            // Actualizar cantidad (crear nuevo array para asegurar inmutabilidad)
+            const nuevosIngredientes = [...rec.ingredientes];
+            nuevosIngredientes[ingredienteIdx] = {
+                ...nuevosIngredientes[ingredienteIdx],
+                cantidad: nuevaCantidad
+            };
+
+            // Crear objeto actualizado
+            const recetaActualizada = {
+                ...rec,
+                ingredientes: nuevosIngredientes
+            };
 
             // Llamar API para actualizar receta
-            await window.api.updateReceta(rec.id, rec);
+            await window.api.updateReceta(rec.id, recetaActualizada);
             await window.cargarDatos();
             window.renderizarRecetas?.();
             window.calcularCosteReceta?.();
