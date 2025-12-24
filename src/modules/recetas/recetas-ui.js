@@ -7,10 +7,13 @@
  * Muestra el formulario de nueva receta
  */
 export function mostrarFormularioReceta() {
-    if (window.ingredientes.length === 0) {
+    const ingredientes = Array.isArray(window.ingredientes) ? window.ingredientes : [];
+    if (ingredientes.length === 0) {
         window.showToast('Primero añade ingredientes', 'warning');
         window.cambiarTab('ingredientes');
-        window.mostrarFormularioIngrediente();
+        if (typeof window.mostrarFormularioIngrediente === 'function') {
+            window.mostrarFormularioIngrediente();
+        }
         return;
     }
     document.getElementById('formulario-receta').style.display = 'block';
@@ -77,12 +80,13 @@ export function agregarIngredienteReceta() {
 export function calcularCosteReceta() {
     const items = document.querySelectorAll('#lista-ingredientes-receta .ingrediente-item');
     let costeTotal = 0;
+    const ingredientes = Array.isArray(window.ingredientes) ? window.ingredientes : [];
 
     items.forEach(item => {
         const select = item.querySelector('select');
         const input = item.querySelector('input');
         if (select.value && input.value) {
-            const ing = window.ingredientes.find(i => i.id === parseInt(select.value));
+            const ing = ingredientes.find(i => i.id === parseInt(select.value));
             if (ing) {
                 costeTotal += parseFloat(ing.precio || 0) * parseFloat(input.value || 0);
             }
@@ -111,13 +115,17 @@ export function calcularCosteReceta() {
  * Renderiza la tabla de recetas
  */
 export function renderizarRecetas() {
-    const busqueda = document.getElementById('busqueda-recetas').value.toLowerCase();
-    const filtradas = window.recetas.filter(r =>
+    const busquedaEl = document.getElementById('busqueda-recetas');
+    const busqueda = busquedaEl?.value?.toLowerCase() || '';
+    const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+
+    const filtradas = recetas.filter(r =>
         r.nombre.toLowerCase().includes(busqueda) ||
         (r.codigo && r.codigo.toString().includes(busqueda))
     );
 
     const container = document.getElementById('tabla-recetas');
+    if (!container) return;
 
     if (filtradas.length === 0) {
         container.innerHTML = `
@@ -156,11 +164,14 @@ export function renderizarRecetas() {
         html += '</tbody></table>';
         container.innerHTML = html;
 
-        document.getElementById('resumen-recetas').innerHTML = `
-      <div>Total: <strong>${window.recetas.length}</strong></div>
-      <div>Mostrando: <strong>${filtradas.length}</strong></div>
-    `;
-        document.getElementById('resumen-recetas').style.display = 'flex';
+        const resumenEl = document.getElementById('resumen-recetas');
+        if (resumenEl) {
+            resumenEl.innerHTML = `
+              <div>Total: <strong>${recetas.length}</strong></div>
+              <div>Mostrando: <strong>${filtradas.length}</strong></div>
+            `;
+            resumenEl.style.display = 'flex';
+        }
     }
 }
 
@@ -168,6 +179,9 @@ export function renderizarRecetas() {
  * Exporta recetas a Excel
  */
 export function exportarRecetas() {
+    const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+    const ingredientes = Array.isArray(window.ingredientes) ? window.ingredientes : [];
+
     const columnas = [
         { header: 'ID', key: 'id' },
         { header: 'Código', value: (rec) => rec.codigo || `REC-${String(rec.id).padStart(4, '0')}` },
@@ -177,7 +191,7 @@ export function exportarRecetas() {
         {
             header: 'Coste (€)', value: (rec) => {
                 return (rec.ingredientes || []).reduce((sum, item) => {
-                    const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+                    const ing = ingredientes.find(i => i.id === item.ingredienteId);
                     return sum + (ing ? parseFloat(ing.precio) * parseFloat(item.cantidad) : 0);
                 }, 0).toFixed(2);
             }
@@ -185,7 +199,7 @@ export function exportarRecetas() {
         {
             header: 'Margen (€)', value: (rec) => {
                 const coste = (rec.ingredientes || []).reduce((sum, item) => {
-                    const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+                    const ing = ingredientes.find(i => i.id === item.ingredienteId);
                     return sum + (ing ? parseFloat(ing.precio) * parseFloat(item.cantidad) : 0);
                 }, 0);
                 return (parseFloat(rec.precio_venta || 0) - coste).toFixed(2);
@@ -194,7 +208,7 @@ export function exportarRecetas() {
         {
             header: 'Margen (%)', value: (rec) => {
                 const coste = (rec.ingredientes || []).reduce((sum, item) => {
-                    const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+                    const ing = ingredientes.find(i => i.id === item.ingredienteId);
                     return sum + (ing ? parseFloat(ing.precio) * parseFloat(item.cantidad) : 0);
                 }, 0);
                 const margen = rec.precio_venta > 0 ? ((parseFloat(rec.precio_venta) - coste) / parseFloat(rec.precio_venta) * 100) : 0;
@@ -205,5 +219,7 @@ export function exportarRecetas() {
         { header: 'Nº Ingredientes', value: (rec) => (rec.ingredientes || []).length }
     ];
 
-    window.exportarAExcel(window.recetas, `Recetas_${window.getRestaurantNameForFile()}`, columnas);
+    if (typeof window.exportarAExcel === 'function' && typeof window.getRestaurantNameForFile === 'function') {
+        window.exportarAExcel(recetas, `Recetas_${window.getRestaurantNameForFile()}`, columnas);
+    }
 }
