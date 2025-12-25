@@ -321,12 +321,12 @@ function renderizarBeneficioNetoDiario() {
   const container = document.getElementById('beneficio-neto-diario-lista');
   if (!container) return;
 
-  if (!datosResumenMensual || !datosResumenMensual.dias?.length) {
+  if (!window.datosResumenMensual || !window.datosResumenMensual.dias?.length) {
     container.innerHTML = '<p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos</p>';
     return;
   }
 
-  const dias = datosResumenMensual.dias;
+  const dias = window.datosResumenMensual.dias;
   const gastosFijosMes = calcularTotalGastosFijos();
   const mes = parseInt(document.getElementById('diario-mes')?.value || new Date().getMonth() + 1);
   const ano = parseInt(document.getElementById('diario-ano')?.value || new Date().getFullYear());
@@ -421,7 +421,7 @@ function renderizarBeneficioNetoDiario() {
 
     // Ventas del mes (cantidad total) - sumar de todas las recetas vendidas
     let ventasMes = 0;
-    const recetasVendidas = datosResumenMensual.ventas?.recetas || {};
+    const recetasVendidas = window.datosResumenMensual.ventas?.recetas || {};
     for (const [nombre, data] of Object.entries(recetasVendidas)) {
       ventasMes += (data.totalVendidas || 0);
     }
