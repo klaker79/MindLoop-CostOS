@@ -170,6 +170,8 @@ window.confirmarRecepcionPedido = PedidosCRUD.confirmarRecepcionPedido;
 window.verDetallesPedido = PedidosCRUD.verDetallesPedido;
 window.cerrarModalVerPedido = PedidosCRUD.cerrarModalVerPedido;
 window.descargarPedidoPDF = PedidosCRUD.descargarPedidoPDF;
+window.actualizarItemRecepcion = PedidosCRUD.actualizarItemRecepcion;
+window.cambiarEstadoItem = PedidosCRUD.cambiarEstadoItem;
 
 // ============================================
 // MÓDULO: VENTAS ⚙️ (Híbrido - ES6 tiene prioridad)
