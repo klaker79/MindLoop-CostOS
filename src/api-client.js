@@ -7,7 +7,9 @@
  * 2. O copiar el contenido dentro de <script> en index.html
  */
 
-const API_BASE = 'https://lacaleta-api.mindloop.cloud';
+// API Base URL - configurable via environment variables
+// Fallback a URL de producción si no está configurada
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://lacaleta-api.mindloop.cloud';
 
 // Estado global de la aplicación
 const AppState = {
