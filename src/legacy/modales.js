@@ -382,11 +382,12 @@ function renderizarBeneficioNetoDiario() {
         const color = acumulado >= 0 ? '#10b981' : '#ef4444';
 
         // Determinar icono y estilo según el estado del día
+        // IMPORTANTE: Verificar si el día EXISTE en el mapa original (tiene datos de la API)
+        const tieneActividad = diasDataMap[diaNum] !== undefined;
         let icono, estiloFecha, beneficioTexto;
-        const tieneActividad = ingresos > 0 || costos > 0;
 
         if (!tieneActividad) {
-            // Día sin actividad (cerrado o sin datos)
+            // Día sin actividad (cerrado o sin datos en la API)
             icono = '🔘';
             estiloFecha = 'color: #9ca3af; font-size: 13px;'; // Gris
             beneficioTexto = `<span style="color: #9ca3af; font-size: 11px; margin-left: 8px;">sin datos</span>`;
