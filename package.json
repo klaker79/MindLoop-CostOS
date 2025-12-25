@@ -29,5 +29,8 @@
         "dashboard"
     ],
     "author": "MindLoop",
-    "license": "UNLICENSED"
+    "license": "UNLICENSED",
+    "dependencies": {
+        "dompurify": "^3.3.1"
+    }
 }
