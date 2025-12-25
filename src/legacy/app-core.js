@@ -282,8 +282,8 @@
                     const margen =
                         rec.precio_venta > 0
                             ? ((parseFloat(rec.precio_venta) - coste) /
-                                  parseFloat(rec.precio_venta)) *
-                              100
+                                parseFloat(rec.precio_venta)) *
+                            100
                             : 0;
                     return margen.toFixed(1) + '%';
                 },
@@ -955,11 +955,10 @@
               <td style="padding:12px;">${roleBadge}</td>
               <td style="padding:12px; color:#999;">${fechaAlta}</td>
               <td style="padding:12px; text-align:right;">
-                ${
-                    !isMe && currentUser.rol === 'admin'
+                ${!isMe && currentUser.rol === 'admin'
                         ? `<button onclick="window.eliminarUsuarioEquipo(${user.id})" class="icon-btn delete" title="Eliminar acceso">🗑️</button>`
                         : ''
-                }
+                    }
               </td>
             </tr>
           `;
@@ -3110,7 +3109,7 @@
             } else {
                 html += `<input type="number" value="${item.cantidadRecibida}" step="0.01" min="0" 
               style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"
-              onchange="window.actualizarItemRecepcion(${idx}, 'cantidad', this.value)"> ${ing.unidad}`;
+              oninput="window.actualizarItemRecepcion(${idx}, 'cantidad', this.value)"> ${ing.unidad}`;
                 if (Math.abs(varianzaCant) > 0.01) {
                     html += `<br><small style="color:${varianzaCant > 0 ? '#10b981' : '#ef4444'};">${varianzaCant > 0 ? '+' : ''}${varianzaCant.toFixed(2)}</small>`;
                 }
@@ -3123,7 +3122,7 @@
             } else {
                 html += `<input type="number" value="${item.precioReal}" step="0.01" min="0" 
               style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"
-              onchange="window.actualizarItemRecepcion(${idx}, 'precio', this.value)"> €`;
+              oninput="window.actualizarItemRecepcion(${idx}, 'precio', this.value)"> €`;
                 if (Math.abs(varianzaPrecio) > 0.01) {
                     html += `<br><small style="color:${varianzaPrecio > 0 ? '#ef4444' : '#10b981'};">${varianzaPrecio > 0 ? '+' : ''}${varianzaPrecio.toFixed(2)} €</small>`;
                 }
@@ -3657,16 +3656,15 @@
                   ${pedido.estado === 'recibido' ? 'Recibido' : 'Pendiente'}
                 </span>
               </div>
-              ${
-                  pedido.estado === 'recibido' && pedido.fechaRecepcion
-                      ? `
+              ${pedido.estado === 'recibido' && pedido.fechaRecepcion
+                ? `
     <div class="info-item">
       <strong>Fecha de Recepción</strong>
       ${new Date(pedido.fechaRecepcion).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
     </div>
     `
-                      : ''
-              }
+                : ''
+            }
             </div>
 
             <h3>Detalle del Pedido</h3>
