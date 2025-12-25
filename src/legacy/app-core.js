@@ -1468,14 +1468,16 @@
           }
 
           await cargarDatos();
-          renderizarIngredientes();
-          renderizarRecetas();
-          renderizarProveedores();
-          renderizarPedidos();
-          renderizarInventario();
-          renderizarVentas();
+
+          // Usar optional chaining para evitar errores si main.js aún no ha cargado
+          if (typeof window.renderizarIngredientes === 'function') window.renderizarIngredientes();
+          if (typeof window.renderizarRecetas === 'function') window.renderizarRecetas();
+          if (typeof window.renderizarProveedores === 'function') window.renderizarProveedores();
+          if (typeof window.renderizarPedidos === 'function') window.renderizarPedidos();
+          if (typeof window.renderizarInventario === 'function') window.renderizarInventario();
+          if (typeof window.renderizarVentas === 'function') window.renderizarVentas();
           // renderizarBalance(); // DESACTIVADO - Sección P&L eliminada
-          actualizarKPIs();
+          if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
           window.actualizarDashboardExpandido();
 
           document.getElementById('form-venta').addEventListener('submit', async (e) => {
