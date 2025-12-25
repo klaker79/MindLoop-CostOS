@@ -36,6 +36,7 @@ import './services/api.js';
 // UTILIDADES CORE
 // ============================================
 import { showToast } from './ui/toast.js';
+import { initEventBindings } from './ui/event-bindings.js';
 import * as DOM from './utils/dom-helpers.js';
 import * as Helpers from './utils/helpers.js';
 import * as Performance from './utils/performance.js';
@@ -48,6 +49,9 @@ Object.assign(window, DOM);
 // Sistema de optimización y rendimiento
 window.Performance = Performance;
 window.dataMaps = Performance.dataMaps;
+
+// Inicializar event bindings (reemplaza todos los onclick inline)
+initEventBindings();
 
 // Inicializar optimizaciones de búsqueda con debouncing
 initSearchOptimizations();

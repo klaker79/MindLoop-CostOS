@@ -67,7 +67,7 @@
         <p id="login-error" class="login-error"></p>
       </form>
       <div class="login-footer">
-        <p>¿No tienes cuenta? <a href="#" onclick="mostrarRegistro()">Registrar restaurante</a></p>
+        <p>¿No tienes cuenta? <a href="#" data-action="mostrar-registro">Registrar restaurante</a></p>
       </div>
     </div>
   </div>
@@ -86,7 +86,7 @@
       </div>
       <div style="display: flex; align-items: center; gap: 20px;">
         <span id="user-restaurant" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;"></span>
-        <button onclick="logout()"
+        <button data-action="logout"
           style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 4px 15px rgba(239,68,68,0.4); transition: all 0.3s ease;"
           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.5)';"
           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239,68,68,0.4)';">Cerrar
@@ -117,7 +117,7 @@
         </div>
       </div>
       <div style="display: flex; gap: 8px;">
-        <button onclick="window.cambiarPeriodoVista('hoy')" class="periodo-btn" data-periodo="hoy" style="
+        <button data-action="cambiar-periodo" data-periodo="hoy" class="periodo-btn" data-periodo="hoy" style="
           padding: 6px 12px;
           border-radius: 6px;
           border: 1px solid #0ea5e9;
@@ -128,7 +128,7 @@
           cursor: pointer;
           transition: all 0.2s;
         ">Hoy</button>
-        <button onclick="window.cambiarPeriodoVista('semana')" class="periodo-btn active" data-periodo="semana" style="
+        <button data-action="cambiar-periodo" data-periodo="semana" class="periodo-btn active" data-periodo="semana" style="
           padding: 6px 12px;
           border-radius: 6px;
           border: 1px solid #0ea5e9;
@@ -139,7 +139,7 @@
           cursor: pointer;
           transition: all 0.2s;
         ">Semana</button>
-        <button onclick="window.cambiarPeriodoVista('mes')" class="periodo-btn" data-periodo="mes" style="
+        <button data-action="cambiar-periodo" data-periodo="mes" class="periodo-btn" data-periodo="mes" style="
           padding: 6px 12px;
           border-radius: 6px;
           border: 1px solid #0ea5e9;
@@ -235,16 +235,16 @@
           ⚡ Acciones Rápidas
         </h3>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-          <button onclick="window.cambiarTab('ventas'); document.getElementById('venta-receta').focus();"
+          <button data-tab="ventas"
             style="padding: 12px; background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
             💰 Nueva Venta
           </button>
           <button
-            onclick="window.cambiarTab('pedidos'); window.mostrarFormularioPedido && window.mostrarFormularioPedido();"
+            data-tab="pedidos"
             style="padding: 12px; background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
             📦 Nuevo Pedido
           </button>
-          <button onclick="window.cambiarTab('inventario');"
+          <button data-tab="inventario"
             style="padding: 12px; background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
             🔍 Ver Inventario
           </button>
@@ -254,18 +254,18 @@
 
     </div>
     <div class="tabs">
-      <button id="tab-btn-ingredientes" class="tab active" onclick="window.cambiarTab('ingredientes')">📦
+      <button id="tab-btn-ingredientes" class="tab active" data-tab="ingredientes">📦
         Ingredientes</button>
-      <button id="tab-btn-recetas" class="tab" onclick="window.cambiarTab('recetas')">👨‍🍳 Recetas</button>
-      <button id="tab-btn-proveedores" class="tab" onclick="window.cambiarTab('proveedores')">🚚 Proveedores</button>
-      <button id="tab-btn-pedidos" class="tab" onclick="window.cambiarTab('pedidos')">📋 Pedidos</button>
-      <button id="tab-btn-analisis" class="tab" onclick="window.cambiarTab('analisis')">📊 Análisis</button>
-      <button id="tab-btn-inventario" class="tab" onclick="window.cambiarTab('inventario')">📦 Inventario<span
+      <button id="tab-btn-recetas" class="tab" data-tab="recetas">👨‍🍳 Recetas</button>
+      <button id="tab-btn-proveedores" class="tab" data-tab="proveedores">🚚 Proveedores</button>
+      <button id="tab-btn-pedidos" class="tab" data-tab="pedidos">📋 Pedidos</button>
+      <button id="tab-btn-analisis" class="tab" data-tab="analisis">📊 Análisis</button>
+      <button id="tab-btn-inventario" class="tab" data-tab="inventario">📦 Inventario<span
           id="badge-inventario" class="tab-badge" style="display:none;">0</span></button>
-      <button id="tab-btn-ventas" class="tab" onclick="window.cambiarTab('ventas')">💰 Ventas</button>
+      <button id="tab-btn-ventas" class="tab" data-tab="ventas">💰 Ventas</button>
 
-      <button id="tab-btn-diario" class="tab" onclick="window.cambiarTab('diario')">📈 Diario</button>
-      <button id="tab-btn-configuracion" class="tab" onclick="window.cambiarTab('configuracion')">⚙️
+      <button id="tab-btn-diario" class="tab" data-tab="diario">📈 Diario</button>
+      <button id="tab-btn-configuracion" class="tab" data-tab="configuracion">⚙️
         Configuración</button>
     </div>
 
@@ -281,11 +281,11 @@
             <p>Gestiona todos los ingredientes de tu restaurante</p>
           </div>
           <div style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" onclick="window.mostrarFormularioIngrediente()">➕ Añadir
+            <button class="btn btn-primary" data-action="mostrar-form-ingrediente">➕ Añadir
               Ingrediente</button>
-            <button class="btn btn-secondary" onclick="window.mostrarModalImportarIngredientes()">📤 Importar
+            <button class="btn btn-secondary" data-action="importar-ingredientes">📤 Importar
               Excel</button>
-            <button class="btn btn-secondary" onclick="exportarIngredientes()">📥 Exportar Excel</button>
+            <button class="btn btn-secondary" data-action="exportar-ingredientes">📥 Exportar Excel</button>
           </div>
         </div>
         <div class="search-box">
@@ -299,7 +299,7 @@
         <div id="formulario-ingrediente" class="form-card" style="display: none;">
           <h3>
             <span id="form-title-ingrediente">Nuevo Ingrediente</span>
-            <button class="close-btn" onclick="window.cerrarFormularioIngrediente()">×</button>
+            <button class="close-btn" data-action="cerrar-form-ingrediente">×</button>
           </h3>
           <form onsubmit="window.guardarIngrediente(event)">
             <div class="form-grid">
@@ -346,7 +346,7 @@
             </div>
             <div class="form-actions">
               <button type="button" class="btn btn-secondary"
-                onclick="window.cerrarFormularioIngrediente()">Cancelar</button>
+                data-action="cerrar-form-ingrediente">Cancelar</button>
               <button type="submit" class="btn btn-primary"><span id="btn-text-ingrediente">Añadir</span></button>
             </div>
           </form>
@@ -363,9 +363,9 @@
             <p>Crea recetas y calcula costes</p>
           </div>
           <div style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" onclick="window.mostrarFormularioReceta()">➕ Nueva Receta</button>
-            <button class="btn btn-secondary" onclick="window.mostrarModalImportarRecetas()">📤 Importar Excel</button>
-            <button class="btn btn-secondary" onclick="exportarRecetas()">📥 Exportar Excel</button>
+            <button class="btn btn-primary" data-action="mostrar-form-receta">➕ Nueva Receta</button>
+            <button class="btn btn-secondary" data-action="importar-recetas">📤 Importar Excel</button>
+            <button class="btn btn-secondary" data-action="exportar-recetas">📥 Exportar Excel</button>
           </div>
         </div>
         <div class="search-box">
@@ -379,7 +379,7 @@
         <div id="formulario-receta" class="form-card" style="display: none;">
           <h3>
             <span id="form-title-receta">Nueva Receta</span>
-            <button class="close-btn" onclick="window.cerrarFormularioReceta()">×</button>
+            <button class="close-btn" data-action="cerrar-form-receta">×</button>
           </h3>
           <form onsubmit="window.guardarReceta(event)">
             <div class="form-grid">
@@ -412,7 +412,7 @@
             <div class="ingredientes-receta">
               <h4>Ingredientes</h4>
               <div id="lista-ingredientes-receta"></div>
-              <button type="button" class="btn btn-secondary btn-small" onclick="window.agregarIngredienteReceta()">+
+              <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-receta">+
                 Añadir</button>
             </div>
             <div id="coste-calculado-form" class="coste-calculado" style="display: none;">
@@ -487,7 +487,7 @@
             </div>
             <div class="form-actions">
               <button type="button" class="btn btn-secondary"
-                onclick="window.cerrarFormularioReceta()">Cancelar</button>
+                data-action="cerrar-form-receta">Cancelar</button>
               <button type="submit" class="btn btn-primary"><span id="btn-text-receta">Guardar</span></button>
             </div>
           </form>
@@ -503,7 +503,7 @@
             <h2>Proveedores</h2>
             <p>Gestiona tus proveedores</p>
           </div>
-          <button class="btn btn-primary" onclick="window.mostrarFormularioProveedor()">+ Añadir Proveedor</button>
+          <button class="btn btn-primary" data-action="mostrar-form-proveedor">+ Añadir Proveedor</button>
         </div>
         <div class="search-box">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -516,7 +516,7 @@
         <div id="formulario-proveedor" class="form-card" style="display: none;">
           <h3>
             <span id="form-title-proveedor">Nuevo Proveedor</span>
-            <button class="close-btn" onclick="window.cerrarFormularioProveedor()">×</button>
+            <button class="close-btn" data-action="cerrar-form-proveedor">×</button>
           </h3>
           <form onsubmit="window.guardarProveedor(event)">
             <div class="form-grid">
@@ -559,7 +559,7 @@
             </div>
             <div class="form-actions">
               <button type="button" class="btn btn-secondary"
-                onclick="window.cerrarFormularioProveedor()">Cancelar</button>
+                data-action="cerrar-form-proveedor">Cancelar</button>
               <button type="submit" class="btn btn-primary"><span id="btn-text-proveedor">Añadir</span></button>
             </div>
           </form>
@@ -576,8 +576,8 @@
             <p>Gestiona tus pedidos y actualiza stock automáticamente</p>
           </div>
           <div style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" onclick="window.mostrarFormularioPedido()">+ Nuevo Pedido</button>
-            <button class="btn btn-secondary" onclick="window.mostrarModalImportarPedidos()">📤 Importar
+            <button class="btn btn-primary" data-action="mostrar-form-pedido">+ Nuevo Pedido</button>
+            <button class="btn btn-secondary" data-action="importar-pedidos">📤 Importar
               Pedidos</button>
           </div>
         </div>
@@ -594,7 +594,7 @@
         <div id="formulario-pedido" class="form-card" style="display: none;">
           <h3>
             <span>Nuevo Pedido</span>
-            <button class="close-btn" onclick="window.cerrarFormularioPedido()">×</button>
+            <button class="close-btn" data-action="cerrar-form-pedido">×</button>
           </h3>
           <form onsubmit="window.guardarPedido(event)">
             <div class="form-grid">
@@ -613,7 +613,7 @@
             <div class="ingredientes-receta" id="container-ingredientes-pedido" style="display:none;">
               <h4>Ingredientes del pedido</h4>
               <div id="lista-ingredientes-pedido"></div>
-              <button type="button" class="btn btn-secondary btn-small" onclick="window.agregarIngredientePedido()">+
+              <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-pedido">+
                 Añadir ingrediente</button>
             </div>
 
@@ -623,7 +623,7 @@
 
             <div class="form-actions" style="margin-top: 20px;">
               <button type="button" class="btn btn-secondary"
-                onclick="window.cerrarFormularioPedido()">Cancelar</button>
+                data-action="cerrar-form-pedido">Cancelar</button>
               <button type="submit" class="btn btn-primary">Crear Pedido</button>
             </div>
           </form>
@@ -725,7 +725,7 @@
               <!-- Panel de Acciones Rápidas -->
               <div style="display: flex; flex-direction: column; gap: 12px;">
                 <!-- Acción Estrellas -->
-                <div class="bcg-action-card bcg-action-estrella" onclick="this.classList.toggle('expanded')">
+                <div class="bcg-action-card bcg-action-estrella" data-action="toggle-expand">
                   <div class="bcg-action-header">
                     <span class="bcg-action-icon">⭐</span>
                     <span class="bcg-action-title">Estrellas</span>
@@ -746,7 +746,7 @@
                 </div>
 
                 <!-- Acción Puzzles -->
-                <div class="bcg-action-card bcg-action-puzzle" onclick="this.classList.toggle('expanded')">
+                <div class="bcg-action-card bcg-action-puzzle" data-action="toggle-expand">
                   <div class="bcg-action-header">
                     <span class="bcg-action-icon">❓</span>
                     <span class="bcg-action-title">Puzzles</span>
@@ -767,7 +767,7 @@
                 </div>
 
                 <!-- Acción Caballos -->
-                <div class="bcg-action-card bcg-action-caballo" onclick="this.classList.toggle('expanded')">
+                <div class="bcg-action-card bcg-action-caballo" data-action="toggle-expand">
                   <div class="bcg-action-header">
                     <span class="bcg-action-icon">🐎</span>
                     <span class="bcg-action-title">Caballos</span>
@@ -788,7 +788,7 @@
                 </div>
 
                 <!-- Acción Perros -->
-                <div class="bcg-action-card bcg-action-perro" onclick="this.classList.toggle('expanded')">
+                <div class="bcg-action-card bcg-action-perro" data-action="toggle-expand">
                   <div class="bcg-action-header">
                     <span class="bcg-action-icon">🐶</span>
                     <span class="bcg-action-title">Perros</span>
@@ -1014,9 +1014,9 @@
         </div>
 
         <div style="margin-bottom: 15px;">
-          <button class="btn btn-secondary" onclick="window.mostrarModalInventarioMasivo()">📊 ACTUALIZAR INVENTARIO
+          <button class="btn btn-secondary" data-action="mostrar-modal-inventario-masivo">📊 ACTUALIZAR INVENTARIO
             MASIVO</button>
-          <button class="btn btn-primary" onclick="window.guardarCambiosStock()">💾 Guardar Stock</button>
+          <button class="btn btn-primary" data-action="guardar-cambios-stock">💾 Guardar Stock</button>
         </div>
 
         <div id="resumen-inventario" style="display: none; gap: 20px;"></div>
@@ -1038,7 +1038,7 @@
             <h2>💰 Ventas</h2>
             <p>Registro diario de ventas</p>
           </div>
-          <button class="btn btn-secondary" onclick="window.mostrarModalImportarVentas()">📤 Importar Ventas
+          <button class="btn btn-secondary" data-action="importar-ventas">📤 Importar Ventas
             TPV</button>
         </div>
 
@@ -1065,9 +1065,9 @@
               <label>Hasta:</label>
               <input type="date" id="ventas-fecha-hasta" class="form-control">
             </div>
-            <button class="btn btn-primary" onclick="window.renderizarVentas()">🔍 Filtrar</button>
+            <button class="btn btn-primary" data-action="filtrar-ventas">🔍 Filtrar</button>
             <button class="btn btn-secondary"
-              onclick="document.getElementById('ventas-fecha-desde').value=''; document.getElementById('ventas-fecha-hasta').value=''; window.renderizarVentas();">🔄
+              data-action="limpiar-filtros-ventas">🔄
               Limpiar</button>
           </div>
         </div>
@@ -1075,7 +1075,7 @@
         <div class="card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0;">📊 Histórico de Ventas</h3>
-            <button class="btn btn-secondary" onclick="exportarVentas()">📥 Exportar Excel</button>
+            <button class="btn btn-secondary" data-action="exportar-ventas">📥 Exportar Excel</button>
           </div>
           <div id="tabla-ventas"></div>
         </div>
@@ -1110,18 +1110,18 @@
               <option value="2025" selected>2025</option>
               <option value="2026">2026</option>
             </select>
-            <button class="btn btn-primary" onclick="window.cargarResumenMensual()">🔄 Cargar</button>
-            <button class="btn btn-secondary" onclick="window.exportarDiarioExcel()">📥 Exportar Excel</button>
+            <button class="btn btn-primary" data-action="cargar-resumen-mensual">🔄 Cargar</button>
+            <button class="btn btn-secondary" data-action="exportar-diario-excel">📥 Exportar Excel</button>
           </div>
         </div>
 
         <!-- Selector de Vista -->
         <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-          <button id="btn-vista-compras" class="btn btn-primary" onclick="window.cambiarVistaDiario('compras')">🛒
+          <button id="btn-vista-compras" class="btn btn-primary" data-action="vista-diario" data-vista="compras">🛒
             Compras (Costes)</button>
-          <button id="btn-vista-ventas" class="btn btn-secondary" onclick="window.cambiarVistaDiario('ventas')">💰
+          <button id="btn-vista-ventas" class="btn btn-secondary" data-action="vista-diario" data-vista="ventas">💰
             Ventas (Ingresos)</button>
-          <button id="btn-vista-combinada" class="btn btn-secondary" onclick="window.cambiarVistaDiario('combinada')">📊
+          <button id="btn-vista-combinada" class="btn btn-secondary" data-action="vista-diario" data-vista="combinada">📊
             P&L Diario</button>
         </div>
         <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
@@ -1256,7 +1256,7 @@
             <h2>⚙️ Configuración & Equipo</h2>
             <p>Gestiona los accesos y datos de tu negocio</p>
           </div>
-          <button class="btn btn-secondary" onclick="window.abrirManualFormulas()">📘 Descargar/Imprimir
+          <button class="btn btn-secondary" data-action="abrir-manual-formulas">📘 Descargar/Imprimir
             Dossier</button>
         </div>
 
@@ -1268,7 +1268,7 @@
             <div class="card-header"
               style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
               <h3>👥 Mi Equipo</h3>
-              <button class="btn btn-primary" onclick="window.mostrarModalInvitar()">+ Invitar Usuario</button>
+              <button class="btn btn-primary" data-action="mostrar-modal-invitar">+ Invitar Usuario</button>
             </div>
             <div class="table-container">
               <table style="width:100%; border-collapse:collapse;">
@@ -1306,7 +1306,7 @@
     <div id="modal-invitar-equipo" class="modal">
       <div class="modal-content" style="max-width:500px">
         <span class="close"
-          onclick="document.getElementById('modal-invitar-equipo').classList.remove('active')">&times;</span>
+          data-action="cerrar-modal-invitar">&times;</span>
         <h2>Invitar Nuevo Usuario</h2>
         <div style="margin-top:20px;">
           <div class="form-group" style="margin-bottom:15px;">
@@ -1331,7 +1331,7 @@
               <option value="admin">Administrador (Acceso Total)</option>
             </select>
           </div>
-          <button class="btn btn-primary" style="width:100%" onclick="window.invitarUsuarioEquipo()">Enviar
+          <button class="btn btn-primary" style="width:100%" data-action="invitar-usuario-equipo">Enviar
             Invitación</button>
         </div>
       </div>
@@ -1352,8 +1352,8 @@
           <div id="modal-descuento-detalle" style="margin-top: 10px;"></div>
         </div>
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-          <button class="btn btn-secondary" onclick="window.cerrarModalProducir()">Cancelar</button>
-          <button class="btn btn-success" onclick="window.confirmarProduccion()">Confirmar</button>
+          <button class="btn btn-secondary" data-action="cerrar-modal-producir">Cancelar</button>
+          <button class="btn btn-success" data-action="confirmar-produccion">Confirmar</button>
         </div>
       </div>
     </div>
@@ -1363,7 +1363,7 @@
         <h3 id="modal-proveedor-titulo"></h3>
         <div id="modal-proveedor-contenido"></div>
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-          <button class="btn btn-secondary" onclick="window.cerrarModalVerProveedor()">Cerrar</button>
+          <button class="btn btn-secondary" data-action="cerrar-modal-proveedor">Cerrar</button>
         </div>
       </div>
     </div>
@@ -1374,8 +1374,8 @@
         <h3>Detalles del Pedido</h3>
         <div id="modal-ver-pedido-contenido"></div>
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-          <button class="btn btn-secondary" onclick="window.cerrarModalVerPedido()">Cerrar</button>
-          <button class="btn btn-primary" onclick="window.descargarPedidoPDF()" id="btn-descargar-pdf">
+          <button class="btn btn-secondary" data-action="cerrar-modal-pedido">Cerrar</button>
+          <button class="btn btn-primary" data-action="descargar-pedido-pdf" id="btn-descargar-pdf">
             📄 Descargar PDF
           </button>
         </div>
@@ -1435,8 +1435,8 @@
         </div>
 
         <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button class="btn btn-secondary" onclick="window.cerrarModalRecibirPedido()">Cancelar</button>
-          <button class="btn btn-success" onclick="window.confirmarRecepcionPedido()">Confirmar Recepción</button>
+          <button class="btn btn-secondary" data-action="cerrar-modal-recibir-pedido">Cancelar</button>
+          <button class="btn btn-success" data-action="confirmar-recepcion-pedido">Confirmar Recepción</button>
         </div>
       </div>
     </div>
@@ -1454,7 +1454,7 @@
     <div id="modal-confirmar-mermas" class="modal">
       <div class="modal-content" style="max-width: 800px;">
         <span class="close"
-          onclick="document.getElementById('modal-confirmar-mermas').classList.remove('active')">&times;</span>
+          data-action="cerrar-modal-mermas">&times;</span>
         <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px;">⚠️ Confirmar Mermas/Pérdidas</h2>
         <p style="color: #64748b; margin-bottom: 20px;">Se han detectado diferencias negativas en el inventario. Por
           favor, especifica el motivo de cada pérdida para el control de costes.</p>
@@ -1481,9 +1481,9 @@
 
         <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
           <button class="btn btn-secondary"
-            onclick="document.getElementById('modal-confirmar-mermas').classList.remove('active')">Cancelar</button>
+            data-action="cerrar-modal-mermas">Cancelar</button>
           <button class="btn btn-primary" id="btn-confirmar-split" style="background: #ef4444;"
-            onclick="window.confirmarMermasFinal()">Confirmar Ajustes</button>
+            data-action="confirmar-mermas">Confirmar Ajustes</button>
         </div>
       </div>
     </div>
@@ -1491,7 +1491,7 @@
     <div id="modal-inventario-masivo" class="modal">
       <div class="modal-content" style="max-width: 900px;">
         <span class="close"
-          onclick="document.getElementById('modal-inventario-masivo').classList.remove('active')">&times;</span>
+          data-action="cerrar-modal-inventario-masivo">&times;</span>
         <h2>📊 Actualizar Inventario Masivo</h2>
 
         <div style="margin: 20px 0;">
@@ -1501,7 +1501,7 @@
           </p>
 
           <div style="text-align: right; margin-bottom: 10px;">
-            <button class="btn btn-secondary btn-small" onclick="window.descargarPlantillaStock()">📥 Descargar
+            <button class="btn btn-secondary btn-small" data-action="descargar-plantilla-stock">📥 Descargar
               Plantilla</button>
           </div>
 
@@ -1524,8 +1524,8 @@
             style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
           <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" onclick="window.cancelarInventarioMasivo()">Cancelar</button>
-            <button class="btn btn-primary" onclick="window.confirmarInventarioMasivo()" id="btn-confirmar-masivo">✓
+            <button class="btn btn-secondary" data-action="cancelar-inventario-masivo">Cancelar</button>
+            <button class="btn btn-primary" data-action="confirmar-inventario-masivo" id="btn-confirmar-masivo">✓
               Confirmar Actualización</button>
           </div>
         </div>
@@ -1536,7 +1536,7 @@
     <div id="modal-importar-ingredientes" class="modal">
       <div class="modal-content" style="max-width: 900px;">
         <span class="close"
-          onclick="document.getElementById('modal-importar-ingredientes').classList.remove('active')">&times;</span>
+          data-action="cerrar-modal-importar-ingredientes">&times;</span>
         <h2>📤 Importar Ingredientes desde Excel</h2>
 
         <div style="margin: 20px 0;">
@@ -1564,8 +1564,8 @@
             style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
           <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" onclick="window.cancelarImportarIngredientes()">Cancelar</button>
-            <button class="btn btn-primary" onclick="window.confirmarImportarIngredientes()"
+            <button class="btn btn-secondary" data-action="cancelar-importar-ingredientes">Cancelar</button>
+            <button class="btn btn-primary" data-action="confirmar-importar-ingredientes"
               id="btn-confirmar-importar-ingredientes">✓ Importar Ingredientes</button>
           </div>
         </div>
@@ -1576,7 +1576,7 @@
     <div id="modal-importar-recetas" class="modal">
       <div class="modal-content" style="max-width: 900px;">
         <span class="close"
-          onclick="document.getElementById('modal-importar-recetas').classList.remove('active')">&times;</span>
+          data-action="cerrar-modal-importar-recetas">&times;</span>
         <h2>📤 Importar Recetas desde Excel</h2>
 
         <div style="margin: 20px 0;">
@@ -1605,8 +1605,8 @@
             style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
           <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" onclick="window.cancelarImportarRecetas()">Cancelar</button>
-            <button class="btn btn-primary" onclick="window.confirmarImportarRecetas()"
+            <button class="btn btn-secondary" data-action="cancelar-importar-recetas">Cancelar</button>
+            <button class="btn btn-primary" data-action="confirmar-importar-recetas"
               id="btn-confirmar-importar-recetas">✓ Importar Recetas</button>
           </div>
         </div>
@@ -1617,7 +1617,7 @@
     <div id="modal-importar-ventas" class="modal">
       <div class="modal-content" style="max-width: 900px;">
         <span class="close"
-          onclick="document.getElementById('modal-importar-ventas').classList.remove('active')">&times;</span>
+          data-action="cerrar-modal-importar-ventas">&times;</span>
         <h2>📤 Importar Ventas TPV</h2>
 
         <div style="margin: 20px 0;">
@@ -1645,8 +1645,8 @@
             style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
           <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" onclick="window.cancelarImportarVentas()">Cancelar</button>
-            <button class="btn btn-primary" onclick="window.confirmarImportarVentas()"
+            <button class="btn btn-secondary" data-action="cancelar-importar-ventas">Cancelar</button>
+            <button class="btn btn-primary" data-action="confirmar-importar-ventas"
               id="btn-confirmar-importar-ventas">✓ Importar Ventas</button>
           </div>
         </div>
@@ -1657,7 +1657,7 @@
     <div id="modal-importar-pedidos" class="modal">
       <div class="modal-content" style="max-width: 900px;">
         <span class="close"
-          onclick="document.getElementById('modal-importar-pedidos').classList.remove('active')">&times;</span>
+          data-action="cerrar-modal-importar-pedidos">&times;</span>
         <h2>📤 Importar Pedidos (Compras)</h2>
 
         <div style="margin: 20px 0;">
@@ -1686,8 +1686,8 @@
             style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
           <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" onclick="window.cancelarImportarPedidos()">Cancelar</button>
-            <button class="btn btn-primary" onclick="window.confirmarImportarPedidos()"
+            <button class="btn btn-secondary" data-action="cancelar-importar-pedidos">Cancelar</button>
+            <button class="btn btn-primary" data-action="confirmar-importar-pedidos"
               id="btn-confirmar-importar-pedidos">✓ Importar Pedidos</button>
           </div>
         </div>
@@ -1708,7 +1708,7 @@
           <p id="confirm-mensaje"></p>
         </div>
         <div class="modal-confirmacion-footer">
-          <button class="btn-modal-cancel" onclick="window.cerrarConfirmacion()">
+          <button class="btn-modal-cancel" data-action="cancelar-confirmacion">
             <span>✖</span> Cancelar
           </button>
           <button class="btn-modal-danger" id="btn-confirmar-eliminar">
@@ -1723,7 +1723,7 @@
     -->
   <div id="modal-gasto-fijo" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="cerrarFormularioGastoFijo()">&times;</span>
+      <span class="close" data-action="cerrar-form-gasto-fijo">&times;</span>
       <h2 id="titulo-modal-gasto">Añadir Gasto Fijo</h2>
 
       <form id="form-gasto-fijo" onsubmit="guardarGastoFijo(event)">
@@ -1741,7 +1741,7 @@
 
         <div style="display:flex;gap:10px;margin-top:20px">
           <button type="submit" class="btn-primary">Guardar</button>
-          <button type="button" class="btn-secondary" onclick="cerrarFormularioGastoFijo()">Cancelar</button>
+          <button type="button" class="btn-secondary" data-action="cerrar-form-gasto-fijo">Cancelar</button>
         </div>
       </form>
     </div>
