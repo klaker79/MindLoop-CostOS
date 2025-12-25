@@ -28,6 +28,11 @@
 import './vendors.js';
 
 // ============================================
+// API CLIENT - Cliente de API para backend
+// ============================================
+import './api-client.js';
+
+// ============================================
 // UTILIDADES CORE
 // ============================================
 import { showToast } from './ui/toast.js';
