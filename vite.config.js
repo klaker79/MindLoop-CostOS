@@ -50,7 +50,8 @@ export default defineConfig({
         alias: {
             '@': '/src',
             '@modules': '/src/modules',
-            '@utils': '/src/utils'
+            '@utils': '/src/utils',
+            '@config': '/src/config'
         }
     },
 
