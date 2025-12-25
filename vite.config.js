@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
     // Directorio raíz del proyecto
@@ -9,6 +10,18 @@ export default defineConfig({
         port: 3000,
         open: true // Abre navegador automáticamente
     },
+
+    // Plugins
+    plugins: [
+        viteStaticCopy({
+            targets: [
+                {
+                    src: 'src/legacy/*',
+                    dest: 'src/legacy'
+                }
+            ]
+        })
+    ],
 
     // Configuración de build
     build: {
