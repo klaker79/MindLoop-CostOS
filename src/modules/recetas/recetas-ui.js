@@ -205,6 +205,9 @@ export function renderizarRecetas() {
             resumenEl.innerHTML = `
               <div>Total: <strong>${recetas.length}</strong></div>
               <div>Mostrando: <strong>${filtradas.length}</strong></div>
+              <button onclick="window.mostrarCostTracker()" style="margin-left: auto; background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                📊 Seguimiento de Costes
+              </button>
             `;
             resumenEl.style.display = 'flex';
         }

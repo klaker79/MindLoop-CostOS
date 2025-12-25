@@ -126,6 +126,11 @@ window.cerrarModalProducir = RecetasCRUD.cerrarModalProducir;
 window.actualizarDetalleDescuento = RecetasCRUD.actualizarDetalleDescuento;
 window.confirmarProduccion = RecetasCRUD.confirmarProduccion;
 
+// Cost Tracker (seguimiento de costes)
+import * as CostTracker from './modules/recetas/cost-tracker.js';
+window.mostrarCostTracker = CostTracker.mostrarCostTracker;
+window.cerrarCostTracker = CostTracker.cerrarCostTracker;
+
 // ============================================
 // MÓDULO: PROVEEDORES ✅ (Legacy comentado)
 // ============================================
