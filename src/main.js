@@ -30,7 +30,7 @@ import './vendors.js';
 // ============================================
 // API CLIENT - Cliente de API para backend
 // ============================================
-import './api-client.js';
+import './services/api.js';
 
 // ============================================
 // UTILIDADES CORE
@@ -38,10 +38,19 @@ import './api-client.js';
 import { showToast } from './ui/toast.js';
 import * as DOM from './utils/dom-helpers.js';
 import * as Helpers from './utils/helpers.js';
+import * as Performance from './utils/performance.js';
+import { initSearchOptimizations } from './utils/search-optimization.js';
 
 window.showToast = showToast;
 window.DOM = DOM;
 Object.assign(window, DOM);
+
+// Sistema de optimización y rendimiento
+window.Performance = Performance;
+window.dataMaps = Performance.dataMaps;
+
+// Inicializar optimizaciones de búsqueda con debouncing
+initSearchOptimizations();
 
 // Utilidades adicionales
 window.showLoading = Helpers.showLoading;

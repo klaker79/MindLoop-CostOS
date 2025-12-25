@@ -321,6 +321,7 @@ export function compararConSemanaAnterior(datos, campoFecha = 'fecha', campoValo
 
 /**
  * Calcula días de stock disponible basado en consumo histórico
+ * ⚡ OPTIMIZADO: Usa Maps para búsquedas O(1)
  * @param {number} stockActual - Stock actual del ingrediente
  * @param {Array} ventas - Array de ventas históricas
  * @param {Array} recetas - Array de recetas
@@ -333,11 +334,14 @@ export function calcularDiasDeStock(stockActual, ventas, recetas, ingredienteId,
     const { inicio } = getRangoFechas('semana');
     const ventasRecientes = ventas.filter(v => new Date(v.fecha) >= inicio);
 
+    // ⚡ OPTIMIZACIÓN: Usar Map de recetas (O(1) en lugar de O(n))
+    const recetasMap = window.dataMaps?.recetasMap || new Map(recetas.map(r => [r.id, r]));
+
     // Calcular consumo total del ingrediente
     let consumoTotal = 0;
 
     ventasRecientes.forEach(venta => {
-        const receta = recetas.find(r => r.id === venta.receta_id);
+        const receta = recetasMap.get(venta.receta_id);
         if (receta && receta.ingredientes) {
             const ingredienteEnReceta = receta.ingredientes.find(
                 ing => ing.ingredienteId === ingredienteId || ing.ingrediente_id === ingredienteId
@@ -368,6 +372,7 @@ export function calcularDiasDeStock(stockActual, ventas, recetas, ingredienteId,
 
 /**
  * Genera proyección de consumo para los próximos días
+ * ⚡ OPTIMIZADO: Calcula consumo una sola vez para todos los ingredientes
  * @param {Array} ingredientes - Lista de ingredientes
  * @param {Array} ventas - Historial de ventas
  * @param {Array} recetas - Lista de recetas
@@ -375,21 +380,50 @@ export function calcularDiasDeStock(stockActual, ventas, recetas, ingredienteId,
  * @returns {Array} Lista de ingredientes con proyección
  */
 export function proyeccionConsumo(ingredientes, ventas, recetas, diasProyeccion = 7) {
+    const diasHistorico = 7;
+    const { inicio } = getRangoFechas('semana');
+    const ventasRecientes = ventas.filter(v => new Date(v.fecha) >= inicio);
+
+    // ⚡ OPTIMIZACIÓN: Pre-calcular consumo de TODOS los ingredientes una sola vez
+    const recetasMap = window.dataMaps?.recetasMap || new Map(recetas.map(r => [r.id, r]));
+    const consumoPorIngrediente = new Map();
+
+    // Recorrer ventas una sola vez y acumular consumos
+    ventasRecientes.forEach(venta => {
+        const receta = recetasMap.get(venta.receta_id);
+        if (receta && receta.ingredientes) {
+            const cantidadVenta = parseInt(venta.cantidad) || 0;
+            receta.ingredientes.forEach(item => {
+                const ingId = item.ingredienteId || item.ingrediente_id;
+                const cantidadConsumida = (parseFloat(item.cantidad) || 0) * cantidadVenta;
+                const consumoActual = consumoPorIngrediente.get(ingId) || 0;
+                consumoPorIngrediente.set(ingId, consumoActual + cantidadConsumida);
+            });
+        }
+    });
+
+    // Ahora mapear ingredientes con búsquedas O(1)
     return ingredientes.map(ing => {
-        const proyeccion = calcularDiasDeStock(
-            parseFloat(ing.stock_actual) || 0,
-            ventas,
-            recetas,
-            ing.id
-        );
+        const consumoTotal = consumoPorIngrediente.get(ing.id) || 0;
+        const consumoDiario = consumoTotal / diasHistorico;
+        const stockActual = parseFloat(ing.stock_actual) || 0;
+        const diasStock = consumoDiario > 0 ? Math.floor(stockActual / consumoDiario) : 999;
+
+        let alerta = 'ok';
+        if (diasStock <= 2) alerta = 'critico';
+        else if (diasStock <= 5) alerta = 'bajo';
+        else if (diasStock <= 7) alerta = 'medio';
 
         return {
             id: ing.id,
             nombre: ing.nombre,
             stockActual: ing.stock_actual,
             unidad: ing.unidad,
-            ...proyeccion,
-            necesitaPedido: proyeccion.diasStock <= diasProyeccion
+            diasStock,
+            consumoDiario: consumoDiario.toFixed(2),
+            alerta,
+            mensaje: diasStock === 999 ? 'Sin consumo reciente' : `Stock para ${diasStock} días`,
+            necesitaPedido: diasStock <= diasProyeccion
         };
     }).filter(ing => ing.necesitaPedido)
         .sort((a, b) => a.diasStock - b.diasStock);

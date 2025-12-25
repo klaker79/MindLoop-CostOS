@@ -70,7 +70,19 @@ export async function guardarIngrediente(event) {
             }
         }
 
-        await window.cargarDatos();
+        // ⚡ OPTIMIZACIÓN: Actualización optimista - Solo recargamos ingredientes, no todo
+        window.ingredientes = await window.api.getIngredientes();
+
+        // Actualizar maps de búsqueda
+        if (window.dataMaps) {
+            window.dataMaps.ingredientesMap = new Map(window.ingredientes.map(i => [i.id, i]));
+        }
+
+        // Invalidar cache de costes de recetas
+        if (window.Performance?.invalidarCacheIngredientes) {
+            window.Performance.invalidarCacheIngredientes();
+        }
+
         window.renderizarIngredientes();
         if (typeof window.renderizarInventario === 'function') window.renderizarInventario();
         if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
@@ -145,7 +157,20 @@ export async function eliminarIngrediente(id) {
 
         try {
             await window.api.deleteIngrediente(id);
-            await window.cargarDatos();
+
+            // ⚡ OPTIMIZACIÓN: Actualización optimista - Filtrar del array local
+            window.ingredientes = (window.ingredientes || []).filter(ing => ing.id !== id);
+
+            // Actualizar maps de búsqueda
+            if (window.dataMaps) {
+                window.dataMaps.ingredientesMap.delete(id);
+            }
+
+            // Invalidar cache
+            if (window.Performance?.invalidarCacheIngredientes) {
+                window.Performance.invalidarCacheIngredientes();
+            }
+
             window.renderizarIngredientes();
             if (typeof window.renderizarInventario === 'function') window.renderizarInventario();
             if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();

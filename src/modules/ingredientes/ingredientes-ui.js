@@ -135,12 +135,18 @@ export function renderizarIngredientes() {
     const busqueda = getElement('busqueda-ingredientes')?.value?.toLowerCase() || '';
     const rawIngredientes = window.ingredientes;
     const ingredientes = Array.isArray(rawIngredientes) ? rawIngredientes : [];
-    const rawProveedores = window.proveedores;
-    const proveedores = Array.isArray(rawProveedores) ? rawProveedores : [];
+
+    // ⚡ OPTIMIZACIÓN: Actualizar maps si están desactualizados
+    if (window.dataMaps) {
+        window.dataMaps.updateIfStale();
+    }
 
     // Filtrar por búsqueda y familia
     let filtrados = ingredientes.filter(ing => {
-        const nombreProv = getNombreProveedor(ing.proveedor_id, proveedores).toLowerCase();
+        // ⚡ OPTIMIZACIÓN: Búsqueda O(1) en lugar de O(n)
+        const nombreProv = window.dataMaps
+            ? window.dataMaps.getNombreProveedor(ing.proveedor_id).toLowerCase()
+            : 'sin proveedor';
         const familiaIng = (ing.familia || 'alimento').toLowerCase();
         const matchBusqueda = ing.nombre.toLowerCase().includes(busqueda) ||
             nombreProv.includes(busqueda) ||
@@ -184,7 +190,8 @@ export function renderizarIngredientes() {
         html += '<th>Ingrediente</th><th>Familia</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Stock Mínimo</th><th>Acciones</th>';
         html += '</tr></thead><tbody>';
 
-        paginados.forEach(ing => {
+        // ⚡ OPTIMIZACIÓN: Array.map + join en lugar de concatenación en bucle
+        const rows = paginados.map(ing => {
             const stockActual = parseFloat(ing.stock_actual) || 0;
             const stockMinimo = parseFloat(ing.stock_minimo) || 0;
             const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
@@ -192,26 +199,29 @@ export function renderizarIngredientes() {
             const familiaBadge = familia === 'bebida' ? 'badge-info' : 'badge-success';
             const familiaLabel = familia === 'bebida' ? '🍺 Bebida' : '🥬 Alimento';
 
-            html += '<tr>';
-            html += `<td><strong>${ing.nombre}</strong></td>`;
-            html += `<td><span class="badge ${familiaBadge}">${familiaLabel}</span></td>`;
-            html += `<td>${getNombreProveedor(ing.proveedor_id, proveedores)}</td>`;
-            html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad : '-'}</td>`;
-            html += `<td>`;
-            if (ing.stock_actual) {
-                html += `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${ing.unidad}</span>`;
-                if (stockBajo && ing.stock_minimo) html += ` ⚠️`;
-            } else {
-                html += '-';
-            }
-            html += `</td>`;
-            html += `<td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + ing.unidad : '-'}</td>`;
-            html += `<td>
-                <button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})" title="Editar">✏️</button>
-                <button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})" title="Eliminar">🗑️</button>
-            </td>`;
-            html += '</tr>';
+            // ⚡ Búsqueda O(1) del proveedor
+            const nombreProv = window.dataMaps
+                ? window.dataMaps.getNombreProveedor(ing.proveedor_id)
+                : 'Sin proveedor';
+
+            return `<tr>
+                <td><strong>${ing.nombre}</strong></td>
+                <td><span class="badge ${familiaBadge}">${familiaLabel}</span></td>
+                <td>${nombreProv}</td>
+                <td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad : '-'}</td>
+                <td>${ing.stock_actual
+                    ? `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${ing.unidad}</span>${stockBajo && ing.stock_minimo ? ' ⚠️' : ''}`
+                    : '-'}
+                </td>
+                <td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + ing.unidad : '-'}</td>
+                <td>
+                    <button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})" title="Editar">✏️</button>
+                    <button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})" title="Eliminar">🗑️</button>
+                </td>
+            </tr>`;
         });
+
+        html += rows.join('');
 
         html += '</tbody></table>';
 

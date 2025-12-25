@@ -142,10 +142,11 @@ export async function actualizarKPIs() {
         const recetas = window.recetas || [];
         const recetasConMargen = recetas.filter(r => r.precio_venta > 0);
         if (recetasConMargen.length > 0) {
+            // ⚡ OPTIMIZACIÓN: Usar función memoizada para calcular costes
+            const calcularCoste = window.Performance?.calcularCosteRecetaMemoizado || window.calcularCosteRecetaCompleto;
+
             const margenTotal = recetasConMargen.reduce((sum, rec) => {
-                const coste = typeof window.calcularCosteRecetaCompleto === 'function'
-                    ? window.calcularCosteRecetaCompleto(rec)
-                    : 0;
+                const coste = typeof calcularCoste === 'function' ? calcularCoste(rec) : 0;
                 const margen = rec.precio_venta > 0 ? ((rec.precio_venta - coste) / rec.precio_venta * 100) : 0;
                 return sum + margen;
             }, 0);
