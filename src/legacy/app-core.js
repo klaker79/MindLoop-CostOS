@@ -4602,3 +4602,13 @@
         }
       })();
 
+      // === FUNCIONES DE AUTENTICACIÓN ===
+      window.mostrarRegistro = function() {
+        window.showToast('Para registrar tu restaurante, contacta con soporte: hola@mindloop.cloud', 'info');
+      };
+
+      window.mostrarLogin = function() {
+        // Recargar la página para volver al login
+        window.location.reload();
+      };
+
