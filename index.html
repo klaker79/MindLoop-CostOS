@@ -36,13 +36,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
 
-  <!-- Scripts externos -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-
-  <!-- jsPDF para export PDF profesional -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <!-- Scripts externos: Migrados a npm (ver src/vendors.js) -->
+  <!-- Chart.js, XLSX, jsPDF ahora se cargan desde node_modules -->
+  <!-- Esto mejora seguridad y control de versiones -->
 
   <link rel="stylesheet" href="styles/main.css">
 

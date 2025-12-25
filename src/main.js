@@ -2,25 +2,30 @@
  * ============================================
  * main.js - Punto de Entrada de MindLoop CostOS
  * ============================================
- * 
+ *
  * Este archivo es el CONTROLADOR CENTRAL de la aplicación.
- * 
+ *
  * ARQUITECTURA:
  * - Los módulos ES6 en src/modules/ contienen la lógica
  * - Este archivo expone las funciones en window.* para
  *   compatibilidad con los onclick en index.html
  * - Al cargarse DESPUÉS del código inline de index.html,
  *   las funciones aquí SOBRESCRIBEN las legacy
- * 
+ *
  * MANTENIMIENTO:
  * - Para modificar funcionalidad, edita el módulo ES6
  * - No edites el código legacy en index.html
  * - Ver ARQUITECTURA.md para más detalles
- * 
+ *
  * @author MindLoopIA
  * @version 2.0.0 (Arquitectura Modular)
  * @date 2025-12-21
  */
+
+// ============================================
+// VENDORS - Bibliotecas externas (npm, no CDN)
+// ============================================
+import './vendors.js';
 
 // ============================================
 // UTILIDADES CORE
