@@ -343,12 +343,14 @@ function renderizarBeneficioNetoDiario() {
     const gastosFijosDia = gastosFijosMes / diasTotalesMes;
 
     // Crear mapa de datos por día para acceso rápido
+    // NOTA: dias es un array de strings de fecha como "2025-12-18", no objetos
     const diasDataMap = {};
     dias.forEach(dia => {
-        if (dia.fecha) {
-            const fecha = new Date(dia.fecha);
+        // dia es un string como "2025-12-18"
+        const fecha = new Date(dia);
+        if (!isNaN(fecha.getTime())) {
             const key = fecha.getDate();
-            diasDataMap[key] = dia;
+            diasDataMap[key] = { fecha: dia, tieneActividad: true };
         }
     });
 
