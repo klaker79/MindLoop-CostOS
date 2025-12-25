@@ -33,6 +33,16 @@ import './vendors.js';
 import './services/api.js';
 
 // ============================================
+// CORE - Funciones centrales (cargarDatos, cambiarTab, init)
+// ============================================
+import * as Core from './modules/core/core.js';
+
+window.cargarDatos = Core.cargarDatos;
+window.cambiarTab = Core.cambiarTab;
+window.init = Core.init;
+window.inicializarFechaActual = Core.inicializarFechaActual;
+
+// ============================================
 // UTILIDADES CORE
 // ============================================
 import { showToast } from './ui/toast.js';
@@ -137,25 +147,29 @@ window.editarProveedor = ProveedoresCRUD.editarProveedor;
 window.eliminarProveedor = ProveedoresCRUD.eliminarProveedor;
 
 // ============================================
-// MÓDULO: PEDIDOS ⚙️ (Híbrido - ES6 tiene prioridad)
+// MÓDULO: PEDIDOS ✅ (Migrado completamente)
 // ============================================
 import * as PedidosUI from './modules/pedidos/pedidos-ui.js';
 import * as PedidosCRUD from './modules/pedidos/pedidos-crud.js';
 
-// PEDIDOS: Solo funciones que NO están en legacy
-// El resto se mantiene en código legacy para evitar conflictos
+// UI
 window.renderizarPedidos = PedidosUI.renderizarPedidos;
 window.exportarPedidos = PedidosUI.exportarPedidos;
+window.mostrarFormularioPedido = PedidosUI.mostrarFormularioPedido;
+window.cerrarFormularioPedido = PedidosUI.cerrarFormularioPedido;
+window.cargarIngredientesPedido = PedidosUI.cargarIngredientesPedido;
+window.agregarIngredientePedido = PedidosUI.agregarIngredientePedido;
+window.calcularTotalPedido = PedidosUI.calcularTotalPedido;
+
+// CRUD - Todas las funciones
+window.guardarPedido = PedidosCRUD.guardarPedido;
+window.eliminarPedido = PedidosCRUD.eliminarPedido;
+window.marcarPedidoRecibido = PedidosCRUD.marcarPedidoRecibido;
+window.cerrarModalRecibirPedido = PedidosCRUD.cerrarModalRecibirPedido;
+window.confirmarRecepcionPedido = PedidosCRUD.confirmarRecepcionPedido;
 window.verDetallesPedido = PedidosCRUD.verDetallesPedido;
 window.cerrarModalVerPedido = PedidosCRUD.cerrarModalVerPedido;
 window.descargarPedidoPDF = PedidosCRUD.descargarPedidoPDF;
-
-// Las siguientes funciones se mantienen en código legacy (index.html):
-// - mostrarFormularioPedido, cerrarFormularioPedido
-// - cargarIngredientesPedido, agregarIngredientePedido
-// - calcularTotalPedido, guardarPedido
-// - marcarPedidoRecibido, confirmarRecepcionPedido
-// - eliminarPedido
 
 // ============================================
 // MÓDULO: VENTAS ⚙️ (Híbrido - ES6 tiene prioridad)
@@ -194,6 +208,30 @@ window.editandoIngredienteId = null;
 window.editandoRecetaId = null;
 window.editandoPedidoId = null;
 window.editandoProveedorId = null;
+
+// ============================================
+// MÓDULO: AUTENTICACIÓN ✅
+// ============================================
+import * as Auth from './modules/auth/auth.js';
+
+window.checkAuth = Auth.checkAuth;
+window.mostrarLogin = Auth.mostrarLogin;
+window.mostrarRegistro = Auth.mostrarRegistro;
+window.logout = Auth.logout;
+
+// Inicializar formulario de login
+Auth.initLoginForm();
+
+// ============================================
+// MÓDULO: EQUIPO ✅
+// ============================================
+import * as Equipo from './modules/equipo/equipo.js';
+
+window.renderizarEquipo = Equipo.renderizarEquipo;
+window.mostrarModalInvitar = Equipo.mostrarModalInvitar;
+window.cerrarModalInvitar = Equipo.cerrarModalInvitar;
+window.invitarUsuarioEquipo = Equipo.invitarUsuarioEquipo;
+window.eliminarUsuarioEquipo = Equipo.eliminarUsuarioEquipo;
 
 // ============================================
 // MÓDULO: CHAT IA 🤖

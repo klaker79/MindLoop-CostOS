@@ -40,9 +40,7 @@
   <!-- Chart.js, XLSX, jsPDF ahora se cargan desde node_modules -->
   <!-- Esto mejora seguridad y control de versiones -->
 
-
-  <!-- Módulos ES6 -->
-  <script type="module" crossorigin src="/assets/main-sEm6Xy5v.js"></script>
+  <script type="module" crossorigin src="/assets/main-7XzUIBEu.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/main-lvaqoULS.css">
 </head>
 
@@ -128,7 +126,8 @@
           cursor: pointer;
           transition: all 0.2s;
         ">Hoy</button>
-        <button data-action="cambiar-periodo" data-periodo="semana" class="periodo-btn active" data-periodo="semana" style="
+        <button data-action="cambiar-periodo" data-periodo="semana" class="periodo-btn active" data-periodo="semana"
+          style="
           padding: 6px 12px;
           border-radius: 6px;
           border: 1px solid #0ea5e9;
@@ -239,8 +238,7 @@
             style="padding: 12px; background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
             💰 Nueva Venta
           </button>
-          <button
-            data-tab="pedidos"
+          <button data-tab="pedidos"
             style="padding: 12px; background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
             📦 Nuevo Pedido
           </button>
@@ -260,8 +258,8 @@
       <button id="tab-btn-proveedores" class="tab" data-tab="proveedores">🚚 Proveedores</button>
       <button id="tab-btn-pedidos" class="tab" data-tab="pedidos">📋 Pedidos</button>
       <button id="tab-btn-analisis" class="tab" data-tab="analisis">📊 Análisis</button>
-      <button id="tab-btn-inventario" class="tab" data-tab="inventario">📦 Inventario<span
-          id="badge-inventario" class="tab-badge" style="display:none;">0</span></button>
+      <button id="tab-btn-inventario" class="tab" data-tab="inventario">📦 Inventario<span id="badge-inventario"
+          class="tab-badge" style="display:none;">0</span></button>
       <button id="tab-btn-ventas" class="tab" data-tab="ventas">💰 Ventas</button>
 
       <button id="tab-btn-diario" class="tab" data-tab="diario">📈 Diario</button>
@@ -345,8 +343,7 @@
               </div>
             </div>
             <div class="form-actions">
-              <button type="button" class="btn btn-secondary"
-                data-action="cerrar-form-ingrediente">Cancelar</button>
+              <button type="button" class="btn btn-secondary" data-action="cerrar-form-ingrediente">Cancelar</button>
               <button type="submit" class="btn btn-primary"><span id="btn-text-ingrediente">Añadir</span></button>
             </div>
           </form>
@@ -486,8 +483,7 @@
               </div>
             </div>
             <div class="form-actions">
-              <button type="button" class="btn btn-secondary"
-                data-action="cerrar-form-receta">Cancelar</button>
+              <button type="button" class="btn btn-secondary" data-action="cerrar-form-receta">Cancelar</button>
               <button type="submit" class="btn btn-primary"><span id="btn-text-receta">Guardar</span></button>
             </div>
           </form>
@@ -558,8 +554,7 @@
               <div class="ingredientes-disponibles" id="lista-ingredientes-proveedor"></div>
             </div>
             <div class="form-actions">
-              <button type="button" class="btn btn-secondary"
-                data-action="cerrar-form-proveedor">Cancelar</button>
+              <button type="button" class="btn btn-secondary" data-action="cerrar-form-proveedor">Cancelar</button>
               <button type="submit" class="btn btn-primary"><span id="btn-text-proveedor">Añadir</span></button>
             </div>
           </form>
@@ -622,8 +617,7 @@
             </div>
 
             <div class="form-actions" style="margin-top: 20px;">
-              <button type="button" class="btn btn-secondary"
-                data-action="cerrar-form-pedido">Cancelar</button>
+              <button type="button" class="btn btn-secondary" data-action="cerrar-form-pedido">Cancelar</button>
               <button type="submit" class="btn btn-primary">Crear Pedido</button>
             </div>
           </form>
@@ -1066,8 +1060,7 @@
               <input type="date" id="ventas-fecha-hasta" class="form-control">
             </div>
             <button class="btn btn-primary" data-action="filtrar-ventas">🔍 Filtrar</button>
-            <button class="btn btn-secondary"
-              data-action="limpiar-filtros-ventas">🔄
+            <button class="btn btn-secondary" data-action="limpiar-filtros-ventas">🔄
               Limpiar</button>
           </div>
         </div>
@@ -1121,7 +1114,8 @@
             Compras (Costes)</button>
           <button id="btn-vista-ventas" class="btn btn-secondary" data-action="vista-diario" data-vista="ventas">💰
             Ventas (Ingresos)</button>
-          <button id="btn-vista-combinada" class="btn btn-secondary" data-action="vista-diario" data-vista="combinada">📊
+          <button id="btn-vista-combinada" class="btn btn-secondary" data-action="vista-diario"
+            data-vista="combinada">📊
             P&L Diario</button>
         </div>
         <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
@@ -1305,8 +1299,7 @@
     <!-- MODAL INVITAR EQUIPO -->
     <div id="modal-invitar-equipo" class="modal">
       <div class="modal-content" style="max-width:500px">
-        <span class="close"
-          data-action="cerrar-modal-invitar">&times;</span>
+        <span class="close" data-action="cerrar-modal-invitar">&times;</span>
         <h2>Invitar Nuevo Usuario</h2>
         <div style="margin-top:20px;">
           <div class="form-group" style="margin-bottom:15px;">
@@ -1453,8 +1446,7 @@
     <!-- Modal: Confirmar Mermas Avanzado -->
     <div id="modal-confirmar-mermas" class="modal">
       <div class="modal-content" style="max-width: 800px;">
-        <span class="close"
-          data-action="cerrar-modal-mermas">&times;</span>
+        <span class="close" data-action="cerrar-modal-mermas">&times;</span>
         <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px;">⚠️ Confirmar Mermas/Pérdidas</h2>
         <p style="color: #64748b; margin-bottom: 20px;">Se han detectado diferencias negativas en el inventario. Por
           favor, especifica el motivo de cada pérdida para el control de costes.</p>
@@ -1480,8 +1472,7 @@
         </div>
 
         <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-          <button class="btn btn-secondary"
-            data-action="cerrar-modal-mermas">Cancelar</button>
+          <button class="btn btn-secondary" data-action="cerrar-modal-mermas">Cancelar</button>
           <button class="btn btn-primary" id="btn-confirmar-split" style="background: #ef4444;"
             data-action="confirmar-mermas">Confirmar Ajustes</button>
         </div>
@@ -1490,8 +1481,7 @@
     <!-- Modal: Actualizar Inventario Masivo -->
     <div id="modal-inventario-masivo" class="modal">
       <div class="modal-content" style="max-width: 900px;">
-        <span class="close"
-          data-action="cerrar-modal-inventario-masivo">&times;</span>
+        <span class="close" data-action="cerrar-modal-inventario-masivo">&times;</span>
         <h2>📊 Actualizar Inventario Masivo</h2>
 
         <div style="margin: 20px 0;">
@@ -1535,8 +1525,7 @@
     <!-- Modal: Importar Ingredientes -->
     <div id="modal-importar-ingredientes" class="modal">
       <div class="modal-content" style="max-width: 900px;">
-        <span class="close"
-          data-action="cerrar-modal-importar-ingredientes">&times;</span>
+        <span class="close" data-action="cerrar-modal-importar-ingredientes">&times;</span>
         <h2>📤 Importar Ingredientes desde Excel</h2>
 
         <div style="margin: 20px 0;">
@@ -1575,8 +1564,7 @@
     <!-- Modal: Importar Recetas -->
     <div id="modal-importar-recetas" class="modal">
       <div class="modal-content" style="max-width: 900px;">
-        <span class="close"
-          data-action="cerrar-modal-importar-recetas">&times;</span>
+        <span class="close" data-action="cerrar-modal-importar-recetas">&times;</span>
         <h2>📤 Importar Recetas desde Excel</h2>
 
         <div style="margin: 20px 0;">
@@ -1616,8 +1604,7 @@
     <!-- Modal: Importar Ventas TPV -->
     <div id="modal-importar-ventas" class="modal">
       <div class="modal-content" style="max-width: 900px;">
-        <span class="close"
-          data-action="cerrar-modal-importar-ventas">&times;</span>
+        <span class="close" data-action="cerrar-modal-importar-ventas">&times;</span>
         <h2>📤 Importar Ventas TPV</h2>
 
         <div style="margin: 20px 0;">
@@ -1646,8 +1633,8 @@
 
           <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
             <button class="btn btn-secondary" data-action="cancelar-importar-ventas">Cancelar</button>
-            <button class="btn btn-primary" data-action="confirmar-importar-ventas"
-              id="btn-confirmar-importar-ventas">✓ Importar Ventas</button>
+            <button class="btn btn-primary" data-action="confirmar-importar-ventas" id="btn-confirmar-importar-ventas">✓
+              Importar Ventas</button>
           </div>
         </div>
       </div>
@@ -1656,8 +1643,7 @@
     <!-- Modal: Importar Pedidos (Compras) -->
     <div id="modal-importar-pedidos" class="modal">
       <div class="modal-content" style="max-width: 900px;">
-        <span class="close"
-          data-action="cerrar-modal-importar-pedidos">&times;</span>
+        <span class="close" data-action="cerrar-modal-importar-pedidos">&times;</span>
         <h2>📤 Importar Pedidos (Compras)</h2>
 
         <div style="margin: 20px 0;">
@@ -1695,7 +1681,7 @@
     </div>
     </script>
   </div>
-    <script src="src/legacy/inventario-masivo.js"></script>
+  <script src="src/legacy/inventario-masivo.js"></script>
   <!-- MODAL DE CONFIRMACIÓN PROFESIONAL -->
   <div id="modal-confirmacion" class="modal-overlay-custom" style="display: none;">
     <div class="modal-confirmacion-container">
@@ -1852,7 +1838,9 @@
   box-shadow: 0 8px 20px rgba(255, 68, 68, 0.4);
   }
   </style>
-    <script src="src/legacy/modales.js"></script>
+  <script src="src/legacy/modales.js"></script>
+
+  <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
 </body>
 
 </html>
