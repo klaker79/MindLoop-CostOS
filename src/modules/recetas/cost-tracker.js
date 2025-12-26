@@ -88,20 +88,26 @@ function crearModalCostTracker() {
                 </div>
             </div>
             
-            <!-- Table Container -->
-            <div style="padding: 0 30px 25px; overflow-y: auto; max-height: 55vh;">
-                <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+            <!-- Header de tabla FIJO -->
+            <div style="padding: 0 30px;">
+                <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th style="padding: 14px 16px; text-align: left; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);">Receta</th>
-                            <th style="padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);">Categoría</th>
-                            <th style="padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);">Coste</th>
-                            <th style="padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);">Precio</th>
-                            <th style="padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);">Beneficio</th>
-                            <th style="padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);">Food Cost</th>
-                            <th style="padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);">Estado</th>
+                            <th style="width: 22%; padding: 14px 16px; text-align: left; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Receta</th>
+                            <th style="width: 12%; padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Categoría</th>
+                            <th style="width: 12%; padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Coste</th>
+                            <th style="width: 12%; padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Precio</th>
+                            <th style="width: 14%; padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Beneficio</th>
+                            <th style="width: 13%; padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Food Cost</th>
+                            <th style="width: 15%; padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Estado</th>
                         </tr>
                     </thead>
+                </table>
+            </div>
+            
+            <!-- Body de tabla con SCROLL -->
+            <div style="padding: 0 30px 25px; overflow-y: auto; max-height: 45vh;">
+                <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                     <tbody id="cost-tracker-body">
                         <!-- Se llena dinámicamente -->
                     </tbody>
@@ -245,24 +251,24 @@ function actualizarDatosCostTracker() {
 
         html += `
             <tr style="background:transparent">
-                <td style="padding:16px;border-bottom:1px solid rgba(255,255,255,0.08)">
+                <td style="width: 22%; padding:16px;border-bottom:1px solid rgba(255,255,255,0.08)">
                     ${nombreHtml}${ingHtml}
                 </td>
-                <td style="padding: 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="width: 12%; padding: 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                         ${receta.categoria || 'Sin categoría'}
                     </span>
                 </td>
-                <td style="padding: 16px; text-align: right; color: #e2e8f0; font-weight: 600; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="width: 12%; padding: 16px; text-align: right; color: #F97316; font-weight: 700; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     ${costeActual.toFixed(2)} €
                 </td>
-                <td style="padding: 16px; text-align: right; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="width: 12%; padding: 16px; text-align: right; color: #3B82F6; font-weight: 700; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     ${precioVenta.toFixed(2)} €
                 </td>
-                <td style="padding: 16px; text-align: right; font-weight: 600; color: ${beneficio >= 0 ? '#10B981' : '#EF4444'}; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="width: 14%; padding: 16px; text-align: right; font-weight: 700; font-size: 15px; color: ${beneficio >= 0 ? '#10B981' : '#EF4444'}; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     ${beneficio >= 0 ? '+' : ''}${beneficio.toFixed(2)} €
                 </td>
-                <td style="padding: 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="width: 13%; padding: 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
                         <span style="font-weight: 700; color: ${textColor}; font-size: 15px;">${foodCost.toFixed(1)}%</span>
                         <div style="width: 60px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
@@ -270,7 +276,7 @@ function actualizarDatosCostTracker() {
                         </div>
                     </div>
                 </td>
-                <td style="padding: 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="width: 15%; padding: 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <span style="background: ${bgColor}; color: ${textColor}; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
                         ${icon} ${estado}
                     </span>

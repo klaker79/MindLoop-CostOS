@@ -180,7 +180,7 @@ function renderItemsRecepcionModal(ped) {
                     oninput="window.actualizarItemRecepcion(${idx}, 'precio', this.value)">`
       }
             </td>
-            <td><strong>${subtotalRecibido.toFixed(2)}€</strong></td>
+            <td><strong id="subtotal-item-${idx}">${subtotalRecibido.toFixed(2)}€</strong></td>
             <td>
               <select onchange="window.cambiarEstadoItem(${idx}, this.value)" 
                 style="padding:5px;border:1px solid #ddd;border-radius:4px;">
@@ -212,7 +212,7 @@ function renderItemsRecepcionModal(ped) {
 }
 
 /**
- * Actualiza un item de recepción y recalcula totales
+ * Actualiza un item de recepción y recalcula totales SIN perder el foco
  */
 export function actualizarItemRecepcion(idx, tipo, valor) {
   const ped = window.pedidos.find(p => p.id === window.pedidoRecibiendoId);
@@ -235,7 +235,52 @@ export function actualizarItemRecepcion(idx, tipo, valor) {
     }
   }
 
-  renderItemsRecepcionModal(ped);
+  // Solo actualizar los totales, NO re-renderizar toda la tabla
+  actualizarTotalesRecepcion(ped, idx);
+}
+
+/**
+ * Actualiza solo los totales y el subtotal de una fila específica (sin perder foco)
+ */
+function actualizarTotalesRecepcion(ped, idxActualizado) {
+  let totalOriginal = 0;
+  let totalRecibido = 0;
+
+  ped.itemsRecepcion.forEach((item, idx) => {
+    const cantPedida = parseFloat(item.cantidad || 0);
+    const cantRecibida = parseFloat(item.cantidadRecibida || 0);
+    const precioPed = parseFloat(item.precioUnitario || 0);
+    const precioReal = parseFloat(item.precioReal || 0);
+
+    const subtotalOriginal = cantPedida * precioPed;
+    const subtotalRecibido = item.estado === 'no-entregado' ? 0 : cantRecibida * precioReal;
+
+    totalOriginal += subtotalOriginal;
+    totalRecibido += subtotalRecibido;
+
+    // Actualizar subtotal de la fila modificada
+    if (idx === idxActualizado) {
+      const subtotalEl = document.getElementById(`subtotal-item-${idx}`);
+      if (subtotalEl) {
+        subtotalEl.textContent = subtotalRecibido.toFixed(2) + '€';
+      }
+    }
+  });
+
+  // Actualizar resúmenes
+  const varianza = totalRecibido - totalOriginal;
+
+  const resumenOrig = document.getElementById('modal-rec-resumen-original');
+  if (resumenOrig) resumenOrig.textContent = totalOriginal.toFixed(2) + ' €';
+
+  const resumenRec = document.getElementById('modal-rec-resumen-recibido');
+  if (resumenRec) resumenRec.textContent = totalRecibido.toFixed(2) + ' €';
+
+  const resumenVar = document.getElementById('modal-rec-resumen-varianza');
+  if (resumenVar) {
+    resumenVar.textContent = (varianza >= 0 ? '+' : '') + varianza.toFixed(2) + ' €';
+    resumenVar.style.color = varianza > 0 ? '#ef4444' : varianza < 0 ? '#10b981' : '#666';
+  }
 }
 
 /**
@@ -259,7 +304,8 @@ export function cerrarModalRecibirPedido() {
 }
 
 /**
- * Confirma la recepción del pedido (actualiza stock y guarda precioReal)
+ * Confirma la recepción del pedido (actualiza stock Y PRECIO MEDIO PONDERADO)
+ * 💰 CORREGIDO: Ahora calcula media ponderada de precios
  */
 export async function confirmarRecepcionPedido() {
   if (window.pedidoRecibiendoId === null) return;
@@ -293,17 +339,37 @@ export async function confirmarRecepcionPedido() {
       };
     });
 
-    // Actualizar stock de cada ingrediente recibido
+    // Actualizar stock Y PRECIO de cada ingrediente recibido
     for (const item of ingredientesActualizados) {
       if (item.estado === 'no-entregado') continue;
 
       const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
       if (ing) {
-        const nuevoStock = parseFloat(ing.stockActual || ing.stock_actual || 0) + item.cantidadRecibida;
+        const stockAnterior = parseFloat(ing.stockActual || ing.stock_actual || 0);
+        const precioAnterior = parseFloat(ing.precio || 0);
+        const cantidadRecibida = item.cantidadRecibida;
+        const precioNuevo = item.precioReal;
+
+        // 💰 CÁLCULO DE MEDIA PONDERADA DE PRECIOS
+        // Fórmula: (stock_anterior × precio_anterior + cantidad_nueva × precio_nuevo) / (stock_anterior + cantidad_nueva)
+        let precioMedioPonderado;
+        if (stockAnterior + cantidadRecibida > 0) {
+          precioMedioPonderado =
+            (stockAnterior * precioAnterior + cantidadRecibida * precioNuevo) /
+            (stockAnterior + cantidadRecibida);
+        } else {
+          precioMedioPonderado = precioNuevo; // Si no hay stock, usar precio nuevo
+        }
+
+        const nuevoStock = stockAnterior + cantidadRecibida;
+
+        console.log(`📦 ${ing.nombre}: Stock ${stockAnterior} → ${nuevoStock}, Precio ${precioAnterior.toFixed(2)}€ → ${precioMedioPonderado.toFixed(2)}€ (media ponderada)`);
+
         await window.api.updateIngrediente(item.ingredienteId, {
           ...ing,
           stockActual: nuevoStock,
-          stock_actual: nuevoStock
+          stock_actual: nuevoStock,
+          precio: precioMedioPonderado  // ← AHORA SÍ ACTUALIZA EL PRECIO
         });
       }
     }
@@ -324,7 +390,7 @@ export async function confirmarRecepcionPedido() {
     window.renderizarInventario?.();
     window.hideLoading();
     cerrarModalRecibirPedido();
-    window.showToast('Pedido recibido, stock y precios actualizados', 'success');
+    window.showToast('✅ Pedido recibido: stock y precio medio actualizado', 'success');
   } catch (error) {
     window.hideLoading();
     console.error('Error:', error);

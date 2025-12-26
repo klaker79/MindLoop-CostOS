@@ -210,15 +210,32 @@ export function renderizarIngredientes() {
                 ? window.dataMaps.getNombreProveedor(ing.proveedor_id)
                 : 'Sin proveedor';
 
+            // 💰 ACTUALIZADO: Usar precio_medio del inventario (basado en compras)
+            const invItem = window.inventarioCompleto?.find(i => i.id === ing.id);
+            const precioMedio = invItem?.precio_medio ? parseFloat(invItem.precio_medio) : null;
+            const precioBase = parseFloat(ing.precio) || 0;
+            const precioMostrar = precioMedio !== null ? precioMedio : precioBase;
+            const diferencia = precioMedio !== null ? ((precioMedio - precioBase) / precioBase * 100) : 0;
+
+            // Indicador visual si el precio_medio difiere del precio base
+            let precioHtml = '';
+            if (precioMedio !== null && Math.abs(diferencia) > 1) {
+                const colorDif = diferencia > 0 ? '#ef4444' : '#10B981';
+                const iconDif = diferencia > 0 ? '↑' : '↓';
+                precioHtml = `<span style="font-weight: 600;">${precioMostrar.toFixed(2)} €/${ing.unidad}</span>
+                    <br><small style="color: ${colorDif};">${iconDif} ${Math.abs(diferencia).toFixed(0)}% vs base</small>`;
+            } else {
+                precioHtml = precioMostrar ? `${precioMostrar.toFixed(2)} €/${ing.unidad}` : '-';
+            }
+
             return `<tr>
                 <td><strong>${ing.nombre}</strong></td>
                 <td><span class="badge ${familiaBadge}">${familiaLabel}</span></td>
                 <td>${nombreProv}</td>
-                <td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad : '-'}</td>
-                <td>${
-                    ing.stock_actual
-                        ? `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${ing.unidad}</span>${stockBajo && ing.stock_minimo ? ' ⚠️' : ''}`
-                        : '-'
+                <td>${precioHtml}</td>
+                <td>${ing.stock_actual
+                    ? `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${ing.unidad}</span>${stockBajo && ing.stock_minimo ? ' ⚠️' : ''}`
+                    : '-'
                 }
                 </td>
                 <td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + ing.unidad : '-'}</td>
@@ -264,10 +281,10 @@ export function renderizarIngredientes() {
         const resumen = getElement('resumen-ingredientes');
         if (resumen) {
             resumen.innerHTML = `
-        <div>Total: <strong>${ingredientes.length}</strong></div>
-        <div>Filtrados: <strong>${filtrados.length}</strong></div>
-        <div>Mostrando: <strong>${paginados.length}</strong></div>
-      `;
+            <div>Total: <strong>${ingredientes.length}</strong></div>
+            <div>Filtrados: <strong>${filtrados.length}</strong></div>
+            <div>Mostrando: <strong>${paginados.length}</strong></div>
+          `;
             resumen.style.display = 'flex';
         }
     }
