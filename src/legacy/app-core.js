@@ -44,6 +44,15 @@
     function hideLoading() {
         removeElementClass('loading-overlay', 'active');
     }
+
+    // === SEGURIDAD: Escape HTML para prevenir XSS ===
+    function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     // === EXPORT A EXCEL ===
     function exportarAExcel(datos, nombreArchivo, columnas) {
         // Preparar datos para Excel
@@ -951,8 +960,8 @@
 
                 html += `
             <tr style="border-bottom:1px solid #f0f0f0;">
-              <td style="padding:12px;"><strong>${user.nombre}</strong> ${isMe ? '(Tú)' : ''}</td>
-              <td style="padding:12px; color:#666;">${user.email}</td>
+              <td style="padding:12px;"><strong>${escapeHTML(user.nombre)}</strong> ${isMe ? '(Tú)' : ''}</td>
+              <td style="padding:12px; color:#666;">${escapeHTML(user.email)}</td>
               <td style="padding:12px;">${roleBadge}</td>
               <td style="padding:12px; color:#999;">${fechaAlta}</td>
               <td style="padding:12px; text-align:right;">
@@ -967,7 +976,7 @@
             tbody.innerHTML = html;
         } catch (error) {
             console.error('Error renderizando equipo:', error);
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">Error: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red; padding:20px;">Error: ${escapeHTML(error.message)}</td></tr>`;
         }
     };
 
@@ -4186,82 +4195,135 @@
     }
 
     function renderChartIngredientes() {
-        const ctx = document.getElementById('chart-ingredientes');
-        if (!ctx) return;
+        // 🍽️ Gráfica de ALIMENTOS
+        const ctxAlimentos = document.getElementById('chart-ingredientes');
+        // 🍺 Gráfica de BEBIDAS
+        const ctxBebidas = document.getElementById('chart-bebidas');
 
-        const ordenados = [...ingredientes]
-            .filter(ing => ing.precio > 0)
+        if (!ctxAlimentos) return;
+
+        // Separar ingredientes por familia
+        const alimentos = [...ingredientes]
+            .filter(ing => ing.precio > 0 && (ing.familia || 'alimento').toLowerCase() === 'alimento')
             .sort((a, b) => b.precio - a.precio)
             .slice(0, 10);
 
-        if (chartIngredientes) chartIngredientes.destroy();
+        const bebidas = [...ingredientes]
+            .filter(ing => ing.precio > 0 && (ing.familia || '').toLowerCase() === 'bebida')
+            .sort((a, b) => b.precio - a.precio)
+            .slice(0, 10);
 
-        chartIngredientes = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ordenados.map(i => i.nombre),
-                datasets: [
-                    {
-                        data: ordenados.map(i => i.precio),
-                        backgroundColor: [
-                            '#FF6B35',
-                            '#F7931E',
-                            '#10b981',
-                            '#3b82f6',
-                            '#f59e0b',
-                            '#ef4444',
-                            '#8b5cf6',
-                            '#ec4899',
-                            '#14b8a6',
-                            '#f97316',
-                        ],
+        // Colores para las gráficas
+        const coloresAlimentos = [
+            '#10b981', '#059669', '#34d399', '#6ee7b7',
+            '#a7f3d0', '#d1fae5', '#f59e0b', '#fbbf24',
+            '#fcd34d', '#fde68a'
+        ];
+
+        const coloresBebidas = [
+            '#3b82f6', '#2563eb', '#60a5fa', '#93c5fd',
+            '#bfdbfe', '#dbeafe', '#8b5cf6', '#a78bfa',
+            '#c4b5fd', '#ddd6fe'
+        ];
+
+        // Destruir gráficos anteriores
+        if (chartIngredientes) chartIngredientes.destroy();
+        if (window.chartBebidas) window.chartBebidas.destroy();
+
+        // === GRÁFICA ALIMENTOS ===
+        if (alimentos.length > 0) {
+            chartIngredientes = new Chart(ctxAlimentos, {
+                type: 'doughnut',
+                data: {
+                    labels: alimentos.map(i => i.nombre),
+                    datasets: [{
+                        data: alimentos.map(i => i.precio),
+                        backgroundColor: coloresAlimentos.slice(0, alimentos.length),
                         borderWidth: 3,
                         borderColor: '#fff',
                         hoverOffset: 15,
                         hoverBorderWidth: 4,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                animation: {
-                    duration: 1200,
-                    easing: 'easeInOutQuart',
-                    animateRotate: true,
-                    animateScale: true,
+                    }],
                 },
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            font: {
-                                size: 11,
-                            },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: { duration: 1200, easing: 'easeInOutQuart', animateRotate: true, animateScale: true },
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { font: { size: 10 } },
                         },
-                    },
-                    tooltip: {
-                        enabled: true,
-                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        padding: 16,
-                        cornerRadius: 12,
-                        displayColors: true,
-                        borderColor: '#FF6B35',
-                        borderWidth: 2,
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
-                        callbacks: {
-                            label: function (context) {
-                                return context.label + ': ' + context.parsed.toFixed(2) + '€';
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 16,
+                            cornerRadius: 12,
+                            displayColors: true,
+                            borderColor: '#10b981',
+                            borderWidth: 2,
+                            callbacks: {
+                                label: function (context) {
+                                    return context.label + ': ' + context.parsed.toFixed(2) + '€';
+                                },
                             },
                         },
                     },
                     cutout: '65%',
                 },
-            },
-        });
+            });
+        }
+
+        // === GRÁFICA BEBIDAS ===
+        if (ctxBebidas && bebidas.length > 0) {
+            window.chartBebidas = new Chart(ctxBebidas, {
+                type: 'doughnut',
+                data: {
+                    labels: bebidas.map(i => i.nombre),
+                    datasets: [{
+                        data: bebidas.map(i => i.precio),
+                        backgroundColor: coloresBebidas.slice(0, bebidas.length),
+                        borderWidth: 3,
+                        borderColor: '#fff',
+                        hoverOffset: 15,
+                        hoverBorderWidth: 4,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: { duration: 1200, easing: 'easeInOutQuart', animateRotate: true, animateScale: true },
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { font: { size: 10 } },
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 16,
+                            cornerRadius: 12,
+                            displayColors: true,
+                            borderColor: '#3b82f6',
+                            borderWidth: 2,
+                            callbacks: {
+                                label: function (context) {
+                                    return context.label + ': ' + context.parsed.toFixed(2) + '€';
+                                },
+                            },
+                        },
+                    },
+                    cutout: '65%',
+                },
+            });
+        } else if (ctxBebidas) {
+            // Si no hay bebidas, mostrar mensaje
+            ctxBebidas.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">Sin bebidas registradas</div>';
+        }
     }
 
     function renderTablaRentabilidad(datos) {
