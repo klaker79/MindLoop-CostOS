@@ -97,7 +97,10 @@ const actionHandlers = {
     'cancelar-confirmacion': () => window.cerrarConfirmacion?.(),
 
     // Toggle expand (BCG cards)
-    'toggle-expand': e => e.currentTarget.classList.toggle('expanded'),
+    'toggle-expand': e => {
+        const expandable = e.target.closest('[data-action="toggle-expand"]');
+        if (expandable) expandable.classList.toggle('expanded');
+    },
 };
 
 /**

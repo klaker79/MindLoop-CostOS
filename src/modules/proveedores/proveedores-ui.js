@@ -122,25 +122,34 @@ export function verProveedorDetalles(id) {
     const prov = window.proveedores.find(p => p.id === id);
     if (!prov) return;
 
-    document.getElementById('modal-prov-nombre').textContent = prov.nombre;
+    const tituloEl = document.getElementById('modal-proveedor-titulo');
+    const contenidoEl = document.getElementById('modal-proveedor-contenido');
 
-    let info = '';
-    if (prov.telefono) info += `<p>📞 ${prov.telefono}</p>`;
-    if (prov.email) info += `<p>✉️ ${prov.email}</p>`;
-    if (prov.direccion) info += `<p>📍 ${prov.direccion}</p>`;
-    document.getElementById('modal-prov-info').innerHTML = info;
+    if (!tituloEl || !contenidoEl) {
+        console.error('Modal de proveedor no encontrado');
+        return;
+    }
 
-    let ingHtml = '<ul>';
+    tituloEl.textContent = prov.nombre;
+
+    let html = '<div style="margin-bottom: 16px;">';
+    if (prov.telefono) html += `<p>📞 ${prov.telefono}</p>`;
+    if (prov.email) html += `<p>✉️ ${prov.email}</p>`;
+    if (prov.direccion) html += `<p>📍 ${prov.direccion}</p>`;
+    html += '</div>';
+
+    html += '<h4 style="margin-bottom: 8px;">Ingredientes:</h4><ul>';
     if (prov.ingredientes && prov.ingredientes.length > 0) {
         prov.ingredientes.forEach(ingId => {
             const ing = window.ingredientes.find(i => i.id === ingId);
-            if (ing) ingHtml += `<li>${ing.nombre}</li>`;
+            if (ing) html += `<li>${ing.nombre}</li>`;
         });
     } else {
-        ingHtml += '<li style="color:#999;">Sin ingredientes asignados</li>';
+        html += '<li style="color:#999;">Sin ingredientes asignados</li>';
     }
-    ingHtml += '</ul>';
-    document.getElementById('modal-prov-ingredientes').innerHTML = ingHtml;
+    html += '</ul>';
+
+    contenidoEl.innerHTML = html;
 
     document.getElementById('modal-ver-proveedor').classList.add('active');
 }

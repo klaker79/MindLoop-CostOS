@@ -4947,6 +4947,7 @@
             const ingresosHoyEl = document.getElementById('ingresos-hoy');
             const platoEstrellaEl = document.getElementById('plato-estrella-hoy');
             const alertasListaEl = document.getElementById('alertas-stock-lista');
+            const topRecetasEl = document.getElementById('top-recetas-lista');
 
             if (!ventasHoyEl || !ingresosHoyEl || !platoEstrellaEl || !alertasListaEl) {
                 console.warn('Dashboard elements not loaded yet');
@@ -4959,7 +4960,7 @@
 
             ventasHoyEl.textContent = ventasHoy.length;
             const ingresosHoy = ventasHoy.reduce((sum, v) => sum + parseFloat(v.total), 0);
-            ingresosHoyEl.textContent = ingresosHoy.toFixed(2) + '€';
+            ingresosHoyEl.textContent = ingresosHoy.toFixed(0) + '€';
 
             const platosHoy = {};
             ventasHoy.forEach(v => {
@@ -4967,31 +4968,47 @@
             });
             const platoEstrella = Object.entries(platosHoy).sort((a, b) => b[1] - a[1])[0];
             platoEstrellaEl.textContent = platoEstrella
-                ? platoEstrella[0] + ' (' + platoEstrella[1] + ')'
+                ? platoEstrella[0].substring(0, 10)
                 : 'Sin ventas';
 
+            // Alertas Stock
             const alertas = window.ingredientes.filter(ing => {
                 const stockActual = parseFloat(ing.stock_actual) || 0;
                 const stockMinimo = parseFloat(ing.stock_minimo) || 0;
                 return stockMinimo > 0 && stockActual <= stockMinimo;
-            });
+            }).slice(0, 4); // Limitar a 4 para compacto
 
             if (alertas.length === 0) {
-                alertasListaEl.innerHTML =
-                    '<p style="color: #10B981; margin: 0;">✅ Todo el stock OK</p>';
+                alertasListaEl.innerHTML = '<p style="color: #10B981; margin: 0; font-size: 12px;">✅ Stock OK</p>';
             } else {
                 alertasListaEl.innerHTML = alertas
-                    .map(
-                        ing =>
-                            '<div style="padding: 8px; margin-bottom: 6px; background: #FEF2F2; border-radius: 6px; border-left: 3px solid #EF4444;"><strong>' +
-                            ing.nombre +
-                            '</strong>: ' +
-                            parseFloat(ing.stock_actual).toFixed(1) +
-                            ' ' +
-                            ing.unidad +
-                            '</div>'
-                    )
+                    .map(ing => '<div style="padding: 4px 0; border-bottom: 1px solid #fee2e2;"><strong>' + escapeHTML(ing.nombre) + '</strong>: ' + parseFloat(ing.stock_actual).toFixed(1) + ' ' + ing.unidad + '</div>')
                     .join('');
+            }
+
+            // Top Recetas por margen
+            if (topRecetasEl && window.recetas && window.recetas.length > 0) {
+                const recetasConMargen = window.recetas
+                    .filter(r => r.precio_venta > 0)
+                    .map(r => {
+                        const coste = calcularCosteRecetaCompleto(r);
+                        const margen = ((r.precio_venta - coste) / r.precio_venta) * 100;
+                        return { nombre: r.nombre, margen };
+                    })
+                    .sort((a, b) => b.margen - a.margen)
+                    .slice(0, 3);
+
+                if (recetasConMargen.length > 0) {
+                    topRecetasEl.innerHTML = recetasConMargen
+                        .map((r, i) =>
+                            '<div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f1f5f9;">' +
+                            '<span>' + (i + 1) + '. ' + escapeHTML(r.nombre.substring(0, 12)) + '</span>' +
+                            '<span style="color: ' + (r.margen >= 60 ? '#10B981' : r.margen >= 40 ? '#F59E0B' : '#EF4444') + '; font-weight: 600;">' + r.margen.toFixed(0) + '%</span></div>'
+                        )
+                        .join('');
+                } else {
+                    topRecetasEl.innerHTML = '<p style="color: #64748B; margin: 0; font-size: 12px;">Sin recetas</p>';
+                }
             }
         } catch (e) {
             console.error('Error dashboard:', e);

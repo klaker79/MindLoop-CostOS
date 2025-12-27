@@ -40,7 +40,7 @@
   <!-- Chart.js, XLSX, jsPDF ahora se cargan desde node_modules -->
   <!-- Esto mejora seguridad y control de versiones -->
 
-  <script type="module" crossorigin src="/assets/main-BDsM8gzw.js"></script>
+  <script type="module" crossorigin src="/assets/main-CDbz3aHf.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/main-MQsyKeRU.css">
 </head>
 
@@ -151,1545 +151,1560 @@
       </div>
     </div>
 
-    <!-- KPI Dashboard -->
-    <div class="kpi-dashboard">
-      <div class="kpi-card">
-        <div class="kpi-icon">💰</div>
-        <div class="kpi-label">Ingresos totales</div>
-        <div class="kpi-value" id="kpi-ingresos">0€</div>
-        <div class="kpi-trend positive">
-          <span>↗</span> <span id="kpi-ingresos-trend">+0%</span> este mes
+    <!-- KPI Dashboard Compacto -->
+    <div style="display: flex; align-items: center; gap: 12px; margin: 0 32px 16px 32px; flex-wrap: wrap;">
+      <!-- KPIs en fila -->
+      <div class="kpi-mini"
+        style="flex: 1; min-width: 130px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #10B981;">
+        <span style="font-size: 24px;">💰</span>
+        <div>
+          <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-ingresos">0€</div>
+          <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Ingresos</div>
         </div>
       </div>
 
-      <div class="kpi-card">
-        <div class="kpi-icon">📋</div>
-        <div class="kpi-label">Pedidos activos</div>
-        <div class="kpi-value" id="kpi-pedidos">0</div>
-        <div class="kpi-trend positive">
-          <span>↗</span> <span id="kpi-pedidos-trend">+0%</span> vs anterior
+      <div class="kpi-mini"
+        style="flex: 1; min-width: 130px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #3B82F6;">
+        <span style="font-size: 24px;">📋</span>
+        <div>
+          <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-pedidos">0</div>
+          <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Pedidos</div>
         </div>
       </div>
 
-      <div class="kpi-card">
-        <div class="kpi-icon">⚠️</div>
-        <div class="kpi-label">Stock bajo</div>
-        <div class="kpi-value" id="kpi-stock">0</div>
-        <div class="kpi-trend warning">
-          <span>⚡</span> <span id="kpi-stock-msg">Requieren atención</span>
+      <div class="kpi-mini"
+        style="flex: 1; min-width: 130px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #F59E0B;">
+        <span style="font-size: 24px;">⚠️</span>
+        <div>
+          <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-stock">0</div>
+          <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Stock Bajo</div>
         </div>
       </div>
 
-      <div class="kpi-card">
-        <div class="kpi-icon">📊</div>
-        <div class="kpi-label">Margen promedio</div>
-        <div class="kpi-value" id="kpi-margen">0%</div>
-        <div class="kpi-trend positive">
-          <span>↗</span> <span id="kpi-margen-trend">+0%</span> objetivo
+      <div class="kpi-mini"
+        style="flex: 1; min-width: 130px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #8B5CF6;">
+        <span style="font-size: 24px;">📊</span>
+        <div>
+          <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-margen">0%</div>
+          <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Margen</div>
         </div>
       </div>
     </div>
-    <!-- Dashboard Expandido -->
+    <!-- Dashboard Compacto 2x2 -->
     <div id="dashboard-expandido" class="dashboard-expandido"
-      style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 0 32px 24px 32px;">
+      style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 0 32px 20px 32px;">
 
-      <!-- Alertas de Stock -->
+      <!-- Alertas de Stock (compacto) -->
       <div class="dashboard-card"
-        style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-        <h3 style="margin: 0 0 16px 0; font-size: 16px; color: #1E293B; display: flex; align-items: center; gap: 8px;">
-          🚨 Alertas de Stock
+        style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1E293B; display: flex; align-items: center; gap: 6px;">
+          🚨 Stock Bajo
         </h3>
-        <div id="alertas-stock-lista" style="max-height: 150px; overflow-y: auto; font-size: 14px;">
+        <div id="alertas-stock-lista" style="max-height: 100px; overflow-y: auto; font-size: 13px;">
           <p style="color: #64748B; margin: 0;">Cargando...</p>
         </div>
       </div>
 
-      <!-- Resumen del Día -->
+      <!-- Resumen del Día (compacto) -->
       <div class="dashboard-card"
-        style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-        <h3 style="margin: 0 0 16px 0; font-size: 16px; color: #1E293B; display: flex; align-items: center; gap: 8px;">
-          📊 Resumen de Hoy
+        style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1E293B; display: flex; align-items: center; gap: 6px;">
+          📊 Hoy
         </h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div style="text-align: center; padding: 12px; background: #F0FDF4; border-radius: 8px;">
-            <div style="font-size: 24px; font-weight: 700; color: #10B981;" id="ventas-hoy">0</div>
-            <div style="font-size: 12px; color: #64748B;">Ventas</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+          <div style="text-align: center; padding: 8px; background: #F0FDF4; border-radius: 6px;">
+            <div style="font-size: 18px; font-weight: 700; color: #10B981;" id="ventas-hoy">0</div>
+            <div style="font-size: 10px; color: #64748B;">Ventas</div>
           </div>
-          <div style="text-align: center; padding: 12px; background: #EFF6FF; border-radius: 8px;">
-            <div style="font-size: 24px; font-weight: 700; color: #3B82F6;" id="ingresos-hoy">0€</div>
-            <div style="font-size: 12px; color: #64748B;">Ingresos</div>
+          <div style="text-align: center; padding: 8px; background: #EFF6FF; border-radius: 6px;">
+            <div style="font-size: 18px; font-weight: 700; color: #3B82F6;" id="ingresos-hoy">0€</div>
+            <div style="font-size: 10px; color: #64748B;">Ingresos</div>
           </div>
-        </div>
-        <div style="margin-top: 12px; padding: 12px; background: #FFF7ED; border-radius: 8px; text-align: center;">
-          <div style="font-size: 12px; color: #64748B;">Plato estrella hoy</div>
-          <div style="font-size: 14px; font-weight: 600; color: #F59E0B;" id="plato-estrella-hoy">-</div>
+          <div style="text-align: center; padding: 8px; background: #FFF7ED; border-radius: 6px;">
+            <div style="font-size: 12px; font-weight: 600; color: #F59E0B;" id="plato-estrella-hoy">-</div>
+            <div style="font-size: 10px; color: #64748B;">⭐ Estrella</div>
+          </div>
         </div>
       </div>
 
-      <!-- Accesos Rápidos -->
+      <!-- Acciones Rápidas (compacto, horizontal) -->
       <div class="dashboard-card"
-        style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-        <h3 style="margin: 0 0 16px 0; font-size: 16px; color: #1E293B; display: flex; align-items: center; gap: 8px;">
-          ⚡ Acciones Rápidas
+        style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1E293B; display: flex; align-items: center; gap: 6px;">
+          ⚡ Acciones
         </h3>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button data-tab="ventas"
-            style="padding: 12px; background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
-            💰 Nueva Venta
+            style="flex: 1; min-width: 80px; padding: 10px 12px; background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px;">
+            💰 Venta
           </button>
           <button data-tab="pedidos"
-            style="padding: 12px; background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
-            📦 Nuevo Pedido
+            style="flex: 1; min-width: 80px; padding: 10px 12px; background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px;">
+            📦 Pedido
           </button>
           <button data-tab="inventario"
-            style="padding: 12px; background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
-            🔍 Ver Inventario
+            style="flex: 1; min-width: 80px; padding: 10px 12px; background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px;">
+            🔍 Stock
           </button>
         </div>
       </div>
 
-
-    </div>
-    <div class="tabs">
-      <button id="tab-btn-ingredientes" class="tab active" data-tab="ingredientes">📦
-        Ingredientes</button>
-      <button id="tab-btn-recetas" class="tab" data-tab="recetas">👨‍🍳 Recetas</button>
-      <button id="tab-btn-proveedores" class="tab" data-tab="proveedores">🚚 Proveedores</button>
-      <button id="tab-btn-pedidos" class="tab" data-tab="pedidos">📋 Pedidos</button>
-      <button id="tab-btn-analisis" class="tab" data-tab="analisis">📊 Análisis</button>
-      <button id="tab-btn-inventario" class="tab" data-tab="inventario">📦 Inventario<span id="badge-inventario"
-          class="tab-badge" style="display:none;">0</span></button>
-      <button id="tab-btn-ventas" class="tab" data-tab="ventas">💰 Ventas</button>
-
-      <button id="tab-btn-diario" class="tab" data-tab="diario">📈 Diario</button>
-      <button id="tab-btn-configuracion" class="tab" data-tab="configuracion">⚙️
-        Configuración</button>
-    </div>
-
-    <div class="main-card">
-
-
-
-      <!-- TAB: INGREDIENTES (código anterior simplificado por brevedad) -->
-      <div id="tab-ingredientes" class="tab-content active">
-        <div class="top-bar">
-          <div>
-            <h2>Ingredientes</h2>
-            <p>Gestiona todos los ingredientes de tu restaurante</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" data-action="mostrar-form-ingrediente">➕ Añadir
-              Ingrediente</button>
-            <button class="btn btn-secondary" data-action="importar-ingredientes">📤 Importar
-              Excel</button>
-            <button class="btn btn-secondary" data-action="exportar-ingredientes">📥 Exportar Excel</button>
+      <!-- Top Recetas (nuevo) -->
+      <div class="dashboard-card"
+        style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1E293B; display: flex; align-items: center; gap: 6px;">
+          🏆 Top Recetas
+        </h3>
+        <div id="top-recetas-lista" style="font-size: 13px;">
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9;">
+            <span>1. Cargando...</span>
+            <span style="color: #10B981; font-weight: 600;">-%</span>
           </div>
         </div>
-        <div class="search-box">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
-          <input type="search" id="busqueda-ingredientes" name="busqueda_ing_nocache" placeholder="Buscar..."
-            autocomplete="off" oninput="window.renderizarIngredientes()">
-        </div>
-        <div id="formulario-ingrediente" class="form-card" style="display: none;">
-          <h3>
-            <span id="form-title-ingrediente">Nuevo Ingrediente</span>
-            <button class="close-btn" data-action="cerrar-form-ingrediente">×</button>
-          </h3>
-          <form onsubmit="window.guardarIngrediente(event)">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Nombre *</label>
-                <input type="text" id="ing-nombre" required>
-              </div>
-              <div class="form-group">
-                <label>Proveedor</label>
-                <select id="ing-proveedor-select">
-                  <option value="">Sin proveedor</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Precio (€)</label>
-                <input type="number" id="ing-precio" step="0.01" min="0">
-              </div>
-              <div class="form-group">
-                <label>Unidad</label>
-                <select id="ing-unidad">
-                  <option value="kg">kg</option>
-                  <option value="g">g</option>
-                  <option value="l">L</option>
-                  <option value="ml">ml</option>
-                  <option value="unidad">Unidades</option>
-                  <option value="docena">Docena</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Familia</label>
-                <select id="ing-familia">
-                  <option value="alimento">Alimento</option>
-                  <option value="bebida">Bebida</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Stock actual</label>
-                <input type="number" id="ing-stockActual" step="0.01" min="0">
-              </div>
-              <div class="form-group">
-                <label>Stock mínimo</label>
-                <input type="number" id="ing-stockMinimo" step="0.01" min="0">
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn btn-secondary" data-action="cerrar-form-ingrediente">Cancelar</button>
-              <button type="submit" class="btn btn-primary"><span id="btn-text-ingrediente">Añadir</span></button>
-            </div>
-          </form>
-        </div>
-        <div id="tabla-ingredientes"></div>
-        <div id="resumen-ingredientes" class="summary" style="display: none;"></div>
       </div>
+    </div>
 
-      <!-- TAB: RECETAS (simplificado) -->
-      <div id="tab-recetas" class="tab-content">
-        <div class="top-bar">
-          <div>
-            <h2>Recetas</h2>
-            <p>Crea recetas y calcula costes</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" data-action="mostrar-form-receta">➕ Nueva Receta</button>
-            <button class="btn btn-secondary" data-action="importar-recetas">📤 Importar Excel</button>
-            <button class="btn btn-secondary" data-action="exportar-recetas">📥 Exportar Excel</button>
-            <button class="btn" onclick="window.mostrarCostTracker()"
-              style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 Seguimiento
-              Costes</button>
-          </div>
+
+  </div>
+  <div class="tabs">
+    <button id="tab-btn-ingredientes" class="tab active" data-tab="ingredientes">📦
+      Ingredientes</button>
+    <button id="tab-btn-recetas" class="tab" data-tab="recetas">👨‍🍳 Recetas</button>
+    <button id="tab-btn-proveedores" class="tab" data-tab="proveedores">🚚 Proveedores</button>
+    <button id="tab-btn-pedidos" class="tab" data-tab="pedidos">📋 Pedidos</button>
+    <button id="tab-btn-analisis" class="tab" data-tab="analisis">📊 Análisis</button>
+    <button id="tab-btn-inventario" class="tab" data-tab="inventario">📦 Inventario<span id="badge-inventario"
+        class="tab-badge" style="display:none;">0</span></button>
+    <button id="tab-btn-ventas" class="tab" data-tab="ventas">💰 Ventas</button>
+
+    <button id="tab-btn-diario" class="tab" data-tab="diario">📈 Diario</button>
+    <button id="tab-btn-configuracion" class="tab" data-tab="configuracion">⚙️
+      Configuración</button>
+  </div>
+
+  <div class="main-card">
+
+
+
+    <!-- TAB: INGREDIENTES (código anterior simplificado por brevedad) -->
+    <div id="tab-ingredientes" class="tab-content active">
+      <div class="top-bar">
+        <div>
+          <h2>Ingredientes</h2>
+          <p>Gestiona todos los ingredientes de tu restaurante</p>
         </div>
-        <div class="search-box">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
-          <input type="search" id="busqueda-recetas" name="busqueda_rec_nocache" placeholder="Buscar..."
-            autocomplete="off" oninput="window.renderizarRecetas()">
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-primary" data-action="mostrar-form-ingrediente">➕ Añadir
+            Ingrediente</button>
+          <button class="btn btn-secondary" data-action="importar-ingredientes">📤 Importar
+            Excel</button>
+          <button class="btn btn-secondary" data-action="exportar-ingredientes">📥 Exportar Excel</button>
         </div>
-        <div id="formulario-receta" class="form-card" style="display: none;">
-          <h3>
-            <span id="form-title-receta">Nueva Receta</span>
-            <button class="close-btn" data-action="cerrar-form-receta">×</button>
-          </h3>
-          <form onsubmit="window.guardarReceta(event)">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Nombre *</label>
-                <input type="text" id="rec-nombre" required>
-              </div>
-              <div class="form-group">
-                <label>Código TPV</label>
-                <input type="text" id="rec-codigo" placeholder="Ej: 101">
-              </div>
-              <div class="form-group">
-                <label>Categoría</label>
-                <select id="rec-categoria">
-                  <option value="entrante">Entrante</option>
-                  <option value="principal">Principal</option>
-                  <option value="postre">Postre</option>
-                  <option value="bebida">Bebida</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Precio venta (€)</label>
-                <input type="number" id="rec-precio_venta" step="0.01" min="0" oninput="window.calcularCosteReceta()">
-              </div>
-              <div class="form-group">
-                <label>Porciones</label>
-                <input type="number" id="rec-porciones" min="1" value="1">
-              </div>
+      </div>
+      <div class="search-box">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input type="search" id="busqueda-ingredientes" name="busqueda_ing_nocache" placeholder="Buscar..."
+          autocomplete="off" oninput="window.renderizarIngredientes()">
+      </div>
+      <div id="formulario-ingrediente" class="form-card" style="display: none;">
+        <h3>
+          <span id="form-title-ingrediente">Nuevo Ingrediente</span>
+          <button class="close-btn" data-action="cerrar-form-ingrediente">×</button>
+        </h3>
+        <form onsubmit="window.guardarIngrediente(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre *</label>
+              <input type="text" id="ing-nombre" required>
             </div>
-            <div class="ingredientes-receta">
-              <h4>Ingredientes</h4>
-              <div id="lista-ingredientes-receta"></div>
-              <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-receta">+
-                Añadir</button>
+            <div class="form-group">
+              <label>Proveedor</label>
+              <select id="ing-proveedor-select">
+                <option value="">Sin proveedor</option>
+              </select>
             </div>
-            <div id="coste-calculado-form" class="coste-calculado" style="display: none;">
-              <!-- Panel de Análisis de Costes - Diseño Premium -->
+            <div class="form-group">
+              <label>Precio (€)</label>
+              <input type="number" id="ing-precio" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+              <label>Unidad</label>
+              <select id="ing-unidad">
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="l">L</option>
+                <option value="ml">ml</option>
+                <option value="unidad">Unidades</option>
+                <option value="docena">Docena</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Familia</label>
+              <select id="ing-familia">
+                <option value="alimento">Alimento</option>
+                <option value="bebida">Bebida</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Stock actual</label>
+              <input type="number" id="ing-stockActual" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+              <label>Stock mínimo</label>
+              <input type="number" id="ing-stockMinimo" step="0.01" min="0">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-action="cerrar-form-ingrediente">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><span id="btn-text-ingrediente">Añadir</span></button>
+          </div>
+        </form>
+      </div>
+      <div id="tabla-ingredientes"></div>
+      <div id="resumen-ingredientes" class="summary" style="display: none;"></div>
+    </div>
+
+    <!-- TAB: RECETAS (simplificado) -->
+    <div id="tab-recetas" class="tab-content">
+      <div class="top-bar">
+        <div>
+          <h2>Recetas</h2>
+          <p>Crea recetas y calcula costes</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-primary" data-action="mostrar-form-receta">➕ Nueva Receta</button>
+          <button class="btn btn-secondary" data-action="importar-recetas">📤 Importar Excel</button>
+          <button class="btn btn-secondary" data-action="exportar-recetas">📥 Exportar Excel</button>
+          <button class="btn" onclick="window.mostrarCostTracker()"
+            style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 Seguimiento
+            Costes</button>
+        </div>
+      </div>
+      <div class="search-box">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input type="search" id="busqueda-recetas" name="busqueda_rec_nocache" placeholder="Buscar..."
+          autocomplete="off" oninput="window.renderizarRecetas()">
+      </div>
+      <div id="formulario-receta" class="form-card" style="display: none;">
+        <h3>
+          <span id="form-title-receta">Nueva Receta</span>
+          <button class="close-btn" data-action="cerrar-form-receta">×</button>
+        </h3>
+        <form onsubmit="window.guardarReceta(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre *</label>
+              <input type="text" id="rec-nombre" required>
+            </div>
+            <div class="form-group">
+              <label>Código TPV</label>
+              <input type="text" id="rec-codigo" placeholder="Ej: 101">
+            </div>
+            <div class="form-group">
+              <label>Categoría</label>
+              <select id="rec-categoria">
+                <option value="entrante">Entrante</option>
+                <option value="principal">Principal</option>
+                <option value="postre">Postre</option>
+                <option value="bebida">Bebida</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Precio venta (€)</label>
+              <input type="number" id="rec-precio_venta" step="0.01" min="0" oninput="window.calcularCosteReceta()">
+            </div>
+            <div class="form-group">
+              <label>Porciones</label>
+              <input type="number" id="rec-porciones" min="1" value="1">
+            </div>
+          </div>
+          <div class="ingredientes-receta">
+            <h4>Ingredientes</h4>
+            <div id="lista-ingredientes-receta"></div>
+            <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-receta">+
+              Añadir</button>
+          </div>
+          <div id="coste-calculado-form" class="coste-calculado" style="display: none;">
+            <!-- Panel de Análisis de Costes - Diseño Premium -->
+            <div
+              style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 20px; color: white; margin-bottom: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <span style="font-size: 28px;">📊</span>
+                <div>
+                  <h4 style="margin: 0; font-size: 18px; font-weight: 700;">Análisis Financiero</h4>
+                  <p style="margin: 0; font-size: 13px; opacity: 0.9;">Rentabilidad en tiempo real</p>
+                </div>
+              </div>
+
+              <!-- Coste Total -->
               <div
-                style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 16px; padding: 20px; color: white; margin-bottom: 10px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-                  <span style="font-size: 28px;">📊</span>
+                style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-bottom: 12px; backdrop-filter: blur(10px);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
                   <div>
-                    <h4 style="margin: 0; font-size: 18px; font-weight: 700;">Análisis Financiero</h4>
-                    <p style="margin: 0; font-size: 13px; opacity: 0.9;">Rentabilidad en tiempo real</p>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 20px;">💰</span>
+                      <span style="font-size: 15px; font-weight: 600;">Coste de Producción</span>
+                    </div>
+                    <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
+                      Suma de todos los ingredientes
+                    </p>
                   </div>
-                </div>
-
-                <!-- Coste Total -->
-                <div
-                  style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-bottom: 12px; backdrop-filter: blur(10px);">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                      <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 20px;">💰</span>
-                        <span style="font-size: 15px; font-weight: 600;">Coste de Producción</span>
-                      </div>
-                      <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
-                        Suma de todos los ingredientes
-                      </p>
-                    </div>
-                    <div style="text-align: right;">
-                      <strong id="coste-receta-valor" style="font-size: 28px; font-weight: 800;">0.00€</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Food Cost % -->
-                <div
-                  style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-bottom: 12px; backdrop-filter: blur(10px);">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                      <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 20px;">🎯</span>
-                        <span style="font-size: 15px; font-weight: 600;">Food Cost</span>
-                      </div>
-                      <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
-                        % del precio que es coste (≤33% ideal)
-                      </p>
-                    </div>
-                    <div style="text-align: right;">
-                      <strong id="foodcost-receta-valor" style="font-size: 28px; font-weight: 800;">0.0%</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Margen -->
-                <div
-                  style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                      <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 20px;">📈</span>
-                        <span style="font-size: 15px; font-weight: 600;">Margen de Beneficio</span>
-                      </div>
-                      <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
-                        Beneficio por cada venta
-                      </p>
-                    </div>
-                    <div style="text-align: right;">
-                      <strong id="margen-receta-valor" style="font-size: 28px; font-weight: 800;">0.0%</strong>
-                    </div>
+                  <div style="text-align: right;">
+                    <strong id="coste-receta-valor" style="font-size: 28px; font-weight: 800;">0.00€</strong>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn btn-secondary" data-action="cerrar-form-receta">Cancelar</button>
-              <button type="submit" class="btn btn-primary"><span id="btn-text-receta">Guardar</span></button>
-            </div>
-          </form>
-        </div>
-        <div id="tabla-recetas"></div>
-        <div id="resumen-recetas" class="summary" style="display: none;"></div>
-      </div>
 
-      <!-- TAB: PROVEEDORES (simplificado) -->
-      <div id="tab-proveedores" class="tab-content">
-        <div class="top-bar">
-          <div>
-            <h2>Proveedores</h2>
-            <p>Gestiona tus proveedores</p>
-          </div>
-          <button class="btn btn-primary" data-action="mostrar-form-proveedor">+ Añadir Proveedor</button>
-        </div>
-        <div class="search-box">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
-          <input type="search" id="busqueda-proveedores" name="busqueda_prov_nocache" placeholder="Buscar..."
-            autocomplete="off" oninput="window.renderizarProveedores()">
-        </div>
-        <div id="formulario-proveedor" class="form-card" style="display: none;">
-          <h3>
-            <span id="form-title-proveedor">Nuevo Proveedor</span>
-            <button class="close-btn" data-action="cerrar-form-proveedor">×</button>
-          </h3>
-          <form onsubmit="window.guardarProveedor(event)">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Nombre *</label>
-                <input type="text" id="prov-nombre" required>
-              </div>
-              <div class="form-group">
-                <label>Contacto</label>
-                <input type="text" id="prov-contacto">
-              </div>
-              <div class="form-group">
-                <label>Teléfono</label>
-                <input type="tel" id="prov-telefono">
-              </div>
-              <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="prov-email">
-              </div>
-              <div class="form-group" style="grid-column: 1 / -1;">
-                <label>Dirección</label>
-                <textarea id="prov-direccion"></textarea>
-              </div>
-              <div class="form-group" style="grid-column: 1 / -1;">
-                <label>Notas</label>
-                <textarea id="prov-notas"></textarea>
-              </div>
-            </div>
-            <div class="selector-ingredientes">
-              <h4>Ingredientes que suministra</h4>
-              <div class="search-box" style="margin-bottom: 10px;">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-                <input type="text" id="buscar-ingredientes-proveedor" placeholder="Buscar..."
-                  oninput="window.filtrarIngredientesProveedor()">
-              </div>
-              <div class="ingredientes-disponibles" id="lista-ingredientes-proveedor"></div>
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn btn-secondary" data-action="cerrar-form-proveedor">Cancelar</button>
-              <button type="submit" class="btn btn-primary"><span id="btn-text-proveedor">Añadir</span></button>
-            </div>
-          </form>
-        </div>
-        <div id="tabla-proveedores"></div>
-        <div id="resumen-proveedores" class="summary" style="display: none;"></div>
-      </div>
-
-      <!-- TAB: PEDIDOS -->
-      <div id="tab-pedidos" class="tab-content">
-        <div class="top-bar">
-          <div>
-            <h2>Pedidos a Proveedores</h2>
-            <p>Gestiona tus pedidos y actualiza stock automáticamente</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" data-action="mostrar-form-pedido">+ Nuevo Pedido</button>
-            <button class="btn btn-secondary" data-action="importar-pedidos">📤 Importar
-              Pedidos</button>
-          </div>
-        </div>
-
-        <div class="search-box">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
-          <input type="search" id="busqueda-pedidos" name="busqueda_ped_nocache" placeholder="Buscar pedidos..."
-            autocomplete="off" oninput="window.renderizarPedidos()">
-        </div>
-
-        <div id="formulario-pedido" class="form-card" style="display: none;">
-          <h3>
-            <span>Nuevo Pedido</span>
-            <button class="close-btn" data-action="cerrar-form-pedido">×</button>
-          </h3>
-          <form onsubmit="window.guardarPedido(event)">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Proveedor *</label>
-                <select id="ped-proveedor" required onchange="window.cargarIngredientesPedido()">
-                  <option value="">Seleccionar proveedor...</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Fecha del pedido</label>
-                <input type="date" id="ped-fecha" required>
-              </div>
-            </div>
-
-            <div class="ingredientes-receta" id="container-ingredientes-pedido" style="display:none;">
-              <h4>Ingredientes del pedido</h4>
-              <div id="lista-ingredientes-pedido"></div>
-              <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-pedido">+
-                Añadir ingrediente</button>
-            </div>
-
-            <div id="total-pedido-form" style="display:none;" class="total-pedido">
-              Total: <strong id="total-pedido-value">0.00 €</strong>
-            </div>
-
-            <div class="form-actions" style="margin-top: 20px;">
-              <button type="button" class="btn btn-secondary" data-action="cerrar-form-pedido">Cancelar</button>
-              <button type="submit" class="btn btn-primary">Crear Pedido</button>
-            </div>
-          </form>
-        </div>
-
-        <div id="tabla-pedidos"></div>
-        <div id="resumen-pedidos" class="summary" style="display: none;"></div>
-      </div>
-
-      <!-- TAB: ANÁLISIS -->
-      <div id="tab-analisis" class="tab-content">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3>📊 Ingresos vs Gastos</h3>
-            <p>Evolución financiera de los últimos 7 días</p>
-          </div>
-          <canvas id="revenueChart"></canvas>
-        </div>
-
-        <div id="analisis-vacio" class="empty-state">
-          <div class="icon">📊</div>
-          <h3>Aún no hay datos</h3>
-          <p>Añade ingredientes y recetas</p>
-        </div>
-
-        <div id="analisis-contenido" style="display: none;">
-          <div class="stats-grid">
-            <div class="stat-card">
-              <h3>Total Recetas</h3>
-              <div class="value" id="stat-total-recetas">0</div>
-            </div>
-            <div class="stat-card green">
-              <h3>Margen Promedio</h3>
-              <div class="value" id="stat-margen-promedio">0%</div>
-            </div>
-            <div class="stat-card blue">
-              <h3>Coste Promedio</h3>
-              <div class="value" id="stat-coste-promedio">0 €</div>
-            </div>
-            <div class="stat-card orange">
-              <h3>Total Ingredientes</h3>
-              <div class="value" id="stat-total-ingredientes">0</div>
-            </div>
-          </div>
-          <div class="charts-grid charts-grid-compact">
-            <div class="chart-card chart-card-compact">
-              <h3>📊 Rentabilidad por Plato</h3>
-              <canvas id="chart-rentabilidad"></canvas>
-            </div>
-            <div class="chart-card chart-card-compact">
-              <h3>🥬 Alimentos Más Caros</h3>
-              <canvas id="chart-ingredientes"></canvas>
-            </div>
-            <div class="chart-card chart-card-compact">
-              <h3>🍺 Bebidas Más Caras</h3>
-              <canvas id="chart-bebidas"></canvas>
-            </div>
-            <div class="chart-card chart-card-compact">
-              <h3>📈 Margen por Categoría</h3>
-              <canvas id="chart-margen-categoria"></canvas>
-            </div>
-          </div>
-          <div class="chart-card">
-            <h3>Ranking de Rentabilidad</h3>
-            <div id="tabla-rentabilidad"></div>
-          </div>
-
-          <!-- Matriz BCG - Rediseño Profesional -->
-          <div class="chart-card" id="bcg-matrix-container" style="margin-top: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-              <div>
-                <h3 style="margin: 0;">🏆 Ingeniería de Menú</h3>
-                <p style="margin: 5px 0 0; font-size: 13px; color: #64748b;">Optimiza tu carta con datos reales</p>
-              </div>
-              <div style="display: flex; gap: 8px;">
-                <span class="bcg-legend-item" style="--color: #22c55e;">⭐ Estrellas</span>
-                <span class="bcg-legend-item" style="--color: #3b82f6;">❓ Puzzles</span>
-                <span class="bcg-legend-item" style="--color: #f97316;">🐎 Caballos</span>
-                <span class="bcg-legend-item" style="--color: #ef4444;">🐶 Perros</span>
-              </div>
-            </div>
-
-            <!-- Scatter Plot Container -->
-            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px;">
-              <!-- Gráfico Scatter -->
+              <!-- Food Cost % -->
               <div
-                style="background: #f8fafc; border-radius: 16px; padding: 20px; position: relative; min-height: 350px;">
-                <div
-                  style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #64748b; font-weight: 600;">
-                  📈 ALTA RENTABILIDAD
+                style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; margin-bottom: 12px; backdrop-filter: blur(10px);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 20px;">🎯</span>
+                      <span style="font-size: 15px; font-weight: 600;">Food Cost</span>
+                    </div>
+                    <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
+                      % del precio que es coste (≤33% ideal)
+                    </p>
+                  </div>
+                  <div style="text-align: right;">
+                    <strong id="foodcost-receta-valor" style="font-size: 28px; font-weight: 800;">0.0%</strong>
+                  </div>
                 </div>
-                <div
-                  style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #64748b; font-weight: 600;">
-                  📉 BAJA RENTABILIDAD
-                </div>
-                <div
-                  style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%) rotate(-90deg); font-size: 11px; color: #64748b; font-weight: 600;">
-                  🔻 BAJA POPULARIDAD
-                </div>
-                <div
-                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%) rotate(90deg); font-size: 11px; color: #64748b; font-weight: 600;">
-                  🔺 ALTA POPULARIDAD
-                </div>
-                <canvas id="bcg-scatter-chart" style="width: 100%; height: 300px;"></canvas>
               </div>
 
-              <!-- Panel de Acciones Rápidas -->
-              <div style="display: flex; flex-direction: column; gap: 12px;">
-                <!-- Acción Estrellas -->
-                <div class="bcg-action-card bcg-action-estrella" data-action="toggle-expand">
-                  <div class="bcg-action-header">
-                    <span class="bcg-action-icon">⭐</span>
-                    <span class="bcg-action-title">Estrellas</span>
-                    <span class="bcg-action-count" id="count-estrella">0</span>
-                    <span class="bcg-expand-icon">▼</span>
+              <!-- Margen -->
+              <div
+                style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 20px;">📈</span>
+                      <span style="font-size: 15px; font-weight: 600;">Margen de Beneficio</span>
+                    </div>
+                    <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
+                      Beneficio por cada venta
+                    </p>
                   </div>
-                  <div class="bcg-action-text">Mantén y destaca</div>
-                  <div class="bcg-action-detail" id="detail-estrella">
-                    <strong>Estrategia recomendada:</strong>
-                    <ul>
-                      <li>Mantén la calidad constante</li>
-                      <li>Destácalos en el menú principal</li>
-                      <li>Considera subir precio (+5-10%)</li>
-                      <li>Capacita al equipo para recomendarlos</li>
-                      <li>Usa fotos en redes sociales</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <!-- Acción Puzzles -->
-                <div class="bcg-action-card bcg-action-puzzle" data-action="toggle-expand">
-                  <div class="bcg-action-header">
-                    <span class="bcg-action-icon">❓</span>
-                    <span class="bcg-action-title">Puzzles</span>
-                    <span class="bcg-action-count" id="count-puzzle">0</span>
-                    <span class="bcg-expand-icon">▼</span>
-                  </div>
-                  <div class="bcg-action-text">Promociona más</div>
-                  <div class="bcg-action-detail" id="detail-puzzle">
-                    <strong>Estrategia recomendada:</strong>
-                    <ul>
-                      <li>Mejora la visibilidad en la carta</li>
-                      <li>Añade foto profesional</li>
-                      <li>Forma al personal para recomendarlos</li>
-                      <li>Crea combos con platos populares</li>
-                      <li>Si no mejoran, evalúa retirarlos</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <!-- Acción Caballos -->
-                <div class="bcg-action-card bcg-action-caballo" data-action="toggle-expand">
-                  <div class="bcg-action-header">
-                    <span class="bcg-action-icon">🐎</span>
-                    <span class="bcg-action-title">Caballos</span>
-                    <span class="bcg-action-count" id="count-caballo">0</span>
-                    <span class="bcg-expand-icon">▼</span>
-                  </div>
-                  <div class="bcg-action-text">Sube el precio</div>
-                  <div class="bcg-action-detail" id="detail-caballo">
-                    <strong>⚠️ Atención:</strong> Trabajan mucho pero ganan poco.
-                    <ul>
-                      <li>Sube el precio gradualmente (5-10%)</li>
-                      <li>Renegocia con proveedores</li>
-                      <li>Reduce porciones sin afectar percepción</li>
-                      <li>Usa ingredientes más económicos</li>
-                      <li>Candidatos a retirar si no mejoran</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <!-- Acción Perros -->
-                <div class="bcg-action-card bcg-action-perro" data-action="toggle-expand">
-                  <div class="bcg-action-header">
-                    <span class="bcg-action-icon">🐶</span>
-                    <span class="bcg-action-title">Perros</span>
-                    <span class="bcg-action-count" id="count-perro">0</span>
-                    <span class="bcg-expand-icon">▼</span>
-                  </div>
-                  <div class="bcg-action-text">Retira o reforma</div>
-                  <div class="bcg-action-detail" id="detail-perro">
-                    <strong>🚨 Acción urgente:</strong> Ocupan espacio sin aportar valor.
-                    <ul>
-                      <li>Retíralos del menú cuanto antes</li>
-                      <li>Liberan inventario y tiempo de cocina</li>
-                      <li>Si tienen valor sentimental: especial del día</li>
-                      <li>Reformula completamente la receta</li>
-                      <li>Redirige recursos a tus Estrellas</li>
-                    </ul>
+                  <div style="text-align: right;">
+                    <strong id="margen-receta-valor" style="font-size: 28px; font-weight: 800;">0.0%</strong>
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- Panel de Recomendaciones Inteligentes -->
-            <div id="bcg-recommendations"
-              style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border-radius: 12px; border: 1px solid #c4b5fd;">
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <span style="font-size: 20px;">💡</span>
-                <strong style="color: #5b21b6;">Recomendaciones Inteligentes</strong>
-              </div>
-              <div id="bcg-recommendations-list" style="font-size: 13px; color: #4c1d95; line-height: 1.6;"></div>
-            </div>
-
-            <!-- Lista detallada colapsable -->
-            <details style="margin-top: 16px;">
-              <summary style="cursor: pointer; font-weight: 600; color: #64748b; padding: 10px 0;">
-                📋 Ver lista detallada de platos por categoría
-              </summary>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                <!-- Estrellas -->
-                <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border: 2px solid #22c55e;">
-                  <h4 style="color: #15803d; margin: 0 0 10px 0; font-size: 14px;">⭐ Estrellas</h4>
-                  <div id="lista-estrella" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                </div>
-                <!-- Puzzles -->
-                <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 2px solid #3b82f6;">
-                  <h4 style="color: #1d4ed8; margin: 0 0 10px 0; font-size: 14px;">❓ Puzzles</h4>
-                  <div id="lista-puzzle" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                </div>
-                <!-- Caballos -->
-                <div style="background: #fff7ed; padding: 15px; border-radius: 12px; border: 2px solid #f97316;">
-                  <h4 style="color: #c2410c; margin: 0 0 10px 0; font-size: 14px;">🐎 Caballos</h4>
-                  <div id="lista-caballo" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                </div>
-                <!-- Perros -->
-                <div style="background: #fef2f2; padding: 15px; border-radius: 12px; border: 2px solid #ef4444;">
-                  <h4 style="color: #b91c1c; margin: 0 0 10px 0; font-size: 14px;">🐶 Perros</h4>
-                  <div id="lista-perro" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                </div>
-              </div>
-            </details>
-
-            <style>
-              .bcg-legend-item {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                font-size: 11px;
-                padding: 4px 10px;
-                background: white;
-                border-radius: 20px;
-                border: 2px solid var(--color);
-                color: var(--color);
-                font-weight: 600;
-              }
-
-              .bcg-action-card {
-                padding: 12px 16px;
-                border-radius: 12px;
-                transition: all 0.2s ease;
-                cursor: pointer;
-              }
-
-              .bcg-action-card:hover {
-                transform: translateX(4px);
-              }
-
-              .bcg-action-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-              }
-
-              .bcg-action-icon {
-                font-size: 18px;
-              }
-
-              .bcg-action-title {
-                font-weight: 600;
-                font-size: 14px;
-                flex: 1;
-              }
-
-              .bcg-action-count {
-                background: rgba(255, 255, 255, 0.5);
-                padding: 2px 10px;
-                border-radius: 12px;
-                font-size: 13px;
-                font-weight: 700;
-              }
-
-              .bcg-action-text {
-                font-size: 12px;
-                margin-top: 4px;
-                opacity: 0.8;
-              }
-
-              .bcg-action-estrella {
-                background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-                border: 1px solid #86efac;
-                color: #15803d;
-              }
-
-              .bcg-action-puzzle {
-                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-                border: 1px solid #93c5fd;
-                color: #1d4ed8;
-              }
-
-              .bcg-action-caballo {
-                background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
-                border: 1px solid #fdba74;
-                color: #c2410c;
-              }
-
-              .bcg-action-perro {
-                background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-                border: 1px solid #fca5a5;
-                color: #b91c1c;
-              }
-
-              /* Estilos para paneles expandibles */
-              .bcg-expand-icon {
-                font-size: 10px;
-                opacity: 0.6;
-                transition: transform 0.3s ease;
-              }
-
-              .bcg-action-card.expanded .bcg-expand-icon {
-                transform: rotate(180deg);
-              }
-
-              .bcg-action-detail {
-                display: none;
-                margin-top: 10px;
-                padding-top: 10px;
-                border-top: 1px dashed currentColor;
-                font-size: 12px;
-                line-height: 1.5;
-                opacity: 0.9;
-              }
-
-              .bcg-action-detail ul {
-                margin: 8px 0 0 0;
-                padding-left: 18px;
-              }
-
-              .bcg-action-detail li {
-                margin-bottom: 4px;
-              }
-
-              .bcg-action-card.expanded .bcg-action-detail {
-                display: block;
-                animation: fadeIn 0.3s ease;
-              }
-
-              @keyframes fadeIn {
-                from {
-                  opacity: 0;
-                  transform: translateY(-5px);
-                }
-
-                to {
-                  opacity: 1;
-                  transform: translateY(0);
-                }
-              }
-
-              .bcg-item {
-                background: white;
-                padding: 8px 12px;
-                border-radius: 8px;
-                font-size: 12px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                border: 1px solid rgba(0, 0, 0, 0.05);
-                transition: transform 0.2s;
-              }
-
-              .bcg-item:hover {
-                transform: scale(1.02);
-              }
-
-              @media (max-width: 768px) {
-                #bcg-matrix-container>div:first-of-type {
-                  flex-direction: column;
-                  gap: 15px;
-                }
-
-                #bcg-matrix-container>div>div:first-child {
-                  grid-template-columns: 1fr;
-                }
-              }
-            </style>
           </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-action="cerrar-form-receta">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><span id="btn-text-receta">Guardar</span></button>
+          </div>
+        </form>
+      </div>
+      <div id="tabla-recetas"></div>
+      <div id="resumen-recetas" class="summary" style="display: none;"></div>
+    </div>
+
+    <!-- TAB: PROVEEDORES (simplificado) -->
+    <div id="tab-proveedores" class="tab-content">
+      <div class="top-bar">
+        <div>
+          <h2>Proveedores</h2>
+          <p>Gestiona tus proveedores</p>
+        </div>
+        <button class="btn btn-primary" data-action="mostrar-form-proveedor">+ Añadir Proveedor</button>
+      </div>
+      <div class="search-box">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input type="search" id="busqueda-proveedores" name="busqueda_prov_nocache" placeholder="Buscar..."
+          autocomplete="off" oninput="window.renderizarProveedores()">
+      </div>
+      <div id="formulario-proveedor" class="form-card" style="display: none;">
+        <h3>
+          <span id="form-title-proveedor">Nuevo Proveedor</span>
+          <button class="close-btn" data-action="cerrar-form-proveedor">×</button>
+        </h3>
+        <form onsubmit="window.guardarProveedor(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre *</label>
+              <input type="text" id="prov-nombre" required>
+            </div>
+            <div class="form-group">
+              <label>Contacto</label>
+              <input type="text" id="prov-contacto">
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="tel" id="prov-telefono">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="prov-email">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Dirección</label>
+              <textarea id="prov-direccion"></textarea>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Notas</label>
+              <textarea id="prov-notas"></textarea>
+            </div>
+          </div>
+          <div class="selector-ingredientes">
+            <h4>Ingredientes que suministra</h4>
+            <div class="search-box" style="margin-bottom: 10px;">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <input type="text" id="buscar-ingredientes-proveedor" placeholder="Buscar..."
+                oninput="window.filtrarIngredientesProveedor()">
+            </div>
+            <div class="ingredientes-disponibles" id="lista-ingredientes-proveedor"></div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-action="cerrar-form-proveedor">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><span id="btn-text-proveedor">Añadir</span></button>
+          </div>
+        </form>
+      </div>
+      <div id="tabla-proveedores"></div>
+      <div id="resumen-proveedores" class="summary" style="display: none;"></div>
+    </div>
+
+    <!-- TAB: PEDIDOS -->
+    <div id="tab-pedidos" class="tab-content">
+      <div class="top-bar">
+        <div>
+          <h2>Pedidos a Proveedores</h2>
+          <p>Gestiona tus pedidos y actualiza stock automáticamente</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-primary" data-action="mostrar-form-pedido">+ Nuevo Pedido</button>
+          <button class="btn btn-secondary" data-action="importar-pedidos">📤 Importar
+            Pedidos</button>
         </div>
       </div>
 
-      <!-- TAB: INVENTARIO -->
-      <div id="tab-inventario" class="tab-content">
-        <div class="top-bar">
-          <div>
-            <h2>📦 Inventario</h2>
-            <p>Control de stock de ingredientes</p>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-          <button class="btn btn-secondary" data-action="mostrar-modal-inventario-masivo">📊 ACTUALIZAR INVENTARIO
-            MASIVO</button>
-          <button class="btn btn-primary" data-action="guardar-cambios-stock">💾 Guardar Stock</button>
-        </div>
-
-        <div id="resumen-inventario" style="display: none; gap: 20px;"></div>
-
-
-        <div class="card">
-          <div style="margin-bottom: 20px;">
-            <input type="text" id="busqueda-inventario" placeholder="🔍 Buscar ingrediente..."
-              style="width: 100%; max-width: 400px;">
-          </div>
-
-          <div id="tabla-inventario"></div>
-        </div>
-      </div>
-      <!-- TAB: VENTAS -->
-      <div id="tab-ventas" class="tab-content">
-        <div class="top-bar">
-          <div>
-            <h2>💰 Ventas</h2>
-            <p>Registro diario de ventas</p>
-          </div>
-          <button class="btn btn-secondary" data-action="importar-ventas">📤 Importar Ventas
-            TPV</button>
-        </div>
-
-        <div class="card">
-          <h3>Registrar Venta</h3>
-          <form id="form-venta">
-            <label>Plato:</label>
-            <select id="venta-receta" required></select>
-
-            <label>Cantidad:</label>
-            <input type="number" id="venta-cantidad" min="1" value="1" required>
-
-            <button type="submit" class="btn btn-success">Registrar Venta</button>
-          </form>
-        </div>
-        <div class="card" style="margin-bottom: 20px;">
-          <h3>📅 Filtrar por Fecha</h3>
-          <div style="display: flex; gap: 15px; align-items: end;">
-            <div class="form-group" style="flex: 1;">
-              <label>Desde:</label>
-              <input type="date" id="ventas-fecha-desde" class="form-control">
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Hasta:</label>
-              <input type="date" id="ventas-fecha-hasta" class="form-control">
-            </div>
-            <button class="btn btn-primary" data-action="filtrar-ventas">🔍 Filtrar</button>
-            <button class="btn btn-secondary" data-action="limpiar-filtros-ventas">🔄
-              Limpiar</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin: 0;">📊 Histórico de Ventas</h3>
-            <button class="btn btn-secondary" data-action="exportar-ventas">📥 Exportar Excel</button>
-          </div>
-          <div id="tabla-ventas"></div>
-        </div>
+      <div class="search-box">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input type="search" id="busqueda-pedidos" name="busqueda_ped_nocache" placeholder="Buscar pedidos..."
+          autocomplete="off" oninput="window.renderizarPedidos()">
       </div>
 
-      <!-- TAB: DIARIO (Tracking de Costes/Ventas por Día) -->
-      <div id="tab-diario" class="tab-content">
-        <div class="top-bar">
-          <div>
-            <h2>📈 Control Diario</h2>
-            <p>Tracking de compras y ventas por día - Vista tipo Excel</p>
+      <div id="formulario-pedido" class="form-card" style="display: none;">
+        <h3>
+          <span>Nuevo Pedido</span>
+          <button class="close-btn" data-action="cerrar-form-pedido">×</button>
+        </h3>
+        <form onsubmit="window.guardarPedido(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Proveedor *</label>
+              <select id="ped-proveedor" required onchange="window.cargarIngredientesPedido()">
+                <option value="">Seleccionar proveedor...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha del pedido</label>
+              <input type="date" id="ped-fecha" required>
+            </div>
           </div>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <select id="diario-mes" class="form-control"
-              style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-              <option value="1">Enero</option>
-              <option value="2">Febrero</option>
-              <option value="3">Marzo</option>
-              <option value="4">Abril</option>
-              <option value="5">Mayo</option>
-              <option value="6">Junio</option>
-              <option value="7">Julio</option>
-              <option value="8">Agosto</option>
-              <option value="9">Septiembre</option>
-              <option value="10">Octubre</option>
-              <option value="11">Noviembre</option>
-              <option value="12">Diciembre</option>
-            </select>
-            <select id="diario-ano" class="form-control"
-              style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-              <option value="2024">2024</option>
-              <option value="2025" selected>2025</option>
-              <option value="2026">2026</option>
-            </select>
-            <button class="btn btn-primary" data-action="cargar-resumen-mensual">🔄 Cargar</button>
-            <button class="btn btn-secondary" data-action="exportar-diario-excel">📥 Exportar Excel</button>
+
+          <div class="ingredientes-receta" id="container-ingredientes-pedido" style="display:none;">
+            <h4>Ingredientes del pedido</h4>
+            <div id="lista-ingredientes-pedido"></div>
+            <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-pedido">+
+              Añadir ingrediente</button>
           </div>
+
+          <div id="total-pedido-form" style="display:none;" class="total-pedido">
+            Total: <strong id="total-pedido-value">0.00 €</strong>
+          </div>
+
+          <div class="form-actions" style="margin-top: 20px;">
+            <button type="button" class="btn btn-secondary" data-action="cerrar-form-pedido">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Crear Pedido</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="tabla-pedidos"></div>
+      <div id="resumen-pedidos" class="summary" style="display: none;"></div>
+    </div>
+
+    <!-- TAB: ANÁLISIS -->
+    <div id="tab-analisis" class="tab-content">
+      <div class="chart-container">
+        <div class="chart-header">
+          <h3>📊 Ingresos vs Gastos</h3>
+          <p>Evolución financiera de los últimos 7 días</p>
         </div>
+        <canvas id="revenueChart"></canvas>
+      </div>
 
-        <!-- Selector de Vista -->
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-          <button id="btn-vista-compras" class="btn btn-primary" data-action="vista-diario" data-vista="compras">🛒
-            Compras (Costes)</button>
-          <button id="btn-vista-ventas" class="btn btn-secondary" data-action="vista-diario" data-vista="ventas">💰
-            Ventas (Ingresos)</button>
-          <button id="btn-vista-combinada" class="btn btn-secondary" data-action="vista-diario"
-            data-vista="combinada">📊
-            P&L Diario</button>
-        </div>
-        <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
-        <div style="margin-top: 30px;">
-          <!-- Vista Compras -->
-          <div id="vista-compras" class="diario-vista" style="display: block;">
-            <h3 style="margin-bottom: 15px;">🛒 Precio de Compra por Ingrediente / Día</h3>
-            <div id="tabla-compras-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
-              <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
-            </div>
-          </div>
+      <div id="analisis-vacio" class="empty-state">
+        <div class="icon">📊</div>
+        <h3>Aún no hay datos</h3>
+        <p>Añade ingredientes y recetas</p>
+      </div>
 
-          <!-- Vista Ventas -->
-          <div id="vista-ventas" class="diario-vista" style="display: none;">
-            <h3 style="margin-bottom: 15px;">💰 Ventas por Receta / Día</h3>
-            <div id="tabla-ventas-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
-              <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
-            </div>
-          </div>
-
-          <!-- Vista Combinada (P&L) -->
-          <div id="vista-combinada" class="diario-vista" style="display: none;">
-            <h3 style="margin-bottom: 15px;">📊 Cuenta de Resultados Diaria</h3>
-            <div id="tabla-pl-diario" style="overflow-x: auto; width: 100%; max-width: 100%;">
-              <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- 💰 BENEFICIO NETO POR DÍA (MOVIDA ABAJO) -->
-        <div
-          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; margin-top: 20px; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);">
-          <h3 style="margin: 0 0 16px 0; font-size: 16px; color: white; display: flex; align-items: center; gap: 8px;">
-            💰 Beneficio Neto por Día
-          </h3>
-          <div id="beneficio-neto-diario-lista"
-            style="max-height: 300px; overflow-y: auto; background: white; border-radius: 12px; padding: 12px;">
-            <p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos</p>
-          </div>
-        </div>
-
-
-
-        <!-- 💰 GASTOS FIJOS MENSUALES -->
-        <div
-          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);">
-          <h3 style="margin: 0 0 20px 0; color: white; font-size: 20px; font-weight: 700;">💰 Gastos Fijos Mensuales
-          </h3>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-            <!-- Alquiler -->
-            <div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Alquiler Local</label>
-                <span id="gf-alquiler-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
-              </div>
-              <input type="range" id="gf-alquiler" min="0" max="10000" step="100" value="0"
-                style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                oninput="document.getElementById('gf-alquiler-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('alquiler', 'gf-alquiler');">
-            </div>
-
-            <!-- Personal -->
-            <div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Personal
-                  (Nóminas)</label>
-                <span id="gf-personal-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
-              </div>
-              <input type="range" id="gf-personal" min="0" max="30000" step="100" value="0"
-                style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                oninput="document.getElementById('gf-personal-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('personal', 'gf-personal');">
-            </div>
-
-            <!-- Suministros -->
-            <div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Suministros</label>
-                <span id="gf-suministros-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
-              </div>
-              <input type="range" id="gf-suministros" min="0" max="5000" step="50" value="0"
-                style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                oninput="document.getElementById('gf-suministros-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('suministros', 'gf-suministros');">
-            </div>
-
-            <!-- Otros -->
-            <div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Otros Gastos</label>
-                <span id="gf-otros-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
-              </div>
-              <input type="range" id="gf-otros" min="0" max="5000" step="50" value="0"
-                style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                oninput="document.getElementById('gf-otros-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('otros', 'gf-otros');">
-            </div>
-          </div>
-          <div
-            style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 10px; text-align: center;">
-            <span style="color: white; font-size: 13px; font-weight: 500;">✓ Se guardan automáticamente y aparecen en el
-              P&L Diario</span>
-          </div>
-        </div>
-
-        <!-- Resumen Rápido -->
-        <div class="stats-grid" id="diario-resumen">
+      <div id="analisis-contenido" style="display: none;">
+        <div class="stats-grid">
           <div class="stat-card">
-            <h3>Total Compras Mes</h3>
-            <div class="value" id="diario-total-compras">0.00 €</div>
+            <h3>Total Recetas</h3>
+            <div class="value" id="stat-total-recetas">0</div>
           </div>
           <div class="stat-card green">
-            <h3>Total Ventas Mes</h3>
-            <div class="value" id="diario-total-ventas">0.00 €</div>
+            <h3>Margen Promedio</h3>
+            <div class="value" id="stat-margen-promedio">0%</div>
           </div>
           <div class="stat-card blue">
-            <h3>Beneficio Bruto</h3>
-            <div class="value" id="diario-beneficio">0.00 €</div>
+            <h3>Coste Promedio</h3>
+            <div class="value" id="stat-coste-promedio">0 €</div>
           </div>
           <div class="stat-card orange">
-            <h3>Food Cost</h3>
-            <div class="value" id="diario-food-cost">0.0%</div>
+            <h3>Total Ingredientes</h3>
+            <div class="value" id="stat-total-ingredientes">0</div>
           </div>
-          <div class="stat-card purple"
-            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-            <h3 style="color: rgba(255,255,255,0.9);">💰 Gastos Fijos Totales</h3>
-            <div class="value" id="diario-gastos-fijos-total" style="color: white;">0.00 €</div>
+        </div>
+        <div class="charts-grid charts-grid-compact">
+          <div class="chart-card chart-card-compact">
+            <h3>📊 Rentabilidad por Plato</h3>
+            <canvas id="chart-rentabilidad"></canvas>
+          </div>
+          <div class="chart-card chart-card-compact">
+            <h3>🥬 Alimentos Más Caros</h3>
+            <canvas id="chart-ingredientes"></canvas>
+          </div>
+          <div class="chart-card chart-card-compact">
+            <h3>🍺 Bebidas Más Caras</h3>
+            <canvas id="chart-bebidas"></canvas>
+          </div>
+          <div class="chart-card chart-card-compact">
+            <h3>📈 Margen por Categoría</h3>
+            <canvas id="chart-margen-categoria"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Ranking de Rentabilidad</h3>
+          <div id="tabla-rentabilidad"></div>
+        </div>
+
+        <!-- Matriz BCG - Rediseño Profesional -->
+        <div class="chart-card" id="bcg-matrix-container" style="margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+              <h3 style="margin: 0;">🏆 Ingeniería de Menú</h3>
+              <p style="margin: 5px 0 0; font-size: 13px; color: #64748b;">Optimiza tu carta con datos reales</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <span class="bcg-legend-item" style="--color: #22c55e;">⭐ Estrellas</span>
+              <span class="bcg-legend-item" style="--color: #3b82f6;">❓ Puzzles</span>
+              <span class="bcg-legend-item" style="--color: #f97316;">🐎 Caballos</span>
+              <span class="bcg-legend-item" style="--color: #ef4444;">🐶 Perros</span>
+            </div>
+          </div>
+
+          <!-- Scatter Plot Container -->
+          <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px;">
+            <!-- Gráfico Scatter -->
+            <div
+              style="background: #f8fafc; border-radius: 16px; padding: 20px; position: relative; min-height: 350px;">
+              <div
+                style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #64748b; font-weight: 600;">
+                📈 ALTA RENTABILIDAD
+              </div>
+              <div
+                style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #64748b; font-weight: 600;">
+                📉 BAJA RENTABILIDAD
+              </div>
+              <div
+                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%) rotate(-90deg); font-size: 11px; color: #64748b; font-weight: 600;">
+                🔻 BAJA POPULARIDAD
+              </div>
+              <div
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%) rotate(90deg); font-size: 11px; color: #64748b; font-weight: 600;">
+                🔺 ALTA POPULARIDAD
+              </div>
+              <canvas id="bcg-scatter-chart" style="width: 100%; height: 300px;"></canvas>
+            </div>
+
+            <!-- Panel de Acciones Rápidas -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <!-- Acción Estrellas -->
+              <div class="bcg-action-card bcg-action-estrella" data-action="toggle-expand">
+                <div class="bcg-action-header">
+                  <span class="bcg-action-icon">⭐</span>
+                  <span class="bcg-action-title">Estrellas</span>
+                  <span class="bcg-action-count" id="count-estrella">0</span>
+                  <span class="bcg-expand-icon">▼</span>
+                </div>
+                <div class="bcg-action-text">Mantén y destaca</div>
+                <div class="bcg-action-detail" id="detail-estrella">
+                  <strong>Estrategia recomendada:</strong>
+                  <ul>
+                    <li>Mantén la calidad constante</li>
+                    <li>Destácalos en el menú principal</li>
+                    <li>Considera subir precio (+5-10%)</li>
+                    <li>Capacita al equipo para recomendarlos</li>
+                    <li>Usa fotos en redes sociales</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Acción Puzzles -->
+              <div class="bcg-action-card bcg-action-puzzle" data-action="toggle-expand">
+                <div class="bcg-action-header">
+                  <span class="bcg-action-icon">❓</span>
+                  <span class="bcg-action-title">Puzzles</span>
+                  <span class="bcg-action-count" id="count-puzzle">0</span>
+                  <span class="bcg-expand-icon">▼</span>
+                </div>
+                <div class="bcg-action-text">Promociona más</div>
+                <div class="bcg-action-detail" id="detail-puzzle">
+                  <strong>Estrategia recomendada:</strong>
+                  <ul>
+                    <li>Mejora la visibilidad en la carta</li>
+                    <li>Añade foto profesional</li>
+                    <li>Forma al personal para recomendarlos</li>
+                    <li>Crea combos con platos populares</li>
+                    <li>Si no mejoran, evalúa retirarlos</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Acción Caballos -->
+              <div class="bcg-action-card bcg-action-caballo" data-action="toggle-expand">
+                <div class="bcg-action-header">
+                  <span class="bcg-action-icon">🐎</span>
+                  <span class="bcg-action-title">Caballos</span>
+                  <span class="bcg-action-count" id="count-caballo">0</span>
+                  <span class="bcg-expand-icon">▼</span>
+                </div>
+                <div class="bcg-action-text">Sube el precio</div>
+                <div class="bcg-action-detail" id="detail-caballo">
+                  <strong>⚠️ Atención:</strong> Trabajan mucho pero ganan poco.
+                  <ul>
+                    <li>Sube el precio gradualmente (5-10%)</li>
+                    <li>Renegocia con proveedores</li>
+                    <li>Reduce porciones sin afectar percepción</li>
+                    <li>Usa ingredientes más económicos</li>
+                    <li>Candidatos a retirar si no mejoran</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Acción Perros -->
+              <div class="bcg-action-card bcg-action-perro" data-action="toggle-expand">
+                <div class="bcg-action-header">
+                  <span class="bcg-action-icon">🐶</span>
+                  <span class="bcg-action-title">Perros</span>
+                  <span class="bcg-action-count" id="count-perro">0</span>
+                  <span class="bcg-expand-icon">▼</span>
+                </div>
+                <div class="bcg-action-text">Retira o reforma</div>
+                <div class="bcg-action-detail" id="detail-perro">
+                  <strong>🚨 Acción urgente:</strong> Ocupan espacio sin aportar valor.
+                  <ul>
+                    <li>Retíralos del menú cuanto antes</li>
+                    <li>Liberan inventario y tiempo de cocina</li>
+                    <li>Si tienen valor sentimental: especial del día</li>
+                    <li>Reformula completamente la receta</li>
+                    <li>Redirige recursos a tus Estrellas</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel de Recomendaciones Inteligentes -->
+          <div id="bcg-recommendations"
+            style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border-radius: 12px; border: 1px solid #c4b5fd;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+              <span style="font-size: 20px;">💡</span>
+              <strong style="color: #5b21b6;">Recomendaciones Inteligentes</strong>
+            </div>
+            <div id="bcg-recommendations-list" style="font-size: 13px; color: #4c1d95; line-height: 1.6;"></div>
+          </div>
+
+          <!-- Lista detallada colapsable -->
+          <details style="margin-top: 16px;">
+            <summary style="cursor: pointer; font-weight: 600; color: #64748b; padding: 10px 0;">
+              📋 Ver lista detallada de platos por categoría
+            </summary>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+              <!-- Estrellas -->
+              <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border: 2px solid #22c55e;">
+                <h4 style="color: #15803d; margin: 0 0 10px 0; font-size: 14px;">⭐ Estrellas</h4>
+                <div id="lista-estrella" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+              </div>
+              <!-- Puzzles -->
+              <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 2px solid #3b82f6;">
+                <h4 style="color: #1d4ed8; margin: 0 0 10px 0; font-size: 14px;">❓ Puzzles</h4>
+                <div id="lista-puzzle" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+              </div>
+              <!-- Caballos -->
+              <div style="background: #fff7ed; padding: 15px; border-radius: 12px; border: 2px solid #f97316;">
+                <h4 style="color: #c2410c; margin: 0 0 10px 0; font-size: 14px;">🐎 Caballos</h4>
+                <div id="lista-caballo" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+              </div>
+              <!-- Perros -->
+              <div style="background: #fef2f2; padding: 15px; border-radius: 12px; border: 2px solid #ef4444;">
+                <h4 style="color: #b91c1c; margin: 0 0 10px 0; font-size: 14px;">🐶 Perros</h4>
+                <div id="lista-perro" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+              </div>
+            </div>
+          </details>
+
+          <style>
+            .bcg-legend-item {
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+              font-size: 11px;
+              padding: 4px 10px;
+              background: white;
+              border-radius: 20px;
+              border: 2px solid var(--color);
+              color: var(--color);
+              font-weight: 600;
+            }
+
+            .bcg-action-card {
+              padding: 12px 16px;
+              border-radius: 12px;
+              transition: all 0.2s ease;
+              cursor: pointer;
+            }
+
+            .bcg-action-card:hover {
+              transform: translateX(4px);
+            }
+
+            .bcg-action-header {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+
+            .bcg-action-icon {
+              font-size: 18px;
+            }
+
+            .bcg-action-title {
+              font-weight: 600;
+              font-size: 14px;
+              flex: 1;
+            }
+
+            .bcg-action-count {
+              background: rgba(255, 255, 255, 0.5);
+              padding: 2px 10px;
+              border-radius: 12px;
+              font-size: 13px;
+              font-weight: 700;
+            }
+
+            .bcg-action-text {
+              font-size: 12px;
+              margin-top: 4px;
+              opacity: 0.8;
+            }
+
+            .bcg-action-estrella {
+              background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+              border: 1px solid #86efac;
+              color: #15803d;
+            }
+
+            .bcg-action-puzzle {
+              background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+              border: 1px solid #93c5fd;
+              color: #1d4ed8;
+            }
+
+            .bcg-action-caballo {
+              background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+              border: 1px solid #fdba74;
+              color: #c2410c;
+            }
+
+            .bcg-action-perro {
+              background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+              border: 1px solid #fca5a5;
+              color: #b91c1c;
+            }
+
+            /* Estilos para paneles expandibles */
+            .bcg-expand-icon {
+              font-size: 10px;
+              opacity: 0.6;
+              transition: transform 0.3s ease;
+            }
+
+            .bcg-action-card.expanded .bcg-expand-icon {
+              transform: rotate(180deg);
+            }
+
+            .bcg-action-detail {
+              display: none;
+              margin-top: 10px;
+              padding-top: 10px;
+              border-top: 1px dashed currentColor;
+              font-size: 12px;
+              line-height: 1.5;
+              opacity: 0.9;
+            }
+
+            .bcg-action-detail ul {
+              margin: 8px 0 0 0;
+              padding-left: 18px;
+            }
+
+            .bcg-action-detail li {
+              margin-bottom: 4px;
+            }
+
+            .bcg-action-card.expanded .bcg-action-detail {
+              display: block;
+              animation: fadeIn 0.3s ease;
+            }
+
+            @keyframes fadeIn {
+              from {
+                opacity: 0;
+                transform: translateY(-5px);
+              }
+
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+
+            .bcg-item {
+              background: white;
+              padding: 8px 12px;
+              border-radius: 8px;
+              font-size: 12px;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              border: 1px solid rgba(0, 0, 0, 0.05);
+              transition: transform 0.2s;
+            }
+
+            .bcg-item:hover {
+              transform: scale(1.02);
+            }
+
+            @media (max-width: 768px) {
+              #bcg-matrix-container>div:first-of-type {
+                flex-direction: column;
+                gap: 15px;
+              }
+
+              #bcg-matrix-container>div>div:first-child {
+                grid-template-columns: 1fr;
+              }
+            }
+          </style>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: INVENTARIO -->
+    <div id="tab-inventario" class="tab-content">
+      <div class="top-bar">
+        <div>
+          <h2>📦 Inventario</h2>
+          <p>Control de stock de ingredientes</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <button class="btn btn-secondary" data-action="mostrar-modal-inventario-masivo">📊 ACTUALIZAR INVENTARIO
+          MASIVO</button>
+        <button class="btn btn-primary" data-action="guardar-cambios-stock">💾 Guardar Stock</button>
+      </div>
+
+      <div id="resumen-inventario" style="display: none; gap: 20px;"></div>
+
+
+      <div class="card">
+        <div style="margin-bottom: 20px;">
+          <input type="text" id="busqueda-inventario" placeholder="🔍 Buscar ingrediente..."
+            style="width: 100%; max-width: 400px;">
+        </div>
+
+        <div id="tabla-inventario"></div>
+      </div>
+    </div>
+    <!-- TAB: VENTAS -->
+    <div id="tab-ventas" class="tab-content">
+      <div class="top-bar">
+        <div>
+          <h2>💰 Ventas</h2>
+          <p>Registro diario de ventas</p>
+        </div>
+        <button class="btn btn-secondary" data-action="importar-ventas">📤 Importar Ventas
+          TPV</button>
+      </div>
+
+      <div class="card">
+        <h3>Registrar Venta</h3>
+        <form id="form-venta">
+          <label>Plato:</label>
+          <select id="venta-receta" required></select>
+
+          <label>Cantidad:</label>
+          <input type="number" id="venta-cantidad" min="1" value="1" required>
+
+          <button type="submit" class="btn btn-success">Registrar Venta</button>
+        </form>
+      </div>
+      <div class="card" style="margin-bottom: 20px;">
+        <h3>📅 Filtrar por Fecha</h3>
+        <div style="display: flex; gap: 15px; align-items: end;">
+          <div class="form-group" style="flex: 1;">
+            <label>Desde:</label>
+            <input type="date" id="ventas-fecha-desde" class="form-control">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Hasta:</label>
+            <input type="date" id="ventas-fecha-hasta" class="form-control">
+          </div>
+          <button class="btn btn-primary" data-action="filtrar-ventas">🔍 Filtrar</button>
+          <button class="btn btn-secondary" data-action="limpiar-filtros-ventas">🔄
+            Limpiar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0;">📊 Histórico de Ventas</h3>
+          <button class="btn btn-secondary" data-action="exportar-ventas">📥 Exportar Excel</button>
+        </div>
+        <div id="tabla-ventas"></div>
+      </div>
+    </div>
+
+    <!-- TAB: DIARIO (Tracking de Costes/Ventas por Día) -->
+    <div id="tab-diario" class="tab-content">
+      <div class="top-bar">
+        <div>
+          <h2>📈 Control Diario</h2>
+          <p>Tracking de compras y ventas por día - Vista tipo Excel</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <select id="diario-mes" class="form-control"
+            style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            <option value="1">Enero</option>
+            <option value="2">Febrero</option>
+            <option value="3">Marzo</option>
+            <option value="4">Abril</option>
+            <option value="5">Mayo</option>
+            <option value="6">Junio</option>
+            <option value="7">Julio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+          </select>
+          <select id="diario-ano" class="form-control"
+            style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            <option value="2024">2024</option>
+            <option value="2025" selected>2025</option>
+            <option value="2026">2026</option>
+          </select>
+          <button class="btn btn-primary" data-action="cargar-resumen-mensual">🔄 Cargar</button>
+          <button class="btn btn-secondary" data-action="exportar-diario-excel">📥 Exportar Excel</button>
+        </div>
+      </div>
+
+      <!-- Selector de Vista -->
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button id="btn-vista-compras" class="btn btn-primary" data-action="vista-diario" data-vista="compras">🛒
+          Compras (Costes)</button>
+        <button id="btn-vista-ventas" class="btn btn-secondary" data-action="vista-diario" data-vista="ventas">💰
+          Ventas (Ingresos)</button>
+        <button id="btn-vista-combinada" class="btn btn-secondary" data-action="vista-diario" data-vista="combinada">📊
+          P&L Diario</button>
+      </div>
+      <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
+      <div style="margin-top: 30px;">
+        <!-- Vista Compras -->
+        <div id="vista-compras" class="diario-vista" style="display: block;">
+          <h3 style="margin-bottom: 15px;">🛒 Precio de Compra por Ingrediente / Día</h3>
+          <div id="tabla-compras-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
+            <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+          </div>
+        </div>
+
+        <!-- Vista Ventas -->
+        <div id="vista-ventas" class="diario-vista" style="display: none;">
+          <h3 style="margin-bottom: 15px;">💰 Ventas por Receta / Día</h3>
+          <div id="tabla-ventas-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
+            <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+          </div>
+        </div>
+
+        <!-- Vista Combinada (P&L) -->
+        <div id="vista-combinada" class="diario-vista" style="display: none;">
+          <h3 style="margin-bottom: 15px;">📊 Cuenta de Resultados Diaria</h3>
+          <div id="tabla-pl-diario" style="overflow-x: auto; width: 100%; max-width: 100%;">
+            <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
           </div>
         </div>
       </div>
 
-      <!-- TAB: CONFIGURACIÓN -->
-      <div id="tab-configuracion" class="tab-content">
-        <div class="top-bar">
+      <!-- 💰 BENEFICIO NETO POR DÍA (MOVIDA ABAJO) -->
+      <div
+        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; margin-top: 20px; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);">
+        <h3 style="margin: 0 0 16px 0; font-size: 16px; color: white; display: flex; align-items: center; gap: 8px;">
+          💰 Beneficio Neto por Día
+        </h3>
+        <div id="beneficio-neto-diario-lista"
+          style="max-height: 300px; overflow-y: auto; background: white; border-radius: 12px; padding: 12px;">
+          <p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos</p>
+        </div>
+      </div>
+
+
+
+      <!-- 💰 GASTOS FIJOS MENSUALES -->
+      <div
+        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);">
+        <h3 style="margin: 0 0 20px 0; color: white; font-size: 20px; font-weight: 700;">💰 Gastos Fijos Mensuales
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+          <!-- Alquiler -->
           <div>
-            <h2>⚙️ Configuración & Equipo</h2>
-            <p>Gestiona los accesos y datos de tu negocio</p>
-          </div>
-          <button class="btn btn-secondary" data-action="abrir-manual-formulas">📘 Descargar/Imprimir
-            Dossier</button>
-        </div>
-
-        <div class="dashboard-grid" style="grid-template-columns: 1fr; gap: 24px;">
-
-          <!-- Tarjeta: Gestión de Equipo -->
-          <div class="card"
-            style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-            <div class="card-header"
-              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-              <h3>👥 Mi Equipo</h3>
-              <button class="btn btn-primary" data-action="mostrar-modal-invitar">+ Invitar Usuario</button>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Alquiler Local</label>
+              <span id="gf-alquiler-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
             </div>
-            <div class="table-container">
-              <table style="width:100%; border-collapse:collapse;">
-                <thead>
-                  <tr style="border-bottom:2px solid #eee;">
-                    <th style="text-align:left; padding:10px;">Nombre</th>
-                    <th style="text-align:left; padding:10px;">Email</th>
-                    <th style="text-align:left; padding:10px;">Rol</th>
-                    <th style="text-align:left; padding:10px;">Fecha Alta</th>
-                    <th style="text-align:right; padding:10px;">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="lista-equipo-body">
-                  <!-- Se llena con JS -->
-                </tbody>
-              </table>
+            <input type="range" id="gf-alquiler" min="0" max="10000" step="100" value="0"
+              style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
+              oninput="document.getElementById('gf-alquiler-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('alquiler', 'gf-alquiler');">
+          </div>
+
+          <!-- Personal -->
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Personal
+                (Nóminas)</label>
+              <span id="gf-personal-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
             </div>
+            <input type="range" id="gf-personal" min="0" max="30000" step="100" value="0"
+              style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
+              oninput="document.getElementById('gf-personal-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('personal', 'gf-personal');">
           </div>
 
-          <!-- Placeholder Datos Restaurante -->
-          <div class="card"
-            style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-            <h3>🏢 Datos del Restaurante</h3>
-            <div style="margin-top:10px; color:#666;">
-              <p><strong>Nombre:</strong> <span id="config-restaurante-nombre">Cargando...</span></p>
-              <p style="font-size:0.9em; margin-top:5px;">ID Restaurante: <span id="config-restaurante-id">...</span>
-              </p>
+          <!-- Suministros -->
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Suministros</label>
+              <span id="gf-suministros-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
             </div>
+            <input type="range" id="gf-suministros" min="0" max="5000" step="50" value="0"
+              style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
+              oninput="document.getElementById('gf-suministros-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('suministros', 'gf-suministros');">
           </div>
+
+          <!-- Otros -->
+          <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Otros Gastos</label>
+              <span id="gf-otros-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
+            </div>
+            <input type="range" id="gf-otros" min="0" max="5000" step="50" value="0"
+              style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
+              oninput="document.getElementById('gf-otros-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('otros', 'gf-otros');">
+          </div>
+        </div>
+        <div
+          style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 10px; text-align: center;">
+          <span style="color: white; font-size: 13px; font-weight: 500;">✓ Se guardan automáticamente y aparecen en el
+            P&L Diario</span>
+        </div>
+      </div>
+
+      <!-- Resumen Rápido -->
+      <div class="stats-grid" id="diario-resumen">
+        <div class="stat-card">
+          <h3>Total Compras Mes</h3>
+          <div class="value" id="diario-total-compras">0.00 €</div>
+        </div>
+        <div class="stat-card green">
+          <h3>Total Ventas Mes</h3>
+          <div class="value" id="diario-total-ventas">0.00 €</div>
+        </div>
+        <div class="stat-card blue">
+          <h3>Beneficio Bruto</h3>
+          <div class="value" id="diario-beneficio">0.00 €</div>
+        </div>
+        <div class="stat-card orange">
+          <h3>Food Cost</h3>
+          <div class="value" id="diario-food-cost">0.0%</div>
+        </div>
+        <div class="stat-card purple"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+          <h3 style="color: rgba(255,255,255,0.9);">💰 Gastos Fijos Totales</h3>
+          <div class="value" id="diario-gastos-fijos-total" style="color: white;">0.00 €</div>
         </div>
       </div>
     </div>
 
-    <!-- MODAL INVITAR EQUIPO -->
-    <div id="modal-invitar-equipo" class="modal">
-      <div class="modal-content" style="max-width:500px">
-        <span class="close" data-action="cerrar-modal-invitar">&times;</span>
-        <h2>Invitar Nuevo Usuario</h2>
-        <div style="margin-top:20px;">
-          <div class="form-group" style="margin-bottom:15px;">
-            <label style="display:block; margin-bottom:5px; font-weight:bold;">Nombre Completo</label>
-            <input type="text" id="team-nombre" class="form-control" placeholder="Ej. Juan Cocinero"
-              style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+    <!-- TAB: CONFIGURACIÓN -->
+    <div id="tab-configuracion" class="tab-content">
+      <div class="top-bar">
+        <div>
+          <h2>⚙️ Configuración & Equipo</h2>
+          <p>Gestiona los accesos y datos de tu negocio</p>
+        </div>
+        <button class="btn btn-secondary" data-action="abrir-manual-formulas">📘 Descargar/Imprimir
+          Dossier</button>
+      </div>
+
+      <div class="dashboard-grid" style="grid-template-columns: 1fr; gap: 24px;">
+
+        <!-- Tarjeta: Gestión de Equipo -->
+        <div class="card"
+          style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <div class="card-header"
+            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3>👥 Mi Equipo</h3>
+            <button class="btn btn-primary" data-action="mostrar-modal-invitar">+ Invitar Usuario</button>
           </div>
-          <div class="form-group" style="margin-bottom:15px;">
-            <label style="display:block; margin-bottom:5px; font-weight:bold;">Email Corporativo</label>
-            <input type="email" id="team-email" class="form-control" placeholder="usuario@restaurante.com"
-              style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+          <div class="table-container">
+            <table style="width:100%; border-collapse:collapse;">
+              <thead>
+                <tr style="border-bottom:2px solid #eee;">
+                  <th style="text-align:left; padding:10px;">Nombre</th>
+                  <th style="text-align:left; padding:10px;">Email</th>
+                  <th style="text-align:left; padding:10px;">Rol</th>
+                  <th style="text-align:left; padding:10px;">Fecha Alta</th>
+                  <th style="text-align:right; padding:10px;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="lista-equipo-body">
+                <!-- Se llena con JS -->
+              </tbody>
+            </table>
           </div>
-          <div class="form-group" style="margin-bottom:15px;">
-            <label style="display:block; margin-bottom:5px; font-weight:bold;">Contraseña Inicial</label>
-            <input type="password" id="team-password" class="form-control" placeholder="******"
-              style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+        </div>
+
+        <!-- Placeholder Datos Restaurante -->
+        <div class="card"
+          style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <h3>🏢 Datos del Restaurante</h3>
+          <div style="margin-top:10px; color:#666;">
+            <p><strong>Nombre:</strong> <span id="config-restaurante-nombre">Cargando...</span></p>
+            <p style="font-size:0.9em; margin-top:5px;">ID Restaurante: <span id="config-restaurante-id">...</span>
+            </p>
           </div>
-          <div class="form-group" style="margin-bottom:20px;">
-            <label style="display:block; margin-bottom:5px; font-weight:bold;">Rol</label>
-            <select id="team-rol" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
-              <option value="usuario">Usuario (Estándar)</option>
-              <option value="admin">Administrador (Acceso Total)</option>
-            </select>
-          </div>
-          <button class="btn btn-primary" style="width:100%" data-action="invitar-usuario-equipo">Enviar
-            Invitación</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Modales (simplificados) -->
-    <div id="modal-producir" class="modal">
-      <div class="modal-content">
-        <h3>Producir platos</h3>
-        <p style="margin-bottom: 20px;">¿Cuántas unidades de <strong id="modal-plato-nombre"></strong>?</p>
-        <div class="form-group">
-          <label>Cantidad</label>
-          <input type="number" id="modal-cantidad" min="1" value="1" style="width:100%;padding:10px;"
-            oninput="window.actualizarDetalleDescuento()">
+  <!-- MODAL INVITAR EQUIPO -->
+  <div id="modal-invitar-equipo" class="modal">
+    <div class="modal-content" style="max-width:500px">
+      <span class="close" data-action="cerrar-modal-invitar">&times;</span>
+      <h2>Invitar Nuevo Usuario</h2>
+      <div style="margin-top:20px;">
+        <div class="form-group" style="margin-bottom:15px;">
+          <label style="display:block; margin-bottom:5px; font-weight:bold;">Nombre Completo</label>
+          <input type="text" id="team-nombre" class="form-control" placeholder="Ej. Juan Cocinero"
+            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
         </div>
-        <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 6px;">
-          <strong>⚠️ Descuento de stock:</strong>
-          <div id="modal-descuento-detalle" style="margin-top: 10px;"></div>
+        <div class="form-group" style="margin-bottom:15px;">
+          <label style="display:block; margin-bottom:5px; font-weight:bold;">Email Corporativo</label>
+          <input type="email" id="team-email" class="form-control" placeholder="usuario@restaurante.com"
+            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
         </div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-          <button class="btn btn-secondary" data-action="cerrar-modal-producir">Cancelar</button>
-          <button class="btn btn-success" data-action="confirmar-produccion">Confirmar</button>
+        <div class="form-group" style="margin-bottom:15px;">
+          <label style="display:block; margin-bottom:5px; font-weight:bold;">Contraseña Inicial</label>
+          <input type="password" id="team-password" class="form-control" placeholder="******"
+            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
         </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label style="display:block; margin-bottom:5px; font-weight:bold;">Rol</label>
+          <select id="team-rol" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+            <option value="usuario">Usuario (Estándar)</option>
+            <option value="admin">Administrador (Acceso Total)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%" data-action="invitar-usuario-equipo">Enviar
+          Invitación</button>
       </div>
     </div>
+  </div>
 
-    <div id="modal-ver-proveedor" class="modal">
-      <div class="modal-content">
-        <h3 id="modal-proveedor-titulo"></h3>
-        <div id="modal-proveedor-contenido"></div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-          <button class="btn btn-secondary" data-action="cerrar-modal-proveedor">Cerrar</button>
-        </div>
+  <!-- Modales (simplificados) -->
+  <div id="modal-producir" class="modal">
+    <div class="modal-content">
+      <h3>Producir platos</h3>
+      <p style="margin-bottom: 20px;">¿Cuántas unidades de <strong id="modal-plato-nombre"></strong>?</p>
+      <div class="form-group">
+        <label>Cantidad</label>
+        <input type="number" id="modal-cantidad" min="1" value="1" style="width:100%;padding:10px;"
+          oninput="window.actualizarDetalleDescuento()">
+      </div>
+      <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 6px;">
+        <strong>⚠️ Descuento de stock:</strong>
+        <div id="modal-descuento-detalle" style="margin-top: 10px;"></div>
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" data-action="cerrar-modal-producir">Cancelar</button>
+        <button class="btn btn-success" data-action="confirmar-produccion">Confirmar</button>
       </div>
     </div>
+  </div>
 
-    <!-- Modal ver detalles pedido -->
-    <div id="modal-ver-pedido" class="modal">
-      <div class="modal-content" style="max-width: 800px;">
-        <h3>Detalles del Pedido</h3>
-        <div id="modal-ver-pedido-contenido"></div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-          <button class="btn btn-secondary" data-action="cerrar-modal-pedido">Cerrar</button>
-          <button class="btn btn-primary" data-action="descargar-pedido-pdf" id="btn-descargar-pdf">
-            📄 Descargar PDF
-          </button>
-        </div>
+  <div id="modal-ver-proveedor" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-proveedor-titulo"></h3>
+      <div id="modal-proveedor-contenido"></div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" data-action="cerrar-modal-proveedor">Cerrar</button>
       </div>
     </div>
+  </div>
 
-    <!-- Modal recibir pedido -->
-    <div id="modal-recibir-pedido" class="modal">
-      <div class="modal-content" style="max-width: 900px;">
-        <h3>Recibir Pedido</h3>
-        <p style="margin-bottom: 20px; color: #666;">
-          Verifica las cantidades y precios recibidos. Puedes ajustar los valores si hay diferencias.
+  <!-- Modal ver detalles pedido -->
+  <div id="modal-ver-pedido" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <h3>Detalles del Pedido</h3>
+      <div id="modal-ver-pedido-contenido"></div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" data-action="cerrar-modal-pedido">Cerrar</button>
+        <button class="btn btn-primary" data-action="descargar-pedido-pdf" id="btn-descargar-pdf">
+          📄 Descargar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal recibir pedido -->
+  <div id="modal-recibir-pedido" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <h3>Recibir Pedido</h3>
+      <p style="margin-bottom: 20px; color: #666;">
+        Verifica las cantidades y precios recibidos. Puedes ajustar los valores si hay diferencias.
+      </p>
+
+      <div style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <strong>Proveedor:</strong> <span id="modal-rec-proveedor"></span><br>
+        <strong>Fecha pedido:</strong> <span id="modal-rec-fecha"></span><br>
+        <strong>Total original:</strong> <span id="modal-rec-total-original"></span>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h4 style="margin-bottom: 10px;">Ingredientes del pedido:</h4>
+        <table style="font-size: 13px;">
+          <thead>
+            <tr>
+              <th>Ingrediente</th>
+              <th>Pedido</th>
+              <th>Recibido</th>
+              <th>Precio Ped.</th>
+              <th>Precio Real</th>
+              <th>Subtotal</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="modal-rec-items"></tbody>
+        </table>
+      </div>
+
+      <div
+        style="background: #f0fdf4; border: 2px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+          <div>
+            <strong style="color: #666;">Total Original:</strong><br>
+            <span style="font-size: 20px; font-weight: bold; color: #333;" id="modal-rec-resumen-original">0.00
+              €</span>
+          </div>
+          <div>
+            <strong style="color: #666;">Total Recibido:</strong><br>
+            <span style="font-size: 20px; font-weight: bold; color: #059669;" id="modal-rec-resumen-recibido">0.00
+              €</span>
+          </div>
+          <div>
+            <strong style="color: #666;">Varianza:</strong><br>
+            <span style="font-size: 20px; font-weight: bold;" id="modal-rec-resumen-varianza">0.00 €</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn btn-secondary" data-action="cerrar-modal-recibir-pedido">Cancelar</button>
+        <button class="btn btn-success" data-action="confirmar-recepcion-pedido">Confirmar Recepción</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="src/legacy/app-core.js"></script>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Modal: Confirmar Mermas Avanzado -->
+  <div id="modal-confirmar-mermas" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <span class="close" data-action="cerrar-modal-mermas">&times;</span>
+      <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px;">⚠️ Confirmar Mermas/Pérdidas</h2>
+      <p style="color: #64748b; margin-bottom: 20px;">Se han detectado diferencias negativas en el inventario. Por
+        favor, especifica el motivo de cada pérdida para el control de costes.</p>
+
+      <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead style="background: #f8fafc; position: sticky; top: 0;">
+            <tr>
+              <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ingrediente</th>
+              <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Diferencia</th>
+              <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Motivo</th>
+              <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Notas</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-mermas-body">
+            <!-- Se llena dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="mermas-alert-box"
+        style="display:none; margin-top: 10px; padding: 10px; background: #fee2e2; color: #b91c1c; border-radius: 6px; font-size: 13px;">
+      </div>
+
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary" data-action="cerrar-modal-mermas">Cancelar</button>
+        <button class="btn btn-primary" id="btn-confirmar-split" style="background: #ef4444;"
+          data-action="confirmar-mermas">Confirmar Ajustes</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal: Actualizar Inventario Masivo -->
+  <div id="modal-inventario-masivo" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <span class="close" data-action="cerrar-modal-inventario-masivo">&times;</span>
+      <h2>📊 Actualizar Inventario Masivo</h2>
+
+      <div style="margin: 20px 0;">
+        <p style="color: #64748b; margin-bottom: 15px;">
+          Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Ingrediente</strong> y <strong>Stock
+            Real</strong>
         </p>
 
-        <div style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-          <strong>Proveedor:</strong> <span id="modal-rec-proveedor"></span><br>
-          <strong>Fecha pedido:</strong> <span id="modal-rec-fecha"></span><br>
-          <strong>Total original:</strong> <span id="modal-rec-total-original"></span>
-        </div>
-
-        <div style="margin-bottom: 20px;">
-          <h4 style="margin-bottom: 10px;">Ingredientes del pedido:</h4>
-          <table style="font-size: 13px;">
-            <thead>
-              <tr>
-                <th>Ingrediente</th>
-                <th>Pedido</th>
-                <th>Recibido</th>
-                <th>Precio Ped.</th>
-                <th>Precio Real</th>
-                <th>Subtotal</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="modal-rec-items"></tbody>
-          </table>
+        <div style="text-align: right; margin-bottom: 10px;">
+          <button class="btn btn-secondary btn-small" data-action="descargar-plantilla-stock">📥 Descargar
+            Plantilla</button>
         </div>
 
         <div
-          style="background: #f0fdf4; border: 2px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-            <div>
-              <strong style="color: #666;">Total Original:</strong><br>
-              <span style="font-size: 20px; font-weight: bold; color: #333;" id="modal-rec-resumen-original">0.00
-                €</span>
+          style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+          <input type="file" id="file-inventario-masivo" accept=".xlsx,.csv" style="display: none;"
+            onchange="window.procesarArchivoInventario(this)">
+          <label for="file-inventario-masivo" style="cursor: pointer;">
+            <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+            <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
             </div>
-            <div>
-              <strong style="color: #666;">Total Recibido:</strong><br>
-              <span style="font-size: 20px; font-weight: bold; color: #059669;" id="modal-rec-resumen-recibido">0.00
-                €</span>
+            <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+          </label>
+        </div>
+      </div>
+
+      <div id="preview-inventario-masivo" style="display: none; margin-top: 20px;">
+        <h3>Vista Previa de Cambios</h3>
+        <div id="preview-table-container"
+          style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-secondary" data-action="cancelar-inventario-masivo">Cancelar</button>
+          <button class="btn btn-primary" data-action="confirmar-inventario-masivo" id="btn-confirmar-masivo">✓
+            Confirmar Actualización</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Importar Ingredientes -->
+  <div id="modal-importar-ingredientes" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <span class="close" data-action="cerrar-modal-importar-ingredientes">&times;</span>
+      <h2>📤 Importar Ingredientes desde Excel</h2>
+
+      <div style="margin: 20px 0;">
+        <p style="color: #64748b; margin-bottom: 15px;">
+          Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>, <strong>Precio</strong>,
+          <strong>Unidad</strong>, <strong>Stock Actual</strong>, <strong>Stock Mínimo</strong>
+        </p>
+
+        <div
+          style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+          <input type="file" id="file-importar-ingredientes" accept=".xlsx,.csv" style="display: none;"
+            onchange="window.procesarArchivoIngredientes(this)">
+          <label for="file-importar-ingredientes" style="cursor: pointer;">
+            <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+            <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
             </div>
-            <div>
-              <strong style="color: #666;">Varianza:</strong><br>
-              <span style="font-size: 20px; font-weight: bold;" id="modal-rec-resumen-varianza">0.00 €</span>
+            <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+          </label>
+        </div>
+      </div>
+
+      <div id="preview-importar-ingredientes" style="display: none; margin-top: 20px;">
+        <h3>Vista Previa de Ingredientes</h3>
+        <div id="preview-ingredientes-container"
+          style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-secondary" data-action="cancelar-importar-ingredientes">Cancelar</button>
+          <button class="btn btn-primary" data-action="confirmar-importar-ingredientes"
+            id="btn-confirmar-importar-ingredientes">✓ Importar Ingredientes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Importar Recetas -->
+  <div id="modal-importar-recetas" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <span class="close" data-action="cerrar-modal-importar-recetas">&times;</span>
+      <h2>📤 Importar Recetas desde Excel</h2>
+
+      <div style="margin: 20px 0;">
+        <p style="color: #64748b; margin-bottom: 15px;">
+          Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>,
+          <strong>Categoría</strong>,
+          <strong>Precio Venta</strong>, <strong>Porciones</strong>
+        </p>
+
+        <div
+          style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+          <input type="file" id="file-importar-recetas" accept=".xlsx,.csv" style="display: none;"
+            onchange="window.procesarArchivoRecetas(this)">
+          <label for="file-importar-recetas" style="cursor: pointer;">
+            <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+            <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
             </div>
-          </div>
+            <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+          </label>
         </div>
+      </div>
 
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button class="btn btn-secondary" data-action="cerrar-modal-recibir-pedido">Cancelar</button>
-          <button class="btn btn-success" data-action="confirmar-recepcion-pedido">Confirmar Recepción</button>
+      <div id="preview-importar-recetas" style="display: none; margin-top: 20px;">
+        <h3>Vista Previa de Recetas</h3>
+        <div id="preview-recetas-container"
+          style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-secondary" data-action="cancelar-importar-recetas">Cancelar</button>
+          <button class="btn btn-primary" data-action="confirmar-importar-recetas" id="btn-confirmar-importar-recetas">✓
+            Importar Recetas</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <script src="src/legacy/app-core.js"></script>
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
+  <!-- Modal: Importar Ventas TPV -->
+  <div id="modal-importar-ventas" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <span class="close" data-action="cerrar-modal-importar-ventas">&times;</span>
+      <h2>📤 Importar Ventas TPV</h2>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loading-overlay">
-      <div class="spinner"></div>
-    </div>
+      <div style="margin: 20px 0;">
+        <p style="color: #64748b; margin-bottom: 15px;">
+          Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Código</strong> (opcional),
+          <strong>Nombre</strong>, <strong>Cantidad</strong>, <strong>Total</strong>
+        </p>
 
-    <!-- Modal: Confirmar Mermas Avanzado -->
-    <div id="modal-confirmar-mermas" class="modal">
-      <div class="modal-content" style="max-width: 800px;">
-        <span class="close" data-action="cerrar-modal-mermas">&times;</span>
-        <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px;">⚠️ Confirmar Mermas/Pérdidas</h2>
-        <p style="color: #64748b; margin-bottom: 20px;">Se han detectado diferencias negativas en el inventario. Por
-          favor, especifica el motivo de cada pérdida para el control de costes.</p>
-
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead style="background: #f8fafc; position: sticky; top: 0;">
-              <tr>
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ingrediente</th>
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Diferencia</th>
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Motivo</th>
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Notas</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-mermas-body">
-              <!-- Se llena dinámicamente -->
-            </tbody>
-          </table>
+        <div
+          style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+          <input type="file" id="file-importar-ventas" accept=".xlsx,.csv" style="display: none;"
+            onchange="window.procesarArchivoVentas(this)">
+          <label for="file-importar-ventas" style="cursor: pointer;">
+            <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+            <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+            </div>
+            <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+          </label>
         </div>
+      </div>
 
-        <div id="mermas-alert-box"
-          style="display:none; margin-top: 10px; padding: 10px; background: #fee2e2; color: #b91c1c; border-radius: 6px; font-size: 13px;">
-        </div>
+      <div id="preview-importar-ventas" style="display: none; margin-top: 20px;">
+        <h3>Vista Previa de Ventas</h3>
+        <div id="preview-ventas-container"
+          style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
-        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-          <button class="btn btn-secondary" data-action="cerrar-modal-mermas">Cancelar</button>
-          <button class="btn btn-primary" id="btn-confirmar-split" style="background: #ef4444;"
-            data-action="confirmar-mermas">Confirmar Ajustes</button>
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-secondary" data-action="cancelar-importar-ventas">Cancelar</button>
+          <button class="btn btn-primary" data-action="confirmar-importar-ventas" id="btn-confirmar-importar-ventas">✓
+            Importar Ventas</button>
         </div>
       </div>
     </div>
-    <!-- Modal: Actualizar Inventario Masivo -->
-    <div id="modal-inventario-masivo" class="modal">
-      <div class="modal-content" style="max-width: 900px;">
-        <span class="close" data-action="cerrar-modal-inventario-masivo">&times;</span>
-        <h2>📊 Actualizar Inventario Masivo</h2>
+  </div>
 
-        <div style="margin: 20px 0;">
-          <p style="color: #64748b; margin-bottom: 15px;">
-            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Ingrediente</strong> y <strong>Stock
-              Real</strong>
-          </p>
+  <!-- Modal: Importar Pedidos (Compras) -->
+  <div id="modal-importar-pedidos" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <span class="close" data-action="cerrar-modal-importar-pedidos">&times;</span>
+      <h2>📤 Importar Pedidos (Compras)</h2>
 
-          <div style="text-align: right; margin-bottom: 10px;">
-            <button class="btn btn-secondary btn-small" data-action="descargar-plantilla-stock">📥 Descargar
-              Plantilla</button>
-          </div>
+      <div style="margin: 20px 0;">
+        <p style="color: #64748b; margin-bottom: 15px;">
+          Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Fecha</strong>,
+          <strong>Proveedor</strong>,
+          <strong>Ingrediente</strong>, <strong>Cantidad</strong>, <strong>Precio</strong>, <strong>Total</strong>
+        </p>
 
-          <div
-            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-            <input type="file" id="file-inventario-masivo" accept=".xlsx,.csv" style="display: none;"
-              onchange="window.procesarArchivoInventario(this)">
-            <label for="file-inventario-masivo" style="cursor: pointer;">
-              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
-              </div>
-              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-            </label>
-          </div>
+        <div
+          style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+          <input type="file" id="file-importar-pedidos" accept=".xlsx,.csv" style="display: none;"
+            onchange="window.procesarArchivoPedidos(this)">
+          <label for="file-importar-pedidos" style="cursor: pointer;">
+            <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+            <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+            </div>
+            <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+          </label>
         </div>
+      </div>
 
-        <div id="preview-inventario-masivo" style="display: none; margin-top: 20px;">
-          <h3>Vista Previa de Cambios</h3>
-          <div id="preview-table-container"
-            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+      <div id="preview-importar-pedidos" style="display: none; margin-top: 20px;">
+        <h3>Vista Previa de Pedidos</h3>
+        <div id="preview-pedidos-container"
+          style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
-          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" data-action="cancelar-inventario-masivo">Cancelar</button>
-            <button class="btn btn-primary" data-action="confirmar-inventario-masivo" id="btn-confirmar-masivo">✓
-              Confirmar Actualización</button>
-          </div>
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-secondary" data-action="cancelar-importar-pedidos">Cancelar</button>
+          <button class="btn btn-primary" data-action="confirmar-importar-pedidos" id="btn-confirmar-importar-pedidos">✓
+            Importar Pedidos</button>
         </div>
       </div>
     </div>
-
-    <!-- Modal: Importar Ingredientes -->
-    <div id="modal-importar-ingredientes" class="modal">
-      <div class="modal-content" style="max-width: 900px;">
-        <span class="close" data-action="cerrar-modal-importar-ingredientes">&times;</span>
-        <h2>📤 Importar Ingredientes desde Excel</h2>
-
-        <div style="margin: 20px 0;">
-          <p style="color: #64748b; margin-bottom: 15px;">
-            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>, <strong>Precio</strong>,
-            <strong>Unidad</strong>, <strong>Stock Actual</strong>, <strong>Stock Mínimo</strong>
-          </p>
-
-          <div
-            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-            <input type="file" id="file-importar-ingredientes" accept=".xlsx,.csv" style="display: none;"
-              onchange="window.procesarArchivoIngredientes(this)">
-            <label for="file-importar-ingredientes" style="cursor: pointer;">
-              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
-              </div>
-              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-            </label>
-          </div>
-        </div>
-
-        <div id="preview-importar-ingredientes" style="display: none; margin-top: 20px;">
-          <h3>Vista Previa de Ingredientes</h3>
-          <div id="preview-ingredientes-container"
-            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
-
-          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" data-action="cancelar-importar-ingredientes">Cancelar</button>
-            <button class="btn btn-primary" data-action="confirmar-importar-ingredientes"
-              id="btn-confirmar-importar-ingredientes">✓ Importar Ingredientes</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: Importar Recetas -->
-    <div id="modal-importar-recetas" class="modal">
-      <div class="modal-content" style="max-width: 900px;">
-        <span class="close" data-action="cerrar-modal-importar-recetas">&times;</span>
-        <h2>📤 Importar Recetas desde Excel</h2>
-
-        <div style="margin: 20px 0;">
-          <p style="color: #64748b; margin-bottom: 15px;">
-            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Nombre</strong>,
-            <strong>Categoría</strong>,
-            <strong>Precio Venta</strong>, <strong>Porciones</strong>
-          </p>
-
-          <div
-            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-            <input type="file" id="file-importar-recetas" accept=".xlsx,.csv" style="display: none;"
-              onchange="window.procesarArchivoRecetas(this)">
-            <label for="file-importar-recetas" style="cursor: pointer;">
-              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
-              </div>
-              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-            </label>
-          </div>
-        </div>
-
-        <div id="preview-importar-recetas" style="display: none; margin-top: 20px;">
-          <h3>Vista Previa de Recetas</h3>
-          <div id="preview-recetas-container"
-            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
-
-          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" data-action="cancelar-importar-recetas">Cancelar</button>
-            <button class="btn btn-primary" data-action="confirmar-importar-recetas"
-              id="btn-confirmar-importar-recetas">✓ Importar Recetas</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: Importar Ventas TPV -->
-    <div id="modal-importar-ventas" class="modal">
-      <div class="modal-content" style="max-width: 900px;">
-        <span class="close" data-action="cerrar-modal-importar-ventas">&times;</span>
-        <h2>📤 Importar Ventas TPV</h2>
-
-        <div style="margin: 20px 0;">
-          <p style="color: #64748b; margin-bottom: 15px;">
-            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Código</strong> (opcional),
-            <strong>Nombre</strong>, <strong>Cantidad</strong>, <strong>Total</strong>
-          </p>
-
-          <div
-            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-            <input type="file" id="file-importar-ventas" accept=".xlsx,.csv" style="display: none;"
-              onchange="window.procesarArchivoVentas(this)">
-            <label for="file-importar-ventas" style="cursor: pointer;">
-              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
-              </div>
-              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-            </label>
-          </div>
-        </div>
-
-        <div id="preview-importar-ventas" style="display: none; margin-top: 20px;">
-          <h3>Vista Previa de Ventas</h3>
-          <div id="preview-ventas-container"
-            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
-
-          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" data-action="cancelar-importar-ventas">Cancelar</button>
-            <button class="btn btn-primary" data-action="confirmar-importar-ventas" id="btn-confirmar-importar-ventas">✓
-              Importar Ventas</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal: Importar Pedidos (Compras) -->
-    <div id="modal-importar-pedidos" class="modal">
-      <div class="modal-content" style="max-width: 900px;">
-        <span class="close" data-action="cerrar-modal-importar-pedidos">&times;</span>
-        <h2>📤 Importar Pedidos (Compras)</h2>
-
-        <div style="margin: 20px 0;">
-          <p style="color: #64748b; margin-bottom: 15px;">
-            Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Fecha</strong>,
-            <strong>Proveedor</strong>,
-            <strong>Ingrediente</strong>, <strong>Cantidad</strong>, <strong>Precio</strong>, <strong>Total</strong>
-          </p>
-
-          <div
-            style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
-            <input type="file" id="file-importar-pedidos" accept=".xlsx,.csv" style="display: none;"
-              onchange="window.procesarArchivoPedidos(this)">
-            <label for="file-importar-pedidos" style="cursor: pointer;">
-              <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-              <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
-              </div>
-              <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
-            </label>
-          </div>
-        </div>
-
-        <div id="preview-importar-pedidos" style="display: none; margin-top: 20px;">
-          <h3>Vista Previa de Pedidos</h3>
-          <div id="preview-pedidos-container"
-            style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
-
-          <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" data-action="cancelar-importar-pedidos">Cancelar</button>
-            <button class="btn btn-primary" data-action="confirmar-importar-pedidos"
-              id="btn-confirmar-importar-pedidos">✓ Importar Pedidos</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    </script>
+  </div>
+  </script>
   </div>
   <script src="src/legacy/inventario-masivo.js"></script>
   <!-- MODAL DE CONFIRMACIÓN PROFESIONAL -->
