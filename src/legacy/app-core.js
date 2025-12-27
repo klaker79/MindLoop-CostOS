@@ -4339,26 +4339,30 @@
         const countPorCategoria = {};
 
         recetas.forEach(rec => {
-            const categoria = (rec.categoria || 'otros').toLowerCase();
+            // Agrupar en solo 2 categorías: Alimentos o Bebidas
+            const catOriginal = (rec.categoria || 'otros').toLowerCase();
+            const familia = catOriginal === 'bebida' ? 'Bebidas' : 'Alimentos';
+
             const coste = calcularCosteRecetaCompleto(rec);
             const margenPct = rec.precio_venta > 0
                 ? ((rec.precio_venta - coste) / rec.precio_venta) * 100
                 : 0;
 
-            if (!margenPorCategoria[categoria]) {
-                margenPorCategoria[categoria] = 0;
-                countPorCategoria[categoria] = 0;
+            if (!margenPorCategoria[familia]) {
+                margenPorCategoria[familia] = 0;
+                countPorCategoria[familia] = 0;
             }
-            margenPorCategoria[categoria] += margenPct;
-            countPorCategoria[categoria]++;
+            margenPorCategoria[familia] += margenPct;
+            countPorCategoria[familia]++;
         });
 
-        // Calcular promedio y preparar datos
-        const datos = Object.entries(margenPorCategoria).map(([cat, total]) => ({
-            categoria: cat.charAt(0).toUpperCase() + cat.slice(1),
-            margen: total / countPorCategoria[cat],
-            count: countPorCategoria[cat]
-        })).sort((a, b) => b.margen - a.margen);
+        // Calcular promedio y preparar datos (siempre mostrar ambas categorías)
+        const orden = ['Alimentos', 'Bebidas'];
+        const datos = orden.map(cat => ({
+            categoria: cat,
+            margen: margenPorCategoria[cat] ? margenPorCategoria[cat] / countPorCategoria[cat] : 0,
+            count: countPorCategoria[cat] || 0
+        }));
 
         // Destruir gráfico anterior si existe
         if (window.chartMargenCategoria) window.chartMargenCategoria.destroy();
