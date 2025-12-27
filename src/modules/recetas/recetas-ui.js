@@ -68,7 +68,7 @@ export function agregarIngredienteReceta() {
     <select style="flex: 2; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.calcularCosteReceta()">
       ${optionsHtml}
     </select>
-    <input type="number" step="0.01" min="0" placeholder="Cantidad" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.calcularCosteReceta()">
+    <input type="number" step="0.001" min="0" placeholder="Cantidad" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.calcularCosteReceta()">
     <button type="button" onclick="this.parentElement.remove(); window.calcularCosteReceta();" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">✕</button>
   `;
 
@@ -193,6 +193,7 @@ export function renderizarRecetas() {
             html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
             html += `<td><span class="badge ${badgeClass}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
             html += `<td><div class="actions">`;
+            html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="Ver Escandallo">📊</button>`;
             html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
             html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
             html += `<button class="icon-btn delete" onclick="window.eliminarReceta(${rec.id})">🗑️</button>`;

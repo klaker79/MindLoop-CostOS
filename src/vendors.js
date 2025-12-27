@@ -15,8 +15,10 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
 // Exponer globalmente para compatibilidad con código legacy
+// autoTable se registra automáticamente con jsPDF al importarlo
 window.Chart = Chart;
 window.XLSX = XLSX;
 window.jsPDF = jsPDF;
+window.jspdf = { jsPDF }; // AutoTable busca window.jspdf.jsPDF
 
 console.log('📦 Vendors cargados desde npm (no CDN)');

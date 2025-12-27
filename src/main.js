@@ -143,6 +143,11 @@ import * as CostTracker from './modules/recetas/cost-tracker.js';
 window.mostrarCostTracker = CostTracker.mostrarCostTracker;
 window.cerrarCostTracker = CostTracker.cerrarCostTracker;
 
+// Escandallo Visual + PDF Export
+import * as Escandallo from './modules/recetas/escandallo.js';
+window.verEscandallo = Escandallo.verEscandallo;
+window.exportarPDFEscandallo = Escandallo.exportarPDFEscandallo;
+
 // ============================================
 // MÓDULO: PROVEEDORES ✅ (Legacy comentado)
 // ============================================
