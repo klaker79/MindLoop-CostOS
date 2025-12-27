@@ -980,7 +980,25 @@
     }
 
     .chart-card canvas {
-      max-height: 300px;
+      max-height: 220px;
+    }
+
+    /* Gráficas compactas para grid 2x2 */
+    .charts-grid-compact {
+      gap: 15px;
+    }
+
+    .chart-card-compact {
+      padding: 15px;
+    }
+
+    .chart-card-compact h3 {
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .chart-card-compact canvas {
+      max-height: 180px;
     }
 
     @media (max-width: 768px) {

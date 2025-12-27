@@ -52,6 +52,8 @@
         div.textContent = str;
         return div.innerHTML;
     }
+    // Exponer globalmente para uso en otros archivos legacy
+    window.escapeHTML = escapeHTML;
 
     // === EXPORT A EXCEL ===
     function exportarAExcel(datos, nombreArchivo, columnas) {
@@ -582,7 +584,7 @@
         if (select) {
             select.innerHTML = '<option value="">Selecciona un plato...</option>';
             window.recetas.forEach(r => {
-                select.innerHTML += `<option value="${r.id}">${r.nombre} - ${r.precio_venta}€</option>`;
+                select.innerHTML += `<option value="${r.id}">${escapeHTML(r.nombre)} - ${r.precio_venta}€</option>`;
             });
         }
 
@@ -2123,7 +2125,7 @@
         const select = document.getElementById('ing-proveedor-select');
         select.innerHTML = '<option value="">Sin proveedor</option>';
         proveedores.forEach(prov => {
-            select.innerHTML += `<option value="${prov.id}">${prov.nombre}</option>`;
+            select.innerHTML += `<option value="${prov.id}">${escapeHTML(prov.nombre)}</option>`;
         });
     }
 
@@ -2306,7 +2308,7 @@
                 const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
 
                 html += '<tr>';
-                html += `<td><strong style="cursor: pointer;" onclick="window.editarIngrediente(${ing.id})">${ing.nombre}</strong></td>`;
+                html += `<td><strong style="cursor: pointer;" onclick="window.editarIngrediente(${ing.id})">${escapeHTML(ing.nombre)}</strong></td>`;
                 html += `<td><span class="badge ${ing.familia === 'bebida' ? 'badge-info' : 'badge-success'}">${ing.familia || 'alimento'}</span></td>`;
                 html += `<td>${getNombreProveedor(ing.proveedor_id)}</td>`;
                 html += `<td>${ing.precio ? parseFloat(ing.precio).toFixed(2) + ' €/' + ing.unidad + ' -' : ''}</td>`;
@@ -2393,7 +2395,7 @@
           ingredientesOrdenados.forEach(ing => {
             const precio = parseFloat(ing.precio || 0).toFixed(2);
             const unidad = ing.unidad || 'ud';
-            optionsHtml += `<option value="${ing.id}">${ing.nombre} (${precio}€/${unidad})</option>`;
+            optionsHtml += `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${precio}€/${unidad})</option>`;
           });
 
           item.innerHTML = `
@@ -2548,7 +2550,7 @@
 
               html += '<tr>';
               html += `<td><span style="color:#666;font-size:12px;">${rec.codigo || '-'}</span></td>`;
-              html += `<td><strong>${rec.nombre}</strong></td>`;
+              html += `<td><strong>${escapeHTML(rec.nombre)}</strong></td>`;
               html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
               html += `<td>${coste.toFixed(2)} €</td>`;
               html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
@@ -2689,7 +2691,7 @@
             html += `
             <div class="ingrediente-checkbox">
               <input type="checkbox" id="check-ing-${ing.id}" value="${ing.id}" ${checked}>
-              <label for="check-ing-${ing.id}">${ing.nombre}</label>
+              <label for="check-ing-${ing.id}">${escapeHTML(ing.nombre)}</label>
             </div>
           `;
           });
@@ -2806,7 +2808,7 @@
             html += '<div class="ingredientes-list">';
             prov.ingredientes.forEach(ingId => {
               const ing = ingredientes.find(i => i.id === ingId);
-              if (ing) html += `<span class="badge">${ing.nombre}</span>`;
+              if (ing) html += `<span class="badge">${escapeHTML(ing.nombre)}</span>`;
             });
             html += '</div>';
           } else {
@@ -2844,7 +2846,7 @@
               const numIng = prov.ingredientes ? prov.ingredientes.length : 0;
 
               html += '<tr>';
-              html += `<td><strong>${prov.nombre}</strong></td>`;
+              html += `<td><strong>${escapeHTML(prov.nombre)}</strong></td>`;
               html += `<td>${prov.contacto || '-'}</td>`;
               html += `<td>${prov.telefono || '-'}</td>`;
               html += `<td><span class="badge badge-info">${numIng}</span></td>`;
@@ -2887,7 +2889,7 @@
         const select = document.getElementById('ped-proveedor');
         select.innerHTML = '<option value="">Seleccionar proveedor...</option>';
         proveedores.forEach(prov => {
-            select.innerHTML += `<option value="${prov.id}">${prov.nombre}</option>`;
+            select.innerHTML += `<option value="${prov.id}">${escapeHTML(prov.nombre)}</option>`;
         });
 
         document.getElementById('formulario-pedido').style.display = 'block';
@@ -2936,7 +2938,7 @@
 
         let opciones = '<option value="">Seleccionar...</option>';
         ingredientesProveedor.forEach(ing => {
-            opciones += `<option value="${ing.id}">${ing.nombre} (${parseFloat(ing.precio || 0).toFixed(2)}€/${ing.unidad})</option>`;
+            opciones += `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${parseFloat(ing.precio || 0).toFixed(2)}€/${ing.unidad})</option>`;
         });
 
         div.innerHTML = `
@@ -3112,7 +3114,7 @@
             const varianzaPrecio = item.precioReal - item.precioUnitario;
 
             html += '<tr>';
-            html += `<td><strong>${ing.nombre}</strong></td>`;
+            html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
             html += `<td>${item.cantidad} ${ing.unidad}</td>`;
             html += `<td>`;
             if (item.estado === 'no-entregado') {
@@ -3897,6 +3899,7 @@
             renderRevenueChart();
             renderChartRentabilidad(datosRecetas);
             renderChartIngredientes();
+            renderChartMargenCategoria();
             renderTablaRentabilidad(datosRecetas);
 
             // RENDERIZAR INGENIERÍA DE MENÚ (Matriz BCG)
@@ -4111,7 +4114,7 @@
         data.forEach(item => {
             const el = document.createElement('div');
             el.className = 'bcg-item';
-            el.innerHTML = `<strong>${item.nombre}</strong><br><span style="font-size:11px">Mg: ${item.margen.toFixed(2)}€ | Ventas: ${item.popularidad}</span>`;
+            el.innerHTML = `<strong>${escapeHTML(item.nombre)}</strong><br><span style="font-size:11px">Mg: ${item.margen.toFixed(2)}€ | Ventas: ${item.popularidad}</span>`;
 
             if (containers[item.clasificacion]) {
                 containers[item.clasificacion].appendChild(el);
@@ -4326,6 +4329,97 @@
         }
     }
 
+    // 📈 Gráfica: Margen promedio por Categoría de receta
+    function renderChartMargenCategoria() {
+        const ctx = document.getElementById('chart-margen-categoria');
+        if (!ctx) return;
+
+        // Agrupar recetas por categoría y calcular margen promedio
+        const margenPorCategoria = {};
+        const countPorCategoria = {};
+
+        recetas.forEach(rec => {
+            const categoria = (rec.categoria || 'otros').toLowerCase();
+            const coste = calcularCosteRecetaCompleto(rec);
+            const margenPct = rec.precio_venta > 0
+                ? ((rec.precio_venta - coste) / rec.precio_venta) * 100
+                : 0;
+
+            if (!margenPorCategoria[categoria]) {
+                margenPorCategoria[categoria] = 0;
+                countPorCategoria[categoria] = 0;
+            }
+            margenPorCategoria[categoria] += margenPct;
+            countPorCategoria[categoria]++;
+        });
+
+        // Calcular promedio y preparar datos
+        const datos = Object.entries(margenPorCategoria).map(([cat, total]) => ({
+            categoria: cat.charAt(0).toUpperCase() + cat.slice(1),
+            margen: total / countPorCategoria[cat],
+            count: countPorCategoria[cat]
+        })).sort((a, b) => b.margen - a.margen);
+
+        // Destruir gráfico anterior si existe
+        if (window.chartMargenCategoria) window.chartMargenCategoria.destroy();
+
+        if (datos.length === 0) {
+            ctx.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">Sin recetas</div>';
+            return;
+        }
+
+        // Colores según margen (verde = alto, amarillo = medio, rojo = bajo)
+        const getColor = (margen) => {
+            if (margen >= 60) return '#10b981';
+            if (margen >= 40) return '#f59e0b';
+            return '#ef4444';
+        };
+
+        window.chartMargenCategoria = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: datos.map(d => d.categoria + ' (' + d.count + ')'),
+                datasets: [{
+                    label: 'Margen %',
+                    data: datos.map(d => d.margen.toFixed(1)),
+                    backgroundColor: datos.map(d => getColor(d.margen)),
+                    borderWidth: 0,
+                    borderRadius: 6,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                indexAxis: 'y', // Barras horizontales
+                animation: { duration: 1000 },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                        callbacks: {
+                            label: function (context) {
+                                return 'Margen: ' + context.parsed.x + '%';
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { display: false },
+                        ticks: { callback: v => v + '%' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    }
+                }
+            },
+        });
+    }
+
     function renderTablaRentabilidad(datos) {
         const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
 
@@ -4337,7 +4431,7 @@
         ordenados.forEach((rec, idx) => {
             html += '<tr>';
             html += `<td><strong>#${idx + 1}</strong></td>`;
-            html += `<td>${rec.nombre}</td>`;
+            html += `<td>${escapeHTML(rec.nombre)}</td>`;
             html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
             html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
             html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
@@ -4434,7 +4528,7 @@
 
                 html += '<tr>';
                 html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
-                html += `<td><strong>${ing.nombre}</strong></td>`;
+                html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
                 html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
 
                 // Input con evento ONINPUT para cálculo dinámico
