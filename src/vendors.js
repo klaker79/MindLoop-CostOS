@@ -8,7 +8,7 @@
 import Chart from 'chart.js/auto';
 
 // XLSX para exportación a Excel
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
 // jsPDF para generación de PDFs
 import { jsPDF } from 'jspdf';
