@@ -42,8 +42,8 @@
   <!-- Chart.js, XLSX, jsPDF ahora se cargan desde node_modules -->
   <!-- Esto mejora seguridad y control de versiones -->
 
-  <script type="module" crossorigin src="/assets/main-DYSv6Sg2.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-MQsyKeRU.css">
+  <script type="module" crossorigin src="/assets/main-mtFBRjvJ.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-DwVkdnZF.css">
 </head>
 
 <body>
@@ -86,6 +86,12 @@
       </div>
       <div style="display: flex; align-items: center; gap: 20px;">
         <span id="user-restaurant" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;"></span>
+        <button id="theme-toggle" data-action="toggle-theme" title="Cambiar tema"
+          style="background: rgba(255,255,255,0.15); color: white; border: none; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 18px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;"
+          onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-2px)';"
+          onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)';">
+          <span class="theme-icon">🌙</span>
+        </button>
         <button data-action="logout"
           style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 4px 15px rgba(239,68,68,0.4); transition: all 0.3s ease;"
           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.5)';"
@@ -1334,6 +1340,80 @@
             </p>
           </div>
         </div>
+
+        <!-- Tarjeta: Integraciones -->
+        <div class="card"
+          style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <div>
+              <h3 style="margin:0;">🔗 Integraciones Activas</h3>
+              <p style="font-size:0.85rem; color:#64748b; margin:4px 0 0 0;">Conexiones automatizadas con n8n</p>
+            </div>
+            <button onclick="window.checkAllIntegrations()"
+              style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; padding:8px 16px; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer; transition:all 0.3s;">
+              🔄 Verificar Estado
+            </button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+
+            <!-- n8n Webhooks -->
+            <div id="integration-n8n"
+              style="display:flex; justify-content:space-between; align-items:center; padding:14px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius:12px; border:1px solid #86efac;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.5rem;">🔄</span>
+                <div>
+                  <strong style="color:#1e293b;">n8n Webhooks</strong>
+                  <p style="font-size:0.8rem; color:#16a34a; margin:2px 0 0 0;">Automatización de flujos de trabajo</p>
+                </div>
+              </div>
+              <span id="status-n8n"
+                style="font-size:0.75rem; padding:6px 12px; border-radius:20px; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; font-weight:600;">✓
+                Conectado</span>
+            </div>
+
+            <!-- Google Sheets - Pedidos/Albaranes -->
+            <div id="integration-sheets"
+              style="display:flex; justify-content:space-between; align-items:center; padding:14px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius:12px; border:1px solid #86efac;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.5rem;">📊</span>
+                <div>
+                  <strong style="color:#1e293b;">Google Sheets</strong>
+                  <p style="font-size:0.8rem; color:#16a34a; margin:2px 0 0 0;">📷 Albaranes → Foto → n8n → Pedidos</p>
+                </div>
+              </div>
+              <span id="status-sheets"
+                style="font-size:0.75rem; padding:6px 12px; border-radius:20px; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; font-weight:600;">✓
+                Conectado</span>
+            </div>
+
+            <!-- Email Ventas Cuiner -->
+            <div id="integration-cuiner"
+              style="display:flex; justify-content:space-between; align-items:center; padding:14px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius:12px; border:1px solid #86efac;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:1.5rem;">📧</span>
+                <div>
+                  <strong style="color:#1e293b;">Email Ventas (Cuiner)</strong>
+                  <p style="font-size:0.8rem; color:#16a34a; margin:2px 0 0 0;">📬 Email diario → n8n → Ventas del día
+                  </p>
+                </div>
+              </div>
+              <span id="status-cuiner"
+                style="font-size:0.75rem; padding:6px 12px; border-radius:20px; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; font-weight:600;">✓
+                Conectado</span>
+            </div>
+
+            <!-- Info -->
+            <div
+              style="margin-top:8px; padding:12px 14px; background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius:10px; border:1px solid #93c5fd;">
+              <p style="font-size:0.8rem; color:#1e40af; margin:0;">
+                💡 <strong>Flujo automatizado:</strong> Los albaranes se procesan con IA desde fotos, y las ventas de
+                Cuiner llegan automáticamente cada día por email.
+              </p>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

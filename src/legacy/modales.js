@@ -367,32 +367,43 @@ function renderizarBeneficioNetoDiario() {
     const ultimoDiaMostrar = esEsteMes ? hoy.getDate() : diasTotalesMes;
 
     // Iterar por todos los días del mes (del 1 al último día a mostrar)
+    // HÍBRIDO: Solo acumulamos gastos fijos en días CON actividad
+    let diasSinActividad = 0;
+    let gastosPendientes = 0; // Gastos de días cerrados que no se han "pagado"
+
     for (let diaNum = 1; diaNum <= ultimoDiaMostrar; diaNum++) {
         const diaData = diasDataMap[diaNum] || { ingresos: 0, costos: 0, cantidadVendida: 0 };
+        const tieneActividad = diasDataMap[diaNum] !== undefined;
 
         const ingresos = diaData.ingresos || 0;
         const costos = diaData.costos || 0;
-        const beneficioNeto = ingresos - costos - gastosFijosDia;
-        acumulado += beneficioNeto;
-        sumaTotal += beneficioNeto;
-        totalPlatosVendidos += diaData.cantidadVendida || 0;
 
-        if (ingresos > 0 || costos > 0) {
+        let beneficioNeto;
+        if (tieneActividad) {
+            // Día con actividad: restamos gastos fijos normales
+            beneficioNeto = ingresos - costos - gastosFijosDia;
+            acumulado += beneficioNeto;
+            sumaTotal += beneficioNeto;
             diasConDatos++;
+        } else {
+            // Día sin actividad: NO restamos del acumulado pero contamos el gasto pendiente
+            beneficioNeto = 0;
+            diasSinActividad++;
+            gastosPendientes += gastosFijosDia;
         }
+
+        totalPlatosVendidos += diaData.cantidadVendida || 0;
 
         const color = acumulado >= 0 ? '#10b981' : '#ef4444';
 
         // Determinar icono y estilo según el estado del día
-        // IMPORTANTE: Verificar si el día EXISTE en el mapa original (tiene datos de la API)
-        const tieneActividad = diasDataMap[diaNum] !== undefined;
         let icono, estiloFecha, beneficioTexto;
 
         if (!tieneActividad) {
             // Día sin actividad (cerrado o sin datos en la API)
             icono = '🔘';
             estiloFecha = 'color: #9ca3af; font-size: 13px;'; // Gris
-            beneficioTexto = `<span style="color: #9ca3af; font-size: 11px; margin-left: 8px;">sin datos</span>`;
+            beneficioTexto = `<span style="color: #9ca3af; font-size: 11px; margin-left: 8px;">cerrado</span>`;
         } else if (beneficioNeto >= 0) {
             // Día con beneficio positivo
             icono = '✅';
@@ -407,16 +418,24 @@ function renderizarBeneficioNetoDiario() {
 
         const fechaFormateada = `${diaNum}/${mes}`;
 
+        // Solo mostrar acumulado en días con actividad
+        const acumuladoDisplay = tieneActividad
+            ? `<span style="color: ${color}; font-weight: 700; font-size: 14px;">${acumulado.toFixed(2)} €</span>`
+            : `<span style="color: #cbd5e1; font-size: 12px;">—</span>`;
+
         html += `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; ${!tieneActividad ? 'opacity: 0.6;' : ''}">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; ${!tieneActividad ? 'opacity: 0.5;' : ''}">
             <div>
               <span style="${estiloFecha}">${icono} ${fechaFormateada}</span>
               ${beneficioTexto}
             </div>
-            <span style="color: ${color}; font-weight: 700; font-size: 14px;">${acumulado.toFixed(2)} €</span>
+            ${acumuladoDisplay}
           </div>
         `;
     }
+
+    // Calcular beneficio REAL considerando días sin actividad
+    const beneficioRealTotal = acumulado - gastosPendientes;
 
     // ✅ NUEVO: Calcular PUNTO DE EQUILIBRIO
     let puntoEquilibrioHTML = '';
@@ -487,25 +506,38 @@ function renderizarBeneficioNetoDiario() {
     // Proyección (diasConDatos ya calculado arriba en el loop)
     const promedioDiario = diasConDatos > 0 ? sumaTotal / diasConDatos : 0;
     const diasRestantes = diasTotalesMes - ultimoDiaMostrar;
-    const proyeccionFinMes = acumulado + promedioDiario * diasRestantes;
+    const proyeccionFinMes = beneficioRealTotal + promedioDiario * diasRestantes;
 
-    const finalColor = acumulado >= 0 ? '#059669' : '#dc2626';
-    const finalBg = acumulado >= 0 ? '#ecfdf5' : '#fef2f2';
-    const finalIcon = acumulado >= 0 ? '✨' : '⚠️';
+    const finalColor = beneficioRealTotal >= 0 ? '#059669' : '#dc2626';
+    const finalBg = beneficioRealTotal >= 0 ? '#ecfdf5' : '#fef2f2';
+    const finalIcon = beneficioRealTotal >= 0 ? '✨' : '⚠️';
+
+    // Mensaje de gastos pendientes (días cerrados)
+    const gastosPendientesHTML = diasSinActividad > 0 ? `
+        <div style="background: #fef3c7; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #fcd34d;">
+          <div style="font-size: 11px; color: #92400e; text-align: center;">
+            ⚠️ <strong>${diasSinActividad} días sin actividad</strong> → ${gastosPendientes.toFixed(2)}€ pendientes de cubrir
+          </div>
+        </div>
+    ` : '';
 
     const headerHTML = `
         ${puntoEquilibrioHTML}
         <div style="background: ${finalBg}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
           <div style="text-align: center; font-size: 13px; color: ${finalColor}; font-weight: 600; margin-bottom: 8px;">
-            ${finalIcon} Total acumulado: ${acumulado.toFixed(2)}€
+            ${finalIcon} Beneficio días operativos: <strong>${acumulado.toFixed(2)}€</strong>
+          </div>
+          ${gastosPendientesHTML}
+          <div style="text-align: center; font-size: 14px; font-weight: 700; color: ${beneficioRealTotal >= 0 ? '#059669' : '#dc2626'}; padding: 8px; background: white; border-radius: 6px; margin-bottom: 8px;">
+            📊 Beneficio REAL: ${beneficioRealTotal.toFixed(2)}€
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
             <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
-              <div style="color: #64748B;">📊 Promedio/día</div>
-              <div style="color: #1e293b; font-weight: 700;">${promedioDiario.toFixed(2)}€</div>
+              <div style="color: #64748B;">📅 Días operativos</div>
+              <div style="color: #1e293b; font-weight: 700;">${diasConDatos} de ${ultimoDiaMostrar}</div>
             </div>
             <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
-              <div style="color: #64748B;">🎯 Proyección</div>
+              <div style="color: #64748B;">🎯 Proyección mes</div>
               <div style="color: ${proyeccionFinMes >= 0 ? '#059669' : '#dc2626'}; font-weight: 700;">${proyeccionFinMes.toFixed(2)}€</div>
             </div>
           </div>
