@@ -190,6 +190,36 @@ export async function actualizarKPIs() {
             renderSparkline(sparklineIngresos, historicalData);
         }
 
+        // Render forecast chart
+        if (typeof window.calcularForecast === 'function') {
+            const ventas = window.ventas || [];
+            const forecast = window.calcularForecast(ventas, 7);
+
+            // Update forecast total
+            const forecastTotalEl = document.getElementById('forecast-total');
+            if (forecastTotalEl) {
+                forecastTotalEl.textContent = forecast.totalPrediccion.toLocaleString('es-ES') + '€';
+            }
+
+            // Update confidence text
+            const confianzaEl = document.getElementById('forecast-confianza');
+            if (confianzaEl) {
+                const confianzaTextos = {
+                    'alta': '📊 Alta confianza (30+ días de datos)',
+                    'media': '📊 Confianza media (14-30 días de datos)',
+                    'baja': '📊 Baja confianza (7-14 días de datos)',
+                    'muy_baja': '📊 Datos limitados (<7 días)',
+                    'sin_datos': '📊 Sin datos históricos'
+                };
+                confianzaEl.textContent = confianzaTextos[forecast.confianza] || 'Basado en historial de ventas';
+            }
+
+            // Render chart
+            if (typeof window.renderForecastChart === 'function') {
+                window.renderForecastChart('chart-forecast', forecast.chartData);
+            }
+        }
+
     } catch (error) {
         console.error('Error actualizando KPIs:', error);
     }

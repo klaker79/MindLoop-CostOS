@@ -255,17 +255,19 @@
         </div>
       </div>
 
-      <!-- Top Recetas (nuevo) -->
+      <!-- 📈 Proyección de Ventas -->
       <div class="dashboard-card"
         style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #1E293B; display: flex; align-items: center; gap: 6px;">
-          🏆 Top Recetas
+        <h3
+          style="margin: 0 0 12px 0; font-size: 14px; color: #1E293B; display: flex; align-items: center; gap: 6px; justify-content: space-between;">
+          <span>📈 Proyección 7 días</span>
+          <span id="forecast-total" style="font-size: 16px; font-weight: 700; color: #8B5CF6;">-€</span>
         </h3>
-        <div id="top-recetas-lista" style="font-size: 13px;">
-          <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9;">
-            <span>1. Cargando...</span>
-            <span style="color: #10B981; font-weight: 600;">-%</span>
-          </div>
+        <div style="height: 120px;">
+          <canvas id="chart-forecast"></canvas>
+        </div>
+        <div id="forecast-confianza" style="font-size: 10px; color: #94a3b8; text-align: right; margin-top: 8px;">
+          Basado en historial de ventas
         </div>
       </div>
     </div>
@@ -1283,8 +1285,14 @@
           <h2>⚙️ Configuración & Equipo</h2>
           <p>Gestiona los accesos y datos de tu negocio</p>
         </div>
-        <button class="btn btn-secondary" data-action="abrir-manual-formulas">📘 Descargar/Imprimir
-          Dossier</button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="window.resetOnboarding(); window.startTour();"
+            style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none;">
+            🎯 Reiniciar Tour
+          </button>
+          <button class="btn btn-secondary" data-action="abrir-manual-formulas">📘 Descargar/Imprimir
+            Dossier</button>
+        </div>
       </div>
 
       <div class="dashboard-grid" style="grid-template-columns: 1fr; gap: 24px;">

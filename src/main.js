@@ -87,6 +87,16 @@ setTimeout(() => initGlobalSearch(), 2000);
 import { verEvolucionPrecio } from './modules/ingredientes/evolucion-precio.js';
 window.verEvolucionPrecio = verEvolucionPrecio;
 
+// Sales Forecast (predicción)
+import { calcularForecast, renderForecastChart } from './modules/analytics/forecast.js';
+window.calcularForecast = calcularForecast;
+window.renderForecastChart = renderForecastChart;
+
+// Onboarding Tour (guía para nuevos usuarios)
+import { initOnboarding } from './modules/ui/onboarding.js';
+// Initialize after data loads
+setTimeout(() => initOnboarding(), 3000);
+
 // Utilidades adicionales
 window.showLoading = Helpers.showLoading;
 window.hideLoading = Helpers.hideLoading;
