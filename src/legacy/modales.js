@@ -342,17 +342,31 @@ function renderizarBeneficioNetoDiario() {
 
     const gastosFijosDia = gastosFijosMes / diasTotalesMes;
 
-    // Crear mapa de datos por día para acceso rápido
-    // NOTA: dias es un array de strings de fecha como "2025-12-18", no objetos
+    // Crear mapa de datos por día con ingresos y costos REALES
     const diasDataMap = {};
-    dias.forEach(dia => {
-        // dia es un string como "2025-12-18"
-        const fecha = new Date(dia);
-        if (!isNaN(fecha.getTime())) {
+    const recetasData = window.datosResumenMensual.ventas?.recetas || {};
+
+    // Iterar sobre cada receta y agregar sus datos por día
+    for (const [nombre, recetaInfo] of Object.entries(recetasData)) {
+        for (const [diaString, diaData] of Object.entries(recetaInfo.dias || {})) {
+            const fecha = new Date(diaString);
+            if (isNaN(fecha.getTime())) continue;
+
             const key = fecha.getDate();
-            diasDataMap[key] = { fecha: dia, tieneActividad: true };
+            if (!diasDataMap[key]) {
+                diasDataMap[key] = {
+                    ingresos: 0,
+                    costos: 0,
+                    cantidadVendida: 0,
+                    tieneActividad: true
+                };
+            }
+
+            diasDataMap[key].ingresos += diaData.ingresos || 0;
+            diasDataMap[key].costos += diaData.coste || 0;
+            diasDataMap[key].cantidadVendida += diaData.vendidas || 0;
         }
-    });
+    }
 
     // Calcular beneficios y acumulados para TODOS los días del mes
     let html = '';
