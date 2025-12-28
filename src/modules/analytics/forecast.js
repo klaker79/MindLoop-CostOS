@@ -138,19 +138,28 @@ function calcularConfianza(ventasPorDia) {
 
 /**
  * Prepares data for Chart.js
+ * Fills in missing days with 0 to show continuous timeline
  */
 function prepararDatosChart(ventasPorDia, predicciones) {
-    const fechasHistorico = Object.keys(ventasPorDia).sort().slice(-7);
+    // Generate last 7 consecutive days (including gaps)
+    const hoy = new Date();
+    const historicoCompleto = [];
 
-    // Historical data
-    const historico = fechasHistorico.map(fecha => ({
-        x: formatearFechaCorta(fecha),
-        y: Math.round(ventasPorDia[fecha])
-    }));
+    for (let i = 6; i >= 0; i--) {
+        const fecha = new Date(hoy);
+        fecha.setDate(hoy.getDate() - i);
+        const fechaStr = fecha.toISOString().split('T')[0];
+        const valor = ventasPorDia[fechaStr] || 0;
+
+        historicoCompleto.push({
+            x: formatearFechaCorta(fechaStr),
+            y: Math.round(valor)
+        });
+    }
 
     // Forecast data (starts from last historical point for continuity)
-    const ultimoHistorico = historico.length > 0
-        ? historico[historico.length - 1].y
+    const ultimoHistorico = historicoCompleto.length > 0
+        ? historicoCompleto[historicoCompleto.length - 1].y
         : 0;
 
     const forecast = predicciones.map((p, i) => ({
@@ -159,17 +168,17 @@ function prepararDatosChart(ventasPorDia, predicciones) {
     }));
 
     // Add connection point
-    if (historico.length > 0) {
+    if (historicoCompleto.length > 0) {
         forecast.unshift({
-            x: historico[historico.length - 1].x,
+            x: historicoCompleto[historicoCompleto.length - 1].x,
             y: ultimoHistorico
         });
     }
 
     return {
-        labels: [...historico.map(h => h.x), ...predicciones.map(p => p.fechaFormateada)],
-        historico: historico.map(h => h.y),
-        forecast: [...Array(historico.length - 1).fill(null), ultimoHistorico, ...predicciones.map(p => p.prediccion)]
+        labels: [...historicoCompleto.map(h => h.x), ...predicciones.map(p => p.fechaFormateada)],
+        historico: historicoCompleto.map(h => h.y),
+        forecast: [...Array(historicoCompleto.length - 1).fill(null), ultimoHistorico, ...predicciones.map(p => p.prediccion)]
     };
 }
 
