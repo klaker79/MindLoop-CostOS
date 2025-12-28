@@ -2085,3 +2085,211 @@
       }
     }
   
+/* =========================================
+   DARK MODE - MindLoop CostOS
+   ========================================= */
+
+/* CSS Variables for theming */
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --card-bg: #ffffff;
+    --header-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
+[data-theme="dark"] {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border-color: #334155;
+    --card-bg: #1e293b;
+    --header-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+}
+
+/* Dark mode body */
+[data-theme="dark"] body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    background-attachment: fixed;
+}
+
+/* Dark mode header */
+[data-theme="dark"] .header {
+    background: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Dark mode tabs */
+[data-theme="dark"] .tabs {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .tab {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .tab:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .tab.active {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: white;
+}
+
+/* Dark mode cards */
+[data-theme="dark"] .main-card,
+[data-theme="dark"] .dashboard-card,
+[data-theme="dark"] .card,
+[data-theme="dark"] .form-card {
+    background: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dashboard-card {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode tab content */
+[data-theme="dark"] .tab-content {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Dark mode KPI cards */
+[data-theme="dark"] .kpi-card {
+    background: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .kpi-value,
+[data-theme="dark"] .kpi-card h3,
+[data-theme="dark"] .kpi-card .kpi-title {
+    color: var(--text-primary) !important;
+}
+
+/* Dark mode text */
+[data-theme="dark"] h1, 
+[data-theme="dark"] h2, 
+[data-theme="dark"] h3, 
+[data-theme="dark"] h4 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] label {
+    color: var(--text-secondary);
+}
+
+/* Dark mode tables */
+[data-theme="dark"] table {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] table th {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] table td {
+    border-color: var(--border-color) !important;
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] table tr:hover {
+    background: var(--bg-tertiary) !important;
+}
+
+/* Dark mode forms */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background: var(--bg-tertiary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+    border-color: #f97316 !important;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2) !important;
+}
+
+/* Dark mode search box */
+[data-theme="dark"] .search-box input {
+    background: var(--bg-tertiary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Dark mode modals */
+[data-theme="dark"] .modal-content {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Dark mode fecha banner */
+[data-theme="dark"] #fecha-actual-banner {
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Dark mode scrollbar */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #f97316, #ea580c);
+}
+
+/* Dark mode login screen */
+[data-theme="dark"] .login-screen {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+}
+
+[data-theme="dark"] .login-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+/* Dark mode buttons */
+[data-theme="dark"] .btn-secondary {
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Dark mode integrations card */
+[data-theme="dark"] .card div[style*="background:linear-gradient(135deg, #f8fafc"] {
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Theme transition */
+html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body, .tabs, .tab, .card, .dashboard-card, .main-card, input, select, textarea {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
