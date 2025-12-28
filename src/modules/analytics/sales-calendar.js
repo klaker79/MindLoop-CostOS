@@ -154,95 +154,99 @@ export function renderCalendarioHeatmap(containerId, ventas, fecha = new Date())
 
     const data = generarCalendarioMes(ventas, fecha);
 
-    const diasSemana = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
+    const diasSemana = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
     container.innerHTML = `
-        <div style="font-family: system-ui, -apple-system, sans-serif;">
+        <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 320px; margin: 0 auto;">
             <!-- Header -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <button onclick="window.cambiarMesCalendario(-1)" style="background: #f1f5f9; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px;">←</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <button onclick="window.cambiarMesCalendario(-1)" style="background: #f1f5f9; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">←</button>
                 <div style="text-align: center;">
-                    <div style="font-size: 18px; font-weight: 700; color: #1e293b; text-transform: capitalize;">${data.mesNombre} ${data.año}</div>
-                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Total: ${data.stats.totalMes.toLocaleString()}€</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #1e293b; text-transform: capitalize;">${data.mesNombre} ${data.año}</div>
+                    <div style="font-size: 10px; color: #64748b;">${data.stats.totalMes.toLocaleString()}€</div>
                 </div>
-                <button onclick="window.cambiarMesCalendario(1)" style="background: #f1f5f9; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px;">→</button>
+                <button onclick="window.cambiarMesCalendario(1)" style="background: #f1f5f9; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">→</button>
             </div>
             
             <!-- Days of week header -->
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px;">
-                ${diasSemana.map(d => `<div style="text-align: center; font-size: 11px; color: #94a3b8; font-weight: 600;">${d}</div>`).join('')}
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px;">
+                ${diasSemana.map(d => `<div style="text-align: center; font-size: 9px; color: #94a3b8; font-weight: 600;">${d}</div>`).join('')}
             </div>
             
-            <!-- Calendar grid -->
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+            <!-- Calendar grid - COMPACT -->
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;">
                 ${data.dias.map(dia => {
         if (dia.empty) {
-            return `<div style="aspect-ratio: 1; border-radius: 6px;"></div>`;
+            return `<div style="width: 100%; padding-top: 100%; position: relative;"></div>`;
         }
 
         const opacity = dia.esFuturo ? '0.4' : '1';
         const border = dia.esHoy ? '2px solid #3b82f6' : 'none';
 
         return `
-                        <div 
-                            onclick="window.verDetallesDia('${dia.fecha}')"
-                            style="
-                                aspect-ratio: 1;
-                                background: ${dia.color.bg};
-                                border-radius: 6px;
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: center;
-                                cursor: pointer;
-                                opacity: ${opacity};
-                                border: ${border};
-                                transition: transform 0.15s;
-                            "
-                            onmouseover="this.style.transform='scale(1.1)'"
-                            onmouseout="this.style.transform='scale(1)'"
-                            title="${dia.dia}/${data.mes + 1}: ${dia.valor.toFixed(0)}€"
-                        >
-                            <span style="font-size: 11px; font-weight: 600; color: ${dia.color.text};">${dia.dia}</span>
-                            ${dia.valor > 0 ? `<span style="font-size: 8px; color: ${dia.color.text}; opacity: 0.8;">${dia.valor.toFixed(0)}€</span>` : ''}
-                        </div>
-                    `;
+                    <div 
+                        onclick="window.verDetallesDia('${dia.fecha}')"
+                        style="
+                            width: 100%;
+                            padding-top: 100%;
+                            position: relative;
+                            cursor: pointer;
+                        "
+                        title="${dia.dia}/${data.mes + 1}: ${dia.valor.toFixed(0)}€"
+                    >
+                        <div style="
+                            position: absolute;
+                            top: 0; left: 0; right: 0; bottom: 0;
+                            background: ${dia.color.bg};
+                            border-radius: 3px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            opacity: ${opacity};
+                            border: ${border};
+                            font-size: 9px;
+                            font-weight: 600;
+                            color: ${dia.color.text};
+                        ">${dia.dia}</div>
+                    </div>
+                `;
     }).join('')}
             </div>
             
-            <!-- Legend -->
-            <div style="display: flex; justify-content: center; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 12px; height: 12px; background: #f1f5f9; border-radius: 2px;"></div>
-                    <span style="font-size: 10px; color: #64748b;">Sin ventas</span>
+            <!-- Legend - inline compact -->
+            <div style="display: flex; justify-content: center; gap: 6px; margin-top: 8px;">
+                <div style="display: flex; align-items: center; gap: 2px;">
+                    <div style="width: 8px; height: 8px; background: #f1f5f9; border-radius: 1px;"></div>
+                    <span style="font-size: 8px; color: #94a3b8;">0</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 12px; height: 12px; background: #86efac; border-radius: 2px;"></div>
-                    <span style="font-size: 10px; color: #64748b;">Normal</span>
+                <div style="display: flex; align-items: center; gap: 2px;">
+                    <div style="width: 8px; height: 8px; background: #86efac; border-radius: 1px;"></div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 12px; height: 12px; background: #fef08a; border-radius: 2px;"></div>
-                    <span style="font-size: 10px; color: #64748b;">Bueno</span>
+                <div style="display: flex; align-items: center; gap: 2px;">
+                    <div style="width: 8px; height: 8px; background: #fef08a; border-radius: 1px;"></div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 12px; height: 12px; background: #f87171; border-radius: 2px;"></div>
-                    <span style="font-size: 10px; color: #64748b;">Excelente</span>
+                <div style="display: flex; align-items: center; gap: 2px;">
+                    <div style="width: 8px; height: 8px; background: #fdba74; border-radius: 1px;"></div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2px;">
+                    <div style="width: 8px; height: 8px; background: #f87171; border-radius: 1px;"></div>
+                    <span style="font-size: 8px; color: #94a3b8;">Max</span>
                 </div>
             </div>
             
-            <!-- Stats -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px;">
-                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 18px; font-weight: 700; color: #10b981;">${data.stats.diasConVentas}</div>
-                    <div style="font-size: 10px; color: #64748b;">Días activos</div>
+            <!-- Stats - compact row -->
+            <div style="display: flex; justify-content: space-around; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; font-weight: 700; color: #10b981;">${data.stats.diasConVentas}</div>
+                    <div style="font-size: 8px; color: #64748b;">Días</div>
                 </div>
-                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 18px; font-weight: 700; color: #6366f1;">${data.stats.mediaDiaria}€</div>
-                    <div style="font-size: 10px; color: #64748b;">Media/día</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; font-weight: 700; color: #6366f1;">${data.stats.mediaDiaria}€</div>
+                    <div style="font-size: 8px; color: #64748b;">Media</div>
                 </div>
-                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 18px; font-weight: 700; color: #f97316;">${data.stats.mejorDia}€</div>
-                    <div style="font-size: 10px; color: #64748b;">Mejor día</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; font-weight: 700; color: #f97316;">${data.stats.mejorDia}€</div>
+                    <div style="font-size: 8px; color: #64748b;">Mejor</div>
                 </div>
             </div>
         </div>
