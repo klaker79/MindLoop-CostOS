@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindLoop CostOS | Control de Costes en Piloto Automático</title>
+    <meta name="description"
+        content="Software de gestión de costes para restaurantes que funciona solo. Ventas y compras se cargan automáticamente. Ahorra 30h/mes y reduce mermas.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1e1e2e;
+            --light: #f8fafc;
+            --gray: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            background: white;
+            padding: 16px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--dark) 0%, #2d2d44 100%);
+            padding: 160px 0 100px;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23667eea' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+
+        .hero-badge span {
+            background: var(--success);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 .gradient {
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 32px;
+            max-width: 500px;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 18px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 48px;
+        }
+
+        .hero-stat {
+            text-align: left;
+        }
+
+        .hero-stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .hero-stat-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .hero-visual {
+            position: relative;
+        }
+
+        .hero-image {
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Problem Section */
+        .problem {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 60px;
+        }
+
+        .section-label {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--gray);
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .problem-card {
+            background: var(--light);
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .problem-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .problem-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--danger);
+        }
+
+        .problem-card p {
+            color: var(--gray);
+            font-size: 15px;
+        }
+
+        /* Solution Section */
+        .solution {
+            padding: 100px 0;
+            background: linear-gradient(135deg, var(--dark) 0%, #2d2d44 100%);
+            color: white;
+        }
+
+        .solution .section-label {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .solution .section-title {
+            color: white;
+        }
+
+        .automation-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            margin-top: 60px;
+            flex-wrap: wrap;
+        }
+
+        .auto-step {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            width: 200px;
+            transition: transform 0.2s;
+        }
+
+        .auto-step:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .auto-step-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .auto-step h4 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .auto-step p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .auto-arrow {
+            font-size: 32px;
+            color: var(--primary);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .feature-card {
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 100px 0;
+            background: var(--light);
+        }
+
+        .pricing-cards {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 24px;
+            padding: 48px 40px;
+            width: 380px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, var(--dark), #2d2d44);
+            color: white;
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--accent), #f97316);
+            color: white;
+            padding: 6px 20px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .pricing-name {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .pricing-desc {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 24px;
+        }
+
+        .pricing-card.featured .pricing-desc {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .pricing-price {
+            margin-bottom: 32px;
+        }
+
+        .pricing-amount {
+            font-size: 64px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .pricing-currency {
+            font-size: 24px;
+            vertical-align: super;
+        }
+
+        .pricing-period {
+            font-size: 16px;
+            color: var(--gray);
+        }
+
+        .pricing-card.featured .pricing-period {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .pricing-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 32px;
+        }
+
+        .pricing-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+
+        .pricing-card.featured .pricing-features li {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .pricing-features li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .pricing-cta {
+            display: block;
+            padding: 16px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .pricing-card .pricing-cta {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .pricing-card.featured .pricing-cta {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .pricing-cta:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* FAQ Section */
+        .faq {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: var(--light);
+            padding: 28px;
+            border-radius: 16px;
+        }
+
+        .faq-item h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+
+        .faq-item p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 100px 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+        }
+
+        .cta h2 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .cta p {
+            font-size: 20px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            color: var(--primary);
+            padding: 18px 40px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 60px 0 30px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 40px;
+            }
+
+            .hero p {
+                margin: 0 auto 32px;
+            }
+
+            .hero-stats {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                order: -1;
+            }
+
+            .problem-grid,
+            .features-grid,
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .automation-visual {
+                flex-direction: column;
+            }
+
+            .auto-arrow {
+                transform: rotate(90deg);
+            }
+
+            .pricing-cards {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">🍳 MindLoop CostOS</div>
+            <a href="#pricing" class="nav-cta">Empezar Ahora</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div>
+                    <div class="hero-badge">
+                        <span></span>
+                        100% Automático
+                    </div>
+                    <h1>Control de Costes en <span class="gradient">Piloto Automático</span></h1>
+                    <p>El único software de gestión de costes para restaurantes que funciona solo. Las ventas y compras
+                        se cargan automáticamente. Tú solo miras el dashboard.</p>
+                    <a href="#pricing" class="hero-cta">
+                        Solicitar Demo Gratuita
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">30h</div>
+                            <div class="hero-stat-label">Ahorro mensual</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">0</div>
+                            <div class="hero-stat-label">Minutos de input</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">-40%</div>
+                            <div class="hero-stat-label">Mermas detectadas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-visual">
+                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop"
+                        alt="Dashboard" class="hero-image" style="object-fit: cover;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="problem">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">El Problema</div>
+                <h2 class="section-title">¿Por qué los software de costes fracasan?</h2>
+                <p class="section-subtitle">El 80% de los restaurantes abandonan su software de costes en los primeros 3
+                    meses</p>
+            </div>
+
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="problem-icon">⏰</div>
+                    <h3>Falta de tiempo</h3>
+                    <p>El encargado no tiene 30-60 minutos al día para meter datos. Hay que atender clientes, gestionar
+                        personal, resolver urgencias...</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">📝</div>
+                    <h3>Demasiado manual</h3>
+                    <p>Introducir cada venta, cada compra, cada ajuste de stock manualmente es tedioso y propenso a
+                        errores.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">📉</div>
+                    <h3>Datos desactualizados</h3>
+                    <p>Si los datos no están al día, el sistema es inútil. Y si no ves valor, dejas de usarlo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="solution">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">La Solución</div>
+                <h2 class="section-title">MindLoop funciona solo</h2>
+                <p class="section-subtitle" style="color: rgba(255,255,255,0.7);">Conectamos tu TPV y tus proveedores.
+                    Los datos llegan automáticamente.</p>
+            </div>
+
+            <div class="automation-visual">
+                <div class="auto-step">
+                    <div class="auto-step-icon">🛒</div>
+                    <h4>TPV</h4>
+                    <p>Ventas del día</p>
+                </div>
+                <div class="auto-arrow">→</div>
+                <div class="auto-step">
+                    <div class="auto-step-icon">🤖</div>
+                    <h4>Automatización</h4>
+                    <p>Sin intervención</p>
+                </div>
+                <div class="auto-arrow">→</div>
+                <div class="auto-step">
+                    <div class="auto-step-icon">📊</div>
+                    <h4>Dashboard</h4>
+                    <p>KPIs al instante</p>
+                </div>
+                <div class="auto-arrow">→</div>
+                <div class="auto-step">
+                    <div class="auto-step-icon">📧</div>
+                    <h4>Email Diario</h4>
+                    <p>Resumen a las 23h</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Funcionalidades</div>
+                <h2 class="section-title">Todo lo que necesitas</h2>
+                <p class="section-subtitle">Un sistema completo de gestión de costes diseñado para restaurantes reales
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🥬</div>
+                    <h3>Gestión de Ingredientes</h3>
+                    <p>Control de precios, stock mínimo, proveedores y evolución histórica de precios.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🍽️</div>
+                    <h3>Escandallo Visual</h3>
+                    <p>Gráfico de tarta con desglose de costes. Exporta fichas técnicas profesionales en PDF.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>Pedidos con Varianzas</h3>
+                    <p>Detecta diferencias entre lo pedido y lo recibido. Control total sobre proveedores.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h3>Inventario Inteligente</h3>
+                    <p>Cuadre automático entre stock teórico y real. Gestión de mermas con un click.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Dashboard en Tiempo Real</h3>
+                    <p>KPIs actualizados al segundo: ingresos, margen, food cost, alertas de stock.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧩</div>
+                    <h3>Matriz BCG</h3>
+                    <p>Ingeniería de menú: identifica estrellas, caballos, puzzles y perros de tu carta.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Precios</div>
+                <h2 class="section-title">Simple y transparente</h2>
+                <p class="section-subtitle">Sin sorpresas. Sin permanencia. Cancela cuando quieras.</p>
+            </div>
+
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <div class="pricing-name">Starter</div>
+                    <div class="pricing-desc">Para probar el sistema</div>
+                    <div class="pricing-price">
+                        <span class="pricing-currency">€</span>
+                        <span class="pricing-amount">39</span>
+                        <span class="pricing-period">/mes</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Ingredientes y recetas</li>
+                        <li>Escandallo básico</li>
+                        <li>Dashboard KPIs</li>
+                        <li>1 usuario</li>
+                        <li>Soporte por email</li>
+                    </ul>
+                    <a href="#" class="pricing-cta">Empezar Prueba</a>
+                </div>
+
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">Más Popular</div>
+                    <div class="pricing-name">Autopilot</div>
+                    <div class="pricing-desc">100% automático</div>
+                    <div class="pricing-price">
+                        <span class="pricing-currency">€</span>
+                        <span class="pricing-amount">79</span>
+                        <span class="pricing-period">/mes</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>Todo de Starter</li>
+                        <li>Automatización ventas TPV</li>
+                        <li>Automatización compras</li>
+                        <li>Email diario resumen</li>
+                        <li>Matriz BCG</li>
+                        <li>3 usuarios</li>
+                        <li>Soporte prioritario</li>
+                    </ul>
+                    <a href="#" class="pricing-cta">Solicitar Demo</a>
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-top: 40px; color: var(--gray); font-size: 14px;">
+                Configuración inicial: 199€ (único) · Incluye conexión TPV + formación 2h
+            </p>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">FAQ</div>
+                <h2 class="section-title">Preguntas Frecuentes</h2>
+            </div>
+
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h4>¿Con qué TPV es compatible?</h4>
+                    <p>Actualmente nos integramos con los principales TPV del mercado español. Contacta para ver si el
+                        tuyo está soportado.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>¿Cuánto tarda la configuración?</h4>
+                    <p>Entre 24-48h tenemos todo funcionando. Solo necesitamos acceso a tu TPV y listado de
+                        ingredientes.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>¿Puedo cancelar cuando quiera?</h4>
+                    <p>Sí. Sin permanencia ni penalizaciones. Tus datos se conservan 30 días por si quieres volver.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>¿Hay prueba gratuita?</h4>
+                    <p>Ofrecemos demo personalizada donde configuramos el sistema con tus datos reales para que veas el
+                        valor.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>¿Listo para controlar tus costes sin esfuerzo?</h2>
+            <p>Únete a los restaurantes que ya ahorran +500€/mes en mermas</p>
+            <a href="#" class="cta-btn">
+                Solicitar Demo Gratuita
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">🍳 MindLoop CostOS</div>
+                <div class="footer-links">
+                    <a href="#">Términos y Condiciones</a>
+                    <a href="#">Privacidad</a>
+                    <a href="#">Contacto</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                © 2025 MindLoop. Todos los derechos reservados.
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
