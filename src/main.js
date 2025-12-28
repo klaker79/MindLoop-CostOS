@@ -97,25 +97,6 @@ import { initOnboarding } from './modules/ui/onboarding.js';
 // Initialize after data loads
 setTimeout(() => initOnboarding(), 3000);
 
-// Sales Calendar Heatmap
-import { renderCalendarioHeatmap, cambiarMesCalendario, verDetallesDia } from './modules/analytics/sales-calendar.js';
-window.renderCalendarioHeatmap = renderCalendarioHeatmap;
-window.cambiarMesCalendario = cambiarMesCalendario;
-window.verDetallesDia = verDetallesDia;
-// Initialize calendar when Análisis tab is shown
-document.addEventListener('DOMContentLoaded', () => {
-    const analisisTab = document.getElementById('tab-btn-analisis');
-    if (analisisTab) {
-        analisisTab.addEventListener('click', () => {
-            setTimeout(() => {
-                if (window.ventas && window.ventas.length > 0) {
-                    renderCalendarioHeatmap('calendario-ventas', window.ventas);
-                }
-            }, 100);
-        });
-    }
-});
-
 // Utilidades adicionales
 window.showLoading = Helpers.showLoading;
 window.hideLoading = Helpers.hideLoading;
