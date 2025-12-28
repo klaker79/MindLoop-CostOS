@@ -367,9 +367,10 @@ function renderizarBeneficioNetoDiario() {
     const ultimoDiaMostrar = esEsteMes ? hoy.getDate() : diasTotalesMes;
 
     // Iterar por todos los días del mes (del 1 al último día a mostrar)
-    // HÍBRIDO: Solo acumulamos gastos fijos en días CON actividad
+    // Todos los días restan gastos fijos - enfoque contable claro
+    let beneficioRealTotal = 0;
     let diasSinActividad = 0;
-    let gastosPendientes = 0; // Gastos de días cerrados que no se han "pagado"
+    let gastosPendientes = 0;
 
     for (let diaNum = 1; diaNum <= ultimoDiaMostrar; diaNum++) {
         const diaData = diasDataMap[diaNum] || { ingresos: 0, costos: 0, cantidadVendida: 0 };
@@ -378,64 +379,52 @@ function renderizarBeneficioNetoDiario() {
         const ingresos = diaData.ingresos || 0;
         const costos = diaData.costos || 0;
 
-        let beneficioNeto;
+        // Siempre restamos gastos fijos (enfoque contable real)
+        const beneficioNeto = ingresos - costos - gastosFijosDia;
+        beneficioRealTotal += beneficioNeto;
+
         if (tieneActividad) {
-            // Día con actividad: restamos gastos fijos normales
-            beneficioNeto = ingresos - costos - gastosFijosDia;
-            acumulado += beneficioNeto;
-            sumaTotal += beneficioNeto;
+            acumulado += ingresos - costos - gastosFijosDia;
+            sumaTotal += ingresos - costos - gastosFijosDia;
             diasConDatos++;
         } else {
-            // Día sin actividad: NO restamos del acumulado pero contamos el gasto pendiente
-            beneficioNeto = 0;
             diasSinActividad++;
             gastosPendientes += gastosFijosDia;
         }
 
         totalPlatosVendidos += diaData.cantidadVendida || 0;
 
-        const color = acumulado >= 0 ? '#10b981' : '#ef4444';
-
         // Determinar icono y estilo según el estado del día
         let icono, estiloFecha, beneficioTexto;
+        const colorAcumulado = beneficioRealTotal >= 0 ? '#10b981' : '#ef4444';
 
         if (!tieneActividad) {
-            // Día sin actividad (cerrado o sin datos en la API)
+            // Día cerrado - muestra el coste fijo que se resta
             icono = '🔘';
-            estiloFecha = 'color: #9ca3af; font-size: 13px;'; // Gris
-            beneficioTexto = `<span style="color: #9ca3af; font-size: 11px; margin-left: 8px;">cerrado</span>`;
+            estiloFecha = 'color: #9ca3af; font-size: 13px;';
+            beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">-${gastosFijosDia.toFixed(2)}€</span>`;
         } else if (beneficioNeto >= 0) {
-            // Día con beneficio positivo
             icono = '✅';
-            estiloFecha = 'color: #10b981; font-size: 13px;'; // Verde
+            estiloFecha = 'color: #10b981; font-size: 13px;';
             beneficioTexto = `<span style="color: #10b981; font-size: 11px; margin-left: 8px;">+${beneficioNeto.toFixed(2)}€</span>`;
         } else {
-            // Día con pérdida
             icono = '❌';
-            estiloFecha = 'color: #ef4444; font-size: 13px;'; // Rojo
+            estiloFecha = 'color: #ef4444; font-size: 13px;';
             beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">${beneficioNeto.toFixed(2)}€</span>`;
         }
 
         const fechaFormateada = `${diaNum}/${mes}`;
 
-        // Solo mostrar acumulado en días con actividad
-        const acumuladoDisplay = tieneActividad
-            ? `<span style="color: ${color}; font-weight: 700; font-size: 14px;">${acumulado.toFixed(2)} €</span>`
-            : `<span style="color: #cbd5e1; font-size: 12px;">—</span>`;
-
         html += `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; ${!tieneActividad ? 'opacity: 0.5;' : ''}">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; ${!tieneActividad ? 'background: #f8fafc;' : ''}">
             <div>
               <span style="${estiloFecha}">${icono} ${fechaFormateada}</span>
               ${beneficioTexto}
             </div>
-            ${acumuladoDisplay}
+            <span style="color: ${colorAcumulado}; font-weight: 700; font-size: 14px;">${beneficioRealTotal.toFixed(2)} €</span>
           </div>
         `;
     }
-
-    // Calcular beneficio REAL considerando días sin actividad
-    const beneficioRealTotal = acumulado - gastosPendientes;
 
     // ✅ NUEVO: Calcular PUNTO DE EQUILIBRIO
     let puntoEquilibrioHTML = '';
