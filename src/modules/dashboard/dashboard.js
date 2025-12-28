@@ -133,7 +133,10 @@ export async function actualizarKPIs() {
         const pedidos = window.pedidos || [];
         const pedidosActivos = pedidos.filter(p => p.estado === 'pendiente').length;
         const pedidosEl = document.getElementById('kpi-pedidos');
-        if (pedidosEl) pedidosEl.textContent = pedidosActivos;
+        if (pedidosEl) {
+            pedidosEl.textContent = pedidosActivos;
+            if (pedidosActivos > 0) animateCounter(pedidosEl, pedidosActivos, '', 800);
+        }
 
         // 3. STOCK BAJO
         const ingredientes = window.ingredientes || [];
@@ -143,7 +146,10 @@ export async function actualizarKPIs() {
             return minimo > 0 && stock <= minimo;
         }).length;
         const stockEl = document.getElementById('kpi-stock');
-        if (stockEl) stockEl.textContent = stockBajo;
+        if (stockEl) {
+            stockEl.textContent = stockBajo;
+            if (stockBajo > 0) animateCounter(stockEl, stockBajo, '', 800);
+        }
 
         const stockMsgEl = document.getElementById('kpi-stock-msg');
         if (stockMsgEl) stockMsgEl.textContent = stockBajo > 0 ? 'Requieren atención' : 'Todo OK';
