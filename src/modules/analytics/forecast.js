@@ -229,11 +229,13 @@ function getEmptyForecast(dias) {
 }
 
 /**
- * Format date as "Lun 28"
+ * Format date - includes month for clarity
+ * For monthly/quarterly views, include abbreviated month
  */
 function formatearFecha(date) {
     const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    return `${dias[date.getDay()]} ${date.getDate()}`;
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${date.getDate()} ${meses[date.getMonth()]}`;
 }
 
 function formatearFechaCorta(fechaStr) {
