@@ -143,13 +143,7 @@ function calcularConfianza(ventasPorDia) {
 function prepararDatosChart(ventasPorDia, predicciones, dias = 7) {
     // Always show the first 7 days of predictions for consistent chart
     const primeros7 = predicciones.slice(0, 7);
-    return prepararChartDiario(ventasPorDia, primeros7);
-}
 
-/**
- * Daily line chart (for 7-day view)
- */
-function prepararChartDiario(ventasPorDia, predicciones) {
     const hoy = new Date();
     const historicoCompleto = [];
 
@@ -172,18 +166,18 @@ function prepararChartDiario(ventasPorDia, predicciones) {
 
     const labels = [
         ...historicoCompleto.map(h => h.x),
-        ...predicciones.map(p => p.fechaFormateada)
+        ...primeros7.map(p => p.fechaFormateada)
     ];
 
     const historico = [
         ...historicoCompleto.map(h => h.y),
-        ...Array(predicciones.length).fill(null)
+        ...Array(primeros7.length).fill(null)
     ];
 
     const forecast = [
         ...Array(historicoCompleto.length - 1).fill(null),
         ultimoHistorico,
-        ...predicciones.map(p => p.prediccion)
+        ...primeros7.map(p => p.prediccion)
     ];
 
     return { labels, historico, forecast, chartType: 'line' };
