@@ -203,8 +203,8 @@ function prepararChartDiario(ventasPorDia, predicciones) {
 }
 
 /**
- * Weekly bar chart (for 30-day view)
- * Shows 4 bars: Sem 1, Sem 2, Sem 3, Sem 4
+ * Weekly line chart (for 30-day view)
+ * Shows 4 points: Sem 1, Sem 2, Sem 3, Sem 4
  */
 function prepararChartSemanal(predicciones) {
     const semanas = [
@@ -226,13 +226,13 @@ function prepararChartSemanal(predicciones) {
         labels: semanas.map(s => s.label),
         historico: [],
         forecast: semanas.map(s => s.total),
-        chartType: 'bar'
+        chartType: 'line'
     };
 }
 
 /**
- * Monthly bar chart (for 90-day view)
- * Shows 3 bars: Mes 1, Mes 2, Mes 3
+ * Monthly line chart (for 90-day view)
+ * Shows 3 points: Mes 1, Mes 2, Mes 3
  */
 function prepararChartMensual(predicciones) {
     const hoy = new Date();
@@ -257,7 +257,7 @@ function prepararChartMensual(predicciones) {
         labels: barras.map(b => b.label),
         historico: [],
         forecast: barras.map(b => b.total),
-        chartType: 'bar'
+        chartType: 'line'
     };
 }
 
