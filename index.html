@@ -261,28 +261,14 @@
         </div>
       </div>
 
-      <!-- 📈 Proyección de Ventas con Tabs de Período -->
+      <!-- 📈 Proyección de Ventas -->
       <div class="dashboard-card"
         style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-          <h3 style="margin: 0; font-size: 14px; color: #1E293B; display: flex; align-items: center; gap: 6px;">
-            📈 Proyección
-          </h3>
-          <span id="forecast-total" style="font-size: 18px; font-weight: 700; color: #8B5CF6;">-€</span>
-        </div>
-
-        <!-- Tabs de período -->
-        <div id="forecast-tabs" style="display: flex; gap: 4px; margin-bottom: 12px;">
-          <button class="forecast-period-tab active" data-period="7"
-            style="flex: 1; padding: 8px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; background: #8B5CF6; color: white; transition: all 0.2s;">
-            Semanal
-          </button>
-          <button class="forecast-period-tab" data-period="30"
-            style="flex: 1; padding: 8px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; background: #f1f5f9; color: #64748b; transition: all 0.2s;">
-            Mensual
-          </button>
-        </div>
-
+        <h3
+          style="margin: 0 0 12px 0; font-size: 14px; color: #1E293B; display: flex; align-items: center; gap: 6px; justify-content: space-between;">
+          <span>📈 Proyección 7 días</span>
+          <span id="forecast-total" style="font-size: 16px; font-weight: 700; color: #8B5CF6;">-€</span>
+        </h3>
         <div style="height: 120px;">
           <canvas id="chart-forecast"></canvas>
         </div>
