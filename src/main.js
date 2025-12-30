@@ -299,6 +299,14 @@ if (document.readyState === 'loading') {
 window.clearChatHistory = clearChatHistory;
 
 // ============================================
+// MÓDULO: INTEGRACIONES 🔗
+// ============================================
+import { checkAllIntegrations, initIntegrations } from './modules/integrations/integrations-status.js';
+
+window.checkAllIntegrations = checkAllIntegrations;
+window.initIntegrations = initIntegrations;
+
+// ============================================
 // LOG DE INICIALIZACIÓN (solo en desarrollo)
 // ============================================
 if (import.meta.env?.DEV || window.location.hostname === 'localhost') {

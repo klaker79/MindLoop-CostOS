@@ -1223,7 +1223,7 @@
               <div class="cover">
                 <h1>📘 Dossier Técnico</h1>
                 <p class="subtitle">Guía Completa de Fórmulas, Cálculos y Uso de MindLoop CostOS</p>
-                <p class="version">Versión 2.0 | ${new Date().toLocaleDateString('es-ES')}</p>
+                <p class="version">Versión 2.3 Premium | ${new Date().toLocaleDateString('es-ES')}</p>
               </div>
 
               <!-- ÍNDICE -->
@@ -1242,8 +1242,11 @@
                   <li><a href="#alertas">10. Sistema de Alertas</a></li>
                   <li><a href="#escandallo">11. Escandallo Visual</a></li>
                   <li><a href="#mermas">12. Control de Mermas</a></li>
-                  <li><a href="#novedades">13. Novedades v2.1</a></li>
-                  <li><a href="#faq">14. Preguntas Frecuentes</a></li>
+                  <li><a href="#forecast">13. Proyección de Ventas (Forecast)</a></li>
+                  <li><a href="#beneficio-diario">14. Beneficio Neto por Día (P&L)</a></li>
+                  <li><a href="#n8n">15. Email Automático con IA</a></li>
+                  <li><a href="#novedades">16. Novedades v2.3</a></li>
+                  <li><a href="#faq">17. Preguntas Frecuentes</a></li>
                 </ul>
               </div>
 
@@ -1581,29 +1584,167 @@
                 <p><strong>Pérdida registrada: 0.5 × 41.90 = 20.95€</strong></p>
               </div>
 
-              <!-- 13. NOVEDADES -->
-              <h2 id="novedades">13. 🆕 Novedades v2.1</h2>
+              <!-- 13. FORECAST -->
+              <h2 id="forecast">13. 📈 Proyección de Ventas (Forecast)</h2>
+              <div class="section-intro">
+                <p>El sistema analiza tu historial de ventas para predecir la facturación de los <strong>próximos 7 días</strong> usando algoritmos de media móvil ponderada y detección de patrones semanales.</p>
+              </div>
+              
+              <h3>Algoritmo de Predicción</h3>
+              <div class="formula">
+                <span class="formula-name">Media Móvil Ponderada (WMA)</span>
+                Predicción = Σ (Peso[i] × Venta[día-i]) / Σ Pesos<br>
+                Pesos: [3, 2.5, 2, 1.5, 1, 0.8, 0.6] (más peso a días recientes)
+              </div>
+              
+              <div class="formula">
+                <span class="formula-name">Factor de Día de Semana</span>
+                Factor = Media histórica del día / Media global<br>
+                Predicción Final = WMA × Factor día semana
+              </div>
+              
+              <div class="example">
+                <div class="example-title">📌 Ejemplo:</div>
+                <p>Si los sábados sueles facturar 300€ pero tu media diaria es 200€:</p>
+                <p>Factor sábado = 300/200 = <strong>1.5</strong></p>
+                <p>Si la WMA predice 180€, la predicción del sábado será: 180 × 1.5 = <strong>270€</strong></p>
+              </div>
+              
+              <h3>Niveles de Confianza</h3>
+              <table>
+                <tr><th>Nivel</th><th>Datos Requeridos</th><th>Precisión Esperada</th></tr>
+                <tr><td>🟢 <strong>Alta</strong></td><td>30+ días</td><td>85-95%</td></tr>
+                <tr><td>🟡 <strong>Media</strong></td><td>14-30 días</td><td>70-85%</td></tr>
+                <tr><td>🟠 <strong>Baja</strong></td><td>7-14 días</td><td>50-70%</td></tr>
+                <tr><td>🔴 <strong>Muy Baja</strong></td><td>&lt;7 días</td><td>&lt;50%</td></tr>
+              </table>
+              
+              <div class="tip">
+                <div class="tip-title">💡 Consejo</div>
+                <p>Cuantos más datos de ventas tengas, más precisas serán las predicciones. El sistema necesita al menos <strong>30 días</strong> de datos para patrones semanales fiables.</p>
+              </div>
+
+              <!-- 14. BENEFICIO NETO POR DÍA -->
+              <h2 id="beneficio-diario">14. 💰 Beneficio Neto por Día (P&L Diario)</h2>
+              <div class="section-intro">
+                <p>El sistema calcula el <strong>beneficio neto real</strong> de cada día, considerando ingresos, costes de materia prima y la parte proporcional de gastos fijos.</p>
+              </div>
+              
+              <h3>Fórmula del Beneficio Neto Diario</h3>
+              <div class="formula">
+                <span class="formula-name">Beneficio Neto del Día</span>
+                Beneficio Neto = Ingresos día − Costes día − (Gastos Fijos Mes ÷ Días del Mes)
+              </div>
+              
+              <div class="formula">
+                <span class="formula-name">Prorrateo de Gastos Fijos</span>
+                Gasto Fijo Diario = (Alquiler + Personal + Suministros + Otros) ÷ Días calendario del mes<br>
+                Ejemplo: 1000€ ÷ 31 días = <strong>32.26€/día</strong>
+              </div>
+              
+              <h3>Estados de los Días</h3>
+              <table>
+                <tr><th>Icono</th><th>Estado</th><th>Significado</th></tr>
+                <tr><td>✅</td><td>Día rentable</td><td>Ingresos - Costes > Gastos Fijos Diarios</td></tr>
+                <tr><td>❌</td><td>Día con pérdida</td><td>Ventas insuficientes para cubrir costes + gastos fijos</td></tr>
+                <tr><td>🔘</td><td>Día cerrado</td><td>Sin actividad, pero los gastos fijos se siguen restando</td></tr>
+              </table>
+              
+              <div class="example">
+                <div class="example-title">📌 Ejemplo:</div>
+                <p><strong>Día con ventas:</strong></p>
+                <p>Ingresos: 224€ | Costes materia prima: 45€ | Gastos fijos: 32.26€</p>
+                <p>Beneficio Neto = 224 - 45 - 32.26 = <strong>+146.74€</strong> ✅</p>
+                <br>
+                <p><strong>Día cerrado:</strong></p>
+                <p>Ingresos: 0€ | Costes: 0€ | Gastos fijos: 32.26€</p>
+                <p>Beneficio Neto = 0 - 0 - 32.26 = <strong>-32.26€</strong> 🔘</p>
+              </div>
+              
+              <div class="tip">
+                <div class="tip-title">⚠️ Importante</div>
+                <p>Los gastos fijos se restan <strong>todos los días</strong>, incluso los que el restaurante está cerrado. Esto refleja la realidad contable: el alquiler se paga igual trabajes o no.</p>
+              </div>
+              
+              <div class="tip" style="background: #eff6ff; border-left-color: #3b82f6;">
+                <div class="tip-title">💡 ¿Qué significa el número en verde?</div>
+                <p>El número que ves (ej: <strong>+145.34€</strong>) <strong>NO es el total de ventas</strong>. Es el <strong>beneficio neto</strong> = lo que te quedó en el bolsillo después de pagar productos y gastos fijos.</p>
+                <table style="margin-top: 10px; font-size: 13px;">
+                  <tr style="background: #f8fafc;"><th>Concepto</th><th style="text-align: right;">Cantidad</th></tr>
+                  <tr><td>Ventas del día</td><td style="text-align: right;">224.00€</td></tr>
+                  <tr><td>− Coste ingredientes</td><td style="text-align: right; color: #ef4444;">-46.40€</td></tr>
+                  <tr><td>− Gastos fijos/día</td><td style="text-align: right; color: #ef4444;">-32.26€</td></tr>
+                  <tr style="background: #ecfdf5; font-weight: bold;"><td>= Beneficio neto</td><td style="text-align: right; color: #10b981;">+145.34€</td></tr>
+                </table>
+              </div>
+
+              <!-- 15. N8N EMAIL -->
+              <h2 id="n8n">15. 📧 Email Automático con IA</h2>
+              <div class="section-intro">
+                <p>MindLoop CostOS se integra con <strong>n8n</strong> para enviar informes automáticos diarios y mensuales analizados por inteligencia artificial.</p>
+              </div>
+              
+              <h3>Email Diario (23:00)</h3>
+              <p>Cada noche recibes un resumen con:</p>
+              <table>
+                <tr><th>Métrica</th><th>Descripción</th></tr>
+                <tr><td><strong>Ingresos del día</strong></td><td>Total facturado</td></tr>
+                <tr><td><strong>Número de ventas</strong></td><td>Cantidad de tickets</td></tr>
+                <tr><td><strong>Ticket medio</strong></td><td>Ingresos / Ventas</td></tr>
+                <tr><td><strong>Variación vs ayer</strong></td><td>Porcentaje de cambio</td></tr>
+                <tr><td><strong>Análisis IA</strong></td><td>Valoración y recomendaciones</td></tr>
+              </table>
+              
+              <h3>Email Mensual (Día 1, 09:00)</h3>
+              <p>El primer día de cada mes, recibes un informe ejecutivo con:</p>
+              <ul>
+                <li>Ingresos totales del mes anterior</li>
+                <li>Comparativa con el mes previo</li>
+                <li>Días activos y media diaria</li>
+                <li>Análisis estratégico generado por IA</li>
+                <li>Recomendaciones para el nuevo mes</li>
+              </ul>
+              
+              <div class="formula">
+                <span class="formula-name">Query SQL del Email Diario</span>
+                SELECT SUM(total) as ingresos,<br>
+                COUNT(*) as ventas,<br>
+                ROUND(SUM(total)/COUNT(*), 2) as ticket_medio<br>
+                FROM ventas WHERE fecha::date = CURRENT_DATE
+              </div>
+              
+              <div class="tip">
+                <div class="tip-title">🤖 IA Integrada</div>
+                <p>Los emails incluyen análisis generados por <strong>GPT-4</strong> que valoran el rendimiento del día y sugieren acciones concretas basadas en los datos.</p>
+              </div>
+
+              <!-- 16. NOVEDADES -->
+              <h2 id="novedades">16. 🆕 Novedades v2.3 Premium</h2>
               <div class="section-intro">
                 <p>Últimas mejoras implementadas en MindLoop CostOS para optimizar la gestión de tu restaurante.</p>
               </div>
               
               <table>
                 <tr><th>Novedad</th><th>Descripción</th></tr>
+                <tr><td>📈 Forecast 7 días</td><td>Predicción de ventas con algoritmo de media móvil ponderada</td></tr>
+                <tr><td>📧 Email Diario IA</td><td>Resumen automático cada noche con análisis de GPT-4</td></tr>
+                <tr><td>📊 Email Mensual</td><td>Informe ejecutivo el día 1 de cada mes</td></tr>
+                <tr><td>🎯 Onboarding Tour</td><td>Guía interactiva para nuevos usuarios</td></tr>
+                <tr><td>🔍 Búsqueda Global (Cmd+K)</td><td>Encuentra cualquier dato al instante</td></tr>
                 <tr><td>📊 Escandallo Visual</td><td>Gráfico circular de desglose de costes por receta</td></tr>
                 <tr><td>📄 PDF Profesional</td><td>Exporta fichas técnicas de recetas en PDF</td></tr>
                 <tr><td>🗑️ Merma Rápida</td><td>Registro rápido de pérdidas de producto</td></tr>
-                <tr><td>🔢 3 Decimales</td><td>Precisión de gramos en cantidades de recetas (0.001 kg = 1g)</td></tr>
-                <tr><td>🔗 Sync Bidireccional</td><td>Ingredientes y proveedores sincronizados automáticamente</td></tr>
-                <tr><td>📈 Dashboard Compacto</td><td>KPIs en fila horizontal + cuadrícula 2x2</td></tr>
+                <tr><td>📈 Dashboard 2x2</td><td>Cuadrícula analítica con sparklines</td></tr>
+                <tr><td>📊 Evolución de Precios</td><td>Historial temporal de precios de ingredientes</td></tr>
               </table>
               
               <div class="tip">
                 <div class="tip-title">💡 Consejo</div>
-                <p>Usa el <strong>Escandallo Visual</strong> para identificar ingredientes que representan más del 40% del coste de un plato. Considera negociar precios o buscar alternativas para optimizar tu margen.</p>
+                <p>Usa el <strong>Forecast</strong> para planificar compras de la semana y el <strong>Email IA</strong> para tener contexto diario sin entrar a la aplicación.</p>
               </div>
 
-              <!-- 14. FAQ -->
-              <h2 id="faq">14. ❓ Preguntas Frecuentes</h2>
+              <!-- 17. FAQ -->
+              <h2 id="faq">17. ❓ Preguntas Frecuentes</h2>
               
               <h3>¿Cómo calcula el sistema el punto de equilibrio en tiempo real?</h3>
               <p>El sistema analiza tu <strong>mix de ventas actual</strong> (qué platos vendes y con qué margen) y proyecta cuánto necesitas facturar para cubrir tus costes fijos. Si vendes platos más rentables, el punto de equilibrio baja automáticamente.</p>

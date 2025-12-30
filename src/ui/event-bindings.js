@@ -15,6 +15,9 @@ const actionHandlers = {
     'mostrar-registro': () => window.mostrarRegistro?.(),
     logout: () => window.logout?.(),
 
+    // Theme Toggle
+    'toggle-theme': () => toggleTheme(),
+
     // Ingredientes
     'mostrar-form-ingrediente': () => window.mostrarFormularioIngrediente?.(),
     'cerrar-form-ingrediente': () => window.cerrarFormularioIngrediente?.(),
@@ -233,4 +236,42 @@ function bindInputChanges() {
         precioVenta.addEventListener('change', () => window.calcularCosteReceta?.());
         precioVenta.addEventListener('input', () => window.calcularCosteReceta?.());
     }
+}
+
+/**
+ * Toggle dark/light theme
+ */
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('costos_theme', newTheme);
+
+    // Update icon
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    }
+}
+
+/**
+ * Initialize theme from localStorage
+ */
+function initTheme() {
+    const savedTheme = localStorage.getItem('costos_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    }
+}
+
+// Initialize theme on load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTheme);
+} else {
+    initTheme();
 }

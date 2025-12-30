@@ -218,10 +218,80 @@ export async function actualizarKPIs() {
             if (typeof window.renderForecastChart === 'function') {
                 window.renderForecastChart('chart-forecast', forecast.chartData);
             }
+
+            // Initialize forecast period tabs
+            initForecastTabs();
         }
 
     } catch (error) {
         console.error('Error actualizando KPIs:', error);
+    }
+}
+
+/**
+ * Initialize forecast period tabs with click handlers
+ */
+function initForecastTabs() {
+    const tabs = document.querySelectorAll('.forecast-period-tab');
+    if (!tabs.length) return;
+
+    // Only initialize once
+    if (window._forecastTabsInitialized) return;
+    window._forecastTabsInitialized = true;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const period = parseInt(tab.dataset.period);
+            updateForecastPeriod(period);
+
+            // Update tab styles
+            tabs.forEach(t => {
+                if (t === tab) {
+                    t.style.background = '#8B5CF6';
+                    t.style.color = 'white';
+                    t.style.fontWeight = '600';
+                } else {
+                    t.style.background = '#f1f5f9';
+                    t.style.color = '#64748b';
+                    t.style.fontWeight = '500';
+                }
+            });
+        });
+    });
+}
+
+/**
+ * Update forecast for a specific period (7, 30, or 90 days)
+ */
+function updateForecastPeriod(dias) {
+    const ventas = window.ventas || [];
+    if (!ventas.length || typeof window.calcularForecast !== 'function') return;
+
+    const forecast = window.calcularForecast(ventas, dias);
+
+    // Update total with period label
+    const forecastTotalEl = document.getElementById('forecast-total');
+    if (forecastTotalEl) {
+        forecastTotalEl.textContent = forecast.totalPrediccion.toLocaleString('es-ES') + '€';
+    }
+
+    // Update confidence text with period info
+    const confianzaEl = document.getElementById('forecast-confianza');
+    if (confianzaEl) {
+        const periodoTexto = dias === 7 ? '7 días' : dias === 30 ? 'mes' : 'trimestre';
+        const confianzaTextos = {
+            'alta': `📊 Proyección ${periodoTexto} · Alta confianza`,
+            'media': `📊 Proyección ${periodoTexto} · Confianza media`,
+            'baja': `📊 Proyección ${periodoTexto} · Baja confianza`,
+            'muy_baja': `📊 Proyección ${periodoTexto} · Datos limitados`,
+            'sin_datos': `📊 Sin datos históricos`
+        };
+        confianzaEl.textContent = confianzaTextos[forecast.confianza] || `Proyección ${periodoTexto}`;
+    }
+
+    // Re-render chart with new data
+    if (typeof window.renderForecastChart === 'function') {
+        window.renderForecastChart('chart-forecast', forecast.chartData);
     }
 }
 

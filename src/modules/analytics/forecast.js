@@ -50,8 +50,8 @@ export function calcularForecast(ventas, dias = 7) {
         });
     }
 
-    // Prepare chart data (last 7 days actual + 7 days forecast)
-    const chartData = prepararDatosChart(ventasPorDia, predicciones);
+    // Prepare chart data (last N days actual + N days forecast)
+    const chartData = prepararDatosChart(ventasPorDia, predicciones, dias);
 
     // Total forecast
     const totalPrediccion = predicciones.reduce((sum, p) => sum + p.prediccion, 0);
@@ -139,13 +139,16 @@ function calcularConfianza(ventasPorDia) {
 /**
  * Prepares data for Chart.js
  * Fills in missing days with 0 to show continuous timeline
+ * For longer periods, shows sampled data points
  */
-function prepararDatosChart(ventasPorDia, predicciones) {
-    // Generate last 7 consecutive days (including gaps)
+function prepararDatosChart(ventasPorDia, predicciones, dias = 7) {
     const hoy = new Date();
     const historicoCompleto = [];
 
-    for (let i = 6; i >= 0; i--) {
+    // For longer periods, show fewer historical days
+    const diasHistoricos = dias <= 7 ? 7 : Math.min(14, dias);
+
+    for (let i = diasHistoricos - 1; i >= 0; i--) {
         const fecha = new Date(hoy);
         fecha.setDate(hoy.getDate() - i);
         const fechaStr = fecha.toISOString().split('T')[0];
@@ -157,28 +160,43 @@ function prepararDatosChart(ventasPorDia, predicciones) {
         });
     }
 
-    // Forecast data (starts from last historical point for continuity)
+    // For month/quarter, sample forecast points (weekly)
+    let forecastMostrar = predicciones;
+    if (dias > 14) {
+        // Show every 7th day for month/quarter
+        forecastMostrar = predicciones.filter((_, i) => i === 0 || (i + 1) % 7 === 0 || i === predicciones.length - 1);
+    }
+
     const ultimoHistorico = historicoCompleto.length > 0
         ? historicoCompleto[historicoCompleto.length - 1].y
         : 0;
 
-    const forecast = predicciones.map((p, i) => ({
-        x: p.fechaFormateada,
-        y: p.prediccion
-    }));
+    // Build forecast array with proper null padding
+    const forecastData = forecastMostrar.map(p => p.prediccion);
 
-    // Add connection point
-    if (historicoCompleto.length > 0) {
-        forecast.unshift({
-            x: historicoCompleto[historicoCompleto.length - 1].x,
-            y: ultimoHistorico
-        });
-    }
+    // Labels for x-axis
+    const labels = [
+        ...historicoCompleto.map(h => h.x),
+        ...forecastMostrar.map(p => p.fechaFormateada)
+    ];
+
+    // Historical data + nulls for forecast portion
+    const historico = [
+        ...historicoCompleto.map(h => h.y),
+        ...Array(forecastMostrar.length).fill(null)
+    ];
+
+    // Nulls for historical + connection point + forecast
+    const forecast = [
+        ...Array(historicoCompleto.length - 1).fill(null),
+        ultimoHistorico,
+        ...forecastData
+    ];
 
     return {
-        labels: [...historicoCompleto.map(h => h.x), ...predicciones.map(p => p.fechaFormateada)],
-        historico: historicoCompleto.map(h => h.y),
-        forecast: [...Array(historicoCompleto.length - 1).fill(null), ultimoHistorico, ...predicciones.map(p => p.prediccion)]
+        labels,
+        historico,
+        forecast
     };
 }
 
