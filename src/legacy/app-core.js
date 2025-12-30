@@ -650,7 +650,7 @@
             await api.deleteSale(id);
             await cargarDatos();
             renderizarVentas();
-            renderizarIngredientes();
+            window.renderizarIngredientes();
             renderizarInventario();
             window.actualizarKPIs();
             window.actualizarDashboardExpandido();
@@ -1833,7 +1833,7 @@
                 await cargarDatos();
                 renderizarVentas();
                 renderizarInventario();
-                renderizarIngredientes();
+                window.renderizarIngredientes();
                 window.actualizarKPIs();
                 e.target.reset();
                 showToast('Venta registrada correctamente', 'success');
@@ -2439,7 +2439,7 @@
                 }
             }
             await cargarDatos();
-            renderizarIngredientes();
+            window.renderizarIngredientes();
             renderizarInventario();
             window.actualizarKPIs();
             window.actualizarDashboardExpandido();
@@ -2807,7 +2807,7 @@
             }
 
             await cargarDatos();
-            renderizarIngredientes();
+            window.renderizarIngredientes();
             hideLoading();
             window.cerrarModalProducir();
             showToast(`Producidas ${cant} unidades de ${rec.nombre}`, 'success');
@@ -2944,7 +2944,7 @@
               window.renderizarProveedores();
               await cargarDatos();
               renderizarProveedores();
-              renderizarIngredientes();
+              window.renderizarIngredientes();
               hideLoading();
               showToast('✅ Proveedor eliminado correctamente', 'success');
             } catch (error) {
@@ -3412,7 +3412,7 @@
 
             await cargarDatos();
             renderizarPedidos();
-            renderizarIngredientes();
+            window.renderizarIngredientes();
             renderizarInventario();
             window.actualizarKPIs();
             window.actualizarDashboardExpandido();
