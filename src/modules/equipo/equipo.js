@@ -65,8 +65,8 @@ export async function renderizarEquipo() {
  * Muestra modal para invitar usuario
  */
 export function mostrarModalInvitar() {
-    const modal = document.getElementById('modal-invitar');
-    if (modal) modal.style.display = 'flex';
+    const modal = document.getElementById('modal-invitar-equipo');
+    if (modal) modal.classList.add('active');
 }
 
 /**
