@@ -92,7 +92,7 @@ export async function invitarUsuarioEquipo() {
     }
 
     try {
-        const res = await fetch(API_BASE + '/team', {
+        const res = await fetch(API_BASE + '/team/invite', {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ nombre, email, password, rol }),
