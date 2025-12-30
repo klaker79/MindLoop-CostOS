@@ -1,5 +1,0 @@
-{
-    "scripts": {
-        "start": "npx serve dist -l 3000"
-    }
-}
