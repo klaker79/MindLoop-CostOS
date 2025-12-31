@@ -56,7 +56,6 @@ function renderizarFiltrosCategorias(container) {
     // Filtros basados en campo 'familia' del formulario
     html += `<button class="filtro-btn grupo ${filtroCategoria === 'alimento' ? 'active' : ''}" onclick="window.filtrarPorCategoria('alimento')" style="background: #dcfce7; border-color: #22c55e;">🥬 Alimentos</button>`;
     html += `<button class="filtro-btn grupo ${filtroCategoria === 'bebida' ? 'active' : ''}" onclick="window.filtrarPorCategoria('bebida')" style="background: #dbeafe; border-color: #3b82f6;">🍺 Bebidas</button>`;
-    html += `<button class="filtro-btn grupo ${filtroCategoria === 'suministro' ? 'active' : ''}" onclick="window.filtrarPorCategoria('suministro')" style="background: #fef3c7; border-color: #f59e0b;">🧹 Suministros</button>`;
 
     html += '</div>';
 
