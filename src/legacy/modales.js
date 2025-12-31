@@ -7,9 +7,9 @@ window.confirmarEliminacion = function (config) {
 
         titulo.textContent = config.titulo || 'Confirmar Eliminación';
         mensaje.innerHTML = `
-      ¿Estás seguro de eliminar <strong>${config.tipo || 'este elemento'}</strong>?
+      ¿Estás seguro de eliminar <strong>${escapeHTML(config.tipo || 'este elemento')}</strong>?
       <br><br>
-      <strong style="font-size: 1.15rem;">"${config.nombre}"</strong>
+      <strong style="font-size: 1.15rem;">"${escapeHTML(config.nombre)}"</strong>
       <br><br>
       <span style="font-size: 0.95rem; color: #6c757d;">Esta acción no se puede deshacer.</span>
     `;
@@ -63,12 +63,12 @@ function renderizarGastosFijos() {
         .map(g => {
             const costeDiario = (parseFloat(g.monto_mensual) / 30).toFixed(2);
             return `<tr>
-            <td><strong>${g.concepto}</strong></td>
+            <td><strong>${escapeHTML(g.concepto)}</strong></td>
             <td>${parseFloat(g.monto_mensual).toFixed(2)}€</td>
             <td>${costeDiario}€</td>
             <td>
                 <button class="btn-icon" onclick="editarGastoFijo(${g.id})">✏️</button>
-                <button class="btn-icon" onclick="confirmarEliminarGastoFijo(${g.id}, '${g.concepto}')">🗑️</button>
+                <button class="btn-icon" onclick="confirmarEliminarGastoFijo(${g.id}, '${escapeHTML(g.concepto)}')">🗑️</button>
             </td>
         </tr>`;
         })
@@ -199,7 +199,13 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
 
     try {
         // Guardar en localStorage directamente (más rápido y confiable)
-        const opexData = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+        let opexData = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+
+        // Validar que opexData es un objeto
+        if (!opexData || typeof opexData !== 'object' || Array.isArray(opexData)) {
+            console.warn('Datos corruptos en opex_inputs, reiniciando');
+            opexData = {};
+        }
 
         // Mapear concepto a clave correcta
         const conceptoKey = concepto.toLowerCase();
@@ -208,7 +214,14 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
         localStorage.setItem('opex_inputs', JSON.stringify(opexData));
 
         // También actualizar en gastos_fijos para compatibilidad
-        const gastosFijos = JSON.parse(localStorage.getItem('gastos_fijos') || '[]');
+        let gastosFijos = JSON.parse(localStorage.getItem('gastos_fijos') || '[]');
+
+        // Validar que gastosFijos es un array
+        if (!Array.isArray(gastosFijos)) {
+            console.warn('Datos corruptos en gastos_fijos, reiniciando');
+            gastosFijos = [];
+        }
+
         const idx = gastosFijos.findIndex(g => g.concepto === concepto);
 
         if (idx >= 0) {
@@ -235,6 +248,13 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
 function calcularTotalGastosFijos() {
     try {
         const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+
+        // Validar que opex es un objeto y no un array u otro tipo
+        if (!opex || typeof opex !== 'object' || Array.isArray(opex)) {
+            console.warn('Datos de gastos fijos inválidos en localStorage, usando valores por defecto');
+            return 0;
+        }
+
         const total =
             (parseFloat(opex.alquiler) || 0) +
             (parseFloat(opex.personal) || 0) +
@@ -271,6 +291,12 @@ function actualizarTotalGastosFijos() {
 function cargarValoresGastosFijos() {
     try {
         const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+
+        // Validar que opex es un objeto válido
+        if (!opex || typeof opex !== 'object' || Array.isArray(opex)) {
+            console.warn('Datos de gastos fijos inválidos, no se cargarán valores');
+            return;
+        }
 
         if (opex.alquiler) {
             const slider = document.getElementById('gf-alquiler');
@@ -571,6 +597,8 @@ setInterval(
             const expiresIn = decoded.exp * 1000 - Date.now();
             if (expiresIn < 5 * 60 * 1000 && expiresIn > 0) {
                 // Renovando token
+                const API_BASE =
+                    window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud';
                 const response = await fetch(API_BASE + '/api/auth/refresh', {
                     method: 'POST',
                     headers: { Authorization: 'Bearer ' + token },

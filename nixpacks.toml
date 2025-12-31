@@ -1,0 +1,14 @@
+# nixpacks.toml - Configuración para Dokploy/Nixpacks
+# Fuerza el uso del Dockerfile en lugar de detección automática
+
+[phases.setup]
+nixPkgs = []
+
+[phases.build]
+cmds = []
+
+[phases.install]
+cmds = []
+
+[start]
+cmd = "echo 'Use Dockerfile'"

@@ -1,0 +1,48 @@
+# .dockerignore - Optimiza builds de Docker
+# Excluye archivos innecesarios del contexto de build
+
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Testing
+coverage
+.nyc_output
+__tests__
+
+# Build artifacts
+dist
+.vite
+
+# Development
+.env.local
+.env.*.local
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+.github
+
+# Documentation
+*.md
+docs
+
+# Misc
+.prettierrc
+.prettierignore
+eslint.config.js
+jest.config.js

@@ -93,6 +93,42 @@ npm run format:check # Verificar formato
 
 ---
 
+## 🚀 Deployment
+
+### Dokploy (Recomendado)
+
+Para deployar en Dokploy, usa **Dockerfile** como Build Type (NO Nixpacks):
+
+```yaml
+Build Type: Dockerfile
+Repository: klaker79/MindLoop-CostOS
+Branch: main
+Dockerfile Path: ./Dockerfile
+Port: 80
+Health Check: /health
+```
+
+**⚠️ IMPORTANTE:** Si usas Nixpacks, el build puede fallar generando 502 Bad Gateway. Ver [`DOKPLOY_CONFIG.md`](./DOKPLOY_CONFIG.md) para troubleshooting.
+
+### Docker Manual
+
+```bash
+# Build
+docker build -t mindloop-costos .
+
+# Run
+docker run -p 80:80 mindloop-costos
+```
+
+### Vercel
+
+```bash
+npm run build
+vercel deploy --prod
+```
+
+---
+
 ## 📁 Estructura del Proyecto
 
 ```
