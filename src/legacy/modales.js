@@ -199,7 +199,13 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
 
     try {
         // Guardar en localStorage directamente (más rápido y confiable)
-        const opexData = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+        let opexData = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+
+        // Validar que opexData es un objeto
+        if (!opexData || typeof opexData !== 'object' || Array.isArray(opexData)) {
+            console.warn('Datos corruptos en opex_inputs, reiniciando');
+            opexData = {};
+        }
 
         // Mapear concepto a clave correcta
         const conceptoKey = concepto.toLowerCase();
@@ -208,7 +214,14 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
         localStorage.setItem('opex_inputs', JSON.stringify(opexData));
 
         // También actualizar en gastos_fijos para compatibilidad
-        const gastosFijos = JSON.parse(localStorage.getItem('gastos_fijos') || '[]');
+        let gastosFijos = JSON.parse(localStorage.getItem('gastos_fijos') || '[]');
+
+        // Validar que gastosFijos es un array
+        if (!Array.isArray(gastosFijos)) {
+            console.warn('Datos corruptos en gastos_fijos, reiniciando');
+            gastosFijos = [];
+        }
+
         const idx = gastosFijos.findIndex(g => g.concepto === concepto);
 
         if (idx >= 0) {
@@ -235,6 +248,13 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
 function calcularTotalGastosFijos() {
     try {
         const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+
+        // Validar que opex es un objeto y no un array u otro tipo
+        if (!opex || typeof opex !== 'object' || Array.isArray(opex)) {
+            console.warn('Datos de gastos fijos inválidos en localStorage, usando valores por defecto');
+            return 0;
+        }
+
         const total =
             (parseFloat(opex.alquiler) || 0) +
             (parseFloat(opex.personal) || 0) +
@@ -271,6 +291,12 @@ function actualizarTotalGastosFijos() {
 function cargarValoresGastosFijos() {
     try {
         const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+
+        // Validar que opex es un objeto válido
+        if (!opex || typeof opex !== 'object' || Array.isArray(opex)) {
+            console.warn('Datos de gastos fijos inválidos, no se cargarán valores');
+            return;
+        }
 
         if (opex.alquiler) {
             const slider = document.getElementById('gf-alquiler');
@@ -571,6 +597,8 @@ setInterval(
             const expiresIn = decoded.exp * 1000 - Date.now();
             if (expiresIn < 5 * 60 * 1000 && expiresIn > 0) {
                 // Renovando token
+                const API_BASE =
+                    window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud';
                 const response = await fetch(API_BASE + '/api/auth/refresh', {
                     method: 'POST',
                     headers: { Authorization: 'Bearer ' + token },
