@@ -56,6 +56,7 @@ function renderizarFiltrosCategorias(container) {
     // Filtros basados en campo 'familia' del formulario
     html += `<button class="filtro-btn grupo ${filtroCategoria === 'alimento' ? 'active' : ''}" onclick="window.filtrarPorCategoria('alimento')" style="background: #dcfce7; border-color: #22c55e;">🥬 Alimentos</button>`;
     html += `<button class="filtro-btn grupo ${filtroCategoria === 'bebida' ? 'active' : ''}" onclick="window.filtrarPorCategoria('bebida')" style="background: #dbeafe; border-color: #3b82f6;">🍺 Bebidas</button>`;
+    html += `<button class="filtro-btn grupo ${filtroCategoria === 'suministro' ? 'active' : ''}" onclick="window.filtrarPorCategoria('suministro')" style="background: #fef3c7; border-color: #f59e0b;">🧹 Suministros</button>`;
 
     html += '</div>';
 
@@ -216,8 +217,8 @@ export function renderizarIngredientes() {
             const stockMinimo = parseFloat(ing.stock_minimo) || 0;
             const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
             const familia = ing.familia || 'alimento';
-            const familiaBadge = familia === 'bebida' ? 'badge-info' : 'badge-success';
-            const familiaLabel = familia === 'bebida' ? '🍺 Bebida' : '🥬 Alimento';
+            const familiaBadge = familia === 'bebida' ? 'badge-info' : familia === 'suministro' ? 'badge-warning' : 'badge-success';
+            const familiaLabel = familia === 'bebida' ? '🍺 Bebida' : familia === 'suministro' ? '🧹 Suministro' : '🥬 Alimento';
 
             // ⚡ Búsqueda O(1) del proveedor
             const nombreProv = window.dataMaps
