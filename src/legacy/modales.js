@@ -368,7 +368,14 @@ async function renderizarBeneficioNetoDiario() {
     }
 
     const dias = window.datosResumenMensual.dias;
-    const gastosFijosMes = await calcularTotalGastosFijos();
+    let gastosFijosMes = await calcularTotalGastosFijos();
+
+    // ✅ VALIDACIÓN DEFENSIVA: Prevenir NaN en todos los edge cases
+    if (typeof gastosFijosMes !== 'number' || isNaN(gastosFijosMes) || gastosFijosMes < 0) {
+        console.warn('Gastos fijos inválidos, usando 0:', gastosFijosMes);
+        gastosFijosMes = 0;
+    }
+
     const mes = parseInt(document.getElementById('diario-mes')?.value || new Date().getMonth() + 1);
     const ano = parseInt(document.getElementById('diario-ano')?.value || new Date().getFullYear());
 
@@ -385,7 +392,12 @@ async function renderizarBeneficioNetoDiario() {
         return;
     }
 
-    const gastosFijosDia = gastosFijosMes / diasTotalesMes;
+    let gastosFijosDia = gastosFijosMes / diasTotalesMes;
+
+    // ✅ VALIDACIÓN DEFENSIVA: Garantizar que gastosFijosDia sea válido
+    if (!isFinite(gastosFijosDia) || isNaN(gastosFijosDia)) {
+        gastosFijosDia = 0;
+    }
 
     // Crear mapa de datos por día con ingresos y costos REALES
     const diasDataMap = {};
