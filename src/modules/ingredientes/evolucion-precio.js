@@ -12,10 +12,7 @@ let chartEvolucionPrecio = null;
  * @param {number} ingredienteId - ID of the ingredient
  */
 export async function verEvolucionPrecio(ingredienteId) {
-    // ⚡ OPTIMIZACIÓN: Usar dataMaps para O(1) lookup
-    window.dataMaps?.updateIfStale();
-    const ingrediente = window.dataMaps?.getIngrediente(ingredienteId) ||
-        (window.ingredientes || []).find(i => i.id === ingredienteId);
+    const ingrediente = (window.ingredientes || []).find(i => i.id === ingredienteId);
     if (!ingrediente) {
         window.showToast?.('Ingrediente no encontrado', 'error');
         return;
@@ -109,44 +106,31 @@ export async function verEvolucionPrecio(ingredienteId) {
 
 /**
  * Gets price history from orders for an ingredient
+ * ⚡ OPTIMIZACIÓN: Pre-build Map de proveedores
  */
 function obtenerHistorialPrecios(ingredienteId) {
     const pedidos = window.pedidos || [];
     const historial = [];
 
     // Get received orders sorted by date
-    // FIXED: Check for both 'ingredientes' AND 'items' properties
     const pedidosRecibidos = pedidos
-        .filter(p => p.estado === 'recibido' && (p.ingredientes || p.items))
+        .filter(p => p.estado === 'recibido' && p.items)
         .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
+    // ⚡ OPTIMIZACIÓN: Crear Map de proveedores O(1) una vez
+    const provMap = new Map((window.proveedores || []).map(p => [p.id, p]));
+
     pedidosRecibidos.forEach(pedido => {
-        // FIXED: Los pedidos usan 'ingredientes', no 'items'
-        const items = Array.isArray(pedido.ingredientes) ? pedido.ingredientes :
-            Array.isArray(pedido.items) ? pedido.items : [];
+        const items = Array.isArray(pedido.items) ? pedido.items : [];
         const item = items.find(i => i.ingrediente_id === ingredienteId || i.ingredienteId === ingredienteId);
 
         if (item) {
             const cantidad = parseFloat(item.cantidadRecibida || item.cantidad) || 0;
-            // FIXED: precioReal y precioUnitario YA son precios unitarios, NO dividir por cantidad
-            // Solo calcular precio/cantidad si tenemos un 'total' (no un precio unitario)
-            let precioUnitario;
-            if (item.precioReal !== undefined) {
-                // precioReal es el precio unitario real introducido al recibir
-                precioUnitario = parseFloat(item.precioReal) || 0;
-            } else if (item.precioUnitario !== undefined || item.precio_unitario !== undefined) {
-                // precio unitario original del pedido
-                precioUnitario = parseFloat(item.precioUnitario || item.precio_unitario) || 0;
-            } else if (item.total !== undefined && cantidad > 0) {
-                // Si solo tenemos total, calcular unitario
-                precioUnitario = parseFloat(item.total) / cantidad;
-            } else {
-                precioUnitario = parseFloat(item.precio) || 0;
-            }
+            const precioTotal = parseFloat(item.precioReal || item.precio || item.total) || 0;
+            const precioUnitario = cantidad > 0 ? precioTotal / cantidad : precioTotal;
 
             if (precioUnitario > 0) {
-                // ⚡ OPTIMIZACIÓN: Usar dataMaps para O(1) lookup
-                const proveedor = window.dataMaps?.getProveedor(pedido.proveedorId);
+                const proveedor = provMap.get(pedido.proveedorId);
                 historial.push({
                     fecha: pedido.fecha,
                     precio: precioUnitario,

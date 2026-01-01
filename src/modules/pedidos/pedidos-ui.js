@@ -88,9 +88,11 @@ export function agregarIngredientePedido() {
     const proveedor = window.proveedores.find(p => p.id === proveedorId);
     if (!proveedor || !proveedor.ingredientes) return;
 
-    // ⚡ OPTIMIZACIÓN: Set para O(1) includes check (antes era O(n²))
+    // ⚡ OPTIMIZACIÓN: Convertir array a Set para lookups O(1) en lugar de .includes() O(n)
     const provIngSet = new Set(proveedor.ingredientes);
-    const ingredientesProveedor = window.ingredientes.filter(ing => provIngSet.has(ing.id));
+    const ingredientesProveedor = window.ingredientes.filter(ing =>
+        provIngSet.has(ing.id)
+    );
 
     const container = document.getElementById('lista-ingredientes-pedido');
     if (!container) return;
@@ -116,20 +118,20 @@ export function agregarIngredientePedido() {
 
 /**
  * Calcula el total del pedido
+ * ⚡ OPTIMIZACIÓN: Usa Map O(1) en lugar de .find() O(n)
  */
 export function calcularTotalPedido() {
     const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
     let total = 0;
 
-    // ⚡ OPTIMIZACIÓN: Usar dataMaps para O(1) lookups (antes era O(n) por item)
-    window.dataMaps?.updateIfStale();
+    // ⚡ OPTIMIZACIÓN: Crear Map O(1) una vez, no .find() O(n) por cada item
+    const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
 
     items.forEach(item => {
         const select = item.querySelector('select');
         const input = item.querySelector('input[type="number"]');
         if (select && select.value && input && input.value) {
-            const ing = window.dataMaps?.getIngrediente(parseInt(select.value)) ||
-                window.ingredientes.find(i => i.id === parseInt(select.value));
+            const ing = ingMap.get(parseInt(select.value)); // O(1) lookup
             if (ing) {
                 total += parseFloat(ing.precio || 0) * parseFloat(input.value || 0);
             }
@@ -152,6 +154,7 @@ export function calcularTotalPedido() {
 
 /**
  * Renderiza la tabla de pedidos
+ * ⚡ OPTIMIZACIÓN: Pre-build Map de proveedores para lookups O(1)
  */
 export function renderizarPedidos() {
     const container = document.getElementById('tabla-pedidos');
@@ -172,17 +175,16 @@ export function renderizarPedidos() {
         return;
     }
 
+    // ⚡ OPTIMIZACIÓN: Crear Map O(1) una vez, no .find() O(n) por cada pedido
+    const provMap = new Map((window.proveedores || []).map(p => [p.id, p]));
+
     let html = '<table><thead><tr>';
     html +=
         '<th>ID</th><th>Fecha</th><th>Proveedor</th><th>Items</th><th>Total</th><th>Estado</th><th>Acciones</th>';
     html += '</tr></thead><tbody>';
 
-    // ⚡ OPTIMIZACIÓN: Usar dataMaps para O(1) provider lookups
-    window.dataMaps?.updateIfStale();
-
     pedidosFiltrados.forEach(ped => {
-        const prov = window.dataMaps?.getProveedor(ped.proveedorId) ||
-            window.proveedores.find(p => p.id === ped.proveedorId);
+        const prov = provMap.get(ped.proveedorId);
         const fecha = new Date(ped.fecha).toLocaleDateString('es-ES');
 
         html += '<tr>';
@@ -213,16 +215,19 @@ export function renderizarPedidos() {
 
 /**
  * Exporta pedidos a Excel
+ * ⚡ OPTIMIZACIÓN: Pre-build Map de proveedores para evitar N+1
  */
 export function exportarPedidos() {
+    // ⚡ OPTIMIZACIÓN: Crear Map una vez antes del loop
+    const provMap = new Map((window.proveedores || []).map(p => [p.id, p]));
+
     const columnas = [
         { header: 'ID', key: 'id' },
         { header: 'Fecha Pedido', value: p => new Date(p.fecha).toLocaleDateString('es-ES') },
         {
             header: 'Proveedor',
             value: p => {
-                // ⚡ OPTIMIZACIÓN: O(1) lookup
-                const prov = window.dataMaps?.getProveedor(p.proveedorId);
+                const prov = provMap.get(p.proveedorId);
                 return prov ? prov.nombre : 'Sin proveedor';
             },
         },

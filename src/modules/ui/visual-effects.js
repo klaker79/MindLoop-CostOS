@@ -99,6 +99,7 @@ export function renderSparkline(container, data, color = '#10B981') {
 
 /**
  * Gets historical data for a KPI (last 7 days)
+ * ⚡ OPTIMIZACIÓN: Agrupar ventas por fecha una sola vez en lugar de filtrar 7 veces
  * @param {string} type - KPI type: 'ingresos', 'ventas', etc
  * @returns {number[]} Array of values
  */
@@ -108,15 +109,24 @@ export function getHistoricalData(type) {
     const days = 7;
     const values = [];
 
+    // ⚡ OPTIMIZACIÓN: Agrupar ventas por fecha UNA VEZ usando Map (O(n))
+    // En lugar de filtrar 7 veces (7×O(n) = O(7n))
+    const ventasPorFecha = new Map();
+    ventas.forEach(v => {
+        const ventaDate = (v.fecha || '').split('T')[0];
+        if (!ventasPorFecha.has(ventaDate)) {
+            ventasPorFecha.set(ventaDate, []);
+        }
+        ventasPorFecha.get(ventaDate).push(v);
+    });
+
+    // Ahora iterar por días con lookup O(1)
     for (let i = days - 1; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
 
-        const dayVentas = ventas.filter(v => {
-            const ventaDate = (v.fecha || '').split('T')[0];
-            return ventaDate === dateStr;
-        });
+        const dayVentas = ventasPorFecha.get(dateStr) || [];
 
         if (type === 'ingresos') {
             const total = dayVentas.reduce((sum, v) => sum + (parseFloat(v.total) || 0), 0);
