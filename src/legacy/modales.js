@@ -204,12 +204,32 @@ let gastosFijosCache = null;
 let gastosFijosCacheTime = 0;
 const CACHE_TTL = 5000; // 5 segundos
 
+// Helper para esperar a que window.API esté disponible
+async function waitForAPI(maxWait = 5000) {
+    const start = Date.now();
+    while (!window.API || !window.API.getGastosFijos) {
+        if (Date.now() - start > maxWait) {
+            console.warn('Timeout esperando window.API');
+            return false;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return true;
+}
+
 async function fetchGastosFijos() {
     const now = Date.now();
     if (gastosFijosCache && (now - gastosFijosCacheTime) < CACHE_TTL) {
         return gastosFijosCache;
     }
     try {
+        // Esperar a que la API esté disponible
+        const apiReady = await waitForAPI();
+        if (!apiReady) {
+            console.warn('API no disponible, usando cache o vacío');
+            return gastosFijosCache || [];
+        }
+
         const gastos = await window.API.getGastosFijos();
         gastosFijosCache = gastos;
         gastosFijosCacheTime = now;
