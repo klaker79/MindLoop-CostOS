@@ -116,16 +116,20 @@ export function agregarIngredientePedido() {
 
 /**
  * Calcula el total del pedido
+ * ⚡ OPTIMIZACIÓN: Usa Map O(1) en lugar de .find() O(n)
  */
 export function calcularTotalPedido() {
     const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
     let total = 0;
 
+    // ⚡ OPTIMIZACIÓN: Crear Map O(1) una vez, no .find() O(n) por cada item
+    const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+
     items.forEach(item => {
         const select = item.querySelector('select');
         const input = item.querySelector('input[type="number"]');
         if (select && select.value && input && input.value) {
-            const ing = window.ingredientes.find(i => i.id === parseInt(select.value));
+            const ing = ingMap.get(parseInt(select.value)); // O(1) lookup
             if (ing) {
                 total += parseFloat(ing.precio || 0) * parseFloat(input.value || 0);
             }

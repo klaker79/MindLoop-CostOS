@@ -16,13 +16,17 @@ export function verEscandallo(recetaId) {
     const ingredientes = window.ingredientes || [];
     const inventario = window.inventarioCompleto || [];
 
+    // ⚡ OPTIMIZACIÓN: Crear Maps O(1) una vez, no .find() O(n) por cada ingrediente
+    const ingMap = new Map(ingredientes.map(i => [i.id, i]));
+    const invMap = new Map(inventario.map(i => [i.id, i]));
+
     // Calculate cost breakdown per ingredient
     const desglose = [];
     let costeTotal = 0;
 
     (receta.ingredientes || []).forEach(item => {
-        const ing = ingredientes.find(i => i.id === item.ingredienteId);
-        const inv = inventario.find(i => i.id === item.ingredienteId);
+        const ing = ingMap.get(item.ingredienteId);  // O(1) lookup
+        const inv = invMap.get(item.ingredienteId);  // O(1) lookup
 
         if (ing) {
             const precio = inv?.precio_medio

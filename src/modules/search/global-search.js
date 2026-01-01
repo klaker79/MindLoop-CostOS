@@ -176,7 +176,7 @@ function performSearch(query) {
         const limited = matches.slice(0, 10);
         results.innerHTML = limited.map((m, i) => `
             <div class="search-result-item" data-index="${i}" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.1s;"
-                onmouseover="this.style.background='#f8fafc'" 
+                onmouseover="this.style.background='#f8fafc'"
                 onmouseout="this.style.background='white'">
                 <span style="font-size: 20px;">${m.icon}</span>
                 <div style="flex: 1;">
@@ -190,15 +190,27 @@ function performSearch(query) {
         // Store actions for click handling
         window._searchResults = limited;
 
-        // Add click handlers
-        results.querySelectorAll('.search-result-item').forEach(item => {
-            item.addEventListener('click', () => {
+        // ⚡ OPTIMIZACIÓN: Event delegation - un solo listener en lugar de N listeners
+        // Remove previous listeners (if any)
+        const oldHandler = results._clickHandler;
+        if (oldHandler) {
+            results.removeEventListener('click', oldHandler);
+        }
+
+        // Add single delegated click handler
+        const clickHandler = (e) => {
+            const item = e.target.closest('.search-result-item');
+            if (item && window._searchResults) {
                 const index = parseInt(item.dataset.index);
-                window._searchResults[index].action();
-                results.style.display = 'none';
-                document.getElementById('global-search-input').value = '';
-            });
-        });
+                if (window._searchResults[index]) {
+                    window._searchResults[index].action();
+                    results.style.display = 'none';
+                    document.getElementById('global-search-input').value = '';
+                }
+            }
+        };
+        results.addEventListener('click', clickHandler);
+        results._clickHandler = clickHandler; // Store for cleanup
     }
 
     results.style.display = 'block';
