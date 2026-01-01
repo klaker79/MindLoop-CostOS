@@ -160,9 +160,19 @@ export function calcularCosteReceta() {
 // Variable para almacenar el filtro de categoría activo
 let filtroRecetaCategoria = 'todas';
 
-// Función para filtrar recetas por categoría
+// Variable para la página actual de recetas
+let paginaRecetasActual = 1;
+
+// Función para cambiar de página
+window.cambiarPaginaRecetas = function (delta) {
+    paginaRecetasActual += delta;
+    renderizarRecetas();
+    // Scroll al inicio de la tabla
+    document.getElementById('tabla-recetas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 window.filtrarRecetasPorCategoria = function (categoria) {
     filtroRecetaCategoria = categoria;
+    paginaRecetasActual = 1; // Reset a página 1 al cambiar filtro
 
     // Actualizar estilos de botones
     const botones = document.querySelectorAll('#filtros-recetas .filter-btn');
@@ -206,11 +216,24 @@ export function renderizarRecetas() {
     const container = document.getElementById('tabla-recetas');
     if (!container) return;
 
+    // === PAGINACIÓN ===
+    const ITEMS_PER_PAGE = 25;
+    const totalItems = filtradas.length;
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+
+    // Asegurar página válida
+    if (paginaRecetasActual > totalPages) paginaRecetasActual = totalPages;
+    if (paginaRecetasActual < 1) paginaRecetasActual = 1;
+
+    const startIndex = (paginaRecetasActual - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const recetasPagina = filtradas.slice(startIndex, endIndex);
+
     if (filtradas.length === 0) {
         container.innerHTML = `
       <div class="empty-state">
         <div class="icon">👨‍🍳</div>
-        <h3>${busqueda ? 'No encontradas' : 'Aún no hay recetas'}</h3>
+        <h3>${busqueda || filtroRecetaCategoria !== 'todas' ? 'No encontradas' : 'Aún no hay recetas'}</h3>
       </div>
     `;
         document.getElementById('resumen-recetas').style.display = 'none';
@@ -220,7 +243,7 @@ export function renderizarRecetas() {
             '<th>Cód.</th><th>Plato</th><th>Categoría</th><th>Coste</th><th>Precio</th><th>Margen</th><th>Acciones</th>';
         html += '</tr></thead><tbody>';
 
-        filtradas.forEach(rec => {
+        recetasPagina.forEach(rec => {
             const coste = window.calcularCosteRecetaCompleto(rec);
             const margen = rec.precio_venta - coste;
             const pct = rec.precio_venta > 0 ? ((margen / rec.precio_venta) * 100).toFixed(0) : 0;
@@ -251,13 +274,33 @@ export function renderizarRecetas() {
         });
 
         html += '</tbody></table>';
+
+        // === CONTROLES DE PAGINACIÓN ===
+        html += `
+        <div style="display: flex; justify-content: center; align-items: center; gap: 16px; padding: 20px 0; border-top: 1px solid #e2e8f0; margin-top: 16px;">
+            <button onclick="window.cambiarPaginaRecetas(-1)" 
+                ${paginaRecetasActual === 1 ? 'disabled' : ''} 
+                style="padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: ${paginaRecetasActual === 1 ? '#f1f5f9' : 'white'}; color: ${paginaRecetasActual === 1 ? '#94a3b8' : '#475569'}; cursor: ${paginaRecetasActual === 1 ? 'not-allowed' : 'pointer'}; font-weight: 500;">
+                ← Anterior
+            </button>
+            <span style="font-size: 14px; color: #475569;">
+                Página <strong>${paginaRecetasActual}</strong> de <strong>${totalPages}</strong>
+            </span>
+            <button onclick="window.cambiarPaginaRecetas(1)" 
+                ${paginaRecetasActual === totalPages ? 'disabled' : ''} 
+                style="padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: ${paginaRecetasActual === totalPages ? '#f1f5f9' : 'white'}; color: ${paginaRecetasActual === totalPages ? '#94a3b8' : '#475569'}; cursor: ${paginaRecetasActual === totalPages ? 'not-allowed' : 'pointer'}; font-weight: 500;">
+                Siguiente →
+            </button>
+        </div>`;
+
         container.innerHTML = html;
 
         const resumenEl = document.getElementById('resumen-recetas');
         if (resumenEl) {
             resumenEl.innerHTML = `
               <div>Total: <strong>${recetas.length}</strong></div>
-              <div>Mostrando: <strong>${filtradas.length}</strong></div>
+              <div>Filtradas: <strong>${filtradas.length}</strong></div>
+              <div>Mostrando: <strong>${startIndex + 1}-${Math.min(endIndex, totalItems)}</strong></div>
               <button onclick="window.mostrarCostTracker()" style="margin-left: auto; background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                 📊 Seguimiento de Costes
               </button>
