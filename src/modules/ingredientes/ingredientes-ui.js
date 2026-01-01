@@ -243,8 +243,15 @@ export function renderizarIngredientes() {
                 precioHtml = precioMostrar ? `${precioMostrar.toFixed(2)} €/${ing.unidad}` : '-';
             }
 
-            return `<tr>
-                <td><strong>${escapeHTML(ing.nombre)}</strong></td>
+            // Detectar si está inactivo
+            const esInactivo = ing.activo === false;
+            const rowStyle = esInactivo ? 'opacity: 0.5; background: #fef2f2;' : '';
+            const toggleBtn = esInactivo
+                ? `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, true)" title="Activar ingrediente" style="color: #22c55e;">✅</button>`
+                : `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, false)" title="Desactivar ingrediente" style="color: #f59e0b;">⏸️</button>`;
+
+            return `<tr style="${rowStyle}">
+                <td><strong>${escapeHTML(ing.nombre)}</strong>${esInactivo ? '<br><small style="color:#ef4444;">⚠️ Inactivo</small>' : ''}</td>
                 <td><span class="badge ${familiaBadge}">${familiaLabel}</span></td>
                 <td>${escapeHTML(nombreProv)}</td>
                 <td>${precioHtml}</td>
@@ -257,6 +264,7 @@ export function renderizarIngredientes() {
                 <td>
                     <button class="icon-btn" onclick="window.verEvolucionPrecio(${ing.id})" title="Ver evolución de precio" style="color: #3b82f6;">📈</button>
                     <button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})" title="Editar">✏️</button>
+                    ${toggleBtn}
                     <button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})" title="Eliminar">🗑️</button>
                 </td>
             </tr>`;

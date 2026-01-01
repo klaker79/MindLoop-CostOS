@@ -259,6 +259,18 @@ async function deleteIngredient(id) {
     });
 }
 
+async function toggleIngredientActive(id, activo) {
+    return await fetchAPI(`/api/ingredients/${id}/toggle-active`, {
+        method: 'PATCH',
+        body: JSON.stringify({ activo }),
+    });
+}
+
+async function getIngredientsAll() {
+    const data = await fetchAPI('/api/ingredients?include_inactive=true');
+    return Array.isArray(data) ? data : [];
+}
+
 async function createRecipe(data) {
     return await fetchAPI('/api/recipes', {
         method: 'POST',
@@ -410,6 +422,7 @@ async function generateAPIToken(nombre = 'n8n Integration', duracionDias = 365) 
 window.API = {
     fetch: fetchAPI,
     getIngredients,
+    getIngredientsAll,
     getRecipes,
     getSuppliers,
     getOrders,
@@ -420,6 +433,7 @@ window.API = {
     createIngredient,
     updateIngredient,
     deleteIngredient,
+    toggleIngredientActive,
     createRecipe,
     updateRecipe,
     deleteRecipe,

@@ -219,3 +219,38 @@ export async function eliminarIngrediente(id) {
         }
     }, 10);
 }
+
+/**
+ * Toggle activo/inactivo ingrediente
+ * En lugar de eliminar, desactiva el ingrediente para preservar historial
+ */
+export async function toggleIngredienteActivo(id, activo) {
+    if (typeof window.showLoading === 'function') window.showLoading();
+
+    try {
+        const result = await window.API.toggleIngredientActive(id, activo);
+
+        if (!result || result.error) {
+            throw new Error(result?.error || 'Error al cambiar estado');
+        }
+
+        // Actualizar en array local
+        const ing = (window.ingredientes || []).find(i => i.id === id);
+        if (ing) {
+            ing.activo = activo;
+        }
+
+        // Re-renderizar
+        window.renderizarIngredientes?.();
+
+        if (typeof window.hideLoading === 'function') window.hideLoading();
+        showToast(activo ? 'Ingrediente activado' : 'Ingrediente desactivado', 'success');
+    } catch (error) {
+        if (typeof window.hideLoading === 'function') window.hideLoading();
+        console.error('Error toggle activo:', error);
+        showToast('Error: ' + error.message, 'error');
+    }
+}
+
+// Exponer globalmente
+window.toggleIngredienteActivo = toggleIngredienteActivo;
