@@ -3,26 +3,12 @@
  * Enables offline functionality and caching for PWA
  */
 
-const CACHE_NAME = 'costos-v2.0.0';
-const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/styles/main.css',
-    '/manifest.json',
-    '/images/logo-sin-circulo.png'
-];
+const CACHE_NAME = 'costos-v2.0.1';
 
-// Install - cache static assets
+// Install - skip waiting immediately (dynamic caching only)
 self.addEventListener('install', (event) => {
     console.log('[SW] Installing Service Worker...');
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('[SW] Caching static assets');
-                return cache.addAll(STATIC_ASSETS);
-            })
-            .then(() => self.skipWaiting())
-    );
+    self.skipWaiting();
 });
 
 // Activate - clean old caches
