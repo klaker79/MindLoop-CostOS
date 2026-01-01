@@ -12,15 +12,10 @@ const API_AUTH_URL = getAuthUrl();
  * Si la sesión es válida, carga los datos iniciales
  */
 export async function checkAuth() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        mostrarLogin();
-        return false;
-    }
-
     try {
+        // Verificar sesión via cookie httpOnly (se envía automáticamente)
         const res = await fetch(API_AUTH_URL + '/verify', {
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: 'include'
         });
         if (!res.ok) {
             mostrarLogin();
@@ -69,9 +64,18 @@ export function mostrarRegistro() {
 /**
  * Cierra sesión del usuario
  */
-export function logout() {
-    localStorage.removeItem('token');
+export async function logout() {
+    // Limpiar cookie httpOnly via backend
+    try {
+        await fetch(API_AUTH_URL + '/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (_e) {
+        // Continuar aunque falle
+    }
     localStorage.removeItem('user');
+    localStorage.removeItem('token'); // Legacy cleanup
     mostrarLogin();
 }
 
@@ -97,6 +101,7 @@ export function initLoginForm() {
             const res = await fetch(API_AUTH_URL + '/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // Recibir cookie httpOnly
                 body: JSON.stringify({ email, password }),
             });
 
@@ -107,7 +112,7 @@ export function initLoginForm() {
                 return;
             }
 
-            localStorage.setItem('token', data.token);
+            // Solo guardamos user info localmente (token está en cookie httpOnly)
             localStorage.setItem('user', JSON.stringify(data.user));
 
             // Ocultar login, mostrar app

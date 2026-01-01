@@ -15,7 +15,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://lacaleta-api.mind
 
 // Estado global de la aplicación
 const AppState = {
-    token: localStorage.getItem('token'),
+    token: localStorage.getItem('token'), // Mantener para backwards compatibility
     user: JSON.parse(localStorage.getItem('user') || 'null'),
     isAuthenticated: false,
     lastError: null,
@@ -23,24 +23,25 @@ const AppState = {
 
 /**
  * Inicializa el estado de autenticación
+ * Ahora usa cookie httpOnly - verifica con el servidor directamente
  */
 async function initAuth() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        AppState.isAuthenticated = false;
-        return false;
-    }
-
     try {
+        // Verificar con el servidor (cookie se envía automáticamente)
         const result = await fetchAPI('/api/auth/verify', { method: 'GET' });
         if (result.valid) {
             AppState.isAuthenticated = true;
-            AppState.token = token;
+            AppState.user = result.user;
+            // Guardar user info para UI (no el token)
+            localStorage.setItem('user', JSON.stringify(result.user));
             return true;
         }
     } catch (_e) {
-        logger.warn('Token inválido o expirado, limpiando sesión...');
-        logout();
+        // No hay sesión válida o cookie expirada
+        AppState.isAuthenticated = false;
+        AppState.user = null;
+        localStorage.removeItem('user');
+        localStorage.removeItem('token'); // Limpiar token legacy
     }
     return false;
 }
@@ -71,6 +72,7 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
     const config = {
         ...options,
         signal: controller.signal,
+        credentials: 'include', // SEGURIDAD: Enviar cookies httpOnly automáticamente
         headers: {
             ...defaultHeaders,
             ...options.headers,
@@ -314,10 +316,10 @@ async function login(email, password) {
         body: JSON.stringify({ email, password }),
     });
 
-    if (result.token) {
-        localStorage.setItem('token', result.token);
+    if (result.user) {
+        // SEGURIDAD: Token ya está en cookie httpOnly (set por el servidor)
+        // Solo guardamos user info para UI display
         localStorage.setItem('user', JSON.stringify(result.user));
-        AppState.token = result.token;
         AppState.user = result.user;
         AppState.isAuthenticated = true;
         return { success: true, user: result.user };
@@ -326,7 +328,18 @@ async function login(email, password) {
     return { success: false, error: result.error || 'Error de autenticación' };
 }
 
-function logout() {
+async function logout() {
+    // Llamar al backend para limpiar cookie httpOnly
+    try {
+        await fetch(`${API_BASE}/api/auth/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (_e) {
+        // Continuar con logout local aunque falle el backend
+    }
+
+    // Limpiar estado local
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     AppState.token = null;
