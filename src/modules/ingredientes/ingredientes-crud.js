@@ -18,6 +18,7 @@ export async function guardarIngrediente(event) {
         proveedorId: getInputValue('ing-proveedor-select') || null,
         precio: parseFloat(getInputValue('ing-precio')) || 0,
         unidad: getInputValue('ing-unidad'),
+        familia: getInputValue('ing-familia') || 'alimento',
         stockActual: parseFloat(getInputValue('ing-stockActual')) || 0,
         stockMinimo: parseFloat(getInputValue('ing-stockMinimo')) || 0,
     };
