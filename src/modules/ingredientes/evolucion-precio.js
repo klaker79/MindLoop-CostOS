@@ -6,45 +6,30 @@
  */
 
 let chartEvolucionPrecio = null;
-let currentIngredienteId = null;
-let currentFiltrosDias = 0; // 0 = all
+let currentHistorial = [];
+let currentIngrediente = null;
+let itemsVisibles = 10; // Mostrar solo últimos 10 por defecto
 
 /**
  * Shows price evolution modal for an ingredient
  * @param {number} ingredienteId - ID of the ingredient
- * @param {number} diasFiltro - Optional days to filter (0 = all)
  */
-export async function verEvolucionPrecio(ingredienteId, diasFiltro = 0) {
-    currentIngredienteId = ingredienteId;
-    currentFiltrosDias = diasFiltro;
-
+export async function verEvolucionPrecio(ingredienteId) {
     const ingrediente = (window.ingredientes || []).find(i => i.id === ingredienteId);
     if (!ingrediente) {
         window.showToast?.('Ingrediente no encontrado', 'error');
         return;
     }
 
-    // Get price history from orders (filtered by date)
-    const historial = obtenerHistorialPrecios(ingredienteId, diasFiltro);
+    currentIngrediente = ingrediente;
+    itemsVisibles = 10; // Reset al abrir
+
+    // Get price history from orders
+    currentHistorial = obtenerHistorialPrecios(ingredienteId);
 
     // Update modal content
     document.getElementById('evolucion-ingrediente-nombre').innerHTML =
         `<strong>${ingrediente.nombre}</strong> - Precio actual: ${parseFloat(ingrediente.precio || 0).toFixed(2)}€/${ingrediente.unidad}`;
-
-    // Update filter buttons active state
-    const botonesFiltro = document.querySelectorAll('.btn-filtro-fecha');
-    botonesFiltro.forEach(btn => {
-        const dias = parseInt(btn.dataset.dias);
-        if (dias === diasFiltro) {
-            btn.style.background = '#3b82f6';
-            btn.style.color = 'white';
-            btn.style.borderColor = '#3b82f6';
-        } else {
-            btn.style.background = '#f8fafc';
-            btn.style.color = '#374151';
-            btn.style.borderColor = '#e2e8f0';
-        }
-    });
 
     // Calculate summary stats
     const precioActual = parseFloat(ingrediente.precio) || 0;
@@ -52,16 +37,12 @@ export async function verEvolucionPrecio(ingredienteId, diasFiltro = 0) {
     let precioMax = precioActual;
     let precioPromedio = precioActual;
 
-    if (historial.length > 0) {
-        const precios = historial.map(h => h.precio);
+    if (currentHistorial.length > 0) {
+        const precios = currentHistorial.map(h => h.precio);
         precioMin = Math.min(...precios);
         precioMax = Math.max(...precios);
         precioPromedio = precios.reduce((a, b) => a + b, 0) / precios.length;
     }
-
-    const variacion = historial.length > 1
-        ? ((historial[historial.length - 1].precio - historial[0].precio) / historial[0].precio * 100)
-        : 0;
 
     // Render summary
     document.getElementById('evolucion-summary').innerHTML = `
@@ -79,109 +60,110 @@ export async function verEvolucionPrecio(ingredienteId, diasFiltro = 0) {
         </div>
     `;
 
-    // Render table
-    if (historial.length === 0) {
-        document.getElementById('evolucion-tabla').innerHTML = `
-            <div style="text-align: center; padding: 30px; color: #94a3b8;">
-                <div style="font-size: 32px; margin-bottom: 10px;">📦</div>
-                <div>No hay historial de compras ${diasFiltro > 0 ? 'en este período' : 'para este ingrediente'}.</div>
-                <div style="font-size: 12px; margin-top: 5px;">${diasFiltro > 0 ? 'Prueba con un rango de fechas más amplio.' : 'El precio se actualizará automáticamente al recibir pedidos.'}</div>
-            </div>
-        `;
-    } else {
-        let tableHtml = `<table style="width: 100%; font-size: 13px;">
-            <thead><tr>
-                <th style="padding: 8px; text-align: left;">Fecha</th>
-                <th style="padding: 8px; text-align: left;">Proveedor</th>
-                <th style="padding: 8px; text-align: right;">Cantidad</th>
-                <th style="padding: 8px; text-align: right;">Precio/ud</th>
-                <th style="padding: 8px; text-align: right;">Variación</th>
-            </tr></thead><tbody>`;
-
-        historial.forEach((h, i) => {
-            const variacionItem = i > 0
-                ? ((h.precio - historial[i - 1].precio) / historial[i - 1].precio * 100)
-                : 0;
-            const varColor = variacionItem > 0 ? '#ef4444' : variacionItem < 0 ? '#10b981' : '#64748b';
-            const varIcon = variacionItem > 0 ? '↑' : variacionItem < 0 ? '↓' : '—';
-
-            tableHtml += `<tr>
-                <td style="padding: 8px;">${formatDate(h.fecha)}</td>
-                <td style="padding: 8px;">${h.proveedor}</td>
-                <td style="padding: 8px; text-align: right;">${h.cantidad.toFixed(2)}</td>
-                <td style="padding: 8px; text-align: right; font-weight: 600;">${h.precio.toFixed(2)}€</td>
-                <td style="padding: 8px; text-align: right; color: ${varColor};">${varIcon} ${Math.abs(variacionItem).toFixed(1)}%</td>
-            </tr>`;
-        });
-
-        tableHtml += '</tbody></table>';
-        document.getElementById('evolucion-tabla').innerHTML = tableHtml;
-    }
+    // Render table with pagination
+    renderTablaHistorial();
 
     // Render chart
-    renderChart(historial, ingrediente);
-
-    // Setup filter button listeners (only once)
-    setupFilterListeners();
+    renderChart(currentHistorial, ingrediente);
 
     // Show modal
     document.getElementById('modal-evolucion-precio').classList.add('active');
 }
 
 /**
- * Sets up filter button click listeners
+ * Renders the table with pagination (last N items)
  */
-function setupFilterListeners() {
-    const botonesFiltro = document.querySelectorAll('.btn-filtro-fecha');
-    botonesFiltro.forEach(btn => {
-        // Remove existing listener to avoid duplicates
-        btn.onclick = () => {
-            const dias = parseInt(btn.dataset.dias);
-            if (currentIngredienteId) {
-                verEvolucionPrecio(currentIngredienteId, dias);
-            }
-        };
+function renderTablaHistorial() {
+    const contenedor = document.getElementById('evolucion-tabla');
+    if (!contenedor) return;
+
+    if (currentHistorial.length === 0) {
+        contenedor.innerHTML = `
+            <div style="text-align: center; padding: 30px; color: #94a3b8;">
+                <div style="font-size: 32px; margin-bottom: 10px;">📦</div>
+                <div>No hay historial de compras para este ingrediente.</div>
+                <div style="font-size: 12px; margin-top: 5px;">El precio se actualizará automáticamente al recibir pedidos.</div>
+            </div>
+        `;
+        return;
+    }
+
+    // Mostrar solo los últimos N items (más recientes primero)
+    const historialOrdenado = [...currentHistorial].reverse(); // Más recientes primero
+    const itemsMostrar = historialOrdenado.slice(0, itemsVisibles);
+    const hayMas = currentHistorial.length > itemsVisibles;
+
+    let tableHtml = `<table style="width: 100%; font-size: 13px;">
+        <thead><tr>
+            <th style="padding: 8px; text-align: left;">Fecha</th>
+            <th style="padding: 8px; text-align: left;">Proveedor</th>
+            <th style="padding: 8px; text-align: right;">Cantidad</th>
+            <th style="padding: 8px; text-align: right;">Precio/ud</th>
+            <th style="padding: 8px; text-align: right;">Variación</th>
+        </tr></thead><tbody>`;
+
+    itemsMostrar.forEach((h, i) => {
+        // Calcular variación respecto al anterior (en orden cronológico)
+        const idxOriginal = currentHistorial.length - 1 - i;
+        const variacionItem = idxOriginal > 0
+            ? ((h.precio - currentHistorial[idxOriginal - 1].precio) / currentHistorial[idxOriginal - 1].precio * 100)
+            : 0;
+        const varColor = variacionItem > 0 ? '#ef4444' : variacionItem < 0 ? '#10b981' : '#64748b';
+        const varIcon = variacionItem > 0 ? '↑' : variacionItem < 0 ? '↓' : '—';
+
+        tableHtml += `<tr>
+            <td style="padding: 8px;">${formatDate(h.fecha)}</td>
+            <td style="padding: 8px;">${h.proveedor}</td>
+            <td style="padding: 8px; text-align: right;">${h.cantidad.toFixed(2)}</td>
+            <td style="padding: 8px; text-align: right; font-weight: 600;">${h.precio.toFixed(2)}€</td>
+            <td style="padding: 8px; text-align: right; color: ${varColor};">${varIcon} ${Math.abs(variacionItem).toFixed(1)}%</td>
+        </tr>`;
     });
+
+    tableHtml += '</tbody></table>';
+
+    // Añadir botón "Ver más" si hay más items
+    if (hayMas) {
+        const restantes = currentHistorial.length - itemsVisibles;
+        tableHtml += `
+            <div style="text-align: center; margin-top: 10px;">
+                <button onclick="window.verMasHistorial()" style="padding: 8px 20px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; font-size: 13px; color: #64748b;">
+                    Ver ${Math.min(restantes, 10)} más de ${restantes} restantes
+                </button>
+            </div>
+        `;
+    }
+
+    contenedor.innerHTML = tableHtml;
 }
 
 /**
- * Gets price history from orders for an ingredient
- * ⚡ OPTIMIZACIÓN: Pre-build Map de proveedores
- * 🔧 FIX: Usar 'ingredientes' (no 'items') para coincidir con backend
- * @param {number} ingredienteId - ID of the ingredient
- * @param {number} diasFiltro - Days to filter (0 = all)
+ * Shows more items in the table
  */
-function obtenerHistorialPrecios(ingredienteId, diasFiltro = 0) {
+export function verMasHistorial() {
+    itemsVisibles += 10;
+    renderTablaHistorial();
+}
+
+// Expose to window for onclick
+window.verMasHistorial = verMasHistorial;
+
+/**
+ * Gets price history from orders for an ingredient
+ */
+function obtenerHistorialPrecios(ingredienteId) {
     const pedidos = window.pedidos || [];
     const historial = [];
 
-    // Calculate cutoff date if filtering
-    const fechaCorte = diasFiltro > 0
-        ? new Date(Date.now() - diasFiltro * 24 * 60 * 60 * 1000)
-        : null;
-
     // Get received orders sorted by date
-    // 🔧 FIX: Backend uses 'ingredientes', not 'items'
     const pedidosRecibidos = pedidos
-        .filter(p => {
-            if (p.estado !== 'recibido') return false;
-            if (!p.ingredientes && !p.items) return false;
-
-            // Apply date filter
-            if (fechaCorte) {
-                const fechaPedido = new Date(p.fecha || p.fecha_recepcion);
-                if (fechaPedido < fechaCorte) return false;
-            }
-
-            return true;
-        })
+        .filter(p => p.estado === 'recibido' && (p.ingredientes || p.items))
         .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
-    // ⚡ OPTIMIZACIÓN: Crear Map de proveedores O(1) una vez
+    // Build Map de proveedores
     const provMap = new Map((window.proveedores || []).map(p => [p.id, p]));
 
     pedidosRecibidos.forEach(pedido => {
-        // 🔧 FIX: Soportar tanto 'ingredientes' (backend) como 'items' (legacy)
         const items = Array.isArray(pedido.ingredientes)
             ? pedido.ingredientes
             : (Array.isArray(pedido.items) ? pedido.items : []);
@@ -196,24 +178,17 @@ function obtenerHistorialPrecios(ingredienteId, diasFiltro = 0) {
         if (item) {
             const cantidad = parseFloat(item.cantidadRecibida || item.cantidad) || 0;
 
-            // 🔧 FIX: precioReal y precioUnitario YA SON precios unitarios - NO dividir
-            // Solo dividir si tenemos un precio total (item.total)
+            // precioReal ya es unitario - NO dividir
             let precioUnitario;
-
             if (item.precioReal !== undefined) {
-                // precioReal ya es unitario
                 precioUnitario = parseFloat(item.precioReal) || 0;
             } else if (item.precioUnitario !== undefined) {
-                // precioUnitario ya es unitario
                 precioUnitario = parseFloat(item.precioUnitario) || 0;
             } else if (item.precio_unitario !== undefined) {
-                // precio_unitario ya es unitario
                 precioUnitario = parseFloat(item.precio_unitario) || 0;
             } else if (item.total !== undefined && cantidad > 0) {
-                // Si solo tenemos total, dividir entre cantidad
                 precioUnitario = parseFloat(item.total) / cantidad;
             } else {
-                // Fallback a precio base
                 precioUnitario = parseFloat(item.precio) || 0;
             }
 
@@ -254,7 +229,6 @@ function renderChart(historial, ingrediente) {
     let labels, data;
 
     if (historial.length === 0) {
-        // Show only current price
         labels = ['Actual'];
         data = [parseFloat(ingrediente.precio) || 0];
     } else {
