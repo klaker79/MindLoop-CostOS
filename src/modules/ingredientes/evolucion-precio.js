@@ -6,24 +6,45 @@
  */
 
 let chartEvolucionPrecio = null;
+let currentIngredienteId = null;
+let currentFiltrosDias = 0; // 0 = all
 
 /**
  * Shows price evolution modal for an ingredient
  * @param {number} ingredienteId - ID of the ingredient
+ * @param {number} diasFiltro - Optional days to filter (0 = all)
  */
-export async function verEvolucionPrecio(ingredienteId) {
+export async function verEvolucionPrecio(ingredienteId, diasFiltro = 0) {
+    currentIngredienteId = ingredienteId;
+    currentFiltrosDias = diasFiltro;
+
     const ingrediente = (window.ingredientes || []).find(i => i.id === ingredienteId);
     if (!ingrediente) {
         window.showToast?.('Ingrediente no encontrado', 'error');
         return;
     }
 
-    // Get price history from orders
-    const historial = obtenerHistorialPrecios(ingredienteId);
+    // Get price history from orders (filtered by date)
+    const historial = obtenerHistorialPrecios(ingredienteId, diasFiltro);
 
     // Update modal content
     document.getElementById('evolucion-ingrediente-nombre').innerHTML =
         `<strong>${ingrediente.nombre}</strong> - Precio actual: ${parseFloat(ingrediente.precio || 0).toFixed(2)}€/${ingrediente.unidad}`;
+
+    // Update filter buttons active state
+    const botonesFiltro = document.querySelectorAll('.btn-filtro-fecha');
+    botonesFiltro.forEach(btn => {
+        const dias = parseInt(btn.dataset.dias);
+        if (dias === diasFiltro) {
+            btn.style.background = '#3b82f6';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#3b82f6';
+        } else {
+            btn.style.background = '#f8fafc';
+            btn.style.color = '#374151';
+            btn.style.borderColor = '#e2e8f0';
+        }
+    });
 
     // Calculate summary stats
     const precioActual = parseFloat(ingrediente.precio) || 0;
@@ -63,8 +84,8 @@ export async function verEvolucionPrecio(ingredienteId) {
         document.getElementById('evolucion-tabla').innerHTML = `
             <div style="text-align: center; padding: 30px; color: #94a3b8;">
                 <div style="font-size: 32px; margin-bottom: 10px;">📦</div>
-                <div>No hay historial de compras para este ingrediente.</div>
-                <div style="font-size: 12px; margin-top: 5px;">El precio se actualizará automáticamente al recibir pedidos.</div>
+                <div>No hay historial de compras ${diasFiltro > 0 ? 'en este período' : 'para este ingrediente'}.</div>
+                <div style="font-size: 12px; margin-top: 5px;">${diasFiltro > 0 ? 'Prueba con un rango de fechas más amplio.' : 'El precio se actualizará automáticamente al recibir pedidos.'}</div>
             </div>
         `;
     } else {
@@ -100,23 +121,60 @@ export async function verEvolucionPrecio(ingredienteId) {
     // Render chart
     renderChart(historial, ingrediente);
 
+    // Setup filter button listeners (only once)
+    setupFilterListeners();
+
     // Show modal
     document.getElementById('modal-evolucion-precio').classList.add('active');
+}
+
+/**
+ * Sets up filter button click listeners
+ */
+function setupFilterListeners() {
+    const botonesFiltro = document.querySelectorAll('.btn-filtro-fecha');
+    botonesFiltro.forEach(btn => {
+        // Remove existing listener to avoid duplicates
+        btn.onclick = () => {
+            const dias = parseInt(btn.dataset.dias);
+            if (currentIngredienteId) {
+                verEvolucionPrecio(currentIngredienteId, dias);
+            }
+        };
+    });
 }
 
 /**
  * Gets price history from orders for an ingredient
  * ⚡ OPTIMIZACIÓN: Pre-build Map de proveedores
  * 🔧 FIX: Usar 'ingredientes' (no 'items') para coincidir con backend
+ * @param {number} ingredienteId - ID of the ingredient
+ * @param {number} diasFiltro - Days to filter (0 = all)
  */
-function obtenerHistorialPrecios(ingredienteId) {
+function obtenerHistorialPrecios(ingredienteId, diasFiltro = 0) {
     const pedidos = window.pedidos || [];
     const historial = [];
+
+    // Calculate cutoff date if filtering
+    const fechaCorte = diasFiltro > 0
+        ? new Date(Date.now() - diasFiltro * 24 * 60 * 60 * 1000)
+        : null;
 
     // Get received orders sorted by date
     // 🔧 FIX: Backend uses 'ingredientes', not 'items'
     const pedidosRecibidos = pedidos
-        .filter(p => p.estado === 'recibido' && (p.ingredientes || p.items))
+        .filter(p => {
+            if (p.estado !== 'recibido') return false;
+            if (!p.ingredientes && !p.items) return false;
+
+            // Apply date filter
+            if (fechaCorte) {
+                const fechaPedido = new Date(p.fecha || p.fecha_recepcion);
+                if (fechaPedido < fechaCorte) return false;
+            }
+
+            return true;
+        })
         .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
     // ⚡ OPTIMIZACIÓN: Crear Map de proveedores O(1) una vez
