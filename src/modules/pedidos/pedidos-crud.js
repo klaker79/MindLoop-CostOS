@@ -17,13 +17,33 @@ export async function guardarPedido(event) {
   items.forEach(item => {
     const select = item.querySelector('select');
     const input = item.querySelector('input[type="number"]');
+    const formatoSelect = item.querySelector('select[id$="-formato-select"]');
+
     if (select && select.value && input && input.value) {
       const ingId = parseInt(select.value);
       const ing = window.ingredientes.find(i => i.id === ingId);
+      const cantidadInput = parseFloat(input.value);
+
+      // 🆕 Obtener multiplicador del formato de compra
+      let multiplicador = 1;
+      let formatoUsado = null;
+      if (formatoSelect && formatoSelect.parentElement?.style.display !== 'none') {
+        const selectedFormatoOption = formatoSelect.options[formatoSelect.selectedIndex];
+        multiplicador = parseFloat(selectedFormatoOption?.dataset?.multiplicador) || 1;
+        if (multiplicador > 1) {
+          formatoUsado = formatoSelect.value; // 'formato' o 'unidad'
+        }
+      }
+
+      // Cantidad real en unidad base
+      const cantidadReal = cantidadInput * multiplicador;
+
       ingredientesPedido.push({
         ingredienteId: ingId,
         ingrediente_id: ingId,
-        cantidad: parseFloat(input.value),
+        cantidad: cantidadReal, // 🆕 Guardar cantidad convertida
+        cantidadOriginal: cantidadInput, // Guardar también la cantidad original
+        formatoUsado: formatoUsado, // Guardar si usó formato
         precio_unitario: ing ? parseFloat(ing.precio || 0) : 0,
         precio: ing ? parseFloat(ing.precio || 0) : 0,
       });

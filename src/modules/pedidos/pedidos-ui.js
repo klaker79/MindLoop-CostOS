@@ -80,6 +80,7 @@ export function cargarIngredientesPedido() {
 
 /**
  * Agrega una fila de ingrediente al pedido
+ * 🆕 Ahora soporta formato de compra con conversión automática
  */
 export function agregarIngredientePedido() {
     const proveedorId = parseInt(document.getElementById('ped-proveedor')?.value);
@@ -97,19 +98,30 @@ export function agregarIngredientePedido() {
     const container = document.getElementById('lista-ingredientes-pedido');
     if (!container) return;
 
+    const rowId = `pedido-row-${Date.now()}`;
     const div = document.createElement('div');
     div.className = 'ingrediente-item';
+    div.id = rowId;
     div.style.cssText =
-        'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;';
+        'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; flex-wrap: wrap;';
 
     let opciones = '<option value="">Seleccionar...</option>';
     ingredientesProveedor.forEach(ing => {
-        opciones += `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${parseFloat(ing.precio || 0).toFixed(2)}€/${escapeHTML(ing.unidad || 'ud')})</option>`;
+        // Guardar datos del formato en data attributes
+        const formatoInfo = ing.formato_compra && ing.cantidad_por_formato
+            ? `data-formato="${escapeHTML(ing.formato_compra)}" data-cantidad-formato="${ing.cantidad_por_formato}"`
+            : '';
+        opciones += `<option value="${ing.id}" ${formatoInfo} data-unidad="${escapeHTML(ing.unidad || 'ud')}">${escapeHTML(ing.nombre)} (${parseFloat(ing.precio || 0).toFixed(2)}€/${escapeHTML(ing.unidad || 'ud')})</option>`;
     });
 
     div.innerHTML = `
-      <select style="flex: 2; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.calcularTotalPedido()">${opciones}</select>
+      <select style="flex: 2; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.onIngredientePedidoChange(this, '${rowId}')">${opciones}</select>
+      <div id="${rowId}-formato-container" style="display: none; flex: 1;">
+        <select id="${rowId}-formato-select" style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; width: 100%;" onchange="window.calcularTotalPedido()">
+        </select>
+      </div>
       <input type="number" placeholder="Cantidad" step="0.01" min="0" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" oninput="window.calcularTotalPedido()">
+      <span id="${rowId}-conversion" style="font-size: 11px; color: #64748b; min-width: 80px;"></span>
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
     `;
 
@@ -117,8 +129,45 @@ export function agregarIngredientePedido() {
 }
 
 /**
+ * Maneja el cambio de ingrediente seleccionado en pedido
+ * Muestra selector de formato si el ingrediente lo tiene definido
+ */
+export function onIngredientePedidoChange(selectElement, rowId) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const formatoContainer = document.getElementById(`${rowId}-formato-container`);
+    const formatoSelect = document.getElementById(`${rowId}-formato-select`);
+    const conversionSpan = document.getElementById(`${rowId}-conversion`);
+
+    const formato = selectedOption?.dataset?.formato;
+    const cantidadFormato = selectedOption?.dataset?.cantidadFormato;
+    const unidad = selectedOption?.dataset?.unidad || 'ud';
+
+    if (formato && cantidadFormato && formatoContainer && formatoSelect) {
+        // Mostrar selector de formato
+        formatoContainer.style.display = 'block';
+        formatoSelect.innerHTML = `
+            <option value="formato" data-multiplicador="${cantidadFormato}">${escapeHTML(formato)} (${cantidadFormato} ${unidad})</option>
+            <option value="unidad" data-multiplicador="1">${unidad}</option>
+        `;
+        formatoSelect.value = 'formato'; // Por defecto usar formato
+    } else if (formatoContainer) {
+        formatoContainer.style.display = 'none';
+    }
+
+    if (conversionSpan) {
+        conversionSpan.textContent = '';
+    }
+
+    window.calcularTotalPedido();
+}
+
+// Exponer al window
+window.onIngredientePedidoChange = onIngredientePedidoChange;
+
+/**
  * Calcula el total del pedido
  * ⚡ OPTIMIZACIÓN: Usa Map O(1) en lugar de .find() O(n)
+ * 🆕 Ahora maneja formato de compra con conversión automática
  */
 export function calcularTotalPedido() {
     const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
@@ -130,10 +179,35 @@ export function calcularTotalPedido() {
     items.forEach(item => {
         const select = item.querySelector('select');
         const input = item.querySelector('input[type="number"]');
+        const formatoSelect = item.querySelector('select[id$="-formato-select"]');
+        const conversionSpan = item.querySelector('span[id$="-conversion"]');
+
         if (select && select.value && input && input.value) {
             const ing = ingMap.get(parseInt(select.value)); // O(1) lookup
             if (ing) {
-                total += parseFloat(ing.precio || 0) * parseFloat(input.value || 0);
+                const cantidadInput = parseFloat(input.value || 0);
+
+                // Obtener multiplicador del formato (1 si es unidad base)
+                let multiplicador = 1;
+                if (formatoSelect && formatoSelect.style.display !== 'none') {
+                    const selectedFormatoOption = formatoSelect.options[formatoSelect.selectedIndex];
+                    multiplicador = parseFloat(selectedFormatoOption?.dataset?.multiplicador) || 1;
+                }
+
+                // Cantidad real en unidad base
+                const cantidadReal = cantidadInput * multiplicador;
+
+                // Mostrar conversión si hay multiplicador > 1
+                if (conversionSpan && multiplicador > 1) {
+                    conversionSpan.textContent = `= ${cantidadReal.toFixed(2)} ${ing.unidad || 'ud'}`;
+                    conversionSpan.style.color = '#10b981';
+                    conversionSpan.style.fontWeight = '600';
+                } else if (conversionSpan) {
+                    conversionSpan.textContent = '';
+                }
+
+                // Calcular precio (precio × cantidad en unidad base)
+                total += parseFloat(ing.precio || 0) * cantidadReal;
             }
         }
     });
