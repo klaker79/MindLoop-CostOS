@@ -100,11 +100,14 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
                 message: data.error || 'Error de autenticación',
             };
 
-            // Token expirado o inválido
-            if (data.code === 'TOKEN_EXPIRED' || data.code === 'INVALID_TOKEN') {
-                showToast('Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.', 'error');
+            // 🔧 FIX: SIEMPRE redirigir al login cuando hay 401
+            // Antes solo lo hacía con códigos específicos, lo que causaba pérdida de datos silenciosa
+            showToast('⚠️ Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.', 'error');
+
+            // Pequeño delay para que el usuario vea el mensaje
+            setTimeout(() => {
                 logout();
-            }
+            }, 1500);
 
             return getDefaultResponse(endpoint);
         }
