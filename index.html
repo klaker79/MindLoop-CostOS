@@ -391,6 +391,22 @@
               <label>Stock mínimo</label>
               <input type="number" id="ing-stockMinimo" step="0.01" min="0">
             </div>
+
+            <!-- Formato de compra (opcional) -->
+            <div class="form-group"
+              style="grid-column: span 2; margin-top: 10px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+              <label style="font-weight: 600; color: #7c3aed;">📦 Formato de compra (opcional)</label>
+              <p style="font-size: 12px; color: #64748b; margin: 5px 0 10px;">Facilita los pedidos indicando cómo
+                compras este producto</p>
+            </div>
+            <div class="form-group">
+              <label>Formato</label>
+              <input type="text" id="ing-formato-compra" placeholder="ej: bote, garrafa, caja...">
+            </div>
+            <div class="form-group">
+              <label>Cantidad por formato</label>
+              <input type="number" id="ing-cantidad-formato" step="0.01" min="0" placeholder="ej: 0.65 (kg), 10 (L)...">
+            </div>
           </div>
           <div class="form-actions">
             <button type="button" class="btn btn-secondary" data-action="cerrar-form-ingrediente">Cancelar</button>

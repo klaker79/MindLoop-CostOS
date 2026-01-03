@@ -21,6 +21,8 @@ export async function guardarIngrediente(event) {
         familia: getInputValue('ing-familia') || 'alimento',
         stockActual: parseFloat(getInputValue('ing-stockActual')) || 0,
         stockMinimo: parseFloat(getInputValue('ing-stockMinimo')) || 0,
+        formato_compra: getInputValue('ing-formato-compra') || null,
+        cantidad_por_formato: parseFloat(getInputValue('ing-cantidad-formato')) || null,
     };
 
     // Validaciones
@@ -155,6 +157,13 @@ export function editarIngrediente(id) {
 
     const minEl = getElement('ing-stockMinimo');
     if (minEl) minEl.value = ing.stockMinimo || '';
+
+    // Cargar formato de compra
+    const formatoEl = getElement('ing-formato-compra');
+    if (formatoEl) formatoEl.value = ing.formato_compra || '';
+
+    const cantFormatoEl = getElement('ing-cantidad-formato');
+    if (cantFormatoEl) cantFormatoEl.value = ing.cantidad_por_formato || '';
 
     // Actualizar estado de edición
     window.editandoIngredienteId = id;
