@@ -98,8 +98,12 @@ export async function guardarIngrediente(event) {
         // Recargar proveedores para tener datos actualizados
         window.proveedores = await window.api.getProveedores();
 
-        // ⚡ OPTIMIZACIÓN: Actualización optimista - Solo recargamos ingredientes, no todo
+        // ⚡ OPTIMIZACIÓN: Actualización optimista - Recargamos ingredientes e inventario completo
         window.ingredientes = await window.api.getIngredientes();
+        // FIX: Sincronizar inventarioCompleto para evitar precios desactualizados en UI
+        if (window.api.getInventoryComplete) {
+            window.inventarioCompleto = await window.api.getInventoryComplete();
+        }
 
         // Actualizar maps de búsqueda
         if (window.dataMaps) {

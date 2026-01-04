@@ -109,7 +109,7 @@ export function agregarIngredientePedido() {
     ingredientesProveedor.forEach(ing => {
         // Guardar datos del formato en data attributes
         const formatoInfo = ing.formato_compra && ing.cantidad_por_formato
-            ? `data-formato="${escapeHTML(ing.formato_compra)}" data-cantidad-formato="${ing.cantidad_por_formato}"`
+            ? `data-formato="${escapeHTML(ing.formato_compra)}" data-cantidad-formato="${escapeHTML(String(ing.cantidad_por_formato))}"`
             : '';
         opciones += `<option value="${ing.id}" ${formatoInfo} data-unidad="${escapeHTML(ing.unidad || 'ud')}">${escapeHTML(ing.nombre)} (${parseFloat(ing.precio || 0).toFixed(2)}€/${escapeHTML(ing.unidad || 'ud')})</option>`;
     });
