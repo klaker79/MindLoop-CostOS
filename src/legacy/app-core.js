@@ -4730,25 +4730,56 @@
 
     function renderTablaRentabilidad(datos) {
         const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
+        const ITEMS_PER_PAGE = 15;
 
-        let html = '<table><thead><tr>';
-        html +=
-            '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
-        html += '</tr></thead><tbody>';
+        // Estado de paginación
+        window.rentabilidadPage = window.rentabilidadPage || 1;
 
-        ordenados.forEach((rec, idx) => {
-            html += '<tr>';
-            html += `<td><strong>#${idx + 1}</strong></td>`;
-            html += `<td>${escapeHTML(rec.nombre)}</td>`;
-            html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
-            html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
-            html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
-            html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
-            html += '</tr>';
-        });
+        // Función para renderizar página
+        window.renderRentabilidadPage = function (page = 1) {
+            const totalPages = Math.ceil(ordenados.length / ITEMS_PER_PAGE);
+            page = Math.max(1, Math.min(page, totalPages || 1));
+            window.rentabilidadPage = page;
 
-        html += '</tbody></table>';
-        document.getElementById('tabla-rentabilidad').innerHTML = html;
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            const pageItems = ordenados.slice(start, start + ITEMS_PER_PAGE);
+
+            let html = '<table><thead><tr>';
+            html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
+            html += '</tr></thead><tbody>';
+
+            pageItems.forEach((rec, idx) => {
+                const realIdx = start + idx + 1;
+                html += '<tr>';
+                html += `<td><strong>#${realIdx}</strong></td>`;
+                html += `<td>${escapeHTML(rec.nombre)}</td>`;
+                html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
+                html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
+                html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
+                html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            // Controles de paginación
+            if (totalPages > 1) {
+                html += `
+                    <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:16px; padding:12px; background:#f8fafc; border-radius:8px;">
+                        <button onclick="window.renderRentabilidadPage(1)" ${page <= 1 ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">⏮️</button>
+                        <button onclick="window.renderRentabilidadPage(${page - 1})" ${page <= 1 ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">← Anterior</button>
+                        <span style="padding:6px 12px; font-weight:600;">Página ${page} de ${totalPages}</span>
+                        <button onclick="window.renderRentabilidadPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">Siguiente →</button>
+                        <button onclick="window.renderRentabilidadPage(${totalPages})" ${page >= totalPages ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">⏭️</button>
+                    </div>
+                    <div style="text-align:center; margin-top:8px; color:#64748b; font-size:12px;">Mostrando ${start + 1}-${Math.min(start + ITEMS_PER_PAGE, ordenados.length)} de ${ordenados.length} recetas</div>`;
+            }
+
+            document.getElementById('tabla-rentabilidad').innerHTML = html;
+        };
+
+        // Renderizar primera página
+        window.renderRentabilidadPage(window.rentabilidadPage);
     }
 
     // ========== INVENTARIO ==========
