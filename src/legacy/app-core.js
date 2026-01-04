@@ -4221,7 +4221,7 @@
         document.getElementById('count-caballo').textContent = counts.caballo || 0;
         document.getElementById('count-perro').textContent = counts.perro || 0;
 
-        // Renderizar Scatter Plot con Chart.js y etiquetas
+        // Renderizar Scatter Plot con Chart.js - SIN ETIQUETAS (más limpio)
         const ctx = document.getElementById('bcg-scatter-chart');
         if (ctx) {
             // Destruir chart anterior si existe
@@ -4229,43 +4229,83 @@
                 window.bcgScatterChart.destroy();
             }
 
-            // Plugin personalizado para dibujar etiquetas
-            const labelPlugin = {
-                id: 'bcgLabels',
-                afterDatasetsDraw: function (chart) {
-                    const ctx = chart.ctx;
-                    chart.data.datasets.forEach((dataset, i) => {
-                        const meta = chart.getDatasetMeta(i);
-                        meta.data.forEach((element, index) => {
-                            const item = scatterData[index];
-                            const nombre =
-                                item.nombre.length > 10
-                                    ? item.nombre.substring(0, 9) + '...'
-                                    : item.nombre;
+            // Calcular promedios para las líneas divisorias
+            const avgX = data.reduce((sum, d) => sum + d.popularidad, 0) / data.length;
+            const avgY = data.reduce((sum, d) => sum + d.margen, 0) / data.length;
+            const maxX = Math.max(...data.map(d => d.popularidad)) * 1.1;
+            const maxY = Math.max(...data.map(d => d.margen)) * 1.2;
+            const minY = Math.min(...data.map(d => d.margen), 0) * 1.1;
 
-                            ctx.save();
-                            ctx.font = 'bold 10px Montserrat, sans-serif';
-                            ctx.fillStyle = '#1e293b';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'bottom';
-                            ctx.fillText(nombre, element.x, element.y - 14);
-                            ctx.restore();
-                        });
-                    });
-                },
+            // Plugin para dibujar cuadrantes de colores de fondo
+            const quadrantPlugin = {
+                id: 'bcgQuadrants',
+                beforeDatasetsDraw: function (chart) {
+                    const ctx = chart.ctx;
+                    const xAxis = chart.scales.x;
+                    const yAxis = chart.scales.y;
+                    const midX = xAxis.getPixelForValue(avgX * 0.7); // 70% del promedio
+                    const midY = yAxis.getPixelForValue(avgY);
+
+                    // Cuadrante superior derecho - Estrellas (verde)
+                    ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
+                    ctx.fillRect(midX, yAxis.top, xAxis.right - midX, midY - yAxis.top);
+
+                    // Cuadrante superior izquierdo - Puzzles (azul)
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
+                    ctx.fillRect(xAxis.left, yAxis.top, midX - xAxis.left, midY - yAxis.top);
+
+                    // Cuadrante inferior derecho - Caballos (naranja)
+                    ctx.fillStyle = 'rgba(249, 115, 22, 0.1)';
+                    ctx.fillRect(midX, midY, xAxis.right - midX, yAxis.bottom - midY);
+
+                    // Cuadrante inferior izquierdo - Perros (rojo)
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
+                    ctx.fillRect(xAxis.left, midY, midX - xAxis.left, yAxis.bottom - midY);
+
+                    // Líneas divisorias
+                    ctx.strokeStyle = 'rgba(100, 116, 139, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+
+                    // Línea vertical
+                    ctx.beginPath();
+                    ctx.moveTo(midX, yAxis.top);
+                    ctx.lineTo(midX, yAxis.bottom);
+                    ctx.stroke();
+
+                    // Línea horizontal
+                    ctx.beginPath();
+                    ctx.moveTo(xAxis.left, midY);
+                    ctx.lineTo(xAxis.right, midY);
+                    ctx.stroke();
+
+                    ctx.setLineDash([]);
+
+                    // Etiquetas de cuadrantes
+                    ctx.font = 'bold 12px Montserrat, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = 'rgba(34, 197, 94, 0.8)';
+                    ctx.fillText('⭐ ESTRELLAS', (midX + xAxis.right) / 2, yAxis.top + 20);
+                    ctx.fillStyle = 'rgba(59, 130, 246, 0.8)';
+                    ctx.fillText('❓ PUZZLES', (xAxis.left + midX) / 2, yAxis.top + 20);
+                    ctx.fillStyle = 'rgba(249, 115, 22, 0.8)';
+                    ctx.fillText('🐴 CABALLOS', (midX + xAxis.right) / 2, yAxis.bottom - 10);
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+                    ctx.fillText('🐕 PERROS', (xAxis.left + midX) / 2, yAxis.bottom - 10);
+                }
             };
 
             window.bcgScatterChart = new Chart(ctx, {
                 type: 'scatter',
-                plugins: [labelPlugin],
+                plugins: [quadrantPlugin],
                 data: {
                     datasets: [
                         {
                             label: 'Platos',
                             data: scatterData.map(d => ({ x: d.x, y: d.y })),
                             backgroundColor: scatterData.map(d => d.backgroundColor),
-                            pointRadius: 14,
-                            pointHoverRadius: 18,
+                            pointRadius: 10,
+                            pointHoverRadius: 15,
                             pointStyle: 'circle',
                             borderWidth: 2,
                             borderColor: scatterData.map(d =>
@@ -4278,7 +4318,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: {
-                        padding: { top: 30, right: 20, bottom: 10, left: 10 },
+                        padding: { top: 35, right: 20, bottom: 25, left: 10 },
                     },
                     plugins: {
                         legend: { display: false },
@@ -4286,16 +4326,28 @@
                             enabled: true,
                             backgroundColor: 'rgba(30, 41, 59, 0.95)',
                             titleColor: '#fff',
+                            titleFont: { size: 14, weight: 'bold' },
                             bodyColor: '#fff',
-                            padding: 12,
-                            cornerRadius: 8,
-                            displayColors: false,
+                            bodyFont: { size: 12 },
+                            padding: 14,
+                            cornerRadius: 10,
+                            displayColors: true,
                             callbacks: {
+                                title: function (context) {
+                                    const idx = context[0].dataIndex;
+                                    return scatterData[idx].nombre;
+                                },
                                 label: function (context) {
                                     const idx = context.dataIndex;
                                     const item = scatterData[idx];
+                                    const clasificacionEmoji = {
+                                        estrella: '⭐ Estrella',
+                                        puzzle: '❓ Puzzle',
+                                        caballo: '🐴 Caballo',
+                                        perro: '🐕 Perro'
+                                    };
                                     return [
-                                        item.nombre,
+                                        `${clasificacionEmoji[item.clasificacion] || item.clasificacion}`,
                                         `Margen: ${item.y.toFixed(2)}€`,
                                         `Ventas: ${item.x}`,
                                     ];
@@ -4307,14 +4359,14 @@
                         x: {
                             title: {
                                 display: true,
-                                text: 'Popularidad (Ventas)',
+                                text: '📈 POPULARIDAD (Unidades Vendidas)',
                                 font: { size: 12 },
                             },
                             grid: { color: 'rgba(0,0,0,0.05)' },
                             beginAtZero: true,
                         },
                         y: {
-                            title: { display: true, text: 'Margen (€)', font: { size: 12 } },
+                            title: { display: true, text: '💰 RENTABILIDAD (Margen €)', font: { size: 12 } },
                             grid: { color: 'rgba(0,0,0,0.05)' },
                             beginAtZero: true,
                         },
