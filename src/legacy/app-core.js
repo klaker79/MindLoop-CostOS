@@ -4232,66 +4232,76 @@
             // Calcular promedios para las líneas divisorias
             const avgX = data.reduce((sum, d) => sum + d.popularidad, 0) / data.length;
             const avgY = data.reduce((sum, d) => sum + d.margen, 0) / data.length;
-            const maxX = Math.max(...data.map(d => d.popularidad)) * 1.1;
-            const maxY = Math.max(...data.map(d => d.margen)) * 1.2;
-            const minY = Math.min(...data.map(d => d.margen), 0) * 1.1;
 
-            // Plugin para dibujar cuadrantes de colores de fondo
+            // Plugin profesional para cuadrantes
             const quadrantPlugin = {
                 id: 'bcgQuadrants',
                 beforeDatasetsDraw: function (chart) {
                     const ctx = chart.ctx;
                     const xAxis = chart.scales.x;
                     const yAxis = chart.scales.y;
-                    const midX = xAxis.getPixelForValue(avgX * 0.7); // 70% del promedio
+                    const midX = xAxis.getPixelForValue(avgX * 0.7);
                     const midY = yAxis.getPixelForValue(avgY);
 
-                    // Cuadrante superior derecho - Estrellas (verde)
-                    ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
-                    ctx.fillRect(midX, yAxis.top, xAxis.right - midX, midY - yAxis.top);
+                    // Cuadrantes con gradientes suaves
+                    const quadrants = [
+                        { x1: midX, y1: yAxis.top, x2: xAxis.right, y2: midY, color: 'rgba(34, 197, 94, 0.08)', label: 'ESTRELLAS', emoji: '⭐', labelColor: '#15803d' },
+                        { x1: xAxis.left, y1: yAxis.top, x2: midX, y2: midY, color: 'rgba(59, 130, 246, 0.08)', label: 'PUZZLES', emoji: '❓', labelColor: '#1d4ed8' },
+                        { x1: midX, y1: midY, x2: xAxis.right, y2: yAxis.bottom, color: 'rgba(249, 115, 22, 0.08)', label: 'CABALLOS', emoji: '🐴', labelColor: '#c2410c' },
+                        { x1: xAxis.left, y1: midY, x2: midX, y2: yAxis.bottom, color: 'rgba(239, 68, 68, 0.08)', label: 'PERROS', emoji: '🐕', labelColor: '#b91c1c' }
+                    ];
 
-                    // Cuadrante superior izquierdo - Puzzles (azul)
-                    ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
-                    ctx.fillRect(xAxis.left, yAxis.top, midX - xAxis.left, midY - yAxis.top);
+                    quadrants.forEach(q => {
+                        ctx.fillStyle = q.color;
+                        ctx.fillRect(q.x1, q.y1, q.x2 - q.x1, q.y2 - q.y1);
+                    });
 
-                    // Cuadrante inferior derecho - Caballos (naranja)
-                    ctx.fillStyle = 'rgba(249, 115, 22, 0.1)';
-                    ctx.fillRect(midX, midY, xAxis.right - midX, yAxis.bottom - midY);
+                    // Líneas divisorias elegantes
+                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([8, 4]);
 
-                    // Cuadrante inferior izquierdo - Perros (rojo)
-                    ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
-                    ctx.fillRect(xAxis.left, midY, midX - xAxis.left, yAxis.bottom - midY);
-
-                    // Líneas divisorias
-                    ctx.strokeStyle = 'rgba(100, 116, 139, 0.5)';
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([5, 5]);
-
-                    // Línea vertical
                     ctx.beginPath();
                     ctx.moveTo(midX, yAxis.top);
                     ctx.lineTo(midX, yAxis.bottom);
                     ctx.stroke();
 
-                    // Línea horizontal
                     ctx.beginPath();
                     ctx.moveTo(xAxis.left, midY);
                     ctx.lineTo(xAxis.right, midY);
                     ctx.stroke();
-
                     ctx.setLineDash([]);
 
-                    // Etiquetas de cuadrantes
-                    ctx.font = 'bold 12px Montserrat, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillStyle = 'rgba(34, 197, 94, 0.8)';
-                    ctx.fillText('⭐ ESTRELLAS', (midX + xAxis.right) / 2, yAxis.top + 20);
-                    ctx.fillStyle = 'rgba(59, 130, 246, 0.8)';
-                    ctx.fillText('❓ PUZZLES', (xAxis.left + midX) / 2, yAxis.top + 20);
-                    ctx.fillStyle = 'rgba(249, 115, 22, 0.8)';
-                    ctx.fillText('🐴 CABALLOS', (midX + xAxis.right) / 2, yAxis.bottom - 10);
-                    ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
-                    ctx.fillText('🐕 PERROS', (xAxis.left + midX) / 2, yAxis.bottom - 10);
+                    // Etiquetas con fondo pill profesional
+                    const labels = [
+                        { x: (midX + xAxis.right) / 2, y: yAxis.top + 25, text: '⭐ ESTRELLAS', bg: 'rgba(34, 197, 94, 0.15)', color: '#15803d' },
+                        { x: (xAxis.left + midX) / 2, y: yAxis.top + 25, text: '❓ PUZZLES', bg: 'rgba(59, 130, 246, 0.15)', color: '#1d4ed8' },
+                        { x: (midX + xAxis.right) / 2, y: yAxis.bottom - 15, text: '🐴 CABALLOS', bg: 'rgba(249, 115, 22, 0.15)', color: '#c2410c' },
+                        { x: (xAxis.left + midX) / 2, y: yAxis.bottom - 15, text: '🐕 PERROS', bg: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c' }
+                    ];
+
+                    labels.forEach(l => {
+                        ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+                        const textWidth = ctx.measureText(l.text).width;
+
+                        // Fondo pill
+                        ctx.fillStyle = l.bg;
+                        const padding = 8;
+                        const height = 22;
+                        const radius = 11;
+                        const x = l.x - textWidth / 2 - padding;
+                        const y = l.y - height / 2;
+
+                        ctx.beginPath();
+                        ctx.roundRect(x, y, textWidth + padding * 2, height, radius);
+                        ctx.fill();
+
+                        // Texto
+                        ctx.fillStyle = l.color;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(l.text, l.x, l.y);
+                    });
                 }
             };
 
@@ -4299,57 +4309,48 @@
                 type: 'scatter',
                 plugins: [quadrantPlugin],
                 data: {
-                    datasets: [
-                        {
-                            label: 'Platos',
-                            data: scatterData.map(d => ({ x: d.x, y: d.y })),
-                            backgroundColor: scatterData.map(d => d.backgroundColor),
-                            pointRadius: 10,
-                            pointHoverRadius: 15,
-                            pointStyle: 'circle',
-                            borderWidth: 2,
-                            borderColor: scatterData.map(d =>
-                                d.backgroundColor.replace('0.8', '1')
-                            ),
-                        },
-                    ],
+                    datasets: [{
+                        label: 'Platos',
+                        data: scatterData.map(d => ({ x: d.x, y: d.y })),
+                        backgroundColor: scatterData.map(d => d.backgroundColor),
+                        pointRadius: 12,
+                        pointHoverRadius: 16,
+                        pointStyle: 'circle',
+                        borderWidth: 2.5,
+                        borderColor: scatterData.map(d => d.backgroundColor.replace('0.8', '1')),
+                        hoverBorderWidth: 3,
+                    }],
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: {
-                        padding: { top: 35, right: 20, bottom: 25, left: 10 },
+                        padding: { top: 45, right: 25, bottom: 20, left: 15 },
                     },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
                             enabled: true,
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
                             titleColor: '#fff',
-                            titleFont: { size: 14, weight: 'bold' },
-                            bodyColor: '#fff',
-                            bodyFont: { size: 12 },
-                            padding: 14,
-                            cornerRadius: 10,
-                            displayColors: true,
+                            titleFont: { size: 14, weight: '600', family: 'system-ui' },
+                            bodyColor: 'rgba(255,255,255,0.9)',
+                            bodyFont: { size: 12, family: 'system-ui' },
+                            padding: 16,
+                            cornerRadius: 12,
+                            displayColors: false,
+                            boxPadding: 6,
                             callbacks: {
                                 title: function (context) {
-                                    const idx = context[0].dataIndex;
-                                    return scatterData[idx].nombre;
+                                    return scatterData[context[0].dataIndex].nombre;
                                 },
                                 label: function (context) {
-                                    const idx = context.dataIndex;
-                                    const item = scatterData[idx];
-                                    const clasificacionEmoji = {
-                                        estrella: '⭐ Estrella',
-                                        puzzle: '❓ Puzzle',
-                                        caballo: '🐴 Caballo',
-                                        perro: '🐕 Perro'
-                                    };
+                                    const item = scatterData[context.dataIndex];
+                                    const emojis = { estrella: '⭐', puzzle: '❓', caballo: '🐴', perro: '🐕' };
                                     return [
-                                        `${clasificacionEmoji[item.clasificacion] || item.clasificacion}`,
+                                        `${emojis[item.clasificacion] || ''} ${item.clasificacion.charAt(0).toUpperCase() + item.clasificacion.slice(1)}`,
                                         `Margen: ${item.y.toFixed(2)}€`,
-                                        `Ventas: ${item.x}`,
+                                        `Ventas: ${item.x} uds`,
                                     ];
                                 },
                             },
@@ -4359,16 +4360,25 @@
                         x: {
                             title: {
                                 display: true,
-                                text: '📈 POPULARIDAD (Unidades Vendidas)',
-                                font: { size: 12 },
+                                text: 'POPULARIDAD (Unidades Vendidas)',
+                                font: { size: 11, weight: '600', family: 'system-ui' },
+                                color: '#64748b',
+                                padding: { top: 10 }
                             },
-                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
                             beginAtZero: true,
                         },
                         y: {
-                            title: { display: true, text: '💰 RENTABILIDAD (Margen €)', font: { size: 12 } },
-                            grid: { color: 'rgba(0,0,0,0.05)' },
-                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'RENTABILIDAD (Margen €)',
+                                font: { size: 11, weight: '600', family: 'system-ui' },
+                                color: '#64748b',
+                                padding: { bottom: 10 }
+                            },
+                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
                         },
                     },
                 },
