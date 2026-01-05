@@ -208,15 +208,22 @@ export function calcularTotalPedido() {
                     conversionSpan.textContent = '';
                 }
 
-                // 💰 CORREGIDO: El precio del ingrediente ES el precio del FORMATO
-                // Si compras 1 BOTE a 11.54€ → total = 11.54€ (no multiplicar por kg)
-                // Si compras por kg directo → precio × cantidad
+                // 💰 CORREGIDO: El precio del ingrediente ES el precio del FORMATO (BOTE)
+                // Si compras 1 BOTE a 11.54€ → total = 11.54€
+                // Si compras por kg → precio/kg = 11.54€/3.2 = 3.61€ × cantidad
+                const precioIngrediente = parseFloat(ing.precio || 0);
+
                 if (usandoFormato) {
                     // Compra por formato: precio es por unidad de formato (ej: 11.54€ por BOTE)
-                    total += parseFloat(ing.precio || 0) * cantidadInput;
+                    total += precioIngrediente * cantidadInput;
+                } else if (formatoSelect && formatoSelect.parentElement?.style.display !== 'none' && multiplicador > 1) {
+                    // Compra por unidad base PERO el ingrediente tiene formato definido
+                    // Precio por kg = precio_bote / kg_por_bote
+                    const precioUnitarioBase = precioIngrediente / multiplicador;
+                    total += precioUnitarioBase * cantidadInput;
                 } else {
-                    // Compra por unidad base: precio × cantidad directa
-                    total += parseFloat(ing.precio || 0) * cantidadInput;
+                    // Sin formato definido: precio directo
+                    total += precioIngrediente * cantidadInput;
                 }
             }
         }
