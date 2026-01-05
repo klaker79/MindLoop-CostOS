@@ -189,16 +189,18 @@ export function calcularTotalPedido() {
 
                 // Obtener multiplicador del formato (1 si es unidad base)
                 let multiplicador = 1;
-                if (formatoSelect && formatoSelect.style.display !== 'none') {
+                let usandoFormato = false;
+                if (formatoSelect && formatoSelect.parentElement?.style.display !== 'none') {
                     const selectedFormatoOption = formatoSelect.options[formatoSelect.selectedIndex];
                     multiplicador = parseFloat(selectedFormatoOption?.dataset?.multiplicador) || 1;
+                    usandoFormato = formatoSelect.value === 'formato' && multiplicador > 1;
                 }
 
-                // Cantidad real en unidad base
+                // Cantidad real en unidad base (para stock)
                 const cantidadReal = cantidadInput * multiplicador;
 
                 // Mostrar conversión si hay multiplicador > 1
-                if (conversionSpan && multiplicador > 1) {
+                if (conversionSpan && multiplicador > 1 && usandoFormato) {
                     conversionSpan.textContent = `= ${cantidadReal.toFixed(2)} ${ing.unidad || 'ud'}`;
                     conversionSpan.style.color = '#10b981';
                     conversionSpan.style.fontWeight = '600';
@@ -206,8 +208,16 @@ export function calcularTotalPedido() {
                     conversionSpan.textContent = '';
                 }
 
-                // Calcular precio (precio × cantidad en unidad base)
-                total += parseFloat(ing.precio || 0) * cantidadReal;
+                // 💰 CORREGIDO: El precio del ingrediente ES el precio del FORMATO
+                // Si compras 1 BOTE a 11.54€ → total = 11.54€ (no multiplicar por kg)
+                // Si compras por kg directo → precio × cantidad
+                if (usandoFormato) {
+                    // Compra por formato: precio es por unidad de formato (ej: 11.54€ por BOTE)
+                    total += parseFloat(ing.precio || 0) * cantidadInput;
+                } else {
+                    // Compra por unidad base: precio × cantidad directa
+                    total += parseFloat(ing.precio || 0) * cantidadInput;
+                }
             }
         }
     });

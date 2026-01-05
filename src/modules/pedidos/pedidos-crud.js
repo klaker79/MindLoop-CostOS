@@ -27,25 +27,35 @@ export async function guardarPedido(event) {
       // 🆕 Obtener multiplicador del formato de compra
       let multiplicador = 1;
       let formatoUsado = null;
+      let usandoFormato = false;
       if (formatoSelect && formatoSelect.parentElement?.style.display !== 'none') {
         const selectedFormatoOption = formatoSelect.options[formatoSelect.selectedIndex];
         multiplicador = parseFloat(selectedFormatoOption?.dataset?.multiplicador) || 1;
-        if (multiplicador > 1) {
-          formatoUsado = formatoSelect.value; // 'formato' o 'unidad'
-        }
+        formatoUsado = formatoSelect.value; // 'formato' o 'unidad'
+        usandoFormato = formatoUsado === 'formato' && multiplicador > 1;
       }
 
       // Cantidad real en unidad base
-      const cantidadReal = cantidadInput * multiplicador;
+      const cantidadReal = usandoFormato ? cantidadInput * multiplicador : cantidadInput;
+
+      // 💰 Precio unitario por unidad base (kg, L, etc.)
+      // Si el precio del ingrediente es 11.54€ por BOTE de 3.2kg → precio/kg = 11.54/3.2 = 3.61€
+      const precioIngrediente = ing ? parseFloat(ing.precio || 0) : 0;
+      const precioUnitarioBase = usandoFormato && multiplicador > 0
+        ? precioIngrediente / multiplicador  // Precio por unidad base (ej: €/kg)
+        : precioIngrediente;
 
       ingredientesPedido.push({
         ingredienteId: ingId,
         ingrediente_id: ingId,
-        cantidad: cantidadReal, // 🆕 Guardar cantidad convertida
-        cantidadOriginal: cantidadInput, // Guardar también la cantidad original
-        formatoUsado: formatoUsado, // Guardar si usó formato
-        precio_unitario: ing ? parseFloat(ing.precio || 0) : 0,
-        precio: ing ? parseFloat(ing.precio || 0) : 0,
+        cantidad: cantidadReal, // Cantidad en unidad base para stock
+        cantidadOriginal: cantidadInput, // Cantidad en formato original (ej: 1 BOTE)
+        cantidadFormatos: usandoFormato ? cantidadInput : null, // Número de formatos comprados
+        formatoUsado: formatoUsado, // 'formato' o 'unidad'
+        multiplicador: usandoFormato ? multiplicador : 1,
+        precio_unitario: precioUnitarioBase, // 💰 Precio por unidad base (€/kg)
+        precio: precioUnitarioBase,
+        precioFormato: usandoFormato ? precioIngrediente : null, // Precio por formato (€/BOTE)
       });
     }
   });
