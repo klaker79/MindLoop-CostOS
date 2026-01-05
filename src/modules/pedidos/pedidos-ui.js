@@ -145,9 +145,10 @@ export function onIngredientePedidoChange(selectElement, rowId) {
     if (formato && cantidadFormato && formatoContainer && formatoSelect) {
         // Mostrar selector de formato
         formatoContainer.style.display = 'block';
+        // Guardar el multiplicador del formato en AMBAS opciones para poder calcular el precio correcto
         formatoSelect.innerHTML = `
-            <option value="formato" data-multiplicador="${cantidadFormato}">${escapeHTML(formato)} (${cantidadFormato} ${unidad})</option>
-            <option value="unidad" data-multiplicador="1">${unidad}</option>
+            <option value="formato" data-multiplicador="${cantidadFormato}" data-formato-mult="${cantidadFormato}">${escapeHTML(formato)} (${cantidadFormato} ${unidad})</option>
+            <option value="unidad" data-multiplicador="1" data-formato-mult="${cantidadFormato}">${unidad}</option>
         `;
         formatoSelect.value = 'formato'; // Por defecto usar formato
     } else if (formatoContainer) {
@@ -189,18 +190,20 @@ export function calcularTotalPedido() {
 
                 // Obtener multiplicador del formato (1 si es unidad base)
                 let multiplicador = 1;
+                let formatoMult = 1; // Multiplicador del formato (siempre, para calcular precio/kg)
                 let usandoFormato = false;
                 if (formatoSelect && formatoSelect.parentElement?.style.display !== 'none') {
                     const selectedFormatoOption = formatoSelect.options[formatoSelect.selectedIndex];
                     multiplicador = parseFloat(selectedFormatoOption?.dataset?.multiplicador) || 1;
-                    usandoFormato = formatoSelect.value === 'formato' && multiplicador > 1;
+                    formatoMult = parseFloat(selectedFormatoOption?.dataset?.formatoMult) || 1;
+                    usandoFormato = formatoSelect.value === 'formato' && formatoMult > 1;
                 }
 
                 // Cantidad real en unidad base (para stock)
-                const cantidadReal = cantidadInput * multiplicador;
+                const cantidadReal = usandoFormato ? cantidadInput * formatoMult : cantidadInput;
 
                 // Mostrar conversión si hay multiplicador > 1
-                if (conversionSpan && multiplicador > 1 && usandoFormato) {
+                if (conversionSpan && usandoFormato) {
                     conversionSpan.textContent = `= ${cantidadReal.toFixed(2)} ${ing.unidad || 'ud'}`;
                     conversionSpan.style.color = '#10b981';
                     conversionSpan.style.fontWeight = '600';
@@ -216,10 +219,10 @@ export function calcularTotalPedido() {
                 if (usandoFormato) {
                     // Compra por formato: precio es por unidad de formato (ej: 11.54€ por BOTE)
                     total += precioIngrediente * cantidadInput;
-                } else if (formatoSelect && formatoSelect.parentElement?.style.display !== 'none' && multiplicador > 1) {
-                    // Compra por unidad base PERO el ingrediente tiene formato definido
-                    // Precio por kg = precio_bote / kg_por_bote
-                    const precioUnitarioBase = precioIngrediente / multiplicador;
+                } else if (formatoMult > 1) {
+                    // Compra por unidad base (kg) - ingrediente tiene formato definido
+                    // Precio por kg = precio_bote / kg_por_bote = 11.54/3.2 = 3.61€/kg
+                    const precioUnitarioBase = precioIngrediente / formatoMult;
                     total += precioUnitarioBase * cantidadInput;
                 } else {
                     // Sin formato definido: precio directo
