@@ -1090,7 +1090,7 @@ window.cargarResumenMensual = async function () {
         // Renderizar tablas
         renderizarTablaComprasDiarias();
         renderizarTablaVentasDiarias();
-        renderizarTablaPLDiario();
+        await renderizarTablaPLDiario();
         renderizarBeneficioNetoDiario();
         window.showToast('Datos cargados', 'success');
     } catch (error) {
@@ -1224,7 +1224,7 @@ function renderizarTablaVentasDiarias() {
 }
 
 // Renderizar P&L diario
-function renderizarTablaPLDiario() {
+async function renderizarTablaPLDiario() {
     const container = document.getElementById('tabla-pl-diario');
     if (!window.datosResumenMensual || !window.datosResumenMensual.dias?.length) {
         container.innerHTML = '<p class="empty-state">No hay datos para este mes</p>';
@@ -1284,16 +1284,26 @@ function renderizarTablaPLDiario() {
     });
     html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalCostes.toFixed(2)}€</td></tr>`;
 
-    // Obtener gastos fijos mensuales
-    const opexData = JSON.parse(
-        localStorage.getItem('opex_inputs') ||
-        '{"alquiler":0,"personal":0,"suministros":0,"otros":0}'
-    );
-    const gastosFijosMes =
-        parseFloat(opexData.alquiler || 0) +
-        parseFloat(opexData.personal || 0) +
-        parseFloat(opexData.suministros || 0) +
-        parseFloat(opexData.otros || 0);
+    // Obtener gastos fijos mensuales desde API (misma fuente que Finanzas)
+    let gastosFijosMes = 0;
+    try {
+        const gastosFijos = await window.API.getGastosFijos();
+        if (gastosFijos && gastosFijos.length > 0) {
+            gastosFijosMes = gastosFijos.reduce((sum, g) => sum + parseFloat(g.monto_mensual || 0), 0);
+        }
+    } catch (error) {
+        console.warn('Fallback a localStorage para gastos fijos:', error.message);
+        // Fallback a localStorage si API falla
+        const opexData = JSON.parse(
+            localStorage.getItem('opex_inputs') ||
+            '{"alquiler":0,"personal":0,"suministros":0,"otros":0}'
+        );
+        gastosFijosMes =
+            parseFloat(opexData.alquiler || 0) +
+            parseFloat(opexData.personal || 0) +
+            parseFloat(opexData.suministros || 0) +
+            parseFloat(opexData.otros || 0);
+    }
 
     // Calcular gastos fijos por día (días del mes calendario, no solo días con datos)
     const mesSeleccionado = parseInt(document.getElementById('diario-mes').value);
