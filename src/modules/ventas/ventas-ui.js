@@ -121,3 +121,48 @@ export function exportarVentas() {
         window.exportarAExcel(ventas, `Ventas_${window.getRestaurantNameForFile()}`, columnas);
     });
 }
+
+/**
+ * Carga las variantes de una receta cuando se selecciona en el formulario de venta
+ * Solo muestra el selector si la receta tiene variantes (ej: bebidas con copa/botella)
+ */
+export async function cargarVariantesVenta(recetaId) {
+    const container = document.getElementById('venta-variante-container');
+    const select = document.getElementById('venta-variante');
+
+    if (!container || !select) return;
+
+    // Si no hay receta seleccionada, ocultar
+    if (!recetaId) {
+        container.style.display = 'none';
+        select.innerHTML = '<option value="">Sin variante (unidad completa)</option>';
+        return;
+    }
+
+    try {
+        // Obtener variantes de la receta desde API
+        const variantes = await window.API.fetch(`/api/recipes/${recetaId}/variants`);
+
+        if (!Array.isArray(variantes) || variantes.length === 0) {
+            container.style.display = 'none';
+            select.innerHTML = '<option value="">Sin variante (unidad completa)</option>';
+            return;
+        }
+
+        // Mostrar selector y poblar opciones
+        container.style.display = 'block';
+        let html = '<option value="">Sin variante (unidad completa)</option>';
+        variantes.forEach(v => {
+            html += `<option value="${v.id}" data-factor="${v.factor}" data-precio="${v.precio_venta}">
+                ${escapeHTML(v.nombre)} - ${parseFloat(v.precio_venta).toFixed(2)}€ (${v.factor}x)
+            </option>`;
+        });
+        select.innerHTML = html;
+    } catch (error) {
+        console.error('Error cargando variantes:', error);
+        container.style.display = 'none';
+    }
+}
+
+// Exponer globalmente
+window.cargarVariantesVenta = cargarVariantesVenta;
