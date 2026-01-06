@@ -100,8 +100,9 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
                 message: data.error || 'Error de autenticación',
             };
 
-            // 🔧 FIX: SIEMPRE redirigir al login cuando hay 401
-            // Antes solo lo hacía con códigos específicos, lo que causaba pérdida de datos silenciosa
+            // 🔧 FIX CRÍTICO: Lanzar error para que el caller sepa que falló
+            // Antes retornaba objeto vacío, lo que causaba que guardarIngrediente
+            // mostrara "éxito" cuando realmente no se guardó nada.
             showToast('⚠️ Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.', 'error');
 
             // Pequeño delay para que el usuario vea el mensaje
@@ -109,7 +110,8 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
                 logout();
             }, 1500);
 
-            return getDefaultResponse(endpoint);
+            // CRÍTICO: Lanzar error para prevenir falsos positivos
+            throw new Error('Sesión expirada. Por favor, vuelve a iniciar sesión.');
         }
 
         // Manejar otros errores HTTP
@@ -123,11 +125,17 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
                 message: data.error || response.statusText,
             };
 
-            // Si la respuesta tiene datos a pesar del error, usarlos
-            if (data && !data.error) {
-                return data;
+            // 🔧 FIX: Para operaciones de mutación (POST, PUT, DELETE), lanzar error
+            // Para GET, podemos devolver vacío para no romper la UI
+            const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(
+                (options.method || 'GET').toUpperCase()
+            );
+
+            if (isMutation) {
+                throw new Error(data.error || `Error ${response.status}: ${response.statusText}`);
             }
 
+            // Para GET, devolver respuesta por defecto para no romper renders
             return getDefaultResponse(endpoint);
         }
 
