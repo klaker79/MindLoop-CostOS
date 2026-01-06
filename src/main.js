@@ -119,6 +119,7 @@ window.proyeccionConsumo = Helpers.proyeccionConsumo;
 // ============================================
 import * as IngredientesUI from './modules/ingredientes/ingredientes-ui.js';
 import * as IngredientesCRUD from './modules/ingredientes/ingredientes-crud.js';
+import * as IngredientesProveedores from './modules/ingredientes/ingredientes-proveedores.js';
 
 // UI
 window.renderizarIngredientes = IngredientesUI.renderizarIngredientes;
@@ -130,6 +131,14 @@ window.exportarIngredientes = IngredientesUI.exportarIngredientes;
 window.guardarIngrediente = IngredientesCRUD.guardarIngrediente;
 window.editarIngrediente = IngredientesCRUD.editarIngrediente;
 window.eliminarIngrediente = IngredientesCRUD.eliminarIngrediente;
+
+// Proveedores por ingrediente
+window.gestionarProveedoresIngrediente = IngredientesProveedores.gestionarProveedoresIngrediente;
+window.agregarProveedorIngrediente = IngredientesProveedores.agregarProveedorIngrediente;
+window.marcarProveedorPrincipal = IngredientesProveedores.marcarProveedorPrincipal;
+window.editarPrecioProveedor = IngredientesProveedores.editarPrecioProveedor;
+window.eliminarProveedorIngrediente = IngredientesProveedores.eliminarProveedorIngrediente;
+window.cerrarModalProveedoresIngrediente = IngredientesProveedores.cerrarModalProveedoresIngrediente;
 
 // ============================================
 // MÓDULO: RECETAS ✅ (Legacy comentado)

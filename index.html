@@ -1547,6 +1547,48 @@
     </div>
   </div>
 
+  <!-- Modal gestionar proveedores de ingrediente -->
+  <div id="modal-proveedores-ingrediente" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+      <h3 id="modal-proveedores-titulo">Proveedores del ingrediente</h3>
+
+      <!-- Lista de proveedores asociados -->
+      <div style="margin: 20px 0;">
+        <h4 style="color: #64748B; font-size: 14px; margin-bottom: 12px;">PROVEEDORES ASOCIADOS</h4>
+        <div id="lista-proveedores-asociados" style="max-height: 400px; overflow-y: auto;">
+          <!-- Se renderiza dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Formulario para agregar nuevo proveedor -->
+      <div style="background: #F8FAFC; padding: 20px; border-radius: 12px; margin-top: 20px;">
+        <h4 style="color: #1E293B; font-size: 15px; margin-bottom: 16px;">➕ Agregar proveedor</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;">Proveedor</label>
+            <select id="select-proveedor-nuevo" class="form-input" style="width: 100%;">
+              <option value="">Seleccionar...</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;">Precio</label>
+            <input type="number" id="input-precio-nuevo" class="form-input" placeholder="0.00" step="0.01" min="0" style="width: 100%;">
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="window.agregarProveedorIngrediente()" style="padding: 10px 20px;">
+              ➕ Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones del modal -->
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="window.cerrarModalProveedoresIngrediente()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal ver detalles pedido -->
   <div id="modal-ver-pedido" class="modal">
     <div class="modal-content" style="max-width: 800px;">
