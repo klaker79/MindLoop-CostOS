@@ -119,7 +119,6 @@ window.proyeccionConsumo = Helpers.proyeccionConsumo;
 // ============================================
 import * as IngredientesUI from './modules/ingredientes/ingredientes-ui.js';
 import * as IngredientesCRUD from './modules/ingredientes/ingredientes-crud.js';
-import './modules/ingredientes/ingredientes-suppliers.js'; // Multi-supplier support
 
 // UI
 window.renderizarIngredientes = IngredientesUI.renderizarIngredientes;
