@@ -102,6 +102,15 @@ const actionHandlers = {
     // Evolución de Precios
     'cerrar-modal-evolucion-precio': () => closeModal('modal-evolucion-precio'),
 
+    // Horarios
+    'nuevo-empleado': () => window.nuevoEmpleado?.(),
+    'cerrar-modal-empleado': () => window.cerrarModalEmpleado?.(),
+    'guardar-empleado': () => window.guardarEmpleado?.(),
+    'semana-anterior': () => window.semanaAnterior?.(),
+    'semana-siguiente': () => window.semanaSiguiente?.(),
+    'copiar-semana': () => window.copiarSemana?.(),
+    'generar-horario-ia': () => window.generarHorarioIA?.(),
+
     // Configuración
     'abrir-manual-formulas': () => window.abrirManualFormulas?.(),
     'mostrar-modal-invitar': () => window.mostrarModalInvitar?.(),

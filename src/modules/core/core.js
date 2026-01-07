@@ -96,6 +96,9 @@ export function cambiarTab(tab) {
         case 'analisis':
             window.renderizarAnalisis?.();
             break;
+        case 'horarios':
+            window.initHorarios?.();
+            break;
         case 'configuracion':
             window.renderizarEquipo?.();
             break;

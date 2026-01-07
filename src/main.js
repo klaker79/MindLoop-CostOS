@@ -252,6 +252,13 @@ window.mostrarModalMermaRapida = MermaRapida.mostrarModalMermaRapida;
 window.confirmarMermaRapida = MermaRapida.confirmarMermaRapida;
 
 // ============================================
+// MÓDULO: HORARIOS 👥 (MindLoop Staff Scheduler)
+// ============================================
+import * as Horarios from './modules/horarios/horarios.js';
+
+window.initHorarios = Horarios.initHorarios;
+
+// ============================================
 // MÓDULO: EXPORT PDF
 // ============================================
 import * as PDFGenerator from './modules/export/pdf-generator.js';
