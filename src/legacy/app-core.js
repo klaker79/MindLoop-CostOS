@@ -2321,6 +2321,7 @@
         if (tab === 'ventas') window.renderizarVentas();
         // if (tab === 'balance') window.renderizarBalance(); // DESACTIVADO - Sección P&L eliminada
         if (tab === 'configuracion') window.renderizarEquipo();
+        if (tab === 'horarios') window.renderizarHorarios?.();
     };
 
     // ========== INGREDIENTES (código completo pero resumido visualmente) ==========

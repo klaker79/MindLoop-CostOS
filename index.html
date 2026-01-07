@@ -322,6 +322,7 @@
     <button id="tab-btn-ventas" class="tab" data-tab="ventas">💰 Ventas</button>
 
     <button id="tab-btn-diario" class="tab" data-tab="diario">📈 Diario</button>
+    <button id="tab-btn-horarios" class="tab" data-tab="horarios">📅 Horarios</button>
     <button id="tab-btn-configuracion" class="tab" data-tab="configuracion">⚙️
       Configuración</button>
   </div>
@@ -1471,6 +1472,73 @@
         </div>
 
       </div>
+    </div>
+  </div>
+
+  <!-- TAB: HORARIOS (Staff Scheduling) -->
+  <div id="tab-horarios" class="tab-content">
+    <div class="top-bar">
+      <div>
+        <h2>📅 Horarios del Personal</h2>
+        <p>Gestión visual de turnos del equipo</p>
+      </div>
+    </div>
+    <div class="card">
+      <div id="horarios-container">
+        <div class="empty-state">
+          <div class="icon">📅</div>
+          <h3>Cargando horarios...</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EMPLEADO -->
+  <div id="modal-empleado" class="modal">
+    <div class="modal-content" style="max-width: 450px;">
+      <span class="close" onclick="window.cerrarModalEmpleado()">&times;</span>
+      <h2>👤 Empleado</h2>
+      <form id="form-empleado" onsubmit="window.guardarEmpleado(event)">
+        <input type="hidden" id="empleado-id">
+
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" id="empleado-nombre" required placeholder="Nombre del empleado"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-top: 15px;">
+          <div class="form-group" style="flex: 1;">
+            <label>Color</label>
+            <input type="color" id="empleado-color" value="#3B82F6"
+              style="width: 100%; height: 42px; border: none; border-radius: 6px; cursor: pointer;">
+          </div>
+          <div class="form-group" style="flex: 2;">
+            <label>Puesto</label>
+            <select id="empleado-puesto"
+              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+              <option value="Camarero">Camarero</option>
+              <option value="Cocinero">Cocinero</option>
+              <option value="Encargado">Encargado</option>
+              <option value="Ayudante">Ayudante</option>
+              <option value="Limpieza">Limpieza</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <label>Coste por hora (€)</label>
+          <input type="number" id="empleado-coste-hora" value="10" step="0.5" min="0"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" onclick="window.cerrarModalEmpleado()"
+            style="flex: 1;">Cancelar</button>
+          <button type="submit" class="btn btn-primary" style="flex: 2;">💾 Guardar Empleado</button>
+        </div>
+      </form>
     </div>
   </div>
 

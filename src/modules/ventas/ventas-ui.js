@@ -127,10 +127,17 @@ export function exportarVentas() {
  * Solo muestra el selector si la receta tiene variantes (ej: bebidas con copa/botella)
  */
 export async function cargarVariantesVenta(recetaId) {
+    console.log('🍷 cargarVariantesVenta llamada con recetaId:', recetaId);
+
     const container = document.getElementById('venta-variante-container');
     const select = document.getElementById('venta-variante');
 
-    if (!container || !select) return;
+    console.log('🍷 Container:', container, 'Select:', select);
+
+    if (!container || !select) {
+        console.warn('🍷 Container o select no encontrados');
+        return;
+    }
 
     // Si no hay receta seleccionada, ocultar
     if (!recetaId) {
@@ -141,15 +148,25 @@ export async function cargarVariantesVenta(recetaId) {
 
     try {
         // Obtener variantes de la receta desde API
-        const variantes = await window.API.fetch(`/api/recipes/${recetaId}/variants`);
+        console.log('🍷 Fetching variants from API...');
+        const apiFunc = window.API?.fetch || window.api?.fetch;
+        if (!apiFunc) {
+            console.error('🍷 API.fetch no disponible');
+            return;
+        }
+
+        const variantes = await apiFunc(`/api/recipes/${recetaId}/variants`);
+        console.log('🍷 Variantes recibidas:', variantes);
 
         if (!Array.isArray(variantes) || variantes.length === 0) {
+            console.log('🍷 Sin variantes, ocultando selector');
             container.style.display = 'none';
             select.innerHTML = '<option value="">Sin variante (unidad completa)</option>';
             return;
         }
 
         // Mostrar selector y poblar opciones
+        console.log('🍷 Mostrando selector con', variantes.length, 'variantes');
         container.style.display = 'block';
         let html = '<option value="">Sin variante (unidad completa)</option>';
         variantes.forEach(v => {
@@ -159,7 +176,7 @@ export async function cargarVariantesVenta(recetaId) {
         });
         select.innerHTML = html;
     } catch (error) {
-        console.error('Error cargando variantes:', error);
+        console.error('🍷 Error cargando variantes:', error);
         container.style.display = 'none';
     }
 }

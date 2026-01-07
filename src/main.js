@@ -253,6 +253,13 @@ import * as Dashboard from './modules/dashboard/dashboard.js';
 window.actualizarKPIs = Dashboard.actualizarKPIs;
 
 // ============================================
+// MÓDULO: HORARIOS 📅 (Staff Scheduling)
+// ============================================
+import * as HorariosUI from './modules/horarios/horarios-ui.js';
+
+window.renderizarHorarios = HorariosUI.renderizarHorarios;
+
+// ============================================
 // MÓDULO: MERMA RÁPIDA 🗑️
 // ============================================
 import * as MermaRapida from './modules/inventario/merma-rapida.js';
