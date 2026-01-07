@@ -3,6 +3,8 @@
  * Gestión visual de horarios del personal estilo 7shifts/Deputy
  */
 
+console.log('📅 Módulo horarios-ui.js CARGADO');
+
 let empleados = [];
 let horariosSemanales = {};
 let semanaActual = getInicioSemana(new Date());
