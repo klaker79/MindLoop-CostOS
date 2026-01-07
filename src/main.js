@@ -240,6 +240,7 @@ import * as VentasCRUD from './modules/ventas/ventas-crud.js';
 // UI
 window.renderizarVentas = VentasUI.renderizarVentas;
 window.exportarVentas = VentasUI.exportarVentas;
+window.cargarVariantesVenta = VentasUI.cargarVariantesVenta; // Selector de variantes en ventas
 
 // CRUD
 window.eliminarVenta = VentasCRUD.eliminarVenta;
