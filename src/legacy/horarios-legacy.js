@@ -352,11 +352,38 @@
         });
     }
 
-    // Expose globally for legacy compatibility
+    // Expose globally for legacy compatibility and onclick handlers
     window.mostrarModalEmpleado = showModal;
     window.cerrarModalEmpleado = hideModal;
     window.guardarEmpleado = saveEmpleado;
     window.renderizarHorarios = render;
+    window.generarHorarioIA = generarHorarioIA;
+    window.semanaAnteriorUI = function () {
+        semanaActual.setDate(semanaActual.getDate() - 7);
+        render();
+    };
+    window.semanaSiguienteUI = function () {
+        semanaActual.setDate(semanaActual.getDate() + 7);
+        render();
+    };
+    window.copiarSemanaUI = async function () {
+        try {
+            const origen = new Date(semanaActual);
+            origen.setDate(origen.getDate() - 7);
+            const result = await api('/api/horarios/copiar-semana', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    semana_origen: formatFecha(origen),
+                    semana_destino: formatFecha(semanaActual)
+                })
+            });
+            await render();
+            window.showToast?.(`${result.turnos_copiados} turnos copiados`, 'success');
+        } catch (e) {
+            window.showToast?.('Error copiando semana', 'error');
+        }
+    };
 
     // Initialize
     function init() {
