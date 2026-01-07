@@ -128,14 +128,13 @@ function renderizarEmpleados() {
                     </div>
                     <div style="font-size: 13px; color: #64748b; display: flex; gap: 12px; flex-wrap: wrap;">
                         <span>${obtenerEmojiPuesto(emp.puesto)} ${emp.puesto}</span>
-                        <span>💰 ${emp.coste_hora || 0}€/h</span>
-                        <span>⏱️ ${horasSemanales}h/${emp.horas_contrato || 0}h</span>
+                        <span>⏱️ ${horasSemanales}h/${emp.horas_contrato || 40}h</span>
                     </div>
                 </div>
 
-                <!-- Días libres -->
+                <!-- Días libres de esta semana -->
                 <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                    ${renderizarDiasLibres(emp.dias_libres_fijos)}
+                    ${renderizarDiasLibresSemana(emp.id)}
                 </div>
 
                 <!-- Botones -->
@@ -172,6 +171,39 @@ function renderizarDiasLibres(diasLibres) {
 
     return dias.map(d => {
         return `<span style="background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">${nombresDias[d]}</span>`;
+    }).join('');
+}
+
+/**
+ * Renderiza días libres de la semana actual (basado en el grid, no en días fijos)
+ */
+function renderizarDiasLibresSemana(empleadoId) {
+    const { inicio } = obtenerRangoSemana(semanaActual);
+    const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const diasLibres = [];
+
+    // Solo Lunes a Sábado (6 días, sin domingo)
+    for (let i = 0; i < 6; i++) {
+        const fecha = new Date(inicio);
+        fecha.setDate(fecha.getDate() + i);
+        const fechaStr = formatearFecha(fecha);
+        const turno = horarios.find(h => {
+            const fechaH = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
+            return h.empleado_id === empleadoId && fechaH === fechaStr;
+        });
+
+        // Si no tiene turno este día, es día libre
+        if (!turno) {
+            diasLibres.push(nombresDias[fecha.getDay()]);
+        }
+    }
+
+    if (diasLibres.length === 0) {
+        return '<span style="font-size: 12px; color: #cbd5e1;">Sin días libres</span>';
+    }
+
+    return diasLibres.map(d => {
+        return `<span style="background: #fef2f2; color: #ef4444; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">${d}</span>`;
     }).join('');
 }
 
@@ -213,7 +245,8 @@ function renderizarGridHorarios() {
 
     const { inicio } = obtenerRangoSemana(semanaActual);
     const dias = [];
-    for (let i = 0; i < 7; i++) {
+    // Solo Lunes a Sábado (6 días, sin domingo)
+    for (let i = 0; i < 6; i++) {
         const fecha = new Date(inicio);
         fecha.setDate(fecha.getDate() + i);
         dias.push(fecha);
@@ -261,32 +294,29 @@ function renderizarGridHorarios() {
         // Celdas de turnos
         dias.forEach(dia => {
             const fechaStr = formatearFecha(dia);
-            const turno = horarios.find(h => h.empleado_id === emp.id && h.fecha === fechaStr);
+            // Normalizar la fecha del horario al comparar (puede venir como ISO con T)
+            const turno = horarios.find(h => {
+                const fechaH = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
+                return h.empleado_id === emp.id && fechaH === fechaStr;
+            });
             const esDiaLibre = esDiaLibreFijo(emp.dias_libres_fijos, dia.getDay());
             const esHoy = esHoyFecha(dia);
 
-            html += `<td style="padding: 8px; text-align: center; border-bottom: 1px solid #f1f5f9; ${esHoy ? 'background: #f0f4ff;' : ''}" onclick="window.toggleTurno(${emp.id}, '${fechaStr}')">`;
+            html += `<td style="padding: 8px; text-align: center; border-bottom: 1px solid #f1f5f9; ${esHoy ? 'background: #f0f4ff;' : ''}">`;
 
             if (esDiaLibre) {
-                html += '<div style="padding: 12px; background: #fef2f2; border: 2px dashed #fca5a5; border-radius: 8px; color: #ef4444; font-size: 12px; font-weight: 600; cursor: not-allowed;">LIBRE</div>';
+                // Día libre fijo del empleado - NO se puede cambiar
+                html += '<div style="padding: 16px 12px; background: #fef2f2; border: 2px solid #fca5a5; border-radius: 8px; color: #ef4444; font-size: 14px; font-weight: 700; cursor: not-allowed;">LIBRE</div>';
             } else if (turno) {
-                const colorFondo = turno.es_extra ? '#fef3c7' : '#dcfce7';
-                const colorTexto = turno.es_extra ? '#92400e' : '#166534';
-                const icono = turno.es_extra ? '⚡' : '✓';
-
+                // TRABAJA - mostrar A CURRAR (verde) - clic para quitar
                 html += `
-                    <div style="padding: 12px; background: ${colorFondo}; border: 2px solid ${colorTexto}20; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.transform='scale(1.05)';" onmouseleave="this.style.transform='scale(1)';">
-                        <div style="font-size: 16px; margin-bottom: 4px;">${icono}</div>
-                        <div style="font-size: 13px; font-weight: 700; color: ${colorTexto};">
-                            ${turno.hora_inicio || '09:00'} - ${turno.hora_fin || '17:00'}
-                        </div>
-                        <div style="font-size: 11px; color: ${colorTexto}; margin-top: 4px;">
-                            ${turno.turno || 'Mañana'}
-                        </div>
+                    <div onclick="window.toggleTurno(${emp.id}, '${fechaStr}')" style="padding: 16px 12px; background: #dcfce7; border: 2px solid #86efac; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #166534; font-size: 13px; font-weight: 700;" onmouseenter="this.style.transform='scale(1.05)'; this.style.background='#bbf7d0';" onmouseleave="this.style.transform='scale(1)'; this.style.background='#dcfce7';">
+                        💪 A CURRAR
                     </div>
                 `;
             } else {
-                html += '<div style="padding: 20px; background: white; border: 2px dashed #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #cbd5e1; font-size: 20px;" onmouseenter="this.style.borderColor=\'#667eea\'; this.style.background=\'#f8fafc\';" onmouseleave="this.style.borderColor=\'#e2e8f0\'; this.style.background=\'white\';">+</div>';
+                // NO TRABAJA - mostrar LIBRE (rojo claro) - clic para añadir
+                html += `<div onclick="window.toggleTurno(${emp.id}, '${fechaStr}')" style="padding: 16px 12px; background: #fef2f2; border: 2px dashed #fca5a5; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #ef4444; font-size: 13px; font-weight: 700;" onmouseenter="this.style.borderColor='#f87171'; this.style.background='#fee2e2';" onmouseleave="this.style.borderColor='#fca5a5'; this.style.background='#fef2f2';">LIBRE</div>`;
             }
 
             html += '</td>';
@@ -302,14 +332,13 @@ function renderizarGridHorarios() {
 /**
  * Muestra modal para nuevo empleado
  */
-window.nuevoEmpleado = function() {
+window.nuevoEmpleado = function () {
     empleadoEditando = null;
 
     // Resetear formulario
     document.getElementById('empleado-nombre').value = '';
     document.getElementById('empleado-color').value = generarColorAleatorio();
-    document.getElementById('empleado-puesto').value = 'cocinero';
-    document.getElementById('empleado-coste-hora').value = '';
+    document.getElementById('empleado-puesto').value = 'cocina';
     document.getElementById('empleado-horas-contrato').value = '40';
 
     // Desmarcar checkboxes
@@ -322,15 +351,25 @@ window.nuevoEmpleado = function() {
     document.getElementById('modal-empleado-titulo').innerHTML = '<span style="font-size: 28px;">👤</span> Nuevo Empleado';
     document.getElementById('btn-guardar-empleado-text').textContent = 'Guardar';
 
-    // Mostrar modal
-    document.getElementById('modal-empleado').classList.add('active');
-    document.getElementById('modal-empleado').style.display = 'flex';
+    // Mostrar modal centrado
+    const modal = document.getElementById('modal-empleado');
+    modal.style.display = 'flex';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.6)';
+    modal.style.zIndex = '10000';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+
 };
 
 /**
  * Edita un empleado
  */
-window.editarEmpleado = async function(id) {
+window.editarEmpleado = async function (id) {
     const emp = empleados.find(e => e.id === id);
     if (!emp) return;
 
@@ -339,8 +378,7 @@ window.editarEmpleado = async function(id) {
     // Rellenar formulario
     document.getElementById('empleado-nombre').value = emp.nombre;
     document.getElementById('empleado-color').value = emp.color || '#667eea';
-    document.getElementById('empleado-puesto').value = emp.puesto || 'cocinero';
-    document.getElementById('empleado-coste-hora').value = emp.coste_hora || '';
+    document.getElementById('empleado-puesto').value = emp.puesto || 'cocina';
     document.getElementById('empleado-horas-contrato').value = emp.horas_contrato || '40';
 
     // Marcar días libres
@@ -356,19 +394,28 @@ window.editarEmpleado = async function(id) {
     document.getElementById('modal-empleado-titulo').innerHTML = '<span style="font-size: 28px;">✏️</span> Editar Empleado';
     document.getElementById('btn-guardar-empleado-text').textContent = 'Actualizar';
 
-    // Mostrar modal
-    document.getElementById('modal-empleado').classList.add('active');
-    document.getElementById('modal-empleado').style.display = 'flex';
+    // Mostrar modal centrado
+    const modal = document.getElementById('modal-empleado');
+    modal.style.display = 'flex';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.6)';
+    modal.style.zIndex = '10000';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+
 };
 
 /**
  * Guarda empleado (crear o actualizar)
  */
-window.guardarEmpleado = async function() {
+window.guardarEmpleado = async function () {
     const nombre = document.getElementById('empleado-nombre').value.trim();
     const color = document.getElementById('empleado-color').value;
     const puesto = document.getElementById('empleado-puesto').value;
-    const costeHora = parseFloat(document.getElementById('empleado-coste-hora').value) || 0;
     const horasContrato = parseInt(document.getElementById('empleado-horas-contrato').value) || 40;
 
     // Validar
@@ -390,7 +437,6 @@ window.guardarEmpleado = async function() {
         nombre,
         color,
         puesto,
-        coste_hora: costeHora,
         horas_contrato: horasContrato,
         dias_libres_fijos: JSON.stringify(diasLibres),
         activo: true
@@ -441,7 +487,7 @@ window.guardarEmpleado = async function() {
 /**
  * Elimina un empleado
  */
-window.eliminarEmpleado = async function(id) {
+window.eliminarEmpleado = async function (id) {
     if (!confirm('¿Eliminar este empleado?')) return;
 
     try {
@@ -471,7 +517,7 @@ window.eliminarEmpleado = async function(id) {
 /**
  * Cierra modal empleado
  */
-window.cerrarModalEmpleado = function() {
+window.cerrarModalEmpleado = function () {
     document.getElementById('modal-empleado').classList.remove('active');
     document.getElementById('modal-empleado').style.display = 'none';
     empleadoEditando = null;
@@ -480,7 +526,7 @@ window.cerrarModalEmpleado = function() {
 /**
  * Toggle turno (asignar/quitar)
  */
-window.toggleTurno = async function(empleadoId, fecha) {
+window.toggleTurno = async function (empleadoId, fecha) {
     const emp = empleados.find(e => e.id === empleadoId);
     if (!emp) return;
 
@@ -491,8 +537,11 @@ window.toggleTurno = async function(empleadoId, fecha) {
         return;
     }
 
-    // Buscar turno existente
-    const turnoExistente = horarios.find(h => h.empleado_id === empleadoId && h.fecha === fecha);
+    // Buscar turno existente (normalizar fecha ISO)
+    const turnoExistente = horarios.find(h => {
+        const fechaH = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
+        return h.empleado_id === empleadoId && fechaH === fecha;
+    });
 
     if (turnoExistente) {
         // Quitar turno
@@ -568,7 +617,7 @@ async function quitarTurno(empleadoId, fecha) {
 /**
  * Navegar a semana anterior
  */
-window.semanaAnterior = function() {
+window.semanaAnterior = function () {
     semanaActual.setDate(semanaActual.getDate() - 7);
     cargarHorariosSemana().then(() => {
         renderizarGridHorarios();
@@ -579,7 +628,7 @@ window.semanaAnterior = function() {
 /**
  * Navegar a semana siguiente
  */
-window.semanaSiguiente = function() {
+window.semanaSiguiente = function () {
     semanaActual.setDate(semanaActual.getDate() + 7);
     cargarHorariosSemana().then(() => {
         renderizarGridHorarios();
@@ -590,28 +639,75 @@ window.semanaSiguiente = function() {
 /**
  * Copiar semana anterior
  */
-window.copiarSemana = async function() {
-    if (!confirm('¿Copiar los turnos de la semana anterior?')) return;
+window.copiarSemana = async function () {
+    if (!confirm('¿Copiar los turnos de la semana anterior a esta semana?\n\nEsto añadirá los turnos de la semana pasada a esta semana.')) return;
 
     try {
+        showToast('📋 Copiando turnos...', 'info');
+
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE}/horarios/copiar-semana`, {
-            method: 'POST',
+
+        // Obtener semana anterior
+        const semanaAnterior = new Date(semanaActual);
+        semanaAnterior.setDate(semanaAnterior.getDate() - 7);
+        const { inicio: inicioAnterior, fin: finAnterior } = obtenerRangoSemana(semanaAnterior);
+
+        // Cargar horarios de la semana anterior
+        const desde = formatearFecha(inicioAnterior);
+        const hasta = formatearFecha(finAnterior);
+
+        const response = await fetch(`${API_BASE}/horarios?desde=${desde}&hasta=${hasta}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                fecha_destino: formatearFecha(semanaActual)
-            })
+            }
         });
 
-        if (!response.ok) throw new Error('Error copiando semana');
+        if (!response.ok) throw new Error('Error cargando semana anterior');
 
-        showToast('Semana copiada correctamente', 'success');
+        const horariosAnteriores = await response.json();
+
+        if (horariosAnteriores.length === 0) {
+            showToast('⚠️ No hay turnos en la semana anterior para copiar', 'warning');
+            return;
+        }
+
+        // Copiar cada turno a la semana actual (sumar 7 días)
+        let copiados = 0;
+        for (const horario of horariosAnteriores) {
+            const fechaOriginal = new Date(horario.fecha);
+            fechaOriginal.setDate(fechaOriginal.getDate() + 7);
+            const nuevaFecha = formatearFecha(fechaOriginal);
+
+            const nuevoTurno = {
+                empleado_id: horario.empleado_id,
+                fecha: nuevaFecha,
+                turno: horario.turno || 'mañana',
+                hora_inicio: horario.hora_inicio || '10:00',
+                hora_fin: horario.hora_fin || '18:00',
+                es_extra: horario.es_extra || false
+            };
+
+            try {
+                const resp = await fetch(`${API_BASE}/horarios`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(nuevoTurno)
+                });
+                if (resp.ok) copiados++;
+            } catch (e) {
+                // Ignorar duplicados
+            }
+        }
+
+        showToast(`✅ ${copiados} turnos copiados`, 'success');
 
         await cargarHorariosSemana();
         renderizarGridHorarios();
+        renderizarEmpleados();
 
     } catch (error) {
         console.error('Error copiando semana:', error);
@@ -622,38 +718,74 @@ window.copiarSemana = async function() {
 /**
  * Generador de horarios con IA
  */
-window.generarHorarioIA = async function() {
+window.generarHorarioIA = async function () {
     if (empleados.length === 0) {
         showToast('Añade empleados primero', 'warning');
         return;
     }
 
-    if (!confirm('¿Generar horario automático con IA? Esto sobrescribirá los turnos existentes de la semana actual.')) return;
+    const accion = confirm('¿Generar horario automático con IA?\n\n✅ Aceptar = BORRAR semana actual y generar desde cero\n\nReglas aplicadas:\n- Bea: Mié+Jue libres\n- Fran/Lola: Sab+Dom libres\n- Laura: Lun+Mar libres\n- Iker: Dom + 2 días entre semana\n- Javi: Solo sábados\n- Fran: 11:30-19:30\n- Resto: 10:00-18:00');
 
-    showToast('⚡ Generando horario inteligente...', 'info');
+    if (!accion) return;
+
+    showToast('🗑️ Borrando turnos existentes...', 'info');
 
     try {
         const { inicio, fin } = obtenerRangoSemana(semanaActual);
-        const horarioGenerado = generarHorarioInteligente(empleados, inicio, fin);
-
-        // Guardar todos los turnos
         const token = localStorage.getItem('token');
 
-        for (const turno of horarioGenerado) {
-            await fetch(`${API_BASE}/horarios`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(turno)
-            });
+        // PASO 1: Borrar todos los turnos de la semana actual
+        for (const horario of horarios) {
+            try {
+                const fechaH = horario.fecha.includes('T') ? horario.fecha.split('T')[0] : horario.fecha;
+                await fetch(`${API_BASE}/horarios/empleado/${horario.empleado_id}/fecha/${fechaH}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } catch (e) {
+                // Ignorar errores individuales
+            }
         }
 
-        showToast('✅ Horario generado correctamente', 'success');
+        showToast('⚡ Generando horario inteligente...', 'info');
+
+        // PASO 2: Generar nuevos turnos (pasando array vacío porque borramos todo)
+        const turnosNuevos = await generarHorarioInteligente(empleados, inicio, fin, []);
+
+        if (turnosNuevos.length === 0) {
+            showToast('⚠️ No se generaron turnos', 'warning');
+            await cargarHorariosSemana();
+            renderizarGridHorarios();
+            return;
+        }
+
+        // PASO 3: Guardar todos los turnos nuevos
+        let turnosCreados = 0;
+
+        for (const turno of turnosNuevos) {
+            try {
+                const response = await fetch(`${API_BASE}/horarios`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(turno)
+                });
+                if (response.ok) turnosCreados++;
+            } catch (e) {
+                // Ignorar duplicados
+            }
+        }
+
+        showToast(`✅ ${turnosCreados} turnos generados`, 'success');
 
         await cargarHorariosSemana();
         renderizarGridHorarios();
+        renderizarEmpleados();
 
     } catch (error) {
         console.error('Error generando horario:', error);
@@ -663,54 +795,161 @@ window.generarHorarioIA = async function() {
 
 /**
  * Algoritmo de generación inteligente de horarios
+ * Reglas:
+ * 1. Respeta turnos ya asignados manualmente
+ * 2. Respeta días libres fijos de cada empleado
+ * 3. Cada empleado tiene 2 días libres consecutivos por semana
+ * 4. Domingos: rotación (no todos, alternando semanas)
+ * 5. Turno estándar: mañana (09:00-17:00) 
  */
-function generarHorarioInteligente(empleados, fechaInicio, fechaFin) {
-    const turnos = [];
-    const turnoPorDia = ['mañana', 'tarde', 'noche'];
-    const horariosPorTurno = {
-        'mañana': { inicio: '09:00', fin: '17:00' },
-        'tarde': { inicio: '14:00', fin: '22:00' },
-        'noche': { inicio: '22:00', fin: '06:00' }
-    };
+async function generarHorarioInteligente(empleados, fechaInicio, fechaFin, horariosExistentes) {
+    const turnosNuevos = [];
 
-    // Iterar por cada día de la semana
+    // Obtener días de la semana
+    const dias = [];
     const fecha = new Date(fechaInicio);
     while (fecha <= fechaFin) {
-        const fechaStr = formatearFecha(fecha);
-        const diaSemana = fecha.getDay();
-
-        // Distribuir turnos entre empleados disponibles
-        const empleadosDisponibles = empleados.filter(emp => {
-            return !esDiaLibreFijo(emp.dias_libres_fijos, diaSemana);
+        dias.push({
+            fecha: new Date(fecha),
+            fechaStr: formatearFecha(fecha),
+            diaSemana: fecha.getDay() // 0=Dom, 1=Lun...6=Sab
         });
-
-        // Asignar al menos 2 empleados por turno si hay suficientes
-        turnoPorDia.forEach((turno, idx) => {
-            const numEmpleadosPorTurno = Math.min(2, empleadosDisponibles.length);
-
-            for (let i = 0; i < numEmpleadosPorTurno; i++) {
-                // Rotación inteligente: usar módulo para distribuir equitativamente
-                const empleadoIdx = (idx + i + fecha.getDate()) % empleadosDisponibles.length;
-                const emp = empleadosDisponibles[empleadoIdx];
-
-                if (emp) {
-                    turnos.push({
-                        empleado_id: emp.id,
-                        fecha: fechaStr,
-                        turno: turno,
-                        hora_inicio: horariosPorTurno[turno].inicio,
-                        hora_fin: horariosPorTurno[turno].fin,
-                        es_extra: false
-                    });
-                }
-            }
-        });
-
         fecha.setDate(fecha.getDate() + 1);
     }
 
-    return turnos;
+    // Para cada empleado
+    empleados.forEach((emp, empIndex) => {
+        console.log(`🤖 Procesando empleado: ${emp.nombre} (id: ${emp.id})`);
+
+        // Obtener días libres fijos del empleado
+        const diasLibresFijos = typeof emp.dias_libres_fijos === 'string'
+            ? JSON.parse(emp.dias_libres_fijos || '[]')
+            : (emp.dias_libres_fijos || []);
+
+        console.log(`   Días libres fijos: ${JSON.stringify(diasLibresFijos)}`);
+
+        // Contar turnos que ya tiene esta semana
+        const turnosExistentes = horariosExistentes.filter(h => h.empleado_id === emp.id);
+        // Normalizar fechas: quitar hora si viene en formato ISO
+        const diasConTurno = turnosExistentes.map(t => {
+            const fecha = t.fecha;
+            // Si viene como '2026-01-05T00:00:00.000Z', extraer solo la fecha
+            return fecha.includes('T') ? fecha.split('T')[0] : fecha;
+        });
+
+        console.log(`   Turnos existentes: ${diasConTurno.length} días`, diasConTurno);
+
+        // ============================================
+        // REGLAS DE NEGOCIO POR EMPLEADO
+        // Reglas preferidas (flexibles, basadas en patrones reales)
+        // ============================================
+        const nombreLower = emp.nombre.toLowerCase();
+        let diasLibresPreferidos = [];
+        let soloSabados = false;
+        let siempreLibraDomingo = false;
+        let libraSabadoDomingo = false;
+
+        // Calcular número de semana para rotación de domingos
+        const semanaN = Math.floor(fechaInicio.getTime() / (7 * 24 * 60 * 60 * 1000));
+        // Rotación de domingos: alternamos por empleado + semana
+        const trabajaDomingoEstaSemana = (empIndex + semanaN) % 2 === 0;
+
+        // JAVI: Solo viene sábados
+        if (nombreLower.includes('javi')) {
+            soloSabados = true;
+            diasLibresPreferidos = [0, 1, 2, 3, 4, 5]; // Todo menos sábado (6)
+        }
+        // IKER: Siempre libra domingo + 2 días entre semana (rotativos)
+        else if (nombreLower.includes('iker')) {
+            siempreLibraDomingo = true;
+            const diasEntreSemana = [[1, 2], [2, 3], [3, 4], [4, 5]];
+            const pareja = diasEntreSemana[semanaN % diasEntreSemana.length];
+            diasLibresPreferidos = [0, ...pareja]; // Domingo + 2 días entre semana
+        }
+        // FRAN: SIEMPRE libra Sab+Dom
+        else if (nombreLower.includes('fran')) {
+            libraSabadoDomingo = true;
+            diasLibresPreferidos = [0, 6]; // Dom, Sab
+        }
+        // LOLA: SIEMPRE libra Sab+Dom
+        else if (nombreLower.includes('lola')) {
+            libraSabadoDomingo = true;
+            diasLibresPreferidos = [0, 6]; // Dom, Sab
+        }
+        // BEA: Libra Mié+Jue + rotación domingos
+        else if (nombreLower.includes('bea')) {
+            diasLibresPreferidos = [3, 4]; // Mié, Jue
+            // Domingos: trabaja uno sí, uno no
+            if (!trabajaDomingoEstaSemana) {
+                diasLibresPreferidos.push(0); // Este domingo libra
+            }
+        }
+        // LAURA: Libra Lun+Mar + rotación domingos
+        else if (nombreLower.includes('laura')) {
+            diasLibresPreferidos = [1, 2]; // Lun, Mar
+            // Domingos: trabaja uno sí, uno no
+            if (!trabajaDomingoEstaSemana) {
+                diasLibresPreferidos.push(0); // Este domingo libra
+            }
+        }
+        // Otros: usar días libres fijos si los tiene, o rotar
+        else {
+            if (diasLibresFijos.length >= 2) {
+                diasLibresPreferidos = [...diasLibresFijos];
+            } else {
+                // Rotación por índice
+                const patrones = [[1, 2], [2, 3], [3, 4], [4, 5]];
+                diasLibresPreferidos = patrones[empIndex % patrones.length];
+            }
+            // Domingos: trabaja uno sí, uno no
+            if (!trabajaDomingoEstaSemana) {
+                diasLibresPreferidos.push(0);
+            }
+        }
+
+        console.log(`   Días libres preferidos: ${diasLibresPreferidos} (0=Dom, 1=Lun...6=Sab)`);
+        console.log(`   Trabaja domingo esta semana: ${trabajaDomingoEstaSemana}`);
+
+        // Asignar turnos a días disponibles
+        dias.forEach(dia => {
+            // Verificar si ya tiene turno este día
+            if (diasConTurno.includes(dia.fechaStr)) return;
+
+            // JAVI: Solo viene sábados
+            if (soloSabados && dia.diaSemana !== 6) return;
+
+            // Verificar si es día libre fijo (de la ficha del empleado)
+            if (diasLibresFijos.includes(dia.diaSemana)) return;
+
+            // Aplicar días libres preferidos
+            if (diasLibresPreferidos.includes(dia.diaSemana)) return;
+
+            // Horario según empleado
+            let horaInicio = '10:00';
+            let horaFin = '18:00';
+
+            // FRAN: Entra a las 11:30
+            if (nombreLower.includes('fran')) {
+                horaInicio = '11:30';
+                horaFin = '19:30';
+            }
+
+            // Añadir turno
+            turnosNuevos.push({
+                empleado_id: emp.id,
+                fecha: dia.fechaStr,
+                turno: 'mañana',
+                hora_inicio: horaInicio,
+                hora_fin: horaFin,
+                es_extra: false
+            });
+        });
+    });
+
+    console.log(`🤖 Total turnos a generar: ${turnosNuevos.length}`);
+    return turnosNuevos;
 }
+
 
 /**
  * Actualiza texto de la semana actual
@@ -764,8 +1003,8 @@ function esDiaLibreFijo(diasLibres, diaSemana) {
 function esHoyFecha(fecha) {
     const hoy = new Date();
     return fecha.getDate() === hoy.getDate() &&
-           fecha.getMonth() === hoy.getMonth() &&
-           fecha.getFullYear() === hoy.getFullYear();
+        fecha.getMonth() === hoy.getMonth() &&
+        fecha.getFullYear() === hoy.getFullYear();
 }
 
 /**
@@ -781,16 +1020,184 @@ function generarColorAleatorio() {
  */
 function obtenerEmojiPuesto(puesto) {
     const emojis = {
-        'cocinero': '👨‍🍳',
-        'ayudante': '🧑‍🍳',
-        'camarero': '🍽️',
-        'bartender': '🍸',
-        'limpieza': '🧹',
-        'gerente': '👔',
-        'otro': '👤'
+        'cocina': '👨‍🍳',
+        'sala': '🍽️'
     };
-    return emojis[puesto] || '👤';
+    return emojis[puesto?.toLowerCase()] || '👤';
 }
+
+/**
+ * Descarga el horario mensual como documento HTML/PDF
+ */
+window.descargarHorarioMensual = async function () {
+    showToast('📥 Generando documento...', 'info');
+
+    try {
+        const token = localStorage.getItem('token');
+
+        // Obtener el mes actual basado en semanaActual
+        const mesActual = semanaActual.getMonth();
+        const anioActual = semanaActual.getFullYear();
+
+        // Primer día del mes
+        const primerDia = new Date(anioActual, mesActual, 1);
+        // Último día del mes
+        const ultimoDia = new Date(anioActual, mesActual + 1, 0);
+
+        // Cargar horarios del mes completo
+        const desde = formatearFecha(primerDia);
+        const hasta = formatearFecha(ultimoDia);
+
+        const response = await fetch(`${API_BASE}/horarios?desde=${desde}&hasta=${hasta}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) throw new Error('Error cargando horarios del mes');
+
+        const horariosMes = await response.json();
+
+        // Nombres de meses en español
+        const nombresMeses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+            'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+
+        // Colores por empleado
+        const coloresEmpleados = {
+            'bea': '#FFD700',      // Naranja/Amarillo
+            'iker': '#87CEEB',     // Azul claro
+            'fran': '#FF6B6B',     // Rojo
+            'lola': '#FF69B4',     // Rosa
+            'laura': '#FFEB3B',    // Amarillo
+            'javi': '#B0B0B0'      // Gris
+        };
+
+        // Generar semanas del mes
+        const semanas = [];
+        let fechaInicio = new Date(primerDia);
+
+        // Ajustar al lunes anterior si el mes no empieza en lunes
+        while (fechaInicio.getDay() !== 1) {
+            fechaInicio.setDate(fechaInicio.getDate() - 1);
+        }
+
+        while (fechaInicio <= ultimoDia || fechaInicio.getMonth() === mesActual) {
+            const semana = [];
+            for (let i = 0; i < 6; i++) { // Lunes a Sábado (sin domingo en el formato original)
+                semana.push(new Date(fechaInicio));
+                fechaInicio.setDate(fechaInicio.getDate() + 1);
+            }
+            // Saltar domingo
+            fechaInicio.setDate(fechaInicio.getDate() + 1);
+            semanas.push(semana);
+
+            if (fechaInicio > ultimoDia && fechaInicio.getMonth() !== mesActual) break;
+            if (semanas.length > 5) break; // Máximo 5 semanas
+        }
+
+        // Generar HTML del documento
+        let html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Horario ${nombresMeses[mesActual]} ${anioActual}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .semana { margin-bottom: 30px; page-break-inside: avoid; }
+        .titulo { background: #4CAF50; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f5f5f5; padding: 10px; border: 1px solid #ddd; font-size: 14px; }
+        td { padding: 8px 4px; border: 1px solid #ddd; vertical-align: top; height: 30px; font-size: 12px; }
+        .empleado { padding: 4px 8px; margin: 2px 0; border-radius: 4px; font-weight: 500; }
+        @media print { .semana { page-break-inside: avoid; } }
+    </style>
+</head>
+<body>
+`;
+
+        // Generar cada semana
+        semanas.forEach((semana, idx) => {
+            const primerDiaSemana = semana[0].getDate().toString().padStart(2, '0');
+            const ultimoDiaSemana = semana[5].getDate().toString().padStart(2, '0');
+
+            html += `
+<div class="semana">
+    <div class="titulo">${nombresMeses[mesActual]} (${primerDiaSemana}-${ultimoDiaSemana})</div>
+    <table>
+        <tr>
+            <th>Lunes</th>
+            <th>Martes</th>
+            <th>Miércoles</th>
+            <th>Jueves</th>
+            <th>Viernes</th>
+            <th>Sábado</th>
+        </tr>
+        <tr>
+`;
+
+            // Para cada día de la semana
+            semana.forEach(dia => {
+                const fechaStr = formatearFecha(dia);
+                html += '<td>';
+
+                // Buscar qué empleados trabajan este día
+                empleados.forEach(emp => {
+                    const turno = horariosMes.find(h => {
+                        const fechaH = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
+                        return h.empleado_id === emp.id && fechaH === fechaStr;
+                    });
+
+                    if (turno) {
+                        const nombreLower = emp.nombre.toLowerCase();
+                        let color = emp.color || '#667eea';
+
+                        // Usar colores específicos si coinciden
+                        for (const [nombre, c] of Object.entries(coloresEmpleados)) {
+                            if (nombreLower.includes(nombre)) {
+                                color = c;
+                                break;
+                            }
+                        }
+
+                        html += `<div class="empleado" style="background: ${color};">${emp.nombre}</div>`;
+                    }
+                });
+
+                html += '</td>';
+            });
+
+            html += `
+        </tr>
+    </table>
+</div>
+`;
+        });
+
+        html += `
+</body>
+</html>
+`;
+
+        // Crear y descargar el archivo
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Horario_${nombresMeses[mesActual]}_${anioActual}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showToast('✅ Horario descargado', 'success');
+
+    } catch (error) {
+        console.error('Error descargando horario:', error);
+        showToast('Error descargando horario: ' + error.message, 'error');
+    }
+};
 
 // Exponer funciones globalmente
 window.initHorarios = initHorarios;

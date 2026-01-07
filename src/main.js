@@ -253,11 +253,11 @@ import * as Dashboard from './modules/dashboard/dashboard.js';
 window.actualizarKPIs = Dashboard.actualizarKPIs;
 
 // ============================================
-// MÓDULO: HORARIOS 📅 (Staff Scheduling)
+// MÓDULO: HORARIOS 👥 (MindLoop Staff Scheduler)
 // ============================================
-import * as HorariosUI from './modules/horarios/horarios-ui.js';
+import * as Horarios from './modules/horarios/horarios.js';
 
-window.renderizarHorarios = HorariosUI.renderizarHorarios;
+window.initHorarios = Horarios.initHorarios;
 
 // ============================================
 // MÓDULO: MERMA RÁPIDA 🗑️
@@ -266,13 +266,6 @@ import * as MermaRapida from './modules/inventario/merma-rapida.js';
 
 window.mostrarModalMermaRapida = MermaRapida.mostrarModalMermaRapida;
 window.confirmarMermaRapida = MermaRapida.confirmarMermaRapida;
-
-// ============================================
-// MÓDULO: HORARIOS 👥 (MindLoop Staff Scheduler)
-// ============================================
-import * as Horarios from './modules/horarios/horarios.js';
-
-window.initHorarios = Horarios.initHorarios;
 
 // ============================================
 // MÓDULO: EXPORT PDF

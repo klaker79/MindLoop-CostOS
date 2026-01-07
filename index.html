@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 
-<!-- Sentry Error Monitoring - Full SDK -->
-<script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous"></script>
-<script>
-  Sentry.init({
-    dsn: "https://ac722e9d30983357b092ee766be13c5e@o4508958420328448.ingest.de.sentry.io/4508958631550032",
-    tracesSampleRate: 0.1,
-    environment: window.location.hostname === 'localhost' ? 'development' : 'production'
-  });
-</script>
-
 <head>
+  <!-- Sentry Error Monitoring - Full SDK -->
+  <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    Sentry.init({
+      dsn: "https://ac722e9d30983357b092ee766be13c5e@o4508958420328448.ingest.de.sentry.io/4508958631550032",
+      tracesSampleRate: 0.1,
+      environment: window.location.hostname === 'localhost' ? 'development' : 'production'
+    });
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
@@ -1408,6 +1407,10 @@
               style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; margin-left: 12px;">
               📋 Copiar Semana
             </button>
+            <button class="btn" onclick="window.descargarHorarioMensual?.()"
+              style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; margin-left: 8px;">
+              📥 Descargar Mes
+            </button>
           </div>
         </div>
         <div id="grid-horarios" style="padding: 20px; overflow-x: auto;">
@@ -1564,6 +1567,10 @@
         <p style="opacity: 0.7;">Generador inteligente de horarios con IA</p>
       </div>
       <div style="display: flex; gap: 10px;">
+        <button id="btn-descargar-horario" class="btn btn-secondary" onclick="window.descargarHorarioMensual?.()"
+          style="background: #10b981; border: none; padding: 12px 20px; font-weight: 600; color: white; border-radius: 8px;">
+          📥 Descargar Mes
+        </button>
         <button id="btn-generar-horario" class="btn btn-primary" onclick="window.generarHorarioIA?.()"
           style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 20px; font-weight: 600;">
           ⚡ Generar Horario IA
@@ -1605,6 +1612,10 @@
           <button id="btn-copiar-semana" onclick="window.copiarSemanaUI?.()"
             style="background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">
             📋 Copiar semana anterior
+          </button>
+          <button id="btn-descargar-mes" onclick="window.descargarHorarioMensual?.()"
+            style="background: #10b981; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: white; font-weight: 600;">
+            📥 Descargar Mes
           </button>
         </div>
 
@@ -1674,56 +1685,7 @@
     </div>
   </div>
 
-  <!-- MODAL EMPLEADO -->
-  <div id="modal-empleado" class="modal"
-    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-    <div class="modal-content"
-      style="max-width: 450px; background: white; border-radius: 12px; padding: 25px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-      <span class="close" onclick="window.cerrarModalEmpleado()">&times;</span>
-      <h2>👤 Empleado</h2>
-      <form id="form-empleado" onsubmit="window.guardarEmpleado(event)">
-        <input type="hidden" id="empleado-id">
 
-        <div class="form-group">
-          <label>Nombre *</label>
-          <input type="text" id="empleado-nombre" required placeholder="Nombre del empleado"
-            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-        </div>
-
-        <div style="display: flex; gap: 15px; margin-top: 15px;">
-          <div class="form-group" style="flex: 1;">
-            <label>Color</label>
-            <input type="color" id="empleado-color" value="#3B82F6"
-              style="width: 100%; height: 42px; border: none; border-radius: 6px; cursor: pointer;">
-          </div>
-          <div class="form-group" style="flex: 2;">
-            <label>Puesto</label>
-            <select id="empleado-puesto"
-              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-              <option value="Camarero">Camarero</option>
-              <option value="Cocinero">Cocinero</option>
-              <option value="Encargado">Encargado</option>
-              <option value="Ayudante">Ayudante</option>
-              <option value="Limpieza">Limpieza</option>
-              <option value="Otro">Otro</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-top: 15px;">
-          <label>Coste por hora (€)</label>
-          <input type="number" id="empleado-coste-hora" value="10" step="0.5" min="0"
-            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="button" class="btn btn-secondary" onclick="window.cerrarModalEmpleado()"
-            style="flex: 1;">Cancelar</button>
-          <button type="submit" class="btn btn-primary" style="flex: 2;">💾 Guardar Empleado</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <!-- MODAL INVITAR EQUIPO -->
   <div id="modal-invitar-equipo" class="modal">
@@ -1781,8 +1743,10 @@
   </div>
 
   <!-- Modal Empleado -->
-  <div id="modal-empleado" class="modal">
-    <div class="modal-content" style="max-width: 600px; border-radius: 20px; overflow: hidden;">
+  <div id="modal-empleado"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.7); z-index: 99999; justify-content: center; align-items: center;">
+    <div
+      style="max-width: 500px; width: 90%; background: white; border-radius: 20px; overflow: hidden; padding: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); margin: auto;">
       <div
         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; margin: -24px -24px 24px -24px;">
         <h3 id="modal-empleado-titulo" style="color: white; margin: 0; font-size: 24px; font-weight: 700;">
@@ -1818,84 +1782,67 @@
             </label>
             <select id="empleado-puesto"
               style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
-              <option value="cocinero">👨‍🍳 Cocinero</option>
-              <option value="ayudante">🧑‍🍳 Ayudante Cocina</option>
-              <option value="camarero">🍽️ Camarero</option>
-              <option value="bartender">🍸 Bartender</option>
-              <option value="limpieza">🧹 Limpieza</option>
-              <option value="gerente">👔 Gerente</option>
-              <option value="otro">👤 Otro</option>
+              <option value="cocina">👨‍🍳 Cocina</option>
+              <option value="sala">🍽️ Sala</option>
             </select>
           </div>
         </div>
 
-        <!-- Fila: Coste/hora + Horas contrato -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-          <!-- Coste por hora -->
-          <div class="form-group">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
-              💰 Coste/hora (€)
-            </label>
-            <input type="number" id="empleado-coste-hora" class="form-input" placeholder="12.50" step="0.01" min="0"
-              style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
-          </div>
-
-          <!-- Horas contrato -->
-          <div class="form-group">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
-              ⏱️ Horas contrato/semana
-            </label>
-            <input type="number" id="empleado-horas-contrato" class="form-input" placeholder="40" min="0" max="168"
-              style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
-          </div>
-        </div>
-
-        <!-- Días libres fijos -->
+        <!-- Horas contrato -->
         <div class="form-group">
-          <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #1e293b; font-size: 14px;">
-            📅 Días libres fijos
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
+            ⏱️ Horas contrato/semana
           </label>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <label style="flex: 1; min-width: 80px; cursor: pointer;">
-              <input type="checkbox" id="libre-lunes" value="1" style="margin-right: 6px;">
-              Lun
-            </label>
-            <label style="flex: 1; min-width: 80px; cursor: pointer;">
-              <input type="checkbox" id="libre-martes" value="2" style="margin-right: 6px;">
-              Mar
-            </label>
-            <label style="flex: 1; min-width: 80px; cursor: pointer;">
-              <input type="checkbox" id="libre-miercoles" value="3" style="margin-right: 6px;">
-              Mié
-            </label>
-            <label style="flex: 1; min-width: 80px; cursor: pointer;">
-              <input type="checkbox" id="libre-jueves" value="4" style="margin-right: 6px;">
-              Jue
-            </label>
-            <label style="flex: 1; min-width: 80px; cursor: pointer;">
-              <input type="checkbox" id="libre-viernes" value="5" style="margin-right: 6px;">
-              Vie
-            </label>
-            <label style="flex: 1; min-width: 80px; cursor: pointer;">
-              <input type="checkbox" id="libre-sabado" value="6" style="margin-right: 6px;">
-              Sáb
-            </label>
-            <label style="flex: 1; min-width: 80px; cursor: pointer;">
-              <input type="checkbox" id="libre-domingo" value="0" style="margin-right: 6px;">
-              Dom
-            </label>
-          </div>
+          <input type="number" id="empleado-horas-contrato" class="form-input" placeholder="40" min="0" max="168"
+            style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
+        </div>
+      </div>
+
+      <!-- Días libres fijos -->
+      <div class="form-group">
+        <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #1e293b; font-size: 14px;">
+          📅 Días libres fijos
+        </label>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <label style="flex: 1; min-width: 80px; cursor: pointer;">
+            <input type="checkbox" id="libre-lunes" value="1" style="margin-right: 6px;">
+            Lun
+          </label>
+          <label style="flex: 1; min-width: 80px; cursor: pointer;">
+            <input type="checkbox" id="libre-martes" value="2" style="margin-right: 6px;">
+            Mar
+          </label>
+          <label style="flex: 1; min-width: 80px; cursor: pointer;">
+            <input type="checkbox" id="libre-miercoles" value="3" style="margin-right: 6px;">
+            Mié
+          </label>
+          <label style="flex: 1; min-width: 80px; cursor: pointer;">
+            <input type="checkbox" id="libre-jueves" value="4" style="margin-right: 6px;">
+            Jue
+          </label>
+          <label style="flex: 1; min-width: 80px; cursor: pointer;">
+            <input type="checkbox" id="libre-viernes" value="5" style="margin-right: 6px;">
+            Vie
+          </label>
+          <label style="flex: 1; min-width: 80px; cursor: pointer;">
+            <input type="checkbox" id="libre-sabado" value="6" style="margin-right: 6px;">
+            Sáb
+          </label>
+          <label style="flex: 1; min-width: 80px; cursor: pointer;">
+            <input type="checkbox" id="libre-domingo" value="0" style="margin-right: 6px;">
+            Dom
+          </label>
         </div>
       </div>
 
       <!-- Botones -->
-      <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px;">
+      <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
         <button class="btn btn-secondary" data-action="cerrar-modal-empleado"
-          style="padding: 12px 24px; border-radius: 10px; font-weight: 600;">
+          style="padding: 12px 24px; border-radius: 10px; font-weight: 600; background: #e2e8f0; border: none; cursor: pointer;">
           Cancelar
         </button>
         <button class="btn btn-primary" data-action="guardar-empleado"
-          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 12px 32px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 12px 32px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); cursor: pointer;">
           <span id="btn-guardar-empleado-text">Guardar</span>
         </button>
       </div>
@@ -2404,7 +2351,6 @@
   </script>
   </div>
   <script src="src/legacy/inventario-masivo.js"></script>
-  <script src="src/legacy/horarios-legacy.js"></script>
   <!-- MODAL DE CONFIRMACIÓN PROFESIONAL -->
   <div id="modal-confirmacion" class="modal-overlay-custom" style="display: none;">
     <div class="modal-confirmacion-container">
