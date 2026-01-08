@@ -21,15 +21,37 @@ function escapeHTML(text) {
  */
 export async function renderizarVentas() {
     try {
-        // Poblar select de recetas para nueva venta
+        // Poblar select de recetas para nueva venta - ordenadas alfabéticamente
         const select = document.getElementById('venta-receta');
         const recetas = window.recetas || [];
+        const recetasOrdenadas = [...recetas].sort((a, b) =>
+            a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
+        );
         if (select) {
-            const options = recetas.map(r => {
+            const options = recetasOrdenadas.map(r => {
                 const precio = parseFloat(r.precio_venta) || 0;
-                return `<option value="${r.id}">${escapeHTML(r.nombre)} - ${precio.toFixed(2)}€</option>`;
+                return `<option value="${r.id}" data-search="${escapeHTML(r.nombre.toLowerCase())}">${escapeHTML(r.nombre)} - ${precio.toFixed(2)}€</option>`;
             }).join('');
             select.innerHTML = '<option value="">Selecciona un plato...</option>' + options;
+        }
+
+        // Añadir buscador si no existe
+        const searchInput = document.getElementById('busqueda-venta-receta');
+        if (!searchInput && select) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = 'busqueda-venta-receta';
+            input.placeholder = '🔍 Buscar plato...';
+            input.style.cssText = 'width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 6px;';
+            input.oninput = function () {
+                const term = this.value.toLowerCase();
+                Array.from(select.options).forEach(opt => {
+                    if (opt.value === '') return; // Skip placeholder
+                    const match = opt.dataset.search?.includes(term) || false;
+                    opt.style.display = match || term === '' ? '' : 'none';
+                });
+            };
+            select.parentElement.insertBefore(input, select);
         }
 
         const ventas = await window.api.getSales();
