@@ -362,7 +362,8 @@ export function renderizarPedidos() {
     html += '</tr></thead><tbody>';
 
     pedidosFiltrados.forEach(ped => {
-        const prov = provMap.get(ped.proveedorId);
+        const provId = ped.proveedorId || ped.proveedor_id;
+        const prov = provMap.get(provId);
         const fecha = new Date(ped.fecha).toLocaleDateString('es-ES');
         const esCompraMercado = ped.es_compra_mercado;
 

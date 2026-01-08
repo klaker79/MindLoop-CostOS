@@ -47,10 +47,9 @@ export async function guardarPedido(event) {
       // Cantidad real en unidad base para stock
       const cantidadReal = usandoFormato ? cantidadValue * formatoMult : cantidadValue;
 
-      // Precio unitario por unidad base
-      const precioUnitarioBase = formatoMult && formatoMult !== 1
-        ? precioFinal / formatoMult
-        : precioFinal;
+      // 💰 El precio del ingrediente YA está en unidad base (€/botella, €/kg)
+      // NO hay que dividir, el precio ya es el correcto
+      const precioUnitarioBase = precioFinal;
 
       ingredientesPedido.push({
         ingredienteId: ingId,
@@ -62,7 +61,7 @@ export async function guardarPedido(event) {
         multiplicador: formatoMult,
         precio_unitario: precioUnitarioBase,
         precio: precioUnitarioBase,
-        precioFormato: formatoMult && formatoMult !== 1 ? precioFinal : null,
+        precioFormato: usandoFormato ? precioFinal * formatoMult : null,
       });
     }
   });
@@ -558,10 +557,13 @@ export function verDetallesPedido(pedidoId) {
         cantidadDisplay = `${cantidadFormatos} ${ing.formato_compra}<br><small style="color:#64748b;">(= ${cantPedida.toFixed(2)} ${unidadIng})</small>`;
       }
 
-      // Precios
-      const precioOriginal = parseFloat(
+      // Precios - usar precio del ingrediente si el guardado parece incorrecto
+      const precioGuardado = parseFloat(
         item.precioUnitario || item.precio_unitario || item.precio || 0
       );
+      // Si el precio guardado es mucho menor que el del ingrediente (bug de división anterior), usar el del ingrediente
+      const precioIngrediente = ing ? parseFloat(ing.precio || 0) : precioGuardado;
+      const precioOriginal = precioGuardado < precioIngrediente * 0.5 ? precioIngrediente : precioGuardado;
       const precioReal = parseFloat(item.precioReal || precioOriginal);
       const varianzaPrecio = precioReal - precioOriginal;
 
