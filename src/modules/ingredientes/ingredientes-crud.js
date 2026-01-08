@@ -176,7 +176,7 @@ export function editarIngrediente(id) {
     if (nombreEl) nombreEl.value = ing.nombre;
 
     const provEl = getElement('ing-proveedor-select');
-    if (provEl) provEl.value = ing.proveedorId || '';
+    if (provEl) provEl.value = ing.proveedor_id || ing.proveedorId || '';
 
     const precioEl = getElement('ing-precio');
     if (precioEl) precioEl.value = ing.precio || '';

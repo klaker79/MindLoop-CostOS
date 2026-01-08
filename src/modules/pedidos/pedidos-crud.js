@@ -40,14 +40,15 @@ export async function guardarPedido(event) {
         multiplicador = parseFloat(selectedFormatoOption?.dataset?.multiplicador) || 1;
         formatoMult = parseFloat(selectedFormatoOption?.dataset?.formatoMult) || 1;
         formatoUsado = formatoSelect.value;
-        usandoFormato = formatoUsado === 'formato' && formatoMult > 1;
+        // FIX: formatoMult puede ser < 1 (ej: 0.5 kg por bote), no solo > 1
+        usandoFormato = formatoUsado === 'formato' && formatoMult && formatoMult !== 1;
       }
 
       // Cantidad real en unidad base para stock
       const cantidadReal = usandoFormato ? cantidadValue * formatoMult : cantidadValue;
 
       // Precio unitario por unidad base
-      const precioUnitarioBase = formatoMult > 1
+      const precioUnitarioBase = formatoMult && formatoMult !== 1
         ? precioFinal / formatoMult
         : precioFinal;
 
@@ -61,7 +62,7 @@ export async function guardarPedido(event) {
         multiplicador: formatoMult,
         precio_unitario: precioUnitarioBase,
         precio: precioUnitarioBase,
-        precioFormato: formatoMult > 1 ? precioFinal : null,
+        precioFormato: formatoMult && formatoMult !== 1 ? precioFinal : null,
       });
     }
   });
