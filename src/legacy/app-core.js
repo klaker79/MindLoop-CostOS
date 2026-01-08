@@ -2722,6 +2722,7 @@
           return costeTotal;
         };
 
+        /* ⚠️ COMENTADO: Usar src/modules/recetas/recetas-crud.js que soporta subrecetas
         window.guardarReceta = async function (event) {
           event.preventDefault();
 
@@ -2772,44 +2773,47 @@
             showToast('Error guardando receta: ' + error.message, 'error');
           }
         };
+        */
 
-        window.editarReceta = function (id) {
-          const rec = recetas.find(r => r.id === id);
-          if (!rec) return;
+    /* ⚠️ COMENTADO: Usar src/modules/recetas/recetas-crud.js que soporta subrecetas
+    window.editarReceta = function (id) {
+        const rec = recetas.find(r => r.id === id);
+        if (!rec) return;
 
-          document.getElementById('rec-nombre').value = rec.nombre;
-          document.getElementById('rec-codigo').value = rec.codigo || ''; // Cargar código
-          document.getElementById('rec-categoria').value = rec.categoria;
-          document.getElementById('rec-precio_venta').value = rec.precio_venta;
-          document.getElementById('rec-porciones').value = rec.porciones;
+        document.getElementById('rec-nombre').value = rec.nombre;
+        document.getElementById('rec-codigo').value = rec.codigo || ''; // Cargar código
+        document.getElementById('rec-categoria').value = rec.categoria;
+        document.getElementById('rec-precio_venta').value = rec.precio_venta;
+        document.getElementById('rec-porciones').value = rec.porciones;
 
-          document.getElementById('lista-ingredientes-receta').innerHTML = '';
-          rec.ingredientes.forEach(item => {
+        document.getElementById('lista-ingredientes-receta').innerHTML = '';
+        rec.ingredientes.forEach(item => {
             window.agregarIngredienteReceta();
             const lastItem = document.querySelector('#lista-ingredientes-receta .ingrediente-item:last-child');
             lastItem.querySelector('select').value = item.ingredienteId;
             lastItem.querySelector('input').value = item.cantidad;
-          });
+        });
 
-          window.calcularCosteReceta();
-          editandoRecetaId = id;
-          document.getElementById('form-title-receta').textContent = 'Editar';
-          document.getElementById('btn-text-receta').textContent = 'Guardar';
-          window.mostrarFormularioReceta();
-        };
+        window.calcularCosteReceta();
+        editandoRecetaId = id;
+        document.getElementById('form-title-receta').textContent = 'Editar';
+        document.getElementById('btn-text-receta').textContent = 'Guardar';
+        window.mostrarFormularioReceta();
+    };
+    */
 
-        // ... (eliminarReceta y calcularCosteRecetaCompleto sin cambios)
+    // ... (eliminarReceta y calcularCosteRecetaCompleto sin cambios)
 
-        window.renderizarRecetas = function () {
-          const busqueda = document.getElementById('busqueda-recetas').value.toLowerCase();
-          const filtradas = recetas.filter(r =>
+    window.renderizarRecetas = function () {
+        const busqueda = document.getElementById('busqueda-recetas').value.toLowerCase();
+        const filtradas = recetas.filter(r =>
             r.nombre.toLowerCase().includes(busqueda) ||
             (r.codigo && r.codigo.toString().includes(busqueda)) // Buscar por código
-          );
+        );
 
-          const container = document.getElementById('tabla-recetas');
+        const container = document.getElementById('tabla-recetas');
 
-          if (filtradas.length === 0) {
+        if (filtradas.length === 0) {
             container.innerHTML = `
             <div class="empty-state">
               <div class="icon">👨‍🍳</div>
@@ -2817,29 +2821,29 @@
             </div>
           `;
             document.getElementById('resumen-recetas').style.display = 'none';
-          } else {
+        } else {
             let html = '<table><thead><tr>';
             html += '<th>Cód.</th><th>Plato</th><th>Categoría</th><th>Coste</th><th>Precio</th><th>Margen</th><th>Acciones</th>';
             html += '</tr></thead><tbody>';
 
             filtradas.forEach(rec => {
-              const coste = calcularCosteRecetaCompleto(rec);
-              const margen = rec.precio_venta - coste;
-              const pct = rec.precio_venta > 0 ? ((margen / rec.precio_venta) * 100).toFixed(0) : 0;
+                const coste = calcularCosteRecetaCompleto(rec);
+                const margen = rec.precio_venta - coste;
+                const pct = rec.precio_venta > 0 ? ((margen / rec.precio_venta) * 100).toFixed(0) : 0;
 
-              html += '<tr>';
-              html += `<td><span style="color:#666;font-size:12px;">${rec.codigo || '-'}</span></td>`;
-              html += `<td><strong>${escapeHTML(rec.nombre)}</strong></td>`;
-              html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
-              html += `<td>${coste.toFixed(2)} €</td>`;
-              html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
-              html += `<td><span class="badge ${margen > 0 ? 'badge-success' : 'badge-warning'}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
-              html += `<td><div class="actions">`;
-              html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
-              html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
-              html += `<button class="icon-btn delete" onclick="window.eliminarReceta(${rec.id})">🗑️</button>`;
-              html += '</div></td>';
-              html += '</tr>';
+                html += '<tr>';
+                html += `<td><span style="color:#666;font-size:12px;">${rec.codigo || '-'}</span></td>`;
+                html += `<td><strong>${escapeHTML(rec.nombre)}</strong></td>`;
+                html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
+                html += `<td>${coste.toFixed(2)} €</td>`;
+                html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
+                html += `<td><span class="badge ${margen > 0 ? 'badge-success' : 'badge-warning'}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
+                html += `<td><div class="actions">`;
+                html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
+                html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
+                html += `<button class="icon-btn delete" onclick="window.eliminarReceta(${rec.id})">🗑️</button>`;
+                html += '</div></td>';
+                html += '</tr>';
             });
 
 
@@ -2851,72 +2855,72 @@
             <div>Mostrando: <strong>${filtradas.length}</strong></div>
           `;
             document.getElementById('resumen-recetas').style.display = 'flex';
-          }
-        };
+        }
+    };
 
-        // ========== PRODUCCIÓN ==========
-        window.abrirModalProducir = function (id) {
-          recetaProduciendo = id;
-          const rec = recetas.find(r => r.id === id);
-          document.getElementById('modal-plato-nombre').textContent = rec.nombre;
-          document.getElementById('modal-cantidad').value = 1;
-          window.actualizarDetalleDescuento();
-          document.getElementById('modal-producir').classList.add('active');
-        };
+    // ========== PRODUCCIÓN ==========
+    window.abrirModalProducir = function (id) {
+        recetaProduciendo = id;
+        const rec = recetas.find(r => r.id === id);
+        document.getElementById('modal-plato-nombre').textContent = rec.nombre;
+        document.getElementById('modal-cantidad').value = 1;
+        window.actualizarDetalleDescuento();
+        document.getElementById('modal-producir').classList.add('active');
+    };
 
-        window.cerrarModalProducir = function () {
-          document.getElementById('modal-producir').classList.remove('active');
-          recetaProduciendo = null;
-        };
+    window.cerrarModalProducir = function () {
+        document.getElementById('modal-producir').classList.remove('active');
+        recetaProduciendo = null;
+    };
 
-        window.actualizarDetalleDescuento = function () {
-          if (recetaProduciendo === null) return;
-          const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
-          const rec = recetas.find(r => r.id === recetaProduciendo);
-          let html = '<ul style="margin:0;padding-left:20px;">';
-          rec.ingredientes.forEach(item => {
+    window.actualizarDetalleDescuento = function () {
+        if (recetaProduciendo === null) return;
+        const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
+        const rec = recetas.find(r => r.id === recetaProduciendo);
+        let html = '<ul style="margin:0;padding-left:20px;">';
+        rec.ingredientes.forEach(item => {
             const ing = ingredientes.find(i => i.id === item.ingredienteId);
             if (ing) html += `<li>${ing.nombre}: -${item.cantidad * cant} ${ing.unidad}</li>`;
-          });
-          html += '</ul>';
-          document.getElementById('modal-descuento-detalle').innerHTML = html;
-        };
+        });
+        html += '</ul>';
+        document.getElementById('modal-descuento-detalle').innerHTML = html;
+    };
 
-        window.confirmarProduccion = async function () {
-          if (recetaProduciendo === null) return;
-          const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
-          const rec = recetas.find(r => r.id === recetaProduciendo);
+    window.confirmarProduccion = async function () {
+        if (recetaProduciendo === null) return;
+        const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
+        const rec = recetas.find(r => r.id === recetaProduciendo);
 
-          let falta = false;
-          let msg = 'Stock insuficiente:\n';
-          rec.ingredientes.forEach(item => {
+        let falta = false;
+        let msg = 'Stock insuficiente:\n';
+        rec.ingredientes.forEach(item => {
             const ing = ingredientes.find(i => i.id === item.ingredienteId);
             if (ing) {
-              const necesario = item.cantidad * cant;
-              if (ing.stockActual < necesario) {
-                falta = true;
-                msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${ing.stockActual}\n`;
-              }
+                const necesario = item.cantidad * cant;
+                if (ing.stockActual < necesario) {
+                    falta = true;
+                    msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${ing.stockActual}\n`;
+                }
             }
-          });
+        });
 
-          if (falta) {
+        if (falta) {
             alert(msg);
             return;
-          }
+        }
 
-          showLoading();
+        showLoading();
 
-          try {
+        try {
             for (const item of rec.ingredientes) {
-              const ing = ingredientes.find(i => i.id === item.ingredienteId);
-              if (ing) {
-                const nuevoStock = Math.max(0, ing.stockActual - (item.cantidad * cant));
-                await api.updateIngrediente(ing.id, {
-                  ...ing,
-                  stockActual: nuevoStock
-                });
-              }
+                const ing = ingredientes.find(i => i.id === item.ingredienteId);
+                if (ing) {
+                    const nuevoStock = Math.max(0, ing.stockActual - (item.cantidad * cant));
+                    await api.updateIngrediente(ing.id, {
+                        ...ing,
+                        stockActual: nuevoStock
+                    });
+                }
             }
 
             await cargarDatos();
@@ -2924,13 +2928,13 @@
             hideLoading();
             window.cerrarModalProducir();
             showToast(`Producidas ${cant} unidades de ${rec.nombre}`, 'success');
-          } catch (error) {
+        } catch (error) {
             hideLoading();
             console.error('Error:', error);
             showToast('Error actualizando stock: ' + error.message, 'error');
-          }
-        };
-        /* ======================================== */
+        }
+    };
+    /* ======================================== */
 
     // ========== PROVEEDORES (resumido) ==========
 

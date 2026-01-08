@@ -57,6 +57,7 @@ export function cerrarFormularioReceta() {
 
 /**
  * Agrega una fila de ingrediente en el formulario de receta
+ * 🧪 ACTUALIZADO: Incluye recetas base como ingredientes seleccionables
  */
 export function agregarIngredienteReceta() {
     const lista = document.getElementById('lista-ingredientes-receta');
@@ -71,11 +72,29 @@ export function agregarIngredienteReceta() {
     );
 
     let optionsHtml = '<option value="">Selecciona ingrediente...</option>';
+
+    // Ingredientes normales
     ingredientesOrdenados.forEach(ing => {
         const precio = parseFloat(ing.precio || 0).toFixed(2);
         const unidad = ing.unidad || 'ud';
         optionsHtml += `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${precio}€/${escapeHTML(unidad)})</option>`;
     });
+
+    // 🧪 Añadir recetas base como ingredientes seleccionables
+    const recetasBase = (window.recetas || []).filter(r =>
+        r.categoria?.toLowerCase() === 'base' || r.categoria?.toLowerCase() === 'preparación base'
+    );
+
+    if (recetasBase.length > 0) {
+        optionsHtml += '<option disabled>── Preparaciones Base ──</option>';
+        recetasBase.forEach(rec => {
+            // Calcular coste de la receta base
+            const coste = window.calcularCosteRecetaCompleto ?
+                window.calcularCosteRecetaCompleto(rec) : 0;
+            // Usar ID negativo para distinguir de ingredientes normales
+            optionsHtml += `<option value="rec_${rec.id}" data-es-receta="true">🧪 ${escapeHTML(rec.nombre)} (${coste.toFixed(2)}€)</option>`;
+        });
+    }
 
     item.innerHTML = `
     <select style="flex: 2; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.calcularCosteReceta()">
@@ -91,32 +110,49 @@ export function agregarIngredienteReceta() {
 /**
  * Calcula el coste total de la receta desde ingredientes seleccionados
  * 💰 ACTUALIZADO: Usa precio_medio del inventario (basado en compras)
+ * 🧪 ACTUALIZADO: Soporta recetas base como ingredientes
  */
 export function calcularCosteReceta() {
     const items = document.querySelectorAll('#lista-ingredientes-receta .ingrediente-item');
     let costeTotal = 0;
     const ingredientes = Array.isArray(window.ingredientes) ? window.ingredientes : [];
     const inventario = Array.isArray(window.inventarioCompleto) ? window.inventarioCompleto : [];
+    const recetas = Array.isArray(window.recetas) ? window.recetas : [];
 
     // ⚡ OPTIMIZACIÓN: Crear Maps O(1) una vez, no .find() O(n) por cada item
     const inventarioMap = new Map(inventario.map(i => [i.id, i]));
     const ingredientesMap = new Map(ingredientes.map(i => [i.id, i]));
+    const recetasMap = new Map(recetas.map(r => [r.id, r]));
 
     items.forEach(item => {
         const select = item.querySelector('select');
         const input = item.querySelector('input');
         if (select.value && input.value) {
-            const ingId = parseInt(select.value);
-            // ⚡ Búsqueda O(1) con Maps
-            const invItem = inventarioMap.get(ingId);
-            const ing = ingredientesMap.get(ingId);
+            const cantidad = parseFloat(input.value || 0);
 
-            // Prioridad: precio_medio del inventario > precio fijo
-            const precio = invItem?.precio_medio
-                ? parseFloat(invItem.precio_medio)
-                : parseFloat(ing?.precio || 0);
+            // 🧪 Detectar si es una receta base (valor empieza con "rec_")
+            if (select.value.startsWith('rec_')) {
+                const recetaId = parseInt(select.value.replace('rec_', ''));
+                const recetaBase = recetasMap.get(recetaId);
+                if (recetaBase && window.calcularCosteRecetaCompleto) {
+                    // Calcular coste de la receta base
+                    const costeRecetaBase = window.calcularCosteRecetaCompleto(recetaBase);
+                    costeTotal += costeRecetaBase * cantidad;
+                }
+            } else {
+                // Ingrediente normal
+                const ingId = parseInt(select.value);
+                // ⚡ Búsqueda O(1) con Maps
+                const invItem = inventarioMap.get(ingId);
+                const ing = ingredientesMap.get(ingId);
 
-            costeTotal += precio * parseFloat(input.value || 0);
+                // Prioridad: precio_medio del inventario > precio fijo
+                const precio = invItem?.precio_medio
+                    ? parseFloat(invItem.precio_medio)
+                    : parseFloat(ing?.precio || 0);
+
+                costeTotal += precio * cantidad;
+            }
         }
     });
 
@@ -181,13 +217,15 @@ window.filtrarRecetasPorCategoria = function (categoria) {
         if (btnCategoria === categoria) {
             btn.classList.add('active');
             btn.style.background = btnCategoria === 'todas' ? '#f1f5f9' :
-                btnCategoria === 'alimentos' ? '#22c55e' : '#3b82f6';
+                btnCategoria === 'alimentos' ? '#22c55e' :
+                    btnCategoria === 'base' ? '#7c3aed' : '#3b82f6';
             btn.style.color = btnCategoria === 'todas' ? '#475569' : 'white';
         } else {
             btn.classList.remove('active');
             btn.style.background = 'white';
             btn.style.color = btnCategoria === 'alimentos' ? '#22c55e' :
-                btnCategoria === 'bebida' ? '#3b82f6' : '#475569';
+                btnCategoria === 'bebida' ? '#3b82f6' :
+                    btnCategoria === 'base' ? '#7c3aed' : '#475569';
         }
     });
 
@@ -208,7 +246,8 @@ export function renderizarRecetas() {
         const matchCategoria = filtroRecetaCategoria === 'todas' ||
             r.categoria?.toLowerCase() === filtroRecetaCategoria.toLowerCase() ||
             (filtroRecetaCategoria === 'bebida' && r.categoria?.toLowerCase() === 'bebidas') ||
-            (filtroRecetaCategoria === 'alimentos' && r.categoria?.toLowerCase() === 'alimentos');
+            (filtroRecetaCategoria === 'alimentos' && r.categoria?.toLowerCase() === 'alimentos') ||
+            (filtroRecetaCategoria === 'base' && r.categoria?.toLowerCase() === 'base');
 
         return matchBusqueda && matchCategoria;
     });

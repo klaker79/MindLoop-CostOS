@@ -17,10 +17,21 @@ export async function guardarReceta(event) {
         const select = item.querySelector('select');
         const input = item.querySelector('input');
         if (select.value && input.value) {
-            ingredientesReceta.push({
-                ingredienteId: parseInt(select.value),
-                cantidad: parseFloat(input.value),
-            });
+            // 🧪 Detectar si es receta base (valor empieza con "rec_")
+            if (select.value.startsWith('rec_')) {
+                const recetaId = parseInt(select.value.replace('rec_', ''));
+                ingredientesReceta.push({
+                    // Guardar con ID offset (100000+) para identificar como receta base
+                    // El backend acepta IDs positivos, y al cargar detectamos que es receta base
+                    ingredienteId: 100000 + recetaId,
+                    cantidad: parseFloat(input.value),
+                });
+            } else {
+                ingredientesReceta.push({
+                    ingredienteId: parseInt(select.value),
+                    cantidad: parseFloat(input.value),
+                });
+            }
         }
     });
 
@@ -81,7 +92,15 @@ export function editarReceta(id) {
         const lastItem = document.querySelector(
             '#lista-ingredientes-receta .ingrediente-item:last-child'
         );
-        lastItem.querySelector('select').value = item.ingredienteId;
+        const selectEl = lastItem.querySelector('select');
+
+        // 🧪 Detectar si es receta base (ingredienteId > 100000)
+        if (item.ingredienteId > 100000) {
+            const recetaId = item.ingredienteId - 100000;
+            selectEl.value = `rec_${recetaId}`;
+        } else {
+            selectEl.value = item.ingredienteId;
+        }
         lastItem.querySelector('input').value = item.cantidad;
     });
 
@@ -153,8 +172,23 @@ export function calcularCosteRecetaCompleto(receta) {
     // ⚡ OPTIMIZACIÓN: Usar Maps O(1) en lugar de .find() O(n)
     const invMap = getInvMap();
     const ingMap = getIngMap();
+    const recetas = window.recetas || [];
+    const recetasMap = new Map(recetas.map(r => [r.id, r]));
 
     return receta.ingredientes.reduce((total, item) => {
+        // 🧪 Detectar si es receta base (ingredienteId > 100000)
+        if (item.ingredienteId > 100000) {
+            const recetaId = item.ingredienteId - 100000;
+            const recetaBase = recetasMap.get(recetaId);
+            if (recetaBase) {
+                // Calcular coste recursivamente (evitar recursión infinita)
+                const costeRecetaBase = calcularCosteRecetaCompleto(recetaBase);
+                return total + costeRecetaBase * item.cantidad;
+            }
+            return total;
+        }
+
+        // Ingrediente normal
         const invItem = invMap.get(item.ingredienteId);
         const ing = ingMap.get(item.ingredienteId);
 

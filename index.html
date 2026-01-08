@@ -470,6 +470,10 @@
           style="padding: 6px 14px; border-radius: 20px; border: 1px solid #3b82f6; background: white; color: #3b82f6; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
           🍺 Bebidas
         </button>
+        <button class="filter-btn" data-filter="base" onclick="window.filtrarRecetasPorCategoria('base')"
+          style="padding: 6px 14px; border-radius: 20px; border: 1px solid #7c3aed; background: white; color: #7c3aed; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+          🧪 Base
+        </button>
       </div>
       <div id="formulario-receta" class="form-card" style="display: none;">
         <h3>
@@ -491,6 +495,7 @@
               <select id="rec-categoria">
                 <option value="alimentos">Alimentos</option>
                 <option value="bebidas">Bebidas</option>
+                <option value="base">🧪 Preparación Base</option>
                 <option value="suministros">Suministros</option>
               </select>
             </div>
