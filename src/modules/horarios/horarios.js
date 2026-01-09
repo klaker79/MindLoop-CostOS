@@ -1096,25 +1096,237 @@ window.descargarHorarioMensual = async function () {
             if (semanas.length > 5) break; // Máximo 5 semanas
         }
 
-        // Generar HTML del documento
+        // Generar HTML del documento - DISEÑO PREMIUM
+        const restaurantName = localStorage.getItem('restaurant_name') || 'LA NAVE 5';
+        const restaurantLogo = 'https://em-content.zobj.net/source/apple/391/anchor_2693.png'; // Emoji ancla
+
         let html = `
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Horario ${nombresMeses[mesActual]} ${anioActual}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horario ${nombresMeses[mesActual]} ${anioActual} - ${restaurantName}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .semana { margin-bottom: 30px; page-break-inside: avoid; }
-        .titulo { background: #4CAF50; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 16px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f5f5f5; padding: 10px; border: 1px solid #ddd; font-size: 14px; }
-        td { padding: 8px 4px; border: 1px solid #ddd; vertical-align: top; height: 30px; font-size: 12px; }
-        .empleado { padding: 4px 8px; margin: 2px 0; border-radius: 4px; font-weight: 500; }
-        @media print { .semana { page-break-inside: avoid; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1e293b;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* HEADER PREMIUM */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -60%;
+            left: 10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            z-index: 1;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .header-text {
+            color: white;
+        }
+        
+        .header-text h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .header-text .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .header-text .month-year {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 25px;
+            display: inline-block;
+        }
+        
+        .header-badge {
+            background: white;
+            color: #667eea;
+            padding: 12px 24px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 14px;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        /* SEMANAS */
+        .semana {
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            page-break-inside: avoid;
+        }
+        
+        .semana-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 16px 24px;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .semana-header span {
+            font-size: 22px;
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse;
+        }
+        
+        th { 
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 16px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        td { 
+            padding: 12px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+            min-height: 60px;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .empleado { 
+            padding: 8px 14px;
+            margin: 4px 2px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid rgba(0,0,0,0.2);
+        }
+        
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        /* PRINT STYLES */
+        @media print { 
+            body { 
+                background: white;
+                padding: 0;
+            }
+            .header {
+                margin-bottom: 20px;
+            }
+            .semana { 
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #e2e8f0;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">⚓</div>
+                <div class="header-text">
+                    <h1>${restaurantName}</h1>
+                    <div class="subtitle">📅 Planificación de Personal</div>
+                    <div class="month-year">${nombresMeses[mesActual]} ${anioActual}</div>
+                </div>
+            </div>
+            <div class="header-badge">
+                📊 HORARIO MENSUAL
+            </div>
+        </header>
 `;
 
         // Generar cada semana
@@ -1123,18 +1335,20 @@ window.descargarHorarioMensual = async function () {
             const ultimoDiaSemana = semana[5].getDate().toString().padStart(2, '0');
 
             html += `
-<div class="semana">
-    <div class="titulo">${nombresMeses[mesActual]} (${primerDiaSemana}-${ultimoDiaSemana})</div>
-    <table>
-        <tr>
-            <th>Lunes</th>
-            <th>Martes</th>
-            <th>Miércoles</th>
-            <th>Jueves</th>
-            <th>Viernes</th>
-            <th>Sábado</th>
-        </tr>
-        <tr>
+        <div class="semana">
+            <div class="semana-header">
+                <span>📅</span> Semana ${idx + 1}: ${primerDiaSemana} - ${ultimoDiaSemana} de ${nombresMeses[mesActual]}
+            </div>
+            <table>
+                <tr>
+                    <th>Lunes</th>
+                    <th>Martes</th>
+                    <th>Miércoles</th>
+                    <th>Jueves</th>
+                    <th>Viernes</th>
+                    <th>Sábado</th>
+                </tr>
+                <tr>
 `;
 
             // Para cada día de la semana
@@ -1169,13 +1383,18 @@ window.descargarHorarioMensual = async function () {
             });
 
             html += `
-        </tr>
-    </table>
-</div>
+                </tr>
+            </table>
+        </div>
 `;
         });
 
         html += `
+        <footer class="footer">
+            <p>Generado con ❤️ por <strong>MindLoop CostOS</strong></p>
+            <p style="margin-top: 8px; opacity: 0.7;">© ${anioActual} ${restaurantName} • Todos los derechos reservados</p>
+        </footer>
+    </div>
 </body>
 </html>
 `;
