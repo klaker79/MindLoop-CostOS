@@ -1813,18 +1813,31 @@
         if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
         window.actualizarDashboardExpandido();
 
+
         document.getElementById('form-venta').addEventListener('submit', async e => {
             e.preventDefault();
+
+            // ⚡ ANTI-DOBLE-CLICK: Evitar envío duplicado
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            if (submitBtn.disabled) return; // Ya se está procesando
+            submitBtn.disabled = true;
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Procesando...';
+
             const recetaId = document.getElementById('venta-receta').value;
             const cantidad = parseInt(document.getElementById('venta-cantidad').value);
 
             // Validaciones
             if (!recetaId) {
                 showToast('Selecciona un plato', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
                 return;
             }
             if (!cantidad || cantidad <= 0) {
                 showToast('La cantidad debe ser mayor que 0', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
                 return;
             }
 
@@ -1839,6 +1852,10 @@
                 showToast('Venta registrada correctamente', 'success');
             } catch (error) {
                 alert('Error: ' + error.message);
+            } finally {
+                // Re-habilitar botón después de procesar
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             }
         });
 
