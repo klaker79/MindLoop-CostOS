@@ -142,26 +142,28 @@ export async function eliminarReceta(id) {
  * @param {Object} receta - Objeto receta
  * @returns {number} Coste total
  */
-// ⚡ CACHE: Maps para búsquedas O(1) - se actualizan cuando cambian los datos
+// ⚡ CACHE: Maps para búsquedas O(1) - se invalidan cuando cambia la referencia del array
 let _invMapCache = null;
 let _ingMapCache = null;
-let _lastInvLength = 0;
-let _lastIngLength = 0;
+let _lastInvRef = null;
+let _lastIngRef = null;
 
 function getInvMap() {
     const inv = window.inventarioCompleto || [];
-    if (!_invMapCache || inv.length !== _lastInvLength) {
+    // Invalidar cache cuando cambia la referencia del array (después de cargarDatos)
+    if (!_invMapCache || inv !== _lastInvRef) {
         _invMapCache = new Map(inv.map(i => [i.id, i]));
-        _lastInvLength = inv.length;
+        _lastInvRef = inv;
     }
     return _invMapCache;
 }
 
 function getIngMap() {
     const ing = window.ingredientes || [];
-    if (!_ingMapCache || ing.length !== _lastIngLength) {
+    // Invalidar cache cuando cambia la referencia del array (después de cargarDatos)
+    if (!_ingMapCache || ing !== _lastIngRef) {
         _ingMapCache = new Map(ing.map(i => [i.id, i]));
-        _lastIngLength = ing.length;
+        _lastIngRef = ing;
     }
     return _ingMapCache;
 }
