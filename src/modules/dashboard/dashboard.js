@@ -16,6 +16,8 @@ import {
     getHistoricalData
 } from '../ui/visual-effects.js';
 
+import { getApiUrl } from '../../config/app-config.js';
+
 // Variable para recordar el período actual (default: semana)
 let periodoVistaActual = 'semana';
 
@@ -316,14 +318,52 @@ export async function actualizarKPIs() {
                 const diasSemana = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
                 const diaHoy = diasSemana[diaSemana];
 
-                // Intentar obtener empleados y horarios si existen
-                const empleados = window.empleados || [];
-                const horarios = window.horarios || [];
+                // Cargar empleados desde API si no existen
+                let empleados = window.empleados || [];
+                if (empleados.length === 0) {
+                    try {
+                        const token = localStorage.getItem('token');
+                        const apiBase = getApiUrl();
+                        const respEmpleados = await fetch(`${apiBase}/empleados`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        if (respEmpleados.ok) {
+                            empleados = await respEmpleados.json();
+                            window.empleados = empleados;
+                        }
+                    } catch (e) {
+                        console.warn('No se pudieron cargar empleados:', e);
+                    }
+                }
+
+                // Cargar horarios de hoy desde API si no existen
+                let horarios = window.horarios || [];
+                if (empleados.length > 0 && horarios.length === 0) {
+                    try {
+                        const token = localStorage.getItem('token');
+                        const apiBase = getApiUrl();
+                        const respHorarios = await fetch(`${apiBase}/horarios?desde=${hoyStr}&hasta=${hoyStr}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        if (respHorarios.ok) {
+                            horarios = await respHorarios.json();
+                            window.horarios = horarios;
+                        }
+                    } catch (e) {
+                        console.warn('No se pudieron cargar horarios:', e);
+                    }
+                }
 
                 if (empleados.length > 0) {
                     // Buscar quién trabaja hoy basado en horarios
                     const horariosHoy = horarios.filter(h => {
-                        const fechaHorario = new Date(h.fecha).toISOString().split('T')[0];
+                        const fechaHorario = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
                         return fechaHorario === hoyStr;
                     });
 

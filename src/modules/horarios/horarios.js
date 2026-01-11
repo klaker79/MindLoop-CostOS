@@ -51,11 +51,14 @@ async function cargarEmpleados() {
         if (!response.ok) throw new Error('Error cargando empleados');
 
         empleados = await response.json();
+        // Exponer a window para que dashboard pueda acceder
+        window.empleados = empleados;
         console.log(`📋 Empleados cargados: ${empleados.length}`);
     } catch (error) {
         console.error('❌ Error cargando empleados:', error);
         showToast('Error cargando empleados: ' + error.message, 'error');
         empleados = [];
+        window.empleados = [];
     }
 }
 
@@ -79,11 +82,14 @@ async function cargarHorariosSemana() {
         if (!response.ok) throw new Error('Error cargando horarios');
 
         horarios = await response.json();
+        // Exponer a window para que dashboard pueda acceder
+        window.horarios = horarios;
         console.log(`📅 Horarios cargados: ${horarios.length}`);
     } catch (error) {
         console.error('❌ Error cargando horarios:', error);
         showToast('Error cargando horarios: ' + error.message, 'error');
         horarios = [];
+        window.horarios = [];
     }
 }
 
