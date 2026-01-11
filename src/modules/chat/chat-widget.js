@@ -1378,17 +1378,23 @@ function getCurrentTabContext() {
                 (parseFloat(opex.otros) || 0),
         };
 
-        // Siempre incluir resumen de ingredientes (top 10 por precio)
+        // Siempre incluir TODOS los ingredientes con datos compactos
         if (window.ingredientes && Array.isArray(window.ingredientes)) {
-            context.ingredientes = window.ingredientes.slice(0, 15).map(i => ({
-                nombre: i.nombre,
-                precio: parseFloat(i.precio) || 0,
-                unidad: i.unidad || 'kg',
-                stock: parseFloat(i.stock_actual) || 0,
-                stockMinimo: parseFloat(i.stock_minimo) || 0,
-                proveedor: i.proveedor?.nombre || 'Sin proveedor',
-            }));
+            // Calcular valor total del inventario
+            let valorTotalStock = 0;
+            context.ingredientes = window.ingredientes.map(i => {
+                const stock = parseFloat(i.stock_actual) || parseFloat(i.stock_virtual) || 0;
+                const precio = parseFloat(i.precio_medio) || parseFloat(i.precio) || 0;
+                valorTotalStock += stock * precio;
+                return {
+                    nombre: i.nombre,
+                    precio: precio,
+                    unidad: i.unidad || 'kg',
+                    stock: stock,
+                };
+            });
             context.totalIngredientes = window.ingredientes.length;
+            context.valorTotalStock = Math.round(valorTotalStock * 100) / 100;
             context.stockBajo = window.ingredientes.filter(
                 i => i.stock_minimo > 0 && parseFloat(i.stock_actual) <= parseFloat(i.stock_minimo)
             ).length;
@@ -1454,6 +1460,42 @@ function getCurrentTabContext() {
                 hoy: Math.round(totalVentasHoy * 100) / 100,
                 totalRegistros: window.ventas.length,
             };
+        }
+
+        // Incluir empleados
+        if (window.empleados && Array.isArray(window.empleados)) {
+            context.empleados = window.empleados.map(e => ({
+                id: e.id,
+                nombre: e.nombre,
+                puesto: e.puesto || '',
+            }));
+            context.totalEmpleados = window.empleados.length;
+        }
+
+        // Incluir horarios de hoy
+        if (window.horarios && Array.isArray(window.horarios)) {
+            const hoyISO = new Date().toISOString().split('T')[0];
+            const horariosHoy = window.horarios.filter(h => {
+                const fechaH = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
+                return fechaH === hoyISO;
+            });
+            context.horariosHoy = horariosHoy.map(h => {
+                const emp = window.empleados?.find(e => e.id === h.empleado_id);
+                return {
+                    empleado: emp?.nombre || 'Desconocido',
+                    turno: h.turno,
+                    horaInicio: h.hora_inicio,
+                    horaFin: h.hora_fin,
+                };
+            });
+            // Calcular quién trabaja y quién libra
+            const idsTrabajan = new Set(horariosHoy.map(h => h.empleado_id));
+            context.trabajanHoy = (window.empleados || [])
+                .filter(e => idsTrabajan.has(e.id))
+                .map(e => e.nombre);
+            context.libranHoy = (window.empleados || [])
+                .filter(e => !idsTrabajan.has(e.id))
+                .map(e => e.nombre);
         }
     } catch (e) {
         logger.warn('Error obteniendo contexto:', e);
