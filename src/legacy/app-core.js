@@ -2216,9 +2216,9 @@
                 api.getPedidos(),
             ]);
 
-            window.ingredientes = ingredientes;
-            window.recetas = recetas;
-            window.proveedores = proveedores;
+            window.ingredientes = ingredientes.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+            window.recetas = recetas.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+            window.proveedores = proveedores.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
             window.pedidos = pedidos;
 
             // ⚡ Actualizar mapas de búsqueda optimizados

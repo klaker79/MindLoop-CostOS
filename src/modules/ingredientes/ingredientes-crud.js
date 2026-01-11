@@ -167,16 +167,35 @@ export function editarIngrediente(id) {
     const ing = ingredientes.find(i => i.id === id);
     if (!ing) return;
 
-    // Actualizar select de proveedores (función de UI)
-    if (typeof window.actualizarSelectProveedores === 'function') {
-        window.actualizarSelectProveedores();
-    }
+    // Primero actualizar estado de edición
+    window.editandoIngredienteId = id;
+    setEditandoIngredienteId(id);
 
+    const titleEl = getElement('form-title-ingrediente');
+    if (titleEl) titleEl.textContent = 'Editar Ingrediente';
+
+    const btnEl = getElement('btn-text-ingrediente');
+    if (btnEl) btnEl.textContent = 'Guardar';
+
+    // Mostrar formulario PRIMERO (esto actualiza el select de proveedores)
+    window.mostrarFormularioIngrediente();
+
+    // AHORA rellenar los campos (después de que el select tenga las opciones)
     const nombreEl = getElement('ing-nombre');
     if (nombreEl) nombreEl.value = ing.nombre;
 
+    // Establecer proveedor DESPUÉS de que el select esté poblado
     const provEl = getElement('ing-proveedor-select');
-    if (provEl) provEl.value = ing.proveedor_id || ing.proveedorId || '';
+    if (provEl) {
+        const provId = ing.proveedor_id || ing.proveedorId || '';
+        provEl.value = provId;
+        // Si no se seleccionó correctamente, intentar con timeout
+        if (provId && provEl.value !== String(provId)) {
+            setTimeout(() => {
+                provEl.value = provId;
+            }, 50);
+        }
+    }
 
     const precioEl = getElement('ing-precio');
     if (precioEl) precioEl.value = ing.precio || '';
@@ -190,24 +209,16 @@ export function editarIngrediente(id) {
     const minEl = getElement('ing-stockMinimo');
     if (minEl) minEl.value = ing.stockMinimo || '';
 
+    // Cargar familia
+    const familiaEl = getElement('ing-familia');
+    if (familiaEl) familiaEl.value = ing.familia || 'alimento';
+
     // Cargar formato de compra
     const formatoEl = getElement('ing-formato-compra');
     if (formatoEl) formatoEl.value = ing.formato_compra || '';
 
     const cantFormatoEl = getElement('ing-cantidad-formato');
     if (cantFormatoEl) cantFormatoEl.value = ing.cantidad_por_formato || '';
-
-    // Actualizar estado de edición
-    window.editandoIngredienteId = id;
-    setEditandoIngredienteId(id);
-
-    const titleEl = getElement('form-title-ingrediente');
-    if (titleEl) titleEl.textContent = 'Editar Ingrediente';
-
-    const btnEl = getElement('btn-text-ingrediente');
-    if (btnEl) btnEl.textContent = 'Guardar';
-
-    window.mostrarFormularioIngrediente();
 }
 
 /**

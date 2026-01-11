@@ -79,7 +79,141 @@ export function cerrarFormularioPedido() {
     document.getElementById('formulario-pedido').style.display = 'none';
     document.querySelector('#formulario-pedido form').reset();
     window.editandoPedidoId = null;
+    // Limpiar búsqueda de ingrediente
+    const sugerencias = document.getElementById('sugerencias-ingrediente-pedido');
+    if (sugerencias) sugerencias.style.display = 'none';
 }
+
+/**
+ * Busca ingredientes para el pedido y muestra sugerencias
+ * Al seleccionar uno, auto-selecciona el proveedor
+ */
+window.buscarIngredienteParaPedido = function (query) {
+    const container = document.getElementById('sugerencias-ingrediente-pedido');
+    if (!container) return;
+
+    if (!query || query.length < 2) {
+        container.style.display = 'none';
+        return;
+    }
+
+    const queryLower = query.toLowerCase();
+    const ingredientesMatch = (window.ingredientes || []).filter(ing =>
+        ing.nombre.toLowerCase().includes(queryLower)
+    ).slice(0, 10); // Máximo 10 sugerencias
+
+    if (ingredientesMatch.length === 0) {
+        container.innerHTML = '<div style="padding: 12px; color: #64748b; font-style: italic;">No se encontraron ingredientes</div>';
+        container.style.display = 'block';
+        return;
+    }
+
+    let html = '';
+    ingredientesMatch.forEach(ing => {
+        const provId = ing.proveedor_id || ing.proveedorId;
+        const prov = provId ? (window.proveedores || []).find(p => p.id === provId) : null;
+        const provNombre = prov ? prov.nombre : 'Sin proveedor';
+
+        html += `<div onclick="window.seleccionarIngredienteParaPedido(${ing.id})" 
+            style="padding: 12px; cursor: pointer; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;"
+            onmouseover="this.style.background='#f1f5f9'" 
+            onmouseout="this.style.background='white'">
+            <span style="font-weight: 500;">${escapeHTML(ing.nombre)}</span>
+            <span style="font-size: 12px; color: ${provId ? '#10b981' : '#f59e0b'}; background: ${provId ? '#f0fdf4' : '#fffbeb'}; padding: 4px 8px; border-radius: 4px;">
+                ${provId ? '📦 ' + escapeHTML(provNombre) : '⚠️ Sin proveedor'}
+            </span>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+    container.style.display = 'block';
+    container.style.background = 'white';
+    container.style.border = '1px solid #e2e8f0';
+    container.style.borderRadius = '8px';
+    container.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+};
+
+/**
+ * Selecciona un ingrediente y auto-selecciona su proveedor
+ * Si tiene múltiples proveedores, pregunta cuál usar
+ */
+window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
+    const ing = (window.ingredientes || []).find(i => i.id === ingredienteId);
+    if (!ing) return;
+
+    // Ocultar sugerencias
+    const container = document.getElementById('sugerencias-ingrediente-pedido');
+    if (container) container.style.display = 'none';
+
+    // Limpiar input de búsqueda
+    const inputBuscar = document.getElementById('ped-buscar-ingrediente');
+    if (inputBuscar) inputBuscar.value = ing.nombre;
+
+    // Buscar proveedores de este ingrediente
+    let proveedores = [];
+
+    try {
+        // Primero buscar en la tabla de relación ingrediente_proveedores
+        const proveedoresAPI = await window.API?.fetch(`/api/ingredients/${ingredienteId}/suppliers`);
+        if (Array.isArray(proveedoresAPI) && proveedoresAPI.length > 0) {
+            proveedores = proveedoresAPI.map(p => {
+                const provInfo = (window.proveedores || []).find(pr => pr.id === p.proveedor_id);
+                return {
+                    id: p.proveedor_id,
+                    nombre: provInfo ? provInfo.nombre : `Proveedor #${p.proveedor_id}`,
+                    precio: p.precio
+                };
+            });
+        }
+    } catch (e) {
+        console.log('No se pudo obtener proveedores del API');
+    }
+
+    // Si no hay en la tabla de relación, usar el proveedor principal
+    if (proveedores.length === 0 && (ing.proveedor_id || ing.proveedorId)) {
+        const provId = ing.proveedor_id || ing.proveedorId;
+        const prov = (window.proveedores || []).find(p => p.id === provId);
+        if (prov) {
+            proveedores = [{ id: provId, nombre: prov.nombre, precio: ing.precio }];
+        }
+    }
+
+    if (proveedores.length === 0) {
+        window.showToast(`${ing.nombre} no tiene proveedor asignado. Selecciona uno manualmente.`, 'warning');
+        return;
+    }
+
+    let proveedorSeleccionado;
+
+    if (proveedores.length === 1) {
+        // Solo un proveedor, seleccionar automáticamente
+        proveedorSeleccionado = proveedores[0];
+    } else {
+        // Múltiples proveedores, preguntar al usuario
+        const opciones = proveedores.map((p, i) => `${i + 1}. ${p.nombre} (${parseFloat(p.precio || 0).toFixed(2)}€)`).join('\n');
+        const respuesta = prompt(`${ing.nombre} tiene ${proveedores.length} proveedores:\n\n${opciones}\n\nEscribe el número del proveedor que quieres usar:`);
+
+        if (!respuesta) return;
+
+        const idx = parseInt(respuesta) - 1;
+        if (isNaN(idx) || idx < 0 || idx >= proveedores.length) {
+            window.showToast('Selección inválida', 'error');
+            return;
+        }
+
+        proveedorSeleccionado = proveedores[idx];
+    }
+
+    // Seleccionar el proveedor en el dropdown
+    const selectProveedor = document.getElementById('ped-proveedor');
+    if (selectProveedor) {
+        selectProveedor.value = proveedorSeleccionado.id;
+        // Disparar evento change para cargar ingredientes
+        selectProveedor.dispatchEvent(new Event('change'));
+    }
+
+    window.showToast(`Proveedor seleccionado: ${proveedorSeleccionado.nombre}`, 'success');
+};
 
 /**
  * Carga lista de ingredientes según el proveedor seleccionado

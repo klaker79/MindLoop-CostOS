@@ -709,6 +709,21 @@
           <button class="close-btn" data-action="cerrar-form-pedido">×</button>
         </h3>
         <form onsubmit="window.guardarPedido(event)">
+          <!-- Buscador de ingrediente (nuevo) -->
+          <div class="form-group"
+            style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-radius: 12px; border: 2px solid #818cf8;">
+            <label
+              style="color: #4338ca; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+              🔍 Buscar por ingrediente <small style="font-weight: 400; color: #6366f1;">(opcional - auto-selecciona
+                proveedor)</small>
+            </label>
+            <input type="text" id="ped-buscar-ingrediente" placeholder="Escribe nombre del ingrediente..."
+              autocomplete="off" oninput="window.buscarIngredienteParaPedido(this.value)"
+              style="width: 100%; padding: 12px; border: 2px solid #a5b4fc; border-radius: 8px; background: white; font-size: 14px;">
+            <div id="sugerencias-ingrediente-pedido"
+              style="display:none; margin-top: 8px; max-height: 200px; overflow-y: auto;"></div>
+          </div>
+
           <div class="form-grid">
             <div class="form-group">
               <label>Proveedor *</label>
