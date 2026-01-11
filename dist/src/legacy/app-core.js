@@ -1813,18 +1813,31 @@
         if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
         window.actualizarDashboardExpandido();
 
+
         document.getElementById('form-venta').addEventListener('submit', async e => {
             e.preventDefault();
+
+            // ⚡ ANTI-DOBLE-CLICK: Evitar envío duplicado
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            if (submitBtn.disabled) return; // Ya se está procesando
+            submitBtn.disabled = true;
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Procesando...';
+
             const recetaId = document.getElementById('venta-receta').value;
             const cantidad = parseInt(document.getElementById('venta-cantidad').value);
 
             // Validaciones
             if (!recetaId) {
                 showToast('Selecciona un plato', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
                 return;
             }
             if (!cantidad || cantidad <= 0) {
                 showToast('La cantidad debe ser mayor que 0', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
                 return;
             }
 
@@ -1839,6 +1852,10 @@
                 showToast('Venta registrada correctamente', 'success');
             } catch (error) {
                 alert('Error: ' + error.message);
+            } finally {
+                // Re-habilitar botón después de procesar
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             }
         });
 
@@ -2142,55 +2159,47 @@
             return await res.json();
         },
 
-        // GASTOS FIJOS (Fixed Expenses) - LocalStorage based
+        // GASTOS FIJOS (Fixed Expenses) - Database backed
         async getGastosFijos() {
             try {
-                const stored = localStorage.getItem('gastos_fijos');
-                return stored ? JSON.parse(stored) : [];
+                const res = await fetch(API_BASE + '/gastos-fijos', {
+                    headers: getAuthHeaders(),
+                });
+                if (!res.ok) throw new Error('Error cargando gastos fijos');
+                return await res.json();
             } catch (error) {
-                console.warn('Error loading gastos fijos from localStorage:', error);
+                console.warn('Error loading gastos fijos from API:', error);
                 return [];
             }
         },
 
         async createGastoFijo(concepto, monto_mensual) {
-            try {
-                const gastos = await this.getGastosFijos();
-                const newGasto = {
-                    id: Date.now(),
-                    concepto,
-                    monto_mensual: parseFloat(monto_mensual),
-                };
-                gastos.push(newGasto);
-                localStorage.setItem('gastos_fijos', JSON.stringify(gastos));
-                return newGasto;
-            } catch (error) {
-                throw new Error('Error creando gasto fijo: ' + error.message);
-            }
+            const res = await fetch(API_BASE + '/gastos-fijos', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ concepto, monto_mensual: parseFloat(monto_mensual) }),
+            });
+            if (!res.ok) throw new Error('Error creando gasto fijo');
+            return await res.json();
         },
 
         async updateGastoFijo(id, concepto, monto_mensual) {
-            try {
-                const gastos = await this.getGastosFijos();
-                const index = gastos.findIndex(g => g.id === id);
-                if (index === -1) throw new Error('Gasto no encontrado');
-                gastos[index] = { id, concepto, monto_mensual: parseFloat(monto_mensual) };
-                localStorage.setItem('gastos_fijos', JSON.stringify(gastos));
-                return gastos[index];
-            } catch (error) {
-                throw new Error('Error actualizando gasto fijo: ' + error.message);
-            }
+            const res = await fetch(API_BASE + `/gastos-fijos/${id}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ concepto, monto_mensual: parseFloat(monto_mensual) }),
+            });
+            if (!res.ok) throw new Error('Error actualizando gasto fijo');
+            return await res.json();
         },
 
         async deleteGastoFijo(id) {
-            try {
-                const gastos = await this.getGastosFijos();
-                const filtered = gastos.filter(g => g.id !== id);
-                localStorage.setItem('gastos_fijos', JSON.stringify(filtered));
-                return { success: true };
-            } catch (error) {
-                throw new Error('Error eliminando gasto fijo: ' + error.message);
-            }
+            const res = await fetch(API_BASE + `/gastos-fijos/${id}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders(),
+            });
+            if (!res.ok) throw new Error('Error eliminando gasto fijo');
+            return await res.json();
         },
     };
 
@@ -2329,6 +2338,15 @@
         if (tab === 'ventas') window.renderizarVentas();
         // if (tab === 'balance') window.renderizarBalance(); // DESACTIVADO - Sección P&L eliminada
         if (tab === 'configuracion') window.renderizarEquipo();
+        if (tab === 'horarios') {
+            console.log('📅 cambiarTab: tab === horarios');
+            console.log('📅 window.renderizarHorarios =', window.renderizarHorarios);
+            if (window.renderizarHorarios) {
+                window.renderizarHorarios();
+            } else {
+                console.error('📅 renderizarHorarios NO EXISTE');
+            }
+        }
     };
 
     // ========== INGREDIENTES (código completo pero resumido visualmente) ==========
@@ -2341,7 +2359,9 @@
     window.cerrarFormularioIngrediente = function () {
         document.getElementById('formulario-ingrediente').style.display = 'none';
         document.querySelector('#formulario-ingrediente form').reset();
+        // 🔧 FIX CRÍTICO: Resetear AMBAS variables (local Y global)
         editandoIngredienteId = null;
+        window.editandoIngredienteId = null;
         document.getElementById('form-title-ingrediente').textContent = 'Nuevo Ingrediente';
         document.getElementById('btn-text-ingrediente').textContent = 'Añadir';
     };
@@ -2416,9 +2436,11 @@
 
         try {
             let ingredienteId;
-            if (editandoIngredienteId !== null) {
-                await api.updateIngrediente(editandoIngredienteId, ingrediente);
-                ingredienteId = editandoIngredienteId;
+            // Use window.editandoIngredienteId to sync with module (ingredientes-crud.js sets window.editandoIngredienteId)
+            const editingId = window.editandoIngredienteId ?? editandoIngredienteId;
+            if (editingId !== null) {
+                await api.updateIngrediente(editingId, ingrediente);
+                ingredienteId = editingId;
             } else {
                 const nuevoIng = await api.createIngrediente(ingrediente);
                 ingredienteId = nuevoIng.id;
@@ -2502,14 +2524,43 @@
         return prov ? prov.nombre : '-';
     }
 
+    // Variable para la página actual de ingredientes
+    let paginaIngredientesActual = 1;
+
+    // Función para cambiar de página
+    window.cambiarPaginaIngredientes = function (delta) {
+        paginaIngredientesActual += delta;
+        window.renderizarIngredientes();
+        document.getElementById('tabla-ingredientes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     window.renderizarIngredientes = function () {
         const busqueda = document.getElementById('busqueda-ingredientes').value.toLowerCase();
+
+        // Obtener filtro de familia activo
+        const filtroFamilia = window.filtroIngredientesFamilia || 'todas';
+
         const filtrados = ingredientes.filter(ing => {
             const nombreProv = getNombreProveedor(ing.proveedorId).toLowerCase();
-            return ing.nombre.toLowerCase().includes(busqueda) || nombreProv.includes(busqueda);
+            const matchBusqueda = ing.nombre.toLowerCase().includes(busqueda) || nombreProv.includes(busqueda);
+            const matchFamilia = filtroFamilia === 'todas' || ing.familia === filtroFamilia;
+            return matchBusqueda && matchFamilia;
         });
 
         const container = document.getElementById('tabla-ingredientes');
+
+        // === PAGINACIÓN ===
+        const ITEMS_PER_PAGE = 25;
+        const totalItems = filtrados.length;
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+
+        // Asegurar página válida
+        if (paginaIngredientesActual > totalPages) paginaIngredientesActual = totalPages;
+        if (paginaIngredientesActual < 1) paginaIngredientesActual = 1;
+
+        const startIndex = (paginaIngredientesActual - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+        const ingredientesPagina = filtrados.slice(startIndex, endIndex);
 
         if (filtrados.length === 0) {
             container.innerHTML = `
@@ -2527,7 +2578,7 @@
                 '<th>Ingrediente</th><th>Familia</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Stock Mínimo</th><th>Acciones</th>';
             html += '</tr></thead><tbody>';
 
-            filtrados.forEach(ing => {
+            ingredientesPagina.forEach(ing => {
                 const stockActual = parseFloat(ing.stock_actual) || 0;
                 const stockMinimo = parseFloat(ing.stock_minimo) || 0;
                 const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
@@ -2556,11 +2607,31 @@
             });
 
             html += '</tbody></table>';
+
+            // === CONTROLES DE PAGINACIÓN ===
+            html += `
+            <div style="display: flex; justify-content: center; align-items: center; gap: 16px; padding: 20px 0; border-top: 1px solid #e2e8f0; margin-top: 16px;">
+                <button onclick="window.cambiarPaginaIngredientes(-1)" 
+                    ${paginaIngredientesActual === 1 ? 'disabled' : ''} 
+                    style="padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: ${paginaIngredientesActual === 1 ? '#f1f5f9' : 'white'}; color: ${paginaIngredientesActual === 1 ? '#94a3b8' : '#475569'}; cursor: ${paginaIngredientesActual === 1 ? 'not-allowed' : 'pointer'}; font-weight: 500;">
+                    ← Anterior
+                </button>
+                <span style="font-size: 14px; color: #475569;">
+                    Página <strong>${paginaIngredientesActual}</strong> de <strong>${totalPages}</strong>
+                </span>
+                <button onclick="window.cambiarPaginaIngredientes(1)" 
+                    ${paginaIngredientesActual === totalPages ? 'disabled' : ''} 
+                    style="padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: ${paginaIngredientesActual === totalPages ? '#f1f5f9' : 'white'}; color: ${paginaIngredientesActual === totalPages ? '#94a3b8' : '#475569'}; cursor: ${paginaIngredientesActual === totalPages ? 'not-allowed' : 'pointer'}; font-weight: 500;">
+                    Siguiente →
+                </button>
+            </div>`;
+
             container.innerHTML = html;
 
             document.getElementById('resumen-ingredientes').innerHTML = `
             <div>Total: <strong>${ingredientes.length}</strong></div>
-            <div>Mostrando: <strong>${filtrados.length}</strong></div>
+            <div>Filtrados: <strong>${filtrados.length}</strong></div>
+            <div>Mostrando: <strong>${startIndex + 1}-${Math.min(endIndex, totalItems)}</strong></div>
           `;
             document.getElementById('resumen-ingredientes').style.display = 'flex';
         }
@@ -2596,7 +2667,7 @@
           // Limpiar campos del formulario
           document.getElementById('rec-nombre').value = '';
           document.getElementById('rec-codigo').value = ''; // Reset código
-          document.getElementById('rec-categoria').value = 'entrante';
+          document.getElementById('rec-categoria').value = 'alimentos';
           document.getElementById('rec-precio_venta').value = '';
           document.getElementById('rec-porciones').value = '1';
           document.getElementById('lista-ingredientes-receta').innerHTML = '';
@@ -2668,6 +2739,7 @@
           return costeTotal;
         };
 
+        /* ⚠️ COMENTADO: Usar src/modules/recetas/recetas-crud.js que soporta subrecetas
         window.guardarReceta = async function (event) {
           event.preventDefault();
 
@@ -2718,44 +2790,47 @@
             showToast('Error guardando receta: ' + error.message, 'error');
           }
         };
+        */
 
-        window.editarReceta = function (id) {
-          const rec = recetas.find(r => r.id === id);
-          if (!rec) return;
+    /* ⚠️ COMENTADO: Usar src/modules/recetas/recetas-crud.js que soporta subrecetas
+    window.editarReceta = function (id) {
+        const rec = recetas.find(r => r.id === id);
+        if (!rec) return;
 
-          document.getElementById('rec-nombre').value = rec.nombre;
-          document.getElementById('rec-codigo').value = rec.codigo || ''; // Cargar código
-          document.getElementById('rec-categoria').value = rec.categoria;
-          document.getElementById('rec-precio_venta').value = rec.precio_venta;
-          document.getElementById('rec-porciones').value = rec.porciones;
+        document.getElementById('rec-nombre').value = rec.nombre;
+        document.getElementById('rec-codigo').value = rec.codigo || ''; // Cargar código
+        document.getElementById('rec-categoria').value = rec.categoria;
+        document.getElementById('rec-precio_venta').value = rec.precio_venta;
+        document.getElementById('rec-porciones').value = rec.porciones;
 
-          document.getElementById('lista-ingredientes-receta').innerHTML = '';
-          rec.ingredientes.forEach(item => {
+        document.getElementById('lista-ingredientes-receta').innerHTML = '';
+        rec.ingredientes.forEach(item => {
             window.agregarIngredienteReceta();
             const lastItem = document.querySelector('#lista-ingredientes-receta .ingrediente-item:last-child');
             lastItem.querySelector('select').value = item.ingredienteId;
             lastItem.querySelector('input').value = item.cantidad;
-          });
+        });
 
-          window.calcularCosteReceta();
-          editandoRecetaId = id;
-          document.getElementById('form-title-receta').textContent = 'Editar';
-          document.getElementById('btn-text-receta').textContent = 'Guardar';
-          window.mostrarFormularioReceta();
-        };
+        window.calcularCosteReceta();
+        editandoRecetaId = id;
+        document.getElementById('form-title-receta').textContent = 'Editar';
+        document.getElementById('btn-text-receta').textContent = 'Guardar';
+        window.mostrarFormularioReceta();
+    };
+    */
 
-        // ... (eliminarReceta y calcularCosteRecetaCompleto sin cambios)
+    // ... (eliminarReceta y calcularCosteRecetaCompleto sin cambios)
 
-        window.renderizarRecetas = function () {
-          const busqueda = document.getElementById('busqueda-recetas').value.toLowerCase();
-          const filtradas = recetas.filter(r =>
+    window.renderizarRecetas = function () {
+        const busqueda = document.getElementById('busqueda-recetas').value.toLowerCase();
+        const filtradas = recetas.filter(r =>
             r.nombre.toLowerCase().includes(busqueda) ||
             (r.codigo && r.codigo.toString().includes(busqueda)) // Buscar por código
-          );
+        );
 
-          const container = document.getElementById('tabla-recetas');
+        const container = document.getElementById('tabla-recetas');
 
-          if (filtradas.length === 0) {
+        if (filtradas.length === 0) {
             container.innerHTML = `
             <div class="empty-state">
               <div class="icon">👨‍🍳</div>
@@ -2763,29 +2838,29 @@
             </div>
           `;
             document.getElementById('resumen-recetas').style.display = 'none';
-          } else {
+        } else {
             let html = '<table><thead><tr>';
             html += '<th>Cód.</th><th>Plato</th><th>Categoría</th><th>Coste</th><th>Precio</th><th>Margen</th><th>Acciones</th>';
             html += '</tr></thead><tbody>';
 
             filtradas.forEach(rec => {
-              const coste = calcularCosteRecetaCompleto(rec);
-              const margen = rec.precio_venta - coste;
-              const pct = rec.precio_venta > 0 ? ((margen / rec.precio_venta) * 100).toFixed(0) : 0;
+                const coste = calcularCosteRecetaCompleto(rec);
+                const margen = rec.precio_venta - coste;
+                const pct = rec.precio_venta > 0 ? ((margen / rec.precio_venta) * 100).toFixed(0) : 0;
 
-              html += '<tr>';
-              html += `<td><span style="color:#666;font-size:12px;">${rec.codigo || '-'}</span></td>`;
-              html += `<td><strong>${escapeHTML(rec.nombre)}</strong></td>`;
-              html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
-              html += `<td>${coste.toFixed(2)} €</td>`;
-              html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
-              html += `<td><span class="badge ${margen > 0 ? 'badge-success' : 'badge-warning'}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
-              html += `<td><div class="actions">`;
-              html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
-              html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
-              html += `<button class="icon-btn delete" onclick="window.eliminarReceta(${rec.id})">🗑️</button>`;
-              html += '</div></td>';
-              html += '</tr>';
+                html += '<tr>';
+                html += `<td><span style="color:#666;font-size:12px;">${rec.codigo || '-'}</span></td>`;
+                html += `<td><strong>${escapeHTML(rec.nombre)}</strong></td>`;
+                html += `<td><span class="badge badge-success">${rec.categoria}</span></td>`;
+                html += `<td>${coste.toFixed(2)} €</td>`;
+                html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
+                html += `<td><span class="badge ${margen > 0 ? 'badge-success' : 'badge-warning'}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
+                html += `<td><div class="actions">`;
+                html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
+                html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
+                html += `<button class="icon-btn delete" onclick="window.eliminarReceta(${rec.id})">🗑️</button>`;
+                html += '</div></td>';
+                html += '</tr>';
             });
 
 
@@ -2797,72 +2872,72 @@
             <div>Mostrando: <strong>${filtradas.length}</strong></div>
           `;
             document.getElementById('resumen-recetas').style.display = 'flex';
-          }
-        };
+        }
+    };
 
-        // ========== PRODUCCIÓN ==========
-        window.abrirModalProducir = function (id) {
-          recetaProduciendo = id;
-          const rec = recetas.find(r => r.id === id);
-          document.getElementById('modal-plato-nombre').textContent = rec.nombre;
-          document.getElementById('modal-cantidad').value = 1;
-          window.actualizarDetalleDescuento();
-          document.getElementById('modal-producir').classList.add('active');
-        };
+    // ========== PRODUCCIÓN ==========
+    window.abrirModalProducir = function (id) {
+        recetaProduciendo = id;
+        const rec = recetas.find(r => r.id === id);
+        document.getElementById('modal-plato-nombre').textContent = rec.nombre;
+        document.getElementById('modal-cantidad').value = 1;
+        window.actualizarDetalleDescuento();
+        document.getElementById('modal-producir').classList.add('active');
+    };
 
-        window.cerrarModalProducir = function () {
-          document.getElementById('modal-producir').classList.remove('active');
-          recetaProduciendo = null;
-        };
+    window.cerrarModalProducir = function () {
+        document.getElementById('modal-producir').classList.remove('active');
+        recetaProduciendo = null;
+    };
 
-        window.actualizarDetalleDescuento = function () {
-          if (recetaProduciendo === null) return;
-          const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
-          const rec = recetas.find(r => r.id === recetaProduciendo);
-          let html = '<ul style="margin:0;padding-left:20px;">';
-          rec.ingredientes.forEach(item => {
+    window.actualizarDetalleDescuento = function () {
+        if (recetaProduciendo === null) return;
+        const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
+        const rec = recetas.find(r => r.id === recetaProduciendo);
+        let html = '<ul style="margin:0;padding-left:20px;">';
+        rec.ingredientes.forEach(item => {
             const ing = ingredientes.find(i => i.id === item.ingredienteId);
             if (ing) html += `<li>${ing.nombre}: -${item.cantidad * cant} ${ing.unidad}</li>`;
-          });
-          html += '</ul>';
-          document.getElementById('modal-descuento-detalle').innerHTML = html;
-        };
+        });
+        html += '</ul>';
+        document.getElementById('modal-descuento-detalle').innerHTML = html;
+    };
 
-        window.confirmarProduccion = async function () {
-          if (recetaProduciendo === null) return;
-          const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
-          const rec = recetas.find(r => r.id === recetaProduciendo);
+    window.confirmarProduccion = async function () {
+        if (recetaProduciendo === null) return;
+        const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
+        const rec = recetas.find(r => r.id === recetaProduciendo);
 
-          let falta = false;
-          let msg = 'Stock insuficiente:\n';
-          rec.ingredientes.forEach(item => {
+        let falta = false;
+        let msg = 'Stock insuficiente:\n';
+        rec.ingredientes.forEach(item => {
             const ing = ingredientes.find(i => i.id === item.ingredienteId);
             if (ing) {
-              const necesario = item.cantidad * cant;
-              if (ing.stockActual < necesario) {
-                falta = true;
-                msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${ing.stockActual}\n`;
-              }
+                const necesario = item.cantidad * cant;
+                if (ing.stockActual < necesario) {
+                    falta = true;
+                    msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${ing.stockActual}\n`;
+                }
             }
-          });
+        });
 
-          if (falta) {
+        if (falta) {
             alert(msg);
             return;
-          }
+        }
 
-          showLoading();
+        showLoading();
 
-          try {
+        try {
             for (const item of rec.ingredientes) {
-              const ing = ingredientes.find(i => i.id === item.ingredienteId);
-              if (ing) {
-                const nuevoStock = Math.max(0, ing.stockActual - (item.cantidad * cant));
-                await api.updateIngrediente(ing.id, {
-                  ...ing,
-                  stockActual: nuevoStock
-                });
-              }
+                const ing = ingredientes.find(i => i.id === item.ingredienteId);
+                if (ing) {
+                    const nuevoStock = Math.max(0, ing.stockActual - (item.cantidad * cant));
+                    await api.updateIngrediente(ing.id, {
+                        ...ing,
+                        stockActual: nuevoStock
+                    });
+                }
             }
 
             await cargarDatos();
@@ -2870,13 +2945,13 @@
             hideLoading();
             window.cerrarModalProducir();
             showToast(`Producidas ${cant} unidades de ${rec.nombre}`, 'success');
-          } catch (error) {
+        } catch (error) {
             hideLoading();
             console.error('Error:', error);
             showToast('Error actualizando stock: ' + error.message, 'error');
-          }
-        };
-        /* ======================================== */
+        }
+    };
+    /* ======================================== */
 
     // ========== PROVEEDORES (resumido) ==========
 
@@ -4178,7 +4253,7 @@
         document.getElementById('count-caballo').textContent = counts.caballo || 0;
         document.getElementById('count-perro').textContent = counts.perro || 0;
 
-        // Renderizar Scatter Plot con Chart.js y etiquetas
+        // Renderizar Scatter Plot con Chart.js - SIN ETIQUETAS (más limpio)
         const ctx = document.getElementById('bcg-scatter-chart');
         if (ctx) {
             // Destruir chart anterior si existe
@@ -4186,75 +4261,128 @@
                 window.bcgScatterChart.destroy();
             }
 
-            // Plugin personalizado para dibujar etiquetas
-            const labelPlugin = {
-                id: 'bcgLabels',
-                afterDatasetsDraw: function (chart) {
-                    const ctx = chart.ctx;
-                    chart.data.datasets.forEach((dataset, i) => {
-                        const meta = chart.getDatasetMeta(i);
-                        meta.data.forEach((element, index) => {
-                            const item = scatterData[index];
-                            const nombre =
-                                item.nombre.length > 10
-                                    ? item.nombre.substring(0, 9) + '...'
-                                    : item.nombre;
+            // Calcular promedios para las líneas divisorias
+            const avgX = data.reduce((sum, d) => sum + d.popularidad, 0) / data.length;
+            const avgY = data.reduce((sum, d) => sum + d.margen, 0) / data.length;
 
-                            ctx.save();
-                            ctx.font = 'bold 10px Montserrat, sans-serif';
-                            ctx.fillStyle = '#1e293b';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'bottom';
-                            ctx.fillText(nombre, element.x, element.y - 14);
-                            ctx.restore();
-                        });
+            // Plugin profesional para cuadrantes
+            const quadrantPlugin = {
+                id: 'bcgQuadrants',
+                beforeDatasetsDraw: function (chart) {
+                    const ctx = chart.ctx;
+                    const xAxis = chart.scales.x;
+                    const yAxis = chart.scales.y;
+                    const midX = xAxis.getPixelForValue(avgX * 0.7);
+                    const midY = yAxis.getPixelForValue(avgY);
+
+                    // Cuadrantes con gradientes suaves
+                    const quadrants = [
+                        { x1: midX, y1: yAxis.top, x2: xAxis.right, y2: midY, color: 'rgba(34, 197, 94, 0.08)', label: 'ESTRELLAS', emoji: '⭐', labelColor: '#15803d' },
+                        { x1: xAxis.left, y1: yAxis.top, x2: midX, y2: midY, color: 'rgba(59, 130, 246, 0.08)', label: 'PUZZLES', emoji: '❓', labelColor: '#1d4ed8' },
+                        { x1: midX, y1: midY, x2: xAxis.right, y2: yAxis.bottom, color: 'rgba(249, 115, 22, 0.08)', label: 'CABALLOS', emoji: '🐴', labelColor: '#c2410c' },
+                        { x1: xAxis.left, y1: midY, x2: midX, y2: yAxis.bottom, color: 'rgba(239, 68, 68, 0.08)', label: 'PERROS', emoji: '🐕', labelColor: '#b91c1c' }
+                    ];
+
+                    quadrants.forEach(q => {
+                        ctx.fillStyle = q.color;
+                        ctx.fillRect(q.x1, q.y1, q.x2 - q.x1, q.y2 - q.y1);
                     });
-                },
+
+                    // Líneas divisorias elegantes
+                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([8, 4]);
+
+                    ctx.beginPath();
+                    ctx.moveTo(midX, yAxis.top);
+                    ctx.lineTo(midX, yAxis.bottom);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(xAxis.left, midY);
+                    ctx.lineTo(xAxis.right, midY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // Etiquetas con fondo pill profesional
+                    const labels = [
+                        { x: (midX + xAxis.right) / 2, y: yAxis.top + 25, text: '⭐ ESTRELLAS', bg: 'rgba(34, 197, 94, 0.15)', color: '#15803d' },
+                        { x: (xAxis.left + midX) / 2, y: yAxis.top + 25, text: '❓ PUZZLES', bg: 'rgba(59, 130, 246, 0.15)', color: '#1d4ed8' },
+                        { x: (midX + xAxis.right) / 2, y: yAxis.bottom - 15, text: '🐴 CABALLOS', bg: 'rgba(249, 115, 22, 0.15)', color: '#c2410c' },
+                        { x: (xAxis.left + midX) / 2, y: yAxis.bottom - 15, text: '🐕 PERROS', bg: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c' }
+                    ];
+
+                    labels.forEach(l => {
+                        ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+                        const textWidth = ctx.measureText(l.text).width;
+
+                        // Fondo pill
+                        ctx.fillStyle = l.bg;
+                        const padding = 8;
+                        const height = 22;
+                        const radius = 11;
+                        const x = l.x - textWidth / 2 - padding;
+                        const y = l.y - height / 2;
+
+                        ctx.beginPath();
+                        ctx.roundRect(x, y, textWidth + padding * 2, height, radius);
+                        ctx.fill();
+
+                        // Texto
+                        ctx.fillStyle = l.color;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(l.text, l.x, l.y);
+                    });
+                }
             };
 
             window.bcgScatterChart = new Chart(ctx, {
                 type: 'scatter',
-                plugins: [labelPlugin],
+                plugins: [quadrantPlugin],
                 data: {
-                    datasets: [
-                        {
-                            label: 'Platos',
-                            data: scatterData.map(d => ({ x: d.x, y: d.y })),
-                            backgroundColor: scatterData.map(d => d.backgroundColor),
-                            pointRadius: 14,
-                            pointHoverRadius: 18,
-                            pointStyle: 'circle',
-                            borderWidth: 2,
-                            borderColor: scatterData.map(d =>
-                                d.backgroundColor.replace('0.8', '1')
-                            ),
-                        },
-                    ],
+                    datasets: [{
+                        label: 'Platos',
+                        data: scatterData.map(d => ({ x: d.x, y: d.y })),
+                        backgroundColor: scatterData.map(d => d.backgroundColor),
+                        pointRadius: 12,
+                        pointHoverRadius: 16,
+                        pointStyle: 'circle',
+                        borderWidth: 2.5,
+                        borderColor: scatterData.map(d => d.backgroundColor.replace('0.8', '1')),
+                        hoverBorderWidth: 3,
+                    }],
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: {
-                        padding: { top: 30, right: 20, bottom: 10, left: 10 },
+                        padding: { top: 45, right: 25, bottom: 20, left: 15 },
                     },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
                             enabled: true,
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
                             titleColor: '#fff',
-                            bodyColor: '#fff',
-                            padding: 12,
-                            cornerRadius: 8,
+                            titleFont: { size: 14, weight: '600', family: 'system-ui' },
+                            bodyColor: 'rgba(255,255,255,0.9)',
+                            bodyFont: { size: 12, family: 'system-ui' },
+                            padding: 16,
+                            cornerRadius: 12,
                             displayColors: false,
+                            boxPadding: 6,
                             callbacks: {
+                                title: function (context) {
+                                    return scatterData[context[0].dataIndex].nombre;
+                                },
                                 label: function (context) {
-                                    const idx = context.dataIndex;
-                                    const item = scatterData[idx];
+                                    const item = scatterData[context.dataIndex];
+                                    const emojis = { estrella: '⭐', puzzle: '❓', caballo: '🐴', perro: '🐕' };
                                     return [
-                                        item.nombre,
+                                        `${emojis[item.clasificacion] || ''} ${item.clasificacion.charAt(0).toUpperCase() + item.clasificacion.slice(1)}`,
                                         `Margen: ${item.y.toFixed(2)}€`,
-                                        `Ventas: ${item.x}`,
+                                        `Ventas: ${item.x} uds`,
                                     ];
                                 },
                             },
@@ -4264,16 +4392,25 @@
                         x: {
                             title: {
                                 display: true,
-                                text: 'Popularidad (Ventas)',
-                                font: { size: 12 },
+                                text: 'POPULARIDAD (Unidades Vendidas)',
+                                font: { size: 11, weight: '600', family: 'system-ui' },
+                                color: '#64748b',
+                                padding: { top: 10 }
                             },
-                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
                             beginAtZero: true,
                         },
                         y: {
-                            title: { display: true, text: 'Margen (€)', font: { size: 12 } },
-                            grid: { color: 'rgba(0,0,0,0.05)' },
-                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'RENTABILIDAD (Margen €)',
+                                font: { size: 11, weight: '600', family: 'system-ui' },
+                                color: '#64748b',
+                                padding: { bottom: 10 }
+                            },
+                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
                         },
                     },
                 },
@@ -4335,15 +4472,51 @@
                 .join('');
         }
 
-        // Poblar listas detalladas
-        data.forEach(item => {
-            const el = document.createElement('div');
-            el.className = 'bcg-item';
-            el.innerHTML = `<strong>${escapeHTML(item.nombre)}</strong><br><span style="font-size:11px">Mg: ${item.margen.toFixed(2)}€ | Ventas: ${item.popularidad}</span>`;
+        // Poblar listas detalladas CON PAGINACIÓN (10 items por página)
+        const ITEMS_PER_PAGE = 10;
+        const itemsByCategory = { estrella: [], caballo: [], puzzle: [], perro: [] };
 
-            if (containers[item.clasificacion]) {
-                containers[item.clasificacion].appendChild(el);
+        // Agrupar items por categoría
+        data.forEach(item => {
+            if (itemsByCategory[item.clasificacion]) {
+                itemsByCategory[item.clasificacion].push(item);
             }
+        });
+
+        // Estado de paginación global
+        window.bcgPagination = window.bcgPagination || { estrella: 1, caballo: 1, puzzle: 1, perro: 1 };
+
+        // Función para renderizar página de una categoría
+        window.renderBCGPage = function (categoria, page = 1) {
+            const items = itemsByCategory[categoria] || [];
+            const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+            page = Math.max(1, Math.min(page, totalPages || 1));
+            window.bcgPagination[categoria] = page;
+
+            const container = containers[categoria];
+            if (!container) return;
+
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            const pageItems = items.slice(start, start + ITEMS_PER_PAGE);
+
+            container.innerHTML = pageItems.map(item =>
+                `<div class="bcg-item"><strong>${escapeHTML(item.nombre)}</strong><br><span style="font-size:11px">Mg: ${item.margen.toFixed(2)}€ | Ventas: ${item.popularidad}</span></div>`
+            ).join('');
+
+            // Añadir controles de paginación si hay más de una página
+            if (totalPages > 1) {
+                container.innerHTML += `
+                    <div style="display:flex; justify-content:center; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">
+                        <button onclick="window.renderBCGPage('${categoria}', ${page - 1})" ${page <= 1 ? 'disabled' : ''} style="padding:4px 8px; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer; background:${page <= 1 ? '#f1f5f9' : 'white'}">←</button>
+                        <span style="padding:4px 8px; font-size:12px;">${page} / ${totalPages}</span>
+                        <button onclick="window.renderBCGPage('${categoria}', ${page + 1})" ${page >= totalPages ? 'disabled' : ''} style="padding:4px 8px; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer; background:${page >= totalPages ? '#f1f5f9' : 'white'}">→</button>
+                    </div>`;
+            }
+        };
+
+        // Renderizar primera página de cada categoría
+        ['estrella', 'caballo', 'puzzle', 'perro'].forEach(cat => {
+            window.renderBCGPage(cat, window.bcgPagination[cat] || 1);
         });
     };
 
@@ -4651,28 +4824,62 @@
 
     function renderTablaRentabilidad(datos) {
         const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
+        const ITEMS_PER_PAGE = 15;
 
-        let html = '<table><thead><tr>';
-        html +=
-            '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
-        html += '</tr></thead><tbody>';
+        // Estado de paginación
+        window.rentabilidadPage = window.rentabilidadPage || 1;
 
-        ordenados.forEach((rec, idx) => {
-            html += '<tr>';
-            html += `<td><strong>#${idx + 1}</strong></td>`;
-            html += `<td>${escapeHTML(rec.nombre)}</td>`;
-            html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
-            html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
-            html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
-            html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
-            html += '</tr>';
-        });
+        // Función para renderizar página
+        window.renderRentabilidadPage = function (page = 1) {
+            const totalPages = Math.ceil(ordenados.length / ITEMS_PER_PAGE);
+            page = Math.max(1, Math.min(page, totalPages || 1));
+            window.rentabilidadPage = page;
 
-        html += '</tbody></table>';
-        document.getElementById('tabla-rentabilidad').innerHTML = html;
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            const pageItems = ordenados.slice(start, start + ITEMS_PER_PAGE);
+
+            let html = '<table><thead><tr>';
+            html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
+            html += '</tr></thead><tbody>';
+
+            pageItems.forEach((rec, idx) => {
+                const realIdx = start + idx + 1;
+                html += '<tr>';
+                html += `<td><strong>#${realIdx}</strong></td>`;
+                html += `<td>${escapeHTML(rec.nombre)}</td>`;
+                html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
+                html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
+                html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
+                html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            // Controles de paginación
+            if (totalPages > 1) {
+                html += `
+                    <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:16px; padding:12px; background:#f8fafc; border-radius:8px;">
+                        <button onclick="window.renderRentabilidadPage(1)" ${page <= 1 ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">⏮️</button>
+                        <button onclick="window.renderRentabilidadPage(${page - 1})" ${page <= 1 ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">← Anterior</button>
+                        <span style="padding:6px 12px; font-weight:600;">Página ${page} de ${totalPages}</span>
+                        <button onclick="window.renderRentabilidadPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">Siguiente →</button>
+                        <button onclick="window.renderRentabilidadPage(${totalPages})" ${page >= totalPages ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">⏭️</button>
+                    </div>
+                    <div style="text-align:center; margin-top:8px; color:#64748b; font-size:12px;">Mostrando ${start + 1}-${Math.min(start + ITEMS_PER_PAGE, ordenados.length)} de ${ordenados.length} recetas</div>`;
+            }
+
+            document.getElementById('tabla-rentabilidad').innerHTML = html;
+        };
+
+        // Renderizar primera página
+        window.renderRentabilidadPage(window.rentabilidadPage);
     }
 
     // ========== INVENTARIO ==========
+    // Cache para persistir valores de stock introducidos por el usuario
+    window.stockRealCache = window.stockRealCache || {};
+
     window.renderizarInventario = async function () {
         try {
             const inventario = await api.getInventoryComplete();
@@ -4752,22 +4959,24 @@
                 const precioMedio = parseFloat(ing.precio_medio || 0);
                 const valorStock = parseFloat(ing.valor_stock || 0);
                 const diferencia = parseFloat(ing.diferencia || 0);
-                const stockReal =
-                    ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '';
+                // Usar cache si existe, sino usar el valor de la BD
+                const cachedValue = window.stockRealCache[ing.id];
+                const stockReal = cachedValue !== undefined
+                    ? cachedValue
+                    : (ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '');
 
                 html += '<tr>';
                 html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
                 html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
-                html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)}</span></td>`;
+                html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${ing.unidad || ''}</small></span></td>`;
 
-                // Input con evento ONINPUT para cálculo dinámico
-                // Input con evento ONINPUT para cálculo dinámico
+                // Input con evento ONINPUT para cálculo dinámico y guardar en cache
                 html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
                         class="input-stock-real" 
                         data-id="${ing.id}" 
                         data-stock-virtual="${ing.stock_virtual || 0}" 
                         data-precio="${precioMedio}"
-                        oninput="window.updateDifferenceCell(this)"
+                        oninput="window.updateDifferenceCell(this); window.stockRealCache[${ing.id}] = this.value;"
                         style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"></td>`;
 
                 // Celda de Diferencia con ID único para actualizar
@@ -4903,6 +5112,8 @@
             showLoading();
             // Usamos el endpoint de consolidación que actualiza AMBOS (read y actual)
             await api.consolidateStock(adjustments);
+            // Limpiar cache después de guardar exitosamente
+            window.stockRealCache = {};
             await window.renderizarInventario();
             hideLoading();
             showToast('Inventario consolidado correctamente', 'success');
@@ -5120,6 +5331,8 @@
 
             await api.consolidateStock(finalAdjustments, currentSnapshots, finalStock);
 
+            // Limpiar cache después de guardar exitosamente
+            window.stockRealCache = {};
             await window.renderizarInventario();
             hideLoading();
             showToast('Ajustes de inventario registrados correctamente', 'success');

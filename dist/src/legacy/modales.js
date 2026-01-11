@@ -1,3 +1,4 @@
+// MindLoop CostOS - Modales v2.1.0 - Build 2026-01-01T20:18:00Z
 window.confirmarEliminacion = function (config) {
     return new Promise(resolve => {
         const modal = document.getElementById('modal-confirmacion');
@@ -191,79 +192,100 @@ setInterval(actualizarBeneficioRealDiario, 2000);
 */
 
 // ============ FINANZAS: Guardar/Cargar Gastos Fijos desde BD ============
+// Mapeo de conceptos de sliders a IDs de la base de datos
+const GASTOS_FIJOS_MAP = {
+    'alquiler': { id: 1, concepto: 'Alquiler' },
+    'personal': { id: 2, concepto: 'Nóminas' },
+    'suministros': { id: 3, concepto: 'Agua' },
+    'otros': { id: 4, concepto: 'Luz' }
+};
+
+// Cache para evitar llamadas repetidas a la API
+let gastosFijosCache = null;
+let gastosFijosCacheTime = 0;
+const CACHE_TTL = 5000; // 5 segundos
+
+// ⚡ API BASE URL - usar la misma que app-core.js
+const GASTOS_API_BASE = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+
+function getGastosAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': token ? 'Bearer ' + token : '',
+    };
+}
+
+async function fetchGastosFijos() {
+    const now = Date.now();
+    if (gastosFijosCache && (now - gastosFijosCacheTime) < CACHE_TTL) {
+        return gastosFijosCache;
+    }
+    try {
+        const res = await fetch(GASTOS_API_BASE + '/gastos-fijos', {
+            headers: getGastosAuthHeaders()
+        });
+        if (!res.ok) throw new Error('Error fetching gastos fijos');
+        const gastos = await res.json();
+        gastosFijosCache = gastos;
+        gastosFijosCacheTime = now;
+        return gastos;
+    } catch (error) {
+        console.error('Error fetching gastos fijos:', error);
+        return gastosFijosCache || [];
+    }
+}
+
 window.guardarGastoFinanzas = async function (concepto, inputId) {
     const elem = document.getElementById(inputId);
     if (!elem) return;
 
     const monto = parseFloat(elem.value) || 0;
+    const conceptoKey = concepto.toLowerCase();
+    const gastoInfo = GASTOS_FIJOS_MAP[conceptoKey];
+
+    if (!gastoInfo) {
+        console.warn('Concepto no mapeado:', concepto);
+        return;
+    }
 
     try {
-        // Guardar en localStorage directamente (más rápido y confiable)
-        let opexData = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+        // Actualizar directamente via fetch
+        const res = await fetch(GASTOS_API_BASE + '/gastos-fijos/' + gastoInfo.id, {
+            method: 'PUT',
+            headers: getGastosAuthHeaders(),
+            body: JSON.stringify({ concepto: gastoInfo.concepto, monto_mensual: monto })
+        });
 
-        // Validar que opexData es un objeto
-        if (!opexData || typeof opexData !== 'object' || Array.isArray(opexData)) {
-            console.warn('Datos corruptos en opex_inputs, reiniciando');
-            opexData = {};
-        }
+        if (!res.ok) throw new Error('Error updating gasto fijo');
 
-        // Mapear concepto a clave correcta
-        const conceptoKey = concepto.toLowerCase();
-        opexData[conceptoKey] = monto;
-
-        localStorage.setItem('opex_inputs', JSON.stringify(opexData));
-
-        // También actualizar en gastos_fijos para compatibilidad
-        let gastosFijos = JSON.parse(localStorage.getItem('gastos_fijos') || '[]');
-
-        // Validar que gastosFijos es un array
-        if (!Array.isArray(gastosFijos)) {
-            console.warn('Datos corruptos en gastos_fijos, reiniciando');
-            gastosFijos = [];
-        }
-
-        const idx = gastosFijos.findIndex(g => g.concepto === concepto);
-
-        if (idx >= 0) {
-            gastosFijos[idx].monto_mensual = monto;
-        } else {
-            gastosFijos.push({
-                id: Date.now(),
-                concepto: concepto,
-                monto_mensual: monto,
-            });
-        }
-
-        localStorage.setItem('gastos_fijos', JSON.stringify(gastosFijos));
+        // Invalidar cache
+        gastosFijosCache = null;
 
         // Actualizar el total
-        actualizarTotalGastosFijos();
+        await actualizarTotalGastosFijos();
+
+        console.log('Gasto fijo guardado:', gastoInfo.concepto, monto);
     } catch (error) {
         console.error('Error guardando gasto:', error);
+        if (typeof showToast === 'function') showToast('Error guardando gasto fijo', 'error');
     }
 };
 
-// ✅ CRITICAL FIX #1: Función centralizada única para calcular gastos fijos
-// Esta es la ÚNICA fuente de verdad - todas las demás funciones deben llamar a esta
-function calcularTotalGastosFijos() {
+// ✅ Función centralizada única para calcular gastos fijos (desde BD)
+async function calcularTotalGastosFijos() {
     try {
-        const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+        const gastos = await fetchGastosFijos();
 
-        // Validar que opex es un objeto y no un array u otro tipo
-        if (!opex || typeof opex !== 'object' || Array.isArray(opex)) {
-            console.warn('Datos de gastos fijos inválidos en localStorage, usando valores por defecto');
+        if (!gastos || !Array.isArray(gastos)) {
+            console.warn('Datos de gastos fijos inválidos');
             return 0;
         }
 
-        const total =
-            (parseFloat(opex.alquiler) || 0) +
-            (parseFloat(opex.personal) || 0) +
-            (parseFloat(opex.suministros) || 0) +
-            (parseFloat(opex.otros) || 0);
+        const total = gastos.reduce((sum, g) => sum + (parseFloat(g.monto_mensual) || 0), 0);
 
-        // ✅ CRITICAL FIX #3: Validar resultado
         if (isNaN(total) || total < 0) {
-            console.error('Error: Gastos fijos inválidos', opex);
+            console.error('Error: Gastos fijos inválidos', gastos);
             return 0;
         }
 
@@ -275,9 +297,9 @@ function calcularTotalGastosFijos() {
 }
 
 // Actualizar el display del total (usa la función centralizada)
-function actualizarTotalGastosFijos() {
+async function actualizarTotalGastosFijos() {
     try {
-        const total = calcularTotalGastosFijos(); // ← Usar función central
+        const total = await calcularTotalGastosFijos();
         const elem = document.getElementById('diario-gastos-fijos-total');
         if (elem) {
             elem.textContent = total.toFixed(2) + ' €';
@@ -287,58 +309,55 @@ function actualizarTotalGastosFijos() {
     }
 }
 
-// Cargar valores guardados en los sliders al iniciar
-function cargarValoresGastosFijos() {
+// Cargar valores guardados en los sliders al iniciar (desde BD)
+async function cargarValoresGastosFijos() {
     try {
-        const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+        const gastos = await fetchGastosFijos();
 
-        // Validar que opex es un objeto válido
-        if (!opex || typeof opex !== 'object' || Array.isArray(opex)) {
-            console.warn('Datos de gastos fijos inválidos, no se cargarán valores');
+        if (!gastos || !Array.isArray(gastos)) {
+            console.warn('No se encontraron gastos fijos en la BD');
             return;
         }
 
-        if (opex.alquiler) {
-            const slider = document.getElementById('gf-alquiler');
-            if (slider) {
-                slider.value = opex.alquiler;
-                document.getElementById('gf-alquiler-valor').textContent = opex.alquiler + '€';
-            }
-        }
-        if (opex.personal) {
-            const slider = document.getElementById('gf-personal');
-            if (slider) {
-                slider.value = opex.personal;
-                document.getElementById('gf-personal-valor').textContent = opex.personal + '€';
-            }
-        }
-        if (opex.suministros) {
-            const slider = document.getElementById('gf-suministros');
-            if (slider) {
-                slider.value = opex.suministros;
-                document.getElementById('gf-suministros-valor').textContent =
-                    opex.suministros + '€';
-            }
-        }
-        if (opex.otros) {
-            const slider = document.getElementById('gf-otros');
-            if (slider) {
-                slider.value = opex.otros;
-                document.getElementById('gf-otros-valor').textContent = opex.otros + '€';
-            }
-        }
+        // Mapear gastos de la BD a los sliders
+        gastos.forEach(gasto => {
+            const monto = parseFloat(gasto.monto_mensual) || 0;
+            let sliderId, valorId;
 
-        actualizarTotalGastosFijos();
+            // Mapear por concepto
+            if (gasto.concepto === 'Alquiler') {
+                sliderId = 'gf-alquiler';
+                valorId = 'gf-alquiler-valor';
+            } else if (gasto.concepto === 'Nóminas') {
+                sliderId = 'gf-personal';
+                valorId = 'gf-personal-valor';
+            } else if (gasto.concepto === 'Agua') {
+                sliderId = 'gf-suministros';
+                valorId = 'gf-suministros-valor';
+            } else if (gasto.concepto === 'Luz') {
+                sliderId = 'gf-otros';
+                valorId = 'gf-otros-valor';
+            }
+
+            if (sliderId) {
+                const slider = document.getElementById(sliderId);
+                const valorElem = document.getElementById(valorId);
+                if (slider) slider.value = monto;
+                if (valorElem) valorElem.textContent = monto + '€';
+            }
+        });
+
+        await actualizarTotalGastosFijos();
     } catch (error) {
         console.error('Error cargando gastos fijos:', error);
     }
 }
 
 // Llamar al cargar la página
-setTimeout(cargarValoresGastosFijos, 500);
+setTimeout(cargarValoresGastosFijos, 1000);
 
 // ✅ Renderizar beneficio neto ACUMULADO por día (VERSIÓN PRO con Punto de Equilibrio)
-function renderizarBeneficioNetoDiario() {
+async function renderizarBeneficioNetoDiario() {
     const container = document.getElementById('beneficio-neto-diario-lista');
     if (!container) return;
 
@@ -349,7 +368,14 @@ function renderizarBeneficioNetoDiario() {
     }
 
     const dias = window.datosResumenMensual.dias;
-    const gastosFijosMes = calcularTotalGastosFijos();
+    let gastosFijosMes = await calcularTotalGastosFijos();
+
+    // ✅ VALIDACIÓN DEFENSIVA: Prevenir NaN en todos los edge cases
+    if (typeof gastosFijosMes !== 'number' || isNaN(gastosFijosMes) || gastosFijosMes < 0) {
+        console.warn('Gastos fijos inválidos, usando 0:', gastosFijosMes);
+        gastosFijosMes = 0;
+    }
+
     const mes = parseInt(document.getElementById('diario-mes')?.value || new Date().getMonth() + 1);
     const ano = parseInt(document.getElementById('diario-ano')?.value || new Date().getFullYear());
 
@@ -366,7 +392,12 @@ function renderizarBeneficioNetoDiario() {
         return;
     }
 
-    const gastosFijosDia = gastosFijosMes / diasTotalesMes;
+    let gastosFijosDia = gastosFijosMes / diasTotalesMes;
+
+    // ✅ VALIDACIÓN DEFENSIVA: Garantizar que gastosFijosDia sea válido
+    if (!isFinite(gastosFijosDia) || isNaN(gastosFijosDia)) {
+        gastosFijosDia = 0;
+    }
 
     // Crear mapa de datos por día con ingresos y costos REALES
     const diasDataMap = {};

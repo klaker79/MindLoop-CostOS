@@ -1,5 +1,17 @@
 // ========== INVENTARIO MASIVO ==========
 
+// Función anti-XSS: Sanitiza datos de usuario antes de insertarlos en HTML
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[char] || char);
+}
+
 let datosInventarioMasivo = [];
 
 window.mostrarModalInventarioMasivo = function () {
@@ -154,7 +166,7 @@ function mostrarPreviewInventario(datos) {
                         <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
                             <span style="color: ${iconColor}; font-size: 18px;">${icon}</span>
                         </td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${item.ingrediente}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${escapeHTML(item.ingrediente)}</td>
                         <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0;">
                             ${item.stockActual !== null ? item.stockActual : '-'}
                         </td>
@@ -162,7 +174,7 @@ function mostrarPreviewInventario(datos) {
                             ${item.stockReal}
                         </td>
                         <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: ${item.valido ? '#10b981' : '#ef4444'};">
-                            ${item.error || 'OK'}
+                            ${escapeHTML(item.error) || 'OK'}
                         </td>
                     </tr>
                 `;
@@ -353,11 +365,11 @@ function mostrarPreviewIngredientes(datos) {
         html += `
           <tr style="background: ${bgColor};">
             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
-            <td style="padding: 10px;">${item.nombre || '-'}</td>
+            <td style="padding: 10px;">${escapeHTML(item.nombre) || '-'}</td>
             <td style="padding: 10px; text-align: right;">${item.precio.toFixed(2)}€</td>
-            <td style="padding: 10px; text-align: center;">${item.unidad}</td>
+            <td style="padding: 10px; text-align: center;">${escapeHTML(item.unidad)}</td>
             <td style="padding: 10px; text-align: right;">${item.stockActual}</td>
-            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${item.error || 'OK'}</td>
+            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${escapeHTML(item.error) || 'OK'}</td>
           </tr>`;
     });
 
@@ -494,11 +506,11 @@ function mostrarPreviewRecetas(datos) {
         html += `
           <tr style="background: ${bgColor};">
             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
-            <td style="padding: 10px;">${item.nombre || '-'}</td>
-            <td style="padding: 10px; text-align: center;">${item.categoria}</td>
+            <td style="padding: 10px;">${escapeHTML(item.nombre) || '-'}</td>
+            <td style="padding: 10px; text-align: center;">${escapeHTML(item.categoria)}</td>
             <td style="padding: 10px; text-align: right;">${item.precioVenta.toFixed(2)}€</td>
             <td style="padding: 10px; text-align: center;">${item.porciones}</td>
-            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${item.error || 'OK'}</td>
+            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${escapeHTML(item.error) || 'OK'}</td>
           </tr>`;
     });
 
@@ -562,6 +574,9 @@ window.mostrarModalImportarVentas = function () {
     document.getElementById('modal-importar-ventas').classList.add('active');
     document.getElementById('preview-importar-ventas').style.display = 'none';
     document.getElementById('file-importar-ventas').value = '';
+    // Resetear fecha al abrir (vacío = fecha actual al importar)
+    const fechaInput = document.getElementById('fecha-importar-ventas');
+    if (fechaInput) fechaInput.value = '';
     datosImportarVentas = [];
 };
 
@@ -675,11 +690,11 @@ function mostrarPreviewVentas(datos) {
           <tr style="background: ${bgColor};">
             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
             <td style="padding: 10px;">
-              ${item.codigo ? `<span style="font-family:monospace; background:#eee; padding:2px 4px; border-radius:4px;">${item.codigo}</span> ` : ''}
-              ${item.nombre}
+              ${item.codigo ? `<span style="font-family:monospace; background:#eee; padding:2px 4px; border-radius:4px;">${escapeHTML(item.codigo)}</span> ` : ''}
+              ${escapeHTML(item.nombre)}
             </td>
             <td style="padding: 10px;">
-              ${item.recetaId ? `<strong>${item.recetaNombre}</strong>` : '<span style="color:#999; font-style:italic;">No encontrado</span>'}
+              ${item.recetaId ? `<strong>${escapeHTML(item.recetaNombre)}</strong>` : '<span style="color:#999; font-style:italic;">No encontrado</span>'}
             </td>
             <td style="padding: 10px; text-align: right;">${item.cantidad}</td>
             <td style="padding: 10px; text-align: right;">${item.total.toFixed(2)}€</td>
@@ -717,7 +732,17 @@ window.confirmarImportarVentas = async function () {
 
     try {
         let importados = 0;
-        const fechaHoy = new Date().toISOString();
+
+        // 📅 Usar fecha seleccionada o fecha actual
+        const fechaInput = document.getElementById('fecha-importar-ventas');
+        let fechaVentas;
+        if (fechaInput && fechaInput.value) {
+            // Usuario seleccionó fecha específica (retroactiva)
+            fechaVentas = new Date(fechaInput.value + 'T12:00:00').toISOString();
+        } else {
+            // Fecha actual por defecto
+            fechaVentas = new Date().toISOString();
+        }
 
         // Procesar en lotes o uno a uno (por ahora uno a uno para simplicidad, idealmente batch en backend)
         // Nota: La API actual de createSale espera un solo objeto.
@@ -730,7 +755,7 @@ window.confirmarImportarVentas = async function () {
                     recetaId: venta.recetaId,
                     cantidad: venta.cantidad,
                     total: venta.total, // Opcional si el backend lo recalcula, pero útil si el precio TPV varía
-                    fecha: fechaHoy,
+                    fecha: fechaVentas,
                 });
             } else {
                 // Si NO está vinculado, solo registramos financieramente (TODO: Backend support for generic sales)
@@ -1078,7 +1103,7 @@ window.cargarResumenMensual = async function () {
         // Renderizar tablas
         renderizarTablaComprasDiarias();
         renderizarTablaVentasDiarias();
-        renderizarTablaPLDiario();
+        await renderizarTablaPLDiario();
         renderizarBeneficioNetoDiario();
         window.showToast('Datos cargados', 'success');
     } catch (error) {
@@ -1212,7 +1237,7 @@ function renderizarTablaVentasDiarias() {
 }
 
 // Renderizar P&L diario
-function renderizarTablaPLDiario() {
+async function renderizarTablaPLDiario() {
     const container = document.getElementById('tabla-pl-diario');
     if (!window.datosResumenMensual || !window.datosResumenMensual.dias?.length) {
         container.innerHTML = '<p class="empty-state">No hay datos para este mes</p>';
@@ -1272,16 +1297,26 @@ function renderizarTablaPLDiario() {
     });
     html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalCostes.toFixed(2)}€</td></tr>`;
 
-    // Obtener gastos fijos mensuales
-    const opexData = JSON.parse(
-        localStorage.getItem('opex_inputs') ||
-        '{"alquiler":0,"personal":0,"suministros":0,"otros":0}'
-    );
-    const gastosFijosMes =
-        parseFloat(opexData.alquiler || 0) +
-        parseFloat(opexData.personal || 0) +
-        parseFloat(opexData.suministros || 0) +
-        parseFloat(opexData.otros || 0);
+    // Obtener gastos fijos mensuales desde API (misma fuente que Finanzas)
+    let gastosFijosMes = 0;
+    try {
+        const gastosFijos = await window.api.getGastosFijos();
+        if (gastosFijos && gastosFijos.length > 0) {
+            gastosFijosMes = gastosFijos.reduce((sum, g) => sum + parseFloat(g.monto_mensual || 0), 0);
+        }
+    } catch (error) {
+        console.warn('Fallback a localStorage para gastos fijos:', error.message);
+        // Fallback a localStorage si API falla
+        const opexData = JSON.parse(
+            localStorage.getItem('opex_inputs') ||
+            '{"alquiler":0,"personal":0,"suministros":0,"otros":0}'
+        );
+        gastosFijosMes =
+            parseFloat(opexData.alquiler || 0) +
+            parseFloat(opexData.personal || 0) +
+            parseFloat(opexData.suministros || 0) +
+            parseFloat(opexData.otros || 0);
+    }
 
     // Calcular gastos fijos por día (días del mes calendario, no solo días con datos)
     const mesSeleccionado = parseInt(document.getElementById('diario-mes').value);
