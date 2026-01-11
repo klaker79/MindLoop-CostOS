@@ -339,9 +339,9 @@ export async function actualizarKPIs() {
                     }
                 }
 
-                // Cargar horarios de hoy desde API si no existen
-                let horarios = window.horarios || [];
-                if (empleados.length > 0 && horarios.length === 0) {
+                // Cargar horarios de HOY directamente desde API (siempre fresco)
+                let horariosHoy = [];
+                if (empleados.length > 0) {
                     try {
                         const token = localStorage.getItem('token');
                         const apiBase = getApiUrl();
@@ -352,20 +352,16 @@ export async function actualizarKPIs() {
                             }
                         });
                         if (respHorarios.ok) {
-                            horarios = await respHorarios.json();
-                            window.horarios = horarios;
+                            horariosHoy = await respHorarios.json();
+                            console.log(`📅 Horarios de hoy (${hoyStr}): ${horariosHoy.length}`);
                         }
                     } catch (e) {
-                        console.warn('No se pudieron cargar horarios:', e);
+                        console.warn('No se pudieron cargar horarios de hoy:', e);
                     }
                 }
 
                 if (empleados.length > 0) {
-                    // Buscar quién trabaja hoy basado en horarios
-                    const horariosHoy = horarios.filter(h => {
-                        const fechaHorario = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
-                        return fechaHorario === hoyStr;
-                    });
+                    // Filtrar horarios que SÍ son de hoy
 
                     const empleadosConTurno = new Set(horariosHoy.map(h => h.empleado_id));
 
