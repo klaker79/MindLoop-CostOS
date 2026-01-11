@@ -4971,30 +4971,30 @@
                 html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${ing.unidad || ''}</small></span></td>`;
 
                 // Input con evento ONINPUT para cálculo dinámico y guardar en cache
-                // Si tiene formato de compra, mostrar helper de conversión
+                // Mostrar siempre el botón de conversión 📦
                 const tieneFormato = ing.formato_compra && ing.cantidad_por_formato;
-                const formatoHelper = tieneFormato
-                    ? `<div style="display:flex;align-items:center;gap:4px;">
-                         <input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
-                            class="input-stock-real" 
-                            data-id="${ing.id}" 
-                            data-stock-virtual="${ing.stock_virtual || 0}" 
-                            data-precio="${precioMedio}"
-                            data-cantidad-formato="${ing.cantidad_por_formato || 1}"
-                            id="stock-real-${ing.id}"
-                            oninput="window.updateDifferenceCell(this); window.stockRealCache[${ing.id}] = this.value;"
-                            style="width:70px;padding:5px;border:1px solid #ddd;border-radius:4px;">
-                         <button type="button" onclick="window.mostrarCalculadoraFormato(${ing.id}, '${escapeHTML(ing.formato_compra)}', ${ing.cantidad_por_formato}, '${ing.unidad}')" 
-                            style="padding:4px 8px;background:#f59e0b;color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px;" 
-                            title="Calcular desde ${ing.formato_compra}s">📦</button>
-                       </div>`
-                    : `<input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
+                const btnColor = tieneFormato ? '#f59e0b' : '#94a3b8';
+                const btnTitle = tieneFormato
+                    ? `Calcular desde ${ing.formato_compra}s`
+                    : 'Configura formato de compra para usar conversión';
+                const formatoData = tieneFormato
+                    ? `'${escapeHTML(ing.formato_compra)}', ${ing.cantidad_por_formato}`
+                    : `null, null`;
+
+                const formatoHelper = `<div style="display:flex;align-items:center;gap:4px;">
+                     <input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
                         class="input-stock-real" 
                         data-id="${ing.id}" 
                         data-stock-virtual="${ing.stock_virtual || 0}" 
                         data-precio="${precioMedio}"
+                        data-cantidad-formato="${ing.cantidad_por_formato || 1}"
+                        id="stock-real-${ing.id}"
                         oninput="window.updateDifferenceCell(this); window.stockRealCache[${ing.id}] = this.value;"
-                        style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;">`;
+                        style="width:70px;padding:5px;border:1px solid #ddd;border-radius:4px;">
+                     <button type="button" onclick="window.mostrarCalculadoraFormato(${ing.id}, ${formatoData}, '${ing.unidad}', '${escapeHTML(ing.nombre)}')" 
+                        style="padding:4px 8px;background:${btnColor};color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px;" 
+                        title="${btnTitle}">📦</button>
+                   </div>`;
 
                 html += `<td>${formatoHelper}</td>`;
 
@@ -5069,7 +5069,28 @@
     };
 
     // Función para mostrar calculadora de conversión de formato
-    window.mostrarCalculadoraFormato = function (ingredienteId, formato, cantidadPorFormato, unidad) {
+    window.mostrarCalculadoraFormato = function (ingredienteId, formato, cantidadPorFormato, unidad, nombreIngrediente) {
+        // Si no tiene formato configurado, permitir introducción manual
+        if (!formato || !cantidadPorFormato) {
+            const respuesta = prompt(`${nombreIngrediente || 'Este ingrediente'} no tiene formato de compra configurado.\n\nIntroduce manualmente:\n1. Nombre del formato (ej: bote, caja, garrafa)\n2. Cantidad por formato en ${unidad}\n\nEjemplo: "bote,0.5" significa 1 bote = 0.5 ${unidad}\n\nEscribe formato,cantidad:`);
+
+            if (!respuesta) return;
+
+            const partes = respuesta.split(',');
+            if (partes.length !== 2) {
+                showToast('Formato inválido. Usa: nombre,cantidad (ej: bote,0.5)', 'error');
+                return;
+            }
+
+            formato = partes[0].trim();
+            cantidadPorFormato = parseFloat(partes[1].trim());
+
+            if (isNaN(cantidadPorFormato) || cantidadPorFormato <= 0) {
+                showToast('Cantidad por formato inválida', 'error');
+                return;
+            }
+        }
+
         const cantidad = prompt(`¿Cuántos ${formato}s tienes?\n\n(Cada ${formato} = ${cantidadPorFormato} ${unidad})`);
 
         if (cantidad === null || cantidad === '') return;
