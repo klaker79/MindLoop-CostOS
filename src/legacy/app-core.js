@@ -4971,13 +4971,32 @@
                 html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${ing.unidad || ''}</small></span></td>`;
 
                 // Input con evento ONINPUT para cálculo dinámico y guardar en cache
-                html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
+                // Si tiene formato de compra, mostrar helper de conversión
+                const tieneFormato = ing.formato_compra && ing.cantidad_por_formato;
+                const formatoHelper = tieneFormato
+                    ? `<div style="display:flex;align-items:center;gap:4px;">
+                         <input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
+                            class="input-stock-real" 
+                            data-id="${ing.id}" 
+                            data-stock-virtual="${ing.stock_virtual || 0}" 
+                            data-precio="${precioMedio}"
+                            data-cantidad-formato="${ing.cantidad_por_formato || 1}"
+                            id="stock-real-${ing.id}"
+                            oninput="window.updateDifferenceCell(this); window.stockRealCache[${ing.id}] = this.value;"
+                            style="width:70px;padding:5px;border:1px solid #ddd;border-radius:4px;">
+                         <button type="button" onclick="window.mostrarCalculadoraFormato(${ing.id}, '${escapeHTML(ing.formato_compra)}', ${ing.cantidad_por_formato}, '${ing.unidad}')" 
+                            style="padding:4px 8px;background:#f59e0b;color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px;" 
+                            title="Calcular desde ${ing.formato_compra}s">📦</button>
+                       </div>`
+                    : `<input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
                         class="input-stock-real" 
                         data-id="${ing.id}" 
                         data-stock-virtual="${ing.stock_virtual || 0}" 
                         data-precio="${precioMedio}"
                         oninput="window.updateDifferenceCell(this); window.stockRealCache[${ing.id}] = this.value;"
-                        style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"></td>`;
+                        style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;">`;
+
+                html += `<td>${formatoHelper}</td>`;
 
                 // Celda de Diferencia con ID único para actualizar
                 let diffDisplay = '-';
@@ -5047,6 +5066,32 @@
 
         // Actualizar Valor Stock (REAL * Precio)
         cellVal.innerHTML = `<strong>${(real * precio).toFixed(2)}€</strong>`;
+    };
+
+    // Función para mostrar calculadora de conversión de formato
+    window.mostrarCalculadoraFormato = function (ingredienteId, formato, cantidadPorFormato, unidad) {
+        const cantidad = prompt(`¿Cuántos ${formato}s tienes?\n\n(Cada ${formato} = ${cantidadPorFormato} ${unidad})`);
+
+        if (cantidad === null || cantidad === '') return;
+
+        const numCantidad = parseFloat(cantidad);
+        if (isNaN(numCantidad) || numCantidad < 0) {
+            showToast('Cantidad inválida', 'error');
+            return;
+        }
+
+        // Calcular el stock en unidad base
+        const stockCalculado = (numCantidad * cantidadPorFormato).toFixed(2);
+
+        // Actualizar el input
+        const input = document.getElementById(`stock-real-${ingredienteId}`) ||
+            document.querySelector(`.input-stock-real[data-id="${ingredienteId}"]`);
+        if (input) {
+            input.value = stockCalculado;
+            window.updateDifferenceCell(input);
+            window.stockRealCache[ingredienteId] = stockCalculado;
+            showToast(`${numCantidad} ${formato}s = ${stockCalculado} ${unidad}`, 'success');
+        }
     };
 
     // Función global para actualizar stock real
