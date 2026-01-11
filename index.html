@@ -1145,8 +1145,14 @@
 
       <div class="card">
         <div style="margin-bottom: 20px;">
-          <input type="text" id="busqueda-inventario" placeholder="🔍 Buscar ingrediente..."
-            style="width: 100%; max-width: 400px;">
+          <div style="position: relative; max-width: 500px;">
+            <span
+              style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: #9CA3AF;">🔍</span>
+            <input type="text" id="busqueda-inventario" placeholder="Buscar ingrediente..."
+              style="width: 100%; padding: 14px 16px 14px 48px; border: 2px solid #E5E7EB; border-radius: 12px; font-size: 1rem; background: #F9FAFB; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
+              onfocus="this.style.borderColor='#F97316'; this.style.boxShadow='0 0 0 4px rgba(249,115,22,0.1)';"
+              onblur="this.style.borderColor='#E5E7EB'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
+          </div>
         </div>
 
         <div id="tabla-inventario"></div>
