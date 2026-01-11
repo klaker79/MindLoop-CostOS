@@ -369,30 +369,32 @@ export async function actualizarKPIs() {
 
                     const empleadosConTurno = new Set(horariosHoy.map(h => h.empleado_id));
 
-                    let htmlPersonal = '';
-                    let trabajando = 0;
-                    let libran = 0;
+                    const trabajanHoy = [];
+                    const libranHoy = [];
 
                     empleados.forEach(emp => {
-                        const trabaja = empleadosConTurno.has(emp.id);
-                        if (trabaja) {
-                            trabajando++;
+                        if (empleadosConTurno.has(emp.id)) {
+                            trabajanHoy.push(emp.nombre);
                         } else {
-                            libran++;
+                            libranHoy.push(emp.nombre);
                         }
                     });
 
-                    // Mostrar resumen compacto
-                    htmlPersonal = `
-                        <div style="display: flex; gap: 12px;">
-                            <div style="flex: 1; text-align: center; padding: 12px; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-radius: 10px;">
-                                <div style="font-size: 22px; font-weight: 800; color: #10B981;">${trabajando}</div>
-                                <div style="font-size: 11px; color: #059669; font-weight: 600;">Trabajan</div>
+                    // Mostrar con nombres
+                    const htmlPersonal = `
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <div style="flex: 1; text-align: center; padding: 8px; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-radius: 8px;">
+                                <div style="font-size: 20px; font-weight: 800; color: #10B981;">💪 ${trabajanHoy.length}</div>
+                                <div style="font-size: 10px; color: #059669; font-weight: 600;">Trabajan</div>
                             </div>
-                            <div style="flex: 1; text-align: center; padding: 12px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-radius: 10px;">
-                                <div style="font-size: 22px; font-weight: 800; color: #D97706;">${libran}</div>
-                                <div style="font-size: 11px; color: #B45309; font-weight: 600;">Libran</div>
+                            <div style="flex: 1; text-align: center; padding: 8px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-radius: 8px;">
+                                <div style="font-size: 20px; font-weight: 800; color: #D97706;">🏖️ ${libranHoy.length}</div>
+                                <div style="font-size: 10px; color: #B45309; font-weight: 600;">Libran</div>
                             </div>
+                        </div>
+                        <div style="font-size: 11px; max-height: 60px; overflow-y: auto;">
+                            ${trabajanHoy.length > 0 ? `<div style="color: #059669; margin-bottom: 4px;"><b>Trabajan:</b> ${trabajanHoy.join(', ')}</div>` : ''}
+                            ${libranHoy.length > 0 ? `<div style="color: #B45309;"><b>Libran:</b> ${libranHoy.join(', ')}</div>` : ''}
                         </div>
                     `;
                     personalHoyEl.innerHTML = htmlPersonal;
