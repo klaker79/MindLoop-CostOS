@@ -4877,6 +4877,9 @@
     }
 
     // ========== INVENTARIO ==========
+    // Cache para persistir valores de stock introducidos por el usuario
+    window.stockRealCache = window.stockRealCache || {};
+
     window.renderizarInventario = async function () {
         try {
             const inventario = await api.getInventoryComplete();
@@ -4956,22 +4959,24 @@
                 const precioMedio = parseFloat(ing.precio_medio || 0);
                 const valorStock = parseFloat(ing.valor_stock || 0);
                 const diferencia = parseFloat(ing.diferencia || 0);
-                const stockReal =
-                    ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '';
+                // Usar cache si existe, sino usar el valor de la BD
+                const cachedValue = window.stockRealCache[ing.id];
+                const stockReal = cachedValue !== undefined
+                    ? cachedValue
+                    : (ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '');
 
                 html += '<tr>';
                 html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
                 html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
                 html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${ing.unidad || ''}</small></span></td>`;
 
-                // Input con evento ONINPUT para cálculo dinámico
-                // Input con evento ONINPUT para cálculo dinámico
+                // Input con evento ONINPUT para cálculo dinámico y guardar en cache
                 html += `<td><input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
                         class="input-stock-real" 
                         data-id="${ing.id}" 
                         data-stock-virtual="${ing.stock_virtual || 0}" 
                         data-precio="${precioMedio}"
-                        oninput="window.updateDifferenceCell(this)"
+                        oninput="window.updateDifferenceCell(this); window.stockRealCache[${ing.id}] = this.value;"
                         style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"></td>`;
 
                 // Celda de Diferencia con ID único para actualizar
@@ -5107,6 +5112,8 @@
             showLoading();
             // Usamos el endpoint de consolidación que actualiza AMBOS (read y actual)
             await api.consolidateStock(adjustments);
+            // Limpiar cache después de guardar exitosamente
+            window.stockRealCache = {};
             await window.renderizarInventario();
             hideLoading();
             showToast('Inventario consolidado correctamente', 'success');
@@ -5324,6 +5331,8 @@
 
             await api.consolidateStock(finalAdjustments, currentSnapshots, finalStock);
 
+            // Limpiar cache después de guardar exitosamente
+            window.stockRealCache = {};
             await window.renderizarInventario();
             hideLoading();
             showToast('Ajustes de inventario registrados correctamente', 'success');
