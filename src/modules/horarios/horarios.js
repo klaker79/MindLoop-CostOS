@@ -700,6 +700,40 @@ window.filtrarDepartamento = function (departamento) {
 };
 
 /**
+ * Borrar TODOS los horarios (limpieza masiva)
+ */
+window.borrarTodosHorarios = async function () {
+    if (!confirm('⚠️ ¿BORRAR TODOS LOS HORARIOS?\n\nEsto eliminará TODOS los turnos de TODAS las semanas.\nLos empleados se mantienen.\n\n¿Continuar?')) return;
+    if (!confirm('🔴 CONFIRMACIÓN FINAL\n\n¿Estás SEGURO de borrar todos los horarios?')) return;
+
+    try {
+        showToast('🗑️ Borrando todos los horarios...', 'info');
+
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/horarios/all`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) throw new Error('Error al borrar horarios');
+
+        const result = await response.json();
+        showToast(`✅ ${result.deleted || 0} horarios eliminados`, 'success');
+
+        await cargarHorariosSemana();
+        renderizarGridHorarios();
+        renderizarEmpleados();
+
+    } catch (error) {
+        console.error('Error borrando horarios:', error);
+        showToast('Error borrando horarios: ' + error.message, 'error');
+    }
+};
+
+/**
  * Copiar semana anterior
  */
 window.copiarSemana = async function () {
