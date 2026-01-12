@@ -943,12 +943,18 @@ export function enviarPedidoWhatsApp() {
   // Obtener nombre del restaurante
   const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'La Nave 5';
 
-  // Construir mensaje
+  // Construir mensaje ELEGANTE Y PROFESIONAL
   const items = pedido.itemsRecepcion || pedido.ingredientes || [];
-  let mensaje = `📦 *PEDIDO #${pedido.id}*\n`;
-  mensaje += `🏪 ${restaurante}\n`;
-  mensaje += `📅 ${new Date().toLocaleDateString('es-ES')}\n\n`;
-  mensaje += `*Ingredientes:*\n`;
+  const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  let mensaje = `━━━━━━━━━━━━━━━━━━━━━━\n`;
+  mensaje += `🍽️ *${restaurante.toUpperCase()}*\n`;
+  mensaje += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  mensaje += `📋 *Pedido Nº ${pedido.id}*\n`;
+  mensaje += `📅 ${fecha}\n\n`;
+  mensaje += `Estimado proveedor,\n\n`;
+  mensaje += `Le enviamos el siguiente pedido:\n\n`;
+  mensaje += `┌─────────────────────────\n`;
 
   items.forEach(item => {
     const ingId = item.ingredienteId || item.ingrediente_id;
@@ -960,14 +966,18 @@ export function enviarPedidoWhatsApp() {
     // Si tiene formato de compra, mostrar en formato
     if (item.formatoUsado === 'formato' && ing?.formato_compra) {
       const cantFormatos = item.cantidadFormatos || Math.ceil(cantidad / (ing.cantidad_por_formato || 1));
-      mensaje += `• ${nombre}: ${cantFormatos} ${ing.formato_compra}\n`;
+      mensaje += `│ ▪️ ${nombre}\n│    ${cantFormatos} ${ing.formato_compra}\n`;
     } else {
-      mensaje += `• ${nombre}: ${cantidad} ${unidad}\n`;
+      mensaje += `│ ▪️ ${nombre}\n│    ${cantidad} ${unidad}\n`;
     }
   });
 
-  mensaje += `\n💰 *Total estimado: ${parseFloat(pedido.total || 0).toFixed(2)} €*`;
-  mensaje += `\n\n_Gracias!_`;
+  mensaje += `└─────────────────────────\n\n`;
+  mensaje += `💰 *Total estimado: ${parseFloat(pedido.total || 0).toFixed(2)} €*\n\n`;
+  mensaje += `Por favor, confirme disponibilidad y fecha de entrega.\n\n`;
+  mensaje += `Muchas gracias por su colaboración.\n`;
+  mensaje += `Un cordial saludo,\n`;
+  mensaje += `*${restaurante}* 🍽️`;
 
   // Codificar mensaje con los detalles del pedido
   const mensajeCodificado = encodeURIComponent(mensaje);
