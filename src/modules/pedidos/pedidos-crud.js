@@ -907,7 +907,23 @@ export function enviarPedidoWhatsApp() {
   const prov = window.proveedores.find(p => p.id === provId);
 
   if (!prov || !prov.telefono) {
-    window.showToast('⚠️ El proveedor no tiene teléfono configurado', 'warning');
+    // 🔧 Si no tiene teléfono, abrir edición del proveedor
+    window.showToast('⚠️ Configura el teléfono del proveedor', 'warning');
+
+    // Cerrar modal del pedido
+    const modalPedido = document.getElementById('modal-ver-pedido');
+    if (modalPedido) modalPedido.classList.remove('active');
+
+    // Abrir edición del proveedor
+    if (prov && typeof window.editarProveedor === 'function') {
+      setTimeout(() => {
+        window.showTab('proveedores');
+        setTimeout(() => window.editarProveedor(prov.id), 300);
+      }, 200);
+    } else {
+      // Ir a la pestaña de proveedores
+      window.showTab('proveedores');
+    }
     return;
   }
 
