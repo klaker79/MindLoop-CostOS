@@ -404,12 +404,6 @@
     <button id="tab-btn-recetas" class="tab" data-tab="recetas">👨‍🍳 Recetas</button>
     <button id="tab-btn-proveedores" class="tab" data-tab="proveedores">🚚 Proveedores</button>
     <button id="tab-btn-pedidos" class="tab" data-tab="pedidos">📋 Pedidos</button>
-    <button onclick="window.abrirCarrito()"
-      style="background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; position: relative;">
-      🛒 Carrito
-      <span id="carrito-badge"
-        style="display: none; background: #dc2626; color: white; font-size: 11px; min-width: 18px; height: 18px; border-radius: 50%; justify-content: center; align-items: center; position: absolute; top: -5px; right: -5px;">0</span>
-    </button>
     <button id="tab-btn-analisis" class="tab" data-tab="analisis">📊 Análisis</button>
     <button id="tab-btn-inventario" class="tab" data-tab="inventario">📦 Inventario<span id="badge-inventario"
         class="tab-badge" style="display:none;">0</span></button>
@@ -769,6 +763,12 @@
         </div>
         <div style="display: flex; gap: 10px;">
           <button class="btn btn-primary" data-action="mostrar-form-pedido">+ Nuevo Pedido</button>
+          <button class="btn" onclick="window.abrirCarrito()"
+            style="background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; position: relative;">
+            🛒 Carrito
+            <span id="carrito-badge"
+              style="display: none; background: #dc2626; color: white; font-size: 11px; min-width: 18px; height: 18px; border-radius: 50%; justify-content: center; align-items: center; position: absolute; top: -8px; right: -8px;">0</span>
+          </button>
           <button class="btn btn-secondary" data-action="importar-pedidos">📤 Importar
             Pedidos</button>
         </div>
@@ -2537,7 +2537,211 @@
   </script>
   </div>
   <script src="src/legacy/inventario-masivo.js"></script>
-  <script src="src/modules/pedidos/pedidos-cart.js"></script>
+
+  <!-- CARRITO DE PEDIDOS - CÓDIGO INLINE -->
+  <script>
+    (function () {
+      // Estado del carrito (persistido en localStorage)
+      let carrito = [];
+      let carritoProveedorId = null;
+
+      function initCarrito() {
+        try {
+          const saved = localStorage.getItem('pedidoCarrito');
+          if (saved) {
+            const data = JSON.parse(saved);
+            carrito = data.items || [];
+            carritoProveedorId = data.proveedorId || null;
+          }
+        } catch (e) {
+          console.error('Error cargando carrito:', e);
+          carrito = [];
+          carritoProveedorId = null;
+        }
+        actualizarBadgeCarrito();
+      }
+
+      function guardarCarrito() {
+        localStorage.setItem('pedidoCarrito', JSON.stringify({
+          items: carrito,
+          proveedorId: carritoProveedorId,
+          updatedAt: new Date().toISOString()
+        }));
+        actualizarBadgeCarrito();
+      }
+
+      function actualizarBadgeCarrito() {
+        const badge = document.getElementById('carrito-badge');
+        if (badge) {
+          const count = carrito.length;
+          badge.textContent = count;
+          badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+      }
+
+      window.agregarAlCarrito = function (ingredienteId, cantidad, proveedorId) {
+        cantidad = cantidad || 1;
+        const ing = window.ingredientes.find(i => i.id === ingredienteId);
+        if (!ing) {
+          window.showToast('Ingrediente no encontrado', 'error');
+          return;
+        }
+        const provId = proveedorId || ing.proveedor_id || ing.proveedorId;
+        if (carrito.length === 0) {
+          carritoProveedorId = provId;
+        }
+        const existente = carrito.find(item => item.ingredienteId === ingredienteId);
+        if (existente) {
+          existente.cantidad += cantidad;
+          window.showToast('📦 ' + ing.nombre + ': +' + cantidad + ' (Total: ' + existente.cantidad + ')', 'success');
+        } else {
+          carrito.push({
+            ingredienteId: ingredienteId,
+            nombre: ing.nombre,
+            cantidad: cantidad,
+            unidad: ing.unidad || 'ud',
+            precio: parseFloat(ing.precio || 0),
+            proveedorId: provId,
+            formatoCompra: ing.formato_compra,
+            cantidadPorFormato: ing.cantidad_por_formato
+          });
+          window.showToast('🛒 ' + ing.nombre + ' añadido al carrito', 'success');
+        }
+        guardarCarrito();
+      };
+
+      window.eliminarDelCarrito = function (ingredienteId) {
+        carrito = carrito.filter(item => item.ingredienteId !== ingredienteId);
+        if (carrito.length === 0) carritoProveedorId = null;
+        guardarCarrito();
+        renderizarCarrito();
+      };
+
+      window.actualizarCantidadCarrito = function (ingredienteId, nuevaCantidad) {
+        const item = carrito.find(i => i.ingredienteId === ingredienteId);
+        if (item) {
+          item.cantidad = parseFloat(nuevaCantidad) || 0;
+          if (item.cantidad <= 0) {
+            window.eliminarDelCarrito(ingredienteId);
+          } else {
+            guardarCarrito();
+          }
+        }
+      };
+
+      window.vaciarCarrito = function () {
+        if (carrito.length === 0) return;
+        if (!confirm('¿Vaciar todo el carrito?')) return;
+        carrito = [];
+        carritoProveedorId = null;
+        guardarCarrito();
+        renderizarCarrito();
+        window.showToast('🗑️ Carrito vaciado', 'info');
+      };
+
+      window.abrirCarrito = function () {
+        const modal = document.getElementById('modal-carrito');
+        if (modal) {
+          modal.classList.add('active');
+          renderizarCarrito();
+        }
+      };
+
+      window.cerrarCarrito = function () {
+        const modal = document.getElementById('modal-carrito');
+        if (modal) modal.classList.remove('active');
+      };
+
+      function renderizarCarrito() {
+        const contenedor = document.getElementById('carrito-contenido');
+        if (!contenedor) return;
+
+        if (carrito.length === 0) {
+          contenedor.innerHTML = '<div style="text-align: center; padding: 50px; color: #94A3B8;"><div style="font-size: 64px; margin-bottom: 20px;">🛒</div><h3 style="margin: 0; color: #64748B;">Carrito vacío</h3><p style="margin-top: 10px;">Añade ingredientes desde el botón 🛒 en la lista</p></div>';
+          document.getElementById('carrito-total').textContent = '0.00 €';
+          return;
+        }
+
+        const porProveedor = {};
+        let total = 0;
+        carrito.forEach(item => {
+          const provId = item.proveedorId || 0;
+          if (!porProveedor[provId]) {
+            const prov = window.proveedores.find(p => p.id === provId);
+            porProveedor[provId] = { nombre: prov ? prov.nombre : 'Sin proveedor', items: [] };
+          }
+          porProveedor[provId].items.push(item);
+          total += item.cantidad * item.precio;
+        });
+
+        let html = '';
+        Object.entries(porProveedor).forEach(function ([provId, data]) {
+          html += '<div style="margin-bottom: 20px;"><h4 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 8px; margin-bottom: 12px;">📦 ' + data.nombre + '</h4><table style="width: 100%; border-collapse: collapse;"><thead><tr style="background: #f8fafc;"><th style="padding: 10px; text-align: left;">Ingrediente</th><th style="padding: 10px; text-align: center; width: 120px;">Cantidad</th><th style="padding: 10px; text-align: right;">Precio</th><th style="padding: 10px; text-align: right;">Subtotal</th><th style="padding: 10px; width: 50px;"></th></tr></thead><tbody>';
+          data.items.forEach(function (item) {
+            const subtotal = item.cantidad * item.precio;
+            html += '<tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 12px;"><strong>' + item.nombre + '</strong>' + (item.formatoCompra ? '<br><small style="color:#64748b;">📦 ' + item.formatoCompra + '</small>' : '') + '</td><td style="padding: 12px; text-align: center;"><input type="number" value="' + item.cantidad + '" min="0.01" step="0.01" style="width: 70px; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" onchange="window.actualizarCantidadCarrito(' + item.ingredienteId + ', this.value)"><span style="color: #64748b; font-size: 12px;">' + item.unidad + '</span></td><td style="padding: 12px; text-align: right;">' + item.precio.toFixed(2) + ' €</td><td style="padding: 12px; text-align: right; font-weight: bold;">' + subtotal.toFixed(2) + ' €</td><td style="padding: 12px; text-align: center;"><button onclick="window.eliminarDelCarrito(' + item.ingredienteId + ')" style="background: #fee2e2; border: none; color: #dc2626; padding: 6px 10px; border-radius: 6px; cursor: pointer;">🗑️</button></td></tr>';
+          });
+          html += '</tbody></table></div>';
+        });
+        contenedor.innerHTML = html;
+        document.getElementById('carrito-total').textContent = total.toFixed(2) + ' €';
+      }
+
+      window.confirmarCarrito = async function () {
+        if (carrito.length === 0) {
+          window.showToast('El carrito está vacío', 'warning');
+          return;
+        }
+        if (!confirm('¿Crear pedido con ' + carrito.length + ' ingredientes?')) return;
+        window.showLoading();
+        try {
+          const porProveedor = {};
+          carrito.forEach(item => {
+            const provId = item.proveedorId || 0;
+            if (!porProveedor[provId]) porProveedor[provId] = [];
+            porProveedor[provId].push(item);
+          });
+          let pedidosCreados = 0;
+          for (const [provId, items] of Object.entries(porProveedor)) {
+            const ingredientes = items.map(item => ({
+              ingredienteId: item.ingredienteId,
+              ingrediente_id: item.ingredienteId,
+              cantidad: item.cantidad,
+              precioUnitario: item.precio,
+              precio_unitario: item.precio,
+              precio: item.precio
+            }));
+            const total = items.reduce((sum, item) => sum + (item.cantidad * item.precio), 0);
+            const pedido = {
+              proveedorId: parseInt(provId) || null,
+              proveedor_id: parseInt(provId) || null,
+              fecha: new Date().toISOString(),
+              estado: 'pendiente',
+              ingredientes: ingredientes,
+              total: total
+            };
+            await window.api.createPedido(pedido);
+            pedidosCreados++;
+          }
+          carrito = [];
+          carritoProveedorId = null;
+          guardarCarrito();
+          window.pedidos = await window.api.getPedidos();
+          window.renderizarPedidos();
+          window.hideLoading();
+          window.cerrarCarrito();
+          window.showToast('✅ ' + pedidosCreados + ' pedido(s) creado(s)', 'success');
+        } catch (error) {
+          window.hideLoading();
+          console.error('Error creando pedidos:', error);
+          window.showToast('Error creando pedidos: ' + error.message, 'error');
+        }
+      };
+
+      document.addEventListener('DOMContentLoaded', initCarrito);
+      window.initCarrito = initCarrito;
+    })();
+  </script>
 
   <!-- MODAL CARRITO DE PEDIDOS -->
   <div id="modal-carrito" class="modal">
