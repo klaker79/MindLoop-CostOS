@@ -767,7 +767,7 @@
             style="background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; position: relative;">
             🛒 Carrito
             <span id="carrito-badge"
-              style="display: none; background: #dc2626; color: white; font-size: 11px; min-width: 18px; height: 18px; border-radius: 50%; justify-content: center; align-items: center; position: absolute; top: -8px; right: -8px;">0</span>
+              style="display: none; background: #22c55e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; justify-content: center; align-items: center; position: absolute; top: -8px; right: -8px; font-weight: 700;"></span>
           </button>
           <button class="btn btn-secondary" data-action="importar-pedidos">📤 Importar
             Pedidos</button>
@@ -2574,8 +2574,14 @@
         const badge = document.getElementById('carrito-badge');
         if (badge) {
           const count = carrito.length;
-          badge.textContent = count;
-          badge.style.display = count > 0 ? 'inline-flex' : 'none';
+          if (count > 0) {
+            // Calcular total del carrito
+            const total = carrito.reduce((sum, item) => sum + (item.cantidad * item.precio), 0);
+            badge.textContent = total.toFixed(0) + '€';
+            badge.style.display = 'inline-flex';
+          } else {
+            badge.style.display = 'none';
+          }
         }
       }
 
@@ -2738,6 +2744,19 @@
         }
       };
 
+      // 🛒 Función para seguir comprando - abre el formulario de nuevo pedido
+      window.seguirComprando = function () {
+        window.cerrarCarrito();
+        // Mostrar formulario de nuevo pedido
+        if (typeof window.mostrarFormularioPedido === 'function') {
+          window.mostrarFormularioPedido();
+        } else {
+          // Fallback: mostrar el formulario directamente
+          const form = document.getElementById('formulario-pedido');
+          if (form) form.style.display = 'block';
+        }
+      };
+
       document.addEventListener('DOMContentLoaded', initCarrito);
       window.initCarrito = initCarrito;
     })();
@@ -2770,8 +2789,9 @@
             style="background: #fee2e2; color: #dc2626; border: none;">
             🗑️ Vaciar
           </button>
-          <button onclick="window.cerrarCarrito()" class="btn btn-secondary">
-            Seguir comprando
+          <button onclick="window.seguirComprando()" class="btn btn-primary"
+            style="background: linear-gradient(135deg, #3B82F6, #2563EB);">
+            ➕ Añadir más productos
           </button>
           <button onclick="window.confirmarCarrito()" class="btn btn-primary"
             style="background: linear-gradient(135deg, #10B981, #059669);">
