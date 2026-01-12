@@ -969,17 +969,27 @@ export function enviarPedidoWhatsApp() {
   mensaje += `\n💰 *Total estimado: ${parseFloat(pedido.total || 0).toFixed(2)} €*`;
   mensaje += `\n\n_Gracias!_`;
 
-  // Codificar mensaje para URL
-  const mensajeCodificado = encodeURIComponent(mensaje);
+  // 📄 PRIMERO: Descargar el PDF automáticamente
+  window.showToast('📄 Descargando PDF del pedido...', 'info');
 
-  // Abrir WhatsApp Web DIRECTAMENTE (sin página intermedia)
-  // Usar web.whatsapp.com/send en vez de wa.me para ir directo al chat
-  const url = `https://web.whatsapp.com/send?phone=${telefono}&text=${mensajeCodificado}`;
-  window.open(url, '_blank');
+  // Llamar a la función de descarga de PDF
+  if (typeof window.descargarPedidoPDF === 'function') {
+    window.descargarPedidoPDF();
+  }
 
-  window.showToast('📱 Abriendo chat de WhatsApp...', 'success');
+  // Codificar mensaje para URL (mensaje corto, el PDF va adjunto)
+  const mensajeCorto = `📦 *PEDIDO #${pedido.id}* - ${restaurante}\n\n📎 Te envío el PDF del pedido adjunto.\n\n_Gracias!_`;
+  const mensajeCodificado = encodeURIComponent(mensajeCorto);
+
+  // Esperar un momento para que se descargue el PDF, luego abrir WhatsApp
+  setTimeout(() => {
+    // Abrir WhatsApp Web DIRECTAMENTE
+    const url = `https://web.whatsapp.com/send?phone=${telefono}&text=${mensajeCodificado}`;
+    window.open(url, '_blank');
+
+    window.showToast('📱 Abre WhatsApp y adjunta el PDF descargado con 📎', 'success');
+  }, 1000);
 }
 
 // Exponer al window
 window.enviarPedidoWhatsApp = enviarPedidoWhatsApp;
-
