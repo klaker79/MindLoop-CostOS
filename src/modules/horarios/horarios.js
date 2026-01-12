@@ -114,15 +114,18 @@ function renderizarEmpleados() {
 
     let html = '<div style="display: grid; gap: 12px;">';
 
-    // Filtrar empleados por departamento
+    // Filtrar empleados por departamento (nombres hardcodeados)
+    const COCINA = ['IKER', 'LAURA', 'FRAN', 'LOLA', 'BEA'];
+    const SALA = ['PEROL', 'JUAN', 'LORENA', 'MANU', 'GUILLERMO'];
+
     const empleadosFiltrados = empleados.filter(emp => {
         if (filtroDepartamento === 'todos') return true;
-        const puesto = (emp.puesto || '').toLowerCase();
+        const nombre = (emp.nombre || '').toUpperCase();
         if (filtroDepartamento === 'cocina') {
-            return puesto === 'cocina' || puesto === 'cocinero' || puesto === 'cocinera';
+            return COCINA.includes(nombre);
         }
         if (filtroDepartamento === 'sala') {
-            return puesto === 'sala' || puesto === 'camarero' || puesto === 'camarera';
+            return SALA.includes(nombre);
         }
         return true;
     });
@@ -309,15 +312,18 @@ function renderizarGridHorarios() {
 
     html += '</tr></thead><tbody>';
 
-    // Filtrar empleados por departamento
+    // Filtrar empleados por departamento (nombres hardcodeados)
+    const COCINA = ['IKER', 'LAURA', 'FRAN', 'LOLA', 'BEA'];
+    const SALA = ['PEROL', 'JUAN', 'LORENA', 'MANU', 'GUILLERMO'];
+
     const empleadosFiltrados = empleados.filter(emp => {
         if (filtroDepartamento === 'todos') return true;
-        const puesto = (emp.puesto || '').toLowerCase();
+        const nombre = (emp.nombre || '').toUpperCase();
         if (filtroDepartamento === 'cocina') {
-            return puesto === 'cocina' || puesto === 'cocinero' || puesto === 'cocinera';
+            return COCINA.includes(nombre);
         }
         if (filtroDepartamento === 'sala') {
-            return puesto === 'sala' || puesto === 'camarero' || puesto === 'camarera';
+            return SALA.includes(nombre);
         }
         return true;
     });
