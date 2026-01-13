@@ -333,7 +333,7 @@ export function agregarIngredientePedido() {
  * Muestra selector de formato si el ingrediente lo tiene definido
  * 🆕 Pre-rellena el precio con el del proveedor específico
  */
-export async function onIngredientePedidoChange(selectElement, rowId) {
+export function onIngredientePedidoChange(selectElement, rowId) {
     const selectedOption = selectElement.options[selectElement.selectedIndex];
     const formatoContainer = document.getElementById(`${rowId}-formato-container`);
     const formatoSelect = document.getElementById(`${rowId}-formato-select`);
@@ -361,25 +361,10 @@ export async function onIngredientePedidoChange(selectElement, rowId) {
         conversionSpan.textContent = '';
     }
 
-    // 🆕 Pre-rellenar precio del proveedor específico
+    // Pre-rellenar precio del ingrediente (sin llamada API que falla con 401)
     if (precioInput && ingId) {
-        const proveedorId = parseInt(document.getElementById('ped-proveedor')?.value);
-
-        // Buscar precio del proveedor para este ingrediente
-        try {
-            const proveedoresIng = await window.API?.fetch(`/api/ingredients/${ingId}/suppliers`);
-            const proveedorEspecifico = proveedoresIng?.find(p => p.proveedor_id === proveedorId);
-
-            if (proveedorEspecifico && proveedorEspecifico.precio) {
-                precioInput.value = parseFloat(proveedorEspecifico.precio).toFixed(2);
-            } else {
-                // Si no hay precio específico, usar el precio general del ingrediente
-                precioInput.value = precioGeneral > 0 ? precioGeneral.toFixed(2) : '';
-            }
-        } catch (error) {
-            console.log('No se pudo obtener precio del proveedor, usando precio general');
-            precioInput.value = precioGeneral > 0 ? precioGeneral.toFixed(2) : '';
-        }
+        // Usar el precio del ingrediente directamente
+        precioInput.value = precioGeneral > 0 ? precioGeneral.toFixed(2) : '';
     }
 
     window.calcularTotalPedido();
