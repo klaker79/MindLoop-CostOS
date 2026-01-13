@@ -187,7 +187,21 @@ export async function actualizarKPIs() {
 
         // 5. VALOR STOCK TOTAL (nuevo KPI)
         try {
-            const inventario = window.inventarioCompleto || [];
+            let inventario = window.inventarioCompleto || [];
+
+            // Si inventario está vacío, intentar cargarlo
+            if (inventario.length === 0 && window.api?.getInventoryComplete) {
+                try {
+                    inventario = await window.api.getInventoryComplete();
+                    window.inventarioCompleto = inventario;
+                } catch (loadErr) {
+                    console.warn('No se pudo cargar inventario para KPI:', loadErr);
+                }
+            }
+
+            const valorStockEl = document.getElementById('kpi-valor-stock');
+            const itemsStockEl = document.getElementById('kpi-items-stock');
+
             if (inventario.length > 0) {
                 const valorTotal = inventario.reduce((sum, ing) => {
                     const stock = parseFloat(ing.stock_virtual) || 0;
@@ -202,20 +216,27 @@ export async function actualizarKPIs() {
                     return sum + (stock * precioUnitario);
                 }, 0);
 
-                const valorStockEl = document.getElementById('kpi-valor-stock');
                 if (valorStockEl) {
                     valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {
                         maximumFractionDigits: 0
                     }) + '€';
                 }
 
-                const itemsStockEl = document.getElementById('kpi-items-stock');
                 if (itemsStockEl) {
                     itemsStockEl.textContent = inventario.length;
                 }
+            } else {
+                // Si no hay datos, mostrar 0 en vez de dejarlo vacío
+                if (valorStockEl) valorStockEl.textContent = '0€';
+                if (itemsStockEl) itemsStockEl.textContent = '0';
             }
         } catch (e) {
             console.error('Error calculando valor stock:', e);
+            // En caso de error, mostrar indicador
+            const valorStockEl = document.getElementById('kpi-valor-stock');
+            const itemsStockEl = document.getElementById('kpi-items-stock');
+            if (valorStockEl) valorStockEl.textContent = '-';
+            if (itemsStockEl) itemsStockEl.textContent = '-';
         }
 
         // 6. SIDEBAR CAMBIOS DE PRECIO (comparar con último pedido)
