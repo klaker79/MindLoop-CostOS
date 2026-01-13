@@ -87,7 +87,16 @@ export function cerrarFormularioPedido() {
     const listaIngredientes = document.getElementById('lista-ingredientes-pedido');
     if (listaIngredientes) listaIngredientes.innerHTML = '';
 
-    // Resetear total a 0
+    // Resetear IVA y totales
+    const ivaInput = document.getElementById('ped-iva');
+    if (ivaInput) ivaInput.value = '0';
+
+    const subtotalDiv = document.getElementById('total-pedido-subtotal');
+    if (subtotalDiv) subtotalDiv.textContent = '0.00 €';
+
+    const ivaDiv = document.getElementById('total-pedido-iva');
+    if (ivaDiv) ivaDiv.textContent = '0.00 €';
+
     const totalDiv = document.getElementById('total-pedido');
     if (totalDiv) totalDiv.textContent = '0.00€';
     const totalForm = document.getElementById('total-pedido-form');
@@ -328,13 +337,14 @@ export function agregarIngredientePedido() {
 
     div.innerHTML = `
       <select style="flex: 2; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" onchange="window.onIngredientePedidoChange(this, '${rowId}')">${opciones}</select>
-      <div id="${rowId}-formato-container" style="display: none; flex: 1;">
+      <div id="${rowId}-formato-container" style="display: none; flex: 0.8;">
         <select id="${rowId}-formato-select" style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; width: 100%;" onchange="window.calcularTotalPedido()">
         </select>
       </div>
-      <input type="number" placeholder="Cantidad" step="0.01" min="0" class="cantidad-input" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;" oninput="window.calcularTotalPedido()">
-      <input type="number" placeholder="€/ud" step="0.01" min="0" class="precio-input" style="${precioInputStyle}" oninput="window.calcularTotalPedido()">
-      <span id="${rowId}-conversion" style="font-size: 11px; color: #64748b; min-width: 60px;"></span>
+      <input type="number" placeholder="Cant." step="0.01" min="0" class="cantidad-input" style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" oninput="window.calcularTotalPedido()">
+      <input type="number" placeholder="€/ud" step="0.01" min="0" class="precio-input" style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: right; ${esCompraMercado ? 'border-color: #10b981; background: #f0fdf4;' : ''}" oninput="window.calcularTotalPedido()">
+      <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">0.00€</span>
+      <span id="${rowId}-conversion" style="font-size: 10px; color: #64748b; min-width: 70px;"></span>
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
     `;
 
@@ -393,29 +403,30 @@ window.onIngredientePedidoChange = onIngredientePedidoChange;
  */
 export function calcularTotalPedido() {
     const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
-    let total = 0;
+    let subtotalBase = 0;
 
     // ⚡ OPTIMIZACIÓN: Crear Map O(1) una vez, no .find() O(n) por cada item
     const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
 
     items.forEach(item => {
         const select = item.querySelector('select');
-        const input = item.querySelector('input[type="number"]');
+        const cantidadInputEl = item.querySelector('.cantidad-input');
         const formatoSelect = item.querySelector('select[id$="-formato-select"]');
         const conversionSpan = item.querySelector('span[id$="-conversion"]');
+        const subtotalSpan = item.querySelector('span[id$="-subtotal"]');
 
-        if (select && select.value && input && input.value) {
+        let subtotalLinea = 0;
+
+        if (select && select.value && cantidadInputEl && cantidadInputEl.value) {
             const ing = ingMap.get(parseInt(select.value)); // O(1) lookup
             if (ing) {
-                const cantidadInput = parseFloat(input.value || 0);
+                const cantidadInput = parseFloat(cantidadInputEl.value || 0);
 
                 // Obtener multiplicador del formato (1 si es unidad base)
-                let multiplicador = 1;
-                let formatoMult = 1; // Multiplicador del formato (siempre, para calcular precio/kg)
+                let formatoMult = 1;
                 let usandoFormato = false;
                 if (formatoSelect && formatoSelect.parentElement?.style.display !== 'none') {
                     const selectedFormatoOption = formatoSelect.options[formatoSelect.selectedIndex];
-                    multiplicador = parseFloat(selectedFormatoOption?.dataset?.multiplicador) || 1;
                     formatoMult = parseFloat(selectedFormatoOption?.dataset?.formatoMult) || 1;
                     usandoFormato = formatoSelect.value === 'formato' && formatoMult && formatoMult !== 1;
                 }
@@ -425,43 +436,60 @@ export function calcularTotalPedido() {
 
                 // Mostrar conversión si hay multiplicador > 1
                 if (conversionSpan && usandoFormato) {
-                    conversionSpan.textContent = `= ${cantidadReal.toFixed(2)} ${ing.unidad || 'ud'}`;
+                    conversionSpan.textContent = `= ${cantidadReal.toFixed(0)} ${ing.unidad || 'ud'}`;
                     conversionSpan.style.color = '#10b981';
                     conversionSpan.style.fontWeight = '600';
                 } else if (conversionSpan) {
                     conversionSpan.textContent = '';
                 }
 
-                // 💰 CORREGIDO: Usar el precio del campo de texto (que el usuario puede editar)
-                // Si no hay precio en el campo, usar el precio del ingrediente
+                // Usar el precio del campo de texto
                 const precioInput = item.querySelector('.precio-input');
                 const precioManual = precioInput ? parseFloat(precioInput.value || 0) : 0;
                 const precioIngrediente = precioManual > 0 ? precioManual : parseFloat(ing.precio || 0);
 
                 if (usandoFormato) {
                     // Compra por formato (lote): precio_por_unidad × cantidad_por_formato × cantidad_lotes
-                    // Ej: 0.40€/botella × 12 bots/lote × 1 lote = 4.80€
-                    total += precioIngrediente * formatoMult * cantidadInput;
+                    subtotalLinea = precioIngrediente * formatoMult * cantidadInput;
                 } else {
                     // Compra por unidad base (kg, botella) directamente
-                    total += precioIngrediente * cantidadInput;
+                    subtotalLinea = precioIngrediente * cantidadInput;
                 }
+
+                subtotalBase += subtotalLinea;
             }
+        }
+
+        // Actualizar subtotal de esta línea
+        if (subtotalSpan) {
+            subtotalSpan.textContent = subtotalLinea.toFixed(2) + '€';
         }
     });
 
-    // Actualizar display del total
+    // Obtener IVA del campo (si existe)
+    const ivaInput = document.getElementById('ped-iva');
+    const ivaPorcentaje = ivaInput ? parseFloat(ivaInput.value || 0) : 0;
+    const ivaImporte = subtotalBase * (ivaPorcentaje / 100);
+    const totalConIva = subtotalBase + ivaImporte;
+
+    // Actualizar displays
+    const subtotalDiv = document.getElementById('total-pedido-subtotal');
+    if (subtotalDiv) subtotalDiv.textContent = subtotalBase.toFixed(2) + ' €';
+
+    const ivaDiv = document.getElementById('total-pedido-iva');
+    if (ivaDiv) ivaDiv.textContent = ivaImporte.toFixed(2) + ' €';
+
     const totalDiv = document.getElementById('total-pedido');
-    if (totalDiv) totalDiv.textContent = total.toFixed(2) + '€';
+    if (totalDiv) totalDiv.textContent = totalConIva.toFixed(2) + '€';
 
     const totalForm = document.getElementById('total-pedido-form');
     if (totalForm) {
-        totalForm.style.display = total > 0 ? 'block' : 'none';
+        totalForm.style.display = subtotalBase > 0 ? 'block' : 'none';
         const valorSpan = document.getElementById('total-pedido-value');
-        if (valorSpan) valorSpan.textContent = total.toFixed(2) + ' €';
+        if (valorSpan) valorSpan.textContent = totalConIva.toFixed(2) + ' €';
     }
 
-    return total;
+    return totalConIva;
 }
 
 /**
