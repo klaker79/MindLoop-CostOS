@@ -82,6 +82,19 @@ export function cerrarFormularioPedido() {
     document.getElementById('formulario-pedido').style.display = 'none';
     document.querySelector('#formulario-pedido form').reset();
     window.editandoPedidoId = null;
+
+    // Limpiar lista de ingredientes del pedido
+    const listaIngredientes = document.getElementById('lista-ingredientes-pedido');
+    if (listaIngredientes) listaIngredientes.innerHTML = '';
+
+    // Resetear total a 0
+    const totalDiv = document.getElementById('total-pedido');
+    if (totalDiv) totalDiv.textContent = '0.00€';
+    const totalForm = document.getElementById('total-pedido-form');
+    if (totalForm) totalForm.style.display = 'none';
+    const totalValue = document.getElementById('total-pedido-value');
+    if (totalValue) totalValue.textContent = '0.00 €';
+
     // Limpiar búsqueda de ingrediente
     const sugerencias = document.getElementById('sugerencias-ingrediente-pedido');
     if (sugerencias) sugerencias.style.display = 'none';
