@@ -1283,6 +1283,7 @@ async function renderizarTablaPLDiario() {
     // Fila Ingresos
     let totalIngresos = 0,
         totalCostes = 0,
+        totalCompras = 0,
         totalBeneficio = 0;
     html += '<tbody>';
     html +=
@@ -1294,15 +1295,36 @@ async function renderizarTablaPLDiario() {
     });
     html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalIngresos.toFixed(2)}€</td></tr>`;
 
-    // Fila Costes
+    // Fila Costes de Producción (Food Cost)
     html +=
-        '<tr style="background: #ffebee;"><td style="position: sticky; left: 0; background: #ffebee; font-weight: bold;">📉 COSTES</td>';
+        '<tr style="background: #ffebee;"><td style="position: sticky; left: 0; background: #ffebee; font-weight: bold;">📉 COSTES PROD.</td>';
     dias.forEach(dia => {
         const val = totalesPorDia[dia].costes;
         totalCostes += val;
         html += `<td style="text-align: center; color: #c62828;">${val.toFixed(2)}€</td>`;
     });
     html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalCostes.toFixed(2)}€</td></tr>`;
+
+    // Fila COMPRAS (compras reales a proveedores)
+    const comprasData = window.datosResumenMensual.compras?.ingredientes || {};
+    const comprasPorDia = {};
+    dias.forEach(dia => { comprasPorDia[dia] = 0; });
+    for (const [nombre, data] of Object.entries(comprasData)) {
+        for (const [dia, diaData] of Object.entries(data.dias || {})) {
+            if (comprasPorDia[dia] !== undefined) {
+                comprasPorDia[dia] += diaData.total || diaData.precio || 0;
+            }
+        }
+    }
+
+    html +=
+        '<tr style="background: #fff8e1;"><td style="position: sticky; left: 0; background: #fff8e1; font-weight: bold;">🛒 COMPRAS</td>';
+    dias.forEach(dia => {
+        const val = comprasPorDia[dia] || 0;
+        totalCompras += val;
+        html += `<td style="text-align: center; color: #f57c00;">${val.toFixed(2)}€</td>`;
+    });
+    html += `<td style="text-align: center; background: #1565c0; color: white; font-weight: bold;">${totalCompras.toFixed(2)}€</td></tr>`;
 
     // Obtener gastos fijos mensuales desde API (misma fuente que Finanzas)
     let gastosFijosMes = 0;
