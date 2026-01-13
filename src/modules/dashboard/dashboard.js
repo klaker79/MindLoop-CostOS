@@ -209,9 +209,8 @@ export async function actualizarKPIs() {
                     let precioUnitario = parseFloat(ing.precio_medio) || 0;
                     if (!precioUnitario) {
                         const precioBase = parseFloat(ing.precio) || 0;
-                        const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 0;
-                        // Si hay formato, dividir precio por cantidad_por_formato
-                        precioUnitario = (cantidadFormato > 0) ? precioBase / cantidadFormato : precioBase;
+                        // El precio ya es por unidad, usar directamente
+                        precioUnitario = precioBase;
                     }
                     return sum + (stock * precioUnitario);
                 }, 0);
