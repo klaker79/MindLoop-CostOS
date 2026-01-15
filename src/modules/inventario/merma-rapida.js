@@ -83,7 +83,7 @@ export function agregarLineaMerma() {
 
     const lineaHtml = `
     <div class="merma-linea" data-index="${index}" style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px;">
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; align-items: center;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: center;">
             <!-- Producto -->
             <select class="merma-producto" onchange="window.actualizarLineaMerma(${index})" 
                 style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
@@ -106,14 +106,6 @@ export function agregarLineaMerma() {
                 <option value="mal_estado">🦠 Mal estado</option>
                 <option value="accidente">💥 Accidente</option>
                 <option value="otro">📝 Otro</option>
-            </select>
-            
-            <!-- Medida -->
-            <select class="merma-medida" style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
-                <option value="tirar">🗑️ Tirar</option>
-                <option value="devolver">↩️ Devolver</option>
-                <option value="donar">🎁 Donar</option>
-                <option value="consumo">🍽️ Consumo int.</option>
             </select>
             
             <!-- Valor + Eliminar -->
