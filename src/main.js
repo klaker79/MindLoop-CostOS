@@ -266,6 +266,10 @@ import * as MermaRapida from './modules/inventario/merma-rapida.js';
 
 window.mostrarModalMermaRapida = MermaRapida.mostrarModalMermaRapida;
 window.confirmarMermaRapida = MermaRapida.confirmarMermaRapida;
+window.confirmarMermasMultiples = MermaRapida.confirmarMermasMultiples;
+window.agregarLineaMerma = MermaRapida.agregarLineaMerma;
+window.eliminarLineaMerma = MermaRapida.eliminarLineaMerma;
+window.actualizarLineaMerma = MermaRapida.actualizarLineaMerma;
 
 // ============================================
 // MÓDULO: EXPORT PDF

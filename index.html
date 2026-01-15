@@ -2288,56 +2288,70 @@
     </div>
   </div>
 
-  <!-- Modal: Merma Rápida -->
+  <!-- Modal: Registrar Mermas (Mejorado) -->
   <div id="modal-merma-rapida" class="modal">
-    <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
       <span class="close" data-action="cerrar-modal-merma-rapida">&times;</span>
-      <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px;">🗑️ Registrar Merma</h2>
-      <p style="color: #64748b; margin-bottom: 20px;">Registra rápidamente una merma o pérdida de producto.</p>
 
-      <div class="form-group">
-        <label>Ingrediente:</label>
-        <select id="merma-ingrediente" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-          <option value="">Selecciona ingrediente...</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Cantidad a descontar:</label>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="number" id="merma-cantidad" step="0.001" min="0" placeholder="0.00"
-            style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-          <span id="merma-unidad" style="color: #64748b; min-width: 40px;">kg</span>
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px; margin: 0;">
+            🗑️ Control de Mermas
+          </h2>
+          <p style="color: #64748b; margin: 5px 0 0; font-size: 14px;">
+            Registra pérdidas de producto (caducidad, averías, etc.)
+          </p>
+        </div>
+        <div style="text-align: right; color: #64748b; font-size: 13px;">
+          <div id="merma-fecha-actual"></div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Motivo:</label>
-        <select id="merma-motivo" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-          <option value="caduco">📅 Caducado / Vencido</option>
-          <option value="mal_estado">🦠 Mal estado</option>
-          <option value="accidente">💥 Accidente / Derrame</option>
-          <option value="merma_natural">📉 Merma natural</option>
-          <option value="otro">📝 Otro</option>
+      <!-- Responsable -->
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label style="font-weight: 600;">👤 Responsable:</label>
+        <select id="merma-responsable" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+          <option value="">Selecciona responsable...</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label>Nota (opcional):</label>
-        <input type="text" id="merma-nota" placeholder="Añade un comentario..."
-          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+      <!-- Líneas de merma -->
+      <div style="background: #f8fafc; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-weight: 600; color: #334155;">📋 Productos afectados</span>
+          <button type="button" onclick="window.agregarLineaMerma()"
+            style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px;">
+            + Añadir producto
+          </button>
+        </div>
+
+        <!-- Contenedor de líneas -->
+        <div id="merma-lineas-container">
+          <!-- Las líneas se añaden dinámicamente -->
+        </div>
       </div>
 
-      <div id="merma-preview"
-        style="display: none; padding: 15px; background: #fef3c7; border-radius: 8px; margin: 15px 0;">
-        <div style="font-weight: 600; color: #92400e;">📊 Resultado del ajuste:</div>
-        <div id="merma-preview-text" style="margin-top: 8px; color: #78350f;"></div>
+      <!-- Resumen -->
+      <div id="merma-resumen"
+        style="display: none; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <span style="font-weight: 600; color: #92400e;">📊 Resumen de mermas</span>
+            <div id="merma-resumen-detalle" style="color: #78350f; margin-top: 5px;"></div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 24px; font-weight: 700; color: #dc2626;" id="merma-total-perdida">0.00€</div>
+            <div style="font-size: 12px; color: #92400e;">Pérdida total</div>
+          </div>
+        </div>
       </div>
 
-      <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+      <!-- Botones -->
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
         <button class="btn btn-secondary" data-action="cerrar-modal-merma-rapida">Cancelar</button>
-        <button class="btn" style="background: #ef4444; color: white;" data-action="confirmar-merma-rapida">
-          🗑️ Registrar Merma
+        <button class="btn" style="background: #ef4444; color: white;" onclick="window.confirmarMermasMultiples()">
+          🗑️ Registrar Mermas
         </button>
       </div>
     </div>
@@ -2784,7 +2798,7 @@
       };
 
       document.addEventListener('DOMContentLoaded', initCarrito);
-      window.initCarrito = initCarrito;
+      window.initCarrito = initCarri;
     })();
   </script>
 

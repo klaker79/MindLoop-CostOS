@@ -1,131 +1,284 @@
 /**
- * Quick Merma Module
- * Allows quick registration of product waste/loss
+ * Quick Merma Module - MEJORADO
+ * Permite registrar múltiples mermas/pérdidas de producto
  * 
  * @module modules/inventario/merma-rapida
  */
 
+// Array para almacenar las líneas de merma
+let lineasMerma = [];
+let contadorLineas = 0;
+
 /**
- * Shows the quick merma modal
+ * Muestra el modal de control de mermas mejorado
  */
 export function mostrarModalMermaRapida() {
-    const select = document.getElementById('merma-ingrediente');
-    if (!select) return;
+    // Reset estado
+    lineasMerma = [];
+    contadorLineas = 0;
 
-    // Populate ingredient select
+    // Actualizar fecha
+    const fechaDiv = document.getElementById('merma-fecha-actual');
+    if (fechaDiv) {
+        const hoy = new Date();
+        fechaDiv.innerHTML = `Semana del ${hoy.toLocaleDateString('es-ES')}<br>📅 ${hoy.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+    }
+
+    // Poblar selector de responsables (empleados)
+    const selectResponsable = document.getElementById('merma-responsable');
+    if (selectResponsable) {
+        const empleados = window.empleados || [];
+        let html = '<option value="">Selecciona responsable...</option>';
+        empleados.forEach(emp => {
+            html += `<option value="${emp.id}">${emp.nombre}</option>`;
+        });
+        // Si no hay empleados, añadir opción manual
+        if (empleados.length === 0) {
+            html += '<option value="manual">Registrar manualmente</option>';
+        }
+        selectResponsable.innerHTML = html;
+    }
+
+    // Limpiar contenedor de líneas
+    const container = document.getElementById('merma-lineas-container');
+    if (container) {
+        container.innerHTML = '';
+    }
+
+    // Añadir primera línea vacía
+    agregarLineaMerma();
+
+    // Ocultar resumen
+    const resumen = document.getElementById('merma-resumen');
+    if (resumen) resumen.style.display = 'none';
+
+    // Mostrar modal
+    document.getElementById('modal-merma-rapida')?.classList.add('active');
+}
+
+/**
+ * Genera el HTML de las opciones de ingredientes
+ */
+function getIngredientesOptionsHtml() {
     const ingredientes = (window.ingredientes || []).sort((a, b) =>
         a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
     );
 
-    let optionsHtml = '<option value="">Selecciona ingrediente...</option>';
+    let html = '<option value="">Selecciona producto...</option>';
     ingredientes.forEach(ing => {
-        optionsHtml += `<option value="${ing.id}" data-unidad="${ing.unidad || 'ud'}" data-stock="${ing.stockActual || 0}">${ing.nombre}</option>`;
+        const stock = parseFloat(ing.stockActual || 0).toFixed(2);
+        html += `<option value="${ing.id}" data-unidad="${ing.unidad || 'ud'}" data-stock="${stock}" data-precio="${ing.precio || 0}" data-formato="${ing.cantidad_por_formato || 1}">${ing.nombre} (${stock} ${ing.unidad || 'ud'})</option>`;
     });
-    select.innerHTML = optionsHtml;
-
-    // Reset form
-    document.getElementById('merma-cantidad').value = '';
-    document.getElementById('merma-motivo').value = 'caduco';
-    document.getElementById('merma-nota').value = '';
-    document.getElementById('merma-unidad').textContent = 'ud';
-    document.getElementById('merma-preview').style.display = 'none';
-
-    // Add change listener to update unit and preview
-    select.onchange = actualizarPreviewMerma;
-    document.getElementById('merma-cantidad').oninput = actualizarPreviewMerma;
-
-    // Show modal
-    document.getElementById('modal-merma-rapida').classList.add('active');
+    return html;
 }
 
 /**
- * Updates the preview section showing the result of the adjustment
+ * Añade una nueva línea de merma al formulario
  */
-function actualizarPreviewMerma() {
-    const select = document.getElementById('merma-ingrediente');
-    const cantidadInput = document.getElementById('merma-cantidad');
-    const previewDiv = document.getElementById('merma-preview');
-    const previewText = document.getElementById('merma-preview-text');
-    const unidadSpan = document.getElementById('merma-unidad');
+export function agregarLineaMerma() {
+    const container = document.getElementById('merma-lineas-container');
+    if (!container) return;
+
+    const index = contadorLineas++;
+
+    const lineaHtml = `
+    <div class="merma-linea" data-index="${index}" style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; align-items: center;">
+            <!-- Producto -->
+            <select class="merma-producto" onchange="window.actualizarLineaMerma(${index})" 
+                style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+                ${getIngredientesOptionsHtml()}
+            </select>
+            
+            <!-- Cantidad -->
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <input type="number" class="merma-cantidad" step="0.001" min="0" placeholder="0.00"
+                    onchange="window.actualizarLineaMerma(${index})" oninput="window.actualizarLineaMerma(${index})"
+                    style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+                <span class="merma-unidad" style="color: #64748b; font-size: 12px; min-width: 25px;">ud</span>
+            </div>
+            
+            <!-- Motivo -->
+            <select class="merma-motivo" style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+                <option value="caduco">📅 Caducado</option>
+                <option value="nevera">🌡️ Nevera</option>
+                <option value="falta_venta">📉 Falta venta</option>
+                <option value="mal_estado">🦠 Mal estado</option>
+                <option value="accidente">💥 Accidente</option>
+                <option value="otro">📝 Otro</option>
+            </select>
+            
+            <!-- Medida -->
+            <select class="merma-medida" style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+                <option value="tirar">🗑️ Tirar</option>
+                <option value="devolver">↩️ Devolver</option>
+                <option value="donar">🎁 Donar</option>
+                <option value="consumo">🍽️ Consumo int.</option>
+            </select>
+            
+            <!-- Valor + Eliminar -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="merma-valor" style="font-weight: 600; color: #dc2626; min-width: 60px; text-align: right;">0.00€</span>
+                <button type="button" onclick="window.eliminarLineaMerma(${index})" 
+                    style="background: #fee2e2; color: #dc2626; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px;">×</button>
+            </div>
+        </div>
+    </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', lineaHtml);
+    actualizarResumenMermas();
+}
+
+/**
+ * Actualiza una línea de merma (valor calculado)
+ */
+export function actualizarLineaMerma(index) {
+    const linea = document.querySelector(`.merma-linea[data-index="${index}"]`);
+    if (!linea) return;
+
+    const select = linea.querySelector('.merma-producto');
+    const cantidadInput = linea.querySelector('.merma-cantidad');
+    const unidadSpan = linea.querySelector('.merma-unidad');
+    const valorSpan = linea.querySelector('.merma-valor');
 
     const selectedOption = select.options[select.selectedIndex];
     const unidad = selectedOption?.dataset?.unidad || 'ud';
-    const stockActual = parseFloat(selectedOption?.dataset?.stock || 0);
+    const precio = parseFloat(selectedOption?.dataset?.precio || 0);
+    const formato = parseFloat(selectedOption?.dataset?.formato || 1);
     const cantidad = parseFloat(cantidadInput.value) || 0;
 
+    // Actualizar unidad
     unidadSpan.textContent = unidad;
 
-    if (select.value && cantidad > 0) {
-        const nuevoStock = Math.max(0, stockActual - cantidad);
-        const ingrediente = window.ingredientes.find(i => i.id === parseInt(select.value));
-        const precio = parseFloat(ingrediente?.precio || 0);
-        const perdida = precio * cantidad;
+    // Calcular precio unitario y valor de pérdida
+    const precioUnitario = precio / formato;
+    const valor = precioUnitario * cantidad;
+    valorSpan.textContent = valor.toFixed(2) + '€';
 
-        previewText.innerHTML = `
-            <strong>${ingrediente?.nombre || 'Ingrediente'}</strong><br>
-            Stock actual: ${stockActual.toFixed(2)} ${unidad}<br>
-            <span style="color: #dc2626;">- ${cantidad.toFixed(3)} ${unidad} (merma)</span><br>
-            <strong>Nuevo stock: ${nuevoStock.toFixed(2)} ${unidad}</strong><br>
-            <span style="font-size: 12px; color: #92400e;">💰 Pérdida estimada: ${perdida.toFixed(2)}€</span>
-        `;
-        previewDiv.style.display = 'block';
-    } else {
-        previewDiv.style.display = 'none';
+    actualizarResumenMermas();
+}
+
+/**
+ * Elimina una línea de merma
+ */
+export function eliminarLineaMerma(index) {
+    const linea = document.querySelector(`.merma-linea[data-index="${index}"]`);
+    if (linea) {
+        linea.remove();
+        actualizarResumenMermas();
     }
 }
 
 /**
- * Confirms and executes the quick merma
+ * Actualiza el resumen total de mermas
  */
-export async function confirmarMermaRapida() {
-    const ingredienteId = parseInt(document.getElementById('merma-ingrediente').value);
-    const cantidad = parseFloat(document.getElementById('merma-cantidad').value);
-    const motivo = document.getElementById('merma-motivo').value;
-    const nota = document.getElementById('merma-nota').value;
+function actualizarResumenMermas() {
+    const lineas = document.querySelectorAll('.merma-linea');
+    let totalProductos = 0;
+    let totalPerdida = 0;
 
-    if (!ingredienteId) {
-        window.showToast?.('Selecciona un ingrediente', 'warning');
+    lineas.forEach(linea => {
+        const select = linea.querySelector('.merma-producto');
+        const cantidad = parseFloat(linea.querySelector('.merma-cantidad')?.value) || 0;
+        const valorText = linea.querySelector('.merma-valor')?.textContent || '0.00€';
+        const valor = parseFloat(valorText.replace('€', '')) || 0;
+
+        if (select.value && cantidad > 0) {
+            totalProductos++;
+            totalPerdida += valor;
+        }
+    });
+
+    const resumenDiv = document.getElementById('merma-resumen');
+    const detalleDiv = document.getElementById('merma-resumen-detalle');
+    const totalDiv = document.getElementById('merma-total-perdida');
+
+    if (totalProductos > 0) {
+        resumenDiv.style.display = 'block';
+        detalleDiv.textContent = `${totalProductos} producto${totalProductos > 1 ? 's' : ''} afectado${totalProductos > 1 ? 's' : ''}`;
+        totalDiv.textContent = totalPerdida.toFixed(2) + '€';
+    } else {
+        resumenDiv.style.display = 'none';
+    }
+}
+
+/**
+ * Confirma y ejecuta el registro de múltiples mermas
+ */
+export async function confirmarMermasMultiples() {
+    const responsableId = document.getElementById('merma-responsable')?.value;
+    const lineas = document.querySelectorAll('.merma-linea');
+
+    // Recolectar datos de todas las líneas válidas
+    const mermasARegistrar = [];
+
+    lineas.forEach(linea => {
+        const select = linea.querySelector('.merma-producto');
+        const ingredienteId = parseInt(select.value);
+        const cantidad = parseFloat(linea.querySelector('.merma-cantidad')?.value) || 0;
+        const motivo = linea.querySelector('.merma-motivo')?.value || 'otro';
+        const medida = linea.querySelector('.merma-medida')?.value || 'tirar';
+        const valorText = linea.querySelector('.merma-valor')?.textContent || '0.00€';
+        const valor = parseFloat(valorText.replace('€', '')) || 0;
+
+        if (ingredienteId && cantidad > 0) {
+            mermasARegistrar.push({
+                ingredienteId,
+                cantidad,
+                motivo,
+                medidaCorrectora: medida,
+                valorPerdida: valor
+            });
+        }
+    });
+
+    if (mermasARegistrar.length === 0) {
+        window.showToast?.('Añade al menos un producto con cantidad', 'warning');
         return;
     }
-
-    if (!cantidad || cantidad <= 0) {
-        window.showToast?.('Ingresa una cantidad válida', 'warning');
-        return;
-    }
-
-    const ingrediente = (window.ingredientes || []).find(i => i.id === ingredienteId);
-    if (!ingrediente) {
-        window.showToast?.('Ingrediente no encontrado', 'error');
-        return;
-    }
-
-    const stockActual = parseFloat(ingrediente.stockActual || 0);
-    const nuevoStock = Math.max(0, stockActual - cantidad);
 
     if (typeof window.showLoading === 'function') window.showLoading();
 
     try {
-        // Update ingredient stock
-        await window.api.updateIngrediente(ingredienteId, {
-            ...ingrediente,
-            stockActual: nuevoStock
-        });
+        let totalPerdida = 0;
+        let productosAfectados = [];
 
-        // Log the merma (could be expanded to save to a mermas table)
-        console.log('📝 Merma registrada:', {
-            ingrediente: ingrediente.nombre,
-            cantidad,
-            motivo,
-            nota,
-            stockAnterior: stockActual,
-            stockNuevo: nuevoStock,
-            fecha: new Date().toISOString()
-        });
+        // Procesar cada merma
+        for (const merma of mermasARegistrar) {
+            const ingrediente = (window.ingredientes || []).find(i => i.id === merma.ingredienteId);
+            if (!ingrediente) continue;
 
-        // Reload data
+            const stockActual = parseFloat(ingrediente.stockActual || 0);
+            const nuevoStock = Math.max(0, stockActual - merma.cantidad);
+
+            // Actualizar stock del ingrediente
+            await window.api.updateIngrediente(merma.ingredienteId, {
+                ...ingrediente,
+                stockActual: nuevoStock
+            });
+
+            totalPerdida += merma.valorPerdida;
+            productosAfectados.push(ingrediente.nombre);
+
+            // Log para auditoría
+            console.log('📝 Merma registrada:', {
+                ingrediente: ingrediente.nombre,
+                cantidad: merma.cantidad,
+                motivo: merma.motivo,
+                medidaCorrectora: merma.medidaCorrectora,
+                valorPerdida: merma.valorPerdida,
+                stockAnterior: stockActual,
+                stockNuevo: nuevoStock,
+                responsableId,
+                fecha: new Date().toISOString()
+            });
+        }
+
+        // Recargar datos
         window.ingredientes = await window.api.getIngredientes();
 
-        // Update UI
+        // Actualizar UI
         if (typeof window.renderizarIngredientes === 'function') window.renderizarIngredientes();
         if (typeof window.renderizarInventario === 'function') window.renderizarInventario();
         if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
@@ -133,16 +286,23 @@ export async function confirmarMermaRapida() {
 
         if (typeof window.hideLoading === 'function') window.hideLoading();
 
-        // Close modal
-        document.getElementById('modal-merma-rapida').classList.remove('active');
+        // Cerrar modal
+        document.getElementById('modal-merma-rapida')?.classList.remove('active');
 
-        // Show success
-        const perdida = (parseFloat(ingrediente.precio || 0) * cantidad).toFixed(2);
-        window.showToast?.(`Merma registrada: -${cantidad} ${ingrediente.unidad || 'ud'} de ${ingrediente.nombre} (${perdida}€)`, 'success');
+        // Mostrar confirmación
+        window.showToast?.(
+            `✅ ${mermasARegistrar.length} merma${mermasARegistrar.length > 1 ? 's' : ''} registrada${mermasARegistrar.length > 1 ? 's' : ''}: ${totalPerdida.toFixed(2)}€ pérdida`,
+            'success'
+        );
 
     } catch (error) {
         if (typeof window.hideLoading === 'function') window.hideLoading();
-        console.error('Error registrando merma:', error);
-        window.showToast?.('Error registrando merma: ' + error.message, 'error');
+        console.error('Error registrando mermas:', error);
+        window.showToast?.('Error registrando mermas: ' + error.message, 'error');
     }
+}
+
+// Mantener compatibilidad con función anterior
+export async function confirmarMermaRapida() {
+    return confirmarMermasMultiples();
 }
