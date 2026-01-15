@@ -115,6 +115,9 @@ export function agregarLineaMerma() {
                     style="background: #fee2e2; color: #dc2626; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; flex-shrink: 0;">×</button>
             </div>
         </div>
+        <!-- Nota opcional -->
+        <input type="text" class="merma-nota" placeholder="📝 Nota (opcional)..."
+            style="width: 100%; margin-top: 6px; padding: 5px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px; color: #64748b;">
     </div>
     `;
 
@@ -471,6 +474,8 @@ function agregarLineaMermaConDatos(merma) {
             </div>
         </div>
         ${!ingredienteEncontrado ? `<div style="margin-top: 6px; font-size: 10px; color: #92400e;">⚠️ No se encontró "${merma.producto}" - selecciona manualmente</div>` : ''}
+        <input type="text" class="merma-nota" placeholder="📝 Nota (opcional)..."
+            style="width: 100%; margin-top: 6px; padding: 5px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px; color: #64748b;">
     </div>
     `;
 
