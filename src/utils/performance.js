@@ -106,7 +106,7 @@ export class DataMaps {
         this.recetasMap = createLookupMap(window.recetas || []);
         this.pedidosMap = createLookupMap(window.pedidos || []);
         this.ventasMap = createLookupMap(window.ventas || []);
-        
+
         // Secondary index maps for alternative lookups
         this.ingredientesByNombre = new Map(
             (window.ingredientes || []).map(i => [i.nombre?.toLowerCase(), i])
@@ -114,7 +114,7 @@ export class DataMaps {
         this.recetasByCodigo = new Map(
             (window.recetas || []).filter(r => r.codigo).map(r => [r.codigo, r])
         );
-        
+
         this.lastUpdate = Date.now();
     }
 
@@ -139,7 +139,7 @@ export class DataMaps {
     getIngrediente(id) {
         return this.ingredientesMap.get(parseInt(id));
     }
-    
+
     /**
      * Obtiene ingrediente por nombre (O(1))
      */
@@ -153,21 +153,21 @@ export class DataMaps {
     getReceta(id) {
         return this.recetasMap.get(parseInt(id));
     }
-    
+
     /**
      * Obtiene receta por código TPV (O(1))
      */
     getRecetaByCodigo(codigo) {
         return this.recetasByCodigo.get(codigo);
     }
-    
+
     /**
      * Obtiene un pedido por ID (O(1))
      */
     getPedido(id) {
         return this.pedidosMap.get(parseInt(id));
     }
-    
+
     /**
      * Obtiene una venta por ID (O(1))
      */
@@ -267,7 +267,13 @@ export function calcularCosteRecetaMemoizado(receta) {
 
     const coste = receta.ingredientes.reduce((total, item) => {
         const ing = dataMaps.getIngrediente(item.ingredienteId);
-        const precio = ing ? parseFloat(ing.precio || 0) : 0;
+        // 💰 CORREGIDO: Precio unitario = precio/cantidad_por_formato
+        let precio = 0;
+        if (ing?.precio) {
+            const precioFormato = parseFloat(ing.precio);
+            const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
+            precio = precioFormato / cantidadPorFormato;
+        }
         return total + precio * (item.cantidad || 0);
     }, 0);
 

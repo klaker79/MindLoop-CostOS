@@ -29,9 +29,15 @@ export function verEscandallo(recetaId) {
         const inv = invMap.get(item.ingredienteId);  // O(1) lookup
 
         if (ing) {
-            const precio = inv?.precio_medio
-                ? parseFloat(inv.precio_medio)
-                : parseFloat(ing.precio || 0);
+            // 💰 CORREGIDO: Precio unitario = precio_medio, o precio/cantidad_por_formato
+            let precio = 0;
+            if (inv?.precio_medio) {
+                precio = parseFloat(inv.precio_medio);
+            } else if (ing.precio) {
+                const precioFormato = parseFloat(ing.precio);
+                const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
+                precio = precioFormato / cantidadPorFormato;
+            }
             const coste = precio * item.cantidad;
             costeTotal += coste;
 

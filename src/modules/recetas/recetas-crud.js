@@ -194,9 +194,15 @@ export function calcularCosteRecetaCompleto(receta) {
         const invItem = invMap.get(item.ingredienteId);
         const ing = ingMap.get(item.ingredienteId);
 
-        const precio = invItem?.precio_medio
-            ? parseFloat(invItem.precio_medio)
-            : (ing?.precio ? parseFloat(ing.precio) : 0);
+        // 💰 CORREGIDO: Precio unitario = precio_medio del inventario, o precio/cantidad_por_formato
+        let precio = 0;
+        if (invItem?.precio_medio) {
+            precio = parseFloat(invItem.precio_medio);
+        } else if (ing?.precio) {
+            const precioFormato = parseFloat(ing.precio);
+            const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
+            precio = precioFormato / cantidadPorFormato;
+        }
 
         return total + precio * item.cantidad;
     }, 0);

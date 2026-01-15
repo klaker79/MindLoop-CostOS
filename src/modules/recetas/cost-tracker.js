@@ -188,10 +188,15 @@ function actualizarDatosCostTracker() {
             const invItem = inventarioMap.get(ingId);
             const ing = ingredientesMap.get(ingId);
 
-            // Usar precio_medio del inventario o fallback al precio del ingrediente
-            const precio = invItem?.precio_medio
-                ? parseFloat(invItem.precio_medio)
-                : (ing?.precio ? parseFloat(ing.precio) : 0);
+            // 💰 CORREGIDO: Precio unitario = precio_medio, o precio/cantidad_por_formato
+            let precio = 0;
+            if (invItem?.precio_medio) {
+                precio = parseFloat(invItem.precio_medio);
+            } else if (ing?.precio) {
+                const precioFormato = parseFloat(ing.precio);
+                const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
+                precio = precioFormato / cantidadPorFormato;
+            }
 
             costeActual += precio * parseFloat(item.cantidad || 0);
         });
