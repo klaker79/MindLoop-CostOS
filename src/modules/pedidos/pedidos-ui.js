@@ -449,9 +449,9 @@ export function calcularTotalPedido() {
                 const precioIngrediente = precioManual > 0 ? precioManual : parseFloat(ing.precio || 0);
 
                 if (usandoFormato) {
-                    // Compra por formato: precio_por_unidad × cantidad_por_formato × cantidad_formatos
-                    // Ej: 1.06€/botella × 24 botellas/caja × 1 caja = 25.44€
-                    subtotalLinea = precioIngrediente * formatoMult * cantidadInput;
+                    // 💰 El precio del ingrediente YA ES el precio del FORMATO (caja, bote, garrafa)
+                    // Solo multiplicar por la cantidad de formatos comprados
+                    subtotalLinea = precioIngrediente * cantidadInput;
                 } else {
                     // Compra por unidad base directamente
                     subtotalLinea = precioIngrediente * cantidadInput;
