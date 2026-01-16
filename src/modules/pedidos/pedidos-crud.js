@@ -558,13 +558,13 @@ export function verDetallesPedido(pedidoId) {
         cantidadDisplay = `${cantidadFormatos} ${ing.formato_compra}<br><small style="color:#64748b;">(= ${cantPedida.toFixed(2)} ${unidadIng})</small>`;
       }
 
-      // Precios - usar precio del ingrediente si el guardado parece incorrecto
+      // Precios - usar el precio unitario guardado (ya está calculado correctamente)
       const precioGuardado = parseFloat(
         item.precioUnitario || item.precio_unitario || item.precio || 0
       );
-      // Si el precio guardado es mucho menor que el del ingrediente (bug de división anterior), usar el del ingrediente
-      const precioIngrediente = ing ? parseFloat(ing.precio || 0) : precioGuardado;
-      const precioOriginal = precioGuardado < precioIngrediente * 0.5 ? precioIngrediente : precioGuardado;
+      // ⚠️ NO sobrescribir con el precio del ingrediente - ese es el precio del FORMATO, no unitario
+      // El precioUnitario guardado ya es el precio correcto por unidad (ej: 0.33€/kg)
+      const precioOriginal = precioGuardado;
       const precioReal = parseFloat(item.precioReal || precioOriginal);
       const varianzaPrecio = precioReal - precioOriginal;
 
