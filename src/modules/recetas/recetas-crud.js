@@ -177,7 +177,7 @@ export function calcularCosteRecetaCompleto(receta) {
     const recetas = window.recetas || [];
     const recetasMap = new Map(recetas.map(r => [r.id, r]));
 
-    return receta.ingredientes.reduce((total, item) => {
+    const coste = receta.ingredientes.reduce((total, item) => {
         // 🧪 Detectar si es receta base (ingredienteId > 100000)
         if (item.ingredienteId > 100000) {
             const recetaId = item.ingredienteId - 100000;
@@ -206,6 +206,9 @@ export function calcularCosteRecetaCompleto(receta) {
 
         return total + precio * item.cantidad;
     }, 0);
+
+    // Redondear a 2 decimales para evitar errores de precisión
+    return parseFloat(coste.toFixed(2));
 }
 
 /**

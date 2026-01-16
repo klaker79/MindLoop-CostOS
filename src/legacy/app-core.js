@@ -747,13 +747,16 @@
 
             const ingresos = ventasMes.reduce((sum, v) => sum + parseFloat(v.total), 0);
 
-            // Calcular COGS (Coste de lo vendido)
+            // Calcular COGS (Coste de lo vendido) - Optimizado con Maps O(1)
+            const recetasMap = new Map(window.recetas.map(r => [r.id, r]));
+            const ingredientesMap = new Map(window.ingredientes.map(i => [i.id, i]));
+
             let cogs = 0;
             ventasMes.forEach(venta => {
-                const receta = window.recetas.find(r => r.id === venta.receta_id);
+                const receta = recetasMap.get(venta.receta_id);
                 if (receta && receta.ingredientes) {
                     const costeReceta = receta.ingredientes.reduce((sum, item) => {
-                        const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+                        const ing = ingredientesMap.get(item.ingredienteId);
                         if (!ing) return sum;
                         const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
                         const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
