@@ -255,8 +255,8 @@ function actualizarDatosCostTracker() {
         const barColor = foodCost <= 33 ? '#10B981' : foodCost <= 38 ? '#F59E0B' : '#EF4444';
         const barWidth = Math.min(foodCost, 100);
 
-        // Build recipe name HTML - use bright yellow color for maximum visibility
-        const nombreHtml = '<b style="color:#FFD700;font-size:15px;display:inline-block">' + (receta.nombre || 'SIN NOMBRE') + '</b>';
+        // Build recipe name HTML - use white color for maximum visibility on dark background
+        const nombreHtml = '<b style="color:#FFFFFF;font-size:15px;display:inline-block">' + (receta.nombre || 'SIN NOMBRE') + '</b>';
         const ingHtml = '<br><small style="color:#9CA3AF">' + receta.numIngredientes + ' ingredientes</small>';
 
         html += `
