@@ -185,9 +185,12 @@ export async function actualizarKPIs() {
             }
         }
 
-        // 5. VALOR STOCK TOTAL - Usa window.ingredientes (fuente de verdad)
+        // 5. VALOR STOCK TOTAL - Usa precio_medio del inventario (WAP)
         try {
             const ingredientes = window.ingredientes || [];
+            const inventario = window.inventarioCompleto || [];
+            // Map para búsqueda O(1) de precio_medio
+            const invMap = new Map(inventario.map(i => [i.id, i]));
 
             const valorStockEl = document.getElementById('kpi-valor-stock');
             const itemsStockEl = document.getElementById('kpi-items-stock');
@@ -195,19 +198,23 @@ export async function actualizarKPIs() {
             if (ingredientes.length > 0) {
                 const valorTotal = ingredientes.reduce((sum, ing) => {
                     const stock = parseFloat(ing.stock_actual) || 0;
-                    const precio = parseFloat(ing.precio) || 0;
-                    const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 0;
 
-                    // Si cantidad_por_formato > 1, el precio es por formato (caja, pack)
-                    // Valor = (stock / cantidad_formato) × precio
-                    let valorIng;
-                    if (cantidadFormato > 1) {
-                        valorIng = (stock / cantidadFormato) * precio;
-                    } else {
-                        valorIng = stock * precio;
+                    // 💰 CORREGIDO: Usar precio_medio del inventario (WAP)
+                    // Mismo cálculo que calcularCosteRecetaCompleto
+                    const invItem = invMap.get(ing.id);
+                    let precioUnitario = 0;
+
+                    if (invItem?.precio_medio) {
+                        precioUnitario = parseFloat(invItem.precio_medio);
+                    } else if (ing.precio) {
+                        // Fallback: precio / cantidad_por_formato
+                        const precioFormato = parseFloat(ing.precio) || 0;
+                        const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
+                        precioUnitario = precioFormato / cantidadPorFormato;
                     }
 
-                    return sum + valorIng;
+                    // Valor = stock × precio unitario
+                    return sum + (stock * precioUnitario);
                 }, 0);
 
                 // Contar items con stock > 0
