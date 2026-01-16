@@ -634,13 +634,16 @@
 
             const ingresos = ventasMes.reduce((sum, v) => sum + parseFloat(v.total), 0);
 
-            // Calcular COGS (Coste de lo vendido)
+            // Calcular COGS (Coste de lo vendido) - Optimizado con Maps para O(n)
+            const recetasMap = new Map(window.recetas.map(r => [r.id, r]));
+            const ingredientesMap = new Map(window.ingredientes.map(i => [i.id, i]));
+
             let cogs = 0;
             ventasMes.forEach(venta => {
-              const receta = window.recetas.find(r => r.id === venta.receta_id);
+              const receta = recetasMap.get(venta.receta_id);
               if (receta && receta.ingredientes) {
                 const costeReceta = receta.ingredientes.reduce((sum, item) => {
-                  const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+                  const ing = ingredientesMap.get(item.ingredienteId);
                   return sum + (ing ? parseFloat(ing.precio) * item.cantidad : 0);
                 }, 0);
                 cogs += costeReceta * venta.cantidad;
@@ -2462,9 +2465,10 @@
             const ing = ingredientes.find(i => i.id === item.ingredienteId);
             if (ing) {
               const necesario = item.cantidad * cant;
-              if (ing.stockActual < necesario) {
+              const stock = parseFloat(ing.stock_actual || ing.stockActual || 0);
+              if (stock < necesario) {
                 falta = true;
-                msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${ing.stockActual}\n`;
+                msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${stock}\n`;
               }
             }
           });
@@ -2480,10 +2484,11 @@
             for (const item of rec.ingredientes) {
               const ing = ingredientes.find(i => i.id === item.ingredienteId);
               if (ing) {
-                const nuevoStock = Math.max(0, ing.stockActual - (item.cantidad * cant));
+                const stock = parseFloat(ing.stock_actual || ing.stockActual || 0);
+                const nuevoStock = Math.max(0, stock - (item.cantidad * cant));
                 await api.updateIngrediente(ing.id, {
                   ...ing,
-                  stockActual: nuevoStock
+                  stock_actual: nuevoStock
                 });
               }
             }

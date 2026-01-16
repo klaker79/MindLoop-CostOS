@@ -119,11 +119,12 @@ export async function eliminarReceta(id) {
  */
 export function calcularCosteRecetaCompleto(receta) {
     if (!receta || !receta.ingredientes) return 0;
-    return receta.ingredientes.reduce((total, item) => {
+    const coste = receta.ingredientes.reduce((total, item) => {
         const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
         const precio = ing ? parseFloat(ing.precio) : 0;
         return total + (precio * item.cantidad);
     }, 0);
+    return parseFloat(coste.toFixed(2));
 }
 
 /**
@@ -177,9 +178,10 @@ export async function confirmarProduccion() {
         const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
         if (ing) {
             const necesario = item.cantidad * cant;
-            if (ing.stockActual < necesario) {
+            const stock = parseFloat(ing.stock_actual || ing.stockActual || 0);
+            if (stock < necesario) {
                 falta = true;
-                msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${ing.stockActual}\n`;
+                msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${stock}\n`;
             }
         }
     });
@@ -195,10 +197,11 @@ export async function confirmarProduccion() {
         for (const item of rec.ingredientes) {
             const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
             if (ing) {
-                const nuevoStock = Math.max(0, ing.stockActual - (item.cantidad * cant));
+                const stock = parseFloat(ing.stock_actual || ing.stockActual || 0);
+                const nuevoStock = Math.max(0, stock - (item.cantidad * cant));
                 await window.api.updateIngrediente(ing.id, {
                     ...ing,
-                    stockActual: nuevoStock
+                    stock_actual: nuevoStock
                 });
             }
         }
