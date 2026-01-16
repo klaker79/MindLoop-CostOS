@@ -195,7 +195,9 @@ function renderizarCarrito() {
             };
         }
         porProveedor[provId].items.push(item);
-        total += item.cantidad * item.precio;
+        // Calcular total: cantidad / cantidadPorFormato * precio (cuando hay formato)
+        const cantFormato = parseFloat(item.cantidadPorFormato) || 1;
+        total += (item.cantidad / cantFormato) * item.precio;
     });
 
     let html = '';
@@ -220,7 +222,9 @@ function renderizarCarrito() {
     `;
 
         data.items.forEach(item => {
-            const subtotal = item.cantidad * item.precio;
+            // Calcular subtotal: cantidad / cantidadPorFormato * precio
+            const cantFormato = parseFloat(item.cantidadPorFormato) || 1;
+            const subtotal = (item.cantidad / cantFormato) * item.precio;
             html += `
         <tr style="border-bottom: 1px solid #e2e8f0;">
           <td style="padding: 12px;">
@@ -288,7 +292,11 @@ window.confirmarCarrito = async function () {
                 precio: item.precio
             }));
 
-            const total = items.reduce((sum, item) => sum + (item.cantidad * item.precio), 0);
+            // Calcular total: cantidad / cantidadPorFormato * precio
+            const total = items.reduce((sum, item) => {
+                const cantFormato = parseFloat(item.cantidadPorFormato) || 1;
+                return sum + ((item.cantidad / cantFormato) * item.precio);
+            }, 0);
 
             const pedido = {
                 proveedorId: parseInt(provId) || null,
