@@ -66,7 +66,7 @@ function getIngredientesOptionsHtml() {
 
     let html = '<option value="">Selecciona producto...</option>';
     ingredientes.forEach(ing => {
-        const stock = parseFloat(ing.stockActual || 0).toFixed(2);
+        const stock = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0).toFixed(2);
         html += `<option value="${ing.id}" data-unidad="${ing.unidad || 'ud'}" data-stock="${stock}" data-precio="${ing.precio || 0}" data-formato="${ing.cantidad_por_formato || 1}">${ing.nombre} (${stock} ${ing.unidad || 'ud'})</option>`;
     });
     return html;
@@ -247,13 +247,13 @@ export async function confirmarMermasMultiples() {
             const ingrediente = (window.ingredientes || []).find(i => i.id === merma.ingredienteId);
             if (!ingrediente) continue;
 
-            const stockActual = parseFloat(ingrediente.stockActual || 0);
-            const nuevoStock = Math.max(0, stockActual - merma.cantidad);
+            const stockActualValue = parseFloat(ingrediente.stock_actual ?? ingrediente.stockActual ?? 0);
+            const nuevoStock = Math.max(0, stockActualValue - merma.cantidad);
 
             // Actualizar stock del ingrediente
             await window.api.updateIngrediente(merma.ingredienteId, {
                 ...ingrediente,
-                stockActual: nuevoStock
+                stock_actual: nuevoStock
             });
 
             totalPerdida += merma.valorPerdida;
@@ -278,7 +278,7 @@ export async function confirmarMermasMultiples() {
                 motivo: merma.motivo,
                 medidaCorrectora: merma.medidaCorrectora,
                 valorPerdida: merma.valorPerdida,
-                stockAnterior: stockActual,
+                stockAnterior: stockActualValue,
                 stockNuevo: nuevoStock,
                 responsableId,
                 fecha: new Date().toISOString()

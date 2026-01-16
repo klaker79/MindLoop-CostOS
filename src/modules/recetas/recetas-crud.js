@@ -268,9 +268,10 @@ export async function confirmarProduccion() {
         const ing = ingMap.get(item.ingredienteId);
         if (ing) {
             const necesario = item.cantidad * cant;
-            if (ing.stockActual < necesario) {
+            const stockIng = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
+            if (stockIng < necesario) {
                 falta = true;
-                msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${ing.stockActual}\n`;
+                msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${stockIng}\n`;
             }
         }
     });
@@ -287,10 +288,11 @@ export async function confirmarProduccion() {
         const updatePromises = rec.ingredientes.map(item => {
             const ing = ingMap.get(item.ingredienteId);
             if (ing) {
-                const nuevoStock = Math.max(0, ing.stockActual - item.cantidad * cant);
+                const stockIng = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
+                const nuevoStock = Math.max(0, stockIng - item.cantidad * cant);
                 return window.api.updateIngrediente(ing.id, {
                     ...ing,
-                    stockActual: nuevoStock,
+                    stock_actual: nuevoStock,
                 });
             }
             return Promise.resolve();

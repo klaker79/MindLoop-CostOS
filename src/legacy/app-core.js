@@ -2540,7 +2540,7 @@
         document.getElementById('ing-precio').value = ing.precio || '';
         document.getElementById('ing-unidad').value = ing.unidad;
         document.getElementById('ing-familia').value = ing.familia || 'alimento';
-        document.getElementById('ing-stockActual').value = ing.stockActual || '';
+        document.getElementById('ing-stockActual').value = ing.stock_actual ?? ing.stockActual ?? '';
         document.getElementById('ing-stockMinimo').value = ing.stockMinimo || '';
 
         editandoIngredienteId = id;
@@ -2967,9 +2967,10 @@
             const ing = ingredientes.find(i => i.id === item.ingredienteId);
             if (ing) {
                 const necesario = item.cantidad * cant;
-                if (ing.stockActual < necesario) {
+                const stockIng = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
+                if (stockIng < necesario) {
                     falta = true;
-                    msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${ing.stockActual}\n`;
+                    msg += `- ${ing.nombre}: necesitas ${necesario}, tienes ${stockIng}\n`;
                 }
             }
         });
@@ -2985,10 +2986,11 @@
             for (const item of rec.ingredientes) {
                 const ing = ingredientes.find(i => i.id === item.ingredienteId);
                 if (ing) {
-                    const nuevoStock = Math.max(0, ing.stockActual - (item.cantidad * cant));
+                    const stockIng = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
+                    const nuevoStock = Math.max(0, stockIng - (item.cantidad * cant));
                     await api.updateIngrediente(ing.id, {
                         ...ing,
-                        stockActual: nuevoStock
+                        stock_actual: nuevoStock
                     });
                 }
             }
