@@ -163,6 +163,21 @@ window.cerrarCarrito = function () {
 };
 
 /**
+ * Cierra el carrito y abre el formulario de nuevo pedido para seguir comprando
+ */
+window.seguirComprando = function () {
+    window.cerrarCarrito();
+    // Mostrar formulario de nuevo pedido
+    if (typeof window.mostrarFormularioPedido === 'function') {
+        window.mostrarFormularioPedido();
+    } else {
+        // Fallback: mostrar el formulario directamente
+        const form = document.getElementById('formulario-pedido');
+        if (form) form.style.display = 'block';
+    }
+};
+
+/**
  * Renderiza el contenido del carrito
  */
 function renderizarCarrito() {
