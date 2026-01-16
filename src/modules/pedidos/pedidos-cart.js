@@ -69,6 +69,7 @@ window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = n
 
     // ⚠️ CRÍTICO: Obtener el precio correcto del proveedor
     let precioFormato = precioProveedor; // Primero usar precio pasado como parámetro
+    let precioYaEsUnitario = false; // Flag para indicar si el precio ya está por unidad
 
     if (!precioFormato && provId && window.ingredientesProveedores) {
         // Buscar precio del proveedor en ingredientes_proveedores (datos en memoria)
@@ -77,7 +78,8 @@ window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = n
         );
         if (rel && rel.precio) {
             precioFormato = parseFloat(rel.precio);
-            console.log(`💰 Precio de proveedor ${provId} para ${ing.nombre}: ${precioFormato}€`);
+            precioYaEsUnitario = true; // El precio de ingredientes_proveedores YA está por unidad
+            console.log(`💰 Precio de proveedor ${provId} para ${ing.nombre}: ${precioFormato}€/unidad`);
         }
     }
 
@@ -114,7 +116,8 @@ window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = n
             precio: precioFormato,  // Usar precio del proveedor
             proveedorId: provId,
             formatoCompra: ing.formato_compra,
-            cantidadPorFormato: ing.cantidad_por_formato
+            cantidadPorFormato: ing.cantidad_por_formato,
+            precioYaEsUnitario: precioYaEsUnitario // Si true, no dividir por cantidadPorFormato
         });
         window.showToast(`🛒 ${ing.nombre} añadido al carrito`, 'success');
     }
@@ -319,21 +322,24 @@ window.confirmarCarrito = async function () {
 
         for (const [provId, items] of Object.entries(porProveedor)) {
             /**
-             * ⚠️ CRITICAL - NO MODIFICAR ESTA FÓRMULA ⚠️
-             * Precio unitario = precio del formato / cantidad_por_formato
-             * Ejemplo: 33.12€/caja ÷ 24 botellas = 1.38€/botella
-             * Esta fórmula garantiza que el stock y valor se calculen correctamente
+             * ⚠️ CRITICAL - FÓRMULA DE PRECIO UNITARIO ⚠️
+             * Si precioYaEsUnitario = true: el precio YA es por unidad (viene de ingredientes_proveedores)
+             * Si precioYaEsUnitario = false: el precio es por formato, hay que dividir por cantidad_por_formato
              */
             const ingredientes = items.map(item => {
                 const cantFormato = parseFloat(item.cantidadPorFormato) || 1;
-                const precioUnitario = item.precio / cantFormato; // ⚠️ FÓRMULA INTOCABLE
+                // Si el precio ya es unitario (de ingredientes_proveedores), usarlo directamente
+                // Si no, dividir por cantidadPorFormato
+                const precioUnitario = item.precioYaEsUnitario
+                    ? item.precio
+                    : item.precio / cantFormato;
                 return {
                     ingredienteId: item.ingredienteId,
                     ingrediente_id: item.ingredienteId,
                     cantidad: item.cantidad,
-                    precioUnitario: precioUnitario,      // precio POR UNIDAD (ej: 1.38€/botella)
+                    precioUnitario: precioUnitario,      // precio POR UNIDAD
                     precio_unitario: precioUnitario,
-                    precio: item.precio,                  // precio del formato original (ej: 33.12€/caja)
+                    precio: item.precioYaEsUnitario ? item.precio * cantFormato : item.precio, // precio por formato
                     cantidadPorFormato: cantFormato
                 };
             });
