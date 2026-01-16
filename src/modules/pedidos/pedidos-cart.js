@@ -283,10 +283,15 @@ window.confirmarCarrito = async function () {
         let pedidosCreados = 0;
 
         for (const [provId, items] of Object.entries(porProveedor)) {
-            // Calcular precio unitario REAL (por unidad, no por formato)
+            /**
+             * ⚠️ CRITICAL - NO MODIFICAR ESTA FÓRMULA ⚠️
+             * Precio unitario = precio del formato / cantidad_por_formato
+             * Ejemplo: 33.12€/caja ÷ 24 botellas = 1.38€/botella
+             * Esta fórmula garantiza que el stock y valor se calculen correctamente
+             */
             const ingredientes = items.map(item => {
                 const cantFormato = parseFloat(item.cantidadPorFormato) || 1;
-                const precioUnitario = item.precio / cantFormato; // precio POR UNIDAD
+                const precioUnitario = item.precio / cantFormato; // ⚠️ FÓRMULA INTOCABLE
                 return {
                     ingredienteId: item.ingredienteId,
                     ingrediente_id: item.ingredienteId,
@@ -298,10 +303,14 @@ window.confirmarCarrito = async function () {
                 };
             });
 
-            // Calcular total: cantidad / cantidadPorFormato * precio
+            /**
+             * ⚠️ CRITICAL - NO MODIFICAR ESTA FÓRMULA ⚠️
+             * Total = (cantidad / cantidad_por_formato) × precio
+             * Ejemplo: (24 botellas / 24 por caja) × 33.12€ = 33.12€
+             */
             const total = items.reduce((sum, item) => {
                 const cantFormato = parseFloat(item.cantidadPorFormato) || 1;
-                return sum + ((item.cantidad / cantFormato) * item.precio);
+                return sum + ((item.cantidad / cantFormato) * item.precio); // ⚠️ FÓRMULA INTOCABLE
             }, 0);
 
             const pedido = {

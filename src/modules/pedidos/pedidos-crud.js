@@ -459,8 +459,12 @@ export async function confirmarRecepcionPedido() {
       };
     });
 
-    // Actualizar stock de cada ingrediente recibido
-    // ⚠️ NO modificar el precio - el backend calcula precio_medio correctamente
+    /**
+     * ⚠️ CRITICAL - NO MODIFICAR ESTA SECCIÓN ⚠️
+     * Solo se actualiza el STOCK, NUNCA el precio del ingrediente.
+     * El backend calcula precio_medio correctamente desde los pedidos.
+     * Modificar esto causará corrupción de datos de precio.
+     */
     for (const item of ingredientesActualizados) {
       if (item.estado === 'no-entregado') continue;
 
@@ -476,7 +480,7 @@ export async function confirmarRecepcionPedido() {
           ...ing,
           stockActual: nuevoStock,
           stock_actual: nuevoStock
-          // NO tocar precio - el backend calcula precio_medio desde los pedidos
+          // ⚠️ PROHIBIDO tocar precio - el backend calcula precio_medio ⚠️
         });
       }
     }
