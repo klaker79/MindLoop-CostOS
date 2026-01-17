@@ -110,6 +110,37 @@ async function validarDatosInventario(data) {
     });
 }
 
+// Función auxiliar para descargar Excel
+function descargarExcel(datos, filename, sheetName) {
+    if (typeof XLSX !== 'undefined' && XLSX.utils && XLSX.write) {
+        const ws = XLSX.utils.json_to_sheet(datos);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, sheetName || 'Plantilla');
+
+        ws['!cols'] = [{ wch: 35 }, { wch: 15 }];
+
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 100);
+
+        showToast('✓ Descargado: ' + filename, 'success');
+        return true;
+    }
+    return false;
+}
+
+// Descargar plantilla COMPLETA (todos los ingredientes)
 window.descargarPlantillaStock = function () {
     try {
         if (!window.ingredientes || window.ingredientes.length === 0) {
@@ -119,70 +150,80 @@ window.descargarPlantillaStock = function () {
 
         const datos = window.ingredientes.map(ing => ({
             Ingrediente: ing.nombre,
-            'Stock Real': '', // Dejar vacío para que lo rellenen
+            'Stock Real': '',
         }));
 
-        const filename = `Plantilla_Inventario_${new Date().toISOString().split('T')[0]}.xlsx`;
-
-        // Método más robusto: crear blob y forzar descarga
-        if (typeof XLSX !== 'undefined' && XLSX.utils && XLSX.write) {
-            const ws = XLSX.utils.json_to_sheet(datos);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Plantilla Stock');
-
-            // Ajustar ancho
-            ws['!cols'] = [{ wch: 30 }, { wch: 15 }];
-
-            // Crear blob manualmente para evitar problemas con Service Worker
-            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-            const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-            // Método de descarga más robusto
-            if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-                // IE/Edge legacy
-                window.navigator.msSaveOrOpenBlob(blob, filename);
-            } else {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = filename;
-                // Añadir al body ANTES de click
-                document.body.appendChild(a);
-                // Simular click
-                a.click();
-                // Limpiar después de un delay
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                }, 100);
-            }
-
-            showToast('✓ Plantilla descargada: ' + filename, 'success');
-        } else {
-            // Fallback a CSV si XLSX no está disponible
-            console.warn('XLSX no disponible, usando fallback CSV');
-            const csvFilename = `Plantilla_Inventario_${new Date().toISOString().split('T')[0]}.csv`;
-            const csv = 'Ingrediente,Stock Real\n' + datos.map(d => `"${d.Ingrediente}","${d['Stock Real']}"`).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = csvFilename;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }, 100);
-
-            showToast('✓ Plantilla descargada (CSV): ' + csvFilename, 'success');
+        const filename = `Plantilla_Inventario_COMPLETO_${new Date().toISOString().split('T')[0]}.xlsx`;
+        if (!descargarExcel(datos, filename, 'Todos')) {
+            showToast('Error: XLSX no disponible', 'error');
         }
     } catch (error) {
         console.error('Error descargando plantilla:', error);
-        showToast('Error descargando: ' + error.message, 'error');
+        showToast('Error: ' + error.message, 'error');
+    }
+};
+
+// Descargar plantilla solo ALIMENTOS
+window.descargarPlantillaAlimentos = function () {
+    try {
+        if (!window.ingredientes || window.ingredientes.length === 0) {
+            showToast('No hay ingredientes', 'warning');
+            return;
+        }
+
+        const alimentos = window.ingredientes.filter(ing =>
+            (ing.familia || 'alimento').toLowerCase() === 'alimento'
+        );
+
+        if (alimentos.length === 0) {
+            showToast('No hay alimentos registrados', 'warning');
+            return;
+        }
+
+        const datos = alimentos.map(ing => ({
+            Ingrediente: ing.nombre,
+            'Stock Real': '',
+        }));
+
+        const filename = `Plantilla_ALIMENTOS_${new Date().toISOString().split('T')[0]}.xlsx`;
+        if (!descargarExcel(datos, filename, 'Alimentos')) {
+            showToast('Error: XLSX no disponible', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error: ' + error.message, 'error');
+    }
+};
+
+// Descargar plantilla solo BEBIDAS
+window.descargarPlantillaBebidas = function () {
+    try {
+        if (!window.ingredientes || window.ingredientes.length === 0) {
+            showToast('No hay ingredientes', 'warning');
+            return;
+        }
+
+        const bebidas = window.ingredientes.filter(ing =>
+            (ing.familia || '').toLowerCase() === 'bebida'
+        );
+
+        if (bebidas.length === 0) {
+            showToast('No hay bebidas registradas', 'warning');
+            return;
+        }
+
+        const datos = bebidas.map(ing => ({
+            Ingrediente: ing.nombre,
+            'Stock Real': '',
+        }));
+
+        const filename = `Plantilla_BEBIDAS_${new Date().toISOString().split('T')[0]}.xlsx`;
+        if (!descargarExcel(datos, filename, 'Bebidas')) {
+            showToast('Error: XLSX no disponible', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error: ' + error.message, 'error');
     }
 };
 
