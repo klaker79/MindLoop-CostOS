@@ -232,7 +232,17 @@ window.filtrarRecetasPorCategoria = function (categoria) {
     renderizarRecetas();
 };
 
-export function renderizarRecetas() {
+export async function renderizarRecetas() {
+    // 🍷 Cargar variantes si no están cargadas (para mostrar códigos TPV)
+    if (!window.recetasVariantes && window.API?.fetch) {
+        try {
+            window.recetasVariantes = await window.API.fetch('/api/recipes-variants');
+        } catch (e) {
+            console.warn('No se pudieron cargar variantes:', e);
+            window.recetasVariantes = [];
+        }
+    }
+
     const busquedaEl = document.getElementById('busqueda-recetas');
     const busqueda = busquedaEl?.value?.toLowerCase() || '';
     const recetas = Array.isArray(window.recetas) ? window.recetas : [];
@@ -311,8 +321,19 @@ export function renderizarRecetas() {
                         ? 'badge-warning'
                         : 'badge-danger';
 
+            // 🍷 Para bebidas, buscar código de la variante BOTELLA
+            let codigoMostrar = rec.codigo || '';
+            if ((rec.categoria?.toLowerCase() === 'bebidas' || rec.categoria?.toLowerCase() === 'bebida') && window.recetasVariantes) {
+                const varianteBotella = window.recetasVariantes.find(v =>
+                    v.receta_id === rec.id && v.nombre?.toUpperCase() === 'BOTELLA'
+                );
+                if (varianteBotella?.codigo) {
+                    codigoMostrar = varianteBotella.codigo;
+                }
+            }
+
             html += '<tr>';
-            html += `<td><span style="color:#666;font-size:12px;">${escapeHTML(rec.codigo || '-')}</span></td>`;
+            html += `<td><span style="color:#666;font-size:12px;">${escapeHTML(codigoMostrar || '-')}</span></td>`;
             html += `<td><strong>${escapeHTML(rec.nombre)}</strong></td>`;
             html += `<td><span class="badge badge-success">${escapeHTML(rec.categoria)}</span></td>`;
             html += `<td>${coste.toFixed(2)} €</td>`;
