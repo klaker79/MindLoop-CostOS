@@ -4666,22 +4666,36 @@
     }
 
     function renderChartIngredientes() {
-        // 🍽️ Gráfica de ALIMENTOS
+        // 🍽️ Gráfica de ALIMENTOS - Coste por Unidad
         const ctxAlimentos = document.getElementById('chart-ingredientes');
-        // 🍺 Gráfica de BEBIDAS
+        // 🍺 Gráfica de BEBIDAS - Coste por Unidad
         const ctxBebidas = document.getElementById('chart-bebidas');
 
         if (!ctxAlimentos) return;
 
-        // Separar ingredientes por familia
+        // Calcular coste por unidad = precio / cantidad_por_formato
+        const calcularCosteUnidad = (ing) => {
+            const cantidad = parseFloat(ing.cantidad_por_formato) || 1;
+            return ing.precio / cantidad;
+        };
+
+        // Separar ingredientes por familia y ordenar por COSTE POR UNIDAD
         const alimentos = [...ingredientes]
             .filter(ing => ing.precio > 0 && (ing.familia || 'alimento').toLowerCase() === 'alimento')
-            .sort((a, b) => b.precio - a.precio)
+            .map(ing => ({
+                ...ing,
+                coste_unidad: calcularCosteUnidad(ing)
+            }))
+            .sort((a, b) => b.coste_unidad - a.coste_unidad)
             .slice(0, 10);
 
         const bebidas = [...ingredientes]
             .filter(ing => ing.precio > 0 && (ing.familia || '').toLowerCase() === 'bebida')
-            .sort((a, b) => b.precio - a.precio)
+            .map(ing => ({
+                ...ing,
+                coste_unidad: calcularCosteUnidad(ing)
+            }))
+            .sort((a, b) => b.coste_unidad - a.coste_unidad)
             .slice(0, 10);
 
         // Colores para las gráficas
@@ -4701,14 +4715,14 @@
         if (chartIngredientes) chartIngredientes.destroy();
         if (window.chartBebidas) window.chartBebidas.destroy();
 
-        // === GRÁFICA ALIMENTOS ===
+        // === GRÁFICA ALIMENTOS (Coste por Unidad) ===
         if (alimentos.length > 0) {
             chartIngredientes = new Chart(ctxAlimentos, {
                 type: 'doughnut',
                 data: {
                     labels: alimentos.map(i => i.nombre),
                     datasets: [{
-                        data: alimentos.map(i => i.precio),
+                        data: alimentos.map(i => i.coste_unidad),
                         backgroundColor: coloresAlimentos.slice(0, alimentos.length),
                         borderWidth: 3,
                         borderColor: '#fff',
@@ -4737,7 +4751,8 @@
                             borderWidth: 2,
                             callbacks: {
                                 label: function (context) {
-                                    return context.label + ': ' + context.parsed.toFixed(2) + '€';
+                                    const ing = alimentos[context.dataIndex];
+                                    return `${context.label}: ${context.parsed.toFixed(2)}€/${ing.unidad || 'ud'}`;
                                 },
                             },
                         },
@@ -4747,14 +4762,14 @@
             });
         }
 
-        // === GRÁFICA BEBIDAS ===
+        // === GRÁFICA BEBIDAS (Coste por Unidad) ===
         if (ctxBebidas && bebidas.length > 0) {
             window.chartBebidas = new Chart(ctxBebidas, {
                 type: 'doughnut',
                 data: {
                     labels: bebidas.map(i => i.nombre),
                     datasets: [{
-                        data: bebidas.map(i => i.precio),
+                        data: bebidas.map(i => i.coste_unidad),
                         backgroundColor: coloresBebidas.slice(0, bebidas.length),
                         borderWidth: 3,
                         borderColor: '#fff',
@@ -4783,7 +4798,8 @@
                             borderWidth: 2,
                             callbacks: {
                                 label: function (context) {
-                                    return context.label + ': ' + context.parsed.toFixed(2) + '€';
+                                    const ing = bebidas[context.dataIndex];
+                                    return `${context.label}: ${context.parsed.toFixed(2)}€/${ing.unidad || 'ud'}`;
                                 },
                             },
                         },
