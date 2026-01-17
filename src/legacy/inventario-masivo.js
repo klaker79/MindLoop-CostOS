@@ -111,24 +111,64 @@ async function validarDatosInventario(data) {
 }
 
 window.descargarPlantillaStock = function () {
-    if (!window.ingredientes || window.ingredientes.length === 0) {
-        showToast('No hay ingredientes para descargar', 'warning');
-        return;
+    try {
+        if (!window.ingredientes || window.ingredientes.length === 0) {
+            showToast('No hay ingredientes para descargar', 'warning');
+            return;
+        }
+
+        const datos = window.ingredientes.map(ing => ({
+            Ingrediente: ing.nombre,
+            'Stock Real': '', // Dejar vacío para que lo rellenen
+        }));
+
+        // Intentar con XLSX si está disponible
+        if (typeof XLSX !== 'undefined' && XLSX.utils && XLSX.writeFile) {
+            const ws = XLSX.utils.json_to_sheet(datos);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Plantilla Stock');
+
+            // Ajustar ancho
+            ws['!cols'] = [{ wch: 30 }, { wch: 15 }];
+
+            const filename = `Plantilla_Inventario_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            showToast('✓ Plantilla descargada: ' + filename, 'success');
+        } else {
+            // Fallback a CSV si XLSX no está disponible
+            console.warn('XLSX no disponible, usando fallback CSV');
+            const csv = 'Ingrediente,Stock Real\n' + datos.map(d => `"${d.Ingrediente}","${d['Stock Real']}"`).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Plantilla_Inventario_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('✓ Plantilla descargada (CSV)', 'success');
+        }
+    } catch (error) {
+        console.error('Error descargando plantilla:', error);
+        showToast('Error descargando: ' + error.message, 'error');
+        
+        // Último fallback: CSV directo
+        try {
+            const csv = 'Ingrediente,Stock Real\n' + window.ingredientes.map(ing => `"${ing.nombre}",""`).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Plantilla_Inventario.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (e2) {
+            console.error('Fallback CSV también falló:', e2);
+        }
     }
-
-    const datos = window.ingredientes.map(ing => ({
-        Ingrediente: ing.nombre,
-        'Stock Real': '', // Dejar vacío para que lo rellenen, o poner ing.stock_real si quisieran editar
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(datos);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Plantilla Stock');
-
-    // Ajustar ancho
-    ws['!cols'] = [{ wch: 30 }, { wch: 15 }];
-
-    XLSX.writeFile(wb, `Plantilla_Inventario_${new Date().toISOString().split('T')[0]}.xlsx`);
 };
 
 function mostrarPreviewInventario(datos) {
