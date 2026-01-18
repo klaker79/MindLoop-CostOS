@@ -59,7 +59,7 @@ async function cargarVariantesReceta(recetaId) {
 }
 
 /**
- * Renderiza la lista de variantes
+ * Renderiza la lista de variantes con KPIs
  */
 function renderizarVariantes(variantes) {
     const container = document.getElementById('lista-variantes');
@@ -76,9 +76,32 @@ function renderizarVariantes(variantes) {
         return;
     }
 
+    // Obtener coste base de la receta para calcular KPIs
+    const receta = window.recetas?.find(r => r.id === recetaActualId);
+    const costeBase = receta ? parseFloat(receta.coste || 0) : 0;
+
     let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
 
     variantes.forEach(v => {
+        const precioVenta = parseFloat(v.precio_venta);
+        const factor = parseFloat(v.factor) || 1;
+
+        // Calcular coste proporcional según el factor
+        const costeVariante = costeBase * factor;
+        const margen = precioVenta - costeVariante;
+        const foodCost = precioVenta > 0 ? (costeVariante / precioVenta) * 100 : 0;
+
+        // Color del food cost según umbrales de vinos
+        let fcColor = '#10B981'; // Verde
+        let fcEmoji = '🟢';
+        if (foodCost > 50) {
+            fcColor = '#EF4444'; // Rojo
+            fcEmoji = '🔴';
+        } else if (foodCost > 40) {
+            fcColor = '#F59E0B'; // Amarillo
+            fcEmoji = '🟡';
+        }
+
         html += `
             <div style="border: 2px solid #E2E8F0; border-radius: 12px; padding: 16px; background: white;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -90,10 +113,27 @@ function renderizarVariantes(variantes) {
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 24px; font-weight: bold; color: #10B981;">
-                            ${parseFloat(v.precio_venta).toFixed(2)} €
+                            ${precioVenta.toFixed(2)} €
                         </div>
                     </div>
                 </div>
+                
+                <!-- KPIs -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #E2E8F0;">
+                    <div style="text-align: center; padding: 8px; background: #FEE2E2; border-radius: 8px;">
+                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Coste</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #EF4444;">${costeVariante.toFixed(2)}€</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px; background: #D1FAE5; border-radius: 8px;">
+                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Margen</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #10B981;">${margen.toFixed(2)}€</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px; background: #FEF3C7; border-radius: 8px;">
+                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Food Cost</div>
+                        <div style="font-size: 14px; font-weight: 600; color: ${fcColor};">${fcEmoji} ${foodCost.toFixed(1)}%</div>
+                    </div>
+                </div>
+                
                 <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;">
                     <button class="btn-sm" onclick="window.editarVariante(${recetaActualId}, ${v.id}, '${escapeHTML(v.nombre)}', ${v.precio_venta}, ${v.factor}, '${escapeHTML(v.codigo || '')}')" style="background: #3B82F6; color: white;">
                         ✏️ Editar
