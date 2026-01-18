@@ -78,7 +78,27 @@ function renderizarVariantes(variantes) {
 
     // Obtener coste base de la receta para calcular KPIs
     const receta = window.recetas?.find(r => r.id === recetaActualId);
-    const costeBase = receta ? parseFloat(receta.coste || 0) : 0;
+
+    // Calcular coste real sumando ingredientes (igual que el escandallo)
+    let costeBase = 0;
+    if (receta && receta.ingredientes && Array.isArray(receta.ingredientes)) {
+        receta.ingredientes.forEach(item => {
+            const cantidad = parseFloat(item.cantidad) || 0;
+
+            // Buscar el ingrediente para obtener precio unitario
+            const ingrediente = window.ingredientes?.find(i => i.id === item.ingredienteId);
+            if (ingrediente) {
+                const precioFormato = parseFloat(ingrediente.precio) || 0;
+                const cantidadFormato = parseFloat(ingrediente.cantidad_por_formato) || 1;
+                const precioUnitario = precioFormato / cantidadFormato;
+                costeBase += cantidad * precioUnitario;
+            }
+        });
+    }
+    // Fallback al campo coste si existe
+    if (costeBase === 0 && receta?.coste) {
+        costeBase = parseFloat(receta.coste);
+    }
 
     let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
 
