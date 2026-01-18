@@ -216,9 +216,12 @@ export function renderizarIngredientes() {
             const stockActual = parseFloat(ing.stock_actual) || 0;
             const stockMinimo = parseFloat(ing.stock_minimo) || 0;
             const stockBajo = stockMinimo > 0 && stockActual <= stockMinimo;
-            const familia = ing.familia || 'alimento';
-            const familiaBadge = familia === 'bebida' ? 'badge-info' : familia === 'suministro' ? 'badge-warning' : 'badge-success';
-            const familiaLabel = familia === 'bebida' ? '🍺 Bebida' : familia === 'suministro' ? '🧹 Suministro' : '🥬 Alimento';
+            const familia = (ing.familia || 'alimento').toLowerCase();
+            // Aceptar tanto 'bebida' como 'bebidas' para el badge azul
+            const esBebida = familia === 'bebida' || familia === 'bebidas';
+            const esSuministro = familia === 'suministro' || familia === 'suministros';
+            const familiaBadge = esBebida ? 'badge-info' : esSuministro ? 'badge-warning' : 'badge-success';
+            const familiaLabel = esBebida ? '🍺 Bebida' : esSuministro ? '🧹 Suministro' : '🥬 Alimento';
 
             // ⚡ Búsqueda O(1) del proveedor
             const nombreProv = window.dataMaps
