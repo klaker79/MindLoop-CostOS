@@ -81,6 +81,7 @@ const INTEL_STYLES = `
 .panel-buy .intel-panel-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 .panel-stop .intel-panel-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
 .panel-price .intel-panel-icon { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.panel-waste .intel-panel-icon { background: linear-gradient(135deg, #dc2626, #991b1b); }
 .intel-panel-title { font-weight: 700; color: #f1f5f9; }
 .intel-panel-sub { font-size: 0.75rem; color: #94a3b8; }
 .intel-list {
@@ -206,6 +207,44 @@ function renderPricing(data) {
     `).join('')}</div>`;
 }
 
+function renderWaste(data) {
+    if (!data || !data.mes_actual) {
+        return `<div class="intel-empty"><div class="intel-empty-icon">📊</div><div>Sin datos de mermas</div></div>`;
+    }
+    const total = parseFloat(data.mes_actual.total_perdida || 0);
+    const variacion = data.comparacion?.variacion || 0;
+    const topProductos = data.top_productos || [];
+
+    if (total === 0 && topProductos.length === 0) {
+        return `<div class="intel-empty"><div class="intel-empty-icon">✅</div><div>Sin pérdidas este mes</div></div>`;
+    }
+
+    let html = `
+        <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:2.5rem;font-weight:700;color:#ef4444;">${total.toFixed(2)}€</div>
+            <div style="color:#94a3b8;font-size:0.85rem;">Pérdidas este mes</div>
+            ${variacion !== 0 ? `<div style="color:${variacion > 0 ? '#ef4444' : '#22c55e'};font-size:0.8rem;margin-top:4px;">${variacion > 0 ? '↑' : '↓'} ${Math.abs(variacion)}% vs mes anterior</div>` : ''}
+        </div>
+    `;
+
+    if (topProductos.length > 0) {
+        html += `<div class="intel-list">`;
+        topProductos.forEach(p => {
+            html += `
+                <div class="intel-item">
+                    <div>
+                        <div class="intel-item-name">${p.nombre}</div>
+                        <div class="intel-item-detail">${parseFloat(p.cantidad_total).toFixed(2)} tirados (${p.veces}x)</div>
+                    </div>
+                    <span class="intel-badge badge-danger">${parseFloat(p.perdida_total).toFixed(2)}€</span>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    }
+    return html;
+}
+
 // ========== MAIN ==========
 async function renderizarInteligencia() {
     const container = document.getElementById('content-inteligencia');
@@ -217,9 +256,10 @@ async function renderizarInteligencia() {
 
     container.innerHTML = `<div class="intel-dashboard"><div style="text-align:center;padding:60px;"><div style="font-size:40px;">⏳</div><div style="color:#64748b;">Cargando...</div></div></div>`;
 
-    const [fresh, price] = await Promise.all([
+    const [fresh, price, waste] = await Promise.all([
         fetchIntelligence('freshness'),
-        fetchIntelligence('price-check')
+        fetchIntelligence('price-check'),
+        fetchIntelligence('waste-stats')
     ]);
 
     const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -247,6 +287,13 @@ async function renderizarInteligencia() {
                         <div><div class="intel-panel-title">Revisión de Precios</div><div class="intel-panel-sub">Recetas con food cost > 40%</div></div>
                     </div>
                     ${renderPricing(price)}
+                </div>
+                <div class="intel-panel panel-waste">
+                    <div class="intel-panel-header">
+                        <div class="intel-panel-icon">🗑️</div>
+                        <div><div class="intel-panel-title">Pérdidas del Mes</div><div class="intel-panel-sub">Productos tirados por exceso de compra</div></div>
+                    </div>
+                    ${renderWaste(waste)}
                 </div>
             </div>
         </div>
