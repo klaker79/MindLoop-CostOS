@@ -68,19 +68,25 @@ export async function cargarDatos() {
  * Cambia la pestaña activa
  */
 export function cambiarTab(tab) {
-    // Desactivar todas las tabs
+    // Desactivar todas las tabs (legacy horizontal tabs)
     document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
     document
         .querySelectorAll('.tab-content')
         .forEach((c) => c.classList.remove('active'));
 
-    // Activar tab seleccionada
+    // Activar tab seleccionada (legacy)
     const tabBtn = document.getElementById('tab-btn-' + tab);
     const tabContent = document.getElementById('tab-' + tab);
     if (tabBtn) tabBtn.classList.add('active');
     if (tabContent) tabContent.classList.add('active');
 
-    // Acciones específicas por tab
+    // ✨ Actualizar sidebar nav-items
+    document.querySelectorAll('.sidebar .nav-item').forEach((item) => {
+        item.classList.remove('active');
+        if (item.dataset.tab === tab) {
+            item.classList.add('active');
+        }
+    });
     switch (tab) {
         case 'ingredientes':
             window.renderizarIngredientes?.();
