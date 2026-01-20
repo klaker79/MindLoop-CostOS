@@ -106,6 +106,9 @@ export function cambiarTab(tab) {
         case 'horarios':
             window.initHorarios?.();
             break;
+        case 'inteligencia':
+            window.renderizarInteligencia?.();
+            break;
         case 'configuracion':
             window.renderizarEquipo?.();
             break;

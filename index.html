@@ -413,6 +413,9 @@
 
     <button id="tab-btn-diario" class="tab" data-tab="diario">📈 Diario</button>
     <button id="tab-btn-horarios" class="tab" data-tab="horarios">👥 Horarios</button>
+    <button id="tab-btn-inteligencia" class="tab" data-tab="inteligencia"
+      style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none;">🧠
+      Inteligencia</button>
     <button id="tab-btn-configuracion" class="tab" data-tab="configuracion">⚙️
       Configuración</button>
   </div>
@@ -1617,6 +1620,16 @@
       </div>
     </div>
 
+    <!-- TAB: INTELIGENCIA -->
+    <div id="tab-inteligencia" class="tab-content">
+      <div id="content-inteligencia">
+        <div style="text-align: center; padding: 60px; color: #64748b;">
+          <div style="font-size: 48px;">⏳</div>
+          <p>Cargando Inteligencia...</p>
+        </div>
+      </div>
+    </div>
+
     <!-- TAB: CONFIGURACIÓN -->
     <div id="tab-configuracion" class="tab-content">
       <div class="top-bar">
@@ -2397,9 +2410,12 @@
         </p>
 
         <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 10px;">
-          <button class="btn btn-small" style="background: #64748b; color: white;" data-action="descargar-plantilla-stock">📥 Completo</button>
-          <button class="btn btn-small" style="background: #10b981; color: white;" onclick="window.descargarPlantillaAlimentos()">🥗 Alimentos</button>
-          <button class="btn btn-small" style="background: #3b82f6; color: white;" onclick="window.descargarPlantillaBebidas()">🍺 Bebidas</button>
+          <button class="btn btn-small" style="background: #64748b; color: white;"
+            data-action="descargar-plantilla-stock">📥 Completo</button>
+          <button class="btn btn-small" style="background: #10b981; color: white;"
+            onclick="window.descargarPlantillaAlimentos()">🥗 Alimentos</button>
+          <button class="btn btn-small" style="background: #3b82f6; color: white;"
+            onclick="window.descargarPlantillaBebidas()">🍺 Bebidas</button>
         </div>
 
         <div
@@ -2806,6 +2822,7 @@
   <script src="src/legacy/modales.js"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
+  <script src="./src/modules/inteligencia/inteligencia-ui.js"></script>
   <script type="module" src="./src/main.js"></script>
 </body>
 
