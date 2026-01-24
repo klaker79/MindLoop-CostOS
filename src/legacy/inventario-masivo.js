@@ -987,6 +987,7 @@ window.confirmarImportarVentas = async function () {
                     cantidad: venta.cantidad,
                     total: venta.total, // Opcional si el backend lo recalcula, pero útil si el precio TPV varía
                     fecha: fechaVentas,
+                    varianteId: venta.varianteId, // 🔧 FIX: Pasar variante para usar precio correcto
                 });
             } else {
                 // Si NO está vinculado, solo registramos financieramente (TODO: Backend support for generic sales)
