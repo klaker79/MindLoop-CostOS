@@ -22,7 +22,11 @@ export async function guardarIngrediente(event) {
         stockActual: parseFloat(getInputValue('ing-stockActual')) || 0,
         stockMinimo: parseFloat(getInputValue('ing-stockMinimo')) || 0,
         formato_compra: getInputValue('ing-formato-compra') || null,
-        cantidad_por_formato: parseFloat(getInputValue('ing-cantidad-formato')) || null,
+        // 🔒 FIX: Solo enviar cantidad_por_formato si el usuario la editó explícitamente
+        // undefined = no cambiar, null = borrar intencionalmente
+        cantidad_por_formato: getInputValue('ing-cantidad-formato')
+            ? parseFloat(getInputValue('ing-cantidad-formato'))
+            : undefined,
     };
 
     // Validaciones
@@ -218,7 +222,10 @@ export function editarIngrediente(id) {
     if (formatoEl) formatoEl.value = ing.formato_compra || '';
 
     const cantFormatoEl = getElement('ing-cantidad-formato');
-    if (cantFormatoEl) cantFormatoEl.value = ing.cantidad_por_formato || '';
+    // 🔒 FIX: Mostrar el valor aunque sea 0 (solo ocultar si es null/undefined)
+    if (cantFormatoEl) cantFormatoEl.value = ing.cantidad_por_formato !== null && ing.cantidad_por_formato !== undefined
+        ? ing.cantidad_por_formato
+        : '';
 }
 
 /**
