@@ -210,10 +210,17 @@ export function calcularCosteReceta() {
                 const invItem = inventarioMap.get(ingId);
                 const ing = ingredientesMap.get(ingId);
 
-                // Prioridad: precio_medio del inventario > precio fijo
-                const precio = invItem?.precio_medio
-                    ? parseFloat(invItem.precio_medio)
-                    : parseFloat(ing?.precio || 0);
+                // Prioridad: precio_medio del inventario (WAP) > precio fijo / cantidad_por_formato
+                let precio = 0;
+                if (invItem?.precio_medio) {
+                    // ✅ PRIMARIO: Usar precio medio del inventario (media de compras)
+                    precio = parseFloat(invItem.precio_medio);
+                } else if (ing?.precio) {
+                    // ⚠️ FALLBACK: precio del formato / cantidad_por_formato
+                    const precioFormato = parseFloat(ing.precio);
+                    const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
+                    precio = precioFormato / cantidadPorFormato;
+                }
 
                 costeTotalLote += precio * cantidad;
             }
