@@ -321,10 +321,35 @@ async function deleteRecipe(id) {
     });
 }
 
-async function createSale(recetaId, cantidad) {
+/**
+ * Crea una venta
+ * 🔧 FIX: Acepta tanto objeto como parámetros separados para compatibilidad
+ * @param {Object|number} ventaDataOrRecetaId - Objeto con datos de venta O recetaId
+ * @param {number} [cantidad] - Cantidad (solo si se pasa recetaId como primer arg)
+ */
+async function createSale(ventaDataOrRecetaId, cantidad) {
+    let body;
+
+    // Detectar si se pasó un objeto o parámetros separados
+    if (typeof ventaDataOrRecetaId === 'object' && ventaDataOrRecetaId !== null) {
+        // Formato nuevo: objeto con todos los datos
+        body = {
+            recetaId: ventaDataOrRecetaId.recetaId || ventaDataOrRecetaId.receta_id,
+            cantidad: ventaDataOrRecetaId.cantidad,
+            varianteId: ventaDataOrRecetaId.varianteId,
+            precioVariante: ventaDataOrRecetaId.precioVariante,
+            fecha: ventaDataOrRecetaId.fecha,
+            precio_unitario: ventaDataOrRecetaId.precio_unitario,
+            total: ventaDataOrRecetaId.total
+        };
+    } else {
+        // Formato legacy: dos parámetros separados
+        body = { recetaId: ventaDataOrRecetaId, cantidad };
+    }
+
     return await fetchAPI('/api/sales', {
         method: 'POST',
-        body: JSON.stringify({ recetaId, cantidad }),
+        body: JSON.stringify(body),
     });
 }
 
