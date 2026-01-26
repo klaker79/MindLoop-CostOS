@@ -2247,6 +2247,22 @@
             return await res.json();
         },
 
+        // MERMAS - Historial completo
+        async getMermas(mes, ano) {
+            try {
+                const mesParam = mes || (new Date().getMonth() + 1);
+                const anoParam = ano || new Date().getFullYear();
+                const res = await fetch(API_BASE + `/mermas?mes=${mesParam}&ano=${anoParam}`, {
+                    headers: getAuthHeaders(),
+                });
+                if (!res.ok) throw new Error('Error cargando mermas');
+                return await res.json();
+            } catch (error) {
+                console.warn('Error loading mermas:', error);
+                return [];
+            }
+        },
+
         // MERMAS (Pérdidas de producto) - Para KPI
         async getMermasResumen() {
             try {
@@ -5440,7 +5456,6 @@
                                 <option value="Accidente" ${adj.motivo === 'Accidente' ? 'selected' : ''}>Accidente</option>
                                 <option value="Error Cocina" ${adj.motivo === 'Error Cocina' ? 'selected' : ''}>Error Cocina</option>
                                 <option value="Error Inventario" ${adj.motivo === 'Error Inventario' ? 'selected' : ''}>Error Conteo</option>
-                                <option value="Robo" ${adj.motivo === 'Robo' ? 'selected' : ''}>Robo / Desconocido</option>
                                 <option value="Otros" ${adj.motivo === 'Otros' ? 'selected' : ''}>Otros</option>
                             </select>
                         </td>

@@ -99,6 +99,10 @@ const actionHandlers = {
     'cerrar-modal-merma-rapida': () => closeModal('modal-merma-rapida'),
     'confirmar-merma-rapida': () => window.confirmarMermaRapida?.(),
 
+    // Historial Mermas
+    'ver-historial-mermas': () => window.verHistorialMermas?.(),
+    'cerrar-modal-historial-mermas': () => closeModal('modal-historial-mermas'),
+
     // Evolución de Precios
     'cerrar-modal-evolucion-precio': () => closeModal('modal-evolucion-precio'),
 

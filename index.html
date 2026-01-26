@@ -707,7 +707,8 @@
                 </div>
                 <div class="form-group">
                   <label>Porciones</label>
-                  <input type="number" id="rec-porciones" min="1" value="1" onchange="window.calcularCosteReceta?.()" oninput="window.calcularCosteReceta?.()">
+                  <input type="number" id="rec-porciones" min="1" value="1" onchange="window.calcularCosteReceta?.()"
+                    oninput="window.calcularCosteReceta?.()">
                 </div>
               </div>
               <div class="ingredientes-receta">
@@ -1372,6 +1373,8 @@
             <button class="btn btn-primary" data-action="guardar-cambios-stock">💾 Guardar Stock</button>
             <button class="btn" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white;"
               data-action="mostrar-modal-merma-rapida">🗑️ Merma Rápida</button>
+            <button class="btn" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white;"
+              data-action="ver-historial-mermas">📋 Ver Historial Mermas</button>
           </div>
 
           <div id="resumen-inventario" style="display: none; gap: 20px;"></div>
@@ -2436,6 +2439,88 @@
             <button class="btn btn-secondary" data-action="cerrar-modal-mermas">Cancelar</button>
             <button class="btn btn-primary" id="btn-confirmar-split" style="background: #ef4444;"
               data-action="confirmar-mermas">Confirmar Ajustes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Historial de Mermas -->
+      <div id="modal-historial-mermas" class="modal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+          <span class="close" data-action="cerrar-modal-historial-mermas">&times;</span>
+          <h2 style="color: #8B5CF6; display: flex; align-items: center; gap: 10px;">📋 Historial de Mermas/Pérdidas
+          </h2>
+          <p style="color: #64748b; margin-bottom: 20px;">Registro de todas las mermas y pérdidas registradas este mes.
+          </p>
+
+          <!-- Filtros -->
+          <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center;">
+            <select id="mermas-mes" class="form-control"
+              style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
+              <option value="1">Enero</option>
+              <option value="2">Febrero</option>
+              <option value="3">Marzo</option>
+              <option value="4">Abril</option>
+              <option value="5">Mayo</option>
+              <option value="6">Junio</option>
+              <option value="7">Julio</option>
+              <option value="8">Agosto</option>
+              <option value="9">Septiembre</option>
+              <option value="10">Octubre</option>
+              <option value="11">Noviembre</option>
+              <option value="12">Diciembre</option>
+            </select>
+            <select id="mermas-ano" class="form-control"
+              style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+            </select>
+            <button class="btn btn-primary" onclick="window.cargarHistorialMermas()">🔄 Cargar</button>
+          </div>
+
+          <!-- Resumen -->
+          <div id="mermas-resumen"
+            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+            <div
+              style="background: linear-gradient(135deg, #fee2e2, #fecaca); padding: 15px; border-radius: 12px; text-align: center;">
+              <div style="font-size: 24px; font-weight: 700; color: #b91c1c;" id="mermas-total-valor">0.00€</div>
+              <div style="font-size: 12px; color: #7f1d1d;">Pérdida Total</div>
+            </div>
+            <div
+              style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); padding: 15px; border-radius: 12px; text-align: center;">
+              <div style="font-size: 24px; font-weight: 700; color: #4338ca;" id="mermas-total-registros">0</div>
+              <div style="font-size: 12px; color: #3730a3;">Registros</div>
+            </div>
+            <div
+              style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 15px; border-radius: 12px; text-align: center;">
+              <div style="font-size: 24px; font-weight: 700; color: #92400e;" id="mermas-motivo-principal">-</div>
+              <div style="font-size: 12px; color: #78350f;">Motivo Principal</div>
+            </div>
+          </div>
+
+          <!-- Tabla -->
+          <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead style="background: #f8fafc; position: sticky; top: 0;">
+                <tr>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Fecha</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ingrediente</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Cantidad</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Valor</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Motivo</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Nota</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-historial-mermas-body">
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+            <button class="btn btn-secondary" data-action="cerrar-modal-historial-mermas">Cerrar</button>
           </div>
         </div>
       </div>

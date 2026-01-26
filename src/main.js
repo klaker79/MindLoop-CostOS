@@ -279,6 +279,86 @@ window.actualizarLineaMerma = MermaRapida.actualizarLineaMerma;
 window.procesarFotoMerma = MermaRapida.procesarFotoMerma;
 window.procesarFotoMermaInput = MermaRapida.procesarFotoMermaInput;
 
+// Historial de Mermas
+window.verHistorialMermas = function () {
+    const modal = document.getElementById('modal-historial-mermas');
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        // Seleccionar mes actual
+        const mesActual = new Date().getMonth() + 1;
+        const anoActual = new Date().getFullYear();
+        document.getElementById('mermas-mes').value = mesActual;
+        document.getElementById('mermas-ano').value = anoActual;
+        window.cargarHistorialMermas();
+    }
+};
+
+window.cargarHistorialMermas = async function () {
+    const mes = document.getElementById('mermas-mes').value;
+    const ano = document.getElementById('mermas-ano').value;
+    const tbody = document.getElementById('tabla-historial-mermas-body');
+
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Cargando...</td></tr>';
+
+    try {
+        const mermas = await window.API?.getMermas?.(mes, ano) || [];
+
+        if (mermas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">No hay mermas registradas en este período</td></tr>';
+            document.getElementById('mermas-total-valor').textContent = '0.00€';
+            document.getElementById('mermas-total-registros').textContent = '0';
+            document.getElementById('mermas-motivo-principal').textContent = '-';
+            return;
+        }
+
+        // Calcular totales
+        let totalValor = 0;
+        const motivosCont = {};
+
+        let html = '';
+        mermas.forEach(m => {
+            totalValor += parseFloat(m.valor_perdida) || 0;
+            const motivo = m.motivo || 'Otros';
+            motivosCont[motivo] = (motivosCont[motivo] || 0) + 1;
+
+            const fecha = m.fecha ? new Date(m.fecha).toLocaleDateString('es-ES') : '-';
+            const cantidad = Math.abs(parseFloat(m.cantidad) || 0).toFixed(2);
+            const valor = parseFloat(m.valor_perdida || 0).toFixed(2);
+
+            html += `<tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px;">${fecha}</td>
+                <td style="padding: 10px;"><strong>${m.ingrediente_nombre || m.ingrediente_actual || 'N/A'}</strong></td>
+                <td style="padding: 10px;">${cantidad} ${m.unidad || ''}</td>
+                <td style="padding: 10px; color: #ef4444; font-weight: 600;">${valor}€</td>
+                <td style="padding: 10px;"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${motivo}</span></td>
+                <td style="padding: 10px; color: #64748b; font-size: 12px;">${m.nota || '-'}</td>
+            </tr>`;
+        });
+
+        tbody.innerHTML = html;
+
+        // Actualizar resumen
+        document.getElementById('mermas-total-valor').textContent = totalValor.toFixed(2) + '€';
+        document.getElementById('mermas-total-registros').textContent = mermas.length;
+
+        // Motivo principal
+        let motivoPrincipal = '-';
+        let maxCount = 0;
+        for (const [motivo, count] of Object.entries(motivosCont)) {
+            if (count > maxCount) {
+                maxCount = count;
+                motivoPrincipal = motivo;
+            }
+        }
+        document.getElementById('mermas-motivo-principal').textContent = motivoPrincipal;
+
+    } catch (error) {
+        console.error('Error cargando mermas:', error);
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #ef4444;">Error al cargar datos</td></tr>';
+    }
+};
+
 // ============================================
 // MÓDULO: EXPORT PDF
 // ============================================

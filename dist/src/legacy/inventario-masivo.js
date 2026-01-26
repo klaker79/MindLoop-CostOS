@@ -1239,8 +1239,9 @@ window.confirmarImportarPedidos = async function () {
                     notas: 'Importado automáticamente',
                 });
                 provId = nuevoProv.id;
-                // Recargar proveedores localmente
-                window.proveedores.push(nuevoProv);
+                // 🔧 FIX: Usar asignación inmutable en lugar de push directo
+                // El push directo puede causar problemas si hay condiciones de carrera
+                window.proveedores = [...(window.proveedores || []), nuevoProv];
             }
 
             await window.api.createPedido({
