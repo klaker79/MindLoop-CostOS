@@ -195,7 +195,13 @@ export async function actualizarKPIs() {
             const valorStockEl = document.getElementById('kpi-valor-stock');
             const itemsStockEl = document.getElementById('kpi-items-stock');
 
+            // 🔍 DEBUG: Guardar valor anterior para comparar
+            const valorAnterior = parseFloat(localStorage.getItem('_debug_valor_stock') || '0');
+
             if (ingredientes.length > 0) {
+                // 🔍 DEBUG: Array para ver desglose
+                const desglose = [];
+
                 const valorTotal = ingredientes.reduce((sum, ing) => {
                     const stock = parseFloat(ing.stock_actual) || 0;
 
@@ -203,19 +209,43 @@ export async function actualizarKPIs() {
                     // Mismo cálculo que calcularCosteRecetaCompleto
                     const invItem = invMap.get(ing.id);
                     let precioUnitario = 0;
+                    let fuentePrecio = 'ninguno';
 
                     if (invItem?.precio_medio) {
                         precioUnitario = parseFloat(invItem.precio_medio);
+                        fuentePrecio = 'precio_medio';
                     } else if (ing.precio) {
                         // Fallback: precio / cantidad_por_formato
                         const precioFormato = parseFloat(ing.precio) || 0;
                         const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
                         precioUnitario = precioFormato / cantidadPorFormato;
+                        fuentePrecio = 'fallback';
+                    }
+
+                    const valorItem = stock * precioUnitario;
+                    
+                    // Solo guardar items con valor > 100€ para el debug
+                    if (valorItem > 100) {
+                        desglose.push({
+                            nombre: ing.nombre,
+                            stock: stock,
+                            precio: precioUnitario,
+                            valor: valorItem,
+                            fuente: fuentePrecio
+                        });
                     }
 
                     // Valor = stock × precio unitario
-                    return sum + (stock * precioUnitario);
+                    return sum + valorItem;
                 }, 0);
+                
+                // 🔍 DEBUG: Mostrar cambios si el valor cambió significativamente
+                if (Math.abs(valorTotal - valorAnterior) > 10) {
+                    console.log('📊 VALOR STOCK CAMBIÓ:', valorAnterior.toFixed(2), '→', valorTotal.toFixed(2));
+                    console.log('📦 Top ingredientes por valor:', desglose.sort((a,b) => b.valor - a.valor).slice(0, 10));
+                    console.table(desglose.sort((a,b) => b.valor - a.valor).slice(0, 10));
+                }
+                localStorage.setItem('_debug_valor_stock', valorTotal.toString());
 
                 // Contar items con stock > 0
                 const itemsConStock = ingredientes.filter(i =>
