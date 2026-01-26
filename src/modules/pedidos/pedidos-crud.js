@@ -22,7 +22,8 @@ export async function guardarPedido(event) {
 
     if (select && select.value && cantidadInput && cantidadInput.value) {
       const ingId = parseInt(select.value);
-      const ing = window.ingredientes.find(i => i.id === ingId);
+      // 🔒 FIX: Proteger acceso a array global que puede no estar cargado
+      const ing = (window.ingredientes || []).find(i => i.id === ingId);
       const cantidadValue = parseFloat(cantidadInput.value);
 
       // 💰 Precio: usar el del input si está relleno, sino el del ingrediente
@@ -68,7 +69,7 @@ export async function guardarPedido(event) {
 
 
   const proveedorId = parseInt(document.getElementById('ped-proveedor').value);
-  const proveedor = window.proveedores.find(p => p.id === proveedorId);
+  const proveedor = (window.proveedores || []).find(p => p.id === proveedorId);
   const esCompraMercado = proveedor && proveedor.nombre.toLowerCase().includes('mercado');
 
   let pedido;
@@ -102,7 +103,7 @@ export async function guardarPedido(event) {
 
     // 🛒 NUEVO: Añadir ingredientes al carrito en lugar de crear pedido directamente
     ingredientesPedido.forEach(item => {
-      const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+      const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
       if (ing && typeof window.agregarAlCarrito === 'function') {
         // 🆕 Pasar precio y flag de si es unitario (compra por botella vs caja)
         const esUnidadSuelta = item.formatoUsado === 'unidad';
@@ -136,7 +137,7 @@ export async function guardarPedido(event) {
     // 🏪 Para compras del mercado: actualizar stock inmediatamente
     if (esCompraMercado) {
       for (const item of ingredientesPedido) {
-        const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+        const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
         if (ing) {
           // 🔒 FIX: Usar stock_actual primero (snake_case del backend)
           const stockAnterior = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
@@ -197,7 +198,7 @@ export async function guardarPedido(event) {
  * @param {number} id - ID del pedido
  */
 export async function eliminarPedido(id) {
-  const ped = window.pedidos.find(p => p.id === id);
+  const ped = (window.pedidos || []).find(p => p.id === id);
   if (!ped) return;
 
   if (!confirm(`¿Eliminar el pedido #${id}?`)) return;
@@ -223,10 +224,10 @@ export async function eliminarPedido(id) {
  */
 export function marcarPedidoRecibido(id) {
   window.pedidoRecibiendoId = id;
-  const ped = window.pedidos.find(p => p.id === id);
+  const ped = (window.pedidos || []).find(p => p.id === id);
   if (!ped) return;
 
-  const prov = window.proveedores.find(
+  const prov = (window.proveedores || []).find(
     p => p.id === ped.proveedorId || p.id === ped.proveedor_id
   );
 
@@ -350,7 +351,7 @@ function renderItemsRecepcionModal(ped) {
  * Actualiza un item de recepción y recalcula totales SIN perder el foco
  */
 export function actualizarItemRecepcion(idx, tipo, valor) {
-  const ped = window.pedidos.find(p => p.id === window.pedidoRecibiendoId);
+  const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
   if (!ped || !ped.itemsRecepcion) return;
 
   const item = ped.itemsRecepcion[idx];
@@ -422,7 +423,7 @@ function actualizarTotalesRecepcion(ped, idxActualizado) {
  * Cambia el estado de un item de recepción
  */
 export function cambiarEstadoItem(idx, estado) {
-  const ped = window.pedidos.find(p => p.id === window.pedidoRecibiendoId);
+  const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
   if (!ped || !ped.itemsRecepcion) return;
 
   ped.itemsRecepcion[idx].estado = estado;
@@ -445,7 +446,7 @@ export function cerrarModalRecibirPedido() {
 export async function confirmarRecepcionPedido() {
   if (window.pedidoRecibiendoId === null) return;
 
-  const ped = window.pedidos.find(p => p.id === window.pedidoRecibiendoId);
+  const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
   if (!ped || !ped.itemsRecepcion) return;
 
   window.showLoading();
@@ -479,22 +480,44 @@ export async function confirmarRecepcionPedido() {
      * Solo se actualiza el STOCK, NUNCA el precio del ingrediente.
      * El backend calcula precio_medio correctamente desde los pedidos.
      * Modificar esto causará corrupción de datos de precio.
+     *
+     * 🔒 FIX: Procesamiento secuencial con tracking para evitar datos inconsistentes
      */
+    const actualizacionesExitosas = [];
+    const actualizacionesFallidas = [];
+
     for (const item of ingredientesActualizados) {
       if (item.estado === 'no-entregado') continue;
 
-      const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
-      if (ing) {
-        // 🔒 FIX: Usar stock_actual primero (snake_case del backend)
-        const stockAnterior = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
-        const cantidadRecibida = item.cantidadRecibida;
-        const nuevoStock = stockAnterior + cantidadRecibida;
+      const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
+      if (!ing) {
+        actualizacionesFallidas.push({
+          id: item.ingredienteId,
+          nombre: `ID ${item.ingredienteId}`,
+          error: 'Ingrediente no encontrado'
+        });
+        continue;
+      }
 
+      // 🔒 FIX: Usar stock_actual primero (snake_case del backend)
+      const stockAnterior = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
+      const cantidadRecibida = parseFloat(item.cantidadRecibida) || 0;
+
+      // 🔒 FIX: Validar que cantidadRecibida sea razonable (no negativa, no absurda)
+      if (cantidadRecibida < 0) {
+        actualizacionesFallidas.push({
+          id: ing.id,
+          nombre: ing.nombre,
+          error: `Cantidad negativa: ${cantidadRecibida}`
+        });
+        continue;
+      }
+
+      const nuevoStock = stockAnterior + cantidadRecibida;
+
+      try {
         console.log(`📦 ${ing.nombre}: Stock ${stockAnterior} → ${nuevoStock}`);
 
-        // 🔒 FIX CRÍTICO: No hacer spread de ...ing
-        // El spread incluía stockActual que podía sobrescribir stock_actual en backend
-        // Enviar solo campos específicos, usando SOLO stock_actual (no stockActual)
         await window.api.updateIngrediente(item.ingredienteId, {
           nombre: ing.nombre,
           unidad: ing.unidad,
@@ -507,10 +530,55 @@ export async function confirmarRecepcionPedido() {
           stock_actual: nuevoStock
           // ⚠️ PROHIBIDO tocar precio - el backend calcula precio_medio ⚠️
         });
+
+        actualizacionesExitosas.push({
+          id: ing.id,
+          nombre: ing.nombre,
+          stockAnterior,
+          stockNuevo: nuevoStock,
+          cantidadRecibida
+        });
+
+      } catch (itemError) {
+        actualizacionesFallidas.push({
+          id: ing.id,
+          nombre: ing.nombre,
+          error: itemError.message
+        });
+        console.error(`❌ Error actualizando stock de ${ing.nombre}:`, itemError);
       }
     }
 
-    // Marcar pedido como recibido CON LOS PRECIOS REALES
+    // 🔒 FIX: Si hubo fallos, NO marcar pedido como recibido para evitar duplicación
+    if (actualizacionesFallidas.length > 0) {
+      const exitosos = actualizacionesExitosas.map(a => a.nombre).join(', ');
+      const fallidos = actualizacionesFallidas.map(a => `${a.nombre}: ${a.error}`).join('\n');
+
+      // Log para auditoría
+      console.error('⚠️ RECEPCIÓN PARCIAL:', {
+        pedidoId: window.pedidoRecibiendoId,
+        exitosos: actualizacionesExitosas,
+        fallidos: actualizacionesFallidas,
+        fecha: new Date().toISOString()
+      });
+
+      window.hideLoading();
+
+      alert(
+        `⚠️ ATENCIÓN: Recepción parcialmente completada\n\n` +
+        `✅ Stock actualizado: ${exitosos || 'ninguno'}\n\n` +
+        `❌ Falló actualizar:\n${fallidos}\n\n` +
+        `⚠️ El pedido NO se marcó como recibido para evitar duplicación.\n` +
+        `Soluciona los errores e intenta de nuevo.`
+      );
+
+      await window.cargarDatos();
+      window.renderizarPedidos();
+      window.renderizarIngredientes();
+      return;
+    }
+
+    // Solo si TODOS los stocks se actualizaron, marcar pedido como recibido
     await window.api.updatePedido(window.pedidoRecibiendoId, {
       ...ped,
       estado: 'recibido',
@@ -540,10 +608,10 @@ export async function confirmarRecepcionPedido() {
  */
 export function verDetallesPedido(pedidoId) {
   window.pedidoViendoId = pedidoId;
-  const ped = window.pedidos.find(p => p.id === pedidoId);
+  const ped = (window.pedidos || []).find(p => p.id === pedidoId);
   if (!ped) return;
 
-  const prov = window.proveedores.find(
+  const prov = (window.proveedores || []).find(
     p => p.id === ped.proveedorId || p.id === ped.proveedor_id
   );
   const provNombre = prov ? prov.nombre : 'Sin proveedor';
@@ -562,7 +630,7 @@ export function verDetallesPedido(pedidoId) {
   if (items.length > 0) {
     items.forEach(item => {
       const ingId = item.ingredienteId || item.ingrediente_id;
-      const ing = window.ingredientes.find(i => i.id === ingId);
+      const ing = (window.ingredientes || []).find(i => i.id === ingId);
       const nombreIng = ing ? ing.nombre : 'Ingrediente';
       const unidadIng = ing ? ing.unidad : '';
 
@@ -723,11 +791,11 @@ export function cerrarModalVerPedido() {
 export function descargarPedidoPDF() {
   if (window.pedidoViendoId === null) return;
 
-  const pedido = window.pedidos.find(p => p.id === window.pedidoViendoId);
+  const pedido = (window.pedidos || []).find(p => p.id === window.pedidoViendoId);
   if (!pedido) return;
 
   const provId = pedido.proveedorId || pedido.proveedor_id;
-  const prov = window.proveedores.find(p => p.id === provId);
+  const prov = (window.proveedores || []).find(p => p.id === provId);
   const provNombre = prov ? prov.nombre : 'Sin proveedor';
   const provDir = prov?.direccion || '';
   const provTel = prov?.telefono || '';
@@ -742,7 +810,7 @@ export function descargarPedidoPDF() {
 
   items.forEach(item => {
     const ingId = item.ingredienteId || item.ingrediente_id;
-    const ing = window.ingredientes.find(i => i.id === ingId);
+    const ing = (window.ingredientes || []).find(i => i.id === ingId);
     const nombre = ing ? ing.nombre : 'Ingrediente';
     const unidad = ing ? ing.unidad : '';
 
@@ -916,11 +984,11 @@ export function enviarPedidoWhatsApp() {
     return;
   }
 
-  const pedido = window.pedidos.find(p => p.id === window.pedidoViendoId);
+  const pedido = (window.pedidos || []).find(p => p.id === window.pedidoViendoId);
   if (!pedido) return;
 
   const provId = pedido.proveedorId || pedido.proveedor_id;
-  const prov = window.proveedores.find(p => p.id === provId);
+  const prov = (window.proveedores || []).find(p => p.id === provId);
 
   if (!prov || !prov.telefono) {
     // 🔧 Si no tiene teléfono, abrir edición del proveedor
@@ -974,7 +1042,7 @@ export function enviarPedidoWhatsApp() {
 
   items.forEach(item => {
     const ingId = item.ingredienteId || item.ingrediente_id;
-    const ing = window.ingredientes.find(i => i.id === ingId);
+    const ing = (window.ingredientes || []).find(i => i.id === ingId);
     const nombre = ing ? ing.nombre : 'Ingrediente';
     const unidad = ing ? ing.unidad : '';
     const cantidad = parseFloat(item.cantidad || 0);

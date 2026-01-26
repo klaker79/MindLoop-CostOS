@@ -104,7 +104,7 @@ export async function guardarProveedor(event) {
  * Edita un proveedor existente
  */
 export function editarProveedor(id) {
-    const prov = window.proveedores.find(p => p.id === id);
+    const prov = (window.proveedores || []).find(p => p.id === id);
     if (!prov) return;
 
     // Rellenar todos los campos del formulario con los datos existentes
@@ -127,7 +127,7 @@ export function editarProveedor(id) {
  * Elimina un proveedor
  */
 export async function eliminarProveedor(id) {
-    const prov = window.proveedores.find(p => p.id === id);
+    const prov = (window.proveedores || []).find(p => p.id === id);
     if (!prov) return;
 
     if (!confirm(`¿Eliminar proveedor "${prov.nombre}"?`)) return;

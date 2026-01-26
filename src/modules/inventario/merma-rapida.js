@@ -244,62 +244,121 @@ export async function confirmarMermasMultiples() {
         // Preparar datos para enviar al backend
         const mermasParaBackend = [];
 
-        // Procesar cada merma
+        // 🔒 FIX CRÍTICO: Tracking de actualizaciones para manejar fallos parciales
+        const actualizacionesExitosas = [];
+        const actualizacionesFallidas = [];
+
+        // Procesar cada merma SECUENCIALMENTE con tracking
         for (const merma of mermasARegistrar) {
             const ingrediente = (window.ingredientes || []).find(i => i.id === merma.ingredienteId);
-            if (!ingrediente) continue;
+            if (!ingrediente) {
+                actualizacionesFallidas.push({
+                    id: merma.ingredienteId,
+                    nombre: `ID ${merma.ingredienteId}`,
+                    error: 'Ingrediente no encontrado'
+                });
+                continue;
+            }
 
             const stockActualValue = parseFloat(ingrediente.stock_actual ?? ingrediente.stockActual ?? 0);
-            const nuevoStock = Math.max(0, stockActualValue - merma.cantidad);
+            const cantidadMerma = parseFloat(merma.cantidad) || 0;
 
-            console.log(`📉 Merma: ${ingrediente.nombre} - Stock anterior: ${stockActualValue}, Restando: ${merma.cantidad}, Nuevo stock: ${nuevoStock}`);
+            // Validar cantidad
+            if (isNaN(cantidadMerma) || cantidadMerma < 0) {
+                actualizacionesFallidas.push({
+                    id: ingrediente.id,
+                    nombre: ingrediente.nombre,
+                    error: `Cantidad inválida: ${merma.cantidad}`
+                });
+                continue;
+            }
 
-            // 🔒 FIX CRÍTICO: No hacer spread completo del ingrediente
-            // El spread incluía stockActual:0 que sobrescribía stock_actual en backend
-            // Backend usa: body.stockActual ?? body.stock_actual → 0 ?? nuevoStock = 0
-            await window.api.updateIngrediente(merma.ingredienteId, {
-                nombre: ingrediente.nombre,
-                unidad: ingrediente.unidad,
-                precio: ingrediente.precio,
-                proveedor_id: ingrediente.proveedor_id || ingrediente.proveedorId,
-                familia: ingrediente.familia,
-                formato_compra: ingrediente.formato_compra,
-                cantidad_por_formato: ingrediente.cantidad_por_formato,
-                stock_minimo: ingrediente.stock_minimo ?? ingrediente.stockMinimo,
-                // Solo enviar stock_actual, NO stockActual
-                stock_actual: nuevoStock
-            });
+            const nuevoStock = Math.max(0, stockActualValue - cantidadMerma);
 
-            totalPerdida += merma.valorPerdida;
-            productosAfectados.push(ingrediente.nombre);
+            try {
+                console.log(`📉 Merma: ${ingrediente.nombre} - Stock anterior: ${stockActualValue}, Restando: ${cantidadMerma}, Nuevo stock: ${nuevoStock}`);
 
-            // Añadir a array para backend
-            mermasParaBackend.push({
-                ingredienteId: merma.ingredienteId,
-                ingredienteNombre: ingrediente.nombre,
-                cantidad: merma.cantidad,
-                unidad: ingrediente.unidad || 'ud',
-                valorPerdida: merma.valorPerdida,
-                motivo: merma.motivo,
-                nota: merma.nota || '',
-                responsableId: parseInt(responsableId) || null
-            });
+                await window.api.updateIngrediente(merma.ingredienteId, {
+                    nombre: ingrediente.nombre,
+                    unidad: ingrediente.unidad,
+                    precio: ingrediente.precio,
+                    proveedor_id: ingrediente.proveedor_id || ingrediente.proveedorId,
+                    familia: ingrediente.familia,
+                    formato_compra: ingrediente.formato_compra,
+                    cantidad_por_formato: ingrediente.cantidad_por_formato,
+                    stock_minimo: ingrediente.stock_minimo ?? ingrediente.stockMinimo,
+                    stock_actual: nuevoStock
+                });
 
-            // Log para auditoría
-            console.log('📝 Merma registrada:', {
-                ingrediente: ingrediente.nombre,
-                cantidad: merma.cantidad,
-                motivo: merma.motivo,
-                medidaCorrectora: merma.medidaCorrectora,
-                valorPerdida: merma.valorPerdida,
-                stockAnterior: stockActualValue,
-                stockNuevo: nuevoStock,
-                responsableId,
-                fecha: new Date().toISOString()
-            });
+                // Trackear éxito
+                actualizacionesExitosas.push({
+                    id: ingrediente.id,
+                    nombre: ingrediente.nombre,
+                    stockAnterior: stockActualValue,
+                    stockNuevo: nuevoStock,
+                    cantidadMerma
+                });
+
+                totalPerdida += merma.valorPerdida;
+                productosAfectados.push(ingrediente.nombre);
+
+                // Añadir a array para backend
+                mermasParaBackend.push({
+                    ingredienteId: merma.ingredienteId,
+                    ingredienteNombre: ingrediente.nombre,
+                    cantidad: cantidadMerma,
+                    unidad: ingrediente.unidad || 'ud',
+                    valorPerdida: merma.valorPerdida,
+                    motivo: merma.motivo,
+                    nota: merma.nota || '',
+                    responsableId: parseInt(responsableId) || null
+                });
+
+                // Log para auditoría
+                console.log('📝 Merma registrada:', {
+                    ingrediente: ingrediente.nombre,
+                    cantidad: cantidadMerma,
+                    motivo: merma.motivo,
+                    medidaCorrectora: merma.medidaCorrectora,
+                    valorPerdida: merma.valorPerdida,
+                    stockAnterior: stockActualValue,
+                    stockNuevo: nuevoStock,
+                    responsableId,
+                    fecha: new Date().toISOString()
+                });
+
+            } catch (itemError) {
+                actualizacionesFallidas.push({
+                    id: ingrediente.id,
+                    nombre: ingrediente.nombre,
+                    error: itemError.message
+                });
+                console.error(`❌ Error registrando merma de ${ingrediente.nombre}:`, itemError);
+            }
         }
 
-        // Enviar mermas al backend para KPI
+        // 🔒 FIX: Si hubo fallos parciales, notificar al usuario
+        if (actualizacionesFallidas.length > 0) {
+            const exitosos = actualizacionesExitosas.map(a => a.nombre).join(', ');
+            const fallidos = actualizacionesFallidas.map(a => `${a.nombre}: ${a.error}`).join('\n');
+
+            console.error('⚠️ MERMA PARCIAL:', {
+                exitosos: actualizacionesExitosas,
+                fallidos: actualizacionesFallidas,
+                fecha: new Date().toISOString()
+            });
+
+            if (typeof window.hideLoading === 'function') window.hideLoading();
+
+            alert(
+                `⚠️ ATENCIÓN: Merma parcialmente registrada\n\n` +
+                `✅ Stock actualizado: ${exitosos || 'ninguno'}\n\n` +
+                `❌ Falló registrar:\n${fallidos}\n\n` +
+                `Las mermas exitosas ya se aplicaron. Revisa los errores y registra las faltantes manualmente.`
+            );
+        }
+
+        // Enviar mermas EXITOSAS al backend para KPI
         if (mermasParaBackend.length > 0 && window.API?.fetch) {
             try {
                 await window.API.fetch('/api/mermas', {

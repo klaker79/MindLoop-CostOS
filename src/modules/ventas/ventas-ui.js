@@ -121,7 +121,7 @@ export function exportarVentas() {
             {
                 header: 'Código Receta',
                 value: v => {
-                    const rec = window.recetas.find(r => r.id === v.receta_id);
+                    const rec = (window.recetas || []).find(r => r.id === v.receta_id);
                     return rec?.codigo || `REC-${String(v.receta_id).padStart(4, '0')}`;
                 },
             },
@@ -129,7 +129,7 @@ export function exportarVentas() {
                 header: 'Descripción',
                 value: v =>
                     v.receta_nombre ||
-                    window.recetas.find(r => r.id === v.receta_id)?.nombre ||
+                    (window.recetas || []).find(r => r.id === v.receta_id)?.nombre ||
                     'Desconocida',
             },
             { header: 'Cantidad', key: 'cantidad' },

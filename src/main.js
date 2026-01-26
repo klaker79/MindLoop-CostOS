@@ -294,10 +294,32 @@ window.verHistorialMermas = function () {
     }
 };
 
+// 🔒 FIX SEGURIDAD: Función para sanitizar HTML y prevenir XSS
+function escapeHTMLMain(text) {
+    if (text === null || text === undefined) return '';
+    const str = String(text);
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return str.replace(/[&<>"']/g, char => map[char]);
+}
+
+// 🔒 FIX: Función para validar números y evitar NaN en UI
+function safeNumber(value, defaultValue = 0) {
+    const num = parseFloat(value);
+    return isNaN(num) || !isFinite(num) ? defaultValue : num;
+}
+
 window.cargarHistorialMermas = async function () {
-    const mes = document.getElementById('mermas-mes').value;
-    const ano = document.getElementById('mermas-ano').value;
+    const mes = document.getElementById('mermas-mes')?.value;
+    const ano = document.getElementById('mermas-ano')?.value;
     const tbody = document.getElementById('tabla-historial-mermas-body');
+
+    if (!tbody) return; // 🔒 FIX: Verificar que elemento existe
 
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Cargando...</td></tr>';
 
@@ -318,21 +340,28 @@ window.cargarHistorialMermas = async function () {
 
         let html = '';
         mermas.forEach(m => {
-            totalValor += parseFloat(m.valor_perdida) || 0;
+            // 🔒 FIX: Usar safeNumber para evitar NaN
+            totalValor += safeNumber(m.valor_perdida, 0);
             const motivo = m.motivo || 'Otros';
             motivosCont[motivo] = (motivosCont[motivo] || 0) + 1;
 
             const fecha = m.fecha ? new Date(m.fecha).toLocaleDateString('es-ES') : '-';
-            const cantidad = Math.abs(parseFloat(m.cantidad) || 0).toFixed(2);
-            const valor = parseFloat(m.valor_perdida || 0).toFixed(2);
+            const cantidad = Math.abs(safeNumber(m.cantidad, 0)).toFixed(2);
+            const valor = safeNumber(m.valor_perdida, 0).toFixed(2);
+
+            // 🔒 FIX SEGURIDAD: Sanitizar datos del servidor para prevenir XSS
+            const ingredienteNombre = escapeHTMLMain(m.ingrediente_nombre || m.ingrediente_actual || 'N/A');
+            const unidad = escapeHTMLMain(m.unidad || '');
+            const motivoSafe = escapeHTMLMain(motivo);
+            const nota = escapeHTMLMain(m.nota || '-');
 
             html += `<tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 10px;">${fecha}</td>
-                <td style="padding: 10px;"><strong>${m.ingrediente_nombre || m.ingrediente_actual || 'N/A'}</strong></td>
-                <td style="padding: 10px;">${cantidad} ${m.unidad || ''}</td>
+                <td style="padding: 10px;"><strong>${ingredienteNombre}</strong></td>
+                <td style="padding: 10px;">${cantidad} ${unidad}</td>
                 <td style="padding: 10px; color: #ef4444; font-weight: 600;">${valor}€</td>
-                <td style="padding: 10px;"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${motivo}</span></td>
-                <td style="padding: 10px; color: #64748b; font-size: 12px;">${m.nota || '-'}</td>
+                <td style="padding: 10px;"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${motivoSafe}</span></td>
+                <td style="padding: 10px; color: #64748b; font-size: 12px;">${nota}</td>
             </tr>`;
         });
 

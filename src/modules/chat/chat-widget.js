@@ -25,7 +25,25 @@ function generateSessionId() {
 let chatSessionId = localStorage.getItem('chatSessionId') || generateSessionId();
 localStorage.setItem('chatSessionId', chatSessionId);
 
-let chatMessages = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+// 🔒 FIX: Proteger JSON.parse con try/catch para evitar crash si localStorage está corrupto
+let chatMessages = [];
+try {
+    const storedHistory = localStorage.getItem('chatHistory');
+    if (storedHistory) {
+        chatMessages = JSON.parse(storedHistory);
+        // Validar que es un array
+        if (!Array.isArray(chatMessages)) {
+            console.warn('⚠️ chatHistory corrupto, reseteando...');
+            chatMessages = [];
+            localStorage.removeItem('chatHistory');
+        }
+    }
+} catch (parseError) {
+    console.error('❌ Error parseando chatHistory, reseteando:', parseError);
+    chatMessages = [];
+    localStorage.removeItem('chatHistory');
+}
+
 let isChatOpen = false;
 let isWaitingResponse = false;
 let ttsEnabled = localStorage.getItem('ttsEnabled') === 'true'; // Text-to-Speech toggle
@@ -699,7 +717,14 @@ function bindChatEvents() {
         });
 
         recognition.onresult = event => {
-            const transcript = event.results[0][0].transcript;
+            // 🔒 FIX: Verificar que existen los índices antes de acceder
+            const transcript = event.results?.[0]?.[0]?.transcript || '';
+            if (!transcript) {
+                logger.warn('Speech recognition: transcripción vacía');
+                micBtn.classList.remove('recording');
+                isRecording = false;
+                return;
+            }
             input.value = transcript;
             input.focus();
             micBtn.classList.remove('recording');

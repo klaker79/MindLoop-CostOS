@@ -436,7 +436,10 @@
                 const margen = precioVenta > 0 ? ((precioVenta - coste) / precioVenta) * 100 : 0;
                 totalMargen += margen;
             });
-            const margenPromedio = (totalMargen / window.recetas.length).toFixed(0);
+            // 🔒 FIX: Proteger división por cero si no hay recetas
+            const margenPromedio = window.recetas.length > 0
+                ? (totalMargen / window.recetas.length).toFixed(0)
+                : '0';
             setElementText('kpi-margen', margenPromedio + '%');
         } else {
             setElementText('kpi-margen', '0%');
@@ -4410,8 +4413,13 @@
             }
 
             // Calcular promedios para las líneas divisorias
-            const avgX = data.reduce((sum, d) => sum + d.popularidad, 0) / data.length;
-            const avgY = data.reduce((sum, d) => sum + d.margen, 0) / data.length;
+            // 🔒 FIX: Proteger división por cero si no hay datos
+            const avgX = data.length > 0
+                ? data.reduce((sum, d) => sum + d.popularidad, 0) / data.length
+                : 50; // Valor por defecto para centrar el gráfico
+            const avgY = data.length > 0
+                ? data.reduce((sum, d) => sum + d.margen, 0) / data.length
+                : 50;
 
             // Plugin profesional para cuadrantes
             const quadrantPlugin = {

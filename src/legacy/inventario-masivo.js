@@ -1193,9 +1193,13 @@ window.confirmarImportarPedidos = async function () {
             if (!ingId) {
                 // Buscar proveedor ID o crear (simplificado: asignamos string por ahora o null)
                 // Para simplificar, creamos el ingrediente con datos básicos
+                // 🔒 FIX: Proteger división por cero
+                const cantidadSegura = parseFloat(pedido.cantidad) || 1;
+                const precioUnitario = parseFloat(pedido.total) / cantidadSegura;
+
                 const nuevoIng = await window.api.createIngrediente({
                     nombre: pedido.ingredienteNombre,
-                    precio: pedido.total / pedido.cantidad, // Precio unitario calculado
+                    precio: isNaN(precioUnitario) || !isFinite(precioUnitario) ? 0 : precioUnitario,
                     unidad: 'unidad', // Default, usuario deberá corregir
                     stockActual: 0,
                     stockMinimo: 0,
@@ -1252,7 +1256,10 @@ window.confirmarImportarPedidos = async function () {
                     {
                         ingredienteId: ingId,
                         cantidad: pedido.cantidad,
-                        precio: pedido.precio > 0 ? pedido.precio : pedido.total / pedido.cantidad,
+                        // 🔒 FIX: Proteger división por cero
+                        precio: pedido.precio > 0
+                            ? pedido.precio
+                            : (parseFloat(pedido.cantidad) > 0 ? pedido.total / pedido.cantidad : 0),
                     },
                 ],
                 total: pedido.total,

@@ -77,7 +77,7 @@ export async function guardarReceta(event) {
  * @param {number} id - ID de la receta
  */
 export function editarReceta(id) {
-    const rec = window.recetas.find(r => r.id === id);
+    const rec = (window.recetas || []).find(r => r.id === id);
     if (!rec) return;
 
     document.getElementById('rec-nombre').value = rec.nombre;
@@ -116,7 +116,7 @@ export function editarReceta(id) {
  * @param {number} id - ID de la receta
  */
 export async function eliminarReceta(id) {
-    const rec = window.recetas.find(r => r.id === id);
+    const rec = (window.recetas || []).find(r => r.id === id);
     if (!rec) return;
 
     if (!confirm(`¿Eliminar la receta "${rec.nombre}"?`)) return;
@@ -221,7 +221,7 @@ export function calcularCosteRecetaCompleto(receta) {
  */
 export function abrirModalProducir(id) {
     window.recetaProduciendo = id;
-    const rec = window.recetas.find(r => r.id === id);
+    const rec = (window.recetas || []).find(r => r.id === id);
     document.getElementById('modal-plato-nombre').textContent = rec.nombre;
     document.getElementById('modal-cantidad').value = 1;
     window.actualizarDetalleDescuento();
@@ -243,7 +243,7 @@ export function cerrarModalProducir() {
 export function actualizarDetalleDescuento() {
     if (window.recetaProduciendo === null) return;
     const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
-    const rec = window.recetas.find(r => r.id === window.recetaProduciendo);
+    const rec = (window.recetas || []).find(r => r.id === window.recetaProduciendo);
 
     // ⚡ OPTIMIZACIÓN: Crear Map O(1) una vez
     const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
@@ -264,7 +264,7 @@ export function actualizarDetalleDescuento() {
 export async function confirmarProduccion() {
     if (window.recetaProduciendo === null) return;
     const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
-    const rec = window.recetas.find(r => r.id === window.recetaProduciendo);
+    const rec = (window.recetas || []).find(r => r.id === window.recetaProduciendo);
 
     // ⚡ OPTIMIZACIÓN: Crear Map una vez para ambos loops (validación + actualización)
     const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
@@ -291,16 +291,22 @@ export async function confirmarProduccion() {
     window.showLoading();
 
     try {
-        // ⚡ OPTIMIZACIÓN: Llamadas API en paralelo con Promise.all
-        const updatePromises = rec.ingredientes.map(item => {
+        // 🔒 FIX CRÍTICO: Procesamiento SECUENCIAL con tracking de cambios
+        // Promise.all puede dejar datos inconsistentes si falla a mitad
+        // Ahora procesamos uno por uno y trackeamos qué se actualizó
+        const actualizacionesExitosas = [];
+        const actualizacionesFallidas = [];
+
+        for (const item of rec.ingredientes) {
             const ing = ingMap.get(item.ingredienteId);
-            if (ing) {
-                const stockIng = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
-                const nuevoStock = Math.max(0, stockIng - item.cantidad * cant);
-                // 🔒 FIX CRÍTICO: No hacer spread de ...ing
-                // El spread incluía stockActual que podía sobrescribir stock_actual en backend
-                // Enviar solo campos específicos para evitar conflictos
-                return window.api.updateIngrediente(ing.id, {
+            if (!ing) continue;
+
+            const stockAnterior = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
+            const cantidadDescontar = item.cantidad * cant;
+            const nuevoStock = Math.max(0, stockAnterior - cantidadDescontar);
+
+            try {
+                await window.api.updateIngrediente(ing.id, {
                     nombre: ing.nombre,
                     unidad: ing.unidad,
                     precio: ing.precio,
@@ -311,10 +317,56 @@ export async function confirmarProduccion() {
                     stock_minimo: ing.stock_minimo ?? ing.stockMinimo,
                     stock_actual: nuevoStock,
                 });
+
+                // Trackear éxito para posible rollback
+                actualizacionesExitosas.push({
+                    id: ing.id,
+                    nombre: ing.nombre,
+                    stockAnterior,
+                    stockNuevo: nuevoStock,
+                    cantidadDescontada: cantidadDescontar
+                });
+
+                console.log(`✅ ${ing.nombre}: ${stockAnterior} → ${nuevoStock}`);
+
+            } catch (itemError) {
+                actualizacionesFallidas.push({
+                    id: ing.id,
+                    nombre: ing.nombre,
+                    error: itemError.message
+                });
+                console.error(`❌ Error actualizando ${ing.nombre}:`, itemError);
             }
-            return Promise.resolve();
-        });
-        await Promise.all(updatePromises);
+        }
+
+        // Si hubo fallos parciales, notificar al usuario con detalle
+        if (actualizacionesFallidas.length > 0) {
+            const exitosos = actualizacionesExitosas.map(a => a.nombre).join(', ');
+            const fallidos = actualizacionesFallidas.map(a => `${a.nombre}: ${a.error}`).join('\n');
+
+            window.hideLoading();
+
+            // Log para auditoría
+            console.error('⚠️ PRODUCCIÓN PARCIAL:', {
+                receta: rec.nombre,
+                cantidad: cant,
+                exitosos: actualizacionesExitosas,
+                fallidos: actualizacionesFallidas,
+                fecha: new Date().toISOString()
+            });
+
+            alert(
+                `⚠️ ATENCIÓN: Producción parcialmente completada\n\n` +
+                `✅ Stock actualizado: ${exitosos || 'ninguno'}\n\n` +
+                `❌ Falló actualizar:\n${fallidos}\n\n` +
+                `Por favor, verifica el inventario manualmente.`
+            );
+
+            // Aún así recargar datos para mostrar estado actual
+            await window.cargarDatos();
+            window.renderizarIngredientes();
+            return;
+        }
 
         await window.cargarDatos();
         window.renderizarIngredientes();

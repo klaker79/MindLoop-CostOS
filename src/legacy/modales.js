@@ -520,7 +520,10 @@ async function renderizarBeneficioNetoDiario() {
             }
             totalMargen += precioVenta - costeReceta;
         });
-        const margenPromedio = totalMargen / window.recetas.length;
+        // 🔒 FIX: Proteger división por cero si no hay recetas
+        const margenPromedio = window.recetas?.length > 0
+            ? totalMargen / window.recetas.length
+            : 0;
 
         // Punto de equilibrio = Gastos fijos / Margen promedio
         const puntoEquilibrio = margenPromedio > 0 ? Math.ceil(gastosFijosMes / margenPromedio) : 0;
