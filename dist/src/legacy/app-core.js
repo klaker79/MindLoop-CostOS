@@ -678,6 +678,7 @@
             renderizarVentas();
             renderizarIngredientes();
             renderizarInventario();
+            window._forceRecalcStock = true; // Forzar recálculo por eliminación de venta
             window.actualizarKPIs();
             window.actualizarDashboardExpandido();
             showToast('Venta eliminada', 'success');
@@ -2531,6 +2532,7 @@
             await cargarDatos();
             renderizarIngredientes();
             renderizarInventario();
+            window._forceRecalcStock = true; // Forzar recálculo por cambio de ingrediente
             window.actualizarKPIs();
             window.actualizarDashboardExpandido();
             hideLoading();

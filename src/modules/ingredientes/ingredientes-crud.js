@@ -149,6 +149,7 @@ export async function guardarIngrediente(event) {
 
         window.renderizarIngredientes();
         if (typeof window.renderizarInventario === 'function') window.renderizarInventario();
+        window._forceRecalcStock = true; // Forzar recálculo porque cambió un ingrediente
         if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
         if (typeof window.actualizarDashboardExpandido === 'function')
             window.actualizarDashboardExpandido();
@@ -259,6 +260,7 @@ export async function eliminarIngrediente(id) {
 
             window.renderizarIngredientes();
             if (typeof window.renderizarInventario === 'function') window.renderizarInventario();
+            window._forceRecalcStock = true; // Forzar recálculo porque se eliminó ingrediente
             if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
             if (typeof window.actualizarDashboardExpandido === 'function')
                 window.actualizarDashboardExpandido();

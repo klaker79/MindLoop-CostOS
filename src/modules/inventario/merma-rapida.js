@@ -304,6 +304,7 @@ export async function confirmarMermasMultiples() {
         // Actualizar UI
         if (typeof window.renderizarIngredientes === 'function') window.renderizarIngredientes();
         if (typeof window.renderizarInventario === 'function') window.renderizarInventario();
+        window._forceRecalcStock = true; // Forzar recálculo porque se registró merma
         if (typeof window.actualizarKPIs === 'function') window.actualizarKPIs();
         if (typeof window.actualizarDashboardExpandido === 'function') window.actualizarDashboardExpandido();
 
