@@ -1,26 +1,36 @@
-// MindLoop CostOS - Service Worker
+// MindLoop CostOS - Service Worker v3
 // Requerido para PWA instalable
+// FIX: Eliminado /styles/main.css que no existe en producción (Vite genera /assets/main-{hash}.css)
 
-const CACHE_NAME = 'mindloop-costos-v2';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = 'mindloop-costos-v3';
 
-// Archivos esenciales a cachear para funcionamiento offline básico
+// Solo recursos GARANTIZADOS que existen en producción
+// CSS/JS se cachean dinámicamente porque Vite les añade hashes
 const PRECACHE_ASSETS = [
     '/',
     '/index.html',
-    '/styles/main.css',
     '/manifest.json',
     '/images/logo-sin-circulo.png'
 ];
 
-// Instalación: cachear recursos estáticos
+// Instalación: cachear recursos estáticos con manejo de errores
 self.addEventListener('install', (event) => {
     console.log('🔧 Service Worker instalando...');
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then((cache) => {
+            .then(async (cache) => {
                 console.log('📦 Cacheando recursos esenciales');
-                return cache.addAll(PRECACHE_ASSETS);
+                // Cachear cada recurso individualmente para tolerancia a errores
+                const results = await Promise.allSettled(
+                    PRECACHE_ASSETS.map(url =>
+                        cache.add(url).catch(err => {
+                            console.warn(`⚠️ No se pudo cachear ${url}:`, err.message);
+                            return null;
+                        })
+                    )
+                );
+                const exitosos = results.filter(r => r.status === 'fulfilled').length;
+                console.log(`✅ Precache completado: ${exitosos}/${PRECACHE_ASSETS.length} recursos`);
             })
             .then(() => self.skipWaiting())
     );
