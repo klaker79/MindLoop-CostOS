@@ -13,14 +13,21 @@ import { setEditandoIngredienteId } from './ingredientes-ui.js';
 export async function guardarIngrediente(event) {
     event.preventDefault();
 
+    // 🔒 FIX CRÍTICO: Solo incluir stock si el campo tiene valor
+    // Antes: stockActual: parseFloat(x) || 0 → convertía vacío a 0
+    // Ahora: undefined si está vacío → backend preserva valor actual
+    const stockActualValue = getInputValue('ing-stockActual');
+    const stockMinimoValue = getInputValue('ing-stockMinimo');
+
     const ingrediente = {
         nombre: getInputValue('ing-nombre'),
         proveedorId: getInputValue('ing-proveedor-select') || null,
         precio: parseFloat(getInputValue('ing-precio')) || 0,
         unidad: getInputValue('ing-unidad'),
         familia: getInputValue('ing-familia') || 'alimento',
-        stockActual: parseFloat(getInputValue('ing-stockActual')) || 0,
-        stockMinimo: parseFloat(getInputValue('ing-stockMinimo')) || 0,
+        // Solo enviar si tiene valor, undefined = backend preserva actual
+        stockActual: stockActualValue !== '' ? parseFloat(stockActualValue) : undefined,
+        stockMinimo: stockMinimoValue !== '' ? parseFloat(stockMinimoValue) : undefined,
         formato_compra: getInputValue('ing-formato-compra') || null,
         // 🔒 FIX: Solo enviar cantidad_por_formato si el usuario la editó explícitamente
         // undefined = no cambiar, null = borrar intencionalmente
@@ -38,11 +45,12 @@ export async function guardarIngrediente(event) {
         showToast('El precio no puede ser negativo', 'error');
         return;
     }
-    if (ingrediente.stockActual < 0) {
+    // Solo validar si el campo tiene valor (undefined = no modificar)
+    if (ingrediente.stockActual !== undefined && ingrediente.stockActual < 0) {
         showToast('El stock no puede ser negativo', 'error');
         return;
     }
-    if (ingrediente.stockMinimo < 0) {
+    if (ingrediente.stockMinimo !== undefined && ingrediente.stockMinimo < 0) {
         showToast('El stock mínimo no puede ser negativo', 'error');
         return;
     }
