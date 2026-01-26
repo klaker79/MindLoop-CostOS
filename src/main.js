@@ -319,12 +319,19 @@ window.cargarHistorialMermas = async function () {
     const ano = document.getElementById('mermas-ano')?.value;
     const tbody = document.getElementById('tabla-historial-mermas-body');
 
-    if (!tbody) return; // 🔒 FIX: Verificar que elemento existe
+    console.log('📋 cargarHistorialMermas - mes:', mes, 'año:', ano);
+
+    if (!tbody) {
+        console.error('❌ tabla-historial-mermas-body no encontrado');
+        return;
+    }
 
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Cargando...</td></tr>';
 
     try {
+        console.log('📡 Llamando a API.getMermas...');
         const mermas = await window.API?.getMermas?.(mes, ano) || [];
+        console.log('📥 Respuesta getMermas:', mermas, '(tipo:', typeof mermas, ', length:', mermas.length, ')');
 
         if (mermas.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">No hay mermas registradas en este período</td></tr>';
