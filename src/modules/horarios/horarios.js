@@ -690,7 +690,7 @@ window.semanaAnterior = function () {
     cargarHorariosSemana().then(() => {
         renderizarGridHorarios();
         actualizarTextoSemana();
-    });
+    }).catch(err => console.error('Error cargando semana anterior:', err));
 };
 
 /**
@@ -701,7 +701,7 @@ window.semanaSiguiente = function () {
     cargarHorariosSemana().then(() => {
         renderizarGridHorarios();
         actualizarTextoSemana();
-    });
+    }).catch(err => console.error('Error cargando semana siguiente:', err));
 };
 
 /**
