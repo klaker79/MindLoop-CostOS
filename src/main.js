@@ -362,13 +362,18 @@ window.cargarHistorialMermas = async function () {
             const motivoSafe = escapeHTMLMain(motivo);
             const nota = escapeHTMLMain(m.nota || '-');
 
-            html += `<tr style="border-bottom: 1px solid #f1f5f9;">
+            html += `<tr style="border-bottom: 1px solid #f1f5f9;" data-merma-id="${m.id}">
                 <td style="padding: 10px;">${fecha}</td>
                 <td style="padding: 10px;"><strong>${ingredienteNombre}</strong></td>
                 <td style="padding: 10px;">${cantidad} ${unidad}</td>
                 <td style="padding: 10px; color: #ef4444; font-weight: 600;">${valor}€</td>
                 <td style="padding: 10px;"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${motivoSafe}</span></td>
                 <td style="padding: 10px; color: #64748b; font-size: 12px;">${nota}</td>
+                <td style="padding: 10px; text-align: center;">
+                    <button onclick="window.eliminarMerma(${m.id})" 
+                        style="background: #fee2e2; color: #dc2626; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px;"
+                        title="Eliminar merma y restaurar stock">🗑️</button>
+                </td>
             </tr>`;
         });
 
@@ -392,6 +397,34 @@ window.cargarHistorialMermas = async function () {
     } catch (error) {
         console.error('Error cargando mermas:', error);
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #ef4444;">Error al cargar datos</td></tr>';
+    }
+};
+
+// Función para eliminar una merma individual (restaura stock)
+window.eliminarMerma = async function (id) {
+    if (!confirm('¿Eliminar esta merma? El stock del ingrediente se restaurará automáticamente.')) {
+        return;
+    }
+
+    try {
+        window.showLoading?.();
+        const response = await window.API?.fetch(`/api/mermas/${id}`, { method: 'DELETE' });
+
+        if (response?.success) {
+            window.showToast?.('✅ Merma eliminada y stock restaurado', 'success');
+            // Recargar historial y datos
+            await window.cargarHistorialMermas();
+            window.ingredientes = await window.api?.getIngredientes?.();
+            window.renderizarIngredientes?.();
+            window.renderizarInventario?.();
+        } else {
+            throw new Error(response?.error || 'Error desconocido');
+        }
+    } catch (error) {
+        console.error('Error eliminando merma:', error);
+        window.showToast?.('Error eliminando merma: ' + error.message, 'error');
+    } finally {
+        window.hideLoading?.();
     }
 };
 
