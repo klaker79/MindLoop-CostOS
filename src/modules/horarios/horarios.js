@@ -6,6 +6,20 @@
 import { showToast } from '../../ui/toast.js';
 import { getApiUrl } from '../../config/app-config.js';
 
+/**
+ * 🔒 Safe JSON parse para evitar crashes con JSON malformado
+ */
+function safeJSONParse(str, fallback = []) {
+    if (!str || str === 'null' || str === 'undefined') return fallback;
+    if (typeof str !== 'string') return str;
+    try {
+        return JSON.parse(str);
+    } catch (e) {
+        console.warn('⚠️ JSON parse fallido:', e.message);
+        return fallback;
+    }
+}
+
 // Estado global
 let empleados = [];
 let horarios = [];
@@ -189,7 +203,7 @@ function renderizarEmpleados() {
 function renderizarDiasLibres(diasLibres) {
     if (!diasLibres || diasLibres.length === 0) return '<span style="font-size: 12px; color: #cbd5e1;">Sin días libres</span>';
 
-    const dias = typeof diasLibres === 'string' ? JSON.parse(diasLibres) : diasLibres;
+    const dias = typeof diasLibres === 'string' ? safeJSONParse(diasLibres, []) : diasLibres;
     const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
     return dias.map(d => {
@@ -436,7 +450,7 @@ window.editarEmpleado = async function (id) {
     document.getElementById('empleado-horas-contrato').value = emp.horas_contrato || '40';
 
     // Marcar días libres
-    const diasLibres = typeof emp.dias_libres_fijos === 'string' ? JSON.parse(emp.dias_libres_fijos) : (emp.dias_libres_fijos || []);
+    const diasLibres = typeof emp.dias_libres_fijos === 'string' ? safeJSONParse(emp.dias_libres_fijos, []) : (emp.dias_libres_fijos || []);
     ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'].forEach(dia => {
         const checkbox = document.getElementById(`libre-${dia}`);
         if (checkbox) {
@@ -920,7 +934,7 @@ async function generarHorarioInteligente(empleados, fechaInicio, fechaFin, horar
 
         // Obtener días libres fijos del empleado
         const diasLibresFijos = typeof emp.dias_libres_fijos === 'string'
-            ? JSON.parse(emp.dias_libres_fijos || '[]')
+            ? safeJSONParse(emp.dias_libres_fijos, [])
             : (emp.dias_libres_fijos || []);
 
         console.log(`   Días libres fijos: ${JSON.stringify(diasLibresFijos)}`);
@@ -1090,7 +1104,7 @@ function formatearFecha(fecha) {
  */
 function esDiaLibreFijo(diasLibres, diaSemana) {
     if (!diasLibres || diasLibres.length === 0) return false;
-    const dias = typeof diasLibres === 'string' ? JSON.parse(diasLibres) : diasLibres;
+    const dias = typeof diasLibres === 'string' ? safeJSONParse(diasLibres, []) : diasLibres;
     return dias.includes(diaSemana);
 }
 
