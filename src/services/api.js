@@ -267,6 +267,21 @@ async function getBalance(mes, ano) {
 }
 
 /**
+ * Mermas (pérdidas de producto)
+ */
+async function getMermas(mes, ano) {
+    const mesParam = mes || (new Date().getMonth() + 1);
+    const anoParam = ano || new Date().getFullYear();
+    const data = await fetchAPI(`/api/mermas?mes=${mesParam}&ano=${anoParam}`);
+    return Array.isArray(data) ? data : [];
+}
+
+async function getMermasResumen() {
+    const data = await fetchAPI('/api/mermas/resumen');
+    return data || { totalPerdida: 0, totalProductos: 0, totalRegistros: 0 };
+}
+
+/**
  * Funciones de modificación
  */
 async function createIngredient(data) {
@@ -471,6 +486,8 @@ window.API = {
     getInventoryComplete,
     getTeam,
     getBalance,
+    getMermas,
+    getMermasResumen,
     createIngredient,
     updateIngredient,
     deleteIngredient,
