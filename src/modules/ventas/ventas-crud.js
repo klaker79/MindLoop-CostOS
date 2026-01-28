@@ -3,6 +3,9 @@
  * Funciones de eliminar ventas
  */
 
+// 🆕 Zustand store para gestión de estado
+import saleStore from '../../stores/saleStore.js';
+
 /**
  * Elimina una venta
  */
@@ -12,7 +15,11 @@ export async function eliminarVenta(id) {
     window.showLoading();
 
     try {
-        await window.api.deleteSale(id);
+        // 🆕 Usar Zustand store en lugar de window.api
+        const store = saleStore.getState();
+        const result = await store.deleteSale(id);
+        if (!result.success) throw new Error(result.error || 'Error eliminando venta');
+
         await window.renderizarVentas();
         window.hideLoading();
         window.showToast('Venta eliminada', 'success');

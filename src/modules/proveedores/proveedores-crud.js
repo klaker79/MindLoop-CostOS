@@ -3,6 +3,9 @@
  * Funciones de crear, editar y eliminar proveedores
  */
 
+// 🆕 Zustand store para gestión de estado
+import supplierStore from '../../stores/supplierStore.js';
+
 /**
  * Guarda un proveedor (nuevo o editado)
  */
@@ -29,11 +32,16 @@ export async function guardarProveedor(event) {
     try {
         let proveedorId = window.editandoProveedorId;
 
+        // 🆕 Usar Zustand store en lugar de window.api
+        const store = supplierStore.getState();
+
         if (proveedorId !== null) {
-            await window.api.updateProveedor(proveedorId, proveedor);
+            const result = await store.updateSupplier(proveedorId, proveedor);
+            if (!result.success) throw new Error(result.error || 'Error actualizando proveedor');
         } else {
-            const nuevoProveedor = await window.api.createProveedor(proveedor);
-            proveedorId = nuevoProveedor.id;
+            const result = await store.createSupplier(proveedor);
+            if (!result.success) throw new Error(result.error || 'Error creando proveedor');
+            proveedorId = result.data.id;
         }
 
         // Sync bidireccional: Actualizar proveedor_id en cada ingrediente
@@ -135,7 +143,11 @@ export async function eliminarProveedor(id) {
     window.showLoading();
 
     try {
-        await window.api.deleteProveedor(id);
+        // 🆕 Usar Zustand store en lugar de window.api
+        const store = supplierStore.getState();
+        const result = await store.deleteSupplier(id);
+        if (!result.success) throw new Error(result.error || 'Error eliminando proveedor');
+
         await window.cargarDatos();
         window.renderizarProveedores();
         window.hideLoading();
