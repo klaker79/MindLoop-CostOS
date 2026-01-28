@@ -3,6 +3,9 @@
  * Funciones de creación, edición y eliminación de recetas
  */
 
+// 🆕 Zustand store para gestión de estado
+import recipeStore from '../../stores/recipeStore.js';
+
 /**
  * Guarda una receta (nueva o editada)
  * @param {Event} event - Evento del formulario
@@ -52,11 +55,18 @@ export async function guardarReceta(event) {
     window.showLoading();
 
     try {
+        // 🆕 Usar Zustand store en lugar de window.api
+        const store = recipeStore.getState();
+
         if (window.editandoRecetaId !== null) {
-            await window.api.updateReceta(window.editandoRecetaId, receta);
+            const result = await store.updateRecipe(window.editandoRecetaId, receta);
+            if (!result.success) throw new Error(result.error || 'Error actualizando receta');
         } else {
-            await window.api.createReceta(receta);
+            const result = await store.createRecipe(receta);
+            if (!result.success) throw new Error(result.error || 'Error creando receta');
         }
+
+        // El store ya sincroniza window.recetas, pero recargamos datos completos
         await window.cargarDatos();
         window.renderizarRecetas();
         window.hideLoading();
@@ -124,7 +134,12 @@ export async function eliminarReceta(id) {
     window.showLoading();
 
     try {
-        await window.api.deleteReceta(id);
+        // 🆕 Usar Zustand store en lugar de window.api
+        const store = recipeStore.getState();
+        const result = await store.deleteRecipe(id);
+        if (!result.success) throw new Error(result.error || 'Error eliminando receta');
+
+        // El store ya sincroniza window.recetas
         await window.cargarDatos();
         window.renderizarRecetas();
         window.hideLoading();
