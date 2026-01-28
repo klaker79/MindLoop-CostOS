@@ -15,6 +15,18 @@ function getAuthHeaders() {
     };
 }
 
+// Fetch wrapper with credentials for httpOnly cookies
+function fetchWithAuth(url, options = {}) {
+    return fetch(url, {
+        ...options,
+        credentials: 'include', // Required for httpOnly cookies
+        headers: {
+            ...getAuthHeaders(),
+            ...options.headers
+        }
+    });
+}
+
 // 🔧 FIX: Lock para prevenir llamadas concurrentes a cargarDatos()
 // Esto evita condiciones de carrera cuando múltiples operaciones
 // intentan recargar datos simultáneamente
@@ -49,24 +61,25 @@ export async function cargarDatos() {
  */
 async function _cargarDatosInternal() {
     try {
+        console.log('📡 Cargando datos desde API...');
         const [ingredientes, recetas, proveedores, pedidos, inventario, ingredientesProveedores] = await Promise.all([
-            fetch(API_BASE + '/ingredients', { headers: getAuthHeaders() }).then((r) =>
-                r.json()
+            fetchWithAuth(API_BASE + '/ingredients').then((r) =>
+                r.ok ? r.json() : []
             ),
-            fetch(API_BASE + '/recipes', { headers: getAuthHeaders() }).then((r) =>
-                r.json()
+            fetchWithAuth(API_BASE + '/recipes').then((r) =>
+                r.ok ? r.json() : []
             ),
-            fetch(API_BASE + '/suppliers', { headers: getAuthHeaders() }).then((r) =>
-                r.json()
+            fetchWithAuth(API_BASE + '/suppliers').then((r) =>
+                r.ok ? r.json() : []
             ),
-            fetch(API_BASE + '/orders', { headers: getAuthHeaders() }).then((r) =>
-                r.json()
+            fetchWithAuth(API_BASE + '/orders').then((r) =>
+                r.ok ? r.json() : []
             ),
-            fetch(API_BASE + '/inventory/complete', { headers: getAuthHeaders() }).then((r) =>
+            fetchWithAuth(API_BASE + '/inventory/complete').then((r) =>
                 r.ok ? r.json() : []
             ),
             // 💰 Cargar precios de cada proveedor por ingrediente
-            fetch(API_BASE + '/ingredients-suppliers', { headers: getAuthHeaders() }).then((r) =>
+            fetchWithAuth(API_BASE + '/ingredients-suppliers').then((r) =>
                 r.ok ? r.json() : []
             ),
         ]);
@@ -86,8 +99,15 @@ async function _cargarDatosInternal() {
         if (window.dataMaps?.update) {
             window.dataMaps.update();
         }
+
+        console.log('✅ Datos cargados:', {
+            ingredientes: window.ingredientes.length,
+            recetas: window.recetas.length,
+            proveedores: window.proveedores.length,
+            pedidos: window.pedidos.length
+        });
     } catch (error) {
-        console.error('Error cargando datos:', error);
+        console.error('❌ Error cargando datos:', error);
         window.showToast?.('Error conectando con la API', 'error');
     }
 }

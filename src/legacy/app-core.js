@@ -392,6 +392,8 @@
      * ✅ AHORA EN: src/modules/dashboard/
      * Fecha migración: 2025-12-21
      * ======================================== */
+    // 🔧 FIX: No sobrescribir si existe versión moderna de ES modules
+    if (!window.actualizarKPIs) {
     window.actualizarKPIs = function () {
         // Inicializar banner de fecha actual
         if (typeof window.inicializarFechaActual === 'function') {
@@ -458,6 +460,7 @@
                 setElementText('kpi-mermas-msg', 'Sin datos');
             });
     };
+    } // End if (!window.actualizarKPIs)
 
     // === GRÁFICO INGRESOS VS GASTOS ===
     async function renderRevenueChart() {
