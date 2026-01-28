@@ -6,6 +6,8 @@
 import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
+// 🆕 Zustand store para gestión de estado
+import ingredientStore from '../../stores/ingredientStore.js';
 
 /**
  * Guarda un ingrediente (crear o actualizar)
@@ -77,13 +79,18 @@ export async function guardarIngrediente(event) {
         console.log('📤 Guardando ingrediente:', JSON.stringify(ingrediente, null, 2));
         console.log('📤 Stock enviado:', ingrediente.stockActual, '(tipo:', typeof ingrediente.stockActual, ')');
 
+        // 🆕 Usar Zustand store en lugar de window.api
+        const store = ingredientStore.getState();
+
         if (editandoId !== null) {
             console.log('📤 Actualizando ID:', editandoId);
-            await window.api.updateIngrediente(editandoId, ingrediente);
+            const result = await store.updateIngredient(editandoId, ingrediente);
+            if (!result.success) throw new Error(result.error || 'Error actualizando ingrediente');
             ingredienteId = editandoId;
         } else {
-            const nuevoIng = await window.api.createIngrediente(ingrediente);
-            ingredienteId = nuevoIng.id;
+            const result = await store.createIngredient(ingrediente);
+            if (!result.success) throw new Error(result.error || 'Error creando ingrediente');
+            ingredienteId = result.data.id;
         }
 
         // Sync bidireccional: Actualizar relación ingrediente-proveedor
@@ -281,10 +288,12 @@ export async function eliminarIngrediente(id) {
     if (typeof window.showLoading === 'function') window.showLoading();
 
     try {
-        await window.api.deleteIngrediente(id);
+        // 🆕 Usar Zustand store en lugar de window.api
+        const store = ingredientStore.getState();
+        const result = await store.deleteIngredient(id);
+        if (!result.success) throw new Error(result.error || 'Error eliminando ingrediente');
 
-        // ⚡ OPTIMIZACIÓN: Actualización optimista - Filtrar del array local
-        window.ingredientes = (window.ingredientes || []).filter(ing => ing.id !== id);
+        // El store ya actualiza window.ingredientes automáticamente
 
         // Actualizar maps de búsqueda
         if (window.dataMaps) {
