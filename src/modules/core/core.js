@@ -175,19 +175,53 @@ export function cambiarTab(tab) {
 export async function init() {
     await cargarDatos();
 
-    // Renderizar datos iniciales
-    window.renderizarIngredientes?.();
-    window.renderizarRecetas?.();
-    window.renderizarProveedores?.();
-    window.renderizarPedidos?.();
-    window.renderizarVentas?.();
-    window.actualizarKPIs?.();
+    console.log('🎨 Iniciando renderizado...');
 
-    // Actualizar dashboard expandido (stock bajo, ventas hoy, etc.)
-    window.actualizarDashboardExpandido?.();
+    // Renderizar datos iniciales con error handling
+    const renderFunctions = [
+        ['renderizarIngredientes', window.renderizarIngredientes],
+        ['renderizarRecetas', window.renderizarRecetas],
+        ['renderizarProveedores', window.renderizarProveedores],
+        ['renderizarPedidos', window.renderizarPedidos],
+        ['renderizarVentas', window.renderizarVentas],
+    ];
+
+    for (const [name, fn] of renderFunctions) {
+        try {
+            if (typeof fn === 'function') {
+                fn();
+                console.log(`✅ ${name} OK`);
+            } else {
+                console.warn(`⚠️ ${name} no disponible`);
+            }
+        } catch (e) {
+            console.error(`❌ Error ${name}:`, e);
+        }
+    }
+
+    // KPIs y Dashboard (async)
+    try {
+        if (typeof window.actualizarKPIs === 'function') {
+            await window.actualizarKPIs();
+            console.log('✅ actualizarKPIs OK');
+        }
+    } catch (e) { console.error('❌ Error actualizarKPIs:', e); }
+
+    try {
+        if (typeof window.actualizarDashboardExpandido === 'function') {
+            await window.actualizarDashboardExpandido();
+            console.log('✅ actualizarDashboardExpandido OK');
+        }
+    } catch (e) { console.error('❌ Error actualizarDashboardExpandido:', e); }
 
     // Inicializar fecha
-    window.inicializarFechaActual?.();
+    try {
+        if (typeof window.inicializarFechaActual === 'function') {
+            window.inicializarFechaActual();
+        }
+    } catch (e) { console.error('❌ Error inicializarFechaActual:', e); }
+
+    console.log('🏁 Init completado');
 }
 
 /**
