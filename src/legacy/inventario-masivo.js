@@ -1322,7 +1322,11 @@ window.cargarResumenMensual = async function () {
             // ⚡ Multi-tenant: usa config global si existe
             `${window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
             {
-                headers: { Authorization: `Bearer ${token}` },
+                credentials: 'include',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
             }
         );
 

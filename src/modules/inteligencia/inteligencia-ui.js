@@ -10,6 +10,7 @@ async function fetchIntelligence(endpoint) {
 
         const response = await fetch(`${apiBase}/intelligence/${endpoint}`, {
             method: 'GET',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`

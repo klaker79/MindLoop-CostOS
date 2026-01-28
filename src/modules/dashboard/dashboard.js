@@ -389,7 +389,8 @@ export async function actualizarKPIs() {
                         const token = localStorage.getItem('token');
                         const apiBase = getApiUrl();
                         const respEmpleados = await fetch(`${apiBase}/empleados`, {
-                            headers: {
+                            credentials: 'include',
+            headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
                             }
@@ -410,7 +411,8 @@ export async function actualizarKPIs() {
                         const token = localStorage.getItem('token');
                         const apiBase = getApiUrl();
                         const respHorarios = await fetch(`${apiBase}/horarios?desde=${hoyStr}&hasta=${hoyStr}`, {
-                            headers: {
+                            credentials: 'include',
+            headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
                             }

@@ -52,24 +52,27 @@ export async function cargarDatos() {
  */
 async function _cargarDatosInternal() {
     try {
+        console.log('🛰️ Cargando datos desde API...');
+        const fetchOptions = { credentials: 'include', headers: getAuthHeaders() };
+
         const [ingredientes, recetas, proveedores, pedidos, inventario, ingredientesProveedores] = await Promise.all([
-            fetch(API_BASE + '/ingredients', { headers: getAuthHeaders() }).then((r) =>
-                r.json()
+            fetch(API_BASE + '/ingredients', fetchOptions).then((r) =>
+                r.ok ? r.json() : []
             ),
-            fetch(API_BASE + '/recipes', { headers: getAuthHeaders() }).then((r) =>
-                r.json()
+            fetch(API_BASE + '/recipes', fetchOptions).then((r) =>
+                r.ok ? r.json() : []
             ),
-            fetch(API_BASE + '/suppliers', { headers: getAuthHeaders() }).then((r) =>
-                r.json()
+            fetch(API_BASE + '/suppliers', fetchOptions).then((r) =>
+                r.ok ? r.json() : []
             ),
-            fetch(API_BASE + '/orders', { headers: getAuthHeaders() }).then((r) =>
-                r.json()
+            fetch(API_BASE + '/orders', fetchOptions).then((r) =>
+                r.ok ? r.json() : []
             ),
-            fetch(API_BASE + '/inventory/complete', { headers: getAuthHeaders() }).then((r) =>
+            fetch(API_BASE + '/inventory/complete', fetchOptions).then((r) =>
                 r.ok ? r.json() : []
             ),
             // 💰 Cargar precios de cada proveedor por ingrediente
-            fetch(API_BASE + '/ingredients-suppliers', { headers: getAuthHeaders() }).then((r) =>
+            fetch(API_BASE + '/ingredients-suppliers', fetchOptions).then((r) =>
                 r.ok ? r.json() : []
             ),
         ]);
@@ -93,12 +96,18 @@ async function _cargarDatosInternal() {
         // 🆕 Sync to Zustand stores (gradual migration)
         try {
             ingredientStore.getState().setIngredients(window.ingredientes);
-            console.log('✅ Datos sincronizados con Zustand stores');
         } catch (e) {
             console.warn('⚠️ Zustand sync failed (non-critical):', e.message);
         }
+
+        console.log('✅ Datos cargados:', {
+            ingredientes: window.ingredientes.length,
+            recetas: window.recetas.length,
+            proveedores: window.proveedores.length,
+            pedidos: window.pedidos.length
+        });
     } catch (error) {
-        console.error('Error cargando datos:', error);
+        console.error('❌ Error cargando datos:', error);
         window.showToast?.('Error conectando con la API', 'error');
     }
 }
