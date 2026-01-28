@@ -49,6 +49,19 @@ export const ingredientStore = createStore((set, get) => ({
     },
 
     // Actions
+
+    // Direct setter for ingredients (used by legacy code sync)
+    setIngredients: (ingredients) => {
+        const ingredientsList = Array.isArray(ingredients) ? ingredients : [];
+        set({ ingredients: ingredientsList });
+        get().applyFilters();
+
+        // Sync with window for legacy compatibility
+        if (typeof window !== 'undefined') {
+            window.ingredientes = ingredientsList;
+        }
+    },
+
     fetchIngredients: async () => {
         set({ isLoading: true, error: null });
         try {

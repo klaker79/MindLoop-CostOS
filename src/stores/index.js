@@ -79,15 +79,8 @@ export function resetAllStores() {
     uiStore.getState().clearToasts();
 }
 
-// Auto-initialize if in browser
-if (typeof window !== 'undefined') {
-    // Wait for DOM ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeStores);
-    } else {
-        initializeStores();
-    }
-}
+// Note: initializeStores() is called explicitly from main.js
+// Do not auto-initialize here to avoid duplicate initialization
 
 export default {
     authStore,
