@@ -1,3 +1,4 @@
+import { escapeHTML } from '../../utils/helpers.js';
 /**
  * Global Search Module
  * Search across ingredients, recipes, providers, and orders
@@ -230,12 +231,6 @@ function escapeRegex(string) {
 /**
  * Escapa HTML para prevenir XSS
  */
-function escapeHTML(text) {
-    if (typeof text !== 'string') return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 
 /**
  * Highlights matching text in results (SEGURO contra XSS y ReDoS)

@@ -2,23 +2,13 @@
  * Módulo de Ingredientes - UI
  * Funciones de renderizado e interfaz de usuario
  * 
- * SEGURIDAD: Usa escapeHTML para prevenir XSS en datos de usuario
+ * SEGURIDAD: Usa escapeHTML de helpers.js para prevenir XSS en datos de usuario
  */
 
 import { showToast } from '../../ui/toast.js';
 import { getElement, setElementHTML, hideElement, showElement } from '../../utils/dom-helpers.js';
+import { escapeHTML } from '../../utils/helpers.js';
 
-/**
- * Escapa texto plano para uso en HTML (previene XSS)
- * @param {string} text - Texto a escapar
- * @returns {string} Texto seguro para HTML
- */
-function escapeHTML(text) {
-    if (typeof text !== 'string') return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 
 // Variables para paginación y filtros
 let paginaActualIngredientes = 1;

@@ -4,6 +4,7 @@
  */
 
 import { showToast } from '../../ui/toast.js';
+import { escapeHTML } from '../../utils/helpers.js';
 
 // Variable para tracking de la receta actual
 let recetaActualId = null;
@@ -345,12 +346,6 @@ export function cerrarModalVariantes() {
 /**
  * Escapa HTML
  */
-function escapeHTML(text) {
-    if (typeof text !== 'string') return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 
 // Exponer funciones globalmente
 window.gestionarVariantesReceta = gestionarVariantesReceta;

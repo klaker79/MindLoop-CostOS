@@ -2,10 +2,11 @@
  * Módulo de Equipo (Team Management) - MindLoop CostOS
  * Gestión de usuarios del restaurante
  * 
- * SEGURIDAD: Usa sanitizeHTML para prevenir XSS
+ * SEGURIDAD: Usa escapeHTML de helpers.js para prevenir XSS
  */
 
 import { getApiUrl } from '../../config/app-config.js';
+import { escapeHTML } from '../../utils/helpers.js';
 import { sanitizeHTML } from '../../utils/sanitize.js';
 
 const API_BASE = getApiUrl();
@@ -18,17 +19,6 @@ function getAuthHeaders() {
     };
 }
 
-/**
- * Escapa texto plano para uso en HTML (previene XSS)
- * @param {string} text - Texto a escapar
- * @returns {string} Texto seguro para HTML
- */
-function escapeHTML(text) {
-    if (typeof text !== 'string') return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 
 /**
  * Renderiza la lista de miembros del equipo

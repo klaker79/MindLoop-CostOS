@@ -1,3 +1,4 @@
+import { escapeHTML } from '../../utils/helpers.js';
 /**
  * Recetas UI Module
  * Funciones de interfaz de usuario para recetas
@@ -10,12 +11,6 @@
  * @param {string} text - Texto a escapar
  * @returns {string} Texto seguro para HTML
  */
-function escapeHTML(text) {
-    if (typeof text !== 'string') return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 /**
  * Muestra el formulario de nueva receta
  */

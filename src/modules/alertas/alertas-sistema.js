@@ -1,3 +1,4 @@
+import { escapeHTML } from '../../utils/helpers.js';
 /**
  * Sistema de Alertas Inteligentes
  * Detecta condiciones críticas y genera alertas proactivas
@@ -10,12 +11,6 @@
  * @param {string} text - Texto a escapar
  * @returns {string} Texto seguro para HTML
  */
-function escapeHTML(text) {
-    if (typeof text !== 'string') return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 /**
  * Detecta ingredientes con stock bajo crítico
  * @returns {Array} Lista de alertas de stock bajo
