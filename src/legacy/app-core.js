@@ -5644,7 +5644,12 @@
                 return;
             }
 
-            const ventas = await api.getSales();
+            // Use window.api or window.API for safety
+            const apiClient = window.api || window.API;
+            let ventas = window.ventas || [];
+            if (ventas.length === 0 && apiClient?.getSales) {
+                ventas = await apiClient.getSales();
+            }
             const hoy = new Date().toISOString().split('T')[0];
             const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoy);
 

@@ -163,6 +163,9 @@ export async function init() {
     window.renderizarVentas?.();
     window.actualizarKPIs?.();
 
+    // Actualizar dashboard expandido (stock bajo, ventas hoy, etc.)
+    window.actualizarDashboardExpandido?.();
+
     // Inicializar fecha
     window.inicializarFechaActual?.();
 }
