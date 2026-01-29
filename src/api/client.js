@@ -210,49 +210,50 @@ export const apiClient = {
 
 /**
  * Convenience exports for common endpoints
+ * NOTE: Rutas EN INGLÉS para coincidir con backend lacaleta-api
  */
 export const api = {
-    // Ingredientes
-    getIngredientes: () => apiClient.get('/ingredientes'),
-    getIngrediente: (id) => apiClient.get(`/ingredientes/${id}`),
-    createIngrediente: (data) => apiClient.post('/ingredientes', data),
-    updateIngrediente: (id, data) => apiClient.put(`/ingredientes/${id}`, data),
-    deleteIngrediente: (id) => apiClient.delete(`/ingredientes/${id}`),
+    // Ingredients (antes: ingredientes)
+    getIngredientes: () => apiClient.get('/ingredients'),
+    getIngrediente: (id) => apiClient.get(`/ingredients/${id}`),
+    createIngrediente: (data) => apiClient.post('/ingredients', data),
+    updateIngrediente: (id, data) => apiClient.put(`/ingredients/${id}`, data),
+    deleteIngrediente: (id) => apiClient.delete(`/ingredients/${id}`),
 
-    // Recetas
-    getRecetas: () => apiClient.get('/recetas'),
-    getReceta: (id) => apiClient.get(`/recetas/${id}`),
-    createReceta: (data) => apiClient.post('/recetas', data),
-    updateReceta: (id, data) => apiClient.put(`/recetas/${id}`, data),
-    deleteReceta: (id) => apiClient.delete(`/recetas/${id}`),
+    // Recipes (antes: recetas)
+    getRecetas: () => apiClient.get('/recipes'),
+    getReceta: (id) => apiClient.get(`/recipes/${id}`),
+    createReceta: (data) => apiClient.post('/recipes', data),
+    updateReceta: (id, data) => apiClient.put(`/recipes/${id}`, data),
+    deleteReceta: (id) => apiClient.delete(`/recipes/${id}`),
 
-    // Pedidos
-    getPedidos: () => apiClient.get('/pedidos'),
-    getPedido: (id) => apiClient.get(`/pedidos/${id}`),
-    createPedido: (data) => apiClient.post('/pedidos', data),
-    updatePedido: (id, data) => apiClient.put(`/pedidos/${id}`, data),
-    deletePedido: (id) => apiClient.delete(`/pedidos/${id}`),
+    // Orders (antes: pedidos)
+    getPedidos: () => apiClient.get('/orders'),
+    getPedido: (id) => apiClient.get(`/orders/${id}`),
+    createPedido: (data) => apiClient.post('/orders', data),
+    updatePedido: (id, data) => apiClient.put(`/orders/${id}`, data),
+    deletePedido: (id) => apiClient.delete(`/orders/${id}`),
 
-    // Proveedores
-    getProveedores: () => apiClient.get('/proveedores'),
-    getProveedor: (id) => apiClient.get(`/proveedores/${id}`),
-    createProveedor: (data) => apiClient.post('/proveedores', data),
-    updateProveedor: (id, data) => apiClient.put(`/proveedores/${id}`, data),
-    deleteProveedor: (id) => apiClient.delete(`/proveedores/${id}`),
+    // Suppliers (antes: proveedores)
+    getProveedores: () => apiClient.get('/suppliers'),
+    getProveedor: (id) => apiClient.get(`/suppliers/${id}`),
+    createProveedor: (data) => apiClient.post('/suppliers', data),
+    updateProveedor: (id, data) => apiClient.put(`/suppliers/${id}`, data),
+    deleteProveedor: (id) => apiClient.delete(`/suppliers/${id}`),
 
-    // Ventas
+    // Sales (ya estaba en inglés)
     getSales: () => apiClient.get('/sales'),
     createSale: (data) => apiClient.post('/sales', data),
     createBulkSales: (data) => apiClient.post('/sales/bulk', data),
     deleteSale: (id) => apiClient.delete(`/sales/${id}`),
 
-    // Empleados
-    getEmpleados: () => apiClient.get('/empleados'),
+    // Team (antes: empleados)
+    getEmpleados: () => apiClient.get('/team'),
     getHorarios: (desde, hasta) => apiClient.get(`/horarios?desde=${desde}&hasta=${hasta}`),
 
-    // Inventario
-    getInventario: () => apiClient.get('/inventario'),
-    updateStock: (data) => apiClient.post('/inventario/ajuste', data),
+    // Inventory (antes: inventario)
+    getInventario: () => apiClient.get('/inventory/complete'),
+    updateStock: (data) => apiClient.post('/inventory/ajuste', data),
 
     // Auth
     login: (credentials) => apiClient.post('/auth/login', credentials),
