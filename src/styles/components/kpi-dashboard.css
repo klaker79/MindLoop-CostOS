@@ -140,3 +140,60 @@
     padding: 2rem;
     color: #dc2626;
 }
+
+/* ============================================
+   Alert Badge - Estilo del badge de alertas
+   ============================================ */
+.alert-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+
+.alert-badge:hover {
+    transform: scale(1.1);
+}
+
+.alert-badge .badge-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    animation: badge-pulse 2s infinite;
+}
+
+@keyframes badge-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Wrapper del KPI Dashboard */
+.kpi-dashboard-wrapper {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-secondary, #f5f5f5);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}

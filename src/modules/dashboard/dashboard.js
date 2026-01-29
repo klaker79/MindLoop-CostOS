@@ -25,6 +25,9 @@ import { recipeStore } from '../../stores/recipeStore.js';
 import { orderStore } from '../../stores/orderStore.js';
 import { apiClient } from '../../api/client.js';
 
+// KPI Dashboard v2 - Clean Architecture
+import { loadKPIDashboard } from '../../components/domain/KPIDashboard.js';
+
 // Variable para recordar el período actual (default: semana)
 let periodoVistaActual = 'semana';
 
@@ -144,6 +147,32 @@ async function actualizarKPIsPorPeriodo(periodo) {
 export async function actualizarKPIs() {
     // Inicializar banner de fecha actual
     inicializarFechaActual();
+
+    // KPI Dashboard v2 - Integración Clean Architecture
+    try {
+        let kpiContainer = document.getElementById('kpi-dashboard-container');
+        if (!kpiContainer) {
+            kpiContainer = document.createElement('div');
+            kpiContainer.id = 'kpi-dashboard-container';
+            kpiContainer.className = 'kpi-dashboard-wrapper';
+
+            // Insertar al inicio del dashboard principal
+            const mainContent = document.querySelector('.dashboard-content') ||
+                document.querySelector('#dashboard') ||
+                document.querySelector('.main-content') ||
+                document.querySelector('main');
+            if (mainContent) {
+                mainContent.insertBefore(kpiContainer, mainContent.firstChild);
+            }
+        }
+
+        // Cargar KPIs v2 desde API
+        if (window.API?.getDailyKPIs) {
+            loadKPIDashboard(kpiContainer);
+        }
+    } catch (e) {
+        console.log('KPI Dashboard v2 no disponible:', e.message);
+    }
 
     try {
         // 1. INGRESOS TOTALES (usa período actual)

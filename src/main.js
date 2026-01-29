@@ -540,3 +540,57 @@ if ('serviceWorker' in navigator) {
         console.error('Error en inicialización:', e);
     }
 })();
+
+// ============================================
+// ALERT BADGE - Sistema de notificación de alertas v2
+// ============================================
+async function updateAlertBadge() {
+    try {
+        if (!window.API?.getAlertStats) return;
+
+        const stats = await window.API.getAlertStats();
+        const badgeId = 'alert-badge-v2';
+        let badge = document.getElementById(badgeId);
+
+        const activeCount = stats?.data?.activeCount || 0;
+
+        if (activeCount > 0) {
+            if (!badge) {
+                const alertBtn = document.createElement('button');
+                alertBtn.id = badgeId;
+                alertBtn.className = 'alert-badge';
+                alertBtn.title = 'Ver alertas activas';
+                alertBtn.innerHTML = `🔔 <span class="badge-count">${activeCount}</span>`;
+                alertBtn.onclick = () => {
+                    // Navegar a tab de alertas o mostrar panel
+                    showToast(`Tienes ${activeCount} alertas activas`, 'info');
+                };
+
+                // Insertar en header
+                const header = document.querySelector('header') ||
+                    document.querySelector('.header') ||
+                    document.querySelector('.nav-header');
+                if (header) header.appendChild(alertBtn);
+            } else {
+                badge.querySelector('.badge-count').textContent = activeCount;
+                badge.style.display = 'flex';
+            }
+        } else if (badge) {
+            badge.style.display = 'none';
+        }
+    } catch (e) {
+        // Silenciosamente ignorar errores - alertas no críticas para UI
+        console.log('Alertas no disponibles:', e.message);
+    }
+}
+
+// Inicializar badge después de login
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(updateAlertBadge, 3000); // Después de que carguen datos
+});
+
+// Actualizar cada 5 minutos
+setInterval(updateAlertBadge, 5 * 60 * 1000);
+
+// Exponer para actualización manual
+window.updateAlertBadge = updateAlertBadge;
