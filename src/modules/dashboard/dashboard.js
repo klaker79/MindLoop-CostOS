@@ -23,6 +23,7 @@ import { saleStore } from '../../stores/saleStore.js';
 import { ingredientStore } from '../../stores/ingredientStore.js';
 import { recipeStore } from '../../stores/recipeStore.js';
 import { orderStore } from '../../stores/orderStore.js';
+import { apiClient } from '../../api/client.js';
 
 // Variable para recordar el período actual (default: semana)
 let periodoVistaActual = 'semana';
@@ -392,19 +393,8 @@ export async function actualizarKPIs() {
                 let empleados = window.empleados || [];
                 if (empleados.length === 0) {
                     try {
-                        const token = localStorage.getItem('token');
-                        const apiBase = getApiUrl();
-                        const respEmpleados = await fetch(`${apiBase}/empleados`, {
-                            credentials: 'include',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        if (respEmpleados.ok) {
-                            empleados = await respEmpleados.json();
-                            window.empleados = empleados;
-                        }
+                        empleados = await apiClient.get('/empleados');
+                        window.empleados = empleados;
                     } catch (e) {
                         console.warn('No se pudieron cargar empleados:', e);
                     }
@@ -414,19 +404,8 @@ export async function actualizarKPIs() {
                 let horariosHoy = [];
                 if (empleados.length > 0) {
                     try {
-                        const token = localStorage.getItem('token');
-                        const apiBase = getApiUrl();
-                        const respHorarios = await fetch(`${apiBase}/horarios?desde=${hoyStr}&hasta=${hoyStr}`, {
-                            credentials: 'include',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        if (respHorarios.ok) {
-                            horariosHoy = await respHorarios.json();
-                            console.log(`📅 Horarios de hoy (${hoyStr}): ${horariosHoy.length}`);
-                        }
+                        horariosHoy = await apiClient.get(`/horarios?desde=${hoyStr}&hasta=${hoyStr}`);
+                        console.log(`📅 Horarios de hoy (${hoyStr}): ${horariosHoy.length}`);
                     } catch (e) {
                         console.warn('No se pudieron cargar horarios de hoy:', e);
                     }
