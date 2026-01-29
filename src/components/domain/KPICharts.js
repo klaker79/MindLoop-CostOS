@@ -3,6 +3,9 @@
  * Gráficos de KPIs con Chart.js
  */
 
+// Importar Chart.js como ES module
+import Chart from 'chart.js/auto';
+
 /**
  * Renderiza gráficos de KPIs
  */
@@ -51,15 +54,11 @@ export async function renderKPICharts(container) {
             </div>
         `;
 
-        // Renderizar gráficos (requiere Chart.js cargado)
-        if (window.Chart) {
-            renderRevenueVsCostChart(weekKPIs);
-            renderMarginTrendChart(monthKPIs);
-            renderFoodCostChart(weekKPIs);
-            renderProfitTrendChart(monthKPIs);
-        } else {
-            console.warn('Chart.js no disponible');
-        }
+        // Renderizar gráficos
+        renderRevenueVsCostChart(weekKPIs);
+        renderMarginTrendChart(monthKPIs);
+        renderFoodCostChart(weekKPIs);
+        renderProfitTrendChart(monthKPIs);
 
     } catch (error) {
         console.error('Error loading KPI charts:', error);
@@ -69,7 +68,7 @@ export async function renderKPICharts(container) {
 
 function renderRevenueVsCostChart(data) {
     const ctx = document.getElementById('chart-revenue-cost');
-    if (!ctx || !window.Chart || data.length === 0) return;
+    if (!ctx || data.length === 0) return;
 
     new Chart(ctx, {
         type: 'bar',
@@ -112,7 +111,7 @@ function renderRevenueVsCostChart(data) {
 
 function renderMarginTrendChart(data) {
     const ctx = document.getElementById('chart-margin-trend');
-    if (!ctx || !window.Chart || data.length === 0) return;
+    if (!ctx || data.length === 0) return;
 
     new Chart(ctx, {
         type: 'line',
@@ -148,7 +147,7 @@ function renderMarginTrendChart(data) {
 
 function renderFoodCostChart(data) {
     const ctx = document.getElementById('chart-food-cost');
-    if (!ctx || !window.Chart || data.length === 0) return;
+    if (!ctx || data.length === 0) return;
 
     // Línea de umbral (35%)
     const threshold = Array(data.length).fill(35);
@@ -198,7 +197,7 @@ function renderFoodCostChart(data) {
 
 function renderProfitTrendChart(data) {
     const ctx = document.getElementById('chart-profit-trend');
-    if (!ctx || !window.Chart || data.length === 0) return;
+    if (!ctx || data.length === 0) return;
 
     new Chart(ctx, {
         type: 'line',

@@ -185,8 +185,8 @@ export async function actualizarKPIs() {
             }
         }
 
-        // Renderizar gráficos (Chart.js debe estar cargado)
-        if (window.Chart && window.API?.getDailyRangeKPIs) {
+        // Renderizar gráficos (Chart.js se importa como ES module en KPICharts.js)
+        if (window.API?.getDailyRangeKPIs) {
             renderKPICharts(chartsContainer);
         }
     } catch (e) {
