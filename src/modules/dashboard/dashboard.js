@@ -441,7 +441,7 @@ export async function actualizarKPIs() {
                 let empleados = window.empleados || [];
                 if (empleados.length === 0) {
                     try {
-                        empleados = await apiClient.get('/empleados');
+                        empleados = await apiClient.get('/api/team');
                         window.empleados = empleados;
                     } catch (e) {
                         console.warn('No se pudieron cargar empleados:', e);

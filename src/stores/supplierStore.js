@@ -44,7 +44,7 @@ export const supplierStore = createStore((set, get) => ({
     fetchSuppliers: async () => {
         set({ isLoading: true, error: null });
         try {
-            const data = await apiClient.get('/suppliers');
+            const data = await apiClient.get('/api/suppliers');
             const suppliers = Array.isArray(data) ? data : [];
 
             set({ suppliers, isLoading: false });
@@ -64,7 +64,7 @@ export const supplierStore = createStore((set, get) => ({
     createSupplier: async (supplierData) => {
         set({ isLoading: true, error: null });
         try {
-            const newSupplier = await apiClient.post('/suppliers', supplierData);
+            const newSupplier = await apiClient.post('/api/suppliers', supplierData);
 
             set((state) => ({
                 suppliers: [...state.suppliers, newSupplier],
@@ -86,7 +86,7 @@ export const supplierStore = createStore((set, get) => ({
     updateSupplier: async (id, supplierData) => {
         set({ isLoading: true, error: null });
         try {
-            const updatedSupplier = await apiClient.put(`/suppliers/${id}`, supplierData);
+            const updatedSupplier = await apiClient.put(`/api/suppliers/${id}`, supplierData);
 
             set((state) => ({
                 suppliers: state.suppliers.map(sup =>
@@ -110,7 +110,7 @@ export const supplierStore = createStore((set, get) => ({
     deleteSupplier: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            await apiClient.delete(`/suppliers/${id}`);
+            await apiClient.delete(`/api/suppliers/${id}`);
 
             set((state) => ({
                 suppliers: state.suppliers.filter(sup => sup.id !== id),

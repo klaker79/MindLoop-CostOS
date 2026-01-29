@@ -64,7 +64,7 @@ export const ingredientStore = createStore((set, get) => ({
     fetchIngredients: async () => {
         set({ isLoading: true, error: null });
         try {
-            const data = await apiClient.get('/ingredients');
+            const data = await apiClient.get('/api/ingredients');
             const ingredients = Array.isArray(data) ? data : [];
 
             set({ ingredients, isLoading: false });
@@ -85,7 +85,7 @@ export const ingredientStore = createStore((set, get) => ({
     createIngredient: async (ingredientData) => {
         set({ isLoading: true, error: null });
         try {
-            const newIngredient = await apiClient.post('/ingredients', ingredientData);
+            const newIngredient = await apiClient.post('/api/ingredients', ingredientData);
 
             set((state) => ({
                 ingredients: [...state.ingredients, newIngredient],
@@ -108,7 +108,7 @@ export const ingredientStore = createStore((set, get) => ({
     updateIngredient: async (id, ingredientData) => {
         set({ isLoading: true, error: null });
         try {
-            const updatedIngredient = await apiClient.put(`/ingredients/${id}`, ingredientData);
+            const updatedIngredient = await apiClient.put(`/api/ingredients/${id}`, ingredientData);
 
             set((state) => ({
                 ingredients: state.ingredients.map(ing =>
@@ -133,7 +133,7 @@ export const ingredientStore = createStore((set, get) => ({
     deleteIngredient: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            await apiClient.delete(`/ingredients/${id}`);
+            await apiClient.delete(`/api/ingredients/${id}`);
 
             set((state) => ({
                 ingredients: state.ingredients.filter(ing => ing.id !== id),
