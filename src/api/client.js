@@ -210,54 +210,55 @@ export const apiClient = {
 
 /**
  * Convenience exports for common endpoints
+ * FIXED: Use correct /api/ prefix and English endpoint names
  */
 export const api = {
-    // Ingredientes
-    getIngredientes: () => apiClient.get('/ingredientes'),
-    getIngrediente: (id) => apiClient.get(`/ingredientes/${id}`),
-    createIngrediente: (data) => apiClient.post('/ingredientes', data),
-    updateIngrediente: (id, data) => apiClient.put(`/ingredientes/${id}`, data),
-    deleteIngrediente: (id) => apiClient.delete(`/ingredientes/${id}`),
+    // Ingredientes (backend uses /api/ingredients)
+    getIngredientes: () => apiClient.get('/api/ingredients'),
+    getIngrediente: (id) => apiClient.get(`/api/ingredients/${id}`),
+    createIngrediente: (data) => apiClient.post('/api/ingredients', data),
+    updateIngrediente: (id, data) => apiClient.put(`/api/ingredients/${id}`, data),
+    deleteIngrediente: (id) => apiClient.delete(`/api/ingredients/${id}`),
 
-    // Recetas
-    getRecetas: () => apiClient.get('/recetas'),
-    getReceta: (id) => apiClient.get(`/recetas/${id}`),
-    createReceta: (data) => apiClient.post('/recetas', data),
-    updateReceta: (id, data) => apiClient.put(`/recetas/${id}`, data),
-    deleteReceta: (id) => apiClient.delete(`/recetas/${id}`),
+    // Recetas (backend uses /api/recipes)
+    getRecetas: () => apiClient.get('/api/recipes'),
+    getReceta: (id) => apiClient.get(`/api/recipes/${id}`),
+    createReceta: (data) => apiClient.post('/api/recipes', data),
+    updateReceta: (id, data) => apiClient.put(`/api/recipes/${id}`, data),
+    deleteReceta: (id) => apiClient.delete(`/api/recipes/${id}`),
 
-    // Pedidos
-    getPedidos: () => apiClient.get('/pedidos'),
-    getPedido: (id) => apiClient.get(`/pedidos/${id}`),
-    createPedido: (data) => apiClient.post('/pedidos', data),
-    updatePedido: (id, data) => apiClient.put(`/pedidos/${id}`, data),
-    deletePedido: (id) => apiClient.delete(`/pedidos/${id}`),
+    // Pedidos (backend uses /api/orders)
+    getPedidos: () => apiClient.get('/api/orders'),
+    getPedido: (id) => apiClient.get(`/api/orders/${id}`),
+    createPedido: (data) => apiClient.post('/api/orders', data),
+    updatePedido: (id, data) => apiClient.put(`/api/orders/${id}`, data),
+    deletePedido: (id) => apiClient.delete(`/api/orders/${id}`),
 
-    // Proveedores
-    getProveedores: () => apiClient.get('/proveedores'),
-    getProveedor: (id) => apiClient.get(`/proveedores/${id}`),
-    createProveedor: (data) => apiClient.post('/proveedores', data),
-    updateProveedor: (id, data) => apiClient.put(`/proveedores/${id}`, data),
-    deleteProveedor: (id) => apiClient.delete(`/proveedores/${id}`),
+    // Proveedores (backend uses /api/suppliers)
+    getProveedores: () => apiClient.get('/api/suppliers'),
+    getProveedor: (id) => apiClient.get(`/api/suppliers/${id}`),
+    createProveedor: (data) => apiClient.post('/api/suppliers', data),
+    updateProveedor: (id, data) => apiClient.put(`/api/suppliers/${id}`, data),
+    deleteProveedor: (id) => apiClient.delete(`/api/suppliers/${id}`),
 
     // Ventas
-    getSales: () => apiClient.get('/sales'),
-    createSale: (data) => apiClient.post('/sales', data),
-    createBulkSales: (data) => apiClient.post('/sales/bulk', data),
-    deleteSale: (id) => apiClient.delete(`/sales/${id}`),
+    getSales: () => apiClient.get('/api/sales'),
+    createSale: (data) => apiClient.post('/api/sales', data),
+    createBulkSales: (data) => apiClient.post('/api/sales/bulk', data),
+    deleteSale: (id) => apiClient.delete(`/api/sales/${id}`),
 
-    // Empleados
-    getEmpleados: () => apiClient.get('/empleados'),
-    getHorarios: (desde, hasta) => apiClient.get(`/horarios?desde=${desde}&hasta=${hasta}`),
+    // Empleados (backend uses /api/team)
+    getEmpleados: () => apiClient.get('/api/team'),
+    getHorarios: (desde, hasta) => apiClient.get(`/api/horarios?desde=${desde}&hasta=${hasta}`),
 
     // Inventario
-    getInventario: () => apiClient.get('/inventario'),
-    updateStock: (data) => apiClient.post('/inventario/ajuste', data),
+    getInventario: () => apiClient.get('/api/inventory/complete'),
+    updateStock: (data) => apiClient.post('/api/inventory/ajuste', data),
 
     // Auth
-    login: (credentials) => apiClient.post('/auth/login', credentials),
-    logout: () => apiClient.post('/auth/logout', {}),
-    checkAuth: () => apiClient.get('/auth/check')
+    login: (credentials) => apiClient.post('/api/auth/login', credentials),
+    logout: () => apiClient.post('/api/auth/logout', {}),
+    checkAuth: () => apiClient.get('/api/auth/check')
 };
 
 // Expose globally for legacy code compatibility
