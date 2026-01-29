@@ -7,13 +7,11 @@
  * Incluye: CRUD, filtros, estados de pedido.
  *
  * @author MindLoopIA
- * @version 1.0.0
+ * @version 2.0.0 - Migrado a apiClient
  */
 
 import { createStore } from 'zustand/vanilla';
-import { getApiUrl } from '../config/app-config.js';
-
-const API_BASE = getApiUrl();
+import { apiClient } from '../api/client.js';
 
 /**
  * Order Store
@@ -50,13 +48,7 @@ export const orderStore = createStore((set, get) => ({
     fetchOrders: async () => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/orders`, {
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error fetching orders');
-
-            const data = await response.json();
+            const data = await apiClient.get('/orders');
             const orders = Array.isArray(data) ? data : [];
 
             set({ orders, isLoading: false });
@@ -77,19 +69,8 @@ export const orderStore = createStore((set, get) => ({
     createOrder: async (orderData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/orders`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(orderData)
-            });
+            const newOrder = await apiClient.post('/orders', orderData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error creating order');
-            }
-
-            const newOrder = await response.json();
             set((state) => ({
                 orders: [...state.orders, newOrder],
                 isLoading: false
@@ -111,19 +92,8 @@ export const orderStore = createStore((set, get) => ({
     updateOrder: async (id, orderData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/orders/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(orderData)
-            });
+            const updatedOrder = await apiClient.put(`/orders/${id}`, orderData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error updating order');
-            }
-
-            const updatedOrder = await response.json();
             set((state) => ({
                 orders: state.orders.map(ord =>
                     ord.id === id ? updatedOrder : ord
@@ -147,12 +117,7 @@ export const orderStore = createStore((set, get) => ({
     deleteOrder: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/orders/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error deleting order');
+            await apiClient.delete(`/orders/${id}`);
 
             set((state) => ({
                 orders: state.orders.filter(ord => ord.id !== id),

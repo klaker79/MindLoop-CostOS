@@ -7,14 +7,11 @@
  * Incluye: CRUD, filtros, búsqueda, selección.
  *
  * @author MindLoopIA
- * @version 1.0.0
+ * @version 2.0.0 - Migrado a apiClient
  */
 
 import { createStore } from 'zustand/vanilla';
-import { getApiUrl } from '../config/app-config.js';
-
-// 🔧 FIX: Usar URL completa del backend en lugar de /api relativo
-const API_BASE = getApiUrl();
+import { apiClient } from '../api/client.js';
 
 /**
  * Ingredient Store
@@ -67,13 +64,7 @@ export const ingredientStore = createStore((set, get) => ({
     fetchIngredients: async () => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/ingredients`, {
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error fetching ingredients');
-
-            const data = await response.json();
+            const data = await apiClient.get('/ingredients');
             const ingredients = Array.isArray(data) ? data : [];
 
             set({ ingredients, isLoading: false });
@@ -94,19 +85,8 @@ export const ingredientStore = createStore((set, get) => ({
     createIngredient: async (ingredientData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/ingredients`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(ingredientData)
-            });
+            const newIngredient = await apiClient.post('/ingredients', ingredientData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error creating ingredient');
-            }
-
-            const newIngredient = await response.json();
             set((state) => ({
                 ingredients: [...state.ingredients, newIngredient],
                 isLoading: false
@@ -128,19 +108,8 @@ export const ingredientStore = createStore((set, get) => ({
     updateIngredient: async (id, ingredientData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/ingredients/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(ingredientData)
-            });
+            const updatedIngredient = await apiClient.put(`/ingredients/${id}`, ingredientData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error updating ingredient');
-            }
-
-            const updatedIngredient = await response.json();
             set((state) => ({
                 ingredients: state.ingredients.map(ing =>
                     ing.id === id ? updatedIngredient : ing
@@ -164,12 +133,7 @@ export const ingredientStore = createStore((set, get) => ({
     deleteIngredient: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/ingredients/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error deleting ingredient');
+            await apiClient.delete(`/ingredients/${id}`);
 
             set((state) => ({
                 ingredients: state.ingredients.filter(ing => ing.id !== id),

@@ -7,13 +7,11 @@
  * Incluye: CRUD, filtros por fecha, estadísticas.
  *
  * @author MindLoopIA
- * @version 1.0.0
+ * @version 2.0.0 - Migrado a apiClient
  */
 
 import { createStore } from 'zustand/vanilla';
-import { getApiUrl } from '../config/app-config.js';
-
-const API_BASE = getApiUrl();
+import { apiClient } from '../api/client.js';
 
 /**
  * Sale Store
@@ -45,13 +43,7 @@ export const saleStore = createStore((set, get) => ({
     fetchSales: async () => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/sales`, {
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error fetching sales');
-
-            const data = await response.json();
+            const data = await apiClient.get('/sales');
             const sales = Array.isArray(data) ? data : [];
 
             set({ sales, isLoading: false });
@@ -71,19 +63,8 @@ export const saleStore = createStore((set, get) => ({
     createSale: async (saleData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/sales`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(saleData)
-            });
+            const newSale = await apiClient.post('/sales', saleData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error creating sale');
-            }
-
-            const newSale = await response.json();
             set((state) => ({
                 sales: [...state.sales, newSale],
                 isLoading: false
@@ -105,19 +86,7 @@ export const saleStore = createStore((set, get) => ({
     createBulkSales: async (salesArray) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/sales/bulk`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(salesArray)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error creating bulk sales');
-            }
-
-            const result = await response.json();
+            const result = await apiClient.post('/sales/bulk', salesArray);
 
             // Refresh sales list
             await get().fetchSales();
@@ -132,12 +101,7 @@ export const saleStore = createStore((set, get) => ({
     deleteSale: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/sales/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error deleting sale');
+            await apiClient.delete(`/sales/${id}`);
 
             set((state) => ({
                 sales: state.sales.filter(sale => sale.id !== id),

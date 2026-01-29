@@ -7,13 +7,11 @@
  * Incluye: CRUD, filtros, búsqueda, cálculo de costes.
  *
  * @author MindLoopIA
- * @version 1.0.0
+ * @version 2.0.0 - Migrado a apiClient
  */
 
 import { createStore } from 'zustand/vanilla';
-import { getApiUrl } from '../config/app-config.js';
-
-const API_BASE = getApiUrl();
+import { apiClient } from '../api/client.js';
 
 /**
  * Recipe Store
@@ -49,13 +47,7 @@ export const recipeStore = createStore((set, get) => ({
     fetchRecipes: async () => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/recipes`, {
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error fetching recipes');
-
-            const data = await response.json();
+            const data = await apiClient.get('/recipes');
             const recipes = Array.isArray(data) ? data : [];
 
             set({ recipes, isLoading: false });
@@ -76,19 +68,8 @@ export const recipeStore = createStore((set, get) => ({
     createRecipe: async (recipeData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/recipes`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(recipeData)
-            });
+            const newRecipe = await apiClient.post('/recipes', recipeData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error creating recipe');
-            }
-
-            const newRecipe = await response.json();
             set((state) => ({
                 recipes: [...state.recipes, newRecipe],
                 isLoading: false
@@ -110,19 +91,8 @@ export const recipeStore = createStore((set, get) => ({
     updateRecipe: async (id, recipeData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/recipes/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(recipeData)
-            });
+            const updatedRecipe = await apiClient.put(`/recipes/${id}`, recipeData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error updating recipe');
-            }
-
-            const updatedRecipe = await response.json();
             set((state) => ({
                 recipes: state.recipes.map(rec =>
                     rec.id === id ? updatedRecipe : rec
@@ -146,12 +116,7 @@ export const recipeStore = createStore((set, get) => ({
     deleteRecipe: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/recipes/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error deleting recipe');
+            await apiClient.delete(`/recipes/${id}`);
 
             set((state) => ({
                 recipes: state.recipes.filter(rec => rec.id !== id),
