@@ -18,6 +18,12 @@ import {
 
 import { getApiUrl } from '../../config/app-config.js';
 
+// Zustand Stores - acceso directo al estado
+import { saleStore } from '../../stores/saleStore.js';
+import { ingredientStore } from '../../stores/ingredientStore.js';
+import { recipeStore } from '../../stores/recipeStore.js';
+import { orderStore } from '../../stores/orderStore.js';
+
 // Variable para recordar el período actual (default: semana)
 let periodoVistaActual = 'semana';
 
@@ -90,13 +96,13 @@ async function actualizarKPIsPorPeriodo(periodo) {
         // 🔧 FIX CRÍTICO: Usar datos existentes en lugar de hacer fetch
         // Esto previene que datos editados por el usuario se pierdan
         // cuando el dashboard se actualiza automáticamente
-        let ventas = window.ventas;
+        let ventas = saleStore.getState().sales;
 
         // Solo hacer fetch si no hay datos cargados (primera vez)
         if (!ventas || ventas.length === 0) {
-            ventas = await window.api.getSales();
-            window.ventas = ventas;
-            console.log('📊 Dashboard: Cargando ventas iniciales');
+            await saleStore.getState().fetchSales();
+            ventas = saleStore.getState().sales;
+            console.log('📊 Dashboard: Cargando ventas iniciales via store');
         }
         // 🔧 FIX: Ya no sobrescribimos window.ventas en cada actualización
 
@@ -143,7 +149,7 @@ export async function actualizarKPIs() {
         await actualizarKPIsPorPeriodo(periodoVistaActual);
 
         // 2. PEDIDOS ACTIVOS
-        const pedidos = window.pedidos || [];
+        const pedidos = orderStore.getState().orders;
         const pedidosActivos = pedidos.filter(p => p.estado === 'pendiente').length;
         const pedidosEl = document.getElementById('kpi-pedidos');
         if (pedidosEl) {
@@ -152,7 +158,7 @@ export async function actualizarKPIs() {
         }
 
         // 3. STOCK BAJO
-        const ingredientes = window.ingredientes || [];
+        const ingredientes = ingredientStore.getState().ingredients;
         const stockBajo = ingredientes.filter(ing => {
             const stock = parseFloat(ing.stock_actual) || parseFloat(ing.stockActual) || 0;
             const minimo = parseFloat(ing.stock_minimo) || parseFloat(ing.stockMinimo) || 0;
@@ -168,7 +174,7 @@ export async function actualizarKPIs() {
         if (stockMsgEl) stockMsgEl.textContent = stockBajo > 0 ? 'Requieren atención' : 'Todo OK';
 
         // 4. MARGEN PROMEDIO
-        const recetas = window.recetas || [];
+        const recetas = recipeStore.getState().recipes;
         const recetasConMargen = recetas.filter(r => r.precio_venta > 0);
         if (recetasConMargen.length > 0) {
             // ⚡ OPTIMIZACIÓN: Usar función memoizada para calcular costes
@@ -219,7 +225,7 @@ export async function actualizarKPIs() {
                 console.log('📦 Valor Stock (CACHE):', cachedData.valor.toFixed(2) + '€');
             } else {
                 // Calcular y cachear
-                const ingredientes = window.ingredientes || [];
+                const ingredientes = ingredientStore.getState().ingredients;
                 const inventario = window.inventarioCompleto || [];
                 const invMap = new Map(inventario.map(i => [i.id, i]));
 
@@ -277,7 +283,7 @@ export async function actualizarKPIs() {
 
         // 6. SIDEBAR CAMBIOS DE PRECIO (comparar con último pedido)
         try {
-            const pedidos = window.pedidos || [];
+            const pedidos = orderStore.getState().orders;
             const pedidosRecibidos = pedidos
                 .filter(p => p.estado === 'recibido' && p.ingredientes?.length > 0)
                 .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -302,7 +308,7 @@ export async function actualizarKPIs() {
 
                 // Calcular cambios de precio
                 const cambios = [];
-                const ingredientes = window.ingredientes || [];
+                const ingredientes = ingredientStore.getState().ingredients;
                 const ingMap = new Map(ingredientes.map(i => [i.id, i]));
 
                 Object.entries(preciosPorIngrediente).forEach(([ingId, precios]) => {
@@ -390,7 +396,7 @@ export async function actualizarKPIs() {
                         const apiBase = getApiUrl();
                         const respEmpleados = await fetch(`${apiBase}/empleados`, {
                             credentials: 'include',
-            headers: {
+                            headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
                             }
@@ -412,7 +418,7 @@ export async function actualizarKPIs() {
                         const apiBase = getApiUrl();
                         const respHorarios = await fetch(`${apiBase}/horarios?desde=${hoyStr}&hasta=${hoyStr}`, {
                             credentials: 'include',
-            headers: {
+                            headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
                             }
@@ -497,7 +503,7 @@ export async function actualizarKPIs() {
 
         // Render forecast chart
         if (typeof window.calcularForecast === 'function') {
-            const ventas = window.ventas || [];
+            const ventas = saleStore.getState().sales;
             const forecast = window.calcularForecast(ventas, 7);
 
             // Update forecast total
@@ -583,7 +589,7 @@ function initForecastTabs() {
  * Update forecast for a specific period (7, 30, or 90 days)
  */
 function updateForecastPeriod(dias) {
-    const ventas = window.ventas || [];
+    const ventas = saleStore.getState().sales;
     if (!ventas.length || typeof window.calcularForecast !== 'function') return;
 
     const forecast = window.calcularForecast(ventas, dias);
