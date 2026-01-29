@@ -44,6 +44,9 @@ window.getApiBaseUrl = getApiBaseUrl;
 // ============================================
 import './services/api.js';
 
+// AlertPanel - Modal de gestión de alertas
+import { loadAlertPanel } from './components/domain/AlertPanel.js';
+
 // ============================================
 // CORE - Funciones centrales (cargarDatos, cambiarTab, init)
 // ============================================
@@ -561,10 +564,7 @@ async function updateAlertBadge() {
                 alertBtn.className = 'alert-badge';
                 alertBtn.title = 'Ver alertas activas';
                 alertBtn.innerHTML = `🔔 <span class="badge-count">${activeCount}</span>`;
-                alertBtn.onclick = () => {
-                    // Navegar a tab de alertas o mostrar panel
-                    showToast(`Tienes ${activeCount} alertas activas`, 'info');
-                };
+                alertBtn.onclick = () => showAlertModal();
 
                 // Insertar en header
                 const header = document.querySelector('header') ||
@@ -584,6 +584,42 @@ async function updateAlertBadge() {
     }
 }
 
+// Función para mostrar modal de alertas
+function showAlertModal() {
+    // Crear modal si no existe
+    let modal = document.getElementById('alert-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'alert-modal';
+        modal.className = 'alert-modal';
+        modal.innerHTML = `
+            <div class="alert-modal__content">
+                <button class="alert-modal__close" onclick="window.closeAlertModal()">&times;</button>
+                <div id="alert-panel-container"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Cerrar al hacer clic fuera
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeAlertModal();
+        });
+
+        // Cerrar con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAlertModal();
+        });
+    }
+
+    modal.style.display = 'flex';
+    loadAlertPanel(document.getElementById('alert-panel-container'));
+}
+
+function closeAlertModal() {
+    const modal = document.getElementById('alert-modal');
+    if (modal) modal.style.display = 'none';
+}
+
 // Inicializar badge después de login
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(updateAlertBadge, 3000); // Después de que carguen datos
@@ -594,3 +630,5 @@ setInterval(updateAlertBadge, 5 * 60 * 1000);
 
 // Exponer para actualización manual
 window.updateAlertBadge = updateAlertBadge;
+window.showAlertModal = showAlertModal;
+window.closeAlertModal = closeAlertModal;
