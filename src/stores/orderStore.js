@@ -48,7 +48,7 @@ export const orderStore = createStore((set, get) => ({
     fetchOrders: async () => {
         set({ isLoading: true, error: null });
         try {
-            const data = await apiClient.get('/api/orders');
+            const data = await apiClient.get('/orders');
             const orders = Array.isArray(data) ? data : [];
 
             set({ orders, isLoading: false });
@@ -69,7 +69,7 @@ export const orderStore = createStore((set, get) => ({
     createOrder: async (orderData) => {
         set({ isLoading: true, error: null });
         try {
-            const newOrder = await apiClient.post('/api/orders', orderData);
+            const newOrder = await apiClient.post('/orders', orderData);
 
             set((state) => ({
                 orders: [...state.orders, newOrder],
@@ -92,7 +92,7 @@ export const orderStore = createStore((set, get) => ({
     updateOrder: async (id, orderData) => {
         set({ isLoading: true, error: null });
         try {
-            const updatedOrder = await apiClient.put(`/api/orders/${id}`, orderData);
+            const updatedOrder = await apiClient.put(`/orders/${id}`, orderData);
 
             set((state) => ({
                 orders: state.orders.map(ord =>
@@ -117,7 +117,7 @@ export const orderStore = createStore((set, get) => ({
     deleteOrder: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            await apiClient.delete(`/api/orders/${id}`);
+            await apiClient.delete(`/orders/${id}`);
 
             set((state) => ({
                 orders: state.orders.filter(ord => ord.id !== id),

@@ -386,10 +386,6 @@ async function getTopRecipes(limit = 10) {
     return await fetchAPI(`/api/v2/kpis/top-recipes?limit=${limit}`);
 }
 
-async function getDailyRangeKPIs(days = 7) {
-    return await fetchAPI(`/api/v2/kpis/daily-range?days=${days}`);
-}
-
 // ========== ALERTS API ==========
 
 async function getActiveAlerts() {
@@ -582,7 +578,6 @@ window.API = {
     getMonthlyKPIs,
     getKPIComparison,
     getTopRecipes,
-    getDailyRangeKPIs,
     // V2 - Alerts
     getActiveAlerts,
     getAlertStats,

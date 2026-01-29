@@ -47,7 +47,7 @@ export const recipeStore = createStore((set, get) => ({
     fetchRecipes: async () => {
         set({ isLoading: true, error: null });
         try {
-            const data = await apiClient.get('/api/recipes');
+            const data = await apiClient.get('/recipes');
             const recipes = Array.isArray(data) ? data : [];
 
             set({ recipes, isLoading: false });
@@ -68,7 +68,7 @@ export const recipeStore = createStore((set, get) => ({
     createRecipe: async (recipeData) => {
         set({ isLoading: true, error: null });
         try {
-            const newRecipe = await apiClient.post('/api/recipes', recipeData);
+            const newRecipe = await apiClient.post('/recipes', recipeData);
 
             set((state) => ({
                 recipes: [...state.recipes, newRecipe],
@@ -91,7 +91,7 @@ export const recipeStore = createStore((set, get) => ({
     updateRecipe: async (id, recipeData) => {
         set({ isLoading: true, error: null });
         try {
-            const updatedRecipe = await apiClient.put(`/api/recipes/${id}`, recipeData);
+            const updatedRecipe = await apiClient.put(`/recipes/${id}`, recipeData);
 
             set((state) => ({
                 recipes: state.recipes.map(rec =>
@@ -116,7 +116,7 @@ export const recipeStore = createStore((set, get) => ({
     deleteRecipe: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            await apiClient.delete(`/api/recipes/${id}`);
+            await apiClient.delete(`/recipes/${id}`);
 
             set((state) => ({
                 recipes: state.recipes.filter(rec => rec.id !== id),

@@ -43,7 +43,7 @@ export const saleStore = createStore((set, get) => ({
     fetchSales: async () => {
         set({ isLoading: true, error: null });
         try {
-            const data = await apiClient.get('/api/sales');
+            const data = await apiClient.get('/sales');
             const sales = Array.isArray(data) ? data : [];
 
             set({ sales, isLoading: false });
@@ -63,7 +63,7 @@ export const saleStore = createStore((set, get) => ({
     createSale: async (saleData) => {
         set({ isLoading: true, error: null });
         try {
-            const newSale = await apiClient.post('/api/sales', saleData);
+            const newSale = await apiClient.post('/sales', saleData);
 
             set((state) => ({
                 sales: [...state.sales, newSale],
@@ -86,7 +86,7 @@ export const saleStore = createStore((set, get) => ({
     createBulkSales: async (salesArray) => {
         set({ isLoading: true, error: null });
         try {
-            const result = await apiClient.post('/api/sales/bulk', salesArray);
+            const result = await apiClient.post('/sales/bulk', salesArray);
 
             // Refresh sales list
             await get().fetchSales();
@@ -101,7 +101,7 @@ export const saleStore = createStore((set, get) => ({
     deleteSale: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            await apiClient.delete(`/api/sales/${id}`);
+            await apiClient.delete(`/sales/${id}`);
 
             set((state) => ({
                 sales: state.sales.filter(sale => sale.id !== id),
