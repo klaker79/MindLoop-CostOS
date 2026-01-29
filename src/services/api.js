@@ -336,6 +336,78 @@ async function deleteRecipe(id) {
     });
 }
 
+// ========== RECIPES V2 (Cost Calculation) ==========
+
+/**
+ * Calcula el coste de una receta en el backend
+ * @param {number} recipeId
+ * @returns {Promise<Object>} { recipe, breakdown }
+ */
+async function calculateRecipeCost(recipeId) {
+    return await fetchAPI(`/api/v2/recipes/${recipeId}/calculate-cost`, {
+        method: 'POST'
+    });
+}
+
+/**
+ * Obtiene estadísticas de costes
+ * @returns {Promise<Object>}
+ */
+async function getRecipeCostStats() {
+    return await fetchAPI('/api/v2/recipes/stats');
+}
+
+/**
+ * Recalcula todas las recetas
+ * @returns {Promise<Object>}
+ */
+async function recalculateAllRecipes() {
+    return await fetchAPI('/api/v2/recipes/recalculate-all', {
+        method: 'POST'
+    });
+}
+
+// ========== KPIs API ==========
+
+async function getDailyKPIs(date = null) {
+    const params = date ? `?date=${date}` : '';
+    return await fetchAPI(`/api/v2/kpis/daily${params}`);
+}
+
+async function getMonthlyKPIs(year, month) {
+    return await fetchAPI(`/api/v2/kpis/monthly?year=${year}&month=${month}`);
+}
+
+async function getKPIComparison(months = 6) {
+    return await fetchAPI(`/api/v2/kpis/comparison?months=${months}`);
+}
+
+async function getTopRecipes(limit = 10) {
+    return await fetchAPI(`/api/v2/kpis/top-recipes?limit=${limit}`);
+}
+
+// ========== ALERTS API ==========
+
+async function getActiveAlerts() {
+    return await fetchAPI('/api/v2/alerts');
+}
+
+async function getAlertStats() {
+    return await fetchAPI('/api/v2/alerts/stats');
+}
+
+async function acknowledgeAlert(alertId) {
+    return await fetchAPI(`/api/v2/alerts/${alertId}/acknowledge`, {
+        method: 'POST'
+    });
+}
+
+async function resolveAlert(alertId) {
+    return await fetchAPI(`/api/v2/alerts/${alertId}/resolve`, {
+        method: 'POST'
+    });
+}
+
 async function createSale(recetaId, cantidad) {
     return await fetchAPI('/api/sales', {
         method: 'POST',
@@ -497,6 +569,21 @@ window.API = {
     deleteRecipe,
     createSale,
     bulkSales,
+    // V2 - Cost Calculation
+    calculateRecipeCost,
+    getRecipeCostStats,
+    recalculateAllRecipes,
+    // V2 - KPIs
+    getDailyKPIs,
+    getMonthlyKPIs,
+    getKPIComparison,
+    getTopRecipes,
+    // V2 - Alerts
+    getActiveAlerts,
+    getAlertStats,
+    acknowledgeAlert,
+    resolveAlert,
+    // Auth
     login,
     logout,
     initAuth,

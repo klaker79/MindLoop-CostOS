@@ -1,0 +1,125 @@
+/**
+ * Estilos para componente CostBreakdown
+ */
+
+.cost-breakdown {
+    background: var(--bg-secondary, #f8fafc);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.cost-breakdown__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.cost-breakdown__header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary, #1e293b);
+}
+
+.cost-breakdown__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.cost-breakdown__table th,
+.cost-breakdown__table td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.cost-breakdown__table th {
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.cost-breakdown__table .total-row {
+    background: var(--bg-primary, #fff);
+    font-weight: 600;
+}
+
+.cost-breakdown__kpis {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.kpi {
+    flex: 1;
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 6px;
+    background: var(--bg-primary, #fff);
+}
+
+.kpi-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary, #64748b);
+    margin-bottom: 0.25rem;
+}
+
+.kpi-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.margin-good .kpi-value {
+    color: var(--color-success, #22c55e);
+}
+
+.margin-warning .kpi-value {
+    color: var(--color-warning, #f59e0b);
+}
+
+.margin-bad .kpi-value {
+    color: var(--color-error, #ef4444);
+}
+
+.cost-breakdown__warning {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--color-warning-bg, #fef3c7);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: var(--color-warning-text, #92400e);
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-warning {
+    background: var(--color-warning-bg, #fef3c7);
+    color: var(--color-warning-text, #92400e);
+}
+
+.cost-breakdown .loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary, #64748b);
+}
+
+.cost-breakdown .error {
+    text-align: center;
+    padding: 1rem;
+    color: var(--color-error, #ef4444);
+    background: #fef2f2;
+    border-radius: 6px;
+}

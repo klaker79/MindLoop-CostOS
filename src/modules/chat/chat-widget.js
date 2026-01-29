@@ -5,13 +5,12 @@
 
 import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
+import { appConfig } from '../../config/app-config.js';
 
 const CHAT_CONFIG = {
-    // Webhook URL configurable via environment variables con fallback
-    webhookUrl:
-        import.meta.env.VITE_CHAT_WEBHOOK_URL ||
-        'https://n8niker.mindloop.cloud/webhook/3f075a6e-b005-407d-911c-93f710727449',
-    botName: 'Asistente CostOS',
+    // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
+    webhookUrl: appConfig.chat.webhookUrl,
+    botName: appConfig.chat.botName || 'Asistente CostOS',
     welcomeMessage:
         '¡Hola! 👋 Soy tu asistente de costos. Puedo ayudarte con:\n\n• 📊 Análisis de food cost\n• 💰 Costes de platos y recetas\n• 📦 Stock y raciones disponibles\n• 📈 Márgenes y rentabilidad\n• 🏪 Comparativa de proveedores\n\n¿En qué puedo ayudarte?',
     placeholderText: 'Escribe tu pregunta...',

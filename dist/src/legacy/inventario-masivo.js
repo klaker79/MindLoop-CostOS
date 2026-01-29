@@ -1320,7 +1320,8 @@ window.cargarResumenMensual = async function () {
 
         const response = await fetch(
             // ⚡ Multi-tenant: usa config global si existe
-            `${window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
+            // 🔧 FIX: Changed from /api/monthly/summary (404) to /api/balance/mes (correct endpoint)
+            `${window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud'}/api/balance/mes?mes=${mes}&ano=${ano}`,
             {
                 credentials: 'include',
                 headers: {

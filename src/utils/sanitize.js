@@ -43,6 +43,19 @@ const CONFIG = {
 };
 
 /**
+ * Escapa HTML para texto plano (sin tags permitidos)
+ * Esta es la opción MÁS SEGURA para mostrar datos de usuario
+ * @param {string} text - Texto a escapar
+ * @returns {string} Texto con caracteres HTML escapados
+ */
+export function escapeHTML(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
  * Sanitiza HTML de forma segura
  * @param {string} dirty - HTML sin sanitizar
  * @param {object} customConfig - Configuración personalizada (opcional)
@@ -111,6 +124,7 @@ export function sanitizeURL(url) {
 
 export default {
     sanitizeHTML,
+    escapeHTML,
     setHTMLSafe,
     setTextSafe,
     sanitizeURL,
