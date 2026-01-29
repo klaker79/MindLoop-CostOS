@@ -27,6 +27,7 @@ import { apiClient } from '../../api/client.js';
 
 // KPI Dashboard v2 - Clean Architecture
 import { loadKPIDashboard } from '../../components/domain/KPIDashboard.js';
+import { renderKPICharts } from '../../components/domain/KPICharts.js';
 
 // Variable para recordar el período actual (default: semana)
 let periodoVistaActual = 'semana';
@@ -169,6 +170,24 @@ export async function actualizarKPIs() {
         // Cargar KPIs v2 desde API
         if (window.API?.getDailyKPIs) {
             loadKPIDashboard(kpiContainer);
+        }
+
+        // Crear contenedor de gráficos si no existe
+        let chartsContainer = document.getElementById('kpi-charts-container');
+        if (!chartsContainer) {
+            chartsContainer = document.createElement('div');
+            chartsContainer.id = 'kpi-charts-container';
+            chartsContainer.className = 'kpi-charts-wrapper';
+
+            // Insertar después del KPI Dashboard
+            if (kpiContainer && kpiContainer.parentNode) {
+                kpiContainer.parentNode.insertBefore(chartsContainer, kpiContainer.nextSibling);
+            }
+        }
+
+        // Renderizar gráficos (Chart.js debe estar cargado)
+        if (window.Chart && window.API?.getDailyRangeKPIs) {
+            renderKPICharts(chartsContainer);
         }
     } catch (e) {
         console.log('KPI Dashboard v2 no disponible:', e.message);
