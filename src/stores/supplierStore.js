@@ -7,13 +7,11 @@
  * Incluye: CRUD, filtros, búsqueda.
  *
  * @author MindLoopIA
- * @version 1.0.0
+ * @version 2.0.0 - Migrado a apiClient
  */
 
 import { createStore } from 'zustand/vanilla';
-import { getApiUrl } from '../config/app-config.js';
-
-const API_BASE = getApiUrl();
+import { apiClient } from '../api/client.js';
 
 /**
  * Supplier Store
@@ -46,13 +44,7 @@ export const supplierStore = createStore((set, get) => ({
     fetchSuppliers: async () => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/suppliers`, {
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error fetching suppliers');
-
-            const data = await response.json();
+            const data = await apiClient.get('/suppliers');
             const suppliers = Array.isArray(data) ? data : [];
 
             set({ suppliers, isLoading: false });
@@ -72,19 +64,8 @@ export const supplierStore = createStore((set, get) => ({
     createSupplier: async (supplierData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/suppliers`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(supplierData)
-            });
+            const newSupplier = await apiClient.post('/suppliers', supplierData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error creating supplier');
-            }
-
-            const newSupplier = await response.json();
             set((state) => ({
                 suppliers: [...state.suppliers, newSupplier],
                 isLoading: false
@@ -105,19 +86,8 @@ export const supplierStore = createStore((set, get) => ({
     updateSupplier: async (id, supplierData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/suppliers/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(supplierData)
-            });
+            const updatedSupplier = await apiClient.put(`/suppliers/${id}`, supplierData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error updating supplier');
-            }
-
-            const updatedSupplier = await response.json();
             set((state) => ({
                 suppliers: state.suppliers.map(sup =>
                     sup.id === id ? updatedSupplier : sup
@@ -140,12 +110,7 @@ export const supplierStore = createStore((set, get) => ({
     deleteSupplier: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch(`${API_BASE}/suppliers/${id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            if (!response.ok) throw new Error('Error deleting supplier');
+            await apiClient.delete(`/suppliers/${id}`);
 
             set((state) => ({
                 suppliers: state.suppliers.filter(sup => sup.id !== id),
