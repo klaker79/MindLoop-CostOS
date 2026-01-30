@@ -990,6 +990,9 @@
     */
 
     // ========== GESTIÓN DE EQUIPO (Team Management) ==========
+    // MIGRADO A src/modules/equipo/equipo.js - 2026-01-30
+    // Se expone en main.js líneas 480, 483-484
+    /*
     window.renderizarEquipo = async function () {
         const tbody = document.getElementById('lista-equipo-body');
         tbody.innerHTML =
@@ -1096,6 +1099,7 @@
             showToast(error.message, 'error');
         }
     };
+    */
 
     // ========== SIMULADOR FINANCIERO ==========
     window.actualizarSimulador = function () {
