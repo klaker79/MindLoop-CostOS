@@ -693,6 +693,9 @@
             setElementHTML('tabla-ventas', '<p style="color:#ef4444;">Error cargando ventas</p>');
         }
     };
+    // MIGRADO A src/modules/ventas/ventas-crud.js - 2026-01-30
+    // Se expone en main.js línea 265: window.eliminarVenta = VentasCRUD.eliminarVenta
+    /*
     window.eliminarVenta = async function (id) {
         if (!confirm('¿Eliminar esta venta? El stock NO se restaurará automáticamente.')) return;
 
@@ -711,6 +714,7 @@
             showToast('Error eliminando venta', 'error');
         }
     };
+    */
     /* ======================================== */
     // === BALANCE ===
     // === P&L UNIFICADO (Cuenta de Resultados) ===
