@@ -3467,6 +3467,9 @@
         }
     };
 
+    // MIGRADO A src/modules/pedidos/pedidos-crud.js - 2026-01-30
+    // Se expone en main.js línea 242: window.guardarPedido = PedidosCRUD.guardarPedido
+    /*
     window.guardarPedido = async function (event) {
         event.preventDefault();
 
@@ -3540,6 +3543,7 @@
             showToast('Error creando pedido: ' + error.message, 'error');
         }
     };
+    */
 
     let pedidoRecibiendoId = null;
 
@@ -3746,6 +3750,9 @@
         }
     };
 
+    // MIGRADO A src/modules/pedidos/pedidos-crud.js - 2026-01-30
+    // Se expone en main.js línea 243: window.eliminarPedido = PedidosCRUD.eliminarPedido
+    /*
     window.eliminarPedido = async function (id) {
         if (confirm('¿Eliminar este pedido?')) {
             showLoading();
@@ -3763,6 +3770,7 @@
             }
         }
     };
+    */
 
     let pedidoViendoId = null;
 
