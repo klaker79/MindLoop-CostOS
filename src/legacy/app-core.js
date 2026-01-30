@@ -794,68 +794,6 @@
     }
 
     // Cambia el período de vista y actualiza KPIs
-    window.cambiarPeriodoVista = function (periodo) {
-        periodoVistaActual = periodo;
-
-        // Actualizar botones activos
-        document.querySelectorAll('.periodo-btn').forEach(btn => {
-            if (btn.dataset.periodo === periodo) {
-                btn.style.background = '#0ea5e9';
-                btn.style.color = 'white';
-            } else {
-                btn.style.background = 'white';
-                btn.style.color = '#0369a1';
-            }
-        });
-
-        // Actualizar KPIs según período
-        actualizarKPIsPorPeriodo(periodo);
-    };
-
-    // Actualiza KPIs filtrados por período
-    function actualizarKPIsPorPeriodo(periodo) {
-        try {
-            const ventas = window.ventas || [];
-
-            if (typeof window.filtrarPorPeriodo === 'function') {
-                const ventasFiltradas = window.filtrarPorPeriodo(ventas, 'fecha', periodo);
-                const totalVentas = ventasFiltradas.reduce(
-                    (acc, v) => acc + (parseFloat(v.total) || 0),
-                    0
-                );
-
-                const kpiIngresos = document.getElementById('kpi-ingresos');
-                if (kpiIngresos) {
-                    kpiIngresos.textContent = totalVentas.toFixed(2) + '€';
-                }
-
-                // Actualizar comparativa con período anterior
-                if (
-                    typeof window.compararConSemanaAnterior === 'function' &&
-                    periodo === 'semana'
-                ) {
-                    const comparativa = window.compararConSemanaAnterior(ventas, 'fecha', 'total');
-                    const trendEl = document.getElementById('kpi-ingresos-trend');
-                    if (trendEl) {
-                        const signo = comparativa.tendencia === 'up' ? '+' : '';
-                        trendEl.textContent = `${signo}${comparativa.porcentaje}% vs anterior`;
-                        trendEl.parentElement.className = `kpi-trend ${comparativa.tendencia === 'up' ? 'positive' : 'negative'}`;
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error actualizando KPIs por período:', error);
-        }
-    }
-
-    // Exponer funciones globalmente
-    window.inicializarFechaActual = inicializarFechaActual;
-    window.actualizarKPIsPorPeriodo = actualizarKPIsPorPeriodo;
-
-    // cambiarTab MIGRADO A src/modules/core/core.js
-
-
-    // ========== ANÁLISIS (resumido) ==========
     window.renderizarAnalisis = async function () {
         if (recetas.length === 0 || ingredientes.length === 0) {
             document.getElementById('analisis-vacio').style.display = 'block';
