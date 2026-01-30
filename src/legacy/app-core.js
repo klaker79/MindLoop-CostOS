@@ -226,144 +226,23 @@
         exportarAExcel(window.ingredientes, `Ingredientes_${getRestaurantNameForFile()}`, columnas);
     }
 
-    function exportarRecetas() {
-        const columnas = [
-            { header: 'ID', key: 'id' },
-            {
-                header: 'Código',
-                value: rec => rec.codigo || `REC-${String(rec.id).padStart(4, '0')}`,
-            },
-            { header: 'Nombre', key: 'nombre' },
-            { header: 'Categoría', key: 'categoria' },
-            {
-                header: 'Precio Venta (€)',
-                value: rec => parseFloat(rec.precio_venta || 0).toFixed(2),
-            },
-            {
-                header: 'Coste (€)',
-                value: rec => {
-                    return (rec.ingredientes || [])
-                        .reduce((sum, item) => {
-                            const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
-                            if (!ing) return sum;
-                            const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                            const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
-                            return sum + (precioUnitario * parseFloat(item.cantidad));
-                        }, 0)
-                        .toFixed(2);
-                },
-            },
-            {
-                header: 'Margen (€)',
-                value: rec => {
-                    const coste = (rec.ingredientes || []).reduce((sum, item) => {
-                        const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
-                        if (!ing) return sum;
-                        const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                        const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
-                        return sum + (precioUnitario * parseFloat(item.cantidad));
-                    }, 0);
-                    return (parseFloat(rec.precio_venta || 0) - coste).toFixed(2);
-                },
-            },
-            {
-                header: 'Margen (%)',
-                value: rec => {
-                    const coste = (rec.ingredientes || []).reduce((sum, item) => {
-                        const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
-                        if (!ing) return sum;
-                        const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                        const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
-                        return sum + (precioUnitario * parseFloat(item.cantidad));
-                    }, 0);
-                    const margen =
-                        rec.precio_venta > 0
-                            ? ((parseFloat(rec.precio_venta) - coste) /
-                                parseFloat(rec.precio_venta)) *
-                            100
-                            : 0;
-                    return margen.toFixed(1) + '%';
-                },
-            },
-            { header: 'Porciones', key: 'porciones' },
-            { header: 'Nº Ingredientes', value: rec => (rec.ingredientes || []).length },
-        ];
-        exportarAExcel(window.recetas, `Recetas_${getRestaurantNameForFile()}`, columnas);
-    }
+    // MIGRADO A src/modules/recetas/recetas-ui.js - 2026-01-30
+    // Se expone en main.js: window.exportarRecetas = RecetasUI.exportarRecetas
+    // function exportarRecetas() { ... }
 
-    function exportarVentas() {
-        const columnas = [
-            { header: 'ID', key: 'id' },
-            { header: 'Fecha', value: v => new Date(v.fecha).toLocaleDateString('es-ES') },
-            {
-                header: 'Hora',
-                value: v =>
-                    new Date(v.fecha).toLocaleTimeString('es-ES', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                    }),
-            },
-            {
-                header: 'Código Receta',
-                value: v => {
-                    const rec = window.recetas.find(r => r.id === v.receta_id);
-                    return rec?.codigo || `REC-${String(v.receta_id).padStart(4, '0')}`;
-                },
-            },
-            {
-                header: 'Descripción',
-                value: v =>
-                    v.receta_nombre ||
-                    window.recetas.find(r => r.id === v.receta_id)?.nombre ||
-                    'Desconocida',
-            },
-            { header: 'Cantidad', key: 'cantidad' },
-            {
-                header: 'Precio Unitario (€)',
-                value: v => parseFloat(v.precio_unitario || 0).toFixed(2),
-            },
-            { header: 'Total (€)', value: v => parseFloat(v.total || 0).toFixed(2) },
-        ];
-        api.getSales().then(ventas =>
-            exportarAExcel(ventas, `Ventas_${getRestaurantNameForFile()}`, columnas)
-        );
-    }
+    // MIGRADO A src/modules/ventas/ventas-ui.js - 2026-01-30
+    // Se expone en main.js: window.exportarVentas = VentasUI.exportarVentas
+    // function exportarVentas() { ... }
 
-    // Exportar Pedidos (nueva función)
-    function exportarPedidos() {
-        const columnas = [
-            { header: 'ID', key: 'id' },
-            { header: 'Fecha Pedido', value: p => new Date(p.fecha).toLocaleDateString('es-ES') },
-            {
-                header: 'Proveedor',
-                value: p => {
-                    const prov = window.proveedores.find(pr => pr.id === p.proveedor_id);
-                    return prov ? prov.nombre : 'Sin proveedor';
-                },
-            },
-            { header: 'Estado', key: 'estado' },
-            { header: 'Nº Ingredientes', value: p => (p.ingredientes || []).length },
-            { header: 'Total (€)', value: p => parseFloat(p.total || 0).toFixed(2) },
-            {
-                header: 'Total Recibido (€)',
-                value: p => parseFloat(p.total_recibido || 0).toFixed(2),
-            },
-            {
-                header: 'Fecha Recepción',
-                value: p =>
-                    p.fecha_recepcion
-                        ? new Date(p.fecha_recepcion).toLocaleDateString('es-ES')
-                        : '-',
-            },
-        ];
-        exportarAExcel(window.pedidos, `Pedidos_${getRestaurantNameForFile()}`, columnas);
-    }
+    // MIGRADO A src/modules/pedidos/pedidos-ui.js - 2026-01-30
+    // Se expone en main.js: window.exportarPedidos = PedidosUI.exportarPedidos
+    // function exportarPedidos() { ... }
 
     // Exponer funciones globalmente
     window.exportarIngredientes = exportarIngredientes;
-    window.exportarRecetas = exportarRecetas;
-    window.exportarVentas = exportarVentas;
-    window.exportarPedidos = exportarPedidos;
+    // window.exportarRecetas - YA EXPUESTO EN main.js
+    // window.exportarVentas - YA EXPUESTO EN main.js
+    // window.exportarPedidos - YA EXPUESTO EN main.js
     // === ACTUALIZAR KPIs ===
 
     // renderizarBalance y calcularPL MIGRADOS a src/modules/balance/index.js
