@@ -297,19 +297,6 @@
         });
     }
 
-    // ========== MANUAL DOBLE (Printable) ==========
-
-    // Función auxiliar para fetch con credenciales
-    async function fetchWithCreds(url, options = {}) {
-        return fetch(url, {
-            ...options,
-            credentials: 'include',
-            headers: {
-                ...getAuthHeaders(),
-                ...(options.headers || {})
-            }
-        });
-    }
 
     window.api = {
         // --- Team Management ---
