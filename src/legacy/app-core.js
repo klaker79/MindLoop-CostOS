@@ -711,86 +711,12 @@
 
     // ═══════════════════════════════════════════════════════════════
     // 🗓️ FUNCIONES DE CALENDARIO Y PERÍODO
+    // MIGRADAS A src/modules/dashboard/dashboard.js - 2026-01-31
+    // Se exponen en dashboard.js líneas 656-660:
+    //   window.inicializarFechaActual = inicializarFechaActual
+    //   window.cambiarPeriodoVista = cambiarPeriodoVista
+    //   window.actualizarKPIsPorPeriodo = actualizarKPIsPorPeriodo
     // ═══════════════════════════════════════════════════════════════
-
-    let periodoVistaActual = 'semana';
-
-    // Inicializa el banner de fecha actual
-    function inicializarFechaActual() {
-        const fechaTexto = document.getElementById('fecha-hoy-texto');
-        const periodoInfo = document.getElementById('periodo-info');
-
-        if (fechaTexto && typeof window.getFechaHoyFormateada === 'function') {
-            const fechaFormateada = window.getFechaHoyFormateada();
-            // Capitalizar primera letra
-            fechaTexto.textContent =
-                fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
-        }
-
-        if (periodoInfo && typeof window.getPeriodoActual === 'function') {
-            const periodo = window.getPeriodoActual();
-            periodoInfo.textContent = `Semana ${periodo.semana} · ${periodo.mesNombre.charAt(0).toUpperCase() + periodo.mesNombre.slice(1)} ${periodo.año}`;
-        }
-    }
-
-    // Cambia el período de vista y actualiza KPIs
-    window.cambiarPeriodoVista = function (periodo) {
-        periodoVistaActual = periodo;
-
-        // Actualizar botones activos
-        document.querySelectorAll('.periodo-btn').forEach(btn => {
-            if (btn.dataset.periodo === periodo) {
-                btn.style.background = '#0ea5e9';
-                btn.style.color = 'white';
-            } else {
-                btn.style.background = 'white';
-                btn.style.color = '#0369a1';
-            }
-        });
-
-        // Actualizar KPIs según período
-        actualizarKPIsPorPeriodo(periodo);
-    };
-
-    // Actualiza KPIs filtrados por período
-    function actualizarKPIsPorPeriodo(periodo) {
-        try {
-            const ventas = window.ventas || [];
-
-            if (typeof window.filtrarPorPeriodo === 'function') {
-                const ventasFiltradas = window.filtrarPorPeriodo(ventas, 'fecha', periodo);
-                const totalVentas = ventasFiltradas.reduce(
-                    (acc, v) => acc + (parseFloat(v.total) || 0),
-                    0
-                );
-
-                const kpiIngresos = document.getElementById('kpi-ingresos');
-                if (kpiIngresos) {
-                    kpiIngresos.textContent = totalVentas.toFixed(2) + '€';
-                }
-
-                // Actualizar comparativa con período anterior
-                if (
-                    typeof window.compararConSemanaAnterior === 'function' &&
-                    periodo === 'semana'
-                ) {
-                    const comparativa = window.compararConSemanaAnterior(ventas, 'fecha', 'total');
-                    const trendEl = document.getElementById('kpi-ingresos-trend');
-                    if (trendEl) {
-                        const signo = comparativa.tendencia === 'up' ? '+' : '';
-                        trendEl.textContent = `${signo}${comparativa.porcentaje}% vs anterior`;
-                        trendEl.parentElement.className = `kpi-trend ${comparativa.tendencia === 'up' ? 'positive' : 'negative'}`;
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error actualizando KPIs por período:', error);
-        }
-    }
-
-    // Exponer funciones globalmente
-    window.inicializarFechaActual = inicializarFechaActual;
-    window.actualizarKPIsPorPeriodo = actualizarKPIsPorPeriodo;
 
     // cambiarTab MIGRADO A src/modules/core/core.js
 
