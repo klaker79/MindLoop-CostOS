@@ -198,33 +198,9 @@
     }
 
     // === EXPORTACIONES ESTANDARIZADAS (Formato TPV) ===
-    function exportarIngredientes() {
-        const columnas = [
-            { header: 'ID', key: 'id' },
-            { header: 'Código', value: ing => `ING-${String(ing.id).padStart(4, '0')}` },
-            { header: 'Nombre', key: 'nombre' },
-            { header: 'Categoría', value: ing => ing.familia || ing.categoria || 'alimento' },
-            {
-                header: 'Proveedor',
-                value: ing => {
-                    const prov = window.proveedores.find(p => p.id === ing.proveedor_id);
-                    return prov ? prov.nombre : 'Sin proveedor';
-                },
-            },
-            { header: 'Precio Unitario (€)', value: ing => parseFloat(ing.precio || 0).toFixed(2) },
-            { header: 'Unidad', key: 'unidad' },
-            {
-                header: 'Stock Actual',
-                value: ing => parseFloat(ing.stock_actual || ing.stockActual || 0).toFixed(2),
-            },
-            {
-                header: 'Stock Mínimo',
-                value: ing => parseFloat(ing.stock_minimo || ing.stockMinimo || 0).toFixed(2),
-            },
-            { header: 'Fecha Actualización', value: () => new Date().toLocaleDateString('es-ES') },
-        ];
-        exportarAExcel(window.ingredientes, `Ingredientes_${getRestaurantNameForFile()}`, columnas);
-    }
+    // MIGRADO A src/modules/ingredientes/ingredientes-ui.js - 2026-01-30
+    // Se expone en main.js: window.exportarIngredientes = IngredientesUI.exportarIngredientes
+    // function exportarIngredientes() { ... }
 
     // MIGRADO A src/modules/recetas/recetas-ui.js - 2026-01-30
     // Se expone en main.js: window.exportarRecetas = RecetasUI.exportarRecetas
@@ -238,11 +214,7 @@
     // Se expone en main.js: window.exportarPedidos = PedidosUI.exportarPedidos
     // function exportarPedidos() { ... }
 
-    // Exponer funciones globalmente
-    window.exportarIngredientes = exportarIngredientes;
-    // window.exportarRecetas - YA EXPUESTO EN main.js
-    // window.exportarVentas - YA EXPUESTO EN main.js
-    // window.exportarPedidos - YA EXPUESTO EN main.js
+    // Todas las funciones de exportación expuestas en main.js
     // === ACTUALIZAR KPIs ===
 
     // renderizarBalance y calcularPL MIGRADOS a src/modules/balance/index.js
