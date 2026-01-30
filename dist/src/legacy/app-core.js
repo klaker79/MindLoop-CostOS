@@ -256,6 +256,9 @@
     }
     */
 
+    // MIGRADO A src/modules/recetas/recetas-ui.js - 2026-01-30
+    // Se expone en main.js línea 168: window.exportarRecetas = RecetasUI.exportarRecetas
+    /*
     function exportarRecetas() {
         const columnas = [
             { header: 'ID', key: 'id' },
@@ -320,7 +323,11 @@
         ];
         exportarAExcel(window.recetas, `Recetas_${getRestaurantNameForFile()}`, columnas);
     }
+    */
 
+    // MIGRADO A src/modules/ventas/ventas-ui.js - 2026-01-30
+    // Se expone en main.js línea 261: window.exportarVentas = VentasUI.exportarVentas
+    /*
     function exportarVentas() {
         const columnas = [
             { header: 'ID', key: 'id' },
@@ -358,7 +365,11 @@
             exportarAExcel(ventas, `Ventas_${getRestaurantNameForFile()}`, columnas)
         );
     }
+    */
 
+    // MIGRADO A src/modules/pedidos/pedidos-ui.js - 2026-01-30
+    // Se expone en main.js línea 234: window.exportarPedidos = PedidosUI.exportarPedidos
+    /*
     // Exportar Pedidos (nueva función)
     function exportarPedidos() {
         const columnas = [
@@ -388,12 +399,13 @@
         ];
         exportarAExcel(window.pedidos, `Pedidos_${getRestaurantNameForFile()}`, columnas);
     }
+    */
 
     // Exponer funciones globalmente
     // window.exportarIngredientes = exportarIngredientes; // MIGRADO a ingredientes-ui.js
-    window.exportarRecetas = exportarRecetas;
-    window.exportarVentas = exportarVentas;
-    window.exportarPedidos = exportarPedidos;
+    // window.exportarRecetas = exportarRecetas; // MIGRADO a recetas-ui.js
+    // window.exportarVentas = exportarVentas; // MIGRADO a ventas-ui.js
+    // window.exportarPedidos = exportarPedidos; // MIGRADO a pedidos-ui.js
     // === ACTUALIZAR KPIs ===
 
     /* ========================================
