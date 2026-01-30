@@ -371,6 +371,396 @@
      * ✅ AHORA EN: src/modules/dashboard/
      * Fecha migración: 2025-12-21
      * ======================================== */
+    window.renderizarBalance = async function () {
+        try {
+            // 1. Cargar gastos fijos desde la BD (fuente de verdad)
+            try {
+                const gastosFijos = await window.API.getGastosFijos();
+                if (gastosFijos && gastosFijos.length > 0) {
+                    // Mapear gastos fijos a los inputs
+                    gastosFijos.forEach(gasto => {
+                        const concepto = gasto.concepto.toLowerCase();
+                        const monto = parseFloat(gasto.monto_mensual) || 0;
+                        if (concepto.includes('alquiler')) {
+                            const el = document.getElementById('pl-input-alquiler');
+                            if (el) el.value = monto;
+                        } else if (concepto.includes('personal')) {
+                            const el = document.getElementById('pl-input-personal');
+                            if (el) el.value = monto;
+                        } else if (concepto.includes('suministro')) {
+                            const el = document.getElementById('pl-input-suministros');
+                            if (el) el.value = monto;
+                        } else if (concepto.includes('otros')) {
+                            const el = document.getElementById('pl-input-otros');
+                            if (el) el.value = monto;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.warn('Using localStorage for gastos fijos:', error.message);
+                // Fallback a localStorage si falla la BD
+                let savedOpex = {};
+                try {
+                    savedOpex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
+                } catch (parseError) {
+                    console.warn('opex_inputs corrupto:', parseError.message);
+                }
+                const alquilerEl = document.getElementById('pl-input-alquiler');
+                const personalEl = document.getElementById('pl-input-personal');
+                const suministrosEl = document.getElementById('pl-input-suministros');
+                const otrosEl = document.getElementById('pl-input-otros');
+                if (alquilerEl && savedOpex.alquiler) alquilerEl.value = savedOpex.alquiler;
+                if (personalEl && savedOpex.personal) personalEl.value = savedOpex.personal;
+                if (suministrosEl && savedOpex.suministros) {
+                    suministrosEl.value = savedOpex.suministros;
+                }
+                if (otrosEl && savedOpex.otros) otrosEl.value = savedOpex.otros;
+            }
+
+            // 2. Obtener Datos Reales (Ventas y Costes)
+            const ventas = await api.getSales();
+
+            // Filtrar ventas del mes actual
+            const ahora = new Date();
+            const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
+                .toISOString()
+                .split('T')[0];
+            const ventasMes = ventas.filter(v => v.fecha >= inicioMes);
+
+            const ingresos = ventasMes.reduce((sum, v) => sum + parseFloat(v.total), 0);
+
+            // Calcular COGS (Coste de lo vendido) - Optimizado con Maps O(1)
+            const recetasMap = new Map(window.recetas.map(r => [r.id, r]));
+            const ingredientesMap = new Map(window.ingredientes.map(i => [i.id, i]));
+
+            let cogs = 0;
+            ventasMes.forEach(venta => {
+                const receta = recetasMap.get(venta.receta_id);
+                if (receta && receta.ingredientes) {
+                    const costeReceta = receta.ingredientes.reduce((sum, item) => {
+                        const ing = ingredientesMap.get(item.ingredienteId);
+                        if (!ing) return sum;
+                        const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
+                        const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
+                        return sum + (precioUnitario * item.cantidad);
+                    }, 0);
+                    cogs += costeReceta * venta.cantidad;
+                }
+            });
+
+            // 3. Actualizar UI (Parte Superior)
+            document.getElementById('pl-ingresos').textContent = ingresos.toFixed(2) + ' €';
+            document.getElementById('pl-cogs').textContent = cogs.toFixed(2) + ' €';
+
+            const cogsPct = ingresos > 0 ? (cogs / ingresos) * 100 : 0;
+            document.getElementById('pl-cogs-pct').textContent =
+                cogsPct.toFixed(1) + '% sobre ventas';
+
+            const margenBruto = ingresos - cogs;
+            document.getElementById('pl-margen-bruto').textContent = margenBruto.toFixed(2) + ' €';
+
+            // KPIs Adicionales
+            const margenPct = ingresos > 0 ? (margenBruto / ingresos) * 100 : 0;
+            document.getElementById('pl-kpi-margen').textContent = margenPct.toFixed(1) + '%';
+
+            // Ventas diarias promedio (del mes)
+            const diaDelMes = ahora.getDate();
+            const ventasDiarias = ingresos / diaDelMes;
+            document.getElementById('pl-kpi-ventas-diarias').textContent =
+                ventasDiarias.toFixed(2) + ' €';
+
+            // 4. Calcular Resto (OPEX y Neto)
+            window.calcularPL();
+        } catch (error) {
+            console.error('Error renderizando P&L:', error);
+            showToast('Error cargando datos financieros', 'error');
+        }
+    };
+
+    window.calcularPL = function () {
+        // Validar que los elementos existan antes de acceder
+        const ingresosEl = document.getElementById('pl-ingresos');
+        const cogsEl = document.getElementById('pl-cogs');
+        const alquilerEl = document.getElementById('pl-input-alquiler');
+        const personalEl = document.getElementById('pl-input-personal');
+        const suministrosEl = document.getElementById('pl-input-suministros');
+        const otrosEl = document.getElementById('pl-input-otros');
+
+        if (!ingresosEl || !cogsEl || !alquilerEl || !personalEl || !suministrosEl || !otrosEl) {
+            console.warn('Inputs de P&L no cargados aún');
+            return;
+        }
+
+        // 1. Leer Valores
+        const ingresosStr = ingresosEl.textContent.replace(' €', '').replace(',', '.');
+        const cogsStr = cogsEl.textContent.replace(' €', '').replace(',', '.');
+
+        const ingresos = parseFloat(ingresosStr) || 0;
+        const cogs = parseFloat(cogsStr) || 0;
+        const margenBruto = ingresos - cogs;
+
+        // Leer Inputs OPEX
+        const alquiler = parseFloat(alquilerEl.value) || 0;
+        const personal = parseFloat(personalEl.value) || 0;
+        const suministros = parseFloat(suministrosEl.value) || 0;
+        const otros = parseFloat(otrosEl.value) || 0;
+
+        // Guardar en LocalStorage
+        localStorage.setItem(
+            'opex_inputs',
+            JSON.stringify({ alquiler, personal, suministros, otros })
+        );
+
+        const opexTotal = alquiler + personal + suministros + otros;
+        document.getElementById('pl-opex-total').textContent = opexTotal.toFixed(2) + ' €';
+
+        // 2. Calcular Neto
+        const beneficioNeto = margenBruto - opexTotal;
+        const netoEl = document.getElementById('pl-neto');
+
+        netoEl.textContent = beneficioNeto.toFixed(2) + ' €';
+        netoEl.style.color = beneficioNeto >= 0 ? '#10b981' : '#ef4444'; // Verde o Rojo
+
+        const rentabilidad = ingresos > 0 ? (beneficioNeto / ingresos) * 100 : 0;
+        document.getElementById('pl-neto-pct').textContent =
+            rentabilidad.toFixed(1) + '% Rentabilidad';
+
+        // 3. Análisis Break-Even (Punto de Equilibrio)
+        // BEP = Costes Fijos / (Margen Contribución %)
+        // Margen Contribución % = (Ventas - Costes Variables) / Ventas
+        let margenContribucionPct = 0.7; // Default 70% si no hay ventas
+        if (ingresos > 0) {
+            margenContribucionPct = margenBruto / ingresos;
+        }
+
+        // Evitar división por cero o márgenes negativos locos
+        if (margenContribucionPct <= 0) margenContribucionPct = 0.1;
+
+        const breakEven = opexTotal / margenContribucionPct;
+        document.getElementById('pl-breakeven').textContent = breakEven.toFixed(2) + ' €';
+
+        // 4. Actualizar Termómetro y Estado
+        const estadoBadge = document.getElementById('pl-badge-estado');
+        const termometroFill = document.getElementById('pl-termometro-fill');
+        const mensajeAnalisis = document.getElementById('pl-mensaje-analisis');
+
+        // Porcentaje de cumplimiento del Break Even
+        // Si BreakEven es 1000 y Ingresos son 500 -> 50% (Zona Pérdidas)
+        // Si BreakEven es 1000 y Ingresos son 1000 -> 100% (Equilibrio)
+        // Si BreakEven es 1000 y Ingresos son 1500 -> 150% (Beneficios)
+
+        let porcentajeCumplimiento = 0;
+        if (breakEven > 0) {
+            porcentajeCumplimiento = (ingresos / breakEven) * 100;
+        } else if (opexTotal === 0) {
+            porcentajeCumplimiento = 100; // Si no hay gastos, todo es beneficio
+        }
+
+        // Mapear porcentaje a altura del termómetro (0-100%)
+        // Queremos que el 100% (Equilibrio) esté en la mitad (50%)
+        // 0% cumplimiento -> 0% altura
+        // 100% cumplimiento -> 50% altura
+        // 200% cumplimiento -> 100% altura
+        let alturaTermometro = porcentajeCumplimiento / 2;
+        if (alturaTermometro > 100) alturaTermometro = 100;
+
+        termometroFill.style.height = `${alturaTermometro}%`;
+
+        // Colores y Mensajes
+        if (ingresos < breakEven) {
+            // PÉRDIDAS
+            estadoBadge.textContent = 'EN PÉRDIDAS';
+            estadoBadge.style.background = '#fee2e2';
+            estadoBadge.style.color = '#991b1b';
+
+            const falta = breakEven - ingresos;
+            mensajeAnalisis.innerHTML = `Te faltan <strong>${falta.toFixed(0)}€</strong> para cubrir gastos.<br>Estás al <strong>${porcentajeCumplimiento.toFixed(0)}%</strong> del objetivo.`;
+        } else {
+            // BENEFICIOS
+            estadoBadge.textContent = 'EN BENEFICIOS';
+            estadoBadge.style.background = '#d1fae5';
+            estadoBadge.style.color = '#065f46';
+
+            const sobra = ingresos - breakEven;
+            mensajeAnalisis.innerHTML = `¡Enhorabuena! Cubres gastos y generas <strong>${beneficioNeto.toFixed(0)}€</strong> de beneficio.<br>Superas el equilibrio por <strong>${sobra.toFixed(0)}€</strong>.`;
+        }
+    };
+
+    // ========== AUTENTICACIÓN ==========
+    // ⚡ Multi-tenant: usa config global si existe
+    const API_AUTH_URL = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api/auth';
+
+    function checkAuth() {
+        const token = localStorage.getItem('token');
+        if (token) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            return true;
+        }
+        return false;
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorEl = document.getElementById('login-error');
+
+        try {
+            const res = await fetch(API_AUTH_URL + '/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                errorEl.textContent = data.error || 'Error al iniciar sesión';
+                return;
+            }
+
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+
+            init();
+        } catch (err) {
+            errorEl.textContent = 'Error de conexión';
+        }
+    });
+
+    // logout MIGRADO A src/modules/auth/auth.js
+    // renderizarEquipo MIGRADO A src/modules/equipo/equipo.js
+    // mostrarModalInvitar MIGRADO A src/modules/equipo/equipo.js
+    // invitarUsuarioEquipo MIGRADO A src/modules/equipo/equipo.js
+    // eliminarUsuarioEquipo MIGRADO A src/modules/equipo/equipo.js
+
+    // ========== SIMULADOR FINANCIERO ==========
+    window.actualizarSimulador = function () {
+        const alquiler = parseInt(document.getElementById('input-alquiler').value) || 0;
+        const personal = parseInt(document.getElementById('input-personal').value) || 0;
+        const suministros = parseInt(document.getElementById('input-suministros').value) || 0;
+
+        // Actualizar etiquetas
+        document.getElementById('label-alquiler').textContent =
+            alquiler.toLocaleString('es-ES') + ' €';
+        document.getElementById('label-personal').textContent =
+            personal.toLocaleString('es-ES') + ' €';
+        document.getElementById('label-suministros').textContent =
+            suministros.toLocaleString('es-ES') + ' €';
+
+        // Obtener Margen Bruto (Ingresos - Coste Recetas)
+        // Usamos el valor calculado previamente en renderizarBalance
+        const margenBrutoElem = document.getElementById('balance-ganancia');
+        let margenBruto = 0;
+
+        if (margenBrutoElem) {
+            // El valor en balance-ganancia viene de .toFixed(2) + '€' -> "2172.01€"
+            // OJO: Si se cambia el locale, esto podría variar. Asumimos formato standard JS (punto decimal)
+            // Si fuera locale string (con puntos de mil), habría que limpiar puntos y cambiar coma por punto.
+            // Para seguridad, limpiamos todo excepto dígitos, punto y menos.
+            const text = margenBrutoElem.textContent;
+            // Si contiene "€", lo quitamos.
+            // Si el formato es "2.172,01" (ES) vs "2172.01" (US/JS)
+            // renderizarBalance usa .toFixed(2) -> "2172.01" (US format)
+            const cleanText = text.replace('€', '').trim();
+            margenBruto = parseFloat(cleanText);
+
+            if (isNaN(margenBruto)) margenBruto = 0;
+        }
+
+        const costosFijos = alquiler + personal + suministros;
+        const neto = margenBruto - costosFijos;
+
+        // Actualizar UI Simulador
+        document.getElementById('sim-margen-bruto').textContent =
+            margenBruto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+        document.getElementById('sim-costos-fijos').textContent =
+            costosFijos.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+
+        const netoElem = document.getElementById('sim-resultado-neto');
+        netoElem.textContent = neto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+
+        // Color Dinámico y Barra Progreso
+        const progressBar = document.getElementById('sim-progreso-fill');
+        const analytics = document.getElementById('sim-analytics');
+
+        let porcentajeCubierto = 0;
+        if (costosFijos > 0) {
+            porcentajeCubierto = (margenBruto / costosFijos) * 100;
+        } else {
+            porcentajeCubierto = 100; // Si no hay costos, cubrimos "todo"
+        }
+
+        // Limitamos visualmente al 100% para la barra interna (aunque conceptualmente puede pasar)
+        const widthPct = Math.min(Math.max(porcentajeCubierto, 0), 100);
+        progressBar.style.width = widthPct + '%';
+
+        if (neto >= 0) {
+            netoElem.style.color = '#10b981'; // Verde
+            progressBar.style.background = 'linear-gradient(90deg, #10b981 0%, #34d399 100%)';
+            analytics.innerHTML =
+                '<span>🚀</span> ¡Beneficio! Cubres el <strong>' +
+                porcentajeCubierto.toFixed(0) +
+                '%</strong> de tus costes fijos.';
+            analytics.style.color = '#059669';
+        } else {
+            netoElem.style.color = '#ef4444'; // Rojo
+            progressBar.style.background = 'linear-gradient(90deg, #ef4444 0%, #f87171 100%)';
+            analytics.innerHTML =
+                '<span>🚑</span> Pérdidas. Solo cubres el <strong>' +
+                porcentajeCubierto.toFixed(0) +
+                '%</strong> de tus costos fijos.';
+            analytics.style.color = '#dc2626';
+        }
+
+        // Break-Even Display
+        // Punto Equilibrio (Ingresos) = Costos Fijos / %Margen
+        // Primero calculamos el % de Margen real
+        const ingresosElem = document.getElementById('balance-ingresos');
+        let ingresos = 0;
+        if (ingresosElem) {
+            // Mismo fix de parsing
+            const textIng = ingresosElem.textContent.replace('€', '').trim();
+            ingresos = parseFloat(textIng) || 0;
+        }
+
+        let breakEven = 0;
+        if (ingresos > 0) {
+            const margenPorcentaje = margenBruto / ingresos;
+            if (margenPorcentaje > 0) {
+                breakEven = costosFijos / margenPorcentaje;
+            }
+        }
+        document.getElementById('break-even-display').textContent =
+            breakEven.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+
+        // Barra de Progreso (Visualización simple: % de cubrimiento de costos fijos)
+        const progresoFill = document.getElementById('sim-progreso-fill');
+        let porcentajeCobertura = 0;
+        if (costosFijos > 0) {
+            porcentajeCobertura = (margenBruto / costosFijos) * 100;
+        } else if (margenBruto > 0) {
+            porcentajeCobertura = 100;
+        }
+
+        if (porcentajeCobertura > 100) porcentajeCobertura = 100;
+        progresoFill.style.width = porcentajeCobertura + '%';
+
+        // Actualizar también la Card de Beneficio Neto superior
+        document.getElementById('balance-neto').textContent =
+            neto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+
+        if (neto >= 0) {
+            document.getElementById('balance-mensaje-neto').textContent = 'Pérdida Real';
+            document.getElementById('balance-mensaje-neto').style.color = '#ffccc7';
+        }
+    };
+
+    // ========== MANUAL DOBLE (Printable) ==========
     window.api = {
         // --- Team Management ---
         getTeam: async () => {
@@ -794,6 +1184,68 @@
     }
 
     // Cambia el período de vista y actualiza KPIs
+    window.cambiarPeriodoVista = function (periodo) {
+        periodoVistaActual = periodo;
+
+        // Actualizar botones activos
+        document.querySelectorAll('.periodo-btn').forEach(btn => {
+            if (btn.dataset.periodo === periodo) {
+                btn.style.background = '#0ea5e9';
+                btn.style.color = 'white';
+            } else {
+                btn.style.background = 'white';
+                btn.style.color = '#0369a1';
+            }
+        });
+
+        // Actualizar KPIs según período
+        actualizarKPIsPorPeriodo(periodo);
+    };
+
+    // Actualiza KPIs filtrados por período
+    function actualizarKPIsPorPeriodo(periodo) {
+        try {
+            const ventas = window.ventas || [];
+
+            if (typeof window.filtrarPorPeriodo === 'function') {
+                const ventasFiltradas = window.filtrarPorPeriodo(ventas, 'fecha', periodo);
+                const totalVentas = ventasFiltradas.reduce(
+                    (acc, v) => acc + (parseFloat(v.total) || 0),
+                    0
+                );
+
+                const kpiIngresos = document.getElementById('kpi-ingresos');
+                if (kpiIngresos) {
+                    kpiIngresos.textContent = totalVentas.toFixed(2) + '€';
+                }
+
+                // Actualizar comparativa con período anterior
+                if (
+                    typeof window.compararConSemanaAnterior === 'function' &&
+                    periodo === 'semana'
+                ) {
+                    const comparativa = window.compararConSemanaAnterior(ventas, 'fecha', 'total');
+                    const trendEl = document.getElementById('kpi-ingresos-trend');
+                    if (trendEl) {
+                        const signo = comparativa.tendencia === 'up' ? '+' : '';
+                        trendEl.textContent = `${signo}${comparativa.porcentaje}% vs anterior`;
+                        trendEl.parentElement.className = `kpi-trend ${comparativa.tendencia === 'up' ? 'positive' : 'negative'}`;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error actualizando KPIs por período:', error);
+        }
+    }
+
+    // Exponer funciones globalmente
+    window.inicializarFechaActual = inicializarFechaActual;
+    window.actualizarKPIsPorPeriodo = actualizarKPIsPorPeriodo;
+
+    // cambiarTab MIGRADO A src/modules/core/core.js
+
+
+    // ========== ANÁLISIS (resumido) ==========
     window.renderizarAnalisis = async function () {
         if (recetas.length === 0 || ingredientes.length === 0) {
             document.getElementById('analisis-vacio').style.display = 'block';
