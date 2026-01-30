@@ -3640,7 +3640,9 @@
                 console.error('Error:', error);
                 showToast('Error eliminando pedido: ' + error.message, 'error');
             }
-        }
+    // MIGRADO A src/modules/pedidos/pedidos-crud.js - 2026-01-30
+    // Se expone en main.js líneas 247-248
+    /*
     };
     */
 
@@ -3764,7 +3766,7 @@
         removeElementClass('modal-ver-pedido', 'active');
         pedidoViendoId = null;
     };
-
+    */
     // Función auxiliar para calcular coste completo de receta
     window.calcularCosteRecetaCompleto = function (receta) {
         if (!receta || !receta.ingredientes) return 0;
