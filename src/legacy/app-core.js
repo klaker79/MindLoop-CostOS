@@ -2547,6 +2547,9 @@
      * Funciones: guardarIngrediente, editarIngrediente,
      *           eliminarIngrediente, renderizarIngredientes
      * ======================================== */
+    // MIGRADO A src/modules/ingredientes/ingredientes-crud.js - 2026-01-30
+    // Se expone en main.js línea 144: window.guardarIngrediente = IngredientesCRUD.guardarIngrediente
+    /*
     window.guardarIngrediente = async function (event) {
         event.preventDefault();
 
@@ -2643,6 +2646,10 @@
             showToast('Error guardando ingrediente: ' + error.message, 'error');
         }
     };
+    */
+    // MIGRADO A src/modules/ingredientes/ingredientes-crud.js - 2026-01-30
+    // Se expone en main.js línea 145: window.editarIngrediente = IngredientesCRUD.editarIngrediente
+    /*
     window.editarIngrediente = function (id) {
         const ing = ingredientes.find(i => i.id === id);
         if (!ing) return;
@@ -2661,7 +2668,11 @@
         document.getElementById('btn-text-ingrediente').textContent = 'Guardar';
         window.mostrarFormularioIngrediente();
     };
+    */
 
+    // MIGRADO A src/modules/ingredientes/ingredientes-crud.js - 2026-01-30
+    // Se expone en main.js línea 146: window.eliminarIngrediente = IngredientesCRUD.eliminarIngrediente
+    /*
     window.eliminarIngrediente = async function (id) {
         const ing = ingredientes.find(i => i.id === id);
         if (!ing) return;
@@ -2683,6 +2694,7 @@
             }
         }
     };
+    */
 
     function getNombreProveedor(proveedorId) {
         if (!proveedorId) return '-';
