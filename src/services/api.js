@@ -266,6 +266,11 @@ async function getBalance(mes, ano) {
     return await fetchAPI(`/api/balance/mes${query}`);
 }
 
+async function getGastosFijos() {
+    const data = await fetchAPI('/api/gastos-fijos');
+    return Array.isArray(data) ? data : [];
+}
+
 /**
  * Mermas (pérdidas de producto)
  */
@@ -558,6 +563,7 @@ window.API = {
     getInventoryComplete,
     getTeam,
     getBalance,
+    getGastosFijos,
     getMermas,
     getMermasResumen,
     createIngredient,
