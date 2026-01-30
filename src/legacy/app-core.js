@@ -930,6 +930,144 @@
 
     // cambiarTab MIGRADO A src/modules/core/core.js
 
+    // === GRÁFICO INGRESOS VS GASTOS ===
+    async function renderRevenueChart() {
+        const ctx = document.getElementById('revenueChart');
+        if (!ctx || typeof Chart === 'undefined') return;
+
+        // Obtener datos reales de los últimos 7 días
+        const labels = [];
+        const ingresos = [];
+        const costos = [];
+
+        for (let i = 6; i >= 0; i--) {
+            const fecha = new Date();
+            fecha.setDate(fecha.getDate() - i);
+            const fechaStr = fecha.toISOString().split('T')[0];
+            const diaSemana = fecha.toLocaleDateString('es-ES', { weekday: 'short' });
+            labels.push(diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1));
+
+            // Filtrar ventas de ese día
+            try {
+                const ventas = await api.getSales();
+                const ventasDia = ventas.filter(v => v.fecha.split('T')[0] === fechaStr);
+                const ingresoDia = ventasDia.reduce((sum, v) => sum + parseFloat(v.total), 0);
+                ingresos.push(ingresoDia);
+
+                // Calcular costos de ese día (basado en ingredientes de recetas vendidas)
+                let costoDia = 0;
+                for (const venta of ventasDia) {
+                    const receta = window.recetas.find(r => r.id === venta.receta_id);
+                    if (receta && receta.ingredientes) {
+                        for (const item of receta.ingredientes) {
+                            const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
+                            if (ing) {
+                                const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
+                                const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
+                                costoDia += precioUnitario * item.cantidad * venta.cantidad;
+                            }
+                        }
+                    }
+                }
+                costos.push(costoDia);
+            } catch (e) {
+                ingresos.push(0);
+                costos.push(0);
+            }
+        }
+
+        // Destruir gráfico anterior si existe
+        if (window.revenueChartInstance) {
+            window.revenueChartInstance.destroy();
+        }
+
+        window.revenueChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Ingresos',
+                        data: ingresos,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverBorderWidth: 3,
+                    },
+                    {
+                        label: 'Costos',
+                        data: costos,
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#EF4444',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverBorderWidth: 3,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    duration: 1200,
+                    easing: 'easeInOutQuart',
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 14, weight: '600' },
+                        },
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 16,
+                        cornerRadius: 12,
+                        displayColors: true,
+                        borderColor: '#FF6B35',
+                        borderWidth: 2,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            label: function (context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '€';
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        ticks: { callback: value => value + '€', font: { size: 12 } },
+                    },
+                    x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+                },
+            },
+        });
+    }
 
     // ========== ANÁLISIS (resumido) ==========
     window.renderizarAnalisis = async function () {
