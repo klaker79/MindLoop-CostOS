@@ -224,6 +224,9 @@
     }
 
     // === EXPORTACIONES ESTANDARIZADAS (Formato TPV) ===
+    // MIGRADO A src/modules/ingredientes/ingredientes-ui.js - 2026-01-30
+    // Se expone en main.js línea 141: window.exportarIngredientes = IngredientesUI.exportarIngredientes
+    /*
     function exportarIngredientes() {
         const columnas = [
             { header: 'ID', key: 'id' },
@@ -251,6 +254,7 @@
         ];
         exportarAExcel(window.ingredientes, `Ingredientes_${getRestaurantNameForFile()}`, columnas);
     }
+    */
 
     function exportarRecetas() {
         const columnas = [
@@ -386,7 +390,7 @@
     }
 
     // Exponer funciones globalmente
-    window.exportarIngredientes = exportarIngredientes;
+    // window.exportarIngredientes = exportarIngredientes; // MIGRADO a ingredientes-ui.js
     window.exportarRecetas = exportarRecetas;
     window.exportarVentas = exportarVentas;
     window.exportarPedidos = exportarPedidos;
