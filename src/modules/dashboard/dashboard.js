@@ -27,6 +27,7 @@ import { apiClient } from '../../api/client.js';
 
 // KPI Dashboard v2 - Clean Architecture
 import { loadKPIDashboard } from '../../components/domain/KPIDashboard.js';
+import { renderQuickActions } from '../../components/domain/QuickActions.js';
 
 // Variable para recordar el período actual (default: semana)
 let periodoVistaActual = 'semana';
@@ -145,6 +146,26 @@ async function actualizarKPIsPorPeriodo(periodo) {
  * Actualiza todos los KPIs del dashboard
  */
 export async function actualizarKPIs() {
+    // Crear contenedor de acciones rápidas
+    try {
+        let actionsContainer = document.getElementById('quick-actions-container');
+        if (!actionsContainer) {
+            actionsContainer = document.createElement('div');
+            actionsContainer.id = 'quick-actions-container';
+
+            const mainContent = document.querySelector('.dashboard-content') ||
+                document.querySelector('#dashboard') ||
+                document.querySelector('main');
+            if (mainContent) {
+                mainContent.insertBefore(actionsContainer, mainContent.firstChild);
+            }
+        }
+
+        renderQuickActions(actionsContainer);
+    } catch (e) {
+        console.log('QuickActions no disponible:', e.message);
+    }
+
     // Inicializar banner de fecha actual
     inicializarFechaActual();
 
@@ -637,3 +658,20 @@ if (typeof window !== 'undefined') {
     window.cambiarPeriodoVista = cambiarPeriodoVista;
     window.actualizarKPIsPorPeriodo = actualizarKPIsPorPeriodo;
 }
+
+// Escuchar evento de refresh del dashboard
+window.addEventListener('dashboard:refresh', () => {
+    // Recargar KPIs y gráficos
+    const kpiContainer = document.getElementById('kpi-dashboard-container');
+    const chartsContainer = document.getElementById('kpi-charts-container');
+
+    if (kpiContainer && typeof loadKPIDashboard === 'function') {
+        loadKPIDashboard(kpiContainer);
+    }
+    if (chartsContainer && typeof window.renderKPICharts === 'function') {
+        window.renderKPICharts(chartsContainer);
+    }
+
+    // También actualizar los KPIs básicos
+    actualizarKPIs();
+});

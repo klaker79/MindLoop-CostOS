@@ -33,6 +33,7 @@ import './vendors.js';
 import './styles/components/alert-panel.css';
 import './styles/components/kpi-dashboard.css';
 import './styles/components/cost-breakdown.css';
+import './styles/components/quick-actions.css';
 
 // ============================================
 // CONFIGURACIÓN GLOBAL - Multi-tenant
