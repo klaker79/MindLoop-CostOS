@@ -2197,7 +2197,7 @@
     };
 
     // Verificar autenticación al cargar
-    if (checkAuth()) {
+    if (typeof window.checkAuth === 'function' && window.checkAuth()) {
         init();
     }
 })();
