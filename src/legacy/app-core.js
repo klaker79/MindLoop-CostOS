@@ -422,6 +422,30 @@
 
     // actualizarSimulador MIGRADO a src/modules/simulador/index.js
 
+    // ========== API HELPERS ==========
+    // ⚡ Multi-tenant: usa config global si existe
+    const API_BASE = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('token');
+        return {
+            'Content-Type': 'application/json',
+            Authorization: token ? 'Bearer ' + token : '',
+        };
+    }
+
+    // 🔧 FIX: Wrapper para incluir credentials en todos los fetch
+    async function fetchWithCreds(url, options = {}) {
+        return fetch(url, {
+            ...options,
+            credentials: 'include',
+            headers: {
+                ...getAuthHeaders(),
+                ...(options.headers || {})
+            }
+        });
+    }
+
     // ========== MANUAL DOBLE (Printable) ==========
     window.api = {
         // --- Team Management ---
