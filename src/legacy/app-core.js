@@ -3093,7 +3093,9 @@
         document.getElementById('modal-descuento-detalle').innerHTML = html;
     };
 
-    window.confirmarProduccion = async function () {
+    // MIGRADO A src/modules/recetas/recetas-produccion.js - 2026-01-30
+    // Se expone en main.js: window.confirmarProduccion = RecetasProduccion.confirmarProduccion
+    /*
         if (recetaProduciendo === null) return;
         const cant = parseInt(document.getElementById('modal-cantidad').value) || 1;
         const rec = recetas.find(r => r.id === recetaProduciendo);
@@ -3143,7 +3145,7 @@
             showToast('Error actualizando stock: ' + error.message, 'error');
         }
     };
-    /* ======================================== */
+    */    /* ======================================== */
 
     // ========== PROVEEDORES (resumido) ==========
 
