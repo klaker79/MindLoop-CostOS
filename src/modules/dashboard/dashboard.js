@@ -148,7 +148,11 @@ export async function actualizarKPIs() {
     // Inicializar banner de fecha actual
     inicializarFechaActual();
 
-    // KPI Dashboard v2 - Integración Clean Architecture
+    // 🔧 DESACTIVADO: KPI Dashboard v2 - Widget duplicado, usuario pidió eliminarlo
+    // Este bloque creaba un widget blanco con Ingresos/Coste/Beneficio/Margen/Food Cost/Ventas
+    // que aparecía encima del Dashboard "Hoy" existente.
+    // Si en el futuro se quiere reactivar, descomentar el bloque siguiente:
+    /*
     try {
         let kpiContainer = document.getElementById('kpi-dashboard-container');
         if (!kpiContainer) {
@@ -156,7 +160,6 @@ export async function actualizarKPIs() {
             kpiContainer.id = 'kpi-dashboard-container';
             kpiContainer.className = 'kpi-dashboard-wrapper';
 
-            // Insertar al inicio del dashboard principal
             const mainContent = document.querySelector('.dashboard-content') ||
                 document.querySelector('#dashboard') ||
                 document.querySelector('.main-content') ||
@@ -166,13 +169,13 @@ export async function actualizarKPIs() {
             }
         }
 
-        // Cargar KPIs v2 desde API
         if (window.API?.getDailyKPIs) {
             loadKPIDashboard(kpiContainer);
         }
     } catch (e) {
         console.log('KPI Dashboard v2 no disponible:', e.message);
     }
+    */
 
     try {
         // 1. INGRESOS TOTALES (usa período actual)
