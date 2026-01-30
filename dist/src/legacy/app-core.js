@@ -37,6 +37,10 @@
         }, 3000);
     };
 
+    // MIGRADO A src/utils/helpers.js - 2026-01-30
+    // Las funciones showLoading y hideLoading ahora están en helpers.js
+    // y se exponen globalmente desde main.js (líneas 114-115)
+    /*
     function showLoading() {
         addElementClass('loading-overlay', 'active');
     }
@@ -44,6 +48,7 @@
     function hideLoading() {
         removeElementClass('loading-overlay', 'active');
     }
+    */
 
     // === SEGURIDAD: Escape HTML para prevenir XSS ===
     function escapeHTML(str) {
