@@ -3187,6 +3187,9 @@
           cargarIngredientesProveedor(seleccionados);
         };
 
+        // MIGRADO A src/modules/proveedores/proveedores-crud.js - 2026-01-30
+        // Se expone en main.js líneas 221-223
+        /*
         window.guardarProveedor = async function (event) {
           event.preventDefault();
 
@@ -3270,48 +3273,49 @@
             }
           }
         };
+        */
 
-        window.verProveedorDetalles = function (id) {
-          const prov = proveedores.find(p => p.id === id);
-          if (!prov) return;
+    window.verProveedorDetalles = function (id) {
+        const prov = proveedores.find(p => p.id === id);
+        if (!prov) return;
 
-          document.getElementById('modal-proveedor-titulo').textContent = prov.nombre;
+        document.getElementById('modal-proveedor-titulo').textContent = prov.nombre;
 
-          let html = '<div style="margin-bottom:20px;">';
-          if (prov.contacto) html += `<p><strong>Contacto:</strong> ${prov.contacto}</p>`;
-          if (prov.telefono) html += `<p><strong>Teléfono:</strong> ${prov.telefono}</p>`;
-          if (prov.email) html += `<p><strong>Email:</strong> ${prov.email}</p>`;
-          if (prov.direccion) html += `<p><strong>Dirección:</strong> ${prov.direccion}</p>`;
-          if (prov.notas) html += `<p><strong>Notas:</strong> ${prov.notas}</p>`;
-          html += '</div>';
+        let html = '<div style="margin-bottom:20px;">';
+        if (prov.contacto) html += `<p><strong>Contacto:</strong> ${prov.contacto}</p>`;
+        if (prov.telefono) html += `<p><strong>Teléfono:</strong> ${prov.telefono}</p>`;
+        if (prov.email) html += `<p><strong>Email:</strong> ${prov.email}</p>`;
+        if (prov.direccion) html += `<p><strong>Dirección:</strong> ${prov.direccion}</p>`;
+        if (prov.notas) html += `<p><strong>Notas:</strong> ${prov.notas}</p>`;
+        html += '</div>';
 
-          html += '<h4 style="margin-top:20px;margin-bottom:10px;">Ingredientes:</h4>';
-          if (prov.ingredientes && prov.ingredientes.length > 0) {
+        html += '<h4 style="margin-top:20px;margin-bottom:10px;">Ingredientes:</h4>';
+        if (prov.ingredientes && prov.ingredientes.length > 0) {
             html += '<div class="ingredientes-list">';
             prov.ingredientes.forEach(ingId => {
-              const ing = ingredientes.find(i => i.id === ingId);
-              if (ing) html += `<span class="badge">${escapeHTML(ing.nombre)}</span>`;
+                const ing = ingredientes.find(i => i.id === ingId);
+                if (ing) html += `<span class="badge">${escapeHTML(ing.nombre)}</span>`;
             });
             html += '</div>';
-          } else {
+        } else {
             html += '<p style="color:#999;">Sin ingredientes</p>';
-          }
+        }
 
-          document.getElementById('modal-proveedor-contenido').innerHTML = html;
-          document.getElementById('modal-ver-proveedor').classList.add('active');
-        };
+        document.getElementById('modal-proveedor-contenido').innerHTML = html;
+        document.getElementById('modal-ver-proveedor').classList.add('active');
+    };
 
-        window.cerrarModalVerProveedor = function () {
-          document.getElementById('modal-ver-proveedor').classList.remove('active');
-        };
+    window.cerrarModalVerProveedor = function () {
+        document.getElementById('modal-ver-proveedor').classList.remove('active');
+    };
 
-        window.renderizarProveedores = function () {
-          const busqueda = document.getElementById('busqueda-proveedores').value.toLowerCase();
-          const filtrados = proveedores.filter(p => p.nombre.toLowerCase().includes(busqueda));
+    window.renderizarProveedores = function () {
+        const busqueda = document.getElementById('busqueda-proveedores').value.toLowerCase();
+        const filtrados = proveedores.filter(p => p.nombre.toLowerCase().includes(busqueda));
 
-          const container = document.getElementById('tabla-proveedores');
+        const container = document.getElementById('tabla-proveedores');
 
-          if (filtrados.length === 0) {
+        if (filtrados.length === 0) {
             container.innerHTML = `
             <div class="empty-state">
               <div class="icon">🚚</div>
@@ -3319,25 +3323,25 @@
             </div>
           `;
             document.getElementById('resumen-proveedores').style.display = 'none';
-          } else {
+        } else {
             let html = '<table><thead><tr>';
             html += '<th>Proveedor</th><th>Contacto</th><th>Teléfono</th><th>Ingredientes</th><th>Acciones</th>';
             html += '</tr></thead><tbody>';
 
             filtrados.forEach(prov => {
-              const numIng = prov.ingredientes ? prov.ingredientes.length : 0;
+                const numIng = prov.ingredientes ? prov.ingredientes.length : 0;
 
-              html += '<tr>';
-              html += `<td><strong>${escapeHTML(prov.nombre)}</strong></td>`;
-              html += `<td>${prov.contacto || '-'}</td>`;
-              html += `<td>${prov.telefono || '-'}</td>`;
-              html += `<td><span class="badge badge-info">${numIng}</span></td>`;
-              html += `<td><div class="actions">`;
-              html += `<button class="icon-btn view" onclick="window.verProveedorDetalles(${prov.id})">👁️</button>`;
-              html += `<button class="icon-btn edit" onclick="window.editarProveedor(${prov.id})">✏️</button>`;
-              html += `<button class="icon-btn delete" onclick="window.eliminarProveedor(${prov.id})">🗑️</button>`;
-              html += '</div></td>';
-              html += '</tr>';
+                html += '<tr>';
+                html += `<td><strong>${escapeHTML(prov.nombre)}</strong></td>`;
+                html += `<td>${prov.contacto || '-'}</td>`;
+                html += `<td>${prov.telefono || '-'}</td>`;
+                html += `<td><span class="badge badge-info">${numIng}</span></td>`;
+                html += `<td><div class="actions">`;
+                html += `<button class="icon-btn view" onclick="window.verProveedorDetalles(${prov.id})">👁️</button>`;
+                html += `<button class="icon-btn edit" onclick="window.editarProveedor(${prov.id})">✏️</button>`;
+                html += `<button class="icon-btn delete" onclick="window.eliminarProveedor(${prov.id})">🗑️</button>`;
+                html += '</div></td>';
+                html += '</tr>';
             });
 
             html += '</tbody></table>';
@@ -3348,9 +3352,9 @@
             <div>Mostrando: <strong>${filtrados.length}</strong></div>
           `;
             document.getElementById('resumen-proveedores').style.display = 'flex';
-          }
-        };
-        /* ======================================== */
+        }
+    };
+    /* ======================================== */
 
     // ========== PEDIDOS ==========
 
