@@ -1223,7 +1223,9 @@
         }
     };
 
-    // ========== MANUAL DOBLE (Printable) ==========
+    // MIGRADO A src/modules/dossier/dossier.js - 2026-01-30
+    // Se expone en main.js línea 195: window.abrirManualFormulas = abrirDossier
+    /*
     window.abrirManualFormulas = function () {
         const ventana = window.open('', '_blank');
         const html = `
@@ -1856,7 +1858,7 @@
         ventana.document.write(html);
         ventana.document.close();
     };
-
+    */
     async function init() {
         // Mostrar nombre del restaurante
         let user = {};
