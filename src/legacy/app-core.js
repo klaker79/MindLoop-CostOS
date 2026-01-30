@@ -3193,99 +3193,103 @@
           container.innerHTML = html || '<p style="color:#999;padding:10px;">Sin resultados</p>';
         }
 
+        // MIGRADO A src/modules/proveedores/proveedores-ui.js - 2026-01-30
+        // Se expone en main.js: window.filtrarIngredientesProveedor
+        /*
         window.filtrarIngredientesProveedor = function () {
           const checks = document.querySelectorAll('#lista-ingredientes-proveedor input[type="checkbox"]:checked');
           const seleccionados = Array.from(checks).map(c => parseInt(c.value));
           cargarIngredientesProveedor(seleccionados);
         };
-
-        // MIGRADO A src/modules/proveedores/proveedores-crud.js - 2026-01-30
-        // Se expone en main.js líneas 221-223
-        /*
-        window.guardarProveedor = async function (event) {
-          event.preventDefault();
-
-          const checks = document.querySelectorAll('#lista-ingredientes-proveedor input[type="checkbox"]:checked');
-          const ingredientesIds = Array.from(checks).map(c => parseInt(c.value));
-
-          const proveedor = {
-            nombre: document.getElementById('prov-nombre').value,
-            contacto: document.getElementById('prov-contacto').value,
-            telefono: document.getElementById('prov-telefono').value,
-            email: document.getElementById('prov-email').value,
-            direccion: document.getElementById('prov-direccion').value,
-            notas: document.getElementById('prov-notas').value,
-            ingredientes: ingredientesIds
-          };
-
-          showLoading();
-
-          try {
-            if (editandoProveedorId !== null) {
-              await api.updateProveedor(editandoProveedorId, proveedor);
-            } else {
-              await api.createProveedor(proveedor);
-            }
-            await cargarDatos();
-            renderizarProveedores();
-            hideLoading();
-            showToast(editandoProveedorId ? 'Proveedor actualizado' : 'Proveedor creado', 'success');
-            window.cerrarFormularioProveedor();
-          } catch (error) {
-            hideLoading();
-            console.error('Error:', error);
-            showToast('Error guardando proveedor: ' + error.message, 'error');
-          }
-        };
-
-        window.editarProveedor = function (id) {
-          const prov = proveedores.find(p => p.id === id);
-          if (!prov) return;
-
-          document.getElementById('prov-nombre').value = prov.nombre;
-          document.getElementById('prov-contacto').value = prov.contacto || '';
-          document.getElementById('prov-telefono').value = prov.telefono || '';
-          document.getElementById('prov-email').value = prov.email || '';
-          document.getElementById('prov-direccion').value = prov.direccion || '';
-          document.getElementById('prov-notas').value = prov.notas || '';
-
-          cargarIngredientesProveedor(prov.ingredientes || []);
-
-          editandoProveedorId = id;
-          document.getElementById('form-title-proveedor').textContent = 'Editar';
-          document.getElementById('btn-text-proveedor').textContent = 'Guardar';
-          window.mostrarFormularioProveedor();
-        };
-
-        window.eliminarProveedor = async function (id) {
-          const prov = proveedores.find(p => p.id === id);
-          if (!prov) return;
-
-          const confirmado = await window.confirmarEliminacion({
-            titulo: 'Eliminar Proveedor',
-            tipo: 'el proveedor',
-            nombre: prov.nombre || 'Sin nombre'
-          });
-
-          if (confirmado) {
-            showLoading();
-            try {
-              await api.deleteProveedor(id);
-              proveedores = proveedores.filter(p => p.id !== id);
-              window.renderizarProveedores();
-              await cargarDatos();
-              renderizarProveedores();
-              renderizarIngredientes();
-              hideLoading();
-              showToast('✅ Proveedor eliminado correctamente', 'success');
-            } catch (error) {
-              hideLoading();
-              console.error('Error:', error);
-              showToast('❌ Error eliminando proveedor: ' + error.message, 'error');
-            }
-          }
-        };
         */
+
+    // MIGRADO A src/modules/proveedores/proveedores-crud.js - 2026-01-30
+    // Se expone en main.js líneas 221-223
+    /*
+    window.guardarProveedor = async function (event) {
+      event.preventDefault();
+
+      const checks = document.querySelectorAll('#lista-ingredientes-proveedor input[type="checkbox"]:checked');
+      const ingredientesIds = Array.from(checks).map(c => parseInt(c.value));
+
+      const proveedor = {
+        nombre: document.getElementById('prov-nombre').value,
+        contacto: document.getElementById('prov-contacto').value,
+        telefono: document.getElementById('prov-telefono').value,
+        email: document.getElementById('prov-email').value,
+        direccion: document.getElementById('prov-direccion').value,
+        notas: document.getElementById('prov-notas').value,
+        ingredientes: ingredientesIds
+      };
+
+      showLoading();
+
+      try {
+        if (editandoProveedorId !== null) {
+          await api.updateProveedor(editandoProveedorId, proveedor);
+        } else {
+          await api.createProveedor(proveedor);
+        }
+        await cargarDatos();
+        renderizarProveedores();
+        hideLoading();
+        showToast(editandoProveedorId ? 'Proveedor actualizado' : 'Proveedor creado', 'success');
+        window.cerrarFormularioProveedor();
+      } catch (error) {
+        hideLoading();
+        console.error('Error:', error);
+        showToast('Error guardando proveedor: ' + error.message, 'error');
+      }
+    };
+
+    window.editarProveedor = function (id) {
+      const prov = proveedores.find(p => p.id === id);
+      if (!prov) return;
+
+      document.getElementById('prov-nombre').value = prov.nombre;
+      document.getElementById('prov-contacto').value = prov.contacto || '';
+      document.getElementById('prov-telefono').value = prov.telefono || '';
+      document.getElementById('prov-email').value = prov.email || '';
+      document.getElementById('prov-direccion').value = prov.direccion || '';
+      document.getElementById('prov-notas').value = prov.notas || '';
+
+      cargarIngredientesProveedor(prov.ingredientes || []);
+
+      editandoProveedorId = id;
+      document.getElementById('form-title-proveedor').textContent = 'Editar';
+      document.getElementById('btn-text-proveedor').textContent = 'Guardar';
+      window.mostrarFormularioProveedor();
+    };
+
+    window.eliminarProveedor = async function (id) {
+      const prov = proveedores.find(p => p.id === id);
+      if (!prov) return;
+
+      const confirmado = await window.confirmarEliminacion({
+        titulo: 'Eliminar Proveedor',
+        tipo: 'el proveedor',
+        nombre: prov.nombre || 'Sin nombre'
+      });
+
+      if (confirmado) {
+        showLoading();
+        try {
+          await api.deleteProveedor(id);
+          proveedores = proveedores.filter(p => p.id !== id);
+          window.renderizarProveedores();
+          await cargarDatos();
+          renderizarProveedores();
+          renderizarIngredientes();
+          hideLoading();
+          showToast('✅ Proveedor eliminado correctamente', 'success');
+        } catch (error) {
+          hideLoading();
+          console.error('Error:', error);
+          showToast('❌ Error eliminando proveedor: ' + error.message, 'error');
+        }
+      }
+    };
+    */
 
     // MIGRADO A src/modules/proveedores/proveedores-ui.js - 2026-01-30
     // Se expone en main.js líneas 217-218
@@ -3847,7 +3851,7 @@
       button { display: none; }
     }
     /* === RESPONSIVE MOBILE === */
-        @media(max - width: 768px) {
+    @media(max - width: 768px) {
   /* Container */
   .container { padding: 12px; }
 
@@ -3857,7 +3861,7 @@
             flex - direction: column;
             text - align: center;
             gap: 12px;
-          }
+        }
   
   .header h1 { font - size: 32px; }
   .header p { font - size: 14px; }
@@ -3868,11 +3872,11 @@
             gap: 12px;
             padding: 0 12px;
             margin: 16px 0;
-          }
+        }
   
   .kpi - card {
             padding: 16px;
-          }
+        }
   
   .kpi - icon { font - size: 24px; margin - bottom: 8px; }
   .kpi - label { font - size: 11px; }
@@ -3888,7 +3892,7 @@
             gap: 8px;
             -webkit - overflow - scrolling: touch;
             scrollbar - width: none;
-          }
+        }
   
   .tabs:: -webkit - scrollbar { display: none; }
   
@@ -3896,13 +3900,13 @@
             padding: 10px 16px;
             font - size: 13px;
             display: inline - block;
-          }
+        }
 
   /* Main Card */
   .main - card {
             padding: 16px;
             border - radius: 16px 16px 0 0;
-          }
+        }
 
   /* Top Bar */
   .top - bar {
@@ -3910,7 +3914,7 @@
             align - items: flex - start;
             gap: 12px;
             margin - bottom: 20px;
-          }
+        }
   
   .top - bar h2 { font - size: 22px; }
   .top - bar p { font - size: 13px; }
@@ -3921,28 +3925,28 @@
             justify - content: center;
             padding: 14px 20px;
             font - size: 14px;
-          }
+        }
   
   .btn - small {
             width: auto;
             padding: 10px 16px;
-          }
+        }
 
   /* Search Box */
   .search - box {
             max - width: 100 %;
             margin: 16px 0;
-          }
+        }
 
   /* Form Grid */
   .form - grid {
             grid - template - columns: 1fr;
             gap: 12px;
-          }
+        }
   
   .form - card {
             padding: 16px;
-          }
+        }
 
   /* Tables */
   table {
@@ -3950,71 +3954,71 @@
             overflow - x: auto;
             white - space: nowrap;
             -webkit - overflow - scrolling: touch;
-          }
+        }
   
   table thead th {
             padding: 12px 16px;
             font - size: 10px;
-          }
+        }
   
   table tbody td {
             padding: 12px 16px;
             font - size: 13px;
-          }
+        }
 
   /* Actions */
   .actions {
             gap: 6px;
-          }
+        }
   
   .icon - btn {
             width: 32px;
             height: 32px;
             font - size: 14px;
-          }
+        }
 
   /* Stats Grid */
   .stats - grid {
             grid - template - columns: 1fr;
             gap: 16px;
-          }
+        }
 
   /* Charts Grid */
   .charts - grid {
             grid - template - columns: 1fr;
             gap: 16px;
-          }
+        }
 
-          /* Balance Cards */
-          [id ^= "tab-balance"] > div[style *= "grid"] {
+        /* Balance Cards */
+        [id ^= "tab-balance"] > div[style *= "grid"] {
             grid - template - columns: 1fr!important;
             gap: 16px!important;
-          }
+        }
 
-          /* Balance Cards Gradient */
-          [id = "tab-balance"] > div: nth - child(2) > div {
+        /* Balance Cards Gradient */
+        [id = "tab-balance"] > div: nth - child(2) > div {
             padding: 24px!important;
-          }
+        }
 
-          [id = "tab-balance"] > div: nth - child(2) > div > div: first - child {
+        [id = "tab-balance"] > div: nth - child(2) > div > div: first - child {
             font - size: 100px!important;
-          }
+        }
 
-          [id = "tab-balance"] > div: nth - child(2) > div[id ^= "balance-"] {
+        [id = "tab-balance"] > div: nth - child(2) > div[id ^= "balance-"] {
             font - size: 36px!important;
-          }
+        }
 
 
   /* Ingrediente Item */
   .ingrediente - item {
             grid - template - columns: 1fr;
             gap: 8px;
-          }
+        }
   
   .ingrediente - item select,
   .ingrediente - item input {
             width: 100 %;
-          }
+        }
 
   /* Toast Container */
   .toast - container {
@@ -4022,162 +4026,162 @@
             right: 12px;
             left: 12px;
             max - width: none;
-          }
+        }
   
   .toast {
             padding: 12px 16px;
-          }
+        }
 
   /* Summary */
   .summary {
             flex - direction: column;
             gap: 8px;
             align - items: flex - start;
-          }
         }
+    }
 
-        @media(max - width: 480px) {
+    @media(max - width: 480px) {
   /* Extra pequeño */
   .kpi - dashboard {
             grid - template - columns: 1fr;
-          }
+        }
   
   .header h1 { font - size: 28px; }
   
   .kpi - value { font - size: 32px; }
-        }
+    }
   </style >
 </head >
-          <body>
+        <body>
             <div class="header">
-              <img src="logo.png" onerror="this.style.display='none'">
-                <h1>${currentUser.restaurante || 'Mi Restaurante'}</h1>
-                <p>Pedido a Proveedor</p>
+                <img src="logo.png" onerror="this.style.display='none'">
+                    <h1>${currentUser.restaurante || 'Mi Restaurante'}</h1>
+                    <p>Pedido a Proveedor</p>
             </div>
 
             <div class="info-grid">
-              <div class="info-item">
-                <strong>Proveedor</strong>
-                ${prov ? prov.nombre : 'Desconocido'}
-              </div>
-              <div class="info-item">
-                <strong>Fecha del Pedido</strong>
-                ${new Date(pedido.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-              </div>
-              <div class="info-item">
-                <strong>Estado</strong>
-                <span class="badge ${pedido.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">
-                  ${pedido.estado === 'recibido' ? 'Recibido' : 'Pendiente'}
-                </span>
-              </div>
-              ${pedido.estado === 'recibido' && pedido.fechaRecepcion
-                ? `
+                <div class="info-item">
+                    <strong>Proveedor</strong>
+                    ${prov ? prov.nombre : 'Desconocido'}
+                </div>
+                <div class="info-item">
+                    <strong>Fecha del Pedido</strong>
+                    ${new Date(pedido.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                </div>
+                <div class="info-item">
+                    <strong>Estado</strong>
+                    <span class="badge ${pedido.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">
+                        ${pedido.estado === 'recibido' ? 'Recibido' : 'Pendiente'}
+                    </span>
+                </div>
+                ${pedido.estado === 'recibido' && pedido.fechaRecepcion
+                    ? `
     <div class="info-item">
       <strong>Fecha de Recepción</strong>
       ${new Date(pedido.fechaRecepcion).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
     </div>
     `
-                : ''
-            }
+                    : ''
+                }
             </div>
 
             <h3>Detalle del Pedido</h3>
             <table>
-              <thead>
-                <tr>
-                  <th>Ingrediente</th>
-                  <th>Cantidad</th>
-                  <th>Precio Unitario</th>
-                  <th>Subtotal</th>
-                  ${pedido.estado === 'recibido' ? '<th>Estado</th>' : ''}
-                </tr>
-              </thead>
-              <tbody>`;
+                <thead>
+                    <tr>
+                        <th>Ingrediente</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                        ${pedido.estado === 'recibido' ? '<th>Estado</th>' : ''}
+                    </tr>
+                </thead>
+                <tbody>`;
 
-        const items = pedido.ingredientes;
-        let totalFinal = 0;
+                    const items = pedido.ingredientes;
+                    let totalFinal = 0;
 
         items.forEach(item => {
             const ing = ingredientes.find(i => i.id === item.ingredienteId);
-            if (!ing) return;
+                    if (!ing) return;
 
-            const esRecibido = pedido.estado === 'recibido' && item.cantidadRecibida !== undefined;
-            const cantidad = esRecibido ? item.cantidadRecibida : item.cantidad;
-            const precio = esRecibido && item.precioReal ? item.precioReal : item.precioUnitario;
-            const subtotal = cantidad * precio;
+                    const esRecibido = pedido.estado === 'recibido' && item.cantidadRecibida !== undefined;
+                    const cantidad = esRecibido ? item.cantidadRecibida : item.cantidad;
+                    const precio = esRecibido && item.precioReal ? item.precioReal : item.precioUnitario;
+                    const subtotal = cantidad * precio;
 
-            if (item.estado !== 'no-entregado') {
-                totalFinal += subtotal;
+                    if (item.estado !== 'no-entregado') {
+                        totalFinal += subtotal;
             }
 
-            htmlPrint += '<tr>';
-            htmlPrint += `<td>${ing.nombre}</td>`;
-            htmlPrint += `<td>${cantidad} ${ing.unidad}`;
+                    htmlPrint += '<tr>';
+                        htmlPrint += `<td>${ing.nombre}</td>`;
+                        htmlPrint += `<td>${cantidad} ${ing.unidad}`;
 
             if (esRecibido && item.cantidad && Math.abs(cantidad - item.cantidad) > 0.01) {
                 const diff = cantidad - item.cantidad;
-                htmlPrint += `<br><span class="varianza ${diff > 0 ? 'pos' : 'neg'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)})</span>`;
+                            htmlPrint += `<br><span class="varianza ${diff > 0 ? 'pos' : 'neg'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)})</span>`;
             }
 
-            htmlPrint += `</td>`;
-            htmlPrint += `<td>${parseFloat(precio || 0).toFixed(2)} €/${ing.unidad}`;
+                                htmlPrint += `</td>`;
+                        htmlPrint += `<td>${parseFloat(precio || 0).toFixed(2)} €/${ing.unidad}`;
 
-            if (
-                esRecibido &&
-                item.precioUnitario &&
+                            if (
+                            esRecibido &&
+                            item.precioUnitario &&
                 Math.abs(precio - item.precioUnitario) > 0.01
-            ) {
+                            ) {
                 const diff = precio - item.precioUnitario;
-                htmlPrint += `<br><span class="varianza ${diff > 0 ? 'neg' : 'pos'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)} €)</span>`;
+                            htmlPrint += `<br><span class="varianza ${diff > 0 ? 'neg' : 'pos'}">(${diff > 0 ? '+' : ''}${diff.toFixed(2)} €)</span>`;
             }
 
-            htmlPrint += `</td>`;
-            htmlPrint += `<td>${item.estado === 'no-entregado' ? '0.00' : subtotal.toFixed(2)} €</td>`;
+                                htmlPrint += `</td>`;
+                        htmlPrint += `<td>${item.estado === 'no-entregado' ? '0.00' : subtotal.toFixed(2)} €</td>`;
 
-            if (esRecibido) {
-                let estadoText = '';
-                if (item.estado === 'consolidado') estadoText = '✅ OK';
-                else if (item.estado === 'varianza') estadoText = '⚠️ Varianza';
-                else if (item.estado === 'no-entregado') estadoText = '❌ No entregado';
-                htmlPrint += `<td>${estadoText}</td>`;
+                        if (esRecibido) {
+                            let estadoText = '';
+                        if (item.estado === 'consolidado') estadoText = '✅ OK';
+                        else if (item.estado === 'varianza') estadoText = '⚠️ Varianza';
+                        else if (item.estado === 'no-entregado') estadoText = '❌ No entregado';
+                        htmlPrint += `<td>${estadoText}</td>`;
             }
 
-            htmlPrint += '</tr>';
+                        htmlPrint += '</tr>';
         });
 
-        htmlPrint += '</tbody></table>';
+                    htmlPrint += '</tbody></table>';
 
-        if (pedido.estado === 'recibido' && pedido.totalRecibido !== undefined) {
+            if (pedido.estado === 'recibido' && pedido.totalRecibido !== undefined) {
             const varianza = pedido.totalRecibido - pedido.total;
             htmlPrint += `
             <div class="total-box">
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center;">
-                <div>
-                  <strong style="color:#666;font-size:14px;">Total Original</strong><br>
-                    <span style="font-size:20px;">${pedido.total.toFixed(2)} €</span>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center;">
+                    <div>
+                        <strong style="color:#666;font-size:14px;">Total Original</strong><br>
+                            <span style="font-size:20px;">${pedido.total.toFixed(2)} €</span>
+                    </div>
+                    <div>
+                        <strong style="color:#059669;font-size:14px;">Total Recibido</strong><br>
+                            <strong>${pedido.totalRecibido.toFixed(2)} €</strong>
+                    </div>
+                    <div>
+                        <strong style="color:#666;font-size:14px;">Varianza</strong><br>
+                            <span style="font-size:20px;color:${varianza >= 0 ? '#ef4444' : '#10b981'};">${varianza >= 0 ? '+' : ''}${varianza.toFixed(2)} €</span>
+                    </div>
                 </div>
-                <div>
-                  <strong style="color:#059669;font-size:14px;">Total Recibido</strong><br>
-                    <strong>${pedido.totalRecibido.toFixed(2)} €</strong>
-                </div>
-                <div>
-                  <strong style="color:#666;font-size:14px;">Varianza</strong><br>
-                    <span style="font-size:20px;color:${varianza >= 0 ? '#ef4444' : '#10b981'};">${varianza >= 0 ? '+' : ''}${varianza.toFixed(2)} €</span>
-                </div>
-              </div>
             </div>`;
         } else {
-            htmlPrint += `
+                htmlPrint += `
   <div class="total-box">
    <strong>Total del Pedido: ${parseFloat(pedido.total).toFixed(2)} €</strong>
   </div>`;
         }
 
-        htmlPrint += `
+            htmlPrint += `
             <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center;">
-              Generado el ${new Date().toLocaleDateString('es-ES')} - ${currentUser.restaurante || 'MindLoop Dashboard'}
+                Generado el ${new Date().toLocaleDateString('es-ES')} - ${currentUser.restaurante || 'MindLoop Dashboard'}
             </div>
-          </body>
+        </body>
 </html > `;
 
         // Abrir en nueva ventana para imprimir/guardar PDF
@@ -4203,12 +4207,12 @@
 
         if (filtrados.length === 0) {
             container.innerHTML = `
-          < div class="empty-state" >
+        < div class="empty-state" >
               <div class="icon">📋</div>
               <h3>${busqueda ? 'No encontrados' : 'Aún no hay pedidos'}</h3>
               <p>${busqueda ? 'Otra búsqueda' : 'Crea tu primer pedido'}</p>
             </div >
-          `;
+        `;
             document.getElementById('resumen-pedidos').style.display = 'none';
         } else {
             let html = '<table><thead><tr>';
@@ -4221,51 +4225,72 @@
                 const nombreProv = prov ? prov.nombre : 'Desconocido';
 
                 html += '<tr>';
-                html += `< td > ${new Date(ped.fecha).toLocaleDateString('es-ES')}</td > `;
+                html += `< td > ${ new Date(ped.fecha).toLocaleDateString('es-ES') }</td > `;
                 html += `< td > <strong>${nombreProv}</strong></td > `;
-                html += `< td > ${ped.ingredientes.length} ingredientes</td > `;
+                html += `< td > ${ ped.ingredientes.length } ingredientes</td > `;
                 html += `< td > <strong>${parseFloat(ped.total).toFixed(2)} €</strong></td > `;
                 html += `< td > <span class="badge ${ped.estado === 'recibido' ? 'badge-received' : 'badge-pending'}">${ped.estado === 'recibido' ? 'Recibido' : 'Pendiente'}</span></td > `;
                 html += `< td > <div class="actions">`;
-                html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="Ver detalles">👁️</button>`;
-                if (ped.estado === 'pendiente') {
-                    html += `<button type="button" class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir pedido">📥</button>`;
+            html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="Ver detalles">👁️</button>`;
+            if (ped.estado === 'pendiente') {
+                html += `<button type="button" class="icon-btn receive" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir pedido">📥</button>`;
                 }
-                html += `<button type="button" class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})" title="Eliminar">🗑️</button>`;
-                html += '</div></td > ';
-                html += '</tr>';
-            });
+            html += `<button type="button" class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})" title="Eliminar">🗑️</button>`;
+            html += '</div></td > ';
+    html += '</tr>';
+});
 
-            html += '</tbody></table>';
-            container.innerHTML = html;
+html += '</tbody></table>';
+container.innerHTML = html;
 
-            const totalPendientes = pedidos.filter(p => p.estado === 'pendiente').length;
-            const totalRecibidos = pedidos.filter(p => p.estado === 'recibido').length;
+const totalPendientes = pedidos.filter(p => p.estado === 'pendiente').length;
+const totalRecibidos = pedidos.filter(p => p.estado === 'recibido').length;
 
-            document.getElementById('resumen-pedidos').innerHTML = `
+document.getElementById('resumen-pedidos').innerHTML = `
             <div>Total: <strong>${pedidos.length}</strong></div>
             <div>Pendientes: <strong>${totalPendientes}</strong></div>
             <div>Recibidos: <strong>${totalRecibidos}</strong></div>
           `;
-            document.getElementById('resumen-pedidos').style.display = 'flex';
+document.getElementById('resumen-pedidos').style.display = 'flex';
         }
     };
-    /* ======================================== */
+/* ======================================== */
 
-    // ========== ANÁLISIS (resumido) ==========
-    window.renderizarAnalisis = async function () {
-        if (recetas.length === 0 || ingredientes.length === 0) {
-            document.getElementById('analisis-vacio').style.display = 'block';
-            document.getElementById('analisis-contenido').style.display = 'none';
-            return;
-        }
+// ========== ANÁLISIS (resumido) ==========
+window.renderizarAnalisis = async function () {
+    if (recetas.length === 0 || ingredientes.length === 0) {
+        document.getElementById('analisis-vacio').style.display = 'block';
+        document.getElementById('analisis-contenido').style.display = 'none';
+        return;
+    }
 
-        document.getElementById('analisis-vacio').style.display = 'none';
-        document.getElementById('analisis-contenido').style.display = 'block';
+    document.getElementById('analisis-vacio').style.display = 'none';
+    document.getElementById('analisis-contenido').style.display = 'block';
+
+    let totalMargen = 0;
+    let totalCoste = 0;
+    const datosRecetas = recetas.map(rec => {
+        const coste = calcularCosteRecetaCompleto(rec);
+        const margen = rec.precio_venta - coste;
+        const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
+        totalMargen += margenPct;
+        totalCoste += coste;
+        return { ...rec, coste, margen, margenPct };
+    });
+
+    try {
+        const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
+
+        // 🔧 FILTRO: Solo mostrar items con food cost > 15% (excluye vinos/bebidas)
+        // Los vinos tienen ~5-12% food cost, los alimentos reales tienen >20%
+        const menuAnalysis = menuAnalysisRaw.filter(item => {
+            const foodCost = item.precio_venta > 0 ? (item.coste / item.precio_venta) * 100 : 0;
+            return foodCost > 15;
+        });
 
         let totalMargen = 0;
         let totalCoste = 0;
-        const datosRecetas = recetas.map(rec => {
+        const datosRecetasRaw = recetas.map(rec => {
             const coste = calcularCosteRecetaCompleto(rec);
             const margen = rec.precio_venta - coste;
             const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
@@ -4274,407 +4299,499 @@
             return { ...rec, coste, margen, margenPct };
         });
 
-        try {
-            const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
+        // 🔧 FILTRO: Solo items con food cost > 15% para tabla de rentabilidad
+        const datosRecetas = datosRecetasRaw.filter(rec => {
+            const foodCost = rec.precio_venta > 0 ? (rec.coste / rec.precio_venta) * 100 : 0;
+            return foodCost > 15;
+        });
 
-            // 🔧 FILTRO: Solo mostrar items con food cost > 15% (excluye vinos/bebidas)
-            // Los vinos tienen ~5-12% food cost, los alimentos reales tienen >20%
-            const menuAnalysis = menuAnalysisRaw.filter(item => {
-                const foodCost = item.precio_venta > 0 ? (item.coste / item.precio_venta) * 100 : 0;
-                return foodCost > 15;
-            });
+        const margenPromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.margenPct, 0) / datosRecetas.length).toFixed(1) : '0';
+        const costePromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.coste, 0) / datosRecetas.length).toFixed(2) : '0';
 
-            let totalMargen = 0;
-            let totalCoste = 0;
-            const datosRecetasRaw = recetas.map(rec => {
-                const coste = calcularCosteRecetaCompleto(rec);
-                const margen = rec.precio_venta - coste;
-                const margenPct = rec.precio_venta > 0 ? (margen / rec.precio_venta) * 100 : 0;
-                totalMargen += margenPct;
-                totalCoste += coste;
-                return { ...rec, coste, margen, margenPct };
-            });
+        document.getElementById('stat-total-recetas').textContent = menuAnalysis.length;
+        document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
+        document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
+        document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
 
-            // 🔧 FILTRO: Solo items con food cost > 15% para tabla de rentabilidad
-            const datosRecetas = datosRecetasRaw.filter(rec => {
-                const foodCost = rec.precio_venta > 0 ? (rec.coste / rec.precio_venta) * 100 : 0;
-                return foodCost > 15;
-            });
+        // Renderizar Gráficos existentes
+        renderRevenueChart();
+        renderChartRentabilidad(datosRecetas);
+        renderChartIngredientes();
+        renderChartMargenCategoria();
+        renderTablaRentabilidad(datosRecetas);
 
-            const margenPromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.margenPct, 0) / datosRecetas.length).toFixed(1) : '0';
-            const costePromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.coste, 0) / datosRecetas.length).toFixed(2) : '0';
+        // RENDERIZAR INGENIERÍA DE MENÚ (Matriz BCG)
+        renderMenuEngineeringUI(menuAnalysis);
+    } catch (error) {
+        console.error('Error renderizando análisis:', error);
+    }
+};
 
-            document.getElementById('stat-total-recetas').textContent = menuAnalysis.length;
-            document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
-            document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
-            document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
+window.renderMenuEngineeringUI = function (data) {
+    const container = document.getElementById('bcg-matrix-container');
+    if (!container || !data || data.length === 0) return;
 
-            // Renderizar Gráficos existentes
-            renderRevenueChart();
-            renderChartRentabilidad(datosRecetas);
-            renderChartIngredientes();
-            renderChartMargenCategoria();
-            renderTablaRentabilidad(datosRecetas);
-
-            // RENDERIZAR INGENIERÍA DE MENÚ (Matriz BCG)
-            renderMenuEngineeringUI(menuAnalysis);
-        } catch (error) {
-            console.error('Error renderizando análisis:', error);
-        }
+    // Contenedores
+    const containers = {
+        estrella: document.getElementById('lista-estrella'),
+        caballo: document.getElementById('lista-caballo'),
+        puzzle: document.getElementById('lista-puzzle'),
+        perro: document.getElementById('lista-perro'),
     };
 
-    window.renderMenuEngineeringUI = function (data) {
-        const container = document.getElementById('bcg-matrix-container');
-        if (!container || !data || data.length === 0) return;
+    // Limpiar listas
+    Object.values(containers).forEach(c => {
+        if (c) c.innerHTML = '';
+    });
 
-        // Contenedores
-        const containers = {
-            estrella: document.getElementById('lista-estrella'),
-            caballo: document.getElementById('lista-caballo'),
-            puzzle: document.getElementById('lista-puzzle'),
-            perro: document.getElementById('lista-perro'),
+    // Contar por categoría
+    const counts = { estrella: 0, puzzle: 0, caballo: 0, perro: 0 };
+    const colorMap = {
+        estrella: 'rgba(34, 197, 94, 0.8)',
+        puzzle: 'rgba(59, 130, 246, 0.8)',
+        caballo: 'rgba(249, 115, 22, 0.8)',
+        perro: 'rgba(239, 68, 68, 0.8)',
+    };
+
+    // Procesar datos para scatter
+    const scatterData = data.map(item => {
+        counts[item.clasificacion] = (counts[item.clasificacion] || 0) + 1;
+        return {
+            x: item.popularidad,
+            y: item.margen,
+            nombre: item.nombre,
+            clasificacion: item.clasificacion,
+            backgroundColor: colorMap[item.clasificacion] || 'rgba(100,100,100,0.5)',
         };
+    });
 
-        // Limpiar listas
-        Object.values(containers).forEach(c => {
-            if (c) c.innerHTML = '';
-        });
+    // Actualizar contadores
+    document.getElementById('count-estrella').textContent = counts.estrella || 0;
+    document.getElementById('count-puzzle').textContent = counts.puzzle || 0;
+    document.getElementById('count-caballo').textContent = counts.caballo || 0;
+    document.getElementById('count-perro').textContent = counts.perro || 0;
 
-        // Contar por categoría
-        const counts = { estrella: 0, puzzle: 0, caballo: 0, perro: 0 };
-        const colorMap = {
-            estrella: 'rgba(34, 197, 94, 0.8)',
-            puzzle: 'rgba(59, 130, 246, 0.8)',
-            caballo: 'rgba(249, 115, 22, 0.8)',
-            perro: 'rgba(239, 68, 68, 0.8)',
-        };
+    // Renderizar Scatter Plot con Chart.js - SIN ETIQUETAS (más limpio)
+    const ctx = document.getElementById('bcg-scatter-chart');
+    if (ctx) {
+        // Destruir chart anterior si existe
+        if (window.bcgScatterChart) {
+            window.bcgScatterChart.destroy();
+        }
 
-        // Procesar datos para scatter
-        const scatterData = data.map(item => {
-            counts[item.clasificacion] = (counts[item.clasificacion] || 0) + 1;
-            return {
-                x: item.popularidad,
-                y: item.margen,
-                nombre: item.nombre,
-                clasificacion: item.clasificacion,
-                backgroundColor: colorMap[item.clasificacion] || 'rgba(100,100,100,0.5)',
-            };
-        });
+        // Calcular promedios para las líneas divisorias
+        // 🔒 FIX: Proteger división por cero si no hay datos
+        const avgX = data.length > 0
+            ? data.reduce((sum, d) => sum + d.popularidad, 0) / data.length
+            : 50; // Valor por defecto para centrar el gráfico
+        const avgY = data.length > 0
+            ? data.reduce((sum, d) => sum + d.margen, 0) / data.length
+            : 50;
 
-        // Actualizar contadores
-        document.getElementById('count-estrella').textContent = counts.estrella || 0;
-        document.getElementById('count-puzzle').textContent = counts.puzzle || 0;
-        document.getElementById('count-caballo').textContent = counts.caballo || 0;
-        document.getElementById('count-perro').textContent = counts.perro || 0;
+        // Plugin profesional para cuadrantes
+        const quadrantPlugin = {
+            id: 'bcgQuadrants',
+            beforeDatasetsDraw: function (chart) {
+                const ctx = chart.ctx;
+                const xAxis = chart.scales.x;
+                const yAxis = chart.scales.y;
+                const midX = xAxis.getPixelForValue(avgX * 0.7);
+                const midY = yAxis.getPixelForValue(avgY);
 
-        // Renderizar Scatter Plot con Chart.js - SIN ETIQUETAS (más limpio)
-        const ctx = document.getElementById('bcg-scatter-chart');
-        if (ctx) {
-            // Destruir chart anterior si existe
-            if (window.bcgScatterChart) {
-                window.bcgScatterChart.destroy();
+                // Cuadrantes con gradientes suaves
+                const quadrants = [
+                    { x1: midX, y1: yAxis.top, x2: xAxis.right, y2: midY, color: 'rgba(34, 197, 94, 0.08)', label: 'ESTRELLAS', emoji: '⭐', labelColor: '#15803d' },
+                    { x1: xAxis.left, y1: yAxis.top, x2: midX, y2: midY, color: 'rgba(59, 130, 246, 0.08)', label: 'PUZZLES', emoji: '❓', labelColor: '#1d4ed8' },
+                    { x1: midX, y1: midY, x2: xAxis.right, y2: yAxis.bottom, color: 'rgba(249, 115, 22, 0.08)', label: 'CABALLOS', emoji: '🐴', labelColor: '#c2410c' },
+                    { x1: xAxis.left, y1: midY, x2: midX, y2: yAxis.bottom, color: 'rgba(239, 68, 68, 0.08)', label: 'PERROS', emoji: '🐕', labelColor: '#b91c1c' }
+                ];
+
+                quadrants.forEach(q => {
+                    ctx.fillStyle = q.color;
+                    ctx.fillRect(q.x1, q.y1, q.x2 - q.x1, q.y2 - q.y1);
+                });
+
+                // Líneas divisorias elegantes
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([8, 4]);
+
+                ctx.beginPath();
+                ctx.moveTo(midX, yAxis.top);
+                ctx.lineTo(midX, yAxis.bottom);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(xAxis.left, midY);
+                ctx.lineTo(xAxis.right, midY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Etiquetas con fondo pill profesional
+                const labels = [
+                    { x: (midX + xAxis.right) / 2, y: yAxis.top + 25, text: '⭐ ESTRELLAS', bg: 'rgba(34, 197, 94, 0.15)', color: '#15803d' },
+                    { x: (xAxis.left + midX) / 2, y: yAxis.top + 25, text: '❓ PUZZLES', bg: 'rgba(59, 130, 246, 0.15)', color: '#1d4ed8' },
+                    { x: (midX + xAxis.right) / 2, y: yAxis.bottom - 15, text: '🐴 CABALLOS', bg: 'rgba(249, 115, 22, 0.15)', color: '#c2410c' },
+                    { x: (xAxis.left + midX) / 2, y: yAxis.bottom - 15, text: '🐕 PERROS', bg: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c' }
+                ];
+
+                labels.forEach(l => {
+                    ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+                    const textWidth = ctx.measureText(l.text).width;
+
+                    // Fondo pill
+                    ctx.fillStyle = l.bg;
+                    const padding = 8;
+                    const height = 22;
+                    const radius = 11;
+                    const x = l.x - textWidth / 2 - padding;
+                    const y = l.y - height / 2;
+
+                    ctx.beginPath();
+                    ctx.roundRect(x, y, textWidth + padding * 2, height, radius);
+                    ctx.fill();
+
+                    // Texto
+                    ctx.fillStyle = l.color;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(l.text, l.x, l.y);
+                });
             }
+        };
 
-            // Calcular promedios para las líneas divisorias
-            // 🔒 FIX: Proteger división por cero si no hay datos
-            const avgX = data.length > 0
-                ? data.reduce((sum, d) => sum + d.popularidad, 0) / data.length
-                : 50; // Valor por defecto para centrar el gráfico
-            const avgY = data.length > 0
-                ? data.reduce((sum, d) => sum + d.margen, 0) / data.length
-                : 50;
-
-            // Plugin profesional para cuadrantes
-            const quadrantPlugin = {
-                id: 'bcgQuadrants',
-                beforeDatasetsDraw: function (chart) {
-                    const ctx = chart.ctx;
-                    const xAxis = chart.scales.x;
-                    const yAxis = chart.scales.y;
-                    const midX = xAxis.getPixelForValue(avgX * 0.7);
-                    const midY = yAxis.getPixelForValue(avgY);
-
-                    // Cuadrantes con gradientes suaves
-                    const quadrants = [
-                        { x1: midX, y1: yAxis.top, x2: xAxis.right, y2: midY, color: 'rgba(34, 197, 94, 0.08)', label: 'ESTRELLAS', emoji: '⭐', labelColor: '#15803d' },
-                        { x1: xAxis.left, y1: yAxis.top, x2: midX, y2: midY, color: 'rgba(59, 130, 246, 0.08)', label: 'PUZZLES', emoji: '❓', labelColor: '#1d4ed8' },
-                        { x1: midX, y1: midY, x2: xAxis.right, y2: yAxis.bottom, color: 'rgba(249, 115, 22, 0.08)', label: 'CABALLOS', emoji: '🐴', labelColor: '#c2410c' },
-                        { x1: xAxis.left, y1: midY, x2: midX, y2: yAxis.bottom, color: 'rgba(239, 68, 68, 0.08)', label: 'PERROS', emoji: '🐕', labelColor: '#b91c1c' }
-                    ];
-
-                    quadrants.forEach(q => {
-                        ctx.fillStyle = q.color;
-                        ctx.fillRect(q.x1, q.y1, q.x2 - q.x1, q.y2 - q.y1);
-                    });
-
-                    // Líneas divisorias elegantes
-                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
-                    ctx.lineWidth = 1.5;
-                    ctx.setLineDash([8, 4]);
-
-                    ctx.beginPath();
-                    ctx.moveTo(midX, yAxis.top);
-                    ctx.lineTo(midX, yAxis.bottom);
-                    ctx.stroke();
-
-                    ctx.beginPath();
-                    ctx.moveTo(xAxis.left, midY);
-                    ctx.lineTo(xAxis.right, midY);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-
-                    // Etiquetas con fondo pill profesional
-                    const labels = [
-                        { x: (midX + xAxis.right) / 2, y: yAxis.top + 25, text: '⭐ ESTRELLAS', bg: 'rgba(34, 197, 94, 0.15)', color: '#15803d' },
-                        { x: (xAxis.left + midX) / 2, y: yAxis.top + 25, text: '❓ PUZZLES', bg: 'rgba(59, 130, 246, 0.15)', color: '#1d4ed8' },
-                        { x: (midX + xAxis.right) / 2, y: yAxis.bottom - 15, text: '🐴 CABALLOS', bg: 'rgba(249, 115, 22, 0.15)', color: '#c2410c' },
-                        { x: (xAxis.left + midX) / 2, y: yAxis.bottom - 15, text: '🐕 PERROS', bg: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c' }
-                    ];
-
-                    labels.forEach(l => {
-                        ctx.font = '600 11px system-ui, -apple-system, sans-serif';
-                        const textWidth = ctx.measureText(l.text).width;
-
-                        // Fondo pill
-                        ctx.fillStyle = l.bg;
-                        const padding = 8;
-                        const height = 22;
-                        const radius = 11;
-                        const x = l.x - textWidth / 2 - padding;
-                        const y = l.y - height / 2;
-
-                        ctx.beginPath();
-                        ctx.roundRect(x, y, textWidth + padding * 2, height, radius);
-                        ctx.fill();
-
-                        // Texto
-                        ctx.fillStyle = l.color;
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(l.text, l.x, l.y);
-                    });
-                }
-            };
-
-            window.bcgScatterChart = new Chart(ctx, {
-                type: 'scatter',
-                plugins: [quadrantPlugin],
-                data: {
-                    datasets: [{
-                        label: 'Platos',
-                        data: scatterData.map(d => ({ x: d.x, y: d.y })),
-                        backgroundColor: scatterData.map(d => d.backgroundColor),
-                        pointRadius: 12,
-                        pointHoverRadius: 16,
-                        pointStyle: 'circle',
-                        borderWidth: 2.5,
-                        borderColor: scatterData.map(d => d.backgroundColor.replace('0.8', '1')),
-                        hoverBorderWidth: 3,
-                    }],
+        window.bcgScatterChart = new Chart(ctx, {
+            type: 'scatter',
+            plugins: [quadrantPlugin],
+            data: {
+                datasets: [{
+                    label: 'Platos',
+                    data: scatterData.map(d => ({ x: d.x, y: d.y })),
+                    backgroundColor: scatterData.map(d => d.backgroundColor),
+                    pointRadius: 12,
+                    pointHoverRadius: 16,
+                    pointStyle: 'circle',
+                    borderWidth: 2.5,
+                    borderColor: scatterData.map(d => d.backgroundColor.replace('0.8', '1')),
+                    hoverBorderWidth: 3,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 45, right: 25, bottom: 20, left: 15 },
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: { top: 45, right: 25, bottom: 20, left: 15 },
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            enabled: true,
-                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                            titleColor: '#fff',
-                            titleFont: { size: 14, weight: '600', family: 'system-ui' },
-                            bodyColor: 'rgba(255,255,255,0.9)',
-                            bodyFont: { size: 12, family: 'system-ui' },
-                            padding: 16,
-                            cornerRadius: 12,
-                            displayColors: false,
-                            boxPadding: 6,
-                            callbacks: {
-                                title: function (context) {
-                                    return scatterData[context[0].dataIndex].nombre;
-                                },
-                                label: function (context) {
-                                    const item = scatterData[context.dataIndex];
-                                    const emojis = { estrella: '⭐', puzzle: '❓', caballo: '🐴', perro: '🐕' };
-                                    return [
-                                        `${emojis[item.clasificacion] || ''} ${item.clasificacion.charAt(0).toUpperCase() + item.clasificacion.slice(1)}`,
-                                        `Margen: ${item.y.toFixed(2)}€`,
-                                        `Ventas: ${item.x} uds`,
-                                    ];
-                                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#fff',
+                        titleFont: { size: 14, weight: '600', family: 'system-ui' },
+                        bodyColor: 'rgba(255,255,255,0.9)',
+                        bodyFont: { size: 12, family: 'system-ui' },
+                        padding: 16,
+                        cornerRadius: 12,
+                        displayColors: false,
+                        boxPadding: 6,
+                        callbacks: {
+                            title: function (context) {
+                                return scatterData[context[0].dataIndex].nombre;
                             },
-                        },
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'POPULARIDAD (Unidades Vendidas)',
-                                font: { size: 11, weight: '600', family: 'system-ui' },
-                                color: '#64748b',
-                                padding: { top: 10 }
+                            label: function (context) {
+                                const item = scatterData[context.dataIndex];
+                                const emojis = { estrella: '⭐', puzzle: '❓', caballo: '🐴', perro: '🐕' };
+                                return [
+                                    `${emojis[item.clasificacion] || ''} ${item.clasificacion.charAt(0).toUpperCase() + item.clasificacion.slice(1)}`,
+                                    `Margen: ${item.y.toFixed(2)}€`,
+                                    `Ventas: ${item.x} uds`,
+                                ];
                             },
-                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
-                            ticks: { color: '#94a3b8', font: { size: 10 } },
-                            beginAtZero: true,
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'RENTABILIDAD (Margen €)',
-                                font: { size: 11, weight: '600', family: 'system-ui' },
-                                color: '#64748b',
-                                padding: { bottom: 10 }
-                            },
-                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
-                            ticks: { color: '#94a3b8', font: { size: 10 } },
                         },
                     },
                 },
-            });
-        }
-
-        // Generar recomendaciones inteligentes
-        const recsEl = document.getElementById('bcg-recommendations-list');
-        if (recsEl) {
-            const recs = [];
-
-            // Recomendación si hay perros
-            if (counts.perro > 0) {
-                const perros = data
-                    .filter(d => d.clasificacion === 'perro')
-                    .map(d => d.nombre)
-                    .slice(0, 3);
-                recs.push(
-                    `🚨 <strong>Retira o reforma ${counts.perro} plato(s):</strong> ${perros.join(', ')}${counts.perro > 3 ? '...' : ''} - No generan beneficio ni se venden.`
-                );
-            }
-
-            // Recomendación si hay caballos
-            if (counts.caballo > 0) {
-                const caballos = data
-                    .filter(d => d.clasificacion === 'caballo')
-                    .map(d => d.nombre)
-                    .slice(0, 2);
-                recs.push(
-                    `💰 <strong>Sube el precio de:</strong> ${caballos.join(', ')} - Se venden bien pero tu margen es bajo.`
-                );
-            }
-
-            // Recomendación si hay puzzles
-            if (counts.puzzle > 0) {
-                const puzzles = data
-                    .filter(d => d.clasificacion === 'puzzle')
-                    .map(d => d.nombre)
-                    .slice(0, 2);
-                recs.push(
-                    `📢 <strong>Promociona más:</strong> ${puzzles.join(', ')} - Tienen buen margen pero poca visibilidad.`
-                );
-            }
-
-            // Recomendación positiva si hay estrellas
-            if (counts.estrella > 0) {
-                recs.push(
-                    `✨ <strong>¡Excelente!</strong> Tienes ${counts.estrella} plato(s) estrella. Manténlos destacados en la carta.`
-                );
-            }
-
-            // Si no hay datos significativos
-            if (recs.length === 0) {
-                recs.push('📊 Registra más ventas para obtener recomendaciones personalizadas.');
-            }
-
-            recsEl.innerHTML = recs
-                .map(r => `<div style="margin-bottom: 8px;">${r}</div>`)
-                .join('');
-        }
-
-        // Poblar listas detalladas CON PAGINACIÓN (10 items por página)
-        const ITEMS_PER_PAGE = 10;
-        const itemsByCategory = { estrella: [], caballo: [], puzzle: [], perro: [] };
-
-        // Agrupar items por categoría
-        data.forEach(item => {
-            if (itemsByCategory[item.clasificacion]) {
-                itemsByCategory[item.clasificacion].push(item);
-            }
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'POPULARIDAD (Unidades Vendidas)',
+                            font: { size: 11, weight: '600', family: 'system-ui' },
+                            color: '#64748b',
+                            padding: { top: 10 }
+                        },
+                        grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        beginAtZero: true,
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'RENTABILIDAD (Margen €)',
+                            font: { size: 11, weight: '600', family: 'system-ui' },
+                            color: '#64748b',
+                            padding: { bottom: 10 }
+                        },
+                        grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                    },
+                },
+            },
         });
+    }
 
-        // Estado de paginación global
-        window.bcgPagination = window.bcgPagination || { estrella: 1, caballo: 1, puzzle: 1, perro: 1 };
+    // Generar recomendaciones inteligentes
+    const recsEl = document.getElementById('bcg-recommendations-list');
+    if (recsEl) {
+        const recs = [];
 
-        // Función para renderizar página de una categoría
-        window.renderBCGPage = function (categoria, page = 1) {
-            const items = itemsByCategory[categoria] || [];
-            const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
-            page = Math.max(1, Math.min(page, totalPages || 1));
-            window.bcgPagination[categoria] = page;
+        // Recomendación si hay perros
+        if (counts.perro > 0) {
+            const perros = data
+                .filter(d => d.clasificacion === 'perro')
+                .map(d => d.nombre)
+                .slice(0, 3);
+            recs.push(
+                `🚨 <strong>Retira o reforma ${counts.perro} plato(s):</strong> ${perros.join(', ')}${counts.perro > 3 ? '...' : ''} - No generan beneficio ni se venden.`
+            );
+        }
 
-            const container = containers[categoria];
-            if (!container) return;
+        // Recomendación si hay caballos
+        if (counts.caballo > 0) {
+            const caballos = data
+                .filter(d => d.clasificacion === 'caballo')
+                .map(d => d.nombre)
+                .slice(0, 2);
+            recs.push(
+                `💰 <strong>Sube el precio de:</strong> ${caballos.join(', ')} - Se venden bien pero tu margen es bajo.`
+            );
+        }
 
-            const start = (page - 1) * ITEMS_PER_PAGE;
-            const pageItems = items.slice(start, start + ITEMS_PER_PAGE);
+        // Recomendación si hay puzzles
+        if (counts.puzzle > 0) {
+            const puzzles = data
+                .filter(d => d.clasificacion === 'puzzle')
+                .map(d => d.nombre)
+                .slice(0, 2);
+            recs.push(
+                `📢 <strong>Promociona más:</strong> ${puzzles.join(', ')} - Tienen buen margen pero poca visibilidad.`
+            );
+        }
 
-            container.innerHTML = pageItems.map(item =>
-                `<div class="bcg-item"><strong>${escapeHTML(item.nombre)}</strong><br><span style="font-size:11px">Mg: ${item.margen.toFixed(2)}€ | Ventas: ${item.popularidad}</span></div>`
-            ).join('');
+        // Recomendación positiva si hay estrellas
+        if (counts.estrella > 0) {
+            recs.push(
+                `✨ <strong>¡Excelente!</strong> Tienes ${counts.estrella} plato(s) estrella. Manténlos destacados en la carta.`
+            );
+        }
 
-            // Añadir controles de paginación si hay más de una página
-            if (totalPages > 1) {
-                container.innerHTML += `
+        // Si no hay datos significativos
+        if (recs.length === 0) {
+            recs.push('📊 Registra más ventas para obtener recomendaciones personalizadas.');
+        }
+
+        recsEl.innerHTML = recs
+            .map(r => `<div style="margin-bottom: 8px;">${r}</div>`)
+            .join('');
+    }
+
+    // Poblar listas detalladas CON PAGINACIÓN (10 items por página)
+    const ITEMS_PER_PAGE = 10;
+    const itemsByCategory = { estrella: [], caballo: [], puzzle: [], perro: [] };
+
+    // Agrupar items por categoría
+    data.forEach(item => {
+        if (itemsByCategory[item.clasificacion]) {
+            itemsByCategory[item.clasificacion].push(item);
+        }
+    });
+
+    // Estado de paginación global
+    window.bcgPagination = window.bcgPagination || { estrella: 1, caballo: 1, puzzle: 1, perro: 1 };
+
+    // Función para renderizar página de una categoría
+    window.renderBCGPage = function (categoria, page = 1) {
+        const items = itemsByCategory[categoria] || [];
+        const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+        page = Math.max(1, Math.min(page, totalPages || 1));
+        window.bcgPagination[categoria] = page;
+
+        const container = containers[categoria];
+        if (!container) return;
+
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        const pageItems = items.slice(start, start + ITEMS_PER_PAGE);
+
+        container.innerHTML = pageItems.map(item =>
+            `<div class="bcg-item"><strong>${escapeHTML(item.nombre)}</strong><br><span style="font-size:11px">Mg: ${item.margen.toFixed(2)}€ | Ventas: ${item.popularidad}</span></div>`
+        ).join('');
+
+        // Añadir controles de paginación si hay más de una página
+        if (totalPages > 1) {
+            container.innerHTML += `
                     <div style="display:flex; justify-content:center; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">
                         <button onclick="window.renderBCGPage('${categoria}', ${page - 1})" ${page <= 1 ? 'disabled' : ''} style="padding:4px 8px; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer; background:${page <= 1 ? '#f1f5f9' : 'white'}">←</button>
                         <span style="padding:4px 8px; font-size:12px;">${page} / ${totalPages}</span>
                         <button onclick="window.renderBCGPage('${categoria}', ${page + 1})" ${page >= totalPages ? 'disabled' : ''} style="padding:4px 8px; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer; background:${page >= totalPages ? '#f1f5f9' : 'white'}">→</button>
                     </div>`;
-            }
-        };
-
-        // Renderizar primera página de cada categoría
-        ['estrella', 'caballo', 'puzzle', 'perro'].forEach(cat => {
-            window.renderBCGPage(cat, window.bcgPagination[cat] || 1);
-        });
+        }
     };
 
-    function renderChartRentabilidad(datos) {
-        const ctx = document.getElementById('chart-rentabilidad');
-        if (!ctx) return;
+    // Renderizar primera página de cada categoría
+    ['estrella', 'caballo', 'puzzle', 'perro'].forEach(cat => {
+        window.renderBCGPage(cat, window.bcgPagination[cat] || 1);
+    });
+};
 
-        const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct).slice(0, 10);
+function renderChartRentabilidad(datos) {
+    const ctx = document.getElementById('chart-rentabilidad');
+    if (!ctx) return;
 
-        if (chartRentabilidad) chartRentabilidad.destroy();
+    const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct).slice(0, 10);
 
-        chartRentabilidad = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ordenados.map(r => r.nombre),
-                datasets: [
-                    {
-                        label: 'Margen (%)',
-                        data: ordenados.map(r => r.margenPct.toFixed(1)),
-                        backgroundColor: ordenados.map(r =>
-                            r.margenPct > 50 ? '#10b981' : r.margenPct > 30 ? '#f59e0b' : '#ef4444'
-                        ),
-                        borderWidth: 0,
-                        borderRadius: 8,
-                        hoverBackgroundColor: ordenados.map(r =>
-                            r.margenPct > 50 ? '#059669' : r.margenPct > 30 ? '#d97706' : '#dc2626'
-                        ),
+    if (chartRentabilidad) chartRentabilidad.destroy();
+
+    chartRentabilidad = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ordenados.map(r => r.nombre),
+            datasets: [
+                {
+                    label: 'Margen (%)',
+                    data: ordenados.map(r => r.margenPct.toFixed(1)),
+                    backgroundColor: ordenados.map(r =>
+                        r.margenPct > 50 ? '#10b981' : r.margenPct > 30 ? '#f59e0b' : '#ef4444'
+                    ),
+                    borderWidth: 0,
+                    borderRadius: 8,
+                    hoverBackgroundColor: ordenados.map(r =>
+                        r.margenPct > 50 ? '#059669' : r.margenPct > 30 ? '#d97706' : '#dc2626'
+                    ),
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart',
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 16,
+                    cornerRadius: 12,
+                    displayColors: false,
+                    borderColor: '#FF6B35',
+                    borderWidth: 2,
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    callbacks: {
+                        label: function (context) {
+                            return 'Margen: ' + context.parsed.y + '%';
+                        },
                     },
-                ],
+                },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    ticks: {
+                        callback: function (value) {
+                            return value + '%';
+                        },
+                        font: { size: 12 },
+                    },
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 12 } },
+                },
+            },
+        },
+    });
+}
+
+function renderChartIngredientes() {
+    // 🍽️ Gráfica de ALIMENTOS - Coste por Unidad
+    const ctxAlimentos = document.getElementById('chart-ingredientes');
+    // 🍺 Gráfica de BEBIDAS - Coste por Unidad
+    const ctxBebidas = document.getElementById('chart-bebidas');
+
+    if (!ctxAlimentos) return;
+
+    // Calcular coste por unidad = precio / cantidad_por_formato
+    const calcularCosteUnidad = (ing) => {
+        const cantidad = parseFloat(ing.cantidad_por_formato) || 1;
+        return ing.precio / cantidad;
+    };
+
+    // Separar ingredientes por familia y ordenar por COSTE POR UNIDAD
+    const alimentos = [...ingredientes]
+        .filter(ing => ing.precio > 0 && (ing.familia || 'alimento').toLowerCase() === 'alimento')
+        .map(ing => ({
+            ...ing,
+            coste_unidad: calcularCosteUnidad(ing)
+        }))
+        .sort((a, b) => b.coste_unidad - a.coste_unidad)
+        .slice(0, 10);
+
+    const bebidas = [...ingredientes]
+        .filter(ing => ing.precio > 0 && (ing.familia || '').toLowerCase() === 'bebida')
+        .map(ing => ({
+            ...ing,
+            coste_unidad: calcularCosteUnidad(ing)
+        }))
+        .sort((a, b) => b.coste_unidad - a.coste_unidad)
+        .slice(0, 10);
+
+    // Colores para las gráficas
+    const coloresAlimentos = [
+        '#10b981', '#059669', '#34d399', '#6ee7b7',
+        '#a7f3d0', '#d1fae5', '#f59e0b', '#fbbf24',
+        '#fcd34d', '#fde68a'
+    ];
+
+    const coloresBebidas = [
+        '#3b82f6', '#2563eb', '#60a5fa', '#93c5fd',
+        '#bfdbfe', '#dbeafe', '#8b5cf6', '#a78bfa',
+        '#c4b5fd', '#ddd6fe'
+    ];
+
+    // Destruir gráficos anteriores
+    if (chartIngredientes) chartIngredientes.destroy();
+    if (window.chartBebidas) window.chartBebidas.destroy();
+
+    // === GRÁFICA ALIMENTOS (Coste por Unidad) ===
+    if (alimentos.length > 0) {
+        chartIngredientes = new Chart(ctxAlimentos, {
+            type: 'doughnut',
+            data: {
+                labels: alimentos.map(i => i.nombre),
+                datasets: [{
+                    data: alimentos.map(i => i.coste_unidad),
+                    backgroundColor: coloresAlimentos.slice(0, alimentos.length),
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 15,
+                    hoverBorderWidth: 4,
+                }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                animation: {
-                    duration: 1000,
-                    easing: 'easeInOutQuart',
-                },
+                animation: { duration: 1200, easing: 'easeInOutQuart', animateRotate: true, animateScale: true },
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        position: 'right',
+                        labels: { font: { size: 10 } },
+                    },
                     tooltip: {
                         enabled: true,
                         backgroundColor: 'rgba(30, 41, 59, 0.95)',
@@ -4682,320 +4799,207 @@
                         bodyColor: '#fff',
                         padding: 16,
                         cornerRadius: 12,
-                        displayColors: false,
-                        borderColor: '#FF6B35',
+                        displayColors: true,
+                        borderColor: '#10b981',
                         borderWidth: 2,
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
                         callbacks: {
                             label: function (context) {
-                                return 'Margen: ' + context.parsed.y + '%';
+                                const ing = alimentos[context.dataIndex];
+                                return `${context.label}: ${context.parsed.toFixed(2)}€/${ing.unidad || 'ud'}`;
                             },
                         },
                     },
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                        ticks: {
-                            callback: function (value) {
-                                return value + '%';
-                            },
-                            font: { size: 12 },
-                        },
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { size: 12 } },
-                    },
-                },
+                cutout: '65%',
             },
         });
     }
 
-    function renderChartIngredientes() {
-        // 🍽️ Gráfica de ALIMENTOS - Coste por Unidad
-        const ctxAlimentos = document.getElementById('chart-ingredientes');
-        // 🍺 Gráfica de BEBIDAS - Coste por Unidad
-        const ctxBebidas = document.getElementById('chart-bebidas');
-
-        if (!ctxAlimentos) return;
-
-        // Calcular coste por unidad = precio / cantidad_por_formato
-        const calcularCosteUnidad = (ing) => {
-            const cantidad = parseFloat(ing.cantidad_por_formato) || 1;
-            return ing.precio / cantidad;
-        };
-
-        // Separar ingredientes por familia y ordenar por COSTE POR UNIDAD
-        const alimentos = [...ingredientes]
-            .filter(ing => ing.precio > 0 && (ing.familia || 'alimento').toLowerCase() === 'alimento')
-            .map(ing => ({
-                ...ing,
-                coste_unidad: calcularCosteUnidad(ing)
-            }))
-            .sort((a, b) => b.coste_unidad - a.coste_unidad)
-            .slice(0, 10);
-
-        const bebidas = [...ingredientes]
-            .filter(ing => ing.precio > 0 && (ing.familia || '').toLowerCase() === 'bebida')
-            .map(ing => ({
-                ...ing,
-                coste_unidad: calcularCosteUnidad(ing)
-            }))
-            .sort((a, b) => b.coste_unidad - a.coste_unidad)
-            .slice(0, 10);
-
-        // Colores para las gráficas
-        const coloresAlimentos = [
-            '#10b981', '#059669', '#34d399', '#6ee7b7',
-            '#a7f3d0', '#d1fae5', '#f59e0b', '#fbbf24',
-            '#fcd34d', '#fde68a'
-        ];
-
-        const coloresBebidas = [
-            '#3b82f6', '#2563eb', '#60a5fa', '#93c5fd',
-            '#bfdbfe', '#dbeafe', '#8b5cf6', '#a78bfa',
-            '#c4b5fd', '#ddd6fe'
-        ];
-
-        // Destruir gráficos anteriores
-        if (chartIngredientes) chartIngredientes.destroy();
-        if (window.chartBebidas) window.chartBebidas.destroy();
-
-        // === GRÁFICA ALIMENTOS (Coste por Unidad) ===
-        if (alimentos.length > 0) {
-            chartIngredientes = new Chart(ctxAlimentos, {
-                type: 'doughnut',
-                data: {
-                    labels: alimentos.map(i => i.nombre),
-                    datasets: [{
-                        data: alimentos.map(i => i.coste_unidad),
-                        backgroundColor: coloresAlimentos.slice(0, alimentos.length),
-                        borderWidth: 3,
-                        borderColor: '#fff',
-                        hoverOffset: 15,
-                        hoverBorderWidth: 4,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    animation: { duration: 1200, easing: 'easeInOutQuart', animateRotate: true, animateScale: true },
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: { font: { size: 10 } },
-                        },
-                        tooltip: {
-                            enabled: true,
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            padding: 16,
-                            cornerRadius: 12,
-                            displayColors: true,
-                            borderColor: '#10b981',
-                            borderWidth: 2,
-                            callbacks: {
-                                label: function (context) {
-                                    const ing = alimentos[context.dataIndex];
-                                    return `${context.label}: ${context.parsed.toFixed(2)}€/${ing.unidad || 'ud'}`;
-                                },
-                            },
-                        },
-                    },
-                    cutout: '65%',
-                },
-            });
-        }
-
-        // === GRÁFICA BEBIDAS (Coste por Unidad) ===
-        if (ctxBebidas && bebidas.length > 0) {
-            window.chartBebidas = new Chart(ctxBebidas, {
-                type: 'doughnut',
-                data: {
-                    labels: bebidas.map(i => i.nombre),
-                    datasets: [{
-                        data: bebidas.map(i => i.coste_unidad),
-                        backgroundColor: coloresBebidas.slice(0, bebidas.length),
-                        borderWidth: 3,
-                        borderColor: '#fff',
-                        hoverOffset: 15,
-                        hoverBorderWidth: 4,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    animation: { duration: 1200, easing: 'easeInOutQuart', animateRotate: true, animateScale: true },
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: { font: { size: 10 } },
-                        },
-                        tooltip: {
-                            enabled: true,
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            padding: 16,
-                            cornerRadius: 12,
-                            displayColors: true,
-                            borderColor: '#3b82f6',
-                            borderWidth: 2,
-                            callbacks: {
-                                label: function (context) {
-                                    const ing = bebidas[context.dataIndex];
-                                    return `${context.label}: ${context.parsed.toFixed(2)}€/${ing.unidad || 'ud'}`;
-                                },
-                            },
-                        },
-                    },
-                    cutout: '65%',
-                },
-            });
-        } else if (ctxBebidas) {
-            // Si no hay bebidas, mostrar mensaje
-            ctxBebidas.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">Sin bebidas registradas</div>';
-        }
-    }
-
-    // 📈 Gráfica: Margen promedio por Categoría de receta
-    function renderChartMargenCategoria() {
-        const ctx = document.getElementById('chart-margen-categoria');
-        if (!ctx) return;
-
-        // Agrupar recetas por categoría REAL y calcular margen promedio
-        const margenPorCategoria = {};
-        const countPorCategoria = {};
-
-        recetas.forEach(rec => {
-            // Usar la categoría REAL de la receta (normalizada a minúsculas)
-            const catOriginal = (rec.categoria || 'otros').toLowerCase().trim();
-            // Capitalizar primera letra para display
-            const familia = catOriginal.charAt(0).toUpperCase() + catOriginal.slice(1);
-
-            const coste = calcularCosteRecetaCompleto(rec);
-            const margenPct = rec.precio_venta > 0
-                ? ((rec.precio_venta - coste) / rec.precio_venta) * 100
-                : 0;
-
-            if (!margenPorCategoria[familia]) {
-                margenPorCategoria[familia] = 0;
-                countPorCategoria[familia] = 0;
-            }
-            margenPorCategoria[familia] += margenPct;
-            countPorCategoria[familia]++;
-        });
-
-        // Preparar datos ordenados por cantidad de recetas (descendente)
-        const datos = Object.keys(margenPorCategoria)
-            .map(cat => ({
-                categoria: cat,
-                margen: margenPorCategoria[cat] / countPorCategoria[cat],
-                count: countPorCategoria[cat]
-            }))
-            .sort((a, b) => b.count - a.count);
-
-        // Destruir gráfico anterior si existe
-        if (window.chartMargenCategoria) window.chartMargenCategoria.destroy();
-
-        if (datos.length === 0) {
-            ctx.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">Sin recetas</div>';
-            return;
-        }
-
-        // Colores según margen (verde = alto, amarillo = medio, rojo = bajo)
-        const getColor = (margen) => {
-            if (margen >= 60) return '#10b981';
-            if (margen >= 40) return '#f59e0b';
-            return '#ef4444';
-        };
-
-        window.chartMargenCategoria = new Chart(ctx, {
-            type: 'bar',
+    // === GRÁFICA BEBIDAS (Coste por Unidad) ===
+    if (ctxBebidas && bebidas.length > 0) {
+        window.chartBebidas = new Chart(ctxBebidas, {
+            type: 'doughnut',
             data: {
-                labels: datos.map(d => d.categoria + ' (' + d.count + ')'),
+                labels: bebidas.map(i => i.nombre),
                 datasets: [{
-                    label: 'Margen %',
-                    data: datos.map(d => d.margen.toFixed(1)),
-                    backgroundColor: datos.map(d => getColor(d.margen)),
-                    borderWidth: 0,
-                    borderRadius: 6,
+                    data: bebidas.map(i => i.coste_unidad),
+                    backgroundColor: coloresBebidas.slice(0, bebidas.length),
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 15,
+                    hoverBorderWidth: 4,
                 }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                indexAxis: 'y', // Barras horizontales
-                animation: { duration: 1000 },
+                animation: { duration: 1200, easing: 'easeInOutQuart', animateRotate: true, animateScale: true },
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        position: 'right',
+                        labels: { font: { size: 10 } },
+                    },
                     tooltip: {
                         enabled: true,
                         backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 16,
+                        cornerRadius: 12,
+                        displayColors: true,
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
                         callbacks: {
                             label: function (context) {
-                                return 'Margen: ' + context.parsed.x + '%';
+                                const ing = bebidas[context.dataIndex];
+                                return `${context.label}: ${context.parsed.toFixed(2)}€/${ing.unidad || 'ud'}`;
                             },
                         },
                     },
                 },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        max: 100,
-                        grid: { display: false },
-                        ticks: { callback: v => v + '%' }
-                    },
-                    y: {
-                        grid: { display: false },
-                        ticks: { font: { size: 11 } }
-                    }
-                }
+                cutout: '65%',
             },
         });
+    } else if (ctxBebidas) {
+        // Si no hay bebidas, mostrar mensaje
+        ctxBebidas.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">Sin bebidas registradas</div>';
+    }
+}
+
+// 📈 Gráfica: Margen promedio por Categoría de receta
+function renderChartMargenCategoria() {
+    const ctx = document.getElementById('chart-margen-categoria');
+    if (!ctx) return;
+
+    // Agrupar recetas por categoría REAL y calcular margen promedio
+    const margenPorCategoria = {};
+    const countPorCategoria = {};
+
+    recetas.forEach(rec => {
+        // Usar la categoría REAL de la receta (normalizada a minúsculas)
+        const catOriginal = (rec.categoria || 'otros').toLowerCase().trim();
+        // Capitalizar primera letra para display
+        const familia = catOriginal.charAt(0).toUpperCase() + catOriginal.slice(1);
+
+        const coste = calcularCosteRecetaCompleto(rec);
+        const margenPct = rec.precio_venta > 0
+            ? ((rec.precio_venta - coste) / rec.precio_venta) * 100
+            : 0;
+
+        if (!margenPorCategoria[familia]) {
+            margenPorCategoria[familia] = 0;
+            countPorCategoria[familia] = 0;
+        }
+        margenPorCategoria[familia] += margenPct;
+        countPorCategoria[familia]++;
+    });
+
+    // Preparar datos ordenados por cantidad de recetas (descendente)
+    const datos = Object.keys(margenPorCategoria)
+        .map(cat => ({
+            categoria: cat,
+            margen: margenPorCategoria[cat] / countPorCategoria[cat],
+            count: countPorCategoria[cat]
+        }))
+        .sort((a, b) => b.count - a.count);
+
+    // Destruir gráfico anterior si existe
+    if (window.chartMargenCategoria) window.chartMargenCategoria.destroy();
+
+    if (datos.length === 0) {
+        ctx.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">Sin recetas</div>';
+        return;
     }
 
-    function renderTablaRentabilidad(datos) {
-        const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
-        const ITEMS_PER_PAGE = 15;
+    // Colores según margen (verde = alto, amarillo = medio, rojo = bajo)
+    const getColor = (margen) => {
+        if (margen >= 60) return '#10b981';
+        if (margen >= 40) return '#f59e0b';
+        return '#ef4444';
+    };
 
-        // Estado de paginación
-        window.rentabilidadPage = window.rentabilidadPage || 1;
+    window.chartMargenCategoria = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: datos.map(d => d.categoria + ' (' + d.count + ')'),
+            datasets: [{
+                label: 'Margen %',
+                data: datos.map(d => d.margen.toFixed(1)),
+                backgroundColor: datos.map(d => getColor(d.margen)),
+                borderWidth: 0,
+                borderRadius: 6,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            indexAxis: 'y', // Barras horizontales
+            animation: { duration: 1000 },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                    callbacks: {
+                        label: function (context) {
+                            return 'Margen: ' + context.parsed.x + '%';
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { display: false },
+                    ticks: { callback: v => v + '%' }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11 } }
+                }
+            }
+        },
+    });
+}
 
-        // Función para renderizar página
-        window.renderRentabilidadPage = function (page = 1) {
-            const totalPages = Math.ceil(ordenados.length / ITEMS_PER_PAGE);
-            page = Math.max(1, Math.min(page, totalPages || 1));
-            window.rentabilidadPage = page;
+function renderTablaRentabilidad(datos) {
+    const ordenados = [...datos].sort((a, b) => b.margenPct - a.margenPct);
+    const ITEMS_PER_PAGE = 15;
 
-            const start = (page - 1) * ITEMS_PER_PAGE;
-            const pageItems = ordenados.slice(start, start + ITEMS_PER_PAGE);
+    // Estado de paginación
+    window.rentabilidadPage = window.rentabilidadPage || 1;
 
-            let html = '<table><thead><tr>';
-            html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
-            html += '</tr></thead><tbody>';
+    // Función para renderizar página
+    window.renderRentabilidadPage = function (page = 1) {
+        const totalPages = Math.ceil(ordenados.length / ITEMS_PER_PAGE);
+        page = Math.max(1, Math.min(page, totalPages || 1));
+        window.rentabilidadPage = page;
 
-            pageItems.forEach((rec, idx) => {
-                const realIdx = start + idx + 1;
-                html += '<tr>';
-                html += `<td><strong>#${realIdx}</strong></td>`;
-                html += `<td>${escapeHTML(rec.nombre)}</td>`;
-                html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
-                html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
-                html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
-                html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
-                html += '</tr>';
-            });
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        const pageItems = ordenados.slice(start, start + ITEMS_PER_PAGE);
 
-            html += '</tbody></table>';
+        let html = '<table><thead><tr>';
+        html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
+        html += '</tr></thead><tbody>';
 
-            // Controles de paginación
-            if (totalPages > 1) {
-                html += `
+        pageItems.forEach((rec, idx) => {
+            const realIdx = start + idx + 1;
+            html += '<tr>';
+            html += `<td><strong>#${realIdx}</strong></td>`;
+            html += `<td>${escapeHTML(rec.nombre)}</td>`;
+            html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
+            html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
+            html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
+            html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+
+        // Controles de paginación
+        if (totalPages > 1) {
+            html += `
                     <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:16px; padding:12px; background:#f8fafc; border-radius:8px;">
                         <button onclick="window.renderRentabilidadPage(1)" ${page <= 1 ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">⏮️</button>
                         <button onclick="window.renderRentabilidadPage(${page - 1})" ${page <= 1 ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">← Anterior</button>
@@ -5004,121 +5008,121 @@
                         <button onclick="window.renderRentabilidadPage(${totalPages})" ${page >= totalPages ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">⏭️</button>
                     </div>
                     <div style="text-align:center; margin-top:8px; color:#64748b; font-size:12px;">Mostrando ${start + 1}-${Math.min(start + ITEMS_PER_PAGE, ordenados.length)} de ${ordenados.length} recetas</div>`;
+        }
+
+        document.getElementById('tabla-rentabilidad').innerHTML = html;
+    };
+
+    // Renderizar primera página
+    window.renderRentabilidadPage(window.rentabilidadPage);
+}
+
+// ========== INVENTARIO ==========
+// Cache para persistir valores de stock introducidos por el usuario
+window.stockRealCache = window.stockRealCache || {};
+
+window.renderizarInventario = async function () {
+    try {
+        const inventario = await api.getInventoryComplete();
+        const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
+        const filtrados = inventario.filter(ing => ing.nombre.toLowerCase().includes(busqueda));
+
+        const container = document.getElementById('tabla-inventario');
+
+        // Calcular alertas
+        let stockBajo = 0;
+        let stockCritico = 0;
+
+        window.ingredientes.forEach(ing => {
+            const stockActual = parseFloat(ing.stock_actual) || 0;
+            const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+            // Solo contar si tiene mínimo configurado
+            if (stockActual <= 0) {
+                stockCritico++;
+            } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
+                stockBajo++;
             }
+        });
 
-            document.getElementById('tabla-rentabilidad').innerHTML = html;
-        };
+        // Actualizar badge
+        const totalAlertas = stockBajo + stockCritico;
+        const badge = document.getElementById('badge-inventario');
+        if (totalAlertas > 0) {
+            badge.textContent = totalAlertas;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
 
-        // Renderizar primera página
-        window.renderRentabilidadPage(window.rentabilidadPage);
-    }
-
-    // ========== INVENTARIO ==========
-    // Cache para persistir valores de stock introducidos por el usuario
-    window.stockRealCache = window.stockRealCache || {};
-
-    window.renderizarInventario = async function () {
-        try {
-            const inventario = await api.getInventoryComplete();
-            const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
-            const filtrados = inventario.filter(ing => ing.nombre.toLowerCase().includes(busqueda));
-
-            const container = document.getElementById('tabla-inventario');
-
-            // Calcular alertas
-            let stockBajo = 0;
-            let stockCritico = 0;
-
-            window.ingredientes.forEach(ing => {
-                const stockActual = parseFloat(ing.stock_actual) || 0;
-                const stockMinimo = parseFloat(ing.stock_minimo) || 0;
-                // Solo contar si tiene mínimo configurado
-                if (stockActual <= 0) {
-                    stockCritico++;
-                } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
-                    stockBajo++;
-                }
-            });
-
-            // Actualizar badge
-            const totalAlertas = stockBajo + stockCritico;
-            const badge = document.getElementById('badge-inventario');
-            if (totalAlertas > 0) {
-                badge.textContent = totalAlertas;
-                badge.style.display = 'inline-block';
-            } else {
-                badge.style.display = 'none';
-            }
-
-            // Actualizar resumen
-            const resumen = document.getElementById('resumen-inventario');
-            if (stockBajo > 0 || stockCritico > 0) {
-                resumen.innerHTML = `
+        // Actualizar resumen
+        const resumen = document.getElementById('resumen-inventario');
+        if (stockBajo > 0 || stockCritico > 0) {
+            resumen.innerHTML = `
             <div style="color: #f59e0b;">⚠️ Stock bajo: <strong>${stockBajo}</strong></div>
             <div style="color: #ef4444;">🔴 Stock crítico: <strong>${stockCritico}</strong></div>
           `;
-                resumen.style.display = 'flex';
-            } else {
-                resumen.style.display = 'none';
-            }
+            resumen.style.display = 'flex';
+        } else {
+            resumen.style.display = 'none';
+        }
 
-            if (filtrados.length === 0) {
-                container.innerHTML = `
+        if (filtrados.length === 0) {
+            container.innerHTML = `
             <div class="empty-state">
               <div class="icon">📦</div>
               <h3>No hay ingredientes</h3>
               <p>Añade ingredientes para gestionar el inventario</p>
             </div>
           `;
-                return;
+            return;
+        }
+
+        let html = '<table><thead><tr>';
+        html +=
+            '<th>Estado</th><th>Ingrediente</th><th>Stock Virtual</th><th>Stock Real</th><th>Diferencia</th><th>Precio Medio</th><th>Valor Stock</th><th>Unidad</th>';
+        html += '</tr></thead><tbody>';
+
+        filtrados.forEach(ing => {
+            let estadoClass = 'stock-ok';
+            let estadoIcon = '🟢';
+
+            const stockActual = parseFloat(ing.stock_virtual) || 0;
+            const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+
+            if (stockActual <= 0) {
+                estadoClass = 'stock-critico';
+                estadoIcon = '🔴';
+            } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
+                estadoClass = 'stock-bajo';
+                estadoIcon = '🟡';
             }
 
-            let html = '<table><thead><tr>';
-            html +=
-                '<th>Estado</th><th>Ingrediente</th><th>Stock Virtual</th><th>Stock Real</th><th>Diferencia</th><th>Precio Medio</th><th>Valor Stock</th><th>Unidad</th>';
-            html += '</tr></thead><tbody>';
+            const precioMedio = parseFloat(ing.precio_medio || 0);
+            const valorStock = parseFloat(ing.valor_stock || 0);
+            const diferencia = parseFloat(ing.diferencia || 0);
+            // Usar cache si existe, sino usar el valor de la BD
+            const cachedValue = window.stockRealCache[ing.id];
+            const stockReal = cachedValue !== undefined
+                ? cachedValue
+                : (ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '');
 
-            filtrados.forEach(ing => {
-                let estadoClass = 'stock-ok';
-                let estadoIcon = '🟢';
+            html += '<tr>';
+            html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
+            html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
+            html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${ing.unidad || ''}</small></span></td>`;
 
-                const stockActual = parseFloat(ing.stock_virtual) || 0;
-                const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+            // Input con evento ONINPUT para cálculo dinámico y guardar en cache
+            // Mostrar siempre el botón de conversión 📦
+            const tieneFormato = ing.formato_compra && ing.cantidad_por_formato;
+            const btnColor = tieneFormato ? '#f59e0b' : '#94a3b8';
+            const btnTitle = tieneFormato
+                ? `Calcular desde ${ing.formato_compra}s`
+                : 'Configura formato de compra para usar conversión';
+            const formatoData = tieneFormato
+                ? `'${escapeHTML(ing.formato_compra)}', ${ing.cantidad_por_formato}`
+                : `null, null`;
 
-                if (stockActual <= 0) {
-                    estadoClass = 'stock-critico';
-                    estadoIcon = '🔴';
-                } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
-                    estadoClass = 'stock-bajo';
-                    estadoIcon = '🟡';
-                }
-
-                const precioMedio = parseFloat(ing.precio_medio || 0);
-                const valorStock = parseFloat(ing.valor_stock || 0);
-                const diferencia = parseFloat(ing.diferencia || 0);
-                // Usar cache si existe, sino usar el valor de la BD
-                const cachedValue = window.stockRealCache[ing.id];
-                const stockReal = cachedValue !== undefined
-                    ? cachedValue
-                    : (ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '');
-
-                html += '<tr>';
-                html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
-                html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
-                html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${ing.unidad || ''}</small></span></td>`;
-
-                // Input con evento ONINPUT para cálculo dinámico y guardar en cache
-                // Mostrar siempre el botón de conversión 📦
-                const tieneFormato = ing.formato_compra && ing.cantidad_por_formato;
-                const btnColor = tieneFormato ? '#f59e0b' : '#94a3b8';
-                const btnTitle = tieneFormato
-                    ? `Calcular desde ${ing.formato_compra}s`
-                    : 'Configura formato de compra para usar conversión';
-                const formatoData = tieneFormato
-                    ? `'${escapeHTML(ing.formato_compra)}', ${ing.cantidad_por_formato}`
-                    : `null, null`;
-
-                const formatoHelper = `<div style="display:flex;align-items:center;gap:4px;">
+            const formatoHelper = `<div style="display:flex;align-items:center;gap:4px;">
                      <input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
                         class="input-stock-real" 
                         data-id="${ing.id}" 
@@ -5133,267 +5137,267 @@
                         title="${btnTitle}">📦</button>
                    </div>`;
 
-                html += `<td>${formatoHelper}</td>`;
+            html += `<td>${formatoHelper}</td>`;
 
-                // Celda de Diferencia con ID único para actualizar
-                let diffDisplay = '-';
-                let diffColor = '#666';
+            // Celda de Diferencia con ID único para actualizar
+            let diffDisplay = '-';
+            let diffColor = '#666';
 
-                // Si viene calculado de backend (porque había stock_real guardado)
-                if (ing.diferencia !== null && ing.diferencia !== undefined) {
-                    const d = parseFloat(ing.diferencia);
-                    diffDisplay = d.toFixed(2);
-                    if (d < 0) {
-                        diffColor = '#ef4444';
-                    } // Negativo (Falta) -> Rojo
-                    else if (d > 0) diffColor = '#10b981'; // Positivo (Sobra) -> Verde
-                }
+            // Si viene calculado de backend (porque había stock_real guardado)
+            if (ing.diferencia !== null && ing.diferencia !== undefined) {
+                const d = parseFloat(ing.diferencia);
+                diffDisplay = d.toFixed(2);
+                if (d < 0) {
+                    diffColor = '#ef4444';
+                } // Negativo (Falta) -> Rojo
+                else if (d > 0) diffColor = '#10b981'; // Positivo (Sobra) -> Verde
+            }
 
-                html += `<td id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
+            html += `<td id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
 
-                html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
+            html += `<td>${precioMedio.toFixed(2)}€/${ing.unidad}</td>`;
 
-                // Valor Stock: Por defecto usa Virtual. Si hay Real guardado, usa Real.
-                const cantidadParaValor =
-                    stockReal !== '' && stockReal !== null
-                        ? parseFloat(stockReal)
-                        : parseFloat(ing.stock_virtual || 0);
-                const valorStockDisplay = (cantidadParaValor * precioMedio).toFixed(2);
+            // Valor Stock: Por defecto usa Virtual. Si hay Real guardado, usa Real.
+            const cantidadParaValor =
+                stockReal !== '' && stockReal !== null
+                    ? parseFloat(stockReal)
+                    : parseFloat(ing.stock_virtual || 0);
+            const valorStockDisplay = (cantidadParaValor * precioMedio).toFixed(2);
 
-                html += `<td id="val-cell-${ing.id}"><strong>${valorStockDisplay}€</strong></td>`;
-                html += `<td>${ing.unidad}</td>`;
-                html += '</tr>';
-            });
+            html += `<td id="val-cell-${ing.id}"><strong>${valorStockDisplay}€</strong></td>`;
+            html += `<td>${ing.unidad}</td>`;
+            html += '</tr>';
+        });
 
-            container.innerHTML = html;
-        } catch (error) {
-            console.error('Error:', error);
-            document.getElementById('tabla-inventario').innerHTML =
-                '<p style="color:#ef4444;">Error cargando inventario</p>';
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('tabla-inventario').innerHTML =
+            '<p style="color:#ef4444;">Error cargando inventario</p>';
+    }
+};
+
+window.updateDifferenceCell = function (input) {
+    const id = input.dataset.id;
+    const virtual = parseFloat(input.dataset.stockVirtual) || 0;
+    const val = input.value;
+    const cellDiff = document.getElementById(`diff-cell-${id}`);
+    const cellVal = document.getElementById(`val-cell-${id}`);
+
+    // Precio Medio (lo extraemos de la celda vecina o mejor, lo pasamos por data attribute.
+    // Hack rápido: obtenemos valor de la celda de precio (indice 5, pero variable)
+    // Mejor: Agregamos data-precio al input
+    const precio = parseFloat(input.dataset.precio || 0);
+
+    if (val === '' || val === null) {
+        cellDiff.textContent = '-';
+        cellDiff.style.color = '#666';
+        // Si borra, volvemos a mostrar valor VIRTUAL
+        cellVal.innerHTML = `<strong>${(virtual * precio).toFixed(2)}€</strong>`;
+        return;
+    }
+
+    const real = parseFloat(val);
+    const diff = real - virtual;
+
+    cellDiff.textContent = diff.toFixed(2);
+    if (diff < 0) cellDiff.style.color = '#ef4444';
+    else if (diff > 0) cellDiff.style.color = '#10b981';
+    else cellDiff.style.color = '#666';
+
+    // Actualizar Valor Stock (REAL * Precio)
+    cellVal.innerHTML = `<strong>${(real * precio).toFixed(2)}€</strong>`;
+};
+
+// Función para mostrar calculadora de conversión de formato
+window.mostrarCalculadoraFormato = function (ingredienteId, formato, cantidadPorFormato, unidad, nombreIngrediente) {
+    // Si no tiene formato configurado, permitir introducción manual
+    if (!formato || !cantidadPorFormato) {
+        const respuesta = prompt(`${nombreIngrediente || 'Este ingrediente'} no tiene formato de compra configurado.\n\nIntroduce manualmente:\n1. Nombre del formato (ej: bote, caja, garrafa)\n2. Cantidad por formato en ${unidad}\n\nEjemplo: "bote,0.5" significa 1 bote = 0.5 ${unidad}\n\nEscribe formato,cantidad:`);
+
+        if (!respuesta) return;
+
+        const partes = respuesta.split(',');
+        if (partes.length !== 2) {
+            showToast('Formato inválido. Usa: nombre,cantidad (ej: bote,0.5)', 'error');
+            return;
         }
-    };
 
-    window.updateDifferenceCell = function (input) {
-        const id = input.dataset.id;
-        const virtual = parseFloat(input.dataset.stockVirtual) || 0;
+        formato = partes[0].trim();
+        cantidadPorFormato = parseFloat(partes[1].trim());
+
+        if (isNaN(cantidadPorFormato) || cantidadPorFormato <= 0) {
+            showToast('Cantidad por formato inválida', 'error');
+            return;
+        }
+    }
+
+    const cantidad = prompt(`¿Cuántos ${formato}s tienes?\n\n(Cada ${formato} = ${cantidadPorFormato} ${unidad})`);
+
+    if (cantidad === null || cantidad === '') return;
+
+    const numCantidad = parseFloat(cantidad);
+    if (isNaN(numCantidad) || numCantidad < 0) {
+        showToast('Cantidad inválida', 'error');
+        return;
+    }
+
+    // Calcular el stock en unidad base
+    const stockCalculado = (numCantidad * cantidadPorFormato).toFixed(2);
+
+    // Actualizar el input
+    const input = document.getElementById(`stock-real-${ingredienteId}`) ||
+        document.querySelector(`.input-stock-real[data-id="${ingredienteId}"]`);
+    if (input) {
+        input.value = stockCalculado;
+        window.updateDifferenceCell(input);
+        window.stockRealCache[ingredienteId] = stockCalculado;
+        showToast(`${numCantidad} ${formato}s = ${stockCalculado} ${unidad}`, 'success');
+    }
+};
+
+// Función global para actualizar stock real
+// Función para guardar stock masivo
+// Función para guardar stock masivo con lógica de mermas
+window.guardarCambiosStock = async function () {
+    const inputs = document.querySelectorAll('.input-stock-real');
+    const adjustments = [];
+    const mermas = [];
+
+    inputs.forEach(input => {
         const val = input.value;
-        const cellDiff = document.getElementById(`diff-cell-${id}`);
-        const cellVal = document.getElementById(`val-cell-${id}`);
+        if (val !== '' && val !== null) {
+            const nuevoReal = parseFloat(val);
+            const dataId = parseInt(input.dataset.id);
+            const stockVirtual = parseFloat(input.dataset.stockVirtual || 0);
 
-        // Precio Medio (lo extraemos de la celda vecina o mejor, lo pasamos por data attribute.
-        // Hack rápido: obtenemos valor de la celda de precio (indice 5, pero variable)
-        // Mejor: Agregamos data-precio al input
-        const precio = parseFloat(input.dataset.precio || 0);
+            // Solo nos importa si hay cambios (aunque la lógica pide ajustar si es positivo,
+            // asumimos que si el usuario escribe algo es porque quiere fijarlo)
+            // Pero podemos optimizar enviando solo lo que difiere o todo lo escrito.
+            // El usuario dijo "Update Stock" button allow users to edit multiple...
+            // Enviamos todo lo que tenga valor explícito en el input.
 
-        if (val === '' || val === null) {
-            cellDiff.textContent = '-';
-            cellDiff.style.color = '#666';
-            // Si borra, volvemos a mostrar valor VIRTUAL
-            cellVal.innerHTML = `<strong>${(virtual * precio).toFixed(2)}€</strong>`;
-            return;
-        }
+            const item = {
+                id: dataId,
+                stock_real: nuevoReal,
+            };
+            adjustments.push(item);
 
-        const real = parseFloat(val);
-        const diff = real - virtual;
-
-        cellDiff.textContent = diff.toFixed(2);
-        if (diff < 0) cellDiff.style.color = '#ef4444';
-        else if (diff > 0) cellDiff.style.color = '#10b981';
-        else cellDiff.style.color = '#666';
-
-        // Actualizar Valor Stock (REAL * Precio)
-        cellVal.innerHTML = `<strong>${(real * precio).toFixed(2)}€</strong>`;
-    };
-
-    // Función para mostrar calculadora de conversión de formato
-    window.mostrarCalculadoraFormato = function (ingredienteId, formato, cantidadPorFormato, unidad, nombreIngrediente) {
-        // Si no tiene formato configurado, permitir introducción manual
-        if (!formato || !cantidadPorFormato) {
-            const respuesta = prompt(`${nombreIngrediente || 'Este ingrediente'} no tiene formato de compra configurado.\n\nIntroduce manualmente:\n1. Nombre del formato (ej: bote, caja, garrafa)\n2. Cantidad por formato en ${unidad}\n\nEjemplo: "bote,0.5" significa 1 bote = 0.5 ${unidad}\n\nEscribe formato,cantidad:`);
-
-            if (!respuesta) return;
-
-            const partes = respuesta.split(',');
-            if (partes.length !== 2) {
-                showToast('Formato inválido. Usa: nombre,cantidad (ej: bote,0.5)', 'error');
-                return;
-            }
-
-            formato = partes[0].trim();
-            cantidadPorFormato = parseFloat(partes[1].trim());
-
-            if (isNaN(cantidadPorFormato) || cantidadPorFormato <= 0) {
-                showToast('Cantidad por formato inválida', 'error');
-                return;
-            }
-        }
-
-        const cantidad = prompt(`¿Cuántos ${formato}s tienes?\n\n(Cada ${formato} = ${cantidadPorFormato} ${unidad})`);
-
-        if (cantidad === null || cantidad === '') return;
-
-        const numCantidad = parseFloat(cantidad);
-        if (isNaN(numCantidad) || numCantidad < 0) {
-            showToast('Cantidad inválida', 'error');
-            return;
-        }
-
-        // Calcular el stock en unidad base
-        const stockCalculado = (numCantidad * cantidadPorFormato).toFixed(2);
-
-        // Actualizar el input
-        const input = document.getElementById(`stock-real-${ingredienteId}`) ||
-            document.querySelector(`.input-stock-real[data-id="${ingredienteId}"]`);
-        if (input) {
-            input.value = stockCalculado;
-            window.updateDifferenceCell(input);
-            window.stockRealCache[ingredienteId] = stockCalculado;
-            showToast(`${numCantidad} ${formato}s = ${stockCalculado} ${unidad}`, 'success');
-        }
-    };
-
-    // Función global para actualizar stock real
-    // Función para guardar stock masivo
-    // Función para guardar stock masivo con lógica de mermas
-    window.guardarCambiosStock = async function () {
-        const inputs = document.querySelectorAll('.input-stock-real');
-        const adjustments = [];
-        const mermas = [];
-
-        inputs.forEach(input => {
-            const val = input.value;
-            if (val !== '' && val !== null) {
-                const nuevoReal = parseFloat(val);
-                const dataId = parseInt(input.dataset.id);
-                const stockVirtual = parseFloat(input.dataset.stockVirtual || 0);
-
-                // Solo nos importa si hay cambios (aunque la lógica pide ajustar si es positivo,
-                // asumimos que si el usuario escribe algo es porque quiere fijarlo)
-                // Pero podemos optimizar enviando solo lo que difiere o todo lo escrito.
-                // El usuario dijo "Update Stock" button allow users to edit multiple...
-                // Enviamos todo lo que tenga valor explícito en el input.
-
-                const item = {
+            // Detectar mermas (Real < Ficticio)
+            // Nota: Javascript floats pueden ser tricky, usamos una pequeña tolerancia o simple comparación
+            if (nuevoReal < stockVirtual) {
+                const nombreIng =
+                    window.ingredientes.find(i => i.id === dataId)?.nombre ||
+                    'Ingrediente ' + dataId;
+                mermas.push({
                     id: dataId,
-                    stock_real: nuevoReal,
-                };
-                adjustments.push(item);
-
-                // Detectar mermas (Real < Ficticio)
-                // Nota: Javascript floats pueden ser tricky, usamos una pequeña tolerancia o simple comparación
-                if (nuevoReal < stockVirtual) {
-                    const nombreIng =
-                        window.ingredientes.find(i => i.id === dataId)?.nombre ||
-                        'Ingrediente ' + dataId;
-                    mermas.push({
-                        id: dataId,
-                        nombre: nombreIng,
-                        diferencia: (stockVirtual - nuevoReal).toFixed(2),
-                    });
-                }
+                    nombre: nombreIng,
+                    diferencia: (stockVirtual - nuevoReal).toFixed(2),
+                });
             }
-        });
-
-        if (adjustments.length === 0) {
-            showToast('No hay datos para guardar', 'info');
-            return;
         }
+    });
 
-        // Lógica de confirmación
-        if (mermas.length > 0) {
-            // Abrir modal de gestión de mermas
-            window.mostrarModalConfirmarMermas(adjustments, mermas);
-            return;
+    if (adjustments.length === 0) {
+        showToast('No hay datos para guardar', 'info');
+        return;
+    }
+
+    // Lógica de confirmación
+    if (mermas.length > 0) {
+        // Abrir modal de gestión de mermas
+        window.mostrarModalConfirmarMermas(adjustments, mermas);
+        return;
+    }
+
+    let mensajeConfirmacion = `¿Actualizar stock de ${adjustments.length} ingredientes?`;
+    mensajeConfirmacion += `\n\nEl stock ficticio se ajustará automáticamente al stock real ingresado.`;
+
+    if (!confirm(mensajeConfirmacion)) return;
+
+    try {
+        showLoading();
+        // Usamos el endpoint de consolidación que actualiza AMBOS (read y actual)
+        await api.consolidateStock(adjustments);
+        // Limpiar cache después de guardar exitosamente
+        window.stockRealCache = {};
+        await window.renderizarInventario();
+        hideLoading();
+        showToast('Inventario consolidado correctamente', 'success');
+    } catch (error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'error');
+    }
+};
+
+// Variables para el modal de mermas (Snapshot y Ajustes)
+let currentSnapshots = [];
+let currentAdjustmentsMap = {}; // Map ingId -> Array of reasons
+
+window.mostrarModalConfirmarMermas = function (snapshotsData) {
+    currentSnapshots = snapshotsData;
+    currentAdjustmentsMap = {};
+
+    // Inicializar ajustes vacíos
+    currentSnapshots.forEach(snap => {
+        const diff = snap.stock_real - snap.stock_virtual;
+        // Si falta stock (diff negativa), proponemos una fila inicial por defecto
+        if (diff < 0) {
+            currentAdjustmentsMap[snap.id] = [
+                {
+                    id: Date.now() + Math.random(),
+                    cantidad: Math.abs(diff), // Sugerimos todo como una causa inicial
+                    motivo: 'Caduco',
+                    notas: '',
+                },
+            ];
+        } else {
+            // Si sobra stock (diff positiva), también se debe justificar
+            currentAdjustmentsMap[snap.id] = [
+                {
+                    id: Date.now() + Math.random(),
+                    cantidad: diff,
+                    motivo: 'Error de Inventario', // Default positivo
+                    notas: '',
+                },
+            ];
         }
+    });
 
-        let mensajeConfirmacion = `¿Actualizar stock de ${adjustments.length} ingredientes?`;
-        mensajeConfirmacion += `\n\nEl stock ficticio se ajustará automáticamente al stock real ingresado.`;
+    window.renderTablaSplits();
+    document.getElementById('modal-confirmar-mermas').classList.add('active');
+};
 
-        if (!confirm(mensajeConfirmacion)) return;
+window.renderTablaSplits = function () {
+    const tbody = document.getElementById('tabla-mermas-body');
+    tbody.innerHTML = '';
 
-        try {
-            showLoading();
-            // Usamos el endpoint de consolidación que actualiza AMBOS (read y actual)
-            await api.consolidateStock(adjustments);
-            // Limpiar cache después de guardar exitosamente
-            window.stockRealCache = {};
-            await window.renderizarInventario();
-            hideLoading();
-            showToast('Inventario consolidado correctamente', 'success');
-        } catch (error) {
-            hideLoading();
-            showToast('Error: ' + error.message, 'error');
-        }
-    };
+    let totalValid = true;
 
-    // Variables para el modal de mermas (Snapshot y Ajustes)
-    let currentSnapshots = [];
-    let currentAdjustmentsMap = {}; // Map ingId -> Array of reasons
+    currentSnapshots.forEach(snap => {
+        const ing = ingredientes.find(i => i.id === snap.id);
+        const nombre = ing ? ing.nombre : 'Unknown';
+        const diffTotal = snap.stock_real - snap.stock_virtual;
+        const isNegative = diffTotal < 0;
+        const sign = isNegative ? '-' : '+';
+        const color = isNegative ? '#ef4444' : '#10b981';
 
-    window.mostrarModalConfirmarMermas = function (snapshotsData) {
-        currentSnapshots = snapshotsData;
-        currentAdjustmentsMap = {};
+        // Calcular cuánto llevamos asignado
+        const asignado = currentAdjustmentsMap[snap.id].reduce(
+            (sum, adj) => sum + parseFloat(adj.cantidad || 0),
+            0
+        );
+        // La suma de ajustes (siempre positivos en input) debe igualar el valor absoluto de la diferencia
+        const target = Math.abs(diffTotal);
+        const restante = target - asignado;
+        const isMatch = Math.abs(restante) < 0.01;
 
-        // Inicializar ajustes vacíos
-        currentSnapshots.forEach(snap => {
-            const diff = snap.stock_real - snap.stock_virtual;
-            // Si falta stock (diff negativa), proponemos una fila inicial por defecto
-            if (diff < 0) {
-                currentAdjustmentsMap[snap.id] = [
-                    {
-                        id: Date.now() + Math.random(),
-                        cantidad: Math.abs(diff), // Sugerimos todo como una causa inicial
-                        motivo: 'Caduco',
-                        notas: '',
-                    },
-                ];
-            } else {
-                // Si sobra stock (diff positiva), también se debe justificar
-                currentAdjustmentsMap[snap.id] = [
-                    {
-                        id: Date.now() + Math.random(),
-                        cantidad: diff,
-                        motivo: 'Error de Inventario', // Default positivo
-                        notas: '',
-                    },
-                ];
-            }
-        });
+        if (!isMatch) totalValid = false;
 
-        window.renderTablaSplits();
-        document.getElementById('modal-confirmar-mermas').classList.add('active');
-    };
-
-    window.renderTablaSplits = function () {
-        const tbody = document.getElementById('tabla-mermas-body');
-        tbody.innerHTML = '';
-
-        let totalValid = true;
-
-        currentSnapshots.forEach(snap => {
-            const ing = ingredientes.find(i => i.id === snap.id);
-            const nombre = ing ? ing.nombre : 'Unknown';
-            const diffTotal = snap.stock_real - snap.stock_virtual;
-            const isNegative = diffTotal < 0;
-            const sign = isNegative ? '-' : '+';
-            const color = isNegative ? '#ef4444' : '#10b981';
-
-            // Calcular cuánto llevamos asignado
-            const asignado = currentAdjustmentsMap[snap.id].reduce(
-                (sum, adj) => sum + parseFloat(adj.cantidad || 0),
-                0
-            );
-            // La suma de ajustes (siempre positivos en input) debe igualar el valor absoluto de la diferencia
-            const target = Math.abs(diffTotal);
-            const restante = target - asignado;
-            const isMatch = Math.abs(restante) < 0.01;
-
-            if (!isMatch) totalValid = false;
-
-            // Fila Cabecera Ingrediente
-            const trHeader = document.createElement('tr');
-            trHeader.style.background = '#f1f5f9';
-            trHeader.innerHTML = `
+        // Fila Cabecera Ingrediente
+        const trHeader = document.createElement('tr');
+        trHeader.style.background = '#f1f5f9';
+        trHeader.innerHTML = `
                     <td colspan="4" style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <strong>${nombre}</strong>
@@ -5404,12 +5408,12 @@
                         </div>
                     </td>
                 `;
-            tbody.appendChild(trHeader);
+        tbody.appendChild(trHeader);
 
-            // Filas de Ajustes (Splits)
-            currentAdjustmentsMap[snap.id].forEach((adj, idx) => {
-                const trAdj = document.createElement('tr');
-                trAdj.innerHTML = `
+        // Filas de Ajustes (Splits)
+        currentAdjustmentsMap[snap.id].forEach((adj, idx) => {
+            const trAdj = document.createElement('tr');
+            trAdj.innerHTML = `
                         <td style="padding-left: 20px;">
                             <span style="color:#aaa; font-size:12px;">↳ Ajuste ${idx + 1}</span>
                         </td>
@@ -5437,229 +5441,229 @@
                             <button onclick="window.removeSplit(${snap.id}, ${adj.id})" style="background:none; border:none; cursor:pointer;">❌</button>
                         </td>
                     `;
-                tbody.appendChild(trAdj);
-            });
+            tbody.appendChild(trAdj);
+        });
 
-            // Botón añadir split
-            const trAdd = document.createElement('tr');
-            trAdd.innerHTML = `
+        // Botón añadir split
+        const trAdd = document.createElement('tr');
+        trAdd.innerHTML = `
                     <td colspan="4" style="text-align:right; padding:5px; border-bottom: 2px solid #e2e8f0;">
                         <button onclick="window.addSplit(${snap.id})" style="font-size:12px; color:#3b82f6; background:none; border:none; cursor:pointer; font-weight:600;">+ Dividir diferencia</button>
                     </td>
                  `;
-            tbody.appendChild(trAdd);
-        });
+        tbody.appendChild(trAdd);
+    });
 
-        const btn = document.getElementById('btn-confirmar-split');
-        const alertBox = document.getElementById('mermas-alert-box');
+    const btn = document.getElementById('btn-confirmar-split');
+    const alertBox = document.getElementById('mermas-alert-box');
 
-        if (totalValid) {
-            btn.disabled = false;
-            btn.style.opacity = 1;
-            alertBox.style.display = 'none';
-        } else {
-            btn.disabled = true;
-            btn.style.opacity = 0.5;
-            alertBox.textContent =
-                '⚠️ Debes asignar la cantidad exacta total para todos los ingredientes antes de confirmar.';
-            alertBox.style.display = 'block';
-        }
-    };
+    if (totalValid) {
+        btn.disabled = false;
+        btn.style.opacity = 1;
+        alertBox.style.display = 'none';
+    } else {
+        btn.disabled = true;
+        btn.style.opacity = 0.5;
+        alertBox.textContent =
+            '⚠️ Debes asignar la cantidad exacta total para todos los ingredientes antes de confirmar.';
+        alertBox.style.display = 'block';
+    }
+};
 
-    window.updateSplitAmount = (ingId, adjId, val) => {
-        const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
-        // Si val es vacío o inválido, usamos 0
-        if (adj) adj.cantidad = parseFloat(val) || 0;
-        window.renderTablaSplits();
-    };
+window.updateSplitAmount = (ingId, adjId, val) => {
+    const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
+    // Si val es vacío o inválido, usamos 0
+    if (adj) adj.cantidad = parseFloat(val) || 0;
+    window.renderTablaSplits();
+};
 
-    window.updateSplitReason = (ingId, adjId, val) => {
-        const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
-        if (adj) adj.motivo = val;
-    };
+window.updateSplitReason = (ingId, adjId, val) => {
+    const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
+    if (adj) adj.motivo = val;
+};
 
-    window.updateSplitNote = (ingId, adjId, val) => {
-        const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
-        if (adj) adj.notas = val;
-    };
+window.updateSplitNote = (ingId, adjId, val) => {
+    const adj = currentAdjustmentsMap[ingId].find(a => a.id === adjId);
+    if (adj) adj.notas = val;
+};
 
-    window.addSplit = ingId => {
-        currentAdjustmentsMap[ingId].push({
-            id: Date.now(),
-            cantidad: 0,
-            motivo: 'Caduco',
-            notas: '',
-        });
-        window.renderTablaSplits();
-    };
+window.addSplit = ingId => {
+    currentAdjustmentsMap[ingId].push({
+        id: Date.now(),
+        cantidad: 0,
+        motivo: 'Caduco',
+        notas: '',
+    });
+    window.renderTablaSplits();
+};
 
-    window.removeSplit = (ingId, adjId) => {
-        currentAdjustmentsMap[ingId] = currentAdjustmentsMap[ingId].filter(a => a.id !== adjId);
-        window.renderTablaSplits();
-    };
+window.removeSplit = (ingId, adjId) => {
+    currentAdjustmentsMap[ingId] = currentAdjustmentsMap[ingId].filter(a => a.id !== adjId);
+    window.renderTablaSplits();
+};
 
-    window.confirmarMermasFinal = async function () {
-        // Flatten de todos los ajustes para enviar
-        const finalAdjustments = [];
+window.confirmarMermasFinal = async function () {
+    // Flatten de todos los ajustes para enviar
+    const finalAdjustments = [];
 
-        Object.keys(currentAdjustmentsMap).forEach(ingIdStr => {
-            const ingId = parseInt(ingIdStr);
-            currentAdjustmentsMap[ingId].forEach(adj => {
-                // Importante: Si la diferencia original era NEGATIVA, los ajustes son SALIDAS (negativos).
-                // Si era POSITIVA, son ENTRADAS (positivos).
-                // La UI muestra valores absolutos para simplificar, aquí aplicamos el signo.
-                const snap = currentSnapshots.find(s => s.id === ingId);
-                const isNegative = snap.stock_real - snap.stock_virtual < 0;
+    Object.keys(currentAdjustmentsMap).forEach(ingIdStr => {
+        const ingId = parseInt(ingIdStr);
+        currentAdjustmentsMap[ingId].forEach(adj => {
+            // Importante: Si la diferencia original era NEGATIVA, los ajustes son SALIDAS (negativos).
+            // Si era POSITIVA, son ENTRADAS (positivos).
+            // La UI muestra valores absolutos para simplificar, aquí aplicamos el signo.
+            const snap = currentSnapshots.find(s => s.id === ingId);
+            const isNegative = snap.stock_real - snap.stock_virtual < 0;
 
-                finalAdjustments.push({
-                    ingrediente_id: ingId,
-                    cantidad: isNegative ? -Math.abs(adj.cantidad) : Math.abs(adj.cantidad),
-                    motivo: adj.motivo,
-                    notas: adj.notas,
-                });
+            finalAdjustments.push({
+                ingrediente_id: ingId,
+                cantidad: isNegative ? -Math.abs(adj.cantidad) : Math.abs(adj.cantidad),
+                motivo: adj.motivo,
+                notas: adj.notas,
             });
         });
+    });
 
-        // Preparar payload para consolidate (Snapshots + Splits)
-        // FinalStock is just the target state for updating the master table
-        const finalStock = currentSnapshots.map(s => ({
-            id: s.id,
-            stock_real: s.stock_real,
-        }));
+    // Preparar payload para consolidate (Snapshots + Splits)
+    // FinalStock is just the target state for updating the master table
+    const finalStock = currentSnapshots.map(s => ({
+        id: s.id,
+        stock_real: s.stock_real,
+    }));
 
-        try {
-            document.getElementById('modal-confirmar-mermas').classList.remove('active');
-            showLoading();
+    try {
+        document.getElementById('modal-confirmar-mermas').classList.remove('active');
+        showLoading();
 
-            await api.consolidateStock(finalAdjustments, currentSnapshots, finalStock);
+        await api.consolidateStock(finalAdjustments, currentSnapshots, finalStock);
 
-            // Limpiar cache después de guardar exitosamente
-            window.stockRealCache = {};
-            await window.renderizarInventario();
-            hideLoading();
-            showToast('Ajustes de inventario registrados correctamente', 'success');
-        } catch (error) {
-            hideLoading();
-            showToast('Error: ' + error.message, 'error');
+        // Limpiar cache después de guardar exitosamente
+        window.stockRealCache = {};
+        await window.renderizarInventario();
+        hideLoading();
+        showToast('Ajustes de inventario registrados correctamente', 'success');
+    } catch (error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'error');
+    }
+};
+
+// MODIFICACION EN CLAVE: guardarCambiosStock (Nueva Lógica)
+window.guardarCambiosStock = async function () {
+    const inputs = document.querySelectorAll('.input-stock-real');
+    const changes = [];
+
+    inputs.forEach(input => {
+        const id = parseInt(input.dataset.id);
+        // Validación anti-NaN: Si dataset.stockVirtual falla, asumimos 0
+        const virtual = parseFloat(input.dataset.stockVirtual) || 0;
+        const real = parseFloat(input.value);
+
+        // Solo procesamos si hay cambio real
+        if (!isNaN(real) && Math.abs(real - virtual) > 0.001) {
+            changes.push({
+                id: id,
+                stock_virtual: virtual,
+                stock_real: real,
+            });
         }
-    };
+    });
 
-    // MODIFICACION EN CLAVE: guardarCambiosStock (Nueva Lógica)
-    window.guardarCambiosStock = async function () {
-        const inputs = document.querySelectorAll('.input-stock-real');
-        const changes = [];
+    if (changes.length === 0) {
+        showToast('No hay cambios en el stock para registrar', 'info');
+        return;
+    }
 
-        inputs.forEach(input => {
-            const id = parseInt(input.dataset.id);
-            // Validación anti-NaN: Si dataset.stockVirtual falla, asumimos 0
-            const virtual = parseFloat(input.dataset.stockVirtual) || 0;
-            const real = parseFloat(input.value);
+    // ABRIMOS DIRECTAMENTE EL CHECKER (Modal Split)
+    window.mostrarModalConfirmarMermas(changes);
+};
 
-            // Solo procesamos si hay cambio real
-            if (!isNaN(real) && Math.abs(real - virtual) > 0.001) {
-                changes.push({
-                    id: id,
-                    stock_virtual: virtual,
-                    stock_real: real,
-                });
-            }
-        });
+// Event listener para búsqueda de inventario
+document
+    .getElementById('busqueda-inventario')
+    .addEventListener('input', window.renderizarInventario);
 
-        if (changes.length === 0) {
-            showToast('No hay cambios en el stock para registrar', 'info');
+// Dashboard expandido - actualizar datos
+window.actualizarDashboardExpandido = async function () {
+    try {
+        // Verificar que los elementos existan antes de continuar
+        const ventasHoyEl = document.getElementById('ventas-hoy');
+        const ingresosHoyEl = document.getElementById('ingresos-hoy');
+        const platoEstrellaEl = document.getElementById('plato-estrella-hoy');
+        const alertasListaEl = document.getElementById('alertas-stock-lista');
+        const topRecetasEl = document.getElementById('top-recetas-lista');
+
+        if (!ventasHoyEl || !ingresosHoyEl || !platoEstrellaEl || !alertasListaEl) {
+            console.warn('Dashboard elements not loaded yet');
             return;
         }
 
-        // ABRIMOS DIRECTAMENTE EL CHECKER (Modal Split)
-        window.mostrarModalConfirmarMermas(changes);
-    };
+        const ventas = await api.getSales();
+        const hoy = new Date().toISOString().split('T')[0];
+        const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoy);
 
-    // Event listener para búsqueda de inventario
-    document
-        .getElementById('busqueda-inventario')
-        .addEventListener('input', window.renderizarInventario);
+        ventasHoyEl.textContent = ventasHoy.length;
+        const ingresosHoy = ventasHoy.reduce((sum, v) => sum + parseFloat(v.total), 0);
+        ingresosHoyEl.textContent = ingresosHoy.toFixed(0) + '€';
 
-    // Dashboard expandido - actualizar datos
-    window.actualizarDashboardExpandido = async function () {
-        try {
-            // Verificar que los elementos existan antes de continuar
-            const ventasHoyEl = document.getElementById('ventas-hoy');
-            const ingresosHoyEl = document.getElementById('ingresos-hoy');
-            const platoEstrellaEl = document.getElementById('plato-estrella-hoy');
-            const alertasListaEl = document.getElementById('alertas-stock-lista');
-            const topRecetasEl = document.getElementById('top-recetas-lista');
+        const platosHoy = {};
+        ventasHoy.forEach(v => {
+            platosHoy[v.receta_nombre] = (platosHoy[v.receta_nombre] || 0) + v.cantidad;
+        });
+        const platoEstrella = Object.entries(platosHoy).sort((a, b) => b[1] - a[1])[0];
+        platoEstrellaEl.textContent = platoEstrella
+            ? platoEstrella[0].substring(0, 10)
+            : 'Sin ventas';
 
-            if (!ventasHoyEl || !ingresosHoyEl || !platoEstrellaEl || !alertasListaEl) {
-                console.warn('Dashboard elements not loaded yet');
-                return;
-            }
+        // Alertas Stock
+        const alertas = window.ingredientes.filter(ing => {
+            const stockActual = parseFloat(ing.stock_actual) || 0;
+            const stockMinimo = parseFloat(ing.stock_minimo) || 0;
+            return stockMinimo > 0 && stockActual <= stockMinimo;
+        }).slice(0, 4); // Limitar a 4 para compacto
 
-            const ventas = await api.getSales();
-            const hoy = new Date().toISOString().split('T')[0];
-            const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoy);
-
-            ventasHoyEl.textContent = ventasHoy.length;
-            const ingresosHoy = ventasHoy.reduce((sum, v) => sum + parseFloat(v.total), 0);
-            ingresosHoyEl.textContent = ingresosHoy.toFixed(0) + '€';
-
-            const platosHoy = {};
-            ventasHoy.forEach(v => {
-                platosHoy[v.receta_nombre] = (platosHoy[v.receta_nombre] || 0) + v.cantidad;
-            });
-            const platoEstrella = Object.entries(platosHoy).sort((a, b) => b[1] - a[1])[0];
-            platoEstrellaEl.textContent = platoEstrella
-                ? platoEstrella[0].substring(0, 10)
-                : 'Sin ventas';
-
-            // Alertas Stock
-            const alertas = window.ingredientes.filter(ing => {
-                const stockActual = parseFloat(ing.stock_actual) || 0;
-                const stockMinimo = parseFloat(ing.stock_minimo) || 0;
-                return stockMinimo > 0 && stockActual <= stockMinimo;
-            }).slice(0, 4); // Limitar a 4 para compacto
-
-            if (alertas.length === 0) {
-                alertasListaEl.innerHTML = '<p style="color: #10B981; margin: 0; font-size: 12px;">✅ Stock OK</p>';
-            } else {
-                alertasListaEl.innerHTML = alertas
-                    .map(ing => '<div style="padding: 4px 0; border-bottom: 1px solid #fee2e2;"><strong>' + escapeHTML(ing.nombre) + '</strong>: ' + parseFloat(ing.stock_actual).toFixed(1) + ' ' + ing.unidad + '</div>')
-                    .join('');
-            }
-
-            // Top Recetas por margen
-            if (topRecetasEl && window.recetas && window.recetas.length > 0) {
-                const recetasConMargen = window.recetas
-                    .filter(r => r.precio_venta > 0)
-                    .map(r => {
-                        const coste = calcularCosteRecetaCompleto(r);
-                        const margen = ((r.precio_venta - coste) / r.precio_venta) * 100;
-                        return { nombre: r.nombre, margen };
-                    })
-                    .sort((a, b) => b.margen - a.margen)
-                    .slice(0, 3);
-
-                if (recetasConMargen.length > 0) {
-                    topRecetasEl.innerHTML = recetasConMargen
-                        .map((r, i) =>
-                            '<div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f1f5f9;">' +
-                            '<span>' + (i + 1) + '. ' + escapeHTML(r.nombre.substring(0, 12)) + '</span>' +
-                            '<span style="color: ' + (r.margen >= 60 ? '#10B981' : r.margen >= 40 ? '#F59E0B' : '#EF4444') + '; font-weight: 600;">' + r.margen.toFixed(0) + '%</span></div>'
-                        )
-                        .join('');
-                } else {
-                    topRecetasEl.innerHTML = '<p style="color: #64748B; margin: 0; font-size: 12px;">Sin recetas</p>';
-                }
-            }
-        } catch (e) {
-            console.error('Error dashboard:', e);
+        if (alertas.length === 0) {
+            alertasListaEl.innerHTML = '<p style="color: #10B981; margin: 0; font-size: 12px;">✅ Stock OK</p>';
+        } else {
+            alertasListaEl.innerHTML = alertas
+                .map(ing => '<div style="padding: 4px 0; border-bottom: 1px solid #fee2e2;"><strong>' + escapeHTML(ing.nombre) + '</strong>: ' + parseFloat(ing.stock_actual).toFixed(1) + ' ' + ing.unidad + '</div>')
+                .join('');
         }
-    };
 
-    // Verificar autenticación al cargar
-    if (checkAuth()) {
-        init();
+        // Top Recetas por margen
+        if (topRecetasEl && window.recetas && window.recetas.length > 0) {
+            const recetasConMargen = window.recetas
+                .filter(r => r.precio_venta > 0)
+                .map(r => {
+                    const coste = calcularCosteRecetaCompleto(r);
+                    const margen = ((r.precio_venta - coste) / r.precio_venta) * 100;
+                    return { nombre: r.nombre, margen };
+                })
+                .sort((a, b) => b.margen - a.margen)
+                .slice(0, 3);
+
+            if (recetasConMargen.length > 0) {
+                topRecetasEl.innerHTML = recetasConMargen
+                    .map((r, i) =>
+                        '<div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f1f5f9;">' +
+                        '<span>' + (i + 1) + '. ' + escapeHTML(r.nombre.substring(0, 12)) + '</span>' +
+                        '<span style="color: ' + (r.margen >= 60 ? '#10B981' : r.margen >= 40 ? '#F59E0B' : '#EF4444') + '; font-weight: 600;">' + r.margen.toFixed(0) + '%</span></div>'
+                    )
+                    .join('');
+            } else {
+                topRecetasEl.innerHTML = '<p style="color: #64748B; margin: 0; font-size: 12px;">Sin recetas</p>';
+            }
+        }
+    } catch (e) {
+        console.error('Error dashboard:', e);
     }
-})();
+};
+
+// Verificar autenticación al cargar
+if (checkAuth()) {
+    init();
+}
+}) ();
 
 // === FUNCIONES DE AUTENTICACIÓN ===
 // MIGRADO A src/modules/auth/auth.js - 2026-01-30
