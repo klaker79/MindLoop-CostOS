@@ -272,6 +272,21 @@ import * as Dashboard from './modules/dashboard/dashboard.js';
 window.actualizarKPIs = Dashboard.actualizarKPIs;
 
 // ============================================
+// MÓDULO: BALANCE / P&L 💰
+// ============================================
+import * as Balance from './modules/balance/index.js';
+
+window.renderizarBalance = Balance.renderizarBalance;
+window.calcularPL = Balance.calcularPL;
+
+// ============================================
+// MÓDULO: SIMULADOR FINANCIERO 📊
+// ============================================
+import * as Simulador from './modules/simulador/index.js';
+
+window.actualizarSimulador = Simulador.actualizarSimulador;
+
+// ============================================
 // MÓDULO: HORARIOS 👥 (MindLoop Staff Scheduler)
 // ============================================
 import * as Horarios from './modules/horarios/horarios.js';
