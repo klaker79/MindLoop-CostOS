@@ -3285,6 +3285,9 @@
         };
         */
 
+    // MIGRADO A src/modules/proveedores/proveedores-ui.js - 2026-01-30
+    // Se expone en main.js líneas 217-218
+    /*
     window.verProveedorDetalles = function (id) {
         const prov = proveedores.find(p => p.id === id);
         if (!prov) return;
@@ -3318,6 +3321,7 @@
     window.cerrarModalVerProveedor = function () {
         document.getElementById('modal-ver-proveedor').classList.remove('active');
     };
+    */
 
     window.renderizarProveedores = function () {
         const busqueda = document.getElementById('busqueda-proveedores').value.toLowerCase();
