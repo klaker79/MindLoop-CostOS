@@ -28,6 +28,13 @@
 import './vendors.js';
 
 // ============================================
+// CSS DE COMPONENTES - Estilos para componentes Clean Architecture
+// ============================================
+import './styles/components/alert-panel.css';
+import './styles/components/kpi-dashboard.css';
+import './styles/components/cost-breakdown.css';
+
+// ============================================
 // CONFIGURACIÓN GLOBAL - Multi-tenant
 // ⚡ Exponer ANTES de cualquier código legacy
 // ============================================
