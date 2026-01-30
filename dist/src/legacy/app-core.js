@@ -3378,6 +3378,9 @@
      * Fecha migración: 2025-12-21
      * NO BORRAR hasta validar 100% producción
      * ======================================== */
+    // MIGRADO A src/modules/pedidos/pedidos-ui.js - 2026-01-30
+    // Se expone en main.js: window.mostrarFormularioPedido = PedidosUI.mostrarFormularioPedido
+    /*
     window.mostrarFormularioPedido = function () {
         if (proveedores.length === 0) {
             showToast('Primero añade proveedores', 'warning');
@@ -3395,6 +3398,7 @@
         document.getElementById('formulario-pedido').style.display = 'block';
         document.getElementById('ped-proveedor').focus();
     };
+    */
 
     window.cerrarFormularioPedido = function () {
         document.getElementById('formulario-pedido').style.display = 'none';
@@ -3643,9 +3647,10 @@
     // MIGRADO A src/modules/pedidos/pedidos-crud.js - 2026-01-30
     // Se expone en main.js líneas 247-248
     /*
-    };
+    }; // fin eliminarPedido original
     */
 
+    /*
     let pedidoViendoId = null;
 
     window.verDetallesPedido = function (pedidoId) {
@@ -3767,6 +3772,7 @@
         pedidoViendoId = null;
     };
     */
+
     // Función auxiliar para calcular coste completo de receta
     window.calcularCosteRecetaCompleto = function (receta) {
         if (!receta || !receta.ingredientes) return 0;
