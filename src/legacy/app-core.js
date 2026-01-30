@@ -3808,7 +3808,9 @@
         return parseFloat((costeTotalLote / porciones).toFixed(2));
     };
 
-    window.descargarPedidoPDF = function () {
+    // MIGRADO A src/modules/pedidos/pedidos-pdf.js - 2026-01-30
+    // Se expone en main.js: window.descargarPedidoPDF = PedidosPDF.descargarPedidoPDF
+    /*
         if (pedidoViendoId === null) return;
 
         const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -4188,7 +4190,7 @@
             ventana.print();
         }, 250);
     };
-
+    */
     window.renderizarPedidos = function () {
         const busqueda = document.getElementById('busqueda-pedidos').value.toLowerCase();
         const filtrados = pedidos.filter(ped => {
@@ -5660,6 +5662,9 @@
 })();
 
 // === FUNCIONES DE AUTENTICACIÓN ===
+// MIGRADO A src/modules/auth/auth.js - 2026-01-30
+// Se expone en main.js: window.mostrarRegistro, window.mostrarLogin
+/*
 window.mostrarRegistro = function () {
     window.showToast(
         'Para registrar tu restaurante, contacta con soporte: hola@mindloop.cloud',
@@ -5671,3 +5676,4 @@ window.mostrarLogin = function () {
     // Recargar la página para volver al login
     window.location.reload();
 };
+*/
