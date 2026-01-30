@@ -185,6 +185,9 @@ export async function init() {
 
     // Inicializar fecha
     window.inicializarFechaActual?.();
+
+    // Dashboard expandido (Stock Bajo, Top Recetas, etc.)
+    window.actualizarDashboardExpandido?.();
 }
 
 /**
