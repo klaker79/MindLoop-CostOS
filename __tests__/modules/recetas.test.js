@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+// Tests para módulo recetas
 
 describe('Recetas Module', () => {
     describe('Cost Calculations', () => {

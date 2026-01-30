@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+// Tests para módulo inventario
 
 describe('Inventario Module', () => {
     describe('Stock Calculations', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+// Tests para módulo kpis
 
 describe('KPIs Module', () => {
     describe('Food Cost', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+// Tests para módulo balance
 
 describe('Balance Module', () => {
     describe('P&L Calculations', () => {
