@@ -212,7 +212,7 @@ export async function actualizarKPIs() {
         }
 
         // 3. STOCK BAJO
-        const ingredientes = ingredientStore.getState().ingredients;
+        const ingredientes = window.ingredientes || ingredientStore.getState().ingredients || [];
         const stockBajo = ingredientes.filter(ing => {
             const stock = parseFloat(ing.stock_actual) || parseFloat(ing.stockActual) || 0;
             const minimo = parseFloat(ing.stock_minimo) || parseFloat(ing.stockMinimo) || 0;
