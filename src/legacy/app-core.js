@@ -975,11 +975,15 @@
         }
     });
 
+    // MIGRADO A src/modules/auth/auth.js - 2026-01-30
+    // Se expone en main.js línea 470: window.logout = Auth.logout
+    /*
     window.logout = function () {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         location.reload();
     };
+    */
 
     // ========== GESTIÓN DE EQUIPO (Team Management) ==========
     window.renderizarEquipo = async function () {
@@ -2473,6 +2477,10 @@
     window.inicializarFechaActual = inicializarFechaActual;
     window.actualizarKPIsPorPeriodo = actualizarKPIsPorPeriodo;
 
+    // MIGRADO A src/modules/core/core.js - 2026-01-30
+    // Se expone en main.js línea 64: window.cambiarTab = Core.cambiarTab
+    // La versión modular incluye sidebar navigation y switch más limpio
+    /*
     window.cambiarTab = function (tab) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -2504,6 +2512,7 @@
             }
         }
     };
+    */
 
     // ========== INGREDIENTES (código completo pero resumido visualmente) ==========
     window.mostrarFormularioIngrediente = function () {
