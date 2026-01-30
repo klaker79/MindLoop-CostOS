@@ -3553,6 +3553,11 @@
     };
     */
 
+    // MIGRADO A src/modules/pedidos/pedidos-crud.js - 2026-01-30
+    // Funciones expuestas en main.js:
+    // - marcarPedidoRecibido, confirmarRecepcionPedido
+    // - actualizarItemRecepcion, cambiarEstadoItem, cerrarModalRecibirPedido
+    /*
     let pedidoRecibiendoId = null;
 
     window.marcarPedidoRecibido = function (id) {
@@ -3588,103 +3593,11 @@
     };
 
     function renderItemsRecepcion() {
-        const pedido = pedidos.find(p => p.id === pedidoRecibiendoId);
-        const tbody = getElement('modal-rec-items');
-        if (!tbody) return;
-
-        let html = '';
-        let totalOriginal = 0;
-        let totalRecibido = 0;
-
-        pedido.itemsRecepcion.forEach((item, idx) => {
-            const ing = ingredientes.find(i => i.id === item.ingredienteId);
-            if (!ing) return;
-
-            const subtotalOriginal = item.cantidad * item.precioUnitario;
-            const subtotalRecibido = item.cantidadRecibida * item.precioReal;
-            totalOriginal += subtotalOriginal;
-
-            if (item.estado !== 'no-entregado') {
-                totalRecibido += subtotalRecibido;
-            }
-
-            const varianzaCant = item.cantidadRecibida - item.cantidad;
-            const varianzaPrecio = item.precioReal - item.precioUnitario;
-
-            html += '<tr>';
-            html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
-            html += `<td>${item.cantidad} ${ing.unidad}</td>`;
-            html += `<td>`;
-            if (item.estado === 'no-entregado') {
-                html += '<span style="color:#999;">No entregado</span>';
-            } else {
-                html += `<input type="number" value="${item.cantidadRecibida}" step="0.01" min="0" 
-              style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"
-              oninput="window.actualizarItemRecepcion(${idx}, 'cantidad', this.value)"> ${ing.unidad}`;
-                if (Math.abs(varianzaCant) > 0.01) {
-                    html += `<br><small style="color:${varianzaCant > 0 ? '#10b981' : '#ef4444'};">${varianzaCant > 0 ? '+' : ''}${varianzaCant.toFixed(2)}</small>`;
-                }
-            }
-            html += `</td>`;
-            html += `<td>${parseFloat(item.precioUnitario || 0).toFixed(2)} €</td>`;
-            html += `<td>`;
-            if (item.estado === 'no-entregado') {
-                html += '<span style="color:#999;">-</span>';
-            } else {
-                html += `<input type="number" value="${item.precioReal}" step="0.01" min="0" 
-              style="width:80px;padding:5px;border:1px solid #ddd;border-radius:4px;"
-              oninput="window.actualizarItemRecepcion(${idx}, 'precio', this.value)"> €`;
-                if (Math.abs(varianzaPrecio) > 0.01) {
-                    html += `<br><small style="color:${varianzaPrecio > 0 ? '#ef4444' : '#10b981'};">${varianzaPrecio > 0 ? '+' : ''}${varianzaPrecio.toFixed(2)} €</small>`;
-                }
-            }
-            html += `</td>`;
-            html += `<td><strong>${item.estado === 'no-entregado' ? '0.00' : subtotalRecibido.toFixed(2)} €</strong></td>`;
-            html += `<td>`;
-            html += `<select onchange="window.cambiarEstadoItem(${idx}, this.value)" style="padding:5px;border:1px solid #ddd;border-radius:4px;">`;
-            html += `<option value="consolidado" ${item.estado === 'consolidado' ? 'selected' : ''}>✅ OK</option>`;
-            html += `<option value="varianza" ${item.estado === 'varianza' ? 'selected' : ''}>⚠️ Varianza</option>`;
-            html += `<option value="no-entregado" ${item.estado === 'no-entregado' ? 'selected' : ''}>❌ No entregado</option>`;
-            html += `</select>`;
-            html += `</td>`;
-            html += '</tr>';
-        });
-
-        tbody.innerHTML = html;
-
-        // Actualizar resumen
-        const varianza = totalRecibido - totalOriginal;
-        setElementText('modal-rec-resumen-original', totalOriginal.toFixed(2) + ' €');
-        setElementText('modal-rec-resumen-recibido', totalRecibido.toFixed(2) + ' €');
-
-        const varianzaEl = getElement('modal-rec-resumen-varianza');
-        if (varianzaEl) {
-            varianzaEl.textContent = (varianza >= 0 ? '+' : '') + varianza.toFixed(2) + ' €';
-            varianzaEl.style.color = varianza > 0 ? '#ef4444' : varianza < 0 ? '#10b981' : '#666';
-        }
+        // ... (función interna de renderizado)
     }
 
     window.actualizarItemRecepcion = function (idx, tipo, valor) {
-        const pedido = pedidos.find(p => p.id === pedidoRecibiendoId);
-        const item = pedido.itemsRecepcion[idx];
-
-        if (tipo === 'cantidad') {
-            item.cantidadRecibida = parseFloat(valor) || 0;
-            if (Math.abs(item.cantidadRecibida - item.cantidad) > 0.01) {
-                item.estado = 'varianza';
-            } else if (item.estado === 'varianza') {
-                item.estado = 'consolidado';
-            }
-        } else if (tipo === 'precio') {
-            item.precioReal = parseFloat(valor) || 0;
-            if (Math.abs(item.precioReal - item.precioUnitario) > 0.01) {
-                item.estado = 'varianza';
-            } else if (item.estado === 'varianza') {
-                item.estado = 'consolidado';
-            }
-        }
-
-        renderItemsRecepcion();
+        // ... actualización de items
     };
 
     window.cambiarEstadoItem = function (idx, estado) {
@@ -3699,64 +3612,9 @@
     };
 
     window.confirmarRecepcionPedido = async function () {
-        if (
-            !confirm(
-                '¿Confirmar recepción del pedido? Esto actualizará el stock con las cantidades recibidas.'
-            )
-        ) {
-            return;
-        }
-
-        const pedido = pedidos.find(p => p.id === pedidoRecibiendoId);
-
-        // Actualizar stock con cantidades reales recibidas
-        let totalRecibido = 0;
-
-        showLoading();
-
-        try {
-            const items = pedido.itemsRecepcion || pedido.ingredientes;
-            for (const item of items) {
-                if (item.estado !== 'no-entregado') {
-                    const ing = ingredientes.find(i => i.id === item.ingredienteId);
-                    if (ing) {
-                        await api.updateIngrediente(ing.id, {
-                            ...ing,
-                            stock_actual:
-                                parseFloat(ing.stock_actual || 0) +
-                                parseFloat(item.cantidadRecibida || item.cantidad || 0),
-                        });
-                    }
-                    totalRecibido += item.cantidadRecibida * item.precioReal;
-                }
-            }
-
-            // Actualizar pedido
-            await api.updatePedido(pedidoRecibiendoId, {
-                ...pedido,
-                estado: 'recibido',
-                totalRecibido: totalRecibido,
-                ingredientes: pedido.itemsRecepcion.map(item => ({
-                    ...item,
-                    precioReal: item.precioReal || item.precioUnitario,
-                })),
-            });
-
-            await cargarDatos();
-            renderizarPedidos();
-            renderizarIngredientes();
-            renderizarInventario();
-            window.actualizarKPIs();
-            window.actualizarDashboardExpandido();
-            window.cerrarModalRecibirPedido();
-            hideLoading();
-            showToast('Pedido recibido y stock actualizado correctamente', 'success');
-        } catch (error) {
-            hideLoading();
-            console.error('Error:', error);
-            showToast('Error confirmando recepción: ' + error.message, 'error');
-        }
+        // ... confirmación y actualización de stock
     };
+    */
 
     // MIGRADO A src/modules/pedidos/pedidos-crud.js - 2026-01-30
     // Se expone en main.js línea 243: window.eliminarPedido = PedidosCRUD.eliminarPedido
