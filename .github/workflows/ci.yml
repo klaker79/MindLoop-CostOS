@@ -24,7 +24,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm test -- --passWithNoTests
+        run: npm test -- --passWithNoTests --forceExit
 
       - name: Build
         run: npm run build
