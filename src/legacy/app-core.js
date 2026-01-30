@@ -2485,10 +2485,12 @@
         }
     };
 
-    // Verificar autenticación al cargar
-    if (typeof window.checkAuth === 'function' && window.checkAuth()) {
-        init();
-    }
+    // Verificar autenticación al cargar (después de que main.js defina checkAuth)
+    window.addEventListener('load', function () {
+        if (typeof window.checkAuth === 'function' && window.checkAuth()) {
+            init();
+        }
+    });
 })();
 
 // === FUNCIONES DE AUTENTICACIÓN ===
