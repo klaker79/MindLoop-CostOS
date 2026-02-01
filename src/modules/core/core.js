@@ -6,6 +6,7 @@
 import { getApiUrl } from '../../config/app-config.js';
 // 🆕 Zustand stores for state management
 import ingredientStore from '../../stores/ingredientStore.js';
+import { recipeStore } from '../../stores/recipeStore.js';
 import { initializeStores } from '../../stores/index.js';
 
 const API_BASE = getApiUrl();
@@ -96,6 +97,7 @@ async function _cargarDatosInternal() {
         // 🆕 Sync to Zustand stores (gradual migration)
         try {
             ingredientStore.getState().setIngredients(window.ingredientes);
+            recipeStore.getState().setRecipes(window.recetas);
         } catch (e) {
             console.warn('⚠️ Zustand sync failed (non-critical):', e.message);
         }
