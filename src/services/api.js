@@ -11,7 +11,7 @@ import { logger } from '../utils/logger.js';
 
 // API Base URL - configurable via environment variables
 // Fallback a URL de producción si no está configurada
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://lacaleta-api.mindloop.cloud';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 // Estado global de la aplicación
 const AppState = {

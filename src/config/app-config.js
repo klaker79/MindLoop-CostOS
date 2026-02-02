@@ -16,7 +16,7 @@ export const appConfig = {
      * Configuración de API
      */
     api: {
-        baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://lacaleta-api.mindloop.cloud',
+        baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001',
         timeout: 30000, // 30 segundos
         retries: 3,
         retryDelay: 1000, // 1 segundo entre reintentos
@@ -175,7 +175,7 @@ export function exportConfig() {
  * @returns {string} URL base de la API
  * 
  * @example
- * getApiBaseUrl() // 'https://lacaleta-api.mindloop.cloud'
+ * getApiBaseUrl() // 'http://localhost:3001'
  * getApiBaseUrl() + '/api/ingredientes'
  */
 export function getApiBaseUrl() {
