@@ -281,6 +281,15 @@ window.renderizarBalance = Balance.renderizarBalance;
 window.calcularPL = Balance.calcularPL;
 
 // ============================================
+// MÓDULO: P&L REPORT - Filtro por rango y PDF 📊
+// ============================================
+import * as PLReport from './modules/diario/pl-report.js';
+
+window.filtrarPLPorRango = PLReport.filtrarPLPorRango;
+window.limpiarFiltroPL = PLReport.limpiarFiltroPL;
+window.exportarPDFInformePL = PLReport.exportarPDFInformePL;
+
+// ============================================
 // MÓDULO: SIMULADOR FINANCIERO 📊
 // ============================================
 import * as Simulador from './modules/simulador/index.js';

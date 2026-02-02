@@ -1518,6 +1518,37 @@
             </div>
           </div>
 
+          <!-- Filtro por Rango de Fechas -->
+          <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid #bae6fd;">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+              <span style="font-weight: 600; color: #0369a1; display: flex; align-items: center; gap: 6px;">
+                📅 Filtrar por rango:
+              </span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="color: #475569; font-size: 14px;">Desde:</label>
+                <input type="date" id="diario-fecha-desde"
+                  style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="color: #475569; font-size: 14px;">Hasta:</label>
+                <input type="date" id="diario-fecha-hasta"
+                  style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+              </div>
+              <button class="btn btn-primary" onclick="window.filtrarPLPorRango()"
+                style="padding: 8px 16px; font-size: 14px;">
+                🔍 Aplicar Filtro
+              </button>
+              <button class="btn btn-secondary" onclick="window.limpiarFiltroPL()"
+                style="padding: 8px 16px; font-size: 14px;">
+                ↩️ Ver Todo
+              </button>
+              <button class="btn" onclick="window.exportarPDFInformePL()"
+                style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 8px 16px; font-size: 14px;">
+                📄 Exportar PDF
+              </button>
+            </div>
+          </div>
+
           <!-- Selector de Vista -->
           <div style="display: flex; gap: 10px; margin-bottom: 20px;">
             <button id="btn-vista-compras" class="btn btn-primary" data-action="vista-diario" data-vista="compras">🛒
