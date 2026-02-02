@@ -659,10 +659,19 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(updateAlertBadge, 3000); // Después de que carguen datos
 });
 
-// Actualizar cada 5 minutos
-setInterval(updateAlertBadge, 5 * 60 * 1000);
+// Actualizar cada 5 minutos (con cleanup para evitar memory leaks)
+let alertBadgeInterval = setInterval(updateAlertBadge, 5 * 60 * 1000);
+
+// Función para detener actualizaciones (llamar en logout)
+function stopAlertUpdates() {
+    if (alertBadgeInterval) {
+        clearInterval(alertBadgeInterval);
+        alertBadgeInterval = null;
+    }
+}
 
 // Exponer para actualización manual
 window.updateAlertBadge = updateAlertBadge;
 window.showAlertModal = showAlertModal;
 window.closeAlertModal = closeAlertModal;
+window.stopAlertUpdates = stopAlertUpdates;

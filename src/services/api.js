@@ -449,6 +449,11 @@ async function login(email, password) {
 }
 
 async function logout() {
+    // Detener intervalos activos para evitar memory leaks
+    if (typeof window.stopAlertUpdates === 'function') {
+        window.stopAlertUpdates();
+    }
+
     // Llamar al backend para limpiar cookie httpOnly
     try {
         await fetch(`${API_BASE}/api/auth/logout`, {
