@@ -718,7 +718,7 @@ window.procesarArchivoVentas = async function (input) {
             });
 
             // Llamar al endpoint del backend
-            const response = await fetch(`${window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud'}/api/parse-pdf`, {
+            const response = await fetch(`${window.API_CONFIG?.baseUrl || 'http://localhost:3001'}/api/parse-pdf`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1292,6 +1292,285 @@ window.cancelarImportarPedidos = function () {
 // Global para que modales.js pueda acceder
 window.datosResumenMensual = null;
 
+// ========== P&L RANGO DE FECHAS + PDF ==========
+// Variables para filtro de fechas personalizado
+window.plRangoDesde = null;
+window.plRangoHasta = null;
+
+// Mostrar/ocultar panel de rango de fechas
+window.toggleRangoFechasPL = function () {
+    const container = document.getElementById('pl-rango-container');
+    if (container) {
+        const visible = container.style.display !== 'none';
+        container.style.display = visible ? 'none' : 'flex';
+        if (!visible) {
+            // Pre-llenar con primer y último día del mes actual
+            const mes = parseInt(document.getElementById('diario-mes').value);
+            const ano = parseInt(document.getElementById('diario-ano').value);
+            const primerDia = new Date(ano, mes - 1, 1).toISOString().split('T')[0];
+            const ultimoDia = new Date(ano, mes, 0).toISOString().split('T')[0];
+            document.getElementById('pl-fecha-desde').value = primerDia;
+            document.getElementById('pl-fecha-hasta').value = ultimoDia;
+        }
+    }
+};
+
+// Aplicar filtro de rango
+window.aplicarRangoPL = async function () {
+    const desde = document.getElementById('pl-fecha-desde').value;
+    const hasta = document.getElementById('pl-fecha-hasta').value;
+
+    if (!desde || !hasta) {
+        window.showToast('Selecciona ambas fechas', 'warning');
+        return;
+    }
+
+    if (new Date(desde) > new Date(hasta)) {
+        window.showToast('La fecha "Desde" debe ser anterior a "Hasta"', 'error');
+        return;
+    }
+
+    window.plRangoDesde = desde;
+    window.plRangoHasta = hasta;
+
+    // Re-renderizar con filtro
+    await renderizarTablaPLDiario();
+    window.showToast(`P&L filtrado: ${desde} → ${hasta}`, 'success');
+};
+
+// Limpiar filtro (ver mes completo)
+window.limpiarRangoPL = async function () {
+    window.plRangoDesde = null;
+    window.plRangoHasta = null;
+    document.getElementById('pl-rango-container').style.display = 'none';
+    await renderizarTablaPLDiario();
+    window.showToast('Mostrando mes completo', 'info');
+};
+
+// Exportar P&L a PDF profesional
+window.exportarPLaPDF = async function () {
+    if (!window.datosResumenMensual || !window.datosResumenMensual.dias?.length) {
+        window.showToast('Carga los datos primero', 'warning');
+        return;
+    }
+
+    // Verificar que jsPDF está disponible
+    if (typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined') {
+        window.showToast('Cargando generador PDF...', 'info');
+        // Cargar jsPDF dinámicamente si no está
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = () => exportarPLaPDFInterno();
+        document.head.appendChild(script);
+        return;
+    }
+
+    exportarPLaPDFInterno();
+};
+
+function exportarPLaPDFInterno() {
+    const { jsPDF } = window.jspdf || { jsPDF: window.jsPDF };
+    const doc = new jsPDF();
+
+    // Filtrar días por rango si está activo
+    let dias = window.datosResumenMensual.dias;
+    if (window.plRangoDesde && window.plRangoHasta) {
+        dias = dias.filter(dia => dia >= window.plRangoDesde && dia <= window.plRangoHasta);
+    }
+
+    const recetas = window.datosResumenMensual.ventas?.recetas || {};
+
+    // Calcular totales
+    let totalIngresos = 0, totalCostes = 0;
+    const totalesPorDia = {};
+    dias.forEach(dia => { totalesPorDia[dia] = { ingresos: 0, costes: 0 }; });
+
+    for (const [nombre, data] of Object.entries(recetas)) {
+        for (const [dia, diaData] of Object.entries(data.dias)) {
+            if (totalesPorDia[dia]) {
+                totalesPorDia[dia].ingresos += diaData.ingresos;
+                totalesPorDia[dia].costes += diaData.coste;
+                totalIngresos += diaData.ingresos;
+                totalCostes += diaData.coste;
+            }
+        }
+    }
+
+    const margenBruto = totalIngresos - totalCostes;
+    const margenPct = totalIngresos > 0 ? ((margenBruto / totalIngresos) * 100).toFixed(1) : 0;
+
+    // Gastos fijos prorrateados
+    const mesSeleccionado = parseInt(document.getElementById('diario-mes').value);
+    const anoSeleccionado = parseInt(document.getElementById('diario-ano').value);
+    const diasEnMes = new Date(anoSeleccionado, mesSeleccionado, 0).getDate();
+
+    // Obtener gastos fijos de localStorage o API (simplificado)
+    const opexData = JSON.parse(localStorage.getItem('opex_inputs') || '{"alquiler":0,"personal":0,"suministros":0,"otros":0}');
+    const gastosFijosMes = parseFloat(opexData.alquiler || 0) + parseFloat(opexData.personal || 0) +
+        parseFloat(opexData.suministros || 0) + parseFloat(opexData.otros || 0);
+    const gastosFijosRango = (gastosFijosMes / diasEnMes) * dias.length;
+    const beneficioNeto = margenBruto - gastosFijosRango;
+
+    // ═══════════════════════════════════════════════════════════
+    // GENERAR PDF
+    // ═══════════════════════════════════════════════════════════
+
+    // Header
+    doc.setFillColor(30, 64, 175); // Azul
+    doc.rect(0, 0, 210, 35, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INFORME P&L', 15, 18);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    const periodoTexto = window.plRangoDesde && window.plRangoHasta
+        ? `${formatearFecha(window.plRangoDesde)} - ${formatearFecha(window.plRangoHasta)}`
+        : `${getNombreMes(mesSeleccionado)} ${anoSeleccionado}`;
+    doc.text(`Período: ${periodoTexto}`, 15, 28);
+
+    const nombreRestaurante = localStorage.getItem('nombreRestaurante') || 'Restaurante';
+    doc.text(nombreRestaurante, 195, 18, { align: 'right' });
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 195, 28, { align: 'right' });
+
+    // Resumen Ejecutivo
+    let y = 50;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('RESUMEN EJECUTIVO', 15, y);
+
+    y += 15;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+
+    // Caja de resumen con colores
+    doc.setFillColor(240, 253, 244); // Verde claro
+    doc.roundedRect(15, y - 5, 180, 50, 3, 3, 'F');
+
+    doc.setTextColor(22, 101, 52); // Verde oscuro
+    doc.text(`Ingresos totales:`, 20, y + 5);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${totalIngresos.toFixed(2)}€`, 80, y + 5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(153, 27, 27); // Rojo
+    doc.text(`Costes producción:`, 20, y + 15);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${totalCostes.toFixed(2)}€`, 80, y + 15);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(146, 64, 14); // Ámbar
+    doc.text(`Margen bruto:`, 20, y + 25);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${margenBruto.toFixed(2)}€ (${margenPct}%)`, 80, y + 25);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(157, 23, 77); // Rosa
+    doc.text(`Gastos fijos (${dias.length} días):`, 20, y + 35);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${gastosFijosRango.toFixed(2)}€`, 80, y + 35);
+
+    // Beneficio Neto destacado
+    y += 60;
+    const colorBeneficio = beneficioNeto >= 0 ? [22, 163, 74] : [239, 68, 68];
+    doc.setFillColor(...colorBeneficio);
+    doc.roundedRect(15, y - 5, 180, 20, 3, 3, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`BENEFICIO NETO: ${beneficioNeto.toFixed(2)}€`, 105, y + 8, { align: 'center' });
+
+    // Desglose diario
+    y += 35;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DESGLOSE DIARIO', 15, y);
+
+    y += 10;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+
+    // Header tabla
+    doc.setFillColor(241, 245, 249);
+    doc.rect(15, y - 4, 180, 10, 'F');
+    doc.setTextColor(51, 65, 85);
+    doc.text('FECHA', 20, y + 2);
+    doc.text('INGRESOS', 65, y + 2);
+    doc.text('COSTES', 100, y + 2);
+    doc.text('MARGEN', 135, y + 2);
+    doc.text('BENEFICIO', 170, y + 2);
+
+    y += 12;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+
+    const gastosFijosDia = gastosFijosMes / diasEnMes;
+
+    dias.forEach((dia, idx) => {
+        if (y > 270) {
+            doc.addPage();
+            y = 20;
+        }
+
+        const datos = totalesPorDia[dia];
+        const margenDia = datos.ingresos - datos.costes;
+        const beneficioDia = margenDia - gastosFijosDia;
+
+        // Alternar colores de fila
+        if (idx % 2 === 0) {
+            doc.setFillColor(249, 250, 251);
+            doc.rect(15, y - 4, 180, 8, 'F');
+        }
+
+        doc.setTextColor(0, 0, 0);
+        doc.text(formatearFecha(dia), 20, y);
+
+        doc.setTextColor(22, 101, 52);
+        doc.text(`${datos.ingresos.toFixed(2)}€`, 65, y);
+
+        doc.setTextColor(153, 27, 27);
+        doc.text(`${datos.costes.toFixed(2)}€`, 100, y);
+
+        doc.setTextColor(146, 64, 14);
+        doc.text(`${margenDia.toFixed(2)}€`, 135, y);
+
+        const colorBenDia = beneficioDia >= 0 ? [22, 163, 74] : [239, 68, 68];
+        doc.setTextColor(...colorBenDia);
+        doc.text(`${beneficioDia.toFixed(2)}€`, 170, y);
+
+        y += 8;
+    });
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Generado por MindLoop CostOS', 105, 290, { align: 'center' });
+
+    // Descargar
+    const nombreArchivo = window.plRangoDesde
+        ? `PL_${window.plRangoDesde}_${window.plRangoHasta}.pdf`
+        : `PL_${anoSeleccionado}-${String(mesSeleccionado).padStart(2, '0')}.pdf`;
+
+    doc.save(nombreArchivo);
+    window.showToast('PDF exportado correctamente', 'success');
+}
+
+// Helpers para PDF
+function formatearFecha(fechaStr) {
+    const fecha = new Date(fechaStr);
+    return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function getNombreMes(mes) {
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return meses[mes - 1] || '';
+}
+
 // Inicializar mes actual en los selectores
 (function initDiario() {
     const mesSelect = document.getElementById('diario-mes');
@@ -1321,7 +1600,7 @@ window.cargarResumenMensual = async function () {
         const response = await fetch(
             // ⚡ Multi-tenant: usa config global si existe
             // 🔧 FIX: Usar /api/monthly/summary que devuelve {dias, compras.ingredientes, ventas.recetas}
-            `${window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
+            `${window.API_CONFIG?.baseUrl || 'http://localhost:3001'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
             {
                 credentials: 'include',
                 headers: {
@@ -1489,7 +1768,16 @@ async function renderizarTablaPLDiario() {
         return;
     }
 
-    const dias = window.datosResumenMensual.dias;
+    // 🔧 NUEVO: Filtrar días por rango si está definido
+    let dias = window.datosResumenMensual.dias;
+    if (window.plRangoDesde && window.plRangoHasta) {
+        dias = dias.filter(dia => dia >= window.plRangoDesde && dia <= window.plRangoHasta);
+        if (dias.length === 0) {
+            container.innerHTML = '<p class="empty-state">No hay datos en el rango seleccionado</p>';
+            return;
+        }
+    }
+
     const recetas = window.datosResumenMensual.ventas?.recetas || {};
 
     // Calcular totales por día
