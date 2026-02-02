@@ -223,7 +223,12 @@ export function calcularCosteRecetaCompleto(receta) {
             precio = precioFormato / cantidadPorFormato;
         }
 
-        return total + precio * item.cantidad;
+        // 🥩 Aplicar factor de rendimiento (default 100% = sin efecto)
+        // Si rendimiento = 40%, necesitas 2.5x más producto bruto para 1 unidad neta
+        const rendimiento = (ing?.rendimiento || 100) / 100;
+        const cantidadBruta = rendimiento > 0 ? item.cantidad / rendimiento : item.cantidad;
+
+        return total + precio * cantidadBruta;
     }, 0);
 
     // 🔧 FIX: Dividir por porciones para obtener coste POR PORCIÓN

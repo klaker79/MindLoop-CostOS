@@ -217,7 +217,11 @@ export function calcularCosteReceta() {
                     precio = precioFormato / cantidadPorFormato;
                 }
 
-                costeTotalLote += precio * cantidad;
+                // 🥩 Aplicar factor de rendimiento (default 100% = sin efecto)
+                const rendimiento = (ing?.rendimiento || 100) / 100;
+                const cantidadBruta = rendimiento > 0 ? cantidad / rendimiento : cantidad;
+
+                costeTotalLote += precio * cantidadBruta;
             }
         }
     });

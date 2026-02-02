@@ -85,16 +85,21 @@ export function verEscandallo(recetaId) {
                 const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
                 precio = precioFormato / cantidadPorFormato;
             }
-            const coste = precio * item.cantidad;
+
+            // 🥩 Aplicar factor de rendimiento (default 100% = sin efecto)
+            const rendimiento = (ing.rendimiento || 100) / 100;
+            const cantidadBruta = rendimiento > 0 ? item.cantidad / rendimiento : item.cantidad;
+            const coste = precio * cantidadBruta;
             costeTotal += coste;
 
             desglose.push({
                 nombre: ing.nombre,
-                cantidad: item.cantidad,
+                cantidad: cantidadBruta, // Mostrar cantidad bruta necesaria
                 unidad: ing.unidad || 'ud',
                 precioUnitario: precio,
                 coste: coste,
-                porcentaje: 0
+                porcentaje: 0,
+                rendimiento: ing.rendimiento || 100 // Para mostrar en UI si tiene merma
             });
         }
     });

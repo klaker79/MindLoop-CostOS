@@ -201,7 +201,10 @@ function actualizarDatosCostTracker() {
                 precio = precioFormato / cantidadPorFormato;
             }
 
-            costeActual += precio * parseFloat(item.cantidad || 0);
+            // 🥩 Aplicar factor de rendimiento (default 100% = sin efecto)
+            const rendimiento = (ing?.rendimiento || 100) / 100;
+            const cantidadBruta = rendimiento > 0 ? parseFloat(item.cantidad || 0) / rendimiento : parseFloat(item.cantidad || 0);
+            costeActual += precio * cantidadBruta;
         });
 
         // precio_venta viene como string "20.00"
