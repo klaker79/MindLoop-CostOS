@@ -26,6 +26,7 @@ let horarios = [];
 let semanaActual = new Date();
 let empleadoEditando = null;
 let filtroDepartamento = 'todos'; // 'todos', 'cocina', 'sala'
+let turnoEnEdicion = null; // { empleadoId, fecha } - para el modal de asignar turno
 
 // API Base URL
 const API_BASE = getApiUrl();
@@ -626,18 +627,122 @@ window.toggleTurno = async function (empleadoId, fecha) {
 };
 
 /**
- * Asigna un turno
+ * Asigna un turno - muestra popup para elegir turno y horarios
  */
 async function asignarTurno(empleadoId, fecha) {
-    // TODO: Mostrar popup para elegir turno (mañana/tarde/noche) y horarios
-    // Por ahora asignamos turno de mañana por defecto
+    const emp = empleados.find(e => e.id === empleadoId);
+    if (!emp) return;
+
+    // Guardar datos del turno pendiente
+    turnoEnEdicion = { empleadoId, fecha };
+
+    // Formatear fecha para mostrar
+    const fechaObj = new Date(fecha + 'T00:00:00');
+    const nombreDia = fechaObj.toLocaleDateString('es-ES', { weekday: 'long' });
+    const numeroDia = fechaObj.getDate();
+    const mes = fechaObj.toLocaleDateString('es-ES', { month: 'long' });
+
+    // Actualizar título del modal
+    const tituloEl = document.getElementById('modal-turno-titulo');
+    if (tituloEl) {
+        tituloEl.innerHTML = `<span style="font-size: 28px;">⏰</span> Turno para ${emp.nombre}`;
+    }
+
+    // Actualizar fecha
+    const fechaEl = document.getElementById('modal-turno-fecha');
+    if (fechaEl) {
+        fechaEl.textContent = `${nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1)}, ${numeroDia} de ${mes}`;
+    }
+
+    // Reset del formulario
+    document.getElementById('turno-hora-inicio').value = '09:00';
+    document.getElementById('turno-hora-fin').value = '17:00';
+    document.getElementById('turno-es-extra').checked = false;
+
+    // Reset visual de botones de turno
+    resetBotonesTurno();
+    seleccionarBotonTurno('turno-manana');
+
+    // Mostrar modal
+    const modal = document.getElementById('modal-turno');
+    modal.style.display = 'flex';
+}
+
+/**
+ * Reset visual de botones de turno
+ */
+function resetBotonesTurno() {
+    ['turno-manana', 'turno-tarde', 'turno-noche'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.style.borderColor = '#e2e8f0';
+            btn.style.background = 'white';
+        }
+    });
+}
+
+/**
+ * Selecciona visualmente un botón de turno
+ */
+function seleccionarBotonTurno(id) {
+    const btn = document.getElementById(id);
+    if (btn) {
+        btn.style.borderColor = '#10b981';
+        btn.style.background = '#ecfdf5';
+    }
+}
+
+/**
+ * Selecciona tipo de turno y actualiza horarios
+ */
+window.seleccionarTipoTurno = function(tipo) {
+    resetBotonesTurno();
+
+    const horarios = {
+        'mañana': { inicio: '09:00', fin: '17:00', btn: 'turno-manana' },
+        'tarde': { inicio: '14:00', fin: '22:00', btn: 'turno-tarde' },
+        'noche': { inicio: '20:00', fin: '04:00', btn: 'turno-noche' }
+    };
+
+    const config = horarios[tipo];
+    if (config) {
+        document.getElementById('turno-hora-inicio').value = config.inicio;
+        document.getElementById('turno-hora-fin').value = config.fin;
+        seleccionarBotonTurno(config.btn);
+    }
+};
+
+/**
+ * Cierra modal de turno
+ */
+window.cerrarModalTurno = function() {
+    document.getElementById('modal-turno').style.display = 'none';
+    turnoEnEdicion = null;
+};
+
+/**
+ * Confirma y crea el turno con los valores seleccionados
+ */
+window.confirmarTurno = async function() {
+    if (!turnoEnEdicion) return;
+
+    const horaInicio = document.getElementById('turno-hora-inicio').value;
+    const horaFin = document.getElementById('turno-hora-fin').value;
+    const esExtra = document.getElementById('turno-es-extra').checked;
+
+    // Determinar tipo de turno según horario
+    let tipoTurno = 'mañana';
+    const [h] = horaInicio.split(':').map(Number);
+    if (h >= 18) tipoTurno = 'noche';
+    else if (h >= 12) tipoTurno = 'tarde';
+
     const turno = {
-        empleado_id: empleadoId,
-        fecha,
-        turno: 'mañana',
-        hora_inicio: '09:00',
-        hora_fin: '17:00',
-        es_extra: false
+        empleado_id: turnoEnEdicion.empleadoId,
+        fecha: turnoEnEdicion.fecha,
+        turno: tipoTurno,
+        hora_inicio: horaInicio,
+        hora_fin: horaFin,
+        es_extra: esExtra
     };
 
     try {
@@ -654,14 +759,17 @@ async function asignarTurno(empleadoId, fecha) {
 
         if (!response.ok) throw new Error('Error asignando turno');
 
+        showToast('Turno asignado', 'success');
+        cerrarModalTurno();
         await cargarHorariosSemana();
         renderizarGridHorarios();
+        renderizarEmpleados();
 
     } catch (error) {
         console.error('Error asignando turno:', error);
         showToast('Error asignando turno: ' + error.message, 'error');
     }
-}
+};
 
 /**
  * Quita un turno

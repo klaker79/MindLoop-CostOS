@@ -2234,6 +2234,90 @@
         </div>
       </div>
 
+      <!-- Modal Selección de Turno -->
+      <div id="modal-turno"
+        style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.7); z-index: 99999; justify-content: center; align-items: center;">
+        <div
+          style="max-width: 400px; width: 90%; background: white; border-radius: 20px; overflow: hidden; padding: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); margin: auto;">
+          <div
+            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 24px; margin: -24px -24px 24px -24px;">
+            <h3 id="modal-turno-titulo" style="color: white; margin: 0; font-size: 24px; font-weight: 700;">
+              <span style="font-size: 28px;">⏰</span> Asignar Turno
+            </h3>
+            <p id="modal-turno-fecha" style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;"></p>
+          </div>
+
+          <div style="display: grid; gap: 20px;">
+            <!-- Tipo de Turno -->
+            <div class="form-group">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
+                Tipo de Turno
+              </label>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                <button type="button" id="turno-manana" onclick="window.seleccionarTipoTurno('mañana')"
+                  style="padding: 16px 8px; border-radius: 12px; border: 2px solid #e2e8f0; background: white; cursor: pointer; transition: all 0.2s; text-align: center;">
+                  <div style="font-size: 24px; margin-bottom: 4px;">🌅</div>
+                  <div style="font-size: 12px; font-weight: 600; color: #1e293b;">Mañana</div>
+                  <div style="font-size: 10px; color: #64748b;">09:00-17:00</div>
+                </button>
+                <button type="button" id="turno-tarde" onclick="window.seleccionarTipoTurno('tarde')"
+                  style="padding: 16px 8px; border-radius: 12px; border: 2px solid #e2e8f0; background: white; cursor: pointer; transition: all 0.2s; text-align: center;">
+                  <div style="font-size: 24px; margin-bottom: 4px;">🌆</div>
+                  <div style="font-size: 12px; font-weight: 600; color: #1e293b;">Tarde</div>
+                  <div style="font-size: 10px; color: #64748b;">14:00-22:00</div>
+                </button>
+                <button type="button" id="turno-noche" onclick="window.seleccionarTipoTurno('noche')"
+                  style="padding: 16px 8px; border-radius: 12px; border: 2px solid #e2e8f0; background: white; cursor: pointer; transition: all 0.2s; text-align: center;">
+                  <div style="font-size: 24px; margin-bottom: 4px;">🌙</div>
+                  <div style="font-size: 12px; font-weight: 600; color: #1e293b;">Noche</div>
+                  <div style="font-size: 10px; color: #64748b;">20:00-04:00</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Horario Personalizado -->
+            <div class="form-group">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
+                Horario Personalizado
+              </label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #64748b;">Entrada</label>
+                  <input type="time" id="turno-hora-inicio" value="09:00"
+                    style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 600;">
+                </div>
+                <div>
+                  <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #64748b;">Salida</label>
+                  <input type="time" id="turno-hora-fin" value="17:00"
+                    style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 600;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Turno Extra -->
+            <div class="form-group">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="turno-es-extra" style="width: 18px; height: 18px; accent-color: #f59e0b;">
+                <span style="font-size: 14px; color: #1e293b;">Marcar como turno extra</span>
+                <span style="font-size: 20px;">⭐</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+            <button class="btn btn-secondary" onclick="window.cerrarModalTurno()"
+              style="padding: 12px 24px; border-radius: 10px; font-weight: 600; background: #e2e8f0; border: none; cursor: pointer;">
+              Cancelar
+            </button>
+            <button class="btn btn-primary" onclick="window.confirmarTurno()"
+              style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: white; padding: 12px 32px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); cursor: pointer;">
+              Asignar Turno
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div id="modal-ver-proveedor" class="modal">
         <div class="modal-content">
           <h3 id="modal-proveedor-titulo"></h3>
