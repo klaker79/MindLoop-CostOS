@@ -65,6 +65,11 @@ export function mostrarRegistro() {
  * Cierra sesión del usuario
  */
 export async function logout() {
+    // Limpiar intervalos activos (evita memory leaks)
+    if (typeof window.stopAlertUpdates === 'function') {
+        window.stopAlertUpdates();
+    }
+
     // Limpiar cookie httpOnly via backend
     try {
         await fetch(API_AUTH_URL + '/logout', {

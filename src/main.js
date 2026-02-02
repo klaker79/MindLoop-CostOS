@@ -655,14 +655,29 @@ function closeAlertModal() {
 }
 
 // Inicializar badge después de login
+let alertBadgeInterval = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(updateAlertBadge, 3000); // Después de que carguen datos
 });
 
-// Actualizar cada 5 minutos
-setInterval(updateAlertBadge, 5 * 60 * 1000);
+// Actualizar cada 5 minutos (con cleanup para evitar memory leak)
+function startAlertUpdates() {
+    if (alertBadgeInterval) clearInterval(alertBadgeInterval);
+    alertBadgeInterval = setInterval(updateAlertBadge, 5 * 60 * 1000);
+}
+startAlertUpdates();
+
+// Limpiar al cerrar sesión
+window.stopAlertUpdates = function () {
+    if (alertBadgeInterval) {
+        clearInterval(alertBadgeInterval);
+        alertBadgeInterval = null;
+    }
+};
 
 // Exponer para actualización manual
 window.updateAlertBadge = updateAlertBadge;
 window.showAlertModal = showAlertModal;
 window.closeAlertModal = closeAlertModal;
+
