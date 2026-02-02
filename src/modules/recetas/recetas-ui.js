@@ -95,7 +95,10 @@ export function agregarIngredienteReceta() {
     ingredientesOrdenados.forEach(ing => {
         const precio = parseFloat(ing.precio || 0).toFixed(2);
         const unidad = ing.unidad || 'ud';
-        optionsHtml += `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${precio}€/${escapeHTML(unidad)})</option>`;
+        // 🥩 Indicador visual si tiene merma/rendimiento
+        const rendimiento = ing.rendimiento || 100;
+        const indicadorMerma = rendimiento < 100 ? `🥩${rendimiento}% ` : '';
+        optionsHtml += `<option value="${ing.id}">${indicadorMerma}${escapeHTML(ing.nombre)} (${precio}€/${escapeHTML(unidad)})</option>`;
     });
 
     // 🧪 Añadir recetas base como ingredientes seleccionables
