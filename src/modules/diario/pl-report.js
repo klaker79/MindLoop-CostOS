@@ -170,15 +170,18 @@ function generarHTMLTablaPL(dias, totalesPorDia, gastosFijosDia, comprasPorDia) 
     });
     html += `<td style="text-align: center; padding: 14px 16px; background: #fee2e2; color: #dc2626; font-weight: 700;">${totalCostes.toFixed(2)}€</td></tr>`;
 
-    // Fila MARGEN BRUTO
+    // Fila MARGEN BRUTO (con porcentaje)
     html += '<tr style="background: #fefce8;"><td style="padding: 14px 16px; font-weight: 600; color: #a16207; display: flex; align-items: center; gap: 6px;">💰 MARGEN BRUTO</td>';
     let totalMargen = 0;
     dias.forEach(dia => {
-        const margen = (totalesPorDia[dia]?.ingresos || 0) - (totalesPorDia[dia]?.costes || 0);
+        const ingresos = totalesPorDia[dia]?.ingresos || 0;
+        const margen = ingresos - (totalesPorDia[dia]?.costes || 0);
+        const margenPct = ingresos > 0 ? (margen / ingresos) * 100 : 0;
         totalMargen += margen;
-        html += `<td style="text-align: center; padding: 14px 8px; color: #a16207; font-weight: 500;">${margen.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; padding: 14px 8px; color: #a16207; font-weight: 500;">${margen.toFixed(2)}€<br><span style="font-size: 11px; color: #ca8a04;">${margenPct.toFixed(1)}%</span></td>`;
     });
-    html += `<td style="text-align: center; padding: 14px 16px; background: #fef9c3; color: #a16207; font-weight: 700;">${totalMargen.toFixed(2)}€</td></tr>`;
+    const totalMargenPct = totalIngresos > 0 ? (totalMargen / totalIngresos) * 100 : 0;
+    html += `<td style="text-align: center; padding: 14px 16px; background: #fef9c3; color: #a16207; font-weight: 700;">${totalMargen.toFixed(2)}€<br><span style="font-size: 12px; color: #ca8a04;">${totalMargenPct.toFixed(1)}%</span></td></tr>`;
 
     // Fila GASTOS FIJOS
     html += '<tr style="background: #f5f5f5;"><td style="padding: 14px 16px; font-weight: 600; color: #525252; display: flex; align-items: center; gap: 6px;">🏢 GASTOS FIJOS/DÍA</td>';
