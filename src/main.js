@@ -262,6 +262,7 @@ window.exportarVentas = VentasUI.exportarVentas;
 window.cargarVariantesVenta = VentasUI.cargarVariantesVenta; // Selector de variantes en ventas
 
 // CRUD
+window.guardarVenta = VentasCRUD.guardarVenta;
 window.eliminarVenta = VentasCRUD.eliminarVenta;
 
 // ============================================

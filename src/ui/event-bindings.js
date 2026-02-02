@@ -231,6 +231,7 @@ function bindFormSubmits() {
         { id: 'form-ingrediente', handler: () => window.guardarIngrediente?.() },
         { id: 'form-receta', handler: () => window.guardarReceta?.() },
         { id: 'form-proveedor', handler: () => window.guardarProveedor?.() },
+        { id: 'form-venta', handler: () => window.guardarVenta?.() },
         { id: 'login-form', handler: () => window.login?.() },
     ];
 
