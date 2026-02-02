@@ -233,8 +233,11 @@ export function calcularCosteReceta() {
     const porciones = parseInt(document.getElementById('rec-porciones')?.value || 1) || 1;
     const costeTotal = costeTotalLote / porciones;
 
+    console.log('📊 calcularCosteReceta:', { costeTotalLote, porciones, costeTotal, numItems: items.length });
+
     const costeDiv = document.getElementById('coste-calculado-form');
     if (costeDiv) {
+        // Mostrar panel si hay ingredientes con valores (coste > 0)
         costeDiv.style.display = costeTotal > 0 ? 'block' : 'none';
         const costeSpan = document.getElementById('coste-receta-valor');
         if (costeSpan) costeSpan.textContent = costeTotal.toFixed(2) + '€';

@@ -94,6 +94,9 @@ export function editarReceta(id) {
     const rec = (window.recetas || []).find(r => r.id === id);
     if (!rec) return;
 
+    // Primero mostrar el formulario
+    document.getElementById('formulario-receta').style.display = 'block';
+
     document.getElementById('rec-nombre').value = rec.nombre;
     document.getElementById('rec-codigo').value = rec.codigo || '';
     document.getElementById('rec-categoria').value = rec.categoria;
@@ -118,11 +121,16 @@ export function editarReceta(id) {
         lastItem.querySelector('input').value = item.cantidad;
     });
 
-    window.calcularCosteReceta();
     window.editandoRecetaId = id;
     document.getElementById('form-title-receta').textContent = 'Editar';
     document.getElementById('btn-text-receta').textContent = 'Guardar';
-    window.mostrarFormularioReceta();
+    document.getElementById('rec-nombre').focus();
+
+    // 🔧 FIX: Calcular coste DESPUÉS de que el formulario esté visible
+    // y DESPUÉS de cargar todos los ingredientes
+    setTimeout(() => {
+        window.calcularCosteReceta();
+    }, 50);
 }
 
 /**
