@@ -120,7 +120,7 @@ export function agregarIngredienteReceta() {
     item.innerHTML = `
         <div style="flex: 2; position: relative;">
             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none;">🥬</span>
-            <select style="
+            <select class="ing-select" style="
                 width: 100%;
                 padding: 12px 12px 12px 40px;
                 border: 2px solid #e2e8f0;
@@ -134,13 +134,13 @@ export function agregarIngredienteReceta() {
                 background-repeat: no-repeat;
                 background-position: right 12px center;
                 background-size: 20px;
-            " onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'" onchange="window.calcularCosteReceta()">
+            " onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'" onchange="window.actualizarRendimientoDefault(this); window.calcularCosteReceta()">
                 ${optionsHtml}
             </select>
         </div>
         <div style="flex: 1; position: relative;">
             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #94a3b8; pointer-events: none;">📏</span>
-            <input type="number" step="0.001" min="0" placeholder="Cantidad" 
+            <input type="number" class="ing-cantidad" step="0.001" min="0" placeholder="Cantidad" 
                 style="
                     width: 100%;
                     padding: 12px 12px 12px 40px;
@@ -149,6 +149,19 @@ export function agregarIngredienteReceta() {
                     font-size: 14px;
                     transition: border-color 0.2s;
                 " onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'" onchange="window.calcularCosteReceta()">
+        </div>
+        <div style="flex: 0.6; position: relative;" title="% Rendimiento (ajuste por merma para esta receta)">
+            <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none;">🥩</span>
+            <input type="number" class="ing-rendimiento" step="1" min="1" max="100" value="100" placeholder="%"
+                style="
+                    width: 100%;
+                    padding: 10px 8px 10px 28px;
+                    border: 2px solid #fecaca;
+                    border-radius: 10px;
+                    font-size: 13px;
+                    background: #fef2f2;
+                    transition: border-color 0.2s;
+                " onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='#fecaca'" onchange="window.calcularCosteReceta()">
         </div>
         <button type="button" onclick="this.parentElement.remove(); window.calcularCosteReceta();" 
             style="
@@ -170,6 +183,43 @@ export function agregarIngredienteReceta() {
 }
 
 /**
+ * Actualiza el campo de rendimiento con el valor por defecto del ingrediente seleccionado
+ * 🥩 Se llama cuando se cambia el select de ingrediente
+ */
+export function actualizarRendimientoDefault(selectEl) {
+    const item = selectEl.closest('.ingrediente-item');
+    if (!item) return;
+
+    const rendimientoInput = item.querySelector('.ing-rendimiento');
+    if (!rendimientoInput) return;
+
+    const ingId = parseInt(selectEl.value);
+    if (!ingId || isNaN(ingId)) {
+        rendimientoInput.value = 100;
+        return;
+    }
+
+    // Buscar el ingrediente y su rendimiento por defecto
+    const ing = (window.ingredientes || []).find(i => i.id === ingId);
+    const rendimientoDefault = ing?.rendimiento || 100;
+
+    // Actualizar el input con el valor por defecto
+    rendimientoInput.value = rendimientoDefault;
+
+    // Destacar visualmente si tiene merma
+    if (rendimientoDefault < 100) {
+        rendimientoInput.style.background = '#fef2f2';
+        rendimientoInput.style.borderColor = '#fecaca';
+    } else {
+        rendimientoInput.style.background = '#f0fdf4';
+        rendimientoInput.style.borderColor = '#bbf7d0';
+    }
+}
+
+// Exponer globalmente
+window.actualizarRendimientoDefault = actualizarRendimientoDefault;
+
+/**
  * Calcula el coste total de la receta desde ingredientes seleccionados
  * 💰 ACTUALIZADO: Usa precio_medio del inventario (basado en compras)
  * 🧪 ACTUALIZADO: Soporta recetas base como ingredientes
@@ -187,10 +237,12 @@ export function calcularCosteReceta() {
     const recetasMap = new Map(recetas.map(r => [r.id, r]));
 
     items.forEach(item => {
-        const select = item.querySelector('select');
-        const input = item.querySelector('input');
-        if (select.value && input.value) {
-            const cantidad = parseFloat(input.value || 0);
+        const select = item.querySelector('.ing-select') || item.querySelector('select');
+        const cantidadInput = item.querySelector('.ing-cantidad') || item.querySelector('input[type="number"]');
+        const rendimientoInput = item.querySelector('.ing-rendimiento');
+
+        if (select?.value && cantidadInput?.value) {
+            const cantidad = parseFloat(cantidadInput.value || 0);
 
             // 🧪 Detectar si es una receta base (valor empieza con "rec_")
             if (select.value.startsWith('rec_')) {
@@ -220,8 +272,9 @@ export function calcularCosteReceta() {
                     precio = precioFormato / cantidadPorFormato;
                 }
 
-                // 🥩 Aplicar factor de rendimiento (default 100% = sin efecto)
-                const rendimiento = (ing?.rendimiento || 100) / 100;
+                // 🥩 Usar rendimiento del input (override) o default del ingrediente
+                const rendimientoOverride = rendimientoInput ? parseInt(rendimientoInput.value) : null;
+                const rendimiento = (rendimientoOverride || ing?.rendimiento || 100) / 100;
                 const cantidadBruta = rendimiento > 0 ? cantidad / rendimiento : cantidad;
 
                 costeTotalLote += precio * cantidadBruta;

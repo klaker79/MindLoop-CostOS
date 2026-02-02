@@ -19,9 +19,13 @@ export async function guardarReceta(event) {
     const ingredientesReceta = [];
 
     items.forEach(item => {
-        const select = item.querySelector('select');
-        const input = item.querySelector('input');
-        if (select.value && input.value) {
+        const select = item.querySelector('.ing-select') || item.querySelector('select');
+        const cantidadInput = item.querySelector('.ing-cantidad') || item.querySelector('input[type="number"]');
+        const rendimientoInput = item.querySelector('.ing-rendimiento');
+
+        if (select?.value && cantidadInput?.value) {
+            const rendimientoOverride = rendimientoInput ? parseInt(rendimientoInput.value) : null;
+
             // 🧪 Detectar si es receta base (valor empieza con "rec_")
             if (select.value.startsWith('rec_')) {
                 const recetaId = parseInt(select.value.replace('rec_', ''));
@@ -29,13 +33,25 @@ export async function guardarReceta(event) {
                     // Guardar con ID offset (100000+) para identificar como receta base
                     // El backend acepta IDs positivos, y al cargar detectamos que es receta base
                     ingredienteId: 100000 + recetaId,
-                    cantidad: parseFloat(input.value),
+                    cantidad: parseFloat(cantidadInput.value),
                 });
             } else {
-                ingredientesReceta.push({
-                    ingredienteId: parseInt(select.value),
-                    cantidad: parseFloat(input.value),
-                });
+                // 🥩 Guardar rendimiento_override solo si difiere del default
+                const ingId = parseInt(select.value);
+                const ing = (window.ingredientes || []).find(i => i.id === ingId);
+                const defaultRendimiento = ing?.rendimiento || 100;
+
+                const ingredienteData = {
+                    ingredienteId: ingId,
+                    cantidad: parseFloat(cantidadInput.value),
+                };
+
+                // Solo guardar override si es diferente del default
+                if (rendimientoOverride && rendimientoOverride !== defaultRendimiento) {
+                    ingredienteData.rendimiento_override = rendimientoOverride;
+                }
+
+                ingredientesReceta.push(ingredienteData);
             }
         }
     });
@@ -109,16 +125,37 @@ export function editarReceta(id) {
         const lastItem = document.querySelector(
             '#lista-ingredientes-receta .ingrediente-item:last-child'
         );
-        const selectEl = lastItem.querySelector('select');
+        const selectEl = lastItem.querySelector('.ing-select') || lastItem.querySelector('select');
+        const cantidadInput = lastItem.querySelector('.ing-cantidad') || lastItem.querySelector('input[type="number"]');
+        const rendimientoInput = lastItem.querySelector('.ing-rendimiento');
 
         // 🧪 Detectar si es receta base (ingredienteId > 100000)
         if (item.ingredienteId > 100000) {
             const recetaId = item.ingredienteId - 100000;
             selectEl.value = `rec_${recetaId}`;
+            // Las recetas base no tienen rendimiento
+            if (rendimientoInput) rendimientoInput.value = 100;
         } else {
             selectEl.value = item.ingredienteId;
+
+            // 🥩 Cargar rendimiento: override guardado o default del ingrediente
+            if (rendimientoInput) {
+                const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
+                const defaultRendimiento = ing?.rendimiento || 100;
+                const rendimiento = item.rendimiento_override || defaultRendimiento;
+                rendimientoInput.value = rendimiento;
+
+                // Destacar visualmente si tiene merma
+                if (rendimiento < 100) {
+                    rendimientoInput.style.background = '#fef2f2';
+                    rendimientoInput.style.borderColor = '#fecaca';
+                } else {
+                    rendimientoInput.style.background = '#f0fdf4';
+                    rendimientoInput.style.borderColor = '#bbf7d0';
+                }
+            }
         }
-        lastItem.querySelector('input').value = item.cantidad;
+        if (cantidadInput) cantidadInput.value = item.cantidad;
     });
 
     window.editandoRecetaId = id;
@@ -231,9 +268,10 @@ export function calcularCosteRecetaCompleto(receta) {
             precio = precioFormato / cantidadPorFormato;
         }
 
-        // 🥩 Aplicar factor de rendimiento (default 100% = sin efecto)
+        // 🥩 Usar rendimiento_override si existe, si no default del ingrediente
         // Si rendimiento = 40%, necesitas 2.5x más producto bruto para 1 unidad neta
-        const rendimiento = (ing?.rendimiento || 100) / 100;
+        const rendimientoValue = item.rendimiento_override || ing?.rendimiento || 100;
+        const rendimiento = rendimientoValue / 100;
         const cantidadBruta = rendimiento > 0 ? item.cantidad / rendimiento : item.cantidad;
 
         return total + precio * cantidadBruta;

@@ -86,8 +86,8 @@ export function verEscandallo(recetaId) {
                 precio = precioFormato / cantidadPorFormato;
             }
 
-            // 🥩 Aplicar factor de rendimiento (default 100% = sin efecto)
-            const rendimiento = (ing.rendimiento || 100) / 100;
+            // 🥩 Usar rendimiento_override si existe, si no default del ingrediente
+            const rendimiento = (item.rendimiento_override || ing.rendimiento || 100) / 100;
             const cantidadBruta = rendimiento > 0 ? item.cantidad / rendimiento : item.cantidad;
             const coste = precio * cantidadBruta;
             costeTotal += coste;
@@ -99,7 +99,7 @@ export function verEscandallo(recetaId) {
                 precioUnitario: precio,
                 coste: coste,
                 porcentaje: 0,
-                rendimiento: ing.rendimiento || 100 // Para mostrar en UI si tiene merma
+                rendimiento: item.rendimiento_override || ing.rendimiento || 100 // Para mostrar en UI si tiene merma
             });
         }
     });
