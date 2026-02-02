@@ -137,11 +137,7 @@ function generarHTMLTablaPL(dias, totalesPorDia, gastosFijosDia, comprasPorDia) 
 
     let html = `
     <div style="margin-bottom: 24px;">
-        <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-            📊 Cuenta de Resultados Diaria
-            <span style="font-size: 12px; color: #64748b; font-weight: normal;">(P&L Operativo)</span>
-            ${filtroFechaDesde ? `<span style="font-size: 12px; color: #0369a1; background: #e0f2fe; padding: 4px 8px; border-radius: 6px;">📅 ${formatearFecha(filtroFechaDesde)} - ${formatearFecha(filtroFechaHasta)}</span>` : ''}
-        </h3>
+        ${filtroFechaDesde ? `<div style="margin-bottom: 12px; font-size: 13px; color: #0369a1; background: #e0f2fe; padding: 8px 12px; border-radius: 8px; display: inline-block;">📅 Filtrando: ${formatearFecha(filtroFechaDesde)} - ${formatearFecha(filtroFechaHasta)}</div>` : ''}
         <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
     `;
 

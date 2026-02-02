@@ -1838,10 +1838,6 @@ async function renderizarTablaPLDiario() {
     // ═══════════════════════════════════════════════════════════
     let html = `
     <div style="margin-bottom: 24px;">
-        <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-            📊 Cuenta de Resultados Diaria
-            <span style="font-size: 12px; color: #64748b; font-weight: normal;">(P&L Operativo)</span>
-        </h3>
         <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
     `;
 
