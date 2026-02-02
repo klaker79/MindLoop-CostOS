@@ -872,12 +872,20 @@
             const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
 
             // 🔧 FILTRO: Excluir bebidas de la ingeniería de menú
-            // Solo mostrar alimentos (excluir categorías de bebidas)
-            const categoriasExcluidas = ['bebidas', 'vinos', 'refrescos', 'cervezas', 'licores', 'cafes', 'cafés'];
+            // Solo mostrar alimentos (excluir por categoría Y por nombre)
+            const categoriasExcluidas = ['bebidas', 'vinos', 'refrescos', 'cervezas', 'licores', 'cafes', 'cafés', 'agua'];
+            const nombresBebidas = ['coca-cola', 'coca cola', 'fanta', 'sprite', 'aquarius', 'nestea', 'fuze', 'redbull', 'red bull',
+                'monster', 'agua cabreiroa', 'agua con gas', 'agua mineral', 'tonica', 'schweppes', 'kas',
+                'zumo', 'mosto', 'cerveza', 'estrella galicia', 'caña', 'clara', 'vino ', 'rioja', 'albariño',
+                'godello', 'mencía', 'ribeiro', 'cafe solo', 'café solo', 'cortado', 'americano', 'capuccino',
+                'descafeinado', 'infusion', 'infusión', 'cola zero', 'zero', 'light', 'limon', 'naranja',
+                'iogurt', 'yogurt', 'batido'];
             const menuAnalysis = menuAnalysisRaw.filter(item => {
                 const categoria = (item.categoria || '').toLowerCase();
-                const esBebida = categoriasExcluidas.some(cat => categoria.includes(cat));
-                return !esBebida;
+                const nombre = (item.nombre || '').toLowerCase();
+                const esBebidaCategoria = categoriasExcluidas.some(cat => categoria.includes(cat));
+                const esBebidaNombre = nombresBebidas.some(beb => nombre.includes(beb));
+                return !esBebidaCategoria && !esBebidaNombre;
             });
 
             let totalMargen = 0;
@@ -894,8 +902,10 @@
             // 🔧 FILTRO: Excluir bebidas de la tabla de rentabilidad
             const datosRecetas = datosRecetasRaw.filter(rec => {
                 const categoria = (rec.categoria || '').toLowerCase();
-                const esBebida = categoriasExcluidas.some(cat => categoria.includes(cat));
-                return !esBebida;
+                const nombre = (rec.nombre || '').toLowerCase();
+                const esBebidaCategoria = categoriasExcluidas.some(cat => categoria.includes(cat));
+                const esBebidaNombre = nombresBebidas.some(beb => nombre.includes(beb));
+                return !esBebidaCategoria && !esBebidaNombre;
             });
 
             const margenPromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.margenPct, 0) / datosRecetas.length).toFixed(1) : '0';
