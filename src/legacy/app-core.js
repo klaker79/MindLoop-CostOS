@@ -871,11 +871,13 @@
         try {
             const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
 
-            // 🔧 FILTRO: Solo mostrar items con food cost > 15% (excluye vinos/bebidas)
-            // Los vinos tienen ~5-12% food cost, los alimentos reales tienen >20%
+            // 🔧 FILTRO: Excluir bebidas de la ingeniería de menú
+            // Solo mostrar alimentos (excluir categorías de bebidas)
+            const categoriasExcluidas = ['bebidas', 'vinos', 'refrescos', 'cervezas', 'licores', 'cafes', 'cafés'];
             const menuAnalysis = menuAnalysisRaw.filter(item => {
-                const foodCost = item.precio_venta > 0 ? (item.coste / item.precio_venta) * 100 : 0;
-                return foodCost > 15;
+                const categoria = (item.categoria || '').toLowerCase();
+                const esBebida = categoriasExcluidas.some(cat => categoria.includes(cat));
+                return !esBebida;
             });
 
             let totalMargen = 0;
@@ -889,10 +891,11 @@
                 return { ...rec, coste, margen, margenPct };
             });
 
-            // 🔧 FILTRO: Solo items con food cost > 15% para tabla de rentabilidad
+            // 🔧 FILTRO: Excluir bebidas de la tabla de rentabilidad
             const datosRecetas = datosRecetasRaw.filter(rec => {
-                const foodCost = rec.precio_venta > 0 ? (rec.coste / rec.precio_venta) * 100 : 0;
-                return foodCost > 15;
+                const categoria = (rec.categoria || '').toLowerCase();
+                const esBebida = categoriasExcluidas.some(cat => categoria.includes(cat));
+                return !esBebida;
             });
 
             const margenPromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.margenPct, 0) / datosRecetas.length).toFixed(1) : '0';
