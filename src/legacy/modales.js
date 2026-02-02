@@ -214,7 +214,7 @@ let gastosFijosCacheTime = 0;
 const CACHE_TTL = 5000; // 5 segundos
 
 // ⚡ API BASE URL - usar la misma que app-core.js
-const GASTOS_API_BASE = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+const GASTOS_API_BASE = (window.API_CONFIG?.baseUrl || 'http://localhost:3001') + '/api';
 
 function getGastosAuthHeaders() {
     const token = localStorage.getItem('token');
@@ -655,7 +655,7 @@ function startTokenRefresh() {
                 if (expiresIn < 5 * 60 * 1000 && expiresIn > 0) {
                     // Renovando token
                     const API_BASE =
-                        window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud';
+                        window.API_CONFIG?.baseUrl || 'http://localhost:3001';
                     const response = await fetch(API_BASE + '/api/auth/refresh', {
                         method: 'POST',
                         headers: { Authorization: 'Bearer ' + token },

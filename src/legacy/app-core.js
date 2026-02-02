@@ -221,7 +221,7 @@
 
     // ========== AUTENTICACIÓN ==========
     // ⚡ Multi-tenant: usa config global si existe
-    const API_AUTH_URL = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api/auth';
+    const API_AUTH_URL = (window.API_CONFIG?.baseUrl || 'http://localhost:3001') + '/api/auth';
 
     function checkAuth() {
         const token = localStorage.getItem('token');
@@ -275,7 +275,7 @@
 
     // ========== API HELPERS ==========
     // ⚡ Multi-tenant: usa config global si existe
-    const API_BASE = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+    const API_BASE = (window.API_CONFIG?.baseUrl || 'http://localhost:3001') + '/api';
 
     function getAuthHeaders() {
         const token = localStorage.getItem('token');

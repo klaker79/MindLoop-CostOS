@@ -5,7 +5,7 @@
 // ========== API ==========
 async function fetchIntelligence(endpoint) {
     try {
-        const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud';
+        const apiBase = window.getApiUrl ? window.getApiUrl() : 'http://localhost:3001';
         const token = localStorage.getItem('token');
 
         const response = await fetch(`${apiBase}/intelligence/${endpoint}`, {
