@@ -66,7 +66,7 @@
       });
     }
   </script>
-  <script type="module" crossorigin src="/assets/main-BMB-zgj_.js"></script>
+  <script type="module" crossorigin src="/assets/main-B0M1H-3A.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/main-YG_B1f7L.css">
 </head>
 
@@ -1519,6 +1519,37 @@
             </div>
           </div>
 
+          <!-- Filtro por Rango de Fechas -->
+          <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid #bae6fd;">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+              <span style="font-weight: 600; color: #0369a1; display: flex; align-items: center; gap: 6px;">
+                📅 Filtrar por rango:
+              </span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="color: #475569; font-size: 14px;">Desde:</label>
+                <input type="date" id="diario-fecha-desde"
+                  style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="color: #475569; font-size: 14px;">Hasta:</label>
+                <input type="date" id="diario-fecha-hasta"
+                  style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+              </div>
+              <button class="btn btn-primary" onclick="window.filtrarPLPorRango()"
+                style="padding: 8px 16px; font-size: 14px;">
+                🔍 Aplicar Filtro
+              </button>
+              <button class="btn btn-secondary" onclick="window.limpiarFiltroPL()"
+                style="padding: 8px 16px; font-size: 14px;">
+                ↩️ Ver Todo
+              </button>
+              <button class="btn" onclick="window.exportarPDFInformePL()"
+                style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 8px 16px; font-size: 14px;">
+                📄 Exportar PDF
+              </button>
+            </div>
+          </div>
+
           <!-- Selector de Vista -->
           <div style="display: flex; gap: 10px; margin-bottom: 20px;">
             <button id="btn-vista-compras" class="btn btn-primary" data-action="vista-diario" data-vista="compras">🛒
@@ -1549,7 +1580,34 @@
 
             <!-- Vista Combinada (P&L) -->
             <div id="vista-combinada" class="diario-vista" style="display: none;">
-              <h3 style="margin-bottom: 15px;">📊 Cuenta de Resultados Diaria</h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin: 0;">📊 Cuenta de Resultados Diaria</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <button class="btn btn-secondary" onclick="window.toggleRangoFechasPL()" style="padding: 8px 16px; font-size: 13px;">
+                    📅 Filtrar Fechas
+                  </button>
+                  <button class="btn" onclick="window.exportarPLaPDF()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; padding: 8px 16px; font-size: 13px;">
+                    📄 Exportar PDF
+                  </button>
+                </div>
+              </div>
+              <!-- Panel de rango de fechas (oculto por defecto) -->
+              <div id="pl-rango-container" style="display: none; gap: 12px; align-items: center; padding: 15px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 12px; margin-bottom: 15px; border: 1px solid #93c5fd; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <label style="font-weight: 600; color: #1e40af; font-size: 13px;">Desde:</label>
+                  <input type="date" id="pl-fecha-desde" style="padding: 8px 12px; border: 2px solid #93c5fd; border-radius: 8px; font-size: 13px;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <label style="font-weight: 600; color: #1e40af; font-size: 13px;">Hasta:</label>
+                  <input type="date" id="pl-fecha-hasta" style="padding: 8px 12px; border: 2px solid #93c5fd; border-radius: 8px; font-size: 13px;">
+                </div>
+                <button onclick="window.aplicarRangoPL()" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                  ✓ Aplicar
+                </button>
+                <button onclick="window.limpiarRangoPL()" style="background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+                  🔄 Ver Mes Completo
+                </button>
+              </div>
               <div id="tabla-pl-diario" style="overflow-x: auto; width: 100%; max-width: 100%;">
                 <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
               </div>
