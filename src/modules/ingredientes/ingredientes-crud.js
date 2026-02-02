@@ -46,6 +46,9 @@ export async function guardarIngrediente(event) {
         cantidad_por_formato: getInputValue('ing-cantidad-formato')
             ? parseFloat(getInputValue('ing-cantidad-formato'))
             : undefined,
+        // 🥩 Rendimiento tras merma (default 100 = sin merma)
+        // Permite calcular precio efectivo: precio / (rendimiento/100)
+        rendimiento: parseFloat(getInputValue('ing-rendimiento')) || 100,
     };
 
     // 🆕 Validación centralizada (reemplaza validación manual)
@@ -253,6 +256,10 @@ export function editarIngrediente(id) {
     if (cantFormatoEl) cantFormatoEl.value = ing.cantidad_por_formato !== null && ing.cantidad_por_formato !== undefined
         ? ing.cantidad_por_formato
         : '';
+
+    // 🥩 Cargar rendimiento (default 100 si no existe)
+    const rendimientoEl = getElement('ing-rendimiento');
+    if (rendimientoEl) rendimientoEl.value = ing.rendimiento ?? 100;
 }
 
 /**

@@ -620,6 +620,25 @@
                   <input type="number" id="ing-cantidad-formato" step="0.01" min="0"
                     placeholder="ej: 0.65 (kg), 10 (L)...">
                 </div>
+
+                <!-- Rendimiento/Merma (opcional) -->
+                <div class="form-group"
+                  style="grid-column: span 2; margin-top: 10px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+                  <label style="font-weight: 600; color: #dc2626;">🥩 Rendimiento tras merma (opcional)</label>
+                  <p style="font-size: 12px; color: #64748b; margin: 5px 0 10px;">
+                    Indica el % de producto aprovechable. Ej: Pulpo congelado con hielo y cabeza = 40% rendimiento
+                  </p>
+                </div>
+                <div class="form-group">
+                  <label>% Rendimiento</label>
+                  <input type="number" id="ing-rendimiento" step="1" min="1" max="100" value="100"
+                    placeholder="100 = sin merma">
+                </div>
+                <div class="form-group" id="ing-precio-efectivo-container" style="display: none;">
+                  <label style="color: #dc2626;">Precio efectivo</label>
+                  <div id="ing-precio-efectivo" style="font-size: 18px; font-weight: 700; color: #dc2626;">-</div>
+                  <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Coste real por unidad utilizable</p>
+                </div>
               </div>
               <div class="form-actions">
                 <button type="button" class="btn btn-secondary" data-action="cerrar-form-ingrediente">Cancelar</button>
