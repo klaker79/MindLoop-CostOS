@@ -4,10 +4,14 @@
  * ============================================
  *
  * Wrapper centralizado para todas las llamadas fetch.
- * Maneja: autenticación, errores, retries, logging.
+ * Maneja: autenticación, errores, rate limiting, timeout.
+ *
+ * AUTH STRATEGY:
+ * - Primary: httpOnly cookies via credentials: 'include'
+ * - Fallback: Bearer token in localStorage (legacy backend compatibility)
  *
  * @author MindLoopIA
- * @version 1.0.0
+ * @version 2.1.0
  */
 
 import { getApiUrl } from '../config/app-config.js';
@@ -25,7 +29,7 @@ const defaultConfig = {
 };
 
 /**
- * Get authorization headers with Bearer token
+ * Get authorization headers with Bearer token from localStorage
  */
 function getAuthHeaders() {
     const token = localStorage.getItem('token');
@@ -33,31 +37,59 @@ function getAuthHeaders() {
 }
 
 /**
+ * Simple client-side rate limiter to prevent API abuse
+ * Tracks request counts per sliding window
+ */
+const rateLimiter = {
+    requests: [],
+    maxRequests: 60,    // max requests per window
+    windowMs: 60000,    // 1 minute window
+
+    canMakeRequest() {
+        const now = Date.now();
+        // Remove expired entries
+        this.requests = this.requests.filter(t => now - t < this.windowMs);
+        if (this.requests.length >= this.maxRequests) {
+            return false;
+        }
+        this.requests.push(now);
+        return true;
+    }
+};
+
+/**
+ * Request timeout in milliseconds
+ */
+const REQUEST_TIMEOUT = 30000;
+
+/**
  * Handle API errors consistently
  */
 async function handleResponse(response) {
     if (!response.ok) {
-        // Try to parse error message from response
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
 
         try {
             const errorData = await response.json();
             errorMessage = errorData.error || errorData.message || errorMessage;
-        } catch (e) {
+        } catch (_e) {
             // Response wasn't JSON, use default message
         }
 
-        // Handle specific status codes
+        // Handle 401 - session expired, trigger logout
         if (response.status === 401) {
-            console.warn('🔒 API: Token expirado o inválido');
-            // Could trigger logout here if needed
-            // window.dispatchEvent(new CustomEvent('auth:expired'));
+            console.warn('API: Session expired or invalid');
+            window.dispatchEvent(new CustomEvent('auth:expired'));
         }
 
         throw new Error(errorMessage);
     }
 
-    // Handle empty responses
+    // Handle empty responses (204 No Content, etc.)
+    if (response.status === 204) {
+        return null;
+    }
+
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
         return response.json();
@@ -67,7 +99,35 @@ async function handleResponse(response) {
 }
 
 /**
+ * Execute a fetch request with timeout and rate limiting
+ */
+async function executeFetch(url, config) {
+    if (!rateLimiter.canMakeRequest()) {
+        throw new Error('Demasiadas solicitudes. Por favor, espera un momento.');
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
+    try {
+        const response = await fetch(url, {
+            ...config,
+            signal: controller.signal
+        });
+        return response;
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            throw new Error('La solicitud ha tardado demasiado. Intenta de nuevo.');
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+/**
  * Main API client with all HTTP methods
+ * Auth: httpOnly cookies + Bearer token fallback
  */
 export const apiClient = {
     /**
@@ -78,7 +138,7 @@ export const apiClient = {
     async get(endpoint, options = {}) {
         const url = `${API_BASE}${endpoint}`;
 
-        const response = await fetch(url, {
+        const response = await executeFetch(url, {
             method: 'GET',
             ...defaultConfig,
             headers: {
@@ -101,7 +161,7 @@ export const apiClient = {
     async post(endpoint, data, options = {}) {
         const url = `${API_BASE}${endpoint}`;
 
-        const response = await fetch(url, {
+        const response = await executeFetch(url, {
             method: 'POST',
             ...defaultConfig,
             headers: {
@@ -125,7 +185,7 @@ export const apiClient = {
     async put(endpoint, data, options = {}) {
         const url = `${API_BASE}${endpoint}`;
 
-        const response = await fetch(url, {
+        const response = await executeFetch(url, {
             method: 'PUT',
             ...defaultConfig,
             headers: {
@@ -149,7 +209,7 @@ export const apiClient = {
     async patch(endpoint, data, options = {}) {
         const url = `${API_BASE}${endpoint}`;
 
-        const response = await fetch(url, {
+        const response = await executeFetch(url, {
             method: 'PATCH',
             ...defaultConfig,
             headers: {
@@ -172,7 +232,7 @@ export const apiClient = {
     async delete(endpoint, options = {}) {
         const url = `${API_BASE}${endpoint}`;
 
-        const response = await fetch(url, {
+        const response = await executeFetch(url, {
             method: 'DELETE',
             ...defaultConfig,
             headers: {
@@ -194,13 +254,13 @@ export const apiClient = {
     async upload(endpoint, formData) {
         const url = `${API_BASE}${endpoint}`;
 
-        const response = await fetch(url, {
+        const response = await executeFetch(url, {
             method: 'POST',
             credentials: 'include',
             headers: {
                 ...getAuthHeaders()
-                // Note: Don't set Content-Type for FormData, browser sets it with boundary
             },
+            // Don't set Content-Type for FormData, browser sets it with boundary
             body: formData
         });
 
@@ -210,48 +270,48 @@ export const apiClient = {
 
 /**
  * Convenience exports for common endpoints
- * NOTE: Rutas EN INGLÉS para coincidir con backend lacaleta-api
+ * NOTE: Rutas EN INGLES para coincidir con backend lacaleta-api
  */
 export const api = {
-    // Ingredients (antes: ingredientes)
+    // Ingredients
     getIngredientes: () => apiClient.get('/ingredients'),
     getIngrediente: (id) => apiClient.get(`/ingredients/${id}`),
     createIngrediente: (data) => apiClient.post('/ingredients', data),
     updateIngrediente: (id, data) => apiClient.put(`/ingredients/${id}`, data),
     deleteIngrediente: (id) => apiClient.delete(`/ingredients/${id}`),
 
-    // Recipes (antes: recetas)
+    // Recipes
     getRecetas: () => apiClient.get('/recipes'),
     getReceta: (id) => apiClient.get(`/recipes/${id}`),
     createReceta: (data) => apiClient.post('/recipes', data),
     updateReceta: (id, data) => apiClient.put(`/recipes/${id}`, data),
     deleteReceta: (id) => apiClient.delete(`/recipes/${id}`),
 
-    // Orders (antes: pedidos)
+    // Orders
     getPedidos: () => apiClient.get('/orders'),
     getPedido: (id) => apiClient.get(`/orders/${id}`),
     createPedido: (data) => apiClient.post('/orders', data),
     updatePedido: (id, data) => apiClient.put(`/orders/${id}`, data),
     deletePedido: (id) => apiClient.delete(`/orders/${id}`),
 
-    // Suppliers (antes: proveedores)
+    // Suppliers
     getProveedores: () => apiClient.get('/suppliers'),
     getProveedor: (id) => apiClient.get(`/suppliers/${id}`),
     createProveedor: (data) => apiClient.post('/suppliers', data),
     updateProveedor: (id, data) => apiClient.put(`/suppliers/${id}`, data),
     deleteProveedor: (id) => apiClient.delete(`/suppliers/${id}`),
 
-    // Sales (ya estaba en inglés)
+    // Sales
     getSales: () => apiClient.get('/sales'),
     createSale: (data) => apiClient.post('/sales', data),
     createBulkSales: (data) => apiClient.post('/sales/bulk', data),
     deleteSale: (id) => apiClient.delete(`/sales/${id}`),
 
-    // Team (antes: empleados)
+    // Team
     getEmpleados: () => apiClient.get('/team'),
     getHorarios: (desde, hasta) => apiClient.get(`/horarios?desde=${desde}&hasta=${hasta}`),
 
-    // Inventory (antes: inventario)
+    // Inventory
     getInventario: () => apiClient.get('/inventory/complete'),
     updateStock: (data) => apiClient.post('/inventory/ajuste', data),
 

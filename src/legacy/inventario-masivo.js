@@ -1692,8 +1692,6 @@ window.cargarResumenMensual = async function () {
         window.showToast('Cargando datos...', 'info');
 
         const response = await fetch(
-            // ⚡ Multi-tenant: usa config global si existe
-            // 🔧 FIX: Usar /api/monthly/summary que devuelve {dias, compras.ingredientes, ventas.recetas}
             `${window.API_CONFIG?.baseUrl || 'http://localhost:3001'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
             {
                 credentials: 'include',

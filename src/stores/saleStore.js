@@ -12,6 +12,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import { apiClient } from '../api/client.js';
+import { validateSaleData } from '../utils/validation-schemas.js';
 
 /**
  * Sale Store
@@ -61,9 +62,15 @@ export const saleStore = createStore((set, get) => ({
     },
 
     createSale: async (saleData) => {
+        const validation = validateSaleData(saleData);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join(', ');
+            set({ error: errorMsg });
+            return { success: false, error: errorMsg };
+        }
         set({ isLoading: true, error: null });
         try {
-            const newSale = await apiClient.post('/sales', saleData);
+            const newSale = await apiClient.post('/sales', validation.sanitized);
 
             set((state) => ({
                 sales: [...state.sales, newSale],

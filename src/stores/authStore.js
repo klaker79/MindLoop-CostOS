@@ -4,10 +4,15 @@
  * ============================================
  *
  * Gestión de estado de autenticación con Zustand.
- * Mantiene compatibilidad con window.* para código legacy.
+ *
+ * AUTH STRATEGY:
+ * - Primary: httpOnly cookies via credentials: 'include' (apiClient)
+ * - Fallback: Bearer token in localStorage (legacy code compatibility)
+ * - Token is stored in localStorage ONLY for legacy modules that use
+ *   raw fetch() with Authorization header. New code should use apiClient.
  *
  * @author MindLoopIA
- * @version 1.0.0
+ * @version 2.1.0
  */
 
 import { createStore } from 'zustand/vanilla';
@@ -35,12 +40,13 @@ export const authStore = createStore((set, get) => ({
 
     setToken: (token) => {
         set({ token });
+        // Store in localStorage for legacy code that uses raw fetch()
+        // with Authorization: Bearer header (20+ callsites)
         if (token) {
             localStorage.setItem('token', token);
         } else {
             localStorage.removeItem('token');
         }
-        // Sync with window
         if (typeof window !== 'undefined') {
             window.authToken = token;
         }
@@ -63,7 +69,10 @@ export const authStore = createStore((set, get) => ({
 
             const data = await response.json();
             get().setUser(data.user);
-            get().setToken(data.token);
+            // Store token for legacy code compatibility
+            if (data.token) {
+                get().setToken(data.token);
+            }
 
             return { success: true, user: data.user };
         } catch (error) {
@@ -78,12 +87,13 @@ export const authStore = createStore((set, get) => ({
                 method: 'POST',
                 credentials: 'include'
             });
-        } catch (e) {
-            console.warn('Logout API error:', e);
+        } catch (_e) {
+            // Continue with local logout even if backend call fails
         }
 
         set({ user: null, token: null, isAuthenticated: false, error: null });
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
 
         // Clear window references
         if (typeof window !== 'undefined') {
@@ -108,7 +118,7 @@ export const authStore = createStore((set, get) => ({
                 get().logout();
                 return false;
             }
-        } catch (error) {
+        } catch (_error) {
             get().logout();
             return false;
         } finally {
@@ -127,8 +137,12 @@ export const isAuthenticated = () => authStore.getState().isAuthenticated;
 // Subscribe helper
 export const subscribeToAuth = (callback) => authStore.subscribe(callback);
 
-// Initialize window compatibility layer
+// Listen for auth:expired events from apiClient and auto-logout
 if (typeof window !== 'undefined') {
+    window.addEventListener('auth:expired', () => {
+        authStore.getState().logout();
+    });
+
     window.authStore = authStore;
     window.getAuthState = getAuthState;
 }
