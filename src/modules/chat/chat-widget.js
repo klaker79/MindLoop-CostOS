@@ -6,10 +6,6 @@
 import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
-import html2canvas from 'html2canvas';
-
-// Exponer html2canvas globalmente para PDF export
-window.html2canvas = html2canvas;
 
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
@@ -77,32 +73,16 @@ function speakResponse(text) {
 
 /**
  * Exporta un mensaje del chat a PDF profesional
- * Captura el HTML renderizado para preservar tablas y formato
- * @param {string} messageId - ID del elemento contenedor del mensaje
+ * Usa jsPDF + autoTable para renderizado directo de texto y tablas markdown
+ * @param {string} rawText - Texto raw del mensaje (markdown)
  */
-async function exportMessageToPDF(messageId) {
+function exportMessageToPDF(rawText) {
     try {
         window.showToast?.('Generando PDF...', 'info');
 
         const jsPDFConstructor = window.jsPDF || window.jspdf?.jsPDF;
-        const html2canvasLib = window.html2canvas;
-
         if (!jsPDFConstructor) {
             window.showToast?.('Error: Librería PDF no disponible', 'error');
-            return;
-        }
-
-        // Buscar el elemento del mensaje
-        const messageElement = document.getElementById(messageId);
-        if (!messageElement) {
-            window.showToast?.('Error: Mensaje no encontrado', 'error');
-            return;
-        }
-
-        // Obtener el contenido del mensaje
-        const contentElement = messageElement.querySelector('.chat-message-content');
-        if (!contentElement) {
-            window.showToast?.('Error: Contenido no encontrado', 'error');
             return;
         }
 
@@ -111,149 +91,156 @@ async function exportMessageToPDF(messageId) {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
 
-        // Crear contenedor temporal para renderizado PDF
-        const pdfContainer = document.createElement('div');
-        pdfContainer.id = 'pdf-render-container';
-        pdfContainer.style.cssText = `
-            position: fixed;
-            left: -9999px;
-            top: 0;
-            width: 800px;
-            background: white;
-            padding: 40px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        `;
+        const doc = new jsPDFConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        const usableWidth = pageWidth - margin * 2;
+        let y = margin;
 
-        // Header profesional
-        pdfContainer.innerHTML = `
-            <div style="background: linear-gradient(135deg, #667eea 0%, #7c3aed 100%); padding: 30px; margin: -40px -40px 30px -40px; color: white;">
-                <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: bold;">${restaurante}</h1>
-                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Informe de Inteligencia Empresarial</p>
-                <p style="margin: 10px 0 0 0; font-size: 12px; opacity: 0.8;">${fecha}</p>
-            </div>
-            <div id="pdf-content-area" style="font-size: 14px; line-height: 1.6; color: #1e293b;"></div>
-            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
-                <p style="margin: 0; font-size: 10px; color: #94a3b8;">
-                    ${restaurante} • Generado por MindLoop CostOS • ${new Date().toLocaleString('es-ES')}
-                </p>
-            </div>
-        `;
+        // --- Header con gradiente simulado (3 franjas) ---
+        doc.setFillColor(102, 126, 234);
+        doc.rect(0, 0, pageWidth, 12, 'F');
+        doc.setFillColor(118, 108, 230);
+        doc.rect(0, 12, pageWidth, 12, 'F');
+        doc.setFillColor(139, 92, 226);
+        doc.rect(0, 24, pageWidth, 11, 'F');
 
-        // Clonar y estilizar contenido
-        const contentClone = contentElement.cloneNode(true);
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text(restaurante, margin, 18);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Informe de Inteligencia Empresarial', margin, 27);
+        doc.setFontSize(9);
+        doc.text(fecha, pageWidth - margin, 32, { align: 'right' });
 
-        // Aplicar estilos de impresión al contenido
-        contentClone.style.cssText = 'font-size: 14px; line-height: 1.7;';
+        y = 45;
+        doc.setTextColor(30, 41, 59);
 
-        // Estilizar tablas para PDF
-        const tables = contentClone.querySelectorAll('table');
-        tables.forEach(table => {
-            table.style.cssText = `
-                width: 100%;
-                border-collapse: collapse;
-                margin: 20px 0;
-                font-size: 12px;
-            `;
-            const ths = table.querySelectorAll('th');
-            ths.forEach(th => {
-                th.style.cssText = `
-                    background: #667eea;
-                    color: white;
-                    padding: 12px 15px;
-                    text-align: left;
-                    font-weight: 600;
-                `;
-            });
-            const tds = table.querySelectorAll('td');
-            tds.forEach((td, idx) => {
-                td.style.cssText = `
-                    padding: 10px 15px;
-                    border-bottom: 1px solid #e2e8f0;
-                    background: ${Math.floor(idx / (tds.length / (table.querySelectorAll('tr').length - 1))) % 2 === 0 ? 'white' : '#f8fafc'};
-                `;
-            });
-        });
+        // --- Parsear contenido: detectar tablas markdown ---
+        const lines = rawText.split('\n');
+        let i = 0;
 
-        // Estilizar listas
-        const lists = contentClone.querySelectorAll('ul, ol');
-        lists.forEach(list => {
-            list.style.cssText = 'margin: 15px 0; padding-left: 25px;';
-        });
-        const listItems = contentClone.querySelectorAll('li');
-        listItems.forEach(li => {
-            li.style.cssText = 'margin: 8px 0;';
-        });
+        while (i < lines.length) {
+            // Detectar tabla markdown (línea con | seguida de línea separadora)
+            if (i + 1 < lines.length && lines[i].includes('|') &&
+                /^[\s\-:|]+$/.test(lines[i + 1].trim())) {
 
-        // Insertar contenido
-        document.body.appendChild(pdfContainer);
-        const contentArea = pdfContainer.querySelector('#pdf-content-area');
-        contentArea.appendChild(contentClone);
+                const tableLines = [];
+                let j = i;
+                while (j < lines.length && (lines[j].includes('|') || /^[\s\-:|]+$/.test(lines[j].trim()))) {
+                    if (!/^[\s\-:|]+$/.test(lines[j].trim())) {
+                        tableLines.push(lines[j]);
+                    }
+                    j++;
+                }
 
-        // Generar PDF
-        if (html2canvasLib) {
-            // Método con html2canvas (mejor calidad)
-            const canvas = await html2canvasLib(pdfContainer, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff'
-            });
+                if (tableLines.length >= 2) {
+                    const parseCells = line => line.split('|').map(c => c.trim()).filter(c => c !== '');
+                    const head = [parseCells(tableLines[0])];
+                    const body = tableLines.slice(1).map(parseCells);
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const doc = new jsPDFConstructor({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const imgWidth = pageWidth - 20;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            let heightLeft = imgHeight;
-            let position = 10;
-            let page = 1;
-
-            // Primera página
-            doc.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
-            heightLeft -= (pageHeight - 20);
-
-            // Páginas adicionales si es necesario
-            while (heightLeft > 0) {
-                doc.addPage();
-                page++;
-                position = 10 - (page - 1) * (pageHeight - 20);
-                doc.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
-                heightLeft -= (pageHeight - 20);
+                    doc.autoTable({
+                        startY: y,
+                        head: head,
+                        body: body,
+                        margin: { left: margin, right: margin },
+                        styles: { fontSize: 9, cellPadding: 3, overflow: 'linebreak' },
+                        headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold' },
+                        alternateRowStyles: { fillColor: [248, 250, 252] },
+                        theme: 'grid'
+                    });
+                    y = doc.lastAutoTable.finalY + 8;
+                }
+                i = j;
+                continue;
             }
 
-            // Descargar
-            const fechaFile = new Date().toISOString().split('T')[0];
-            const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-            doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
+            const line = lines[i].trim();
 
-            window.showToast?.('PDF descargado correctamente', 'success');
-        } else {
-            // Fallback: usar jsPDF html plugin si está disponible
-            window.showToast?.('html2canvas no disponible, usando fallback', 'warning');
-            const doc = new jsPDFConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            // Salto de página si necesario
+            if (y > 270) {
+                doc.addPage();
+                y = margin;
+            }
 
-            const text = contentElement.innerText || contentElement.textContent;
-            const lines = doc.splitTextToSize(text, 170);
-            doc.setFontSize(11);
-            doc.text(lines, 20, 20);
+            if (!line) { y += 4; i++; continue; }
 
-            const fechaFile = new Date().toISOString().split('T')[0];
-            const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-            doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
+            // Limpiar markdown básico
+            const cleanLine = line
+                .replace(/\*\*(.+?)\*\*/g, '$1')
+                .replace(/__(.+?)__/g, '$1')
+                .replace(/`([^`]+)`/g, '$1')
+                .replace(/^#{1,3}\s*/, '');
 
-            window.showToast?.('PDF descargado (modo básico)', 'info');
+            const isMdHeader = /^#{1,3}\s/.test(line);
+            const isEmojiHeader = /^[^\w\s]/.test(line) && /[A-ZÁÉÍÓÚÑ]{2,}/.test(line);
+
+            if (isMdHeader || isEmojiHeader) {
+                // Headers con estilo
+                y += 3;
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(102, 126, 234);
+                const splitLines = doc.splitTextToSize(cleanLine, usableWidth);
+                doc.text(splitLines, margin, y);
+                y += splitLines.length * 6;
+                doc.setTextColor(30, 41, 59);
+            } else if (line.startsWith('- ') || line.startsWith('• ')) {
+                // Lista con bullets
+                doc.setFontSize(10);
+                const hasBold = /\*\*(.+?)\*\*/.test(line);
+                if (hasBold) {
+                    const parts = line.replace(/^[-•]\s*/, '').split(/\*\*(.+?)\*\*/);
+                    let xPos = margin + 6;
+                    doc.text('  •  ', margin, y);
+                    parts.forEach((part, idx) => {
+                        if (!part) return;
+                        doc.setFont('helvetica', idx % 2 === 1 ? 'bold' : 'normal');
+                        const w = doc.getTextWidth(part);
+                        if (xPos + w > pageWidth - margin) { y += 5; xPos = margin + 10; }
+                        doc.text(part, xPos, y);
+                        xPos += w;
+                    });
+                    doc.setFont('helvetica', 'normal');
+                    y += 6;
+                } else {
+                    doc.setFont('helvetica', 'normal');
+                    const bulletText = cleanLine.replace(/^[-•]\s*/, '');
+                    const splitLines = doc.splitTextToSize('  •  ' + bulletText, usableWidth);
+                    doc.text(splitLines, margin, y);
+                    y += splitLines.length * 5;
+                }
+            } else {
+                // Texto normal
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                const splitLines = doc.splitTextToSize(cleanLine, usableWidth);
+                doc.text(splitLines, margin, y);
+                y += splitLines.length * 5;
+            }
+            i++;
         }
 
-        // Limpiar
-        document.body.removeChild(pdfContainer);
+        // --- Footer en todas las páginas ---
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let p = 1; p <= totalPages; p++) {
+            doc.setPage(p);
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.setDrawColor(226, 232, 240);
+            doc.line(margin, 284, pageWidth - margin, 284);
+            doc.text(
+                `${restaurante} — Generado por MindLoop CostOS — Página ${p}/${totalPages}`,
+                pageWidth / 2, 289, { align: 'center' }
+            );
+        }
 
+        const fechaFile = new Date().toISOString().split('T')[0];
+        const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+        doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
+        window.showToast?.('PDF descargado correctamente', 'success');
     } catch (error) {
         console.error('Error generando PDF:', error);
         window.showToast?.('Error al generar PDF: ' + error.message, 'error');
@@ -505,15 +492,21 @@ function addMessage(type, text, save = true) {
     // Generar ID único para el mensaje
     const messageId = `chat-msg-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
 
-    // Botón PDF que pasará el ID del mensaje
+    // Botón PDF que pasará el texto raw codificado
     let pdfButton = '';
     if (type === 'bot' && !isWelcome) {
-        pdfButton = `<button class="chat-pdf-btn" 
-             title="Exportar a PDF" 
-             style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-             onmouseover="this.style.opacity='1'" 
-             onmouseout="this.style.opacity='0.6'"
-             onclick="window.exportMessageToPDF('${messageId}')">📄</button>`;
+        try {
+            const encodedText = btoa(unescape(encodeURIComponent(text)));
+            pdfButton = `<button class="chat-pdf-btn" 
+                 data-pdf-text="${encodedText}"
+                 title="Exportar a PDF" 
+                 style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
+                 onmouseover="this.style.opacity='1'" 
+                 onmouseout="this.style.opacity='0.6'"
+                 onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
+        } catch (e) {
+            console.warn('Error encoding text for PDF:', e);
+        }
     }
 
     const messageEl = document.createElement('div');
@@ -1028,12 +1021,18 @@ function renderChatHistory() {
 
         let pdfButton = '';
         if (msg.type === 'bot' && !isWelcome) {
-            pdfButton = `<button class="chat-pdf-btn" 
-                 title="Exportar a PDF" 
-                 style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-                 onmouseover="this.style.opacity='1'" 
-                 onmouseout="this.style.opacity='0.6'"
-                 onclick="window.exportMessageToPDF('${messageId}')">📄</button>`;
+            try {
+                const encodedText = btoa(unescape(encodeURIComponent(msg.text)));
+                pdfButton = `<button class="chat-pdf-btn" 
+                     data-pdf-text="${encodedText}"
+                     title="Exportar a PDF" 
+                     style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
+                     onmouseover="this.style.opacity='1'" 
+                     onmouseout="this.style.opacity='0.6'"
+                     onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
+            } catch (e) {
+                console.warn('Error encoding text for PDF:', e);
+            }
         }
 
         const messageEl = document.createElement('div');
