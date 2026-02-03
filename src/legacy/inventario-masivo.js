@@ -1583,6 +1583,85 @@ function getNombreMes(mes) {
     }
 })();
 
+/**
+ * Enrich backend compras data with purchase data computed from local pedidos.
+ * The backend /api/monthly/summary may not include all received orders in
+ * compras.ingredientes. This function fills the gaps by computing purchase
+ * data from window.pedidos that have estado='recibido' for the given month.
+ */
+function enriquecerComprasConPedidos(datos, mes, ano) {
+    if (!datos.compras) datos.compras = {};
+    if (!datos.compras.ingredientes) datos.compras.ingredientes = {};
+
+    const pedidosRecibidos = (window.pedidos || []).filter(ped => {
+        if (ped.estado !== 'recibido') return false;
+        const fechaRec = ped.fecha_recepcion || ped.fechaRecepcion || ped.fecha;
+        if (!fechaRec) return false;
+        const d = new Date(fechaRec);
+        return (d.getMonth() + 1) === parseInt(mes) && d.getFullYear() === parseInt(ano);
+    });
+
+    console.log(`🔍 enriquecerComprasConPedidos: ${pedidosRecibidos.length} pedidos recibidos en ${mes}/${ano}`);
+
+    for (const ped of pedidosRecibidos) {
+        const ingredientes = ped.ingredientes || [];
+        const fechaRec = ped.fecha_recepcion || ped.fechaRecepcion || ped.fecha;
+        const fechaObj = new Date(fechaRec);
+        const diaKey = fechaObj.toISOString().split('T')[0]; // YYYY-MM-DD
+
+        for (const item of ingredientes) {
+            // Skip items not delivered
+            if (item.estado === 'no-entregado') continue;
+
+            const ingId = item.ingredienteId || item.ingrediente_id;
+            const cantidadRecibida = parseFloat(item.cantidadRecibida || item.cantidad) || 0;
+            const precioReal = parseFloat(item.precioReal || item.precioUnitario || item.precio_unitario) || 0;
+
+            if (!ingId || cantidadRecibida <= 0) continue;
+
+            // Find ingredient name
+            const ingInfo = (window.ingredientes || []).find(i => i.id === ingId);
+            const ingNombre = ingInfo?.nombre || item.nombre || `Ingrediente ${ingId}`;
+
+            // Initialize ingredient entry if not exists
+            if (!datos.compras.ingredientes[ingNombre]) {
+                datos.compras.ingredientes[ingNombre] = { dias: {}, total: 0 };
+            }
+            const ingData = datos.compras.ingredientes[ingNombre];
+
+            // Track pedido IDs to avoid duplicates
+            if (!ingData._pedidoIds) ingData._pedidoIds = new Set();
+            const pedKey = `${ped.id}-${ingId}-${diaKey}`;
+            if (ingData._pedidoIds.has(pedKey)) continue;
+            ingData._pedidoIds.add(pedKey);
+
+            // Add or merge day data
+            if (!ingData.dias[diaKey]) {
+                ingData.dias[diaKey] = { precio: precioReal, cantidad: cantidadRecibida, total: precioReal * cantidadRecibida };
+            } else {
+                const existing = ingData.dias[diaKey];
+                const totalCant = existing.cantidad + cantidadRecibida;
+                const totalGasto = (existing.precio * existing.cantidad) + (precioReal * cantidadRecibida);
+                existing.cantidad = totalCant;
+                existing.precio = totalCant > 0 ? totalGasto / totalCant : 0;
+                existing.total = totalGasto;
+            }
+        }
+    }
+
+    // Recalculate totals and clean up tracking data
+    for (const [_nombre, data] of Object.entries(datos.compras.ingredientes)) {
+        delete data._pedidoIds;
+        data.total = Object.values(data.dias).reduce((sum, d) => sum + (d.total || d.cantidad * d.precio || 0), 0);
+    }
+
+    // Recalculate global compras total
+    datos.compras.total = Object.values(datos.compras.ingredientes).reduce((sum, ing) => sum + (ing.total || 0), 0);
+
+    console.log(`✅ enriquecerComprasConPedidos: ${Object.keys(datos.compras.ingredientes).length} ingredientes, total: ${datos.compras.total?.toFixed(2)}€`);
+    return datos;
+}
+
 // Cargar resumen mensual desde la API
 window.cargarResumenMensual = async function () {
     const mes = document.getElementById('diario-mes').value;
@@ -1613,6 +1692,10 @@ window.cargarResumenMensual = async function () {
         if (!response.ok) throw new Error('Error cargando datos');
 
         window.datosResumenMensual = await response.json();
+
+        // 🔧 FIX: Enriquecer datos de compras con pedidos recibidos locales
+        // El backend puede no incluir todos los pedidos en compras.ingredientes
+        window.datosResumenMensual = enriquecerComprasConPedidos(window.datosResumenMensual, mes, ano);
 
         // Actualizar KPIs
         document.getElementById('diario-total-compras').textContent =
