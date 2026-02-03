@@ -12,6 +12,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import { apiClient } from '../api/client.js';
+import { validateRecipeData } from '../utils/validation-schemas.js';
 
 /**
  * Recipe Store
@@ -66,9 +67,15 @@ export const recipeStore = createStore((set, get) => ({
     },
 
     createRecipe: async (recipeData) => {
+        const validation = validateRecipeData(recipeData, false);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join(', ');
+            set({ error: errorMsg });
+            return { success: false, error: errorMsg };
+        }
         set({ isLoading: true, error: null });
         try {
-            const newRecipe = await apiClient.post('/recipes', recipeData);
+            const newRecipe = await apiClient.post('/recipes', validation.sanitized);
 
             set((state) => ({
                 recipes: [...state.recipes, newRecipe],
@@ -89,9 +96,15 @@ export const recipeStore = createStore((set, get) => ({
     },
 
     updateRecipe: async (id, recipeData) => {
+        const validation = validateRecipeData(recipeData, true);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join(', ');
+            set({ error: errorMsg });
+            return { success: false, error: errorMsg };
+        }
         set({ isLoading: true, error: null });
         try {
-            const updatedRecipe = await apiClient.put(`/recipes/${id}`, recipeData);
+            const updatedRecipe = await apiClient.put(`/recipes/${id}`, validation.sanitized);
 
             set((state) => ({
                 recipes: state.recipes.map(rec =>

@@ -12,6 +12,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import { apiClient } from '../api/client.js';
+import { validateOrderData } from '../utils/validation-schemas.js';
 
 /**
  * Order Store
@@ -67,9 +68,15 @@ export const orderStore = createStore((set, get) => ({
     },
 
     createOrder: async (orderData) => {
+        const validation = validateOrderData(orderData, false);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join(', ');
+            set({ error: errorMsg });
+            return { success: false, error: errorMsg };
+        }
         set({ isLoading: true, error: null });
         try {
-            const newOrder = await apiClient.post('/orders', orderData);
+            const newOrder = await apiClient.post('/orders', validation.sanitized);
 
             set((state) => ({
                 orders: [...state.orders, newOrder],
@@ -90,9 +97,15 @@ export const orderStore = createStore((set, get) => ({
     },
 
     updateOrder: async (id, orderData) => {
+        const validation = validateOrderData(orderData, true);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join(', ');
+            set({ error: errorMsg });
+            return { success: false, error: errorMsg };
+        }
         set({ isLoading: true, error: null });
         try {
-            const updatedOrder = await apiClient.put(`/orders/${id}`, orderData);
+            const updatedOrder = await apiClient.put(`/orders/${id}`, validation.sanitized);
 
             set((state) => ({
                 orders: state.orders.map(ord =>

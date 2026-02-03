@@ -12,6 +12,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import { apiClient } from '../api/client.js';
+import { validateIngredientData } from '../utils/validation-schemas.js';
 
 /**
  * Ingredient Store
@@ -83,9 +84,15 @@ export const ingredientStore = createStore((set, get) => ({
     },
 
     createIngredient: async (ingredientData) => {
+        const validation = validateIngredientData(ingredientData, false);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join(', ');
+            set({ error: errorMsg });
+            return { success: false, error: errorMsg };
+        }
         set({ isLoading: true, error: null });
         try {
-            const newIngredient = await apiClient.post('/ingredients', ingredientData);
+            const newIngredient = await apiClient.post('/ingredients', validation.sanitized);
 
             set((state) => ({
                 ingredients: [...state.ingredients, newIngredient],
@@ -106,9 +113,15 @@ export const ingredientStore = createStore((set, get) => ({
     },
 
     updateIngredient: async (id, ingredientData) => {
+        const validation = validateIngredientData(ingredientData, true);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join(', ');
+            set({ error: errorMsg });
+            return { success: false, error: errorMsg };
+        }
         set({ isLoading: true, error: null });
         try {
-            const updatedIngredient = await apiClient.put(`/ingredients/${id}`, ingredientData);
+            const updatedIngredient = await apiClient.put(`/ingredients/${id}`, validation.sanitized);
 
             set((state) => ({
                 ingredients: state.ingredients.map(ing =>

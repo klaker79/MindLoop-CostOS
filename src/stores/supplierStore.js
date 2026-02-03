@@ -12,6 +12,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import { apiClient } from '../api/client.js';
+import { validateSupplierData } from '../utils/validation-schemas.js';
 
 /**
  * Supplier Store
@@ -62,9 +63,15 @@ export const supplierStore = createStore((set, get) => ({
     },
 
     createSupplier: async (supplierData) => {
+        const validation = validateSupplierData(supplierData, false);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join(', ');
+            set({ error: errorMsg });
+            return { success: false, error: errorMsg };
+        }
         set({ isLoading: true, error: null });
         try {
-            const newSupplier = await apiClient.post('/suppliers', supplierData);
+            const newSupplier = await apiClient.post('/suppliers', validation.sanitized);
 
             set((state) => ({
                 suppliers: [...state.suppliers, newSupplier],
@@ -84,9 +91,15 @@ export const supplierStore = createStore((set, get) => ({
     },
 
     updateSupplier: async (id, supplierData) => {
+        const validation = validateSupplierData(supplierData, true);
+        if (!validation.valid) {
+            const errorMsg = validation.errors.join(', ');
+            set({ error: errorMsg });
+            return { success: false, error: errorMsg };
+        }
         set({ isLoading: true, error: null });
         try {
-            const updatedSupplier = await apiClient.put(`/suppliers/${id}`, supplierData);
+            const updatedSupplier = await apiClient.put(`/suppliers/${id}`, validation.sanitized);
 
             set((state) => ({
                 suppliers: state.suppliers.map(sup =>
