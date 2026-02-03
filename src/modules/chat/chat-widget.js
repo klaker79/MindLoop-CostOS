@@ -73,13 +73,32 @@ function speakResponse(text) {
 
 /**
  * Exporta un mensaje del chat a PDF profesional
- * Diseño ejecutivo de alta calidad
+ * Captura el HTML renderizado para preservar tablas y formato
+ * @param {string} messageId - ID del elemento contenedor del mensaje
  */
-function exportMessageToPDF(rawText) {
+async function exportMessageToPDF(messageId) {
     try {
+        window.showToast?.('Generando PDF...', 'info');
+
         const jsPDFConstructor = window.jsPDF || window.jspdf?.jsPDF;
+        const html2canvasLib = window.html2canvas;
+
         if (!jsPDFConstructor) {
             window.showToast?.('Error: Librería PDF no disponible', 'error');
+            return;
+        }
+
+        // Buscar el elemento del mensaje
+        const messageElement = document.getElementById(messageId);
+        if (!messageElement) {
+            window.showToast?.('Error: Mensaje no encontrado', 'error');
+            return;
+        }
+
+        // Obtener el contenido del mensaje
+        const contentElement = messageElement.querySelector('.chat-message-content');
+        if (!contentElement) {
+            window.showToast?.('Error: Contenido no encontrado', 'error');
             return;
         }
 
@@ -88,247 +107,149 @@ function exportMessageToPDF(rawText) {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
 
-        // Limpiar emojis completamente (jsPDF no los soporta)
-        let cleanText = rawText
-            .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/gu, '')
-            .replace(/\s{2,}/g, ' '); // Limpiar espacios múltiples
+        // Crear contenedor temporal para renderizado PDF
+        const pdfContainer = document.createElement('div');
+        pdfContainer.id = 'pdf-render-container';
+        pdfContainer.style.cssText = `
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 800px;
+            background: white;
+            padding: 40px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        `;
 
-        const doc = new jsPDFConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 20;
-        const usableWidth = pageWidth - margin * 2;
-        let y = margin;
+        // Header profesional
+        pdfContainer.innerHTML = `
+            <div style="background: linear-gradient(135deg, #667eea 0%, #7c3aed 100%); padding: 30px; margin: -40px -40px 30px -40px; color: white;">
+                <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: bold;">${restaurante}</h1>
+                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Informe de Inteligencia Empresarial</p>
+                <p style="margin: 10px 0 0 0; font-size: 12px; opacity: 0.8;">${fecha}</p>
+            </div>
+            <div id="pdf-content-area" style="font-size: 14px; line-height: 1.6; color: #1e293b;"></div>
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
+                <p style="margin: 0; font-size: 10px; color: #94a3b8;">
+                    ${restaurante} • Generado por MindLoop CostOS • ${new Date().toLocaleString('es-ES')}
+                </p>
+            </div>
+        `;
 
-        // --- HEADER PROFESIONAL ---
-        // Gradiente simulado con rectángulos
-        doc.setFillColor(102, 126, 234); // #667eea
-        doc.rect(0, 0, pageWidth, 40, 'F');
-        doc.setFillColor(124, 58, 237); // #7c3aed
-        doc.rect(0, 36, pageWidth, 4, 'F');
+        // Clonar y estilizar contenido
+        const contentClone = contentElement.cloneNode(true);
 
-        // Nombre del restaurante
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.setFont('helvetica', 'bold');
-        doc.text(restaurante, margin, 20);
+        // Aplicar estilos de impresión al contenido
+        contentClone.style.cssText = 'font-size: 14px; line-height: 1.7;';
 
-        // Subtítulo
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Informe de Inteligencia Empresarial', margin, 30);
+        // Estilizar tablas para PDF
+        const tables = contentClone.querySelectorAll('table');
+        tables.forEach(table => {
+            table.style.cssText = `
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                font-size: 12px;
+            `;
+            const ths = table.querySelectorAll('th');
+            ths.forEach(th => {
+                th.style.cssText = `
+                    background: #667eea;
+                    color: white;
+                    padding: 12px 15px;
+                    text-align: left;
+                    font-weight: 600;
+                `;
+            });
+            const tds = table.querySelectorAll('td');
+            tds.forEach((td, idx) => {
+                td.style.cssText = `
+                    padding: 10px 15px;
+                    border-bottom: 1px solid #e2e8f0;
+                    background: ${Math.floor(idx / (tds.length / (table.querySelectorAll('tr').length - 1))) % 2 === 0 ? 'white' : '#f8fafc'};
+                `;
+            });
+        });
 
-        // Fecha alineada a la derecha
-        doc.setFontSize(10);
-        doc.text(fecha, pageWidth - margin, 30, { align: 'right' });
+        // Estilizar listas
+        const lists = contentClone.querySelectorAll('ul, ol');
+        lists.forEach(list => {
+            list.style.cssText = 'margin: 15px 0; padding-left: 25px;';
+        });
+        const listItems = contentClone.querySelectorAll('li');
+        listItems.forEach(li => {
+            li.style.cssText = 'margin: 8px 0;';
+        });
 
-        y = 52;
-        doc.setTextColor(30, 41, 59);
+        // Insertar contenido
+        document.body.appendChild(pdfContainer);
+        const contentArea = pdfContainer.querySelector('#pdf-content-area');
+        contentArea.appendChild(contentClone);
 
-        // --- PROCESAR CONTENIDO ---
-        const lines = cleanText.split('\n');
-        let i = 0;
+        // Generar PDF
+        if (html2canvasLib) {
+            // Método con html2canvas (mejor calidad)
+            const canvas = await html2canvasLib(pdfContainer, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
 
-        // Función helper para nueva página
-        const checkNewPage = (neededSpace = 20) => {
-            if (y > pageHeight - neededSpace) {
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const doc = new jsPDFConstructor({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const imgWidth = pageWidth - 20;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            let heightLeft = imgHeight;
+            let position = 10;
+            let page = 1;
+
+            // Primera página
+            doc.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
+            heightLeft -= (pageHeight - 20);
+
+            // Páginas adicionales si es necesario
+            while (heightLeft > 0) {
                 doc.addPage();
-                y = margin;
-            }
-        };
-
-        while (i < lines.length) {
-            let line = lines[i].trim();
-
-            // Saltar líneas vacías
-            if (!line) {
-                y += 3;
-                i++;
-                continue;
+                page++;
+                position = 10 - (page - 1) * (pageHeight - 20);
+                doc.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
+                heightLeft -= (pageHeight - 20);
             }
 
-            checkNewPage();
+            // Descargar
+            const fechaFile = new Date().toISOString().split('T')[0];
+            const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+            doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
 
-            // --- DETECTAR TABLA MARKDOWN ---
-            if (line.includes('|') && i + 1 < lines.length) {
-                const nextLine = lines[i + 1];
-                if (nextLine && /^[\s|\-:]+$/.test(nextLine)) {
-                    // Recoger todas las líneas de la tabla
-                    const tableData = [];
-                    let j = i;
-                    while (j < lines.length && lines[j].includes('|')) {
-                        const row = lines[j].trim();
-                        // Saltar línea separadora
-                        if (!/^[\s|\-:]+$/.test(row)) {
-                            const cells = row.split('|')
-                                .map(c => c.trim())
-                                .filter(c => c !== '');
-                            if (cells.length > 0) {
-                                tableData.push(cells);
-                            }
-                        }
-                        j++;
-                    }
+            window.showToast?.('PDF descargado correctamente', 'success');
+        } else {
+            // Fallback: usar jsPDF html plugin si está disponible
+            window.showToast?.('html2canvas no disponible, usando fallback', 'warning');
+            const doc = new jsPDFConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-                    if (tableData.length >= 2 && typeof doc.autoTable === 'function') {
-                        doc.autoTable({
-                            startY: y,
-                            head: [tableData[0]],
-                            body: tableData.slice(1),
-                            margin: { left: margin, right: margin },
-                            styles: {
-                                fontSize: 9,
-                                cellPadding: 4,
-                                overflow: 'linebreak',
-                                cellWidth: 'wrap'
-                            },
-                            headStyles: {
-                                fillColor: [102, 126, 234],
-                                textColor: 255,
-                                fontStyle: 'bold',
-                                halign: 'center'
-                            },
-                            bodyStyles: {
-                                halign: 'left'
-                            },
-                            alternateRowStyles: { fillColor: [248, 250, 252] },
-                            theme: 'grid',
-                            tableWidth: 'auto'
-                        });
-                        y = doc.lastAutoTable.finalY + 10;
-                    }
-                    i = j;
-                    continue;
-                }
-            }
+            const text = contentElement.innerText || contentElement.textContent;
+            const lines = doc.splitTextToSize(text, 170);
+            doc.setFontSize(11);
+            doc.text(lines, 20, 20);
 
-            // --- DETECTAR MARKDOWN HEADERS ---
-            // ### Header nivel 3
-            if (line.startsWith('### ')) {
-                checkNewPage(15);
-                y += 4;
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(102, 126, 234);
-                const headerText = line.replace(/^###\s*/, '').replace(/\*\*/g, '');
-                const splitHeader = doc.splitTextToSize(headerText, usableWidth);
-                doc.text(splitHeader, margin, y);
-                y += splitHeader.length * 6 + 2;
-                doc.setTextColor(30, 41, 59);
-                i++;
-                continue;
-            }
+            const fechaFile = new Date().toISOString().split('T')[0];
+            const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+            doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
 
-            // ## Header nivel 2
-            if (line.startsWith('## ')) {
-                checkNewPage(18);
-                y += 6;
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(124, 58, 237);
-                const headerText = line.replace(/^##\s*/, '').replace(/\*\*/g, '');
-                const splitHeader = doc.splitTextToSize(headerText, usableWidth);
-                doc.text(splitHeader, margin, y);
-                y += splitHeader.length * 7 + 3;
-                doc.setTextColor(30, 41, 59);
-                i++;
-                continue;
-            }
-
-            // # Header nivel 1
-            if (line.startsWith('# ')) {
-                checkNewPage(20);
-                y += 8;
-                doc.setFontSize(16);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(102, 126, 234);
-                const headerText = line.replace(/^#\s*/, '').replace(/\*\*/g, '');
-                const splitHeader = doc.splitTextToSize(headerText, usableWidth);
-                doc.text(splitHeader, margin, y);
-                y += splitHeader.length * 8 + 4;
-                // Línea decorativa bajo título principal
-                doc.setDrawColor(102, 126, 234);
-                doc.setLineWidth(0.5);
-                doc.line(margin, y - 2, margin + 40, y - 2);
-                doc.setTextColor(30, 41, 59);
-                i++;
-                continue;
-            }
-
-            // --- TEXTO NORMAL ---
-            // Limpiar markdown (bold, italic, code)
-            let cleanLine = line
-                .replace(/\*\*(.+?)\*\*/g, '$1')
-                .replace(/__(.+?)__/g, '$1')
-                .replace(/`([^`]+)`/g, '$1')
-                .replace(/\*(.+?)\*/g, '$1');
-
-            // Detectar bullets
-            if (line.startsWith('- ') || line.startsWith('• ') || /^\d+\.\s/.test(line)) {
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
-                let bulletText = cleanLine.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
-
-                // Detectar texto importante (menciones de dinero, porcentajes, alertas)
-                const isImportant = /€|\%|pérdida|alerta|urgente|clave/i.test(bulletText);
-
-                if (isImportant) {
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(124, 58, 237);
-                }
-
-                const bulletPrefix = /^\d+\./.test(line) ? line.match(/^\d+/)[0] + '. ' : '  •  ';
-                const splitLines = doc.splitTextToSize(bulletPrefix + bulletText, usableWidth - 5);
-                doc.text(splitLines, margin + 3, y);
-                y += splitLines.length * 5 + 1;
-
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(30, 41, 59);
-            } else {
-                // Texto párrafo normal
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
-
-                // Resaltar recomendaciones
-                if (/recomendaci|considera|importante|clave/i.test(cleanLine)) {
-                    doc.setFont('helvetica', 'bold');
-                }
-
-                const splitLines = doc.splitTextToSize(cleanLine, usableWidth);
-                doc.text(splitLines, margin, y);
-                y += splitLines.length * 5;
-
-                doc.setFont('helvetica', 'normal');
-            }
-
-            i++;
+            window.showToast?.('PDF descargado (modo básico)', 'info');
         }
 
-        // --- FOOTER EN TODAS LAS PÁGINAS ---
-        const totalPages = doc.internal.getNumberOfPages();
-        for (let p = 1; p <= totalPages; p++) {
-            doc.setPage(p);
+        // Limpiar
+        document.body.removeChild(pdfContainer);
 
-            // Línea separadora
-            doc.setDrawColor(200, 200, 200);
-            doc.setLineWidth(0.3);
-            doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
-
-            // Texto footer
-            doc.setFontSize(8);
-            doc.setTextColor(148, 163, 184);
-            doc.text(
-                `${restaurante}  •  Generado por MindLoop CostOS  •  Página ${p} de ${totalPages}`,
-                pageWidth / 2, pageHeight - 10, { align: 'center' }
-            );
-        }
-
-        // --- DESCARGAR ---
-        const fechaFile = new Date().toISOString().split('T')[0];
-        const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-        doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
-
-        window.showToast?.('PDF descargado correctamente', 'success');
     } catch (error) {
         console.error('Error generando PDF:', error);
         window.showToast?.('Error al generar PDF: ' + error.message, 'error');
@@ -577,21 +498,22 @@ function addMessage(type, text, save = true) {
     // Verificar si es mensaje de bienvenida (no mostrar botón PDF)
     const isWelcome = text === CHAT_CONFIG.welcomeMessage;
 
-    // Codificar texto en base64 para evitar problemas de escape
+    // Generar ID único para el mensaje
+    const messageId = `chat-msg-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+
+    // Botón PDF que pasará el ID del mensaje
     let pdfButton = '';
     if (type === 'bot' && !isWelcome) {
-        try {
-            const encodedText = btoa(unescape(encodeURIComponent(text)));
-            pdfButton = `<button class="chat-pdf-btn" data-pdf-text="${encodedText}" 
-                 title="Exportar a PDF" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-                 onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'"
-                 onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
-        } catch (e) {
-            console.warn('Error encoding text for PDF:', e);
-        }
+        pdfButton = `<button class="chat-pdf-btn" 
+             title="Exportar a PDF" 
+             style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
+             onmouseover="this.style.opacity='1'" 
+             onmouseout="this.style.opacity='0.6'"
+             onclick="window.exportMessageToPDF('${messageId}')">📄</button>`;
     }
 
     const messageEl = document.createElement('div');
+    messageEl.id = messageId;
     messageEl.className = `chat-message ${type}`;
     messageEl.innerHTML = `
         <div class="chat-message-avatar">${type === 'bot' ? '🤖' : '👤'}</div>
@@ -1098,20 +1020,20 @@ function renderChatHistory() {
 
         // Botón PDF para mensajes del bot (excepto bienvenida)
         const isWelcome = msg.text === CHAT_CONFIG.welcomeMessage;
+        const messageId = `chat-msg-hist-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+
         let pdfButton = '';
         if (msg.type === 'bot' && !isWelcome) {
-            try {
-                const encodedText = btoa(unescape(encodeURIComponent(msg.text)));
-                pdfButton = `<button class="chat-pdf-btn" data-pdf-text="${encodedText}" 
-                     title="Exportar a PDF" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-                     onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'"
-                     onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
-            } catch (e) {
-                console.warn('Error encoding text for PDF:', e);
-            }
+            pdfButton = `<button class="chat-pdf-btn" 
+                 title="Exportar a PDF" 
+                 style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
+                 onmouseover="this.style.opacity='1'" 
+                 onmouseout="this.style.opacity='0.6'"
+                 onclick="window.exportMessageToPDF('${messageId}')">📄</button>`;
         }
 
         const messageEl = document.createElement('div');
+        messageEl.id = messageId;
         messageEl.className = `chat-message ${msg.type}`;
         messageEl.innerHTML = `
             <div class="chat-message-avatar">${msg.type === 'bot' ? '🤖' : '👤'}</div>
