@@ -1590,7 +1590,7 @@ window.cargarResumenMensual = async function () {
     const token = localStorage.getItem('token');
 
     if (!token) {
-        window.showToast('Sesion expirada', 'error');
+        window.showToast('Sesión expirada', 'error');
         return;
     }
 
