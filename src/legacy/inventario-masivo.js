@@ -1583,6 +1583,106 @@ function getNombreMes(mes) {
     }
 })();
 
+/**
+ * Enrich backend compras data with purchase data computed from local pedidos.
+ * The backend /api/monthly/summary may not include all received orders in
+ * compras.ingredientes. This function fills the gaps by computing purchase
+ * data from window.pedidos that have estado='recibido' for the given month.
+ */
+function enriquecerComprasConPedidos(datos, mes, ano) {
+    if (!datos.compras) datos.compras = {};
+    if (!datos.compras.ingredientes) datos.compras.ingredientes = {};
+
+    const pedidos = window.pedidos || [];
+    const mesNum = parseInt(mes);
+    const anoNum = parseInt(ano);
+
+    // Build ingredient name map for lookups
+    const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+
+    // Filter received orders for the selected month
+    const pedidosRecibidos = pedidos.filter(ped => {
+        if (ped.estado !== 'recibido') return false;
+        const fecha = new Date(ped.fecha_recepcion || ped.fecha);
+        return fecha.getMonth() + 1 === mesNum && fecha.getFullYear() === anoNum;
+    });
+
+    let totalComprasAgregado = 0;
+
+    for (const ped of pedidosRecibidos) {
+        const items = ped.ingredientes || [];
+        // Use reception date if available, otherwise order date
+        const fechaPed = new Date(ped.fecha_recepcion || ped.fecha);
+        // Normalize to YYYY-MM-DD for matching with dias array
+        const diaKey = fechaPed.toISOString().split('T')[0];
+
+        for (const item of items) {
+            if (item.estado === 'no-entregado') continue;
+
+            const ingId = item.ingredienteId || item.ingrediente_id;
+            const ing = ingMap.get(ingId);
+            if (!ing) continue;
+
+            const nombre = ing.nombre;
+            const cantidad = parseFloat(item.cantidadRecibida || item.cantidad || 0);
+            const precioUnit = parseFloat(item.precioReal || item.precioUnitario || item.precio_unitario || 0);
+            const subtotal = cantidad * precioUnit;
+
+            if (cantidad <= 0) continue;
+
+            // Initialize ingredient entry if doesn't exist
+            if (!datos.compras.ingredientes[nombre]) {
+                datos.compras.ingredientes[nombre] = { dias: {}, total: 0 };
+            }
+
+            const ingData = datos.compras.ingredientes[nombre];
+
+            // Add or merge day data
+            // Use a tracking set to avoid double-counting with backend data.
+            // Backend may already include some pedidos (e.g. compras mercado).
+            // We use pedido ID tracking to prevent duplicates.
+            if (!ingData._pedidoIds) ingData._pedidoIds = new Set();
+            const pedKey = `${ped.id}-${ingId}-${diaKey}`;
+            if (ingData._pedidoIds.has(pedKey)) continue;
+            ingData._pedidoIds.add(pedKey);
+
+            if (!ingData.dias[diaKey]) {
+                ingData.dias[diaKey] = { precio: precioUnit, cantidad: cantidad, total: subtotal };
+            } else {
+                // Merge: accumulate quantity and total, recalculate weighted avg price
+                const existing = ingData.dias[diaKey];
+                const totalCant = existing.cantidad + cantidad;
+                const totalGasto = (existing.cantidad * existing.precio) + subtotal;
+                existing.cantidad = totalCant;
+                existing.precio = totalCant > 0 ? totalGasto / totalCant : 0;
+                existing.total = totalGasto;
+            }
+
+            totalComprasAgregado += subtotal;
+
+            // Ensure this day is in the dias array
+            if (!datos.dias.includes(diaKey)) {
+                datos.dias.push(diaKey);
+            }
+        }
+    }
+
+    // Recalculate totals for each ingredient and clean up tracking data
+    for (const [_nombre, data] of Object.entries(datos.compras.ingredientes)) {
+        delete data._pedidoIds; // Clean up tracking set
+        data.total = Object.values(data.dias).reduce((sum, d) => sum + (d.total || d.cantidad * d.precio || 0), 0);
+    }
+
+    // Recalculate overall compras total
+    datos.compras.total = Object.values(datos.compras.ingredientes)
+        .reduce((sum, d) => sum + d.total, 0);
+
+    // Sort dias chronologically
+    datos.dias.sort();
+
+    return datos;
+}
+
 // Cargar resumen mensual desde la API
 window.cargarResumenMensual = async function () {
     const mes = document.getElementById('diario-mes').value;
@@ -1593,6 +1693,13 @@ window.cargarResumenMensual = async function () {
 
         // Use centralized apiClient (handles auth via httpOnly cookies)
         window.datosResumenMensual = await window.apiClient.get(`/monthly/summary?mes=${mes}&ano=${ano}`);
+
+        // Ensure base structure exists
+        if (!window.datosResumenMensual.dias) window.datosResumenMensual.dias = [];
+        if (!window.datosResumenMensual.compras) window.datosResumenMensual.compras = {};
+
+        // Enrich with purchase data from local pedidos (fills gaps the backend misses)
+        enriquecerComprasConPedidos(window.datosResumenMensual, mes, ano);
 
         // Actualizar KPIs
         document.getElementById('diario-total-compras').textContent =
