@@ -6,6 +6,10 @@
 import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
+import html2canvas from 'html2canvas';
+
+// Exponer html2canvas globalmente para PDF export
+window.html2canvas = html2canvas;
 
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
