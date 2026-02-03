@@ -1726,7 +1726,7 @@
                     : `null, null`;
 
                 const formatoHelper = `<div style="display:flex;align-items:center;gap:4px;">
-                     <input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
+                     <input type="number" step="0.01" min="0" value="${stockReal}" placeholder="Sin datos" 
                         class="input-stock-real" 
                         data-id="${ing.id}" 
                         data-stock-virtual="${ing.stock_virtual || 0}" 
@@ -2021,7 +2021,7 @@
                             <span style="color:#aaa; font-size:12px;">↳ Ajuste ${idx + 1}</span>
                         </td>
                          <td style="padding: 5px;">
-                            <input type="number" step="0.01" value="${adj.cantidad || 0}" 
+                            <input type="number" step="0.01" min="0" value="${adj.cantidad || 0}" 
                                 onchange="window.updateSplitAmount(${snap.id}, ${adj.id}, this.value)"
                                 style="width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"> 
                             <span style="font-size:11px">${ing.unidad}</span>

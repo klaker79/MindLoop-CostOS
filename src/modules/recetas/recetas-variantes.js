@@ -251,7 +251,7 @@ export async function editarVariante(recetaId, varianteId, nombreActual, precioA
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
                     <label style="display: block; margin-bottom: 4px; font-weight: 500;">Precio €</label>
-                    <input type="number" id="edit-variante-precio" value="${precioActual}" step="0.01" 
+                    <input type="number" id="edit-variante-precio" value="${precioActual}" step="0.01" min="0" 
                            style="width: 100%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 8px;">
                 </div>
                 <div>
