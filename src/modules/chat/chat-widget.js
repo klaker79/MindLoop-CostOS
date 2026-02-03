@@ -301,6 +301,156 @@ function toggleChat(forceState) {
 }
 
 /**
+ * Exporta un mensaje del chat a PDF con branding del restaurante
+ */
+function exportMessageToPDF(rawText) {
+    try {
+        const jsPDFConstructor = window.jsPDF || window.jspdf?.jsPDF;
+        if (!jsPDFConstructor) {
+            window.showToast?.('Error: Librería PDF no disponible', 'error');
+            return;
+        }
+
+        const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'Mi Restaurante';
+        const fecha = new Date().toLocaleDateString('es-ES', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        const doc = new jsPDFConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        const usableWidth = pageWidth - margin * 2;
+        let y = margin;
+
+        // --- Header con franja de color ---
+        doc.setFillColor(102, 126, 234); // #667eea
+        doc.rect(0, 0, pageWidth, 35, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text(restaurante, margin, 18);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Informe generado por MindLoop CostOS', margin, 27);
+        doc.text(fecha, pageWidth - margin, 27, { align: 'right' });
+
+        y = 45;
+        doc.setTextColor(30, 41, 59); // #1e293b
+
+        // --- Parsear contenido: detectar tablas markdown ---
+        const lines = rawText.split('\n');
+        let i = 0;
+
+        while (i < lines.length) {
+            // Detectar inicio de tabla markdown
+            if (i + 1 < lines.length && lines[i].includes('|') &&
+                /^[\s\-:|]+$/.test(lines[i + 1].trim())) {
+
+                // Recoger todas las líneas de la tabla
+                const tableLines = [];
+                let j = i;
+                while (j < lines.length && (lines[j].includes('|') || /^[\s\-:|]+$/.test(lines[j].trim()))) {
+                    if (!/^[\s\-:|]+$/.test(lines[j].trim())) {
+                        tableLines.push(lines[j]);
+                    }
+                    j++;
+                }
+
+                if (tableLines.length >= 2) {
+                    const parseCells = line => line.split('|').map(c => c.trim()).filter(c => c !== '');
+                    const head = [parseCells(tableLines[0])];
+                    const body = tableLines.slice(1).map(parseCells);
+
+                    doc.autoTable({
+                        startY: y,
+                        head: head,
+                        body: body,
+                        margin: { left: margin, right: margin },
+                        styles: { fontSize: 9, cellPadding: 3 },
+                        headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold' },
+                        alternateRowStyles: { fillColor: [248, 250, 252] },
+                        theme: 'grid'
+                    });
+                    y = doc.lastAutoTable.finalY + 8;
+                }
+                i = j;
+                continue;
+            }
+
+            const line = lines[i].trim();
+
+            // Página nueva si nos quedamos sin espacio
+            if (y > 270) {
+                doc.addPage();
+                y = margin;
+            }
+
+            if (!line) {
+                y += 4;
+                i++;
+                continue;
+            }
+
+            // Limpiar markdown para texto plano
+            const cleanLine = line
+                .replace(/\*\*(.+?)\*\*/g, '$1')
+                .replace(/__(.+?)__/g, '$1')
+                .replace(/`([^`]+)`/g, '$1');
+
+            // Detectar encabezados (líneas con emoji + MAYÚSCULAS:)
+            const isHeader = /^[^\w\s]/.test(line) && /[A-ZÁÉÍÓÚÑ]{2,}/.test(line);
+
+            if (isHeader) {
+                y += 3;
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(102, 126, 234);
+                doc.text(cleanLine, margin, y);
+                y += 7;
+                doc.setTextColor(30, 41, 59);
+            } else if (line.startsWith('- ') || line.startsWith('• ')) {
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                const bulletText = cleanLine.replace(/^[-•]\s*/, '');
+                const splitLines = doc.splitTextToSize('  •  ' + bulletText, usableWidth);
+                doc.text(splitLines, margin, y);
+                y += splitLines.length * 5;
+            } else {
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                const splitLines = doc.splitTextToSize(cleanLine, usableWidth);
+                doc.text(splitLines, margin, y);
+                y += splitLines.length * 5;
+            }
+
+            i++;
+        }
+
+        // --- Footer ---
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let p = 1; p <= totalPages; p++) {
+            doc.setPage(p);
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text(
+                `${restaurante} — MindLoop CostOS — Página ${p}/${totalPages}`,
+                pageWidth / 2, 290, { align: 'center' }
+            );
+        }
+
+        // --- Descargar ---
+        const fechaFile = new Date().toISOString().split('T')[0];
+        const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+        doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
+
+        window.showToast?.('PDF descargado correctamente', 'success');
+    } catch (error) {
+        console.error('Error generando PDF:', error);
+        window.showToast?.('Error al generar PDF: ' + error.message, 'error');
+    }
+}
+
+/**
  * Añade un mensaje al chat
  */
 function addMessage(type, text, save = true) {
@@ -309,16 +459,32 @@ function addMessage(type, text, save = true) {
 
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${type}`;
+
+    const pdfBtnHtml = type === 'bot' && text !== CHAT_CONFIG.welcomeMessage
+        ? `<button class="chat-pdf-btn" title="Exportar a PDF" style="background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;color:#64748b;margin-left:8px;transition:all 0.2s;" onmouseenter="this.style.background='#667eea';this.style.color='white';this.style.borderColor='#667eea'" onmouseleave="this.style.background='none';this.style.color='#64748b';this.style.borderColor='#e2e8f0'">📄 PDF</button>`
+        : '';
+
     messageEl.innerHTML = `
         <div class="chat-message-avatar">${type === 'bot' ? '🤖' : '👤'}</div>
         <div>
             <div class="chat-message-content">${parseMarkdown(text)}</div>
-            <div class="chat-message-time">${time}</div>
+            <div class="chat-message-time">${time}${pdfBtnHtml}</div>
         </div>
     `;
 
+    // Vincular botón PDF si existe
+    const pdfBtn = messageEl.querySelector('.chat-pdf-btn');
+    if (pdfBtn) {
+        pdfBtn.addEventListener('click', () => exportMessageToPDF(text));
+    }
+
     messagesContainer.appendChild(messageEl);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Leer en voz alta si TTS está activado
+    if (type === 'bot' && text !== CHAT_CONFIG.welcomeMessage) {
+        speakResponse(text);
+    }
 
     // Guardar en historial
     if (save) {
@@ -811,15 +977,27 @@ function renderChatHistory() {
             hour: '2-digit',
             minute: '2-digit',
         });
+
+        const pdfBtnHtml = msg.type === 'bot' && msg.text !== CHAT_CONFIG.welcomeMessage
+            ? `<button class="chat-pdf-btn" title="Exportar a PDF" style="background:none;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;color:#64748b;margin-left:8px;transition:all 0.2s;" onmouseenter="this.style.background='#667eea';this.style.color='white';this.style.borderColor='#667eea'" onmouseleave="this.style.background='none';this.style.color='#64748b';this.style.borderColor='#e2e8f0'">📄 PDF</button>`
+            : '';
+
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${msg.type}`;
         messageEl.innerHTML = `
             <div class="chat-message-avatar">${msg.type === 'bot' ? '🤖' : '👤'}</div>
             <div>
                 <div class="chat-message-content">${parseMarkdown(msg.text)}</div>
-                <div class="chat-message-time">${time}</div>
+                <div class="chat-message-time">${time}${pdfBtnHtml}</div>
             </div>
         `;
+
+        const pdfBtn = messageEl.querySelector('.chat-pdf-btn');
+        if (pdfBtn) {
+            const msgText = msg.text;
+            pdfBtn.addEventListener('click', () => exportMessageToPDF(msgText));
+        }
+
         fragment.appendChild(messageEl);
     });
 
@@ -1262,3 +1440,4 @@ function formatTextContent(text) {
 window.initChatWidget = initChatWidget;
 window.clearChatHistory = clearChatHistory;
 window.toggleChat = toggleChat;
+window.exportMessageToPDF = exportMessageToPDF;
