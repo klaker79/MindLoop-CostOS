@@ -73,7 +73,7 @@ function speakResponse(text) {
 
 /**
  * Exporta un mensaje del chat a PDF profesional
- * Convierte emojis a texto legible para jsPDF
+ * Diseño ejecutivo de alta calidad
  */
 function exportMessageToPDF(rawText) {
     try {
@@ -88,156 +88,247 @@ function exportMessageToPDF(rawText) {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
 
-        // Mapa de emojis a texto (jsPDF no renderiza emojis correctamente)
-        const emojiMap = {
-            '📊': '[ANALISIS]', '💰': '[€]', '💵': '[€]', '🥩': '[COSTE]',
-            '📈': '[+]', '📉': '[-]', '✅': '[OK]', '❌': '[X]',
-            '🔴': '[!]', '🟢': '[OK]', '🟡': '[~]', '🟠': '[!]',
-            '⭐': '[ESTRELLA]', '❓': '[PUZZLE]', '🐴': '[CABALLO]', '🐕': '[PERRO]',
-            '📦': '[STOCK]', '🏢': '[FIJO]', '📋': '', '🧑🍳': '',
-            '🎯': '', '🚨': '', '🔧': '', '💡': '[TIP]',
-            '⚠️': '[ATENCION]', '🏪': '[PROVEEDOR]', '📆': '[FECHA]',
-            '🍷': '[VINO]', '🍽️': '[PLATO]', '🥗': '[PLATO]'
-        };
-
-        // Reemplazar emojis por texto
-        let cleanText = rawText;
-        for (const [emoji, replacement] of Object.entries(emojiMap)) {
-            cleanText = cleanText.split(emoji).join(replacement);
-        }
-        // Eliminar emojis restantes que no estén en el mapa
-        cleanText = cleanText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '');
+        // Limpiar emojis completamente (jsPDF no los soporta)
+        let cleanText = rawText
+            .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/gu, '')
+            .replace(/\s{2,}/g, ' '); // Limpiar espacios múltiples
 
         const doc = new jsPDFConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 20;
         const usableWidth = pageWidth - margin * 2;
         let y = margin;
 
-        // --- Header con franja de color ---
+        // --- HEADER PROFESIONAL ---
+        // Gradiente simulado con rectángulos
         doc.setFillColor(102, 126, 234); // #667eea
-        doc.rect(0, 0, pageWidth, 35, 'F');
+        doc.rect(0, 0, pageWidth, 40, 'F');
+        doc.setFillColor(124, 58, 237); // #7c3aed
+        doc.rect(0, 36, pageWidth, 4, 'F');
+
+        // Nombre del restaurante
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(20);
+        doc.setFontSize(22);
         doc.setFont('helvetica', 'bold');
-        doc.text(restaurante, margin, 18);
-        doc.setFontSize(10);
+        doc.text(restaurante, margin, 20);
+
+        // Subtítulo
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
-        doc.text('Informe generado por MindLoop CostOS', margin, 27);
-        doc.text(fecha, pageWidth - margin, 27, { align: 'right' });
+        doc.text('Informe de Inteligencia Empresarial', margin, 30);
 
-        y = 45;
-        doc.setTextColor(30, 41, 59); // #1e293b
+        // Fecha alineada a la derecha
+        doc.setFontSize(10);
+        doc.text(fecha, pageWidth - margin, 30, { align: 'right' });
 
-        // --- Parsear contenido: detectar tablas markdown ---
+        y = 52;
+        doc.setTextColor(30, 41, 59);
+
+        // --- PROCESAR CONTENIDO ---
         const lines = cleanText.split('\n');
         let i = 0;
 
-        while (i < lines.length) {
-            // Detectar inicio de tabla markdown (línea con | seguida de línea separadora)
-            if (i + 1 < lines.length && lines[i].includes('|') &&
-                /^[\s|\-:]+$/.test(lines[i + 1].replace(/\|/g, '').trim())) {
-
-                // Recoger todas las líneas de la tabla
-                const tableLines = [];
-                let j = i;
-                while (j < lines.length && lines[j].includes('|')) {
-                    const trimmed = lines[j].replace(/\|/g, '').trim();
-                    // Saltar líneas separadoras (solo guiones y espacios)
-                    if (!/^[\s\-:]+$/.test(trimmed) && trimmed.length > 0) {
-                        tableLines.push(lines[j]);
-                    }
-                    j++;
-                }
-
-                if (tableLines.length >= 2 && typeof doc.autoTable === 'function') {
-                    const parseCells = line => line.split('|').map(c => c.trim()).filter(c => c !== '');
-                    const head = [parseCells(tableLines[0])];
-                    const body = tableLines.slice(1).map(parseCells);
-
-                    doc.autoTable({
-                        startY: y,
-                        head: head,
-                        body: body,
-                        margin: { left: margin, right: margin },
-                        styles: { fontSize: 9, cellPadding: 3 },
-                        headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold' },
-                        alternateRowStyles: { fillColor: [248, 250, 252] },
-                        theme: 'grid'
-                    });
-                    y = doc.lastAutoTable.finalY + 8;
-                }
-                i = j;
-                continue;
-            }
-
-            const line = lines[i].trim();
-
-            // Página nueva si nos quedamos sin espacio
-            if (y > 270) {
+        // Función helper para nueva página
+        const checkNewPage = (neededSpace = 20) => {
+            if (y > pageHeight - neededSpace) {
                 doc.addPage();
                 y = margin;
             }
+        };
 
+        while (i < lines.length) {
+            let line = lines[i].trim();
+
+            // Saltar líneas vacías
             if (!line) {
-                y += 4;
+                y += 3;
                 i++;
                 continue;
             }
 
-            // Limpiar markdown para texto plano
-            const cleanLine = line
-                .replace(/\*\*(.+?)\*\*/g, '$1')
-                .replace(/__(.+?)__/g, '$1')
-                .replace(/`([^`]+)`/g, '$1');
+            checkNewPage();
 
-            // Detectar encabezados (líneas con emoji + MAYÚSCULAS:)
-            const isHeader = /^[^\w\s]/.test(line) && /[A-ZÁÉÍÓÚÑ]{2,}/.test(line);
+            // --- DETECTAR TABLA MARKDOWN ---
+            if (line.includes('|') && i + 1 < lines.length) {
+                const nextLine = lines[i + 1];
+                if (nextLine && /^[\s|\-:]+$/.test(nextLine)) {
+                    // Recoger todas las líneas de la tabla
+                    const tableData = [];
+                    let j = i;
+                    while (j < lines.length && lines[j].includes('|')) {
+                        const row = lines[j].trim();
+                        // Saltar línea separadora
+                        if (!/^[\s|\-:]+$/.test(row)) {
+                            const cells = row.split('|')
+                                .map(c => c.trim())
+                                .filter(c => c !== '');
+                            if (cells.length > 0) {
+                                tableData.push(cells);
+                            }
+                        }
+                        j++;
+                    }
 
-            if (isHeader) {
-                y += 3;
+                    if (tableData.length >= 2 && typeof doc.autoTable === 'function') {
+                        doc.autoTable({
+                            startY: y,
+                            head: [tableData[0]],
+                            body: tableData.slice(1),
+                            margin: { left: margin, right: margin },
+                            styles: {
+                                fontSize: 9,
+                                cellPadding: 4,
+                                overflow: 'linebreak',
+                                cellWidth: 'wrap'
+                            },
+                            headStyles: {
+                                fillColor: [102, 126, 234],
+                                textColor: 255,
+                                fontStyle: 'bold',
+                                halign: 'center'
+                            },
+                            bodyStyles: {
+                                halign: 'left'
+                            },
+                            alternateRowStyles: { fillColor: [248, 250, 252] },
+                            theme: 'grid',
+                            tableWidth: 'auto'
+                        });
+                        y = doc.lastAutoTable.finalY + 10;
+                    }
+                    i = j;
+                    continue;
+                }
+            }
+
+            // --- DETECTAR MARKDOWN HEADERS ---
+            // ### Header nivel 3
+            if (line.startsWith('### ')) {
+                checkNewPage(15);
+                y += 4;
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(102, 126, 234);
-                doc.text(cleanLine, margin, y);
-                y += 7;
+                const headerText = line.replace(/^###\s*/, '').replace(/\*\*/g, '');
+                const splitHeader = doc.splitTextToSize(headerText, usableWidth);
+                doc.text(splitHeader, margin, y);
+                y += splitHeader.length * 6 + 2;
                 doc.setTextColor(30, 41, 59);
-            } else if (line.startsWith('- ') || line.startsWith('• ')) {
+                i++;
+                continue;
+            }
+
+            // ## Header nivel 2
+            if (line.startsWith('## ')) {
+                checkNewPage(18);
+                y += 6;
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(124, 58, 237);
+                const headerText = line.replace(/^##\s*/, '').replace(/\*\*/g, '');
+                const splitHeader = doc.splitTextToSize(headerText, usableWidth);
+                doc.text(splitHeader, margin, y);
+                y += splitHeader.length * 7 + 3;
+                doc.setTextColor(30, 41, 59);
+                i++;
+                continue;
+            }
+
+            // # Header nivel 1
+            if (line.startsWith('# ')) {
+                checkNewPage(20);
+                y += 8;
+                doc.setFontSize(16);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(102, 126, 234);
+                const headerText = line.replace(/^#\s*/, '').replace(/\*\*/g, '');
+                const splitHeader = doc.splitTextToSize(headerText, usableWidth);
+                doc.text(splitHeader, margin, y);
+                y += splitHeader.length * 8 + 4;
+                // Línea decorativa bajo título principal
+                doc.setDrawColor(102, 126, 234);
+                doc.setLineWidth(0.5);
+                doc.line(margin, y - 2, margin + 40, y - 2);
+                doc.setTextColor(30, 41, 59);
+                i++;
+                continue;
+            }
+
+            // --- TEXTO NORMAL ---
+            // Limpiar markdown (bold, italic, code)
+            let cleanLine = line
+                .replace(/\*\*(.+?)\*\*/g, '$1')
+                .replace(/__(.+?)__/g, '$1')
+                .replace(/`([^`]+)`/g, '$1')
+                .replace(/\*(.+?)\*/g, '$1');
+
+            // Detectar bullets
+            if (line.startsWith('- ') || line.startsWith('• ') || /^\d+\.\s/.test(line)) {
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
-                const bulletText = cleanLine.replace(/^[-•]\s*/, '');
-                const splitLines = doc.splitTextToSize('  •  ' + bulletText, usableWidth);
-                doc.text(splitLines, margin, y);
-                y += splitLines.length * 5;
+                let bulletText = cleanLine.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
+
+                // Detectar texto importante (menciones de dinero, porcentajes, alertas)
+                const isImportant = /€|\%|pérdida|alerta|urgente|clave/i.test(bulletText);
+
+                if (isImportant) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(124, 58, 237);
+                }
+
+                const bulletPrefix = /^\d+\./.test(line) ? line.match(/^\d+/)[0] + '. ' : '  •  ';
+                const splitLines = doc.splitTextToSize(bulletPrefix + bulletText, usableWidth - 5);
+                doc.text(splitLines, margin + 3, y);
+                y += splitLines.length * 5 + 1;
+
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(30, 41, 59);
             } else {
+                // Texto párrafo normal
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
+
+                // Resaltar recomendaciones
+                if (/recomendaci|considera|importante|clave/i.test(cleanLine)) {
+                    doc.setFont('helvetica', 'bold');
+                }
+
                 const splitLines = doc.splitTextToSize(cleanLine, usableWidth);
                 doc.text(splitLines, margin, y);
                 y += splitLines.length * 5;
+
+                doc.setFont('helvetica', 'normal');
             }
 
             i++;
         }
 
-        // --- Footer ---
+        // --- FOOTER EN TODAS LAS PÁGINAS ---
         const totalPages = doc.internal.getNumberOfPages();
         for (let p = 1; p <= totalPages; p++) {
             doc.setPage(p);
+
+            // Línea separadora
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.3);
+            doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+
+            // Texto footer
             doc.setFontSize(8);
             doc.setTextColor(148, 163, 184);
             doc.text(
-                `${restaurante} — MindLoop CostOS — Página ${p}/${totalPages}`,
-                pageWidth / 2, 290, { align: 'center' }
+                `${restaurante}  •  Generado por MindLoop CostOS  •  Página ${p} de ${totalPages}`,
+                pageWidth / 2, pageHeight - 10, { align: 'center' }
             );
         }
 
-        // --- Descargar ---
+        // --- DESCARGAR ---
         const fechaFile = new Date().toISOString().split('T')[0];
         const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
         doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
 
-        window.showToast?.('📄 PDF descargado correctamente', 'success');
+        window.showToast?.('PDF descargado correctamente', 'success');
     } catch (error) {
         console.error('Error generando PDF:', error);
         window.showToast?.('Error al generar PDF: ' + error.message, 'error');
