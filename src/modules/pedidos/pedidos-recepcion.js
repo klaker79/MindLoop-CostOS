@@ -12,6 +12,8 @@
  * - confirmarRecepcionPedido: Confirma y actualiza stock
  */
 
+import { escapeHTML } from '../../utils/helpers.js';
+
 /**
  * Marca un pedido como recibido (abre modal)
  * @param {number} id - ID del pedido
@@ -91,8 +93,8 @@ function renderItemsRecepcionModal(ped) {
 
         html += `
           <tr>
-            <td>${nombre}</td>
-            <td>${cantPedida} ${unidad}</td>
+            <td>${escapeHTML(nombre)}</td>
+            <td>${cantPedida} ${escapeHTML(unidad)}</td>
             <td>
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
@@ -376,10 +378,13 @@ export async function confirmarRecepcionPedido() {
         }
 
         // Solo si TODOS los stocks se actualizaron, marcar pedido como recibido
+        // IMPORTANT: Exclude itemsRecepcion (frontend-only modal state) to avoid
+        // confusing the backend. Only send the cleaned ingredientes array.
+        const { itemsRecepcion: _excluded, ...pedSinItemsRecepcion } = ped;
         await window.api.updatePedido(window.pedidoRecibiendoId, {
-            ...ped,
+            ...pedSinItemsRecepcion,
             estado: 'recibido',
-            ingredientes: ingredientesActualizados, // ← IMPORTANTE: Esto guarda precioReal
+            ingredientes: ingredientesActualizados,
             fecha_recepcion: new Date().toISOString(),
             total_recibido: totalRecibido,
             totalRecibido: totalRecibido

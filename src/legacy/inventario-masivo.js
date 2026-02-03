@@ -1587,32 +1587,12 @@ function getNombreMes(mes) {
 window.cargarResumenMensual = async function () {
     const mes = document.getElementById('diario-mes').value;
     const ano = document.getElementById('diario-ano').value;
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-        window.showToast('Sesión expirada', 'error');
-        return;
-    }
 
     try {
         window.showToast('Cargando datos...', 'info');
 
-        const response = await fetch(
-            // ⚡ Multi-tenant: usa config global si existe
-            // 🔧 FIX: Usar /api/monthly/summary que devuelve {dias, compras.ingredientes, ventas.recetas}
-            `${window.API_CONFIG?.baseUrl || 'http://localhost:3001'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
-            {
-                credentials: 'include',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-            }
-        );
-
-        if (!response.ok) throw new Error('Error cargando datos');
-
-        window.datosResumenMensual = await response.json();
+        // Use centralized apiClient (handles auth via httpOnly cookies)
+        window.datosResumenMensual = await window.apiClient.get(`/monthly/summary?mes=${mes}&ano=${ano}`);
 
         // Actualizar KPIs
         document.getElementById('diario-total-compras').textContent =

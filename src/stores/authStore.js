@@ -4,11 +4,15 @@
  * ============================================
  *
  * Gestión de estado de autenticación con Zustand.
- * SECURITY: Authentication uses httpOnly cookies set by the server.
- * NO tokens are stored in localStorage (XSS-safe).
+ *
+ * AUTH STRATEGY:
+ * - Primary: httpOnly cookies via credentials: 'include' (apiClient)
+ * - Fallback: Bearer token in localStorage (legacy code compatibility)
+ * - Token is stored in localStorage ONLY for legacy modules that use
+ *   raw fetch() with Authorization header. New code should use apiClient.
  *
  * @author MindLoopIA
- * @version 2.0.0
+ * @version 2.1.0
  */
 
 import { createStore } from 'zustand/vanilla';
@@ -19,6 +23,7 @@ import { createStore } from 'zustand/vanilla';
 export const authStore = createStore((set, get) => ({
     // State
     user: null,
+    token: null,
     isAuthenticated: false,
     isLoading: true,
     error: null,
@@ -30,6 +35,20 @@ export const authStore = createStore((set, get) => ({
         if (typeof window !== 'undefined') {
             window.currentUser = user;
             window.isAuthenticated = !!user;
+        }
+    },
+
+    setToken: (token) => {
+        set({ token });
+        // Store in localStorage for legacy code that uses raw fetch()
+        // with Authorization: Bearer header (20+ callsites)
+        if (token) {
+            localStorage.setItem('token', token);
+        } else {
+            localStorage.removeItem('token');
+        }
+        if (typeof window !== 'undefined') {
+            window.authToken = token;
         }
     },
 
@@ -49,8 +68,11 @@ export const authStore = createStore((set, get) => ({
             }
 
             const data = await response.json();
-            // Token is set as httpOnly cookie by the server - we only store user info
             get().setUser(data.user);
+            // Store token for legacy code compatibility
+            if (data.token) {
+                get().setToken(data.token);
+            }
 
             return { success: true, user: data.user };
         } catch (error) {
@@ -69,9 +91,7 @@ export const authStore = createStore((set, get) => ({
             // Continue with local logout even if backend call fails
         }
 
-        set({ user: null, isAuthenticated: false, error: null });
-
-        // Clean up any legacy localStorage tokens
+        set({ user: null, token: null, isAuthenticated: false, error: null });
         localStorage.removeItem('token');
         localStorage.removeItem('user');
 
