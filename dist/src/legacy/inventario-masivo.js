@@ -1590,7 +1590,7 @@ window.cargarResumenMensual = async function () {
     const token = localStorage.getItem('token');
 
     if (!token) {
-        window.showToast('Sesión expirada', 'error');
+        window.showToast('Sesion expirada', 'error');
         return;
     }
 
@@ -1598,8 +1598,6 @@ window.cargarResumenMensual = async function () {
         window.showToast('Cargando datos...', 'info');
 
         const response = await fetch(
-            // ⚡ Multi-tenant: usa config global si existe
-            // 🔧 FIX: Usar /api/monthly/summary que devuelve {dias, compras.ingredientes, ventas.recetas}
             `${window.API_CONFIG?.baseUrl || 'http://localhost:3001'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
             {
                 credentials: 'include',
@@ -1876,15 +1874,18 @@ async function renderizarTablaPLDiario() {
     // ── SEPARADOR ──
     html += '<tr><td colspan="' + (dias.length + 2) + '" style="height: 3px; background: linear-gradient(90deg, #e2e8f0 0%, #94a3b8 50%, #e2e8f0 100%); padding: 0;"></td></tr>';
 
-    // ── FILA: MARGEN BRUTO (INGRESOS - COSTES PROD) ──
+    // ── FILA: MARGEN BRUTO (INGRESOS - COSTES PROD) con % ──
     const totalMargenBruto = totalIngresos - totalCostes;
+    const totalMargenPct = totalIngresos > 0 ? (totalMargenBruto / totalIngresos) * 100 : 0;
     html += '<tr style="background: #fef3c7;"><td style="position: sticky; left: 0; background: #fef3c7; padding: 16px; font-weight: 700; color: #92400e; border-bottom: 1px solid #fcd34d;">💰 MARGEN BRUTO</td>';
     dias.forEach(dia => {
-        const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
+        const ingresosDia = totalesPorDia[dia].ingresos;
+        const margenDia = ingresosDia - totalesPorDia[dia].costes;
+        const margenPct = ingresosDia > 0 ? (margenDia / ingresosDia) * 100 : 0;
         const color = margenDia >= 0 ? '#d97706' : '#dc2626';
-        html += `<td style="text-align: center; padding: 16px 8px; font-weight: 700; color: ${color}; border-bottom: 1px solid #fcd34d;">${margenDia.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; padding: 12px 8px; font-weight: 700; color: ${color}; border-bottom: 1px solid #fcd34d;">${margenDia.toFixed(2)}€<br><span style="font-size: 11px; font-weight: 500; color: #a16207;">${margenPct.toFixed(1)}%</span></td>`;
     });
-    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalMargenBruto.toFixed(2)}€</td></tr>`;
+    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 12px;">${totalMargenBruto.toFixed(2)}€<br><span style="font-size: 11px; font-weight: 500;">${totalMargenPct.toFixed(1)}%</span></td></tr>`;
 
     // ── FILA: GASTOS FIJOS / DÍA ──
     const totalGastosFijosMostrados = gastosFijosDia * dias.length;
