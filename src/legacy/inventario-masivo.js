@@ -1583,134 +1583,34 @@ function getNombreMes(mes) {
     }
 })();
 
-/**
- * Enrich backend compras data with purchase data computed from local pedidos.
- * The backend /api/monthly/summary may not include all received orders in
- * compras.ingredientes. This function fills the gaps by computing purchase
- * data from window.pedidos that have estado='recibido' for the given month.
- *
- * IMPORTANT: Only adds NEW ingredient+day combos that the backend didn't return.
- * Does NOT modify existing backend data to avoid double-counting.
- */
-function enriquecerComprasConPedidos(datos, mes, ano) {
-    if (!datos.compras) datos.compras = {};
-    if (!datos.compras.ingredientes) datos.compras.ingredientes = {};
-
-    const pedidos = window.pedidos || [];
-    const mesNum = parseInt(mes);
-    const anoNum = parseInt(ano);
-
-    // Build ingredient maps for lookups - use BOTH number and string keys
-    // because pedido items may have string IDs while ingredientes have number IDs
-    const ingMapById = new Map();
-    for (const i of (window.ingredientes || [])) {
-        ingMapById.set(Number(i.id), i);   // numeric key
-        ingMapById.set(String(i.id), i);   // string key
-    }
-
-    // Track what the backend already returned (to avoid double-counting)
-    const backendExisting = new Set();
-    for (const [nombre, data] of Object.entries(datos.compras.ingredientes)) {
-        for (const dia of Object.keys(data.dias || {})) {
-            backendExisting.add(`${nombre}::${dia}`);
-        }
-    }
-
-    // Filter received orders for the selected month
-    const pedidosRecibidos = pedidos.filter(ped => {
-        if (ped.estado !== 'recibido') return false;
-        const fecha = new Date(ped.fecha_recepcion || ped.fecha);
-        return fecha.getMonth() + 1 === mesNum && fecha.getFullYear() === anoNum;
-    });
-
-    let ingredientesAgregados = 0;
-
-    for (const ped of pedidosRecibidos) {
-        const items = ped.ingredientes || [];
-        const fechaPed = new Date(ped.fecha_recepcion || ped.fecha);
-        const diaKey = fechaPed.toISOString().split('T')[0];
-
-        for (const item of items) {
-            if (item.estado === 'no-entregado') continue;
-
-            const ingId = item.ingredienteId || item.ingrediente_id;
-            const ing = ingMapById.get(ingId) || ingMapById.get(Number(ingId)) || ingMapById.get(String(ingId));
-            if (!ing) continue;
-
-            const nombre = ing.nombre;
-            const cantidad = parseFloat(item.cantidadRecibida || item.cantidad || 0);
-            const precioUnit = parseFloat(item.precioReal || item.precioUnitario || item.precio_unitario || 0);
-            const subtotal = cantidad * precioUnit;
-
-            if (cantidad <= 0) continue;
-
-            // Skip if backend already has data for this ingredient+day
-            const existKey = `${nombre}::${diaKey}`;
-            if (backendExisting.has(existKey)) continue;
-
-            // Initialize ingredient entry if doesn't exist
-            if (!datos.compras.ingredientes[nombre]) {
-                datos.compras.ingredientes[nombre] = { dias: {}, total: 0 };
-            }
-
-            const ingData = datos.compras.ingredientes[nombre];
-
-            // Add day data (only NEW combos reach here)
-            if (!ingData.dias[diaKey]) {
-                ingData.dias[diaKey] = { precio: precioUnit, cantidad: cantidad, total: subtotal };
-            } else {
-                // Same ingredient, same day, different pedido - accumulate
-                const existing = ingData.dias[diaKey];
-                const totalCant = existing.cantidad + cantidad;
-                const totalGasto = (existing.cantidad * existing.precio) + subtotal;
-                existing.cantidad = totalCant;
-                existing.precio = totalCant > 0 ? totalGasto / totalCant : 0;
-                existing.total = totalGasto;
-            }
-
-            ingredientesAgregados++;
-
-            // Ensure this day is in the dias array
-            if (!datos.dias.includes(diaKey)) {
-                datos.dias.push(diaKey);
-            }
-        }
-    }
-
-    // Recalculate totals for all ingredients
-    for (const [_nombre, data] of Object.entries(datos.compras.ingredientes)) {
-        data.total = Object.values(data.dias).reduce((sum, d) => sum + (d.total || d.cantidad * d.precio || 0), 0);
-    }
-
-    // Recalculate overall compras total
-    datos.compras.total = Object.values(datos.compras.ingredientes)
-        .reduce((sum, d) => sum + d.total, 0);
-
-    // Sort dias chronologically
-    datos.dias.sort();
-
-    console.log(`enriquecerComprasConPedidos: ${pedidosRecibidos.length} pedidos, ${ingredientesAgregados} nuevos items agregados (${backendExisting.size} ya existian del backend)`);
-
-    return datos;
-}
-
 // Cargar resumen mensual desde la API
 window.cargarResumenMensual = async function () {
     const mes = document.getElementById('diario-mes').value;
     const ano = document.getElementById('diario-ano').value;
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        window.showToast('Sesion expirada', 'error');
+        return;
+    }
 
     try {
         window.showToast('Cargando datos...', 'info');
 
-        // Use centralized apiClient (handles auth via httpOnly cookies)
-        window.datosResumenMensual = await window.apiClient.get(`/monthly/summary?mes=${mes}&ano=${ano}`);
+        const response = await fetch(
+            `${window.API_CONFIG?.baseUrl || 'http://localhost:3001'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
+            {
+                credentials: 'include',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+            }
+        );
 
-        // Ensure base structure exists
-        if (!window.datosResumenMensual.dias) window.datosResumenMensual.dias = [];
-        if (!window.datosResumenMensual.compras) window.datosResumenMensual.compras = {};
+        if (!response.ok) throw new Error('Error cargando datos');
 
-        // Enrich with purchase data from local pedidos (fills gaps the backend misses)
-        enriquecerComprasConPedidos(window.datosResumenMensual, mes, ano);
+        window.datosResumenMensual = await response.json();
 
         // Actualizar KPIs
         document.getElementById('diario-total-compras').textContent =

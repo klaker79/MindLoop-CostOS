@@ -4,13 +4,14 @@
  * ============================================
  *
  * Wrapper centralizado para todas las llamadas fetch.
- * Maneja: autenticación (httpOnly cookies), errores, rate limiting, timeout.
+ * Maneja: autenticación, errores, rate limiting, timeout.
  *
- * SECURITY: Authentication relies on httpOnly cookies (credentials: 'include').
- * localStorage token is NO LONGER used - all auth goes through server-set cookies.
+ * AUTH STRATEGY:
+ * - Primary: httpOnly cookies via credentials: 'include'
+ * - Fallback: Bearer token in localStorage (legacy backend compatibility)
  *
  * @author MindLoopIA
- * @version 2.0.0
+ * @version 2.1.0
  */
 
 import { getApiUrl } from '../config/app-config.js';
@@ -19,7 +20,6 @@ const API_BASE = getApiUrl();
 
 /**
  * Default configuration for API calls
- * Uses credentials: 'include' to send httpOnly cookies automatically
  */
 const defaultConfig = {
     credentials: 'include',
@@ -27,6 +27,14 @@ const defaultConfig = {
         'Content-Type': 'application/json'
     }
 };
+
+/**
+ * Get authorization headers with Bearer token from localStorage
+ */
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
 
 /**
  * Simple client-side rate limiter to prevent API abuse
@@ -119,7 +127,7 @@ async function executeFetch(url, config) {
 
 /**
  * Main API client with all HTTP methods
- * Authentication is handled via httpOnly cookies (credentials: 'include')
+ * Auth: httpOnly cookies + Bearer token fallback
  */
 export const apiClient = {
     /**
@@ -135,6 +143,7 @@ export const apiClient = {
             ...defaultConfig,
             headers: {
                 ...defaultConfig.headers,
+                ...getAuthHeaders(),
                 ...options.headers
             },
             ...options
@@ -157,6 +166,7 @@ export const apiClient = {
             ...defaultConfig,
             headers: {
                 ...defaultConfig.headers,
+                ...getAuthHeaders(),
                 ...options.headers
             },
             body: JSON.stringify(data),
@@ -180,6 +190,7 @@ export const apiClient = {
             ...defaultConfig,
             headers: {
                 ...defaultConfig.headers,
+                ...getAuthHeaders(),
                 ...options.headers
             },
             body: JSON.stringify(data),
@@ -203,6 +214,7 @@ export const apiClient = {
             ...defaultConfig,
             headers: {
                 ...defaultConfig.headers,
+                ...getAuthHeaders(),
                 ...options.headers
             },
             body: JSON.stringify(data),
@@ -225,6 +237,7 @@ export const apiClient = {
             ...defaultConfig,
             headers: {
                 ...defaultConfig.headers,
+                ...getAuthHeaders(),
                 ...options.headers
             },
             ...options
@@ -244,6 +257,9 @@ export const apiClient = {
         const response = await executeFetch(url, {
             method: 'POST',
             credentials: 'include',
+            headers: {
+                ...getAuthHeaders()
+            },
             // Don't set Content-Type for FormData, browser sets it with boundary
             body: formData
         });
