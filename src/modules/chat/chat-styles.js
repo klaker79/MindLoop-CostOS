@@ -70,8 +70,8 @@ export function createChatStyles() {
             position: fixed;
             bottom: 100px;
             right: 24px;
-            width: 450px;
-            height: 550px;
+            width: 480px;
+            height: 580px;
             background: #ffffff;
             border-radius: 20px;
             box-shadow: 0 10px 50px rgba(0, 0, 0, 0.15);
@@ -221,6 +221,7 @@ export function createChatStyles() {
             word-break: break-word;
             white-space: normal;
             max-width: 100%;
+            overflow-x: auto;
         }
         
         /* Markdown Tables in Chat */

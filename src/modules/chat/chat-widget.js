@@ -73,6 +73,7 @@ function speakResponse(text) {
 
 /**
  * Exporta un mensaje del chat a PDF profesional
+ * Convierte emojis a texto legible para jsPDF
  */
 function exportMessageToPDF(rawText) {
     try {
@@ -86,6 +87,26 @@ function exportMessageToPDF(rawText) {
         const fecha = new Date().toLocaleDateString('es-ES', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
+
+        // Mapa de emojis a texto (jsPDF no renderiza emojis correctamente)
+        const emojiMap = {
+            '📊': '[ANALISIS]', '💰': '[€]', '💵': '[€]', '🥩': '[COSTE]',
+            '📈': '[+]', '📉': '[-]', '✅': '[OK]', '❌': '[X]',
+            '🔴': '[!]', '🟢': '[OK]', '🟡': '[~]', '🟠': '[!]',
+            '⭐': '[ESTRELLA]', '❓': '[PUZZLE]', '🐴': '[CABALLO]', '🐕': '[PERRO]',
+            '📦': '[STOCK]', '🏢': '[FIJO]', '📋': '', '🧑🍳': '',
+            '🎯': '', '🚨': '', '🔧': '', '💡': '[TIP]',
+            '⚠️': '[ATENCION]', '🏪': '[PROVEEDOR]', '📆': '[FECHA]',
+            '🍷': '[VINO]', '🍽️': '[PLATO]', '🥗': '[PLATO]'
+        };
+
+        // Reemplazar emojis por texto
+        let cleanText = rawText;
+        for (const [emoji, replacement] of Object.entries(emojiMap)) {
+            cleanText = cleanText.split(emoji).join(replacement);
+        }
+        // Eliminar emojis restantes que no estén en el mapa
+        cleanText = cleanText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '');
 
         const doc = new jsPDFConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -109,19 +130,21 @@ function exportMessageToPDF(rawText) {
         doc.setTextColor(30, 41, 59); // #1e293b
 
         // --- Parsear contenido: detectar tablas markdown ---
-        const lines = rawText.split('\n');
+        const lines = cleanText.split('\n');
         let i = 0;
 
         while (i < lines.length) {
-            // Detectar inicio de tabla markdown
+            // Detectar inicio de tabla markdown (línea con | seguida de línea separadora)
             if (i + 1 < lines.length && lines[i].includes('|') &&
-                /^[\s\-:|]+$/.test(lines[i + 1].trim())) {
+                /^[\s|\-:]+$/.test(lines[i + 1].replace(/\|/g, '').trim())) {
 
                 // Recoger todas las líneas de la tabla
                 const tableLines = [];
                 let j = i;
-                while (j < lines.length && (lines[j].includes('|') || /^[\s\-:|]+$/.test(lines[j].trim()))) {
-                    if (!/^[\s\-:|]+$/.test(lines[j].trim())) {
+                while (j < lines.length && lines[j].includes('|')) {
+                    const trimmed = lines[j].replace(/\|/g, '').trim();
+                    // Saltar líneas separadoras (solo guiones y espacios)
+                    if (!/^[\s\-:]+$/.test(trimmed) && trimmed.length > 0) {
                         tableLines.push(lines[j]);
                     }
                     j++;
