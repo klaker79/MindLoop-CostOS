@@ -113,6 +113,28 @@ function exportMessageToPDF(rawText) {
         y = 45;
         doc.setTextColor(30, 41, 59);
 
+        // --- Función para limpiar texto (emojis y markdown) ---
+        function cleanText(text) {
+            if (!text) return '';
+            return text
+                // Eliminar emojis (rangos Unicode comunes)
+                .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+                .replace(/[\u{2600}-\u{26FF}]/gu, '')
+                .replace(/[\u{2700}-\u{27BF}]/gu, '')
+                .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+                .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+                // Eliminar markdown bold/italic
+                .replace(/\*\*(.+?)\*\*/g, '$1')
+                .replace(/\*(.+?)\*/g, '$1')
+                .replace(/__(.+?)__/g, '$1')
+                .replace(/_(.+?)_/g, '$1')
+                .replace(/`([^`]+)`/g, '$1')
+                // Eliminar headers markdown
+                .replace(/^#{1,3}\s*/, '')
+                // Limpiar espacios extra
+                .trim();
+        }
+
         // --- Función para renderizar tabla manualmente ---
         function renderTable(headers, rows, startY) {
             const cellPadding = 3;
@@ -121,6 +143,9 @@ function exportMessageToPDF(rawText) {
             const colWidth = usableWidth / colCount;
             let currentY = startY;
 
+            // Limpiar headers
+            const cleanHeaders = headers.map(h => cleanText(h));
+
             // Header row
             doc.setFillColor(102, 126, 234);
             doc.rect(margin, currentY, usableWidth, rowHeight, 'F');
@@ -128,7 +153,7 @@ function exportMessageToPDF(rawText) {
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
 
-            headers.forEach((header, idx) => {
+            cleanHeaders.forEach((header, idx) => {
                 const cellX = margin + idx * colWidth + cellPadding;
                 doc.text(header.substring(0, 20), cellX, currentY + 5.5);
             });
@@ -151,7 +176,7 @@ function exportMessageToPDF(rawText) {
 
                 row.forEach((cell, idx) => {
                     const cellX = margin + idx * colWidth + cellPadding;
-                    const cellText = (cell || '').toString().substring(0, 25);
+                    const cellText = cleanText(cell).substring(0, 25);
                     doc.text(cellText, cellX, currentY + 5.5);
                 });
                 currentY += rowHeight;
@@ -206,13 +231,10 @@ function exportMessageToPDF(rawText) {
 
             if (!line) { y += 4; i++; continue; }
 
-            // Limpiar markdown básico
-            const cleanLine = line
-                .replace(/\*\*(.+?)\*\*/g, '$1')
-                .replace(/__(.+?)__/g, '$1')
-                .replace(/`([^`]+)`/g, '$1')
-                .replace(/^#{1,3}\s*/, '');
+            // Limpiar texto (emojis y markdown)
+            const cleanedLine = cleanText(line);
 
+            // Detectar tipo de línea
             const isMdHeader = /^#{1,3}\s/.test(line);
             const isEmojiHeader = /^[^\w\s]/.test(line) && /[A-ZÁÉÍÓÚÑ]{2,}/.test(line);
 
@@ -221,21 +243,21 @@ function exportMessageToPDF(rawText) {
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(102, 126, 234);
-                const splitLines = doc.splitTextToSize(cleanLine, usableWidth);
+                const splitLines = doc.splitTextToSize(cleanedLine, usableWidth);
                 doc.text(splitLines, margin, y);
                 y += splitLines.length * 6;
                 doc.setTextColor(30, 41, 59);
             } else if (line.startsWith('- ') || line.startsWith('• ')) {
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
-                const bulletText = cleanLine.replace(/^[-•]\s*/, '');
+                const bulletText = cleanedLine.replace(/^[-•]\s*/, '');
                 const splitLines = doc.splitTextToSize('  •  ' + bulletText, usableWidth);
                 doc.text(splitLines, margin, y);
                 y += splitLines.length * 5;
             } else {
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
-                const splitLines = doc.splitTextToSize(cleanLine, usableWidth);
+                const splitLines = doc.splitTextToSize(cleanedLine, usableWidth);
                 doc.text(splitLines, margin, y);
                 y += splitLines.length * 5;
             }
