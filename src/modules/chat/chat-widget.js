@@ -7,7 +7,6 @@ import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
@@ -75,7 +74,7 @@ function speakResponse(text) {
 
 /**
  * Exporta un mensaje del chat a PDF profesional
- * Usa jsPDF + autoTable para renderizado directo de texto y tablas markdown
+ * Renderiza tablas manualmente sin dependencia de autoTable
  * @param {string} rawText - Texto raw del mensaje (markdown)
  */
 function exportMessageToPDF(rawText) {
@@ -114,12 +113,59 @@ function exportMessageToPDF(rawText) {
         y = 45;
         doc.setTextColor(30, 41, 59);
 
-        // --- Parsear contenido: detectar tablas markdown ---
+        // --- Función para renderizar tabla manualmente ---
+        function renderTable(headers, rows, startY) {
+            const cellPadding = 3;
+            const rowHeight = 8;
+            const colCount = headers.length;
+            const colWidth = usableWidth / colCount;
+            let currentY = startY;
+
+            // Header row
+            doc.setFillColor(102, 126, 234);
+            doc.rect(margin, currentY, usableWidth, rowHeight, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+
+            headers.forEach((header, idx) => {
+                const cellX = margin + idx * colWidth + cellPadding;
+                doc.text(header.substring(0, 20), cellX, currentY + 5.5);
+            });
+            currentY += rowHeight;
+
+            // Body rows
+            doc.setTextColor(30, 41, 59);
+            doc.setFont('helvetica', 'normal');
+
+            rows.forEach((row, rowIdx) => {
+                // Alternate row background
+                if (rowIdx % 2 === 0) {
+                    doc.setFillColor(248, 250, 252);
+                    doc.rect(margin, currentY, usableWidth, rowHeight, 'F');
+                }
+
+                // Draw border
+                doc.setDrawColor(226, 232, 240);
+                doc.rect(margin, currentY, usableWidth, rowHeight, 'S');
+
+                row.forEach((cell, idx) => {
+                    const cellX = margin + idx * colWidth + cellPadding;
+                    const cellText = (cell || '').toString().substring(0, 25);
+                    doc.text(cellText, cellX, currentY + 5.5);
+                });
+                currentY += rowHeight;
+            });
+
+            return currentY + 5;
+        }
+
+        // --- Parsear contenido ---
         const lines = rawText.split('\n');
         let i = 0;
 
         while (i < lines.length) {
-            // Detectar tabla markdown (línea con | seguida de línea separadora)
+            // Detectar tabla markdown
             if (i + 1 < lines.length && lines[i].includes('|') &&
                 /^[\s\-:|]+$/.test(lines[i + 1].trim())) {
 
@@ -134,20 +180,17 @@ function exportMessageToPDF(rawText) {
 
                 if (tableLines.length >= 2) {
                     const parseCells = line => line.split('|').map(c => c.trim()).filter(c => c !== '');
-                    const head = [parseCells(tableLines[0])];
-                    const body = tableLines.slice(1).map(parseCells);
+                    const headers = parseCells(tableLines[0]);
+                    const rows = tableLines.slice(1).map(parseCells);
 
-                    doc.autoTable({
-                        startY: y,
-                        head: head,
-                        body: body,
-                        margin: { left: margin, right: margin },
-                        styles: { fontSize: 9, cellPadding: 3, overflow: 'linebreak' },
-                        headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold' },
-                        alternateRowStyles: { fillColor: [248, 250, 252] },
-                        theme: 'grid'
-                    });
-                    y = doc.lastAutoTable.finalY + 8;
+                    // Check if table fits on current page
+                    const tableHeight = (rows.length + 1) * 8 + 10;
+                    if (y + tableHeight > 270) {
+                        doc.addPage();
+                        y = margin;
+                    }
+
+                    y = renderTable(headers, rows, y);
                 }
                 i = j;
                 continue;
@@ -174,7 +217,6 @@ function exportMessageToPDF(rawText) {
             const isEmojiHeader = /^[^\w\s]/.test(line) && /[A-ZÁÉÍÓÚÑ]{2,}/.test(line);
 
             if (isMdHeader || isEmojiHeader) {
-                // Headers con estilo
                 y += 3;
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
@@ -184,32 +226,13 @@ function exportMessageToPDF(rawText) {
                 y += splitLines.length * 6;
                 doc.setTextColor(30, 41, 59);
             } else if (line.startsWith('- ') || line.startsWith('• ')) {
-                // Lista con bullets
                 doc.setFontSize(10);
-                const hasBold = /\*\*(.+?)\*\*/.test(line);
-                if (hasBold) {
-                    const parts = line.replace(/^[-•]\s*/, '').split(/\*\*(.+?)\*\*/);
-                    let xPos = margin + 6;
-                    doc.text('  •  ', margin, y);
-                    parts.forEach((part, idx) => {
-                        if (!part) return;
-                        doc.setFont('helvetica', idx % 2 === 1 ? 'bold' : 'normal');
-                        const w = doc.getTextWidth(part);
-                        if (xPos + w > pageWidth - margin) { y += 5; xPos = margin + 10; }
-                        doc.text(part, xPos, y);
-                        xPos += w;
-                    });
-                    doc.setFont('helvetica', 'normal');
-                    y += 6;
-                } else {
-                    doc.setFont('helvetica', 'normal');
-                    const bulletText = cleanLine.replace(/^[-•]\s*/, '');
-                    const splitLines = doc.splitTextToSize('  •  ' + bulletText, usableWidth);
-                    doc.text(splitLines, margin, y);
-                    y += splitLines.length * 5;
-                }
+                doc.setFont('helvetica', 'normal');
+                const bulletText = cleanLine.replace(/^[-•]\s*/, '');
+                const splitLines = doc.splitTextToSize('  •  ' + bulletText, usableWidth);
+                doc.text(splitLines, margin, y);
+                y += splitLines.length * 5;
             } else {
-                // Texto normal
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
                 const splitLines = doc.splitTextToSize(cleanLine, usableWidth);
