@@ -6,6 +6,8 @@
 import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
@@ -80,18 +82,12 @@ function exportMessageToPDF(rawText) {
     try {
         window.showToast?.('Generando PDF...', 'info');
 
-        const jsPDFConstructor = window.jsPDF || window.jspdf?.jsPDF;
-        if (!jsPDFConstructor) {
-            window.showToast?.('Error: Librería PDF no disponible', 'error');
-            return;
-        }
-
         const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'Mi Restaurante';
         const fecha = new Date().toLocaleDateString('es-ES', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
 
-        const doc = new jsPDFConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const margin = 20;
         const usableWidth = pageWidth - margin * 2;
