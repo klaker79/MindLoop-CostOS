@@ -1588,6 +1588,9 @@ function getNombreMes(mes) {
  * The backend /api/monthly/summary may not include all received orders in
  * compras.ingredientes. This function fills the gaps by computing purchase
  * data from window.pedidos that have estado='recibido' for the given month.
+ *
+ * IMPORTANT: Only adds NEW ingredient+day combos that the backend didn't return.
+ * Does NOT modify existing backend data to avoid double-counting.
  */
 function enriquecerComprasConPedidos(datos, mes, ano) {
     if (!datos.compras) datos.compras = {};
@@ -1597,8 +1600,21 @@ function enriquecerComprasConPedidos(datos, mes, ano) {
     const mesNum = parseInt(mes);
     const anoNum = parseInt(ano);
 
-    // Build ingredient name map for lookups
-    const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+    // Build ingredient maps for lookups - use BOTH number and string keys
+    // because pedido items may have string IDs while ingredientes have number IDs
+    const ingMapById = new Map();
+    for (const i of (window.ingredientes || [])) {
+        ingMapById.set(Number(i.id), i);   // numeric key
+        ingMapById.set(String(i.id), i);   // string key
+    }
+
+    // Track what the backend already returned (to avoid double-counting)
+    const backendExisting = new Set();
+    for (const [nombre, data] of Object.entries(datos.compras.ingredientes)) {
+        for (const dia of Object.keys(data.dias || {})) {
+            backendExisting.add(`${nombre}::${dia}`);
+        }
+    }
 
     // Filter received orders for the selected month
     const pedidosRecibidos = pedidos.filter(ped => {
@@ -1607,20 +1623,18 @@ function enriquecerComprasConPedidos(datos, mes, ano) {
         return fecha.getMonth() + 1 === mesNum && fecha.getFullYear() === anoNum;
     });
 
-    let totalComprasAgregado = 0;
+    let ingredientesAgregados = 0;
 
     for (const ped of pedidosRecibidos) {
         const items = ped.ingredientes || [];
-        // Use reception date if available, otherwise order date
         const fechaPed = new Date(ped.fecha_recepcion || ped.fecha);
-        // Normalize to YYYY-MM-DD for matching with dias array
         const diaKey = fechaPed.toISOString().split('T')[0];
 
         for (const item of items) {
             if (item.estado === 'no-entregado') continue;
 
             const ingId = item.ingredienteId || item.ingrediente_id;
-            const ing = ingMap.get(ingId);
+            const ing = ingMapById.get(ingId) || ingMapById.get(Number(ingId)) || ingMapById.get(String(ingId));
             if (!ing) continue;
 
             const nombre = ing.nombre;
@@ -1630,6 +1644,10 @@ function enriquecerComprasConPedidos(datos, mes, ano) {
 
             if (cantidad <= 0) continue;
 
+            // Skip if backend already has data for this ingredient+day
+            const existKey = `${nombre}::${diaKey}`;
+            if (backendExisting.has(existKey)) continue;
+
             // Initialize ingredient entry if doesn't exist
             if (!datos.compras.ingredientes[nombre]) {
                 datos.compras.ingredientes[nombre] = { dias: {}, total: 0 };
@@ -1637,19 +1655,11 @@ function enriquecerComprasConPedidos(datos, mes, ano) {
 
             const ingData = datos.compras.ingredientes[nombre];
 
-            // Add or merge day data
-            // Use a tracking set to avoid double-counting with backend data.
-            // Backend may already include some pedidos (e.g. compras mercado).
-            // We use pedido ID tracking to prevent duplicates.
-            if (!ingData._pedidoIds) ingData._pedidoIds = new Set();
-            const pedKey = `${ped.id}-${ingId}-${diaKey}`;
-            if (ingData._pedidoIds.has(pedKey)) continue;
-            ingData._pedidoIds.add(pedKey);
-
+            // Add day data (only NEW combos reach here)
             if (!ingData.dias[diaKey]) {
                 ingData.dias[diaKey] = { precio: precioUnit, cantidad: cantidad, total: subtotal };
             } else {
-                // Merge: accumulate quantity and total, recalculate weighted avg price
+                // Same ingredient, same day, different pedido - accumulate
                 const existing = ingData.dias[diaKey];
                 const totalCant = existing.cantidad + cantidad;
                 const totalGasto = (existing.cantidad * existing.precio) + subtotal;
@@ -1658,7 +1668,7 @@ function enriquecerComprasConPedidos(datos, mes, ano) {
                 existing.total = totalGasto;
             }
 
-            totalComprasAgregado += subtotal;
+            ingredientesAgregados++;
 
             // Ensure this day is in the dias array
             if (!datos.dias.includes(diaKey)) {
@@ -1667,9 +1677,8 @@ function enriquecerComprasConPedidos(datos, mes, ano) {
         }
     }
 
-    // Recalculate totals for each ingredient and clean up tracking data
+    // Recalculate totals for all ingredients
     for (const [_nombre, data] of Object.entries(datos.compras.ingredientes)) {
-        delete data._pedidoIds; // Clean up tracking set
         data.total = Object.values(data.dias).reduce((sum, d) => sum + (d.total || d.cantidad * d.precio || 0), 0);
     }
 
@@ -1679,6 +1688,8 @@ function enriquecerComprasConPedidos(datos, mes, ano) {
 
     // Sort dias chronologically
     datos.dias.sort();
+
+    console.log(`enriquecerComprasConPedidos: ${pedidosRecibidos.length} pedidos, ${ingredientesAgregados} nuevos items agregados (${backendExisting.size} ya existian del backend)`);
 
     return datos;
 }
