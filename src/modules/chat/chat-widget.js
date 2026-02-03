@@ -1111,25 +1111,10 @@ export function clearChatHistory() {
 }
 
 /**
- * Limpia el chat (wrapper para el botón)
- * Usa doble clic como confirmación para evitar borrado accidental
+ * Limpia el chat con confirmación
  */
-let clearClickCount = 0;
-let clearClickTimer = null;
-
 function clearChat() {
-    clearClickCount++;
-
-    if (clearClickCount === 1) {
-        // Primer clic - mostrar aviso
-        window.showToast?.('🗑️ Clic de nuevo para borrar el chat', 'warning');
-        clearClickTimer = setTimeout(() => {
-            clearClickCount = 0; // Reset después de 2 segundos
-        }, 2000);
-    } else if (clearClickCount >= 2) {
-        // Segundo clic - borrar
-        clearTimeout(clearClickTimer);
-        clearClickCount = 0;
+    if (confirm('¿Seguro que quieres borrar toda la conversación?')) {
         clearChatHistory();
         window.showToast?.('✅ Conversación borrada', 'success');
     }
