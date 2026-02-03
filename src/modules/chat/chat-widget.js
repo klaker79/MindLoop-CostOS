@@ -485,11 +485,20 @@ function addMessage(type, text, save = true) {
 
     // Verificar si es mensaje de bienvenida (no mostrar botón PDF)
     const isWelcome = text === CHAT_CONFIG.welcomeMessage;
-    const pdfButton = (type === 'bot' && !isWelcome)
-        ? `<button class="chat-pdf-btn" onclick="window.exportMessageToPDF(\`${text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" 
-             title="Exportar a PDF" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-             onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">📄</button>`
-        : '';
+
+    // Codificar texto en base64 para evitar problemas de escape
+    let pdfButton = '';
+    if (type === 'bot' && !isWelcome) {
+        try {
+            const encodedText = btoa(unescape(encodeURIComponent(text)));
+            pdfButton = `<button class="chat-pdf-btn" data-pdf-text="${encodedText}" 
+                 title="Exportar a PDF" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
+                 onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'"
+                 onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
+        } catch (e) {
+            console.warn('Error encoding text for PDF:', e);
+        }
+    }
 
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${type}`;
@@ -998,11 +1007,18 @@ function renderChatHistory() {
 
         // Botón PDF para mensajes del bot (excepto bienvenida)
         const isWelcome = msg.text === CHAT_CONFIG.welcomeMessage;
-        const pdfButton = (msg.type === 'bot' && !isWelcome)
-            ? `<button class="chat-pdf-btn" onclick="window.exportMessageToPDF(\`${msg.text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" 
-                 title="Exportar a PDF" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-                 onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">📄</button>`
-            : '';
+        let pdfButton = '';
+        if (msg.type === 'bot' && !isWelcome) {
+            try {
+                const encodedText = btoa(unescape(encodeURIComponent(msg.text)));
+                pdfButton = `<button class="chat-pdf-btn" data-pdf-text="${encodedText}" 
+                     title="Exportar a PDF" style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
+                     onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'"
+                     onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
+            } catch (e) {
+                console.warn('Error encoding text for PDF:', e);
+            }
+        }
 
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${msg.type}`;

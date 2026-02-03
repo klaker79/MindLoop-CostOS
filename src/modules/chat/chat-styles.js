@@ -160,7 +160,7 @@ export function createChatStyles() {
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            overflow-x: hidden;
+            overflow-x: visible;
             padding: 20px;
             display: flex;
             flex-direction: column;
