@@ -161,17 +161,14 @@ function generarHTMLTablaPL(dias, totalesPorDia, gastosFijosDia, comprasPorDia) 
     });
     html += `<td style="text-align: center; padding: 14px 16px; background: #dcfce7; color: #166534; font-weight: 700;">${totalIngresos.toFixed(2)}€</td></tr>`;
 
-    // Fila COSTES PROD (con porcentaje = Food Cost)
+    // Fila COSTES PROD
     html += '<tr style="background: #fef2f2;"><td style="padding: 14px 16px; font-weight: 600; color: #dc2626; display: flex; align-items: center; gap: 6px;">📦 COSTES PROD.</td>';
     dias.forEach(dia => {
         const val = totalesPorDia[dia]?.costes || 0;
-        const ingresos = totalesPorDia[dia]?.ingresos || 0;
-        const costePct = ingresos > 0 ? (val / ingresos) * 100 : 0;
         totalCostes += val;
-        html += `<td style="text-align: center; padding: 14px 8px; color: #dc2626; font-weight: 500;">${val.toFixed(2)}€<br><span style="font-size: 11px; color: #ef4444;">${costePct.toFixed(1)}%</span></td>`;
+        html += `<td style="text-align: center; padding: 14px 8px; color: #dc2626; font-weight: 500;">${val.toFixed(2)}€</td>`;
     });
-    const totalCostePct = totalIngresos > 0 ? (totalCostes / totalIngresos) * 100 : 0;
-    html += `<td style="text-align: center; padding: 14px 16px; background: #fee2e2; color: #dc2626; font-weight: 700;">${totalCostes.toFixed(2)}€<br><span style="font-size: 12px; color: #ef4444;">${totalCostePct.toFixed(1)}%</span></td></tr>`;
+    html += `<td style="text-align: center; padding: 14px 16px; background: #fee2e2; color: #dc2626; font-weight: 700;">${totalCostes.toFixed(2)}€</td></tr>`;
 
     // Fila MARGEN BRUTO (con porcentaje)
     html += '<tr style="background: #fefce8;"><td style="padding: 14px 16px; font-weight: 600; color: #a16207; display: flex; align-items: center; gap: 6px;">💰 MARGEN BRUTO</td>';
