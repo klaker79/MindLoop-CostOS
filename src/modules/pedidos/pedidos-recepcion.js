@@ -33,6 +33,10 @@ export function marcarPedidoRecibido(id) {
 
     const fechaSpan = document.getElementById('modal-rec-fecha');
     if (fechaSpan) fechaSpan.textContent = new Date(ped.fecha).toLocaleDateString('es-ES');
+    
+  // Inicializar date picker con fecha de hoy
+  const fechaRecepcionInput = document.getElementById('modal-rec-fecha-recepcion');
+  if (fechaRecepcionInput) fechaRecepcionInput.value = new Date().toISOString().split('T')[0];
 
     const totalSpan = document.getElementById('modal-rec-total-original');
     if (totalSpan) totalSpan.textContent = parseFloat(ped.total || 0).toFixed(2) + ' €';
@@ -385,7 +389,10 @@ export async function confirmarRecepcionPedido() {
             ...pedSinItemsRecepcion,
             estado: 'recibido',
             ingredientes: ingredientesActualizados,
-            fecha_recepcion: new Date().toISOString(),
+                  fecha_recepcion: (() => {
+        const picker = document.getElementById('modal-rec-fecha-recepcion');
+        return picker?.value ? new Date(picker.value + 'T12:00:00').toISOString() : new Date().toISOString();
+      })(),
             total_recibido: totalRecibido,
             totalRecibido: totalRecibido
         });
