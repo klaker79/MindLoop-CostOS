@@ -388,38 +388,9 @@ export async function confirmarRecepcionPedido() {
             totalRecibido: totalRecibido
         });
 
-        // 📊 Registrar compras en Diario (precios_compra_diarios)
-        try {
-            const comprasDiario = ingredientesActualizados
-                .filter(item => item.estado !== 'no-entregado' && item.cantidadRecibida > 0)
-                .map(item => {
-                    const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
-                    return {
-                        ingrediente: ing ? ing.nombre : `ID ${item.ingredienteId}`,
-                        precio: item.precioReal || item.precioUnitario || 0,
-                        cantidad: item.cantidadRecibida,
-                        fecha: ped.fecha ? (typeof ped.fecha === 'string' ? ped.fecha.split('T')[0] : new Date(ped.fecha).toISOString().split('T')[0]) : new Date().toISOString().split('T')[0]
-                    };
-                });
-
-            if (comprasDiario.length > 0) {
-                const apiBase = (window.API_CONFIG?.baseUrl || 'http://localhost:3001') + '/api';
-                const token = localStorage.getItem('token');
-                await fetch(apiBase + '/daily/purchases/bulk', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'Origin': window.location.origin
-                    },
-                    body: JSON.stringify({ compras: comprasDiario, skipStockUpdate: true })
-                });
-                console.log('📊 Compras registradas en Diario:', comprasDiario.length, 'items');
-            }
-        } catch (diarioError) {
-            console.warn('⚠️ No se pudieron registrar las compras en el Diario:', diarioError.message);
-            // No bloquear la recepción si falla el registro en Diario
-        }
+        // ℹ️ Diario (precios_compra_diarios) se registra automáticamente en el backend
+        // al actualizar el pedido a estado='recibido' (PUT /api/orders/:id)
+        // NO llamar a /daily/purchases/bulk aquí para evitar doble registro
 
         await window.cargarDatos();
         window.renderizarPedidos();

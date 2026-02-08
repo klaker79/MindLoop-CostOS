@@ -207,34 +207,9 @@ export async function guardarPedido(event) {
       window.renderizarIngredientes?.();
       window.renderizarInventario?.();
 
-      // 📊 Registrar compras en Diario (precios_compra_diarios)
-      try {
-        const comprasDiario = ingredientesPedido.map(item => {
-          const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
-          return {
-            ingrediente: ing ? ing.nombre : `ID ${item.ingredienteId}`,
-            precio: item.precio_unitario || item.precio || 0,
-            cantidad: item.cantidad,
-            fecha: pedido.fecha ? pedido.fecha.split('T')[0] : new Date().toISOString().split('T')[0]
-          };
-        });
-        if (comprasDiario.length > 0) {
-          const apiBase = (window.API_CONFIG?.baseUrl || 'http://localhost:3001') + '/api';
-          const token = localStorage.getItem('token');
-          await fetch(apiBase + '/daily/purchases/bulk', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-              'Origin': window.location.origin
-            },
-            body: JSON.stringify({ compras: comprasDiario, skipStockUpdate: true })
-          });
-          console.log('📊 Compra mercado registrada en Diario:', comprasDiario.length, 'items');
-        }
-      } catch (diarioError) {
-        console.warn('⚠️ No se pudo registrar la compra en el Diario:', diarioError.message);
-      }
+      // ℹ️ Diario (precios_compra_diarios) se registra automáticamente en el backend
+      // al crear el pedido con estado='recibido' (POST /api/orders)
+      // NO llamar a /daily/purchases/bulk aquí para evitar doble registro
     }
 
     // Recargar pedidos
