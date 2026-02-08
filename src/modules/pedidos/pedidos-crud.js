@@ -114,7 +114,7 @@ export async function guardarPedido(event) {
     pedido = {
       proveedorId: proveedorId,
       proveedor_id: proveedorId,
-      fecha: new Date().toISOString(),
+      fecha: document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
       estado: 'recibido', // Se marca directamente como recibido
       ingredientes: ingredientesPedido,
       total: window.calcularTotalPedido(),
@@ -208,6 +208,35 @@ export async function guardarPedido(event) {
       window.ingredientes = await window.api.getIngredientes();
       window.renderizarIngredientes?.();
       window.renderizarInventario?.();
+
+      // 📊 Registrar compras en Diario (precios_compra_diarios)
+      try {
+        const comprasDiario = ingredientesPedido.map(item => {
+          const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
+          return {
+            ingrediente: ing ? ing.nombre : `ID ${item.ingredienteId}`,
+            precio: item.precio_unitario || item.precio || 0,
+            cantidad: item.cantidad,
+            fecha: pedido.fecha ? pedido.fecha.split('T')[0] : new Date().toISOString().split('T')[0]
+          };
+        });
+        if (comprasDiario.length > 0) {
+          const apiBase = (window.API_CONFIG?.baseUrl || 'http://localhost:3001') + '/api';
+          const token = localStorage.getItem('token');
+          await fetch(apiBase + '/daily/purchases/bulk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'Origin': window.location.origin
+            },
+            body: JSON.stringify({ compras: comprasDiario })
+          });
+          console.log('📊 Compra mercado registrada en Diario:', comprasDiario.length, 'items');
+        }
+      } catch (diarioError) {
+        console.warn('⚠️ No se pudo registrar la compra en el Diario:', diarioError.message);
+      }
     }
 
     // Recargar pedidos
