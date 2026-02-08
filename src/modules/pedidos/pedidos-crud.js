@@ -265,12 +265,8 @@ export async function eliminarPedido(id) {
   window.showLoading();
 
   try {
-    // 🆕 Usar Zustand store en lugar de window.api
-    const store = orderStore.getState();
-    const result = await store.deleteOrder(id);
-    if (!result.success) throw new Error(result.error || 'Error eliminando pedido');
+    await window.api.deletePedido(id);
 
-    // El store ya sincroniza window.pedidos
     await window.cargarDatos();
     window.renderizarPedidos();
     window.hideLoading();
