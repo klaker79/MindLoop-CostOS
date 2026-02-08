@@ -240,24 +240,8 @@ export async function eliminarPedido(id) {
   try {
     await window.api.deletePedido(id);
 
-    // 🧹 Si era compra mercado, borrar también las entradas del Diario
-    if (ped.es_compra_mercado && ped.fecha) {
-      try {
-        const fechaStr = typeof ped.fecha === 'string' ? ped.fecha.split('T')[0] : new Date(ped.fecha).toISOString().split('T')[0];
-        const apiBase = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
-        const token = localStorage.getItem('token');
-        await fetch(`${apiBase}/analytics/daily/purchases?fecha=${fechaStr}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Origin': window.location.origin
-          }
-        });
-        console.log('🧹 Compras del Diario eliminadas para fecha:', fechaStr);
-      } catch (diarioErr) {
-        console.warn('⚠️ No se pudieron borrar entradas del Diario:', diarioErr.message);
-      }
-    }
+    // ℹ️ El backend DELETE /orders/:id ya revierte el Diario automáticamente
+    // (resta cantidades por ingrediente). No es necesario borrar desde el frontend.
 
     await window.cargarDatos();
     window.renderizarPedidos();
