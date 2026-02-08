@@ -372,7 +372,7 @@ window.confirmarCarrito = async function () {
             const pedido = {
                 proveedorId: parseInt(provId) || null,
                 proveedor_id: parseInt(provId) || null,
-                fecha: new Date().toISOString(),
+                fecha: document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
                 estado: 'pendiente',
                 ingredientes: ingredientes,
                 total: total
