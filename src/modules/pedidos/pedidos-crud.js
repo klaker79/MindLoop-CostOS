@@ -158,11 +158,9 @@ export async function guardarPedido(event) {
   window.showLoading();
 
   try {
-    // Guardar pedido
-    // 🆕 Usar Zustand store en lugar de window.api
-    const store = orderStore.getState();
-    const result = await store.createOrder(pedido);
-    if (!result.success) throw new Error(result.error || 'Error creando pedido');
+    // Guardar pedido usando window.api (más fiable que apiClient bundled)
+    console.log('📝 Creando pedido con fecha:', pedido.fecha, '| ped-fecha value:', document.getElementById('ped-fecha')?.value);
+    await window.api.createPedido(pedido);
 
     // 🏪 Para compras del mercado: actualizar stock inmediatamente
     if (esCompraMercado) {
