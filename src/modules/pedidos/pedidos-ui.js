@@ -547,7 +547,8 @@ export function renderizarPedidos() {
     pedidosFiltrados.forEach(ped => {
         const provId = ped.proveedorId || ped.proveedor_id;
         const prov = provMap.get(provId);
-        const fecha = new Date(ped.fecha).toLocaleDateString('es-ES');
+        const fechaStr = typeof ped.fecha === 'string' && ped.fecha.length === 10 ? ped.fecha + 'T12:00:00' : ped.fecha;
+        const fecha = new Date(fechaStr).toLocaleDateString('es-ES');
         const esCompraMercado = ped.es_compra_mercado;
 
         html += '<tr>';
@@ -601,7 +602,7 @@ export function exportarPedidos() {
 
     const columnas = [
         { header: 'ID', key: 'id' },
-        { header: 'Fecha Pedido', value: p => new Date(p.fecha).toLocaleDateString('es-ES') },
+        { header: 'Fecha Pedido', value: p => { const f = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha; return new Date(f).toLocaleDateString('es-ES'); } },
         {
             header: 'Proveedor',
             value: p => {

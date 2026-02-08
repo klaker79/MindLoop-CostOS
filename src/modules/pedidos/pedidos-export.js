@@ -11,60 +11,60 @@
  * Descarga PDF del pedido actual
  */
 export function descargarPedidoPDF() {
-    if (window.pedidoViendoId === null) return;
+  if (window.pedidoViendoId === null) return;
 
-    const pedido = (window.pedidos || []).find(p => p.id === window.pedidoViendoId);
-    if (!pedido) return;
+  const pedido = (window.pedidos || []).find(p => p.id === window.pedidoViendoId);
+  if (!pedido) return;
 
-    const provId = pedido.proveedorId || pedido.proveedor_id;
-    const prov = (window.proveedores || []).find(p => p.id === provId);
-    const provNombre = prov ? prov.nombre : 'Sin proveedor';
-    const provDir = prov?.direccion || '';
-    const provTel = prov?.telefono || '';
-    const provEmail = prov?.email || '';
+  const provId = pedido.proveedorId || pedido.proveedor_id;
+  const prov = (window.proveedores || []).find(p => p.id === provId);
+  const provNombre = prov ? prov.nombre : 'Sin proveedor';
+  const provDir = prov?.direccion || '';
+  const provTel = prov?.telefono || '';
+  const provEmail = prov?.email || '';
 
-    const esRecibido = pedido.estado === 'recibido';
-    const items = pedido.itemsRecepcion || pedido.ingredientes || [];
+  const esRecibido = pedido.estado === 'recibido';
+  const items = pedido.itemsRecepcion || pedido.ingredientes || [];
 
-    let totalOriginal = 0;
-    let totalRecibido = 0;
-    let ingredientesHtml = '';
+  let totalOriginal = 0;
+  let totalRecibido = 0;
+  let ingredientesHtml = '';
 
-    items.forEach(item => {
-        const ingId = item.ingredienteId || item.ingrediente_id;
-        const ing = (window.ingredientes || []).find(i => i.id === ingId);
-        const nombre = ing ? ing.nombre : 'Ingrediente';
-        const unidad = ing ? ing.unidad : '';
+  items.forEach(item => {
+    const ingId = item.ingredienteId || item.ingrediente_id;
+    const ing = (window.ingredientes || []).find(i => i.id === ingId);
+    const nombre = ing ? ing.nombre : 'Ingrediente';
+    const unidad = ing ? ing.unidad : '';
 
-        const cantPedida = parseFloat(item.cantidad || 0);
-        const cantRecibida = parseFloat(item.cantidadRecibida || cantPedida);
-        const precioOrig = parseFloat(
-            item.precioUnitario || item.precio_unitario || item.precio || 0
-        );
-        const precioReal = parseFloat(item.precioReal || precioOrig);
+    const cantPedida = parseFloat(item.cantidad || 0);
+    const cantRecibida = parseFloat(item.cantidadRecibida || cantPedida);
+    const precioOrig = parseFloat(
+      item.precioUnitario || item.precio_unitario || item.precio || 0
+    );
+    const precioReal = parseFloat(item.precioReal || precioOrig);
 
-        const subtotalOrig = cantPedida * precioOrig;
-        const subtotalReal = item.estado === 'no-entregado' ? 0 : cantRecibida * precioReal;
+    const subtotalOrig = cantPedida * precioOrig;
+    const subtotalReal = item.estado === 'no-entregado' ? 0 : cantRecibida * precioReal;
 
-        totalOriginal += subtotalOrig;
-        totalRecibido += subtotalReal;
+    totalOriginal += subtotalOrig;
+    totalRecibido += subtotalReal;
 
-        // Determinar estado
-        let estadoTxt = '';
-        if (esRecibido) {
-            if (item.estado === 'no-entregado') {
-                estadoTxt = '❌ No entregado';
-            } else if (
-                Math.abs(cantRecibida - cantPedida) > 0.01 ||
-                Math.abs(precioReal - precioOrig) > 0.01
-            ) {
-                estadoTxt = '⚠️ Varianza';
-            } else {
-                estadoTxt = '✅ OK';
-            }
-        }
+    // Determinar estado
+    let estadoTxt = '';
+    if (esRecibido) {
+      if (item.estado === 'no-entregado') {
+        estadoTxt = '❌ No entregado';
+      } else if (
+        Math.abs(cantRecibida - cantPedida) > 0.01 ||
+        Math.abs(precioReal - precioOrig) > 0.01
+      ) {
+        estadoTxt = '⚠️ Varianza';
+      } else {
+        estadoTxt = '✅ OK';
+      }
+    }
 
-        ingredientesHtml += `
+    ingredientesHtml += `
           <tr>
             <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${nombre}</td>
             <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: center;">${cantPedida.toFixed(2)} ${unidad}</td>
@@ -75,12 +75,12 @@ export function descargarPedidoPDF() {
             ${esRecibido ? `<td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: center;">${estadoTxt}</td>` : ''}
           </tr>
         `;
-    });
+  });
 
-    const varianza = totalRecibido - totalOriginal;
-    const varianzaColor = varianza > 0 ? '#dc2626' : varianza < 0 ? '#059669' : '#374151';
+  const varianza = totalRecibido - totalOriginal;
+  const varianzaColor = varianza > 0 ? '#dc2626' : varianza < 0 ? '#059669' : '#374151';
 
-    const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -121,7 +121,7 @@ export function descargarPedidoPDF() {
         <div class="doc-info">
           <div class="doc-number">PEDIDO #${pedido.id}</div>
           <p style="margin: 10px 0;"><span class="badge ${esRecibido ? 'badge-recibido' : 'badge-pendiente'}">${esRecibido ? 'RECIBIDO' : 'PENDIENTE'}</span></p>
-          <p style="color: #6b7280;">${new Date(pedido.fecha).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          <p style="color: #6b7280;">${new Date(typeof pedido.fecha === 'string' && pedido.fecha.length === 10 ? pedido.fecha + 'T12:00:00' : pedido.fecha).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         </div>
       </div>
       
@@ -135,7 +135,7 @@ export function descargarPedidoPDF() {
         </div>
         <div class="info-box">
           <h3>📋 Detalles del Pedido</h3>
-          <p><strong>Fecha pedido:</strong> ${new Date(pedido.fecha).toLocaleDateString('es-ES')}</p>
+          <p><strong>Fecha pedido:</strong> ${new Date(typeof pedido.fecha === 'string' && pedido.fecha.length === 10 ? pedido.fecha + 'T12:00:00' : pedido.fecha).toLocaleDateString('es-ES')}</p>
           ${pedido.fecha_recepcion ? `<p><strong>Fecha recepción:</strong> ${new Date(pedido.fecha_recepcion).toLocaleDateString('es-ES')}</p>` : ''}
           <p><strong>Total ítems:</strong> ${items.length}</p>
         </div>
@@ -160,7 +160,7 @@ export function descargarPedidoPDF() {
       
       <div class="totals">
         ${esRecibido
-            ? `
+      ? `
         <div class="total-box original">
           <div class="total-label">Total Original</div>
           <div class="total-value" style="color: #374151;">${totalOriginal.toFixed(2)} €</div>
@@ -174,13 +174,13 @@ export function descargarPedidoPDF() {
           <div class="total-value" style="color: ${varianzaColor};">${varianza > 0 ? '+' : ''}${varianza.toFixed(2)} €</div>
         </div>
         `
-            : `
+      : `
         <div class="total-box recibido">
           <div class="total-label">Total del Pedido</div>
           <div class="total-value" style="color: #059669;">${parseFloat(pedido.total || totalOriginal).toFixed(2)} €</div>
         </div>
         `
-        }
+    }
       </div>
       
       <div class="footer">
@@ -190,23 +190,23 @@ export function descargarPedidoPDF() {
     </html>
     `;
 
-    // 🔒 FIX: Verificar que window.open no fue bloqueado por popup blocker
-    const ventana = window.open('', '', 'width=900,height=700');
+  // 🔒 FIX: Verificar que window.open no fue bloqueado por popup blocker
+  const ventana = window.open('', '', 'width=900,height=700');
 
-    if (!ventana) {
-        window.showToast('⚠️ Pop-ups bloqueados. Permite pop-ups para descargar PDF.', 'warning');
-        return;
-    }
+  if (!ventana) {
+    window.showToast('⚠️ Pop-ups bloqueados. Permite pop-ups para descargar PDF.', 'warning');
+    return;
+  }
 
-    try {
-        ventana.document.write(html);
-        ventana.document.close();
-        ventana.print();
-    } catch (error) {
-        console.error('Error generando PDF:', error);
-        window.showToast('Error generando PDF', 'error');
-        ventana.close();
-    }
+  try {
+    ventana.document.write(html);
+    ventana.document.close();
+    ventana.print();
+  } catch (error) {
+    console.error('Error generando PDF:', error);
+    window.showToast('Error generando PDF', 'error');
+    ventana.close();
+  }
 }
 
 /**
@@ -214,103 +214,103 @@ export function descargarPedidoPDF() {
  * 📱 Usa la API de WhatsApp Web para abrir chat con mensaje pre-escrito
  */
 export function enviarPedidoWhatsApp() {
-    if (window.pedidoViendoId === null) {
-        window.showToast('No hay pedido seleccionado', 'warning');
-        return;
+  if (window.pedidoViendoId === null) {
+    window.showToast('No hay pedido seleccionado', 'warning');
+    return;
+  }
+
+  const pedido = (window.pedidos || []).find(p => p.id === window.pedidoViendoId);
+  if (!pedido) return;
+
+  const provId = pedido.proveedorId || pedido.proveedor_id;
+  const prov = (window.proveedores || []).find(p => p.id === provId);
+
+  if (!prov || !prov.telefono) {
+    // 🔧 Si no tiene teléfono, abrir edición del proveedor
+    window.showToast('⚠️ Configura el teléfono del proveedor', 'warning');
+
+    // Cerrar modal del pedido
+    const modalPedido = document.getElementById('modal-ver-pedido');
+    if (modalPedido) modalPedido.classList.remove('active');
+
+    // Abrir edición del proveedor
+    if (prov && typeof window.editarProveedor === 'function') {
+      setTimeout(() => {
+        window.showTab('proveedores');
+        setTimeout(() => window.editarProveedor(prov.id), 300);
+      }, 200);
+    } else {
+      // Ir a la pestaña de proveedores
+      window.showTab('proveedores');
     }
+    return;
+  }
 
-    const pedido = (window.pedidos || []).find(p => p.id === window.pedidoViendoId);
-    if (!pedido) return;
+  // Limpiar número de teléfono (quitar espacios, guiones, etc.)
+  let telefono = prov.telefono.replace(/[\s\-()]/g, '');
+  // Si empieza con 0, añadir código de España
+  if (telefono.startsWith('0')) {
+    telefono = '34' + telefono.substring(1);
+  }
+  // Si no tiene código de país, añadir 34 (España)
+  if (!telefono.startsWith('+') && !telefono.startsWith('34')) {
+    telefono = '34' + telefono;
+  }
+  // Quitar el + si lo tiene
+  telefono = telefono.replace('+', '');
 
-    const provId = pedido.proveedorId || pedido.proveedor_id;
-    const prov = (window.proveedores || []).find(p => p.id === provId);
+  // Obtener nombre del restaurante
+  const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'La Nave 5';
 
-    if (!prov || !prov.telefono) {
-        // 🔧 Si no tiene teléfono, abrir edición del proveedor
-        window.showToast('⚠️ Configura el teléfono del proveedor', 'warning');
+  // Construir mensaje ELEGANTE Y PROFESIONAL
+  const items = pedido.itemsRecepcion || pedido.ingredientes || [];
+  const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        // Cerrar modal del pedido
-        const modalPedido = document.getElementById('modal-ver-pedido');
-        if (modalPedido) modalPedido.classList.remove('active');
+  let mensaje = `━━━━━━━━━━━━━━━━━━━━━━\n`;
+  mensaje += `🍽️ *${restaurante.toUpperCase()}*\n`;
+  mensaje += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  mensaje += `📋 *Pedido Nº ${pedido.id}*\n`;
+  mensaje += `📅 ${fecha}\n\n`;
+  mensaje += `Estimado proveedor,\n\n`;
+  mensaje += `Le enviamos el siguiente pedido:\n\n`;
+  mensaje += `┌─────────────────────────\n`;
 
-        // Abrir edición del proveedor
-        if (prov && typeof window.editarProveedor === 'function') {
-            setTimeout(() => {
-                window.showTab('proveedores');
-                setTimeout(() => window.editarProveedor(prov.id), 300);
-            }, 200);
-        } else {
-            // Ir a la pestaña de proveedores
-            window.showTab('proveedores');
-        }
-        return;
+  items.forEach(item => {
+    const ingId = item.ingredienteId || item.ingrediente_id;
+    const ing = (window.ingredientes || []).find(i => i.id === ingId);
+    const nombre = ing ? ing.nombre : 'Ingrediente';
+    const unidad = ing ? ing.unidad : '';
+    const cantidad = parseFloat(item.cantidad || 0);
+
+    // Si tiene formato de compra, mostrar en formato
+    if (item.formatoUsado === 'formato' && ing?.formato_compra) {
+      const cantFormatos = item.cantidadFormatos || Math.ceil(cantidad / (ing.cantidad_por_formato || 1));
+      mensaje += `│ ▪️ ${nombre}\n│    ${cantFormatos} ${ing.formato_compra}\n`;
+    } else {
+      mensaje += `│ ▪️ ${nombre}\n│    ${cantidad} ${unidad}\n`;
     }
+  });
 
-    // Limpiar número de teléfono (quitar espacios, guiones, etc.)
-    let telefono = prov.telefono.replace(/[\s\-()]/g, '');
-    // Si empieza con 0, añadir código de España
-    if (telefono.startsWith('0')) {
-        telefono = '34' + telefono.substring(1);
-    }
-    // Si no tiene código de país, añadir 34 (España)
-    if (!telefono.startsWith('+') && !telefono.startsWith('34')) {
-        telefono = '34' + telefono;
-    }
-    // Quitar el + si lo tiene
-    telefono = telefono.replace('+', '');
+  mensaje += `└─────────────────────────\n\n`;
+  mensaje += `💰 *Total estimado: ${parseFloat(pedido.total || 0).toFixed(2)} €*\n\n`;
+  mensaje += `Por favor, confirme disponibilidad y fecha de entrega.\n\n`;
+  mensaje += `Muchas gracias por su colaboración.\n`;
+  mensaje += `Un cordial saludo,\n`;
+  mensaje += `*${restaurante}* 🍽️`;
 
-    // Obtener nombre del restaurante
-    const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'La Nave 5';
+  // Codificar mensaje con los detalles del pedido
+  const mensajeCodificado = encodeURIComponent(mensaje);
 
-    // Construir mensaje ELEGANTE Y PROFESIONAL
-    const items = pedido.itemsRecepcion || pedido.ingredientes || [];
-    const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  // Abrir WhatsApp Web DIRECTAMENTE con el mensaje completo
+  const url = `https://web.whatsapp.com/send?phone=${telefono}&text=${mensajeCodificado}`;
+  window.open(url, '_blank');
 
-    let mensaje = `━━━━━━━━━━━━━━━━━━━━━━\n`;
-    mensaje += `🍽️ *${restaurante.toUpperCase()}*\n`;
-    mensaje += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    mensaje += `📋 *Pedido Nº ${pedido.id}*\n`;
-    mensaje += `📅 ${fecha}\n\n`;
-    mensaje += `Estimado proveedor,\n\n`;
-    mensaje += `Le enviamos el siguiente pedido:\n\n`;
-    mensaje += `┌─────────────────────────\n`;
-
-    items.forEach(item => {
-        const ingId = item.ingredienteId || item.ingrediente_id;
-        const ing = (window.ingredientes || []).find(i => i.id === ingId);
-        const nombre = ing ? ing.nombre : 'Ingrediente';
-        const unidad = ing ? ing.unidad : '';
-        const cantidad = parseFloat(item.cantidad || 0);
-
-        // Si tiene formato de compra, mostrar en formato
-        if (item.formatoUsado === 'formato' && ing?.formato_compra) {
-            const cantFormatos = item.cantidadFormatos || Math.ceil(cantidad / (ing.cantidad_por_formato || 1));
-            mensaje += `│ ▪️ ${nombre}\n│    ${cantFormatos} ${ing.formato_compra}\n`;
-        } else {
-            mensaje += `│ ▪️ ${nombre}\n│    ${cantidad} ${unidad}\n`;
-        }
-    });
-
-    mensaje += `└─────────────────────────\n\n`;
-    mensaje += `💰 *Total estimado: ${parseFloat(pedido.total || 0).toFixed(2)} €*\n\n`;
-    mensaje += `Por favor, confirme disponibilidad y fecha de entrega.\n\n`;
-    mensaje += `Muchas gracias por su colaboración.\n`;
-    mensaje += `Un cordial saludo,\n`;
-    mensaje += `*${restaurante}* 🍽️`;
-
-    // Codificar mensaje con los detalles del pedido
-    const mensajeCodificado = encodeURIComponent(mensaje);
-
-    // Abrir WhatsApp Web DIRECTAMENTE con el mensaje completo
-    const url = `https://web.whatsapp.com/send?phone=${telefono}&text=${mensajeCodificado}`;
-    window.open(url, '_blank');
-
-    // Toast indicando que puede descargar PDF si quiere
-    window.showToast('📱 Chat abierto. Para adjuntar PDF usa el botón 📄 PDF', 'success');
+  // Toast indicando que puede descargar PDF si quiere
+  window.showToast('📱 Chat abierto. Para adjuntar PDF usa el botón 📄 PDF', 'success');
 }
 
 // Exponer al window para compatibilidad con onclick en HTML
 if (typeof window !== 'undefined') {
-    window.descargarPedidoPDF = descargarPedidoPDF;
-    window.enviarPedidoWhatsApp = enviarPedidoWhatsApp;
+  window.descargarPedidoPDF = descargarPedidoPDF;
+  window.enviarPedidoWhatsApp = enviarPedidoWhatsApp;
 }

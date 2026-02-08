@@ -30,7 +30,10 @@ export function marcarPedidoRecibido(id) {
     if (provSpan) provSpan.textContent = prov ? prov.nombre : 'Sin proveedor';
 
     const fechaSpan = document.getElementById('modal-rec-fecha');
-    if (fechaSpan) fechaSpan.textContent = new Date(ped.fecha).toLocaleDateString('es-ES');
+    if (fechaSpan) {
+        const fechaStr = typeof ped.fecha === 'string' && ped.fecha.length === 10 ? ped.fecha + 'T12:00:00' : ped.fecha;
+        fechaSpan.textContent = new Date(fechaStr).toLocaleDateString('es-ES');
+    }
 
     const totalSpan = document.getElementById('modal-rec-total-original');
     if (totalSpan) totalSpan.textContent = parseFloat(ped.total || 0).toFixed(2) + ' €';
@@ -385,13 +388,46 @@ export async function confirmarRecepcionPedido() {
             totalRecibido: totalRecibido
         });
 
+        // 📊 Registrar compras en Diario (precios_compra_diarios)
+        try {
+            const comprasDiario = ingredientesActualizados
+                .filter(item => item.estado !== 'no-entregado' && item.cantidadRecibida > 0)
+                .map(item => {
+                    const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
+                    return {
+                        ingrediente: ing ? ing.nombre : `ID ${item.ingredienteId}`,
+                        precio: item.precioReal || item.precioUnitario || 0,
+                        cantidad: item.cantidadRecibida,
+                        fecha: ped.fecha ? (typeof ped.fecha === 'string' ? ped.fecha.split('T')[0] : new Date(ped.fecha).toISOString().split('T')[0]) : new Date().toISOString().split('T')[0]
+                    };
+                });
+
+            if (comprasDiario.length > 0) {
+                const apiBase = (window.API_CONFIG?.baseUrl || 'http://localhost:3001') + '/api';
+                const token = localStorage.getItem('token');
+                await fetch(apiBase + '/daily/purchases/bulk', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({ compras: comprasDiario })
+                });
+                console.log('📊 Compras registradas en Diario:', comprasDiario.length, 'items');
+            }
+        } catch (diarioError) {
+            console.warn('⚠️ No se pudieron registrar las compras en el Diario:', diarioError.message);
+            // No bloquear la recepción si falla el registro en Diario
+        }
+
         await window.cargarDatos();
         window.renderizarPedidos();
         window.renderizarIngredientes();
         window.renderizarInventario?.();
         window.hideLoading();
         cerrarModalRecibirPedido();
-        window.showToast('✅ Pedido recibido: stock y precio medio actualizado', 'success');
+        window.showToast('✅ Pedido recibido: stock actualizado y registrado en Diario', 'success');
     } catch (error) {
         window.hideLoading();
         console.error('Error:', error);
