@@ -8,8 +8,7 @@
  * - pedidos-export.js: PDF y WhatsApp
  */
 
-// 🆕 Zustand store para gestión de estado
-import orderStore from '../../stores/orderStore.js';
+
 
 // Re-exportar funciones de los módulos especializados
 export {

@@ -22,7 +22,6 @@ import { getApiUrl } from '../../config/app-config.js';
 import { saleStore } from '../../stores/saleStore.js';
 import { ingredientStore } from '../../stores/ingredientStore.js';
 import { recipeStore } from '../../stores/recipeStore.js';
-import { orderStore } from '../../stores/orderStore.js';
 import { apiClient } from '../../api/client.js';
 
 // KPI Dashboard v2 - Clean Architecture
@@ -203,7 +202,7 @@ export async function actualizarKPIs() {
         await actualizarKPIsPorPeriodo(periodoVistaActual);
 
         // 2. PEDIDOS ACTIVOS
-        const pedidos = orderStore.getState().orders;
+        const pedidos = window.pedidos || [];
         const pedidosActivos = pedidos.filter(p => p.estado === 'pendiente').length;
         const pedidosEl = document.getElementById('kpi-pedidos');
         if (pedidosEl) {
@@ -337,7 +336,7 @@ export async function actualizarKPIs() {
 
         // 6. SIDEBAR CAMBIOS DE PRECIO (comparar con último pedido)
         try {
-            const pedidos = orderStore.getState().orders;
+            const pedidos = window.pedidos || [];
             const pedidosRecibidos = pedidos
                 .filter(p => p.estado === 'recibido' && p.ingredientes?.length > 0)
                 .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
