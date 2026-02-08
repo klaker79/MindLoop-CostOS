@@ -441,26 +441,27 @@ export async function actualizarKPIs() {
                 const diasSemana = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
                 const diaHoy = diasSemana[diaSemana];
 
-                // Cargar empleados desde API si no existen
+                // Cargar empleados y horarios en paralelo (no hay dependencia entre ellos)
                 let empleados = window.empleados || [];
-                if (empleados.length === 0) {
-                    try {
-                        empleados = await apiClient.get('/empleados');
-                        window.empleados = empleados;
-                    } catch (e) {
-                        console.warn('No se pudieron cargar empleados:', e);
-                    }
-                }
-
-                // Cargar horarios de HOY directamente desde API (siempre fresco)
                 let horariosHoy = [];
-                if (empleados.length > 0) {
-                    try {
+
+                try {
+                    if (empleados.length === 0) {
+                        // Fetch ambos en paralelo
+                        const [empResult, horResult] = await Promise.all([
+                            apiClient.get('/empleados'),
+                            apiClient.get(`/horarios?desde=${hoyStr}&hasta=${hoyStr}`)
+                        ]);
+                        empleados = empResult;
+                        window.empleados = empleados;
+                        horariosHoy = horResult;
+                    } else {
+                        // Ya tenemos empleados, solo fetch horarios
                         horariosHoy = await apiClient.get(`/horarios?desde=${hoyStr}&hasta=${hoyStr}`);
-                        console.log(`📅 Horarios de hoy (${hoyStr}): ${horariosHoy.length}`);
-                    } catch (e) {
-                        console.warn('No se pudieron cargar horarios de hoy:', e);
                     }
+                    console.log(`📅 Horarios de hoy (${hoyStr}): ${horariosHoy.length}`);
+                } catch (e) {
+                    console.warn('No se pudieron cargar empleados/horarios:', e);
                 }
 
                 if (empleados.length > 0) {
