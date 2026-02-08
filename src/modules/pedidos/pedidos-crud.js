@@ -228,7 +228,7 @@ export async function guardarPedido(event) {
               'Authorization': `Bearer ${token}`,
               'Origin': window.location.origin
             },
-            body: JSON.stringify({ compras: comprasDiario })
+            body: JSON.stringify({ compras: comprasDiario, skipStockUpdate: true })
           });
           console.log('📊 Compra mercado registrada en Diario:', comprasDiario.length, 'items');
         }

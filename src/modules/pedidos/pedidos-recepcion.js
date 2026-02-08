@@ -412,7 +412,7 @@ export async function confirmarRecepcionPedido() {
                         'Authorization': `Bearer ${token}`,
                         'Origin': window.location.origin
                     },
-                    body: JSON.stringify({ compras: comprasDiario })
+                    body: JSON.stringify({ compras: comprasDiario, skipStockUpdate: true })
                 });
                 console.log('📊 Compras registradas en Diario:', comprasDiario.length, 'items');
             }
