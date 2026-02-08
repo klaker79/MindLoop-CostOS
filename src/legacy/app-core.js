@@ -221,7 +221,10 @@
 
     // ========== AUTENTICACIÓN ==========
     // ⚡ Multi-tenant: usa config global si existe
-    const API_AUTH_URL = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api/auth';
+    // 🔧 FIX: Lazy resolution - window.API_CONFIG se configura DESPUÉS por main.js
+    function getApiAuthUrl() {
+        return (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api/auth';
+    }
 
     function checkAuth() {
         const token = localStorage.getItem('token');
@@ -240,7 +243,7 @@
         const errorEl = document.getElementById('login-error');
 
         try {
-            const res = await fetch(API_AUTH_URL + '/login', {
+            const res = await fetch(getApiAuthUrl() + '/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -275,7 +278,10 @@
 
     // ========== API HELPERS ==========
     // ⚡ Multi-tenant: usa config global si existe
-    const API_BASE = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+    // 🔧 FIX: Lazy resolution - window.API_CONFIG se configura DESPUÉS por main.js
+    function getApiBase() {
+        return (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+    }
 
     function getAuthHeaders() {
         const token = localStorage.getItem('token');
@@ -301,12 +307,12 @@
     window.api = {
         // --- Team Management ---
         getTeam: async () => {
-            const res = await fetchWithCreds(API_BASE + '/team', { headers: getAuthHeaders() });
+            const res = await fetchWithCreds(getApiBase() + '/team', { headers: getAuthHeaders() });
             if (!res.ok) throw new Error('Error cargando equipo');
             return await res.json();
         },
         inviteUser: async (nombre, email, password, rol) => {
-            const res = await fetchWithCreds(API_BASE + '/team/invite', {
+            const res = await fetchWithCreds(getApiBase() + '/team/invite', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ nombre, email, password, rol }),
@@ -316,7 +322,7 @@
             return data;
         },
         deleteUser: async id => {
-            const res = await fetchWithCreds(API_BASE + `/team/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/team/${id}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
             });
@@ -325,14 +331,14 @@
             return data;
         },
         async getIngredientes() {
-            const res = await fetchWithCreds(API_BASE + '/ingredients', {
+            const res = await fetchWithCreds(getApiBase() + '/ingredients', {
                 headers: getAuthHeaders(),
             });
             return await res.json();
         },
 
         async createIngrediente(ingrediente) {
-            const res = await fetchWithCreds(API_BASE + '/ingredients', {
+            const res = await fetchWithCreds(getApiBase() + '/ingredients', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(ingrediente),
@@ -342,7 +348,7 @@
         },
 
         async updateIngrediente(id, ingrediente) {
-            const res = await fetchWithCreds(API_BASE + `/ingredients/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/ingredients/${id}`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(ingrediente),
@@ -352,7 +358,7 @@
         },
 
         async deleteIngrediente(id) {
-            const res = await fetchWithCreds(API_BASE + `/ingredients/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/ingredients/${id}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
             });
@@ -361,14 +367,14 @@
         },
 
         async getRecetas() {
-            const res = await fetchWithCreds(API_BASE + '/recipes', {
+            const res = await fetchWithCreds(getApiBase() + '/recipes', {
                 headers: getAuthHeaders(),
             });
             return await res.json();
         },
 
         async createReceta(receta) {
-            const res = await fetchWithCreds(API_BASE + '/recipes', {
+            const res = await fetchWithCreds(getApiBase() + '/recipes', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(receta),
@@ -378,7 +384,7 @@
         },
 
         async updateReceta(id, receta) {
-            const res = await fetchWithCreds(API_BASE + `/recipes/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/recipes/${id}`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(receta),
@@ -388,7 +394,7 @@
         },
 
         async deleteReceta(id) {
-            const res = await fetchWithCreds(API_BASE + `/recipes/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/recipes/${id}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
             });
@@ -397,14 +403,14 @@
         },
 
         async getProveedores() {
-            const res = await fetchWithCreds(API_BASE + '/suppliers', {
+            const res = await fetchWithCreds(getApiBase() + '/suppliers', {
                 headers: getAuthHeaders(),
             });
             return await res.json();
         },
 
         async createProveedor(proveedor) {
-            const res = await fetchWithCreds(API_BASE + '/suppliers', {
+            const res = await fetchWithCreds(getApiBase() + '/suppliers', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(proveedor),
@@ -414,7 +420,7 @@
         },
 
         async updateProveedor(id, proveedor) {
-            const res = await fetchWithCreds(API_BASE + `/suppliers/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/suppliers/${id}`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(proveedor),
@@ -424,7 +430,7 @@
         },
 
         async deleteProveedor(id) {
-            const res = await fetchWithCreds(API_BASE + `/suppliers/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/suppliers/${id}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
             });
@@ -433,14 +439,14 @@
         },
 
         async getPedidos() {
-            const res = await fetchWithCreds(API_BASE + '/orders', {
+            const res = await fetchWithCreds(getApiBase() + '/orders', {
                 headers: getAuthHeaders(),
             });
             return await res.json();
         },
 
         async createPedido(pedido) {
-            const res = await fetchWithCreds(API_BASE + '/orders', {
+            const res = await fetchWithCreds(getApiBase() + '/orders', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(pedido),
@@ -450,7 +456,7 @@
         },
 
         async updatePedido(id, pedido) {
-            const res = await fetchWithCreds(API_BASE + `/orders/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/orders/${id}`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(pedido),
@@ -460,7 +466,7 @@
         },
 
         async deletePedido(id) {
-            const res = await fetchWithCreds(API_BASE + `/orders/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/orders/${id}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
             });
@@ -469,7 +475,7 @@
         },
 
         async getSales(fecha = null) {
-            const url = fecha ? API_BASE + `/sales?fecha=${fecha}` : API_BASE + '/sales';
+            const url = fecha ? getApiBase() + `/sales?fecha=${fecha}` : getApiBase() + '/sales';
             const res = await fetch(url, {
                 headers: getAuthHeaders(),
             });
@@ -478,7 +484,7 @@
         },
 
         async createSale(saleData) {
-            const res = await fetchWithCreds(API_BASE + '/sales', {
+            const res = await fetchWithCreds(getApiBase() + '/sales', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(saleData),
@@ -491,7 +497,7 @@
         },
 
         async deleteSale(id) {
-            const res = await fetchWithCreds(API_BASE + `/sales/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/sales/${id}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
             });
@@ -501,7 +507,7 @@
 
         // INVENTARIO AVANZADO
         async getInventoryComplete() {
-            const res = await fetchWithCreds(API_BASE + '/inventory/complete', {
+            const res = await fetchWithCreds(getApiBase() + '/inventory/complete', {
                 headers: getAuthHeaders(),
             });
             if (!res.ok) throw new Error('Error cargando inventario');
@@ -509,7 +515,7 @@
         },
 
         async updateStockReal(id, stock_real) {
-            const res = await fetchWithCreds(API_BASE + `/inventory/${id}/stock-real`, {
+            const res = await fetchWithCreds(getApiBase() + `/inventory/${id}/stock-real`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ stock_real }),
@@ -519,7 +525,7 @@
         },
 
         async bulkUpdateStockReal(stocks) {
-            const res = await fetchWithCreds(API_BASE + '/inventory/bulk-update-stock', {
+            const res = await fetchWithCreds(getApiBase() + '/inventory/bulk-update-stock', {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ stocks }),
@@ -529,7 +535,7 @@
         },
 
         async consolidateStock(adjustments, snapshots = [], finalStock = []) {
-            const res = await fetchWithCreds(API_BASE + '/inventory/consolidate', {
+            const res = await fetchWithCreds(getApiBase() + '/inventory/consolidate', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ adjustments, snapshots, finalStock }),
@@ -539,7 +545,7 @@
         },
 
         async getMenuEngineering() {
-            const res = await fetchWithCreds(API_BASE + '/analysis/menu-engineering', {
+            const res = await fetchWithCreds(getApiBase() + '/analysis/menu-engineering', {
                 headers: getAuthHeaders(),
             });
             if (!res.ok) throw new Error('Error al obtener ingeniería de menú');
@@ -549,7 +555,7 @@
         // GASTOS FIJOS (Fixed Expenses) - Database backed
         async getGastosFijos() {
             try {
-                const res = await fetchWithCreds(API_BASE + '/gastos-fijos', {
+                const res = await fetchWithCreds(getApiBase() + '/gastos-fijos', {
                     headers: getAuthHeaders(),
                 });
                 if (!res.ok) throw new Error('Error cargando gastos fijos');
@@ -561,7 +567,7 @@
         },
 
         async createGastoFijo(concepto, monto_mensual) {
-            const res = await fetchWithCreds(API_BASE + '/gastos-fijos', {
+            const res = await fetchWithCreds(getApiBase() + '/gastos-fijos', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ concepto, monto_mensual: parseFloat(monto_mensual) }),
@@ -571,7 +577,7 @@
         },
 
         async updateGastoFijo(id, concepto, monto_mensual) {
-            const res = await fetchWithCreds(API_BASE + `/gastos-fijos/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/gastos-fijos/${id}`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ concepto, monto_mensual: parseFloat(monto_mensual) }),
@@ -581,7 +587,7 @@
         },
 
         async deleteGastoFijo(id) {
-            const res = await fetchWithCreds(API_BASE + `/gastos-fijos/${id}`, {
+            const res = await fetchWithCreds(getApiBase() + `/gastos-fijos/${id}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
             });
@@ -594,7 +600,7 @@
             try {
                 const mesParam = mes || (new Date().getMonth() + 1);
                 const anoParam = ano || new Date().getFullYear();
-                const url = API_BASE + `/mermas?mes=${mesParam}&ano=${anoParam}`;
+                const url = getApiBase() + `/mermas?mes=${mesParam}&ano=${anoParam}`;
                 console.log('📡 GET getMermas URL:', url);
 
                 const res = await fetch(url, {
@@ -621,7 +627,7 @@
         // MERMAS (Pérdidas de producto) - Para KPI
         async getMermasResumen() {
             try {
-                const res = await fetchWithCreds(API_BASE + '/mermas/resumen', {
+                const res = await fetchWithCreds(getApiBase() + '/mermas/resumen', {
                     headers: getAuthHeaders(),
                 });
                 if (!res.ok) throw new Error('Error cargando resumen de mermas');
@@ -633,7 +639,7 @@
         },
 
         async resetMermas(motivo = 'subida_inventario') {
-            const res = await fetchWithCreds(API_BASE + '/mermas/reset', {
+            const res = await fetchWithCreds(getApiBase() + '/mermas/reset', {
                 method: 'DELETE',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ motivo }),

@@ -213,8 +213,10 @@ let gastosFijosCache = null;
 let gastosFijosCacheTime = 0;
 const CACHE_TTL = 5000; // 5 segundos
 
-// ⚡ API BASE URL - usar la misma que app-core.js
-const GASTOS_API_BASE = (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+// ⚡ API BASE URL - 🔧 FIX: Lazy resolution (window.API_CONFIG se configura DESPUÉS por main.js)
+function getGastosApiBase() {
+    return (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+}
 
 function getGastosAuthHeaders() {
     const token = localStorage.getItem('token');
@@ -230,7 +232,7 @@ async function fetchGastosFijos() {
         return gastosFijosCache;
     }
     try {
-        const res = await fetch(GASTOS_API_BASE + '/gastos-fijos', {
+        const res = await fetch(getGastosApiBase() + '/gastos-fijos', {
             headers: getGastosAuthHeaders()
         });
         if (!res.ok) throw new Error('Error fetching gastos fijos');
@@ -259,7 +261,7 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
 
     try {
         // Actualizar directamente via fetch
-        const res = await fetch(GASTOS_API_BASE + '/gastos-fijos/' + gastoInfo.id, {
+        const res = await fetch(getGastosApiBase() + '/gastos-fijos/' + gastoInfo.id, {
             method: 'PUT',
             headers: getGastosAuthHeaders(),
             body: JSON.stringify({ concepto: gastoInfo.concepto, monto_mensual: monto })
@@ -676,7 +678,7 @@ function startTokenRefresh() {
 }
 
 // 🔒 FIX: Función para limpiar el interval al logout
-window.stopTokenRefresh = function() {
+window.stopTokenRefresh = function () {
     if (window._tokenRefreshInterval) {
         clearInterval(window._tokenRefreshInterval);
         window._tokenRefreshInterval = null;
