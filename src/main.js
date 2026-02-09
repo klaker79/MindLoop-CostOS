@@ -250,6 +250,21 @@ window.descargarPedidoPDF = PedidosCRUD.descargarPedidoPDF;
 window.actualizarItemRecepcion = PedidosCRUD.actualizarItemRecepcion;
 window.cambiarEstadoItem = PedidosCRUD.cambiarEstadoItem;
 
+// Compras Pendientes (cola de revisión de albaranes importados)
+import * as ComprasPendientesUI from './modules/pedidos/compras-pendientes-ui.js';
+
+window.renderizarComprasPendientes = ComprasPendientesUI.renderizarComprasPendientes;
+window.aprobarItemPendiente = ComprasPendientesUI.aprobarItemPendiente;
+window.aprobarBatchPendiente = ComprasPendientesUI.aprobarBatchPendiente;
+window.cambiarIngredientePendiente = ComprasPendientesUI.cambiarIngredientePendiente;
+window.rechazarItemPendiente = ComprasPendientesUI.rechazarItemPendiente;
+window.checkPendientes = ComprasPendientesUI.checkPendientes;
+
+// Cargar pendientes al abrir pestaña Pedidos y al login
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => ComprasPendientesUI.checkPendientes(), 3000);
+});
+
 // ============================================
 // MÓDULO: VENTAS ⚙️ (Híbrido - ES6 tiene prioridad)
 // ============================================

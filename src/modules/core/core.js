@@ -147,6 +147,7 @@ export function cambiarTab(tab) {
             break;
         case 'pedidos':
             window.renderizarPedidos?.();
+            window.renderizarComprasPendientes?.();
             break;
         case 'ventas':
             window.renderizarVentas?.();

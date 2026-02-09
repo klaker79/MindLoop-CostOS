@@ -35,17 +35,21 @@ Google Sheets Trigger → Transformar Compras (JS) → POST /api/daily/purchases
 ## Flujo 2: Importación Ventas TPV (PDF por Email)
 
 ```
-Gmail Trigger → Claude Sonnet (OCR) → Transformar JS → POST /api/sales/bulk → ¿Errores? → Email resumen
+Gmail Trigger → If (filtro remitente) → Claude Sonnet (OCR) → Transformar JS → POST /api/sales/bulk → ¿Errores? → Email resumen
 ```
 
-**Trigger**: Email no leído de `ikerameas@gmail.com` con adjunto
+**Trigger**: Email no leído con adjunto
 - Credencial: `Gmail account` (OAuth2)
 - Poll: cada minuto
 - Descarga adjuntos automáticamente
 
+**Filtro If**: Solo procesa emails de `ikerameas@gmail.com`
+- Condición: `headers.from` contains `ikerameas@gmail.com`
+- Si no coincide → NoOp (descarta)
+
 **IA (Claude Sonnet)**: Analiza el PDF del TPV
 - Modelo: `claude-sonnet-4-20250514`
-- Prompt: Extrae líneas de venta con código numérico 5-6 dígitos
+- Prompt: Extrae líneas de venta con código numérico 5-6 dígitos + fecha del documento
 - Output esperado: `{ fecha, ventas: [{ codigo, descripcion, unidades, importe, familia }] }`
 - Max tokens: 32000
 
