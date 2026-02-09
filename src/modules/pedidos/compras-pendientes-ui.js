@@ -151,15 +151,22 @@ export async function renderizarComprasPendientes() {
                         </div>
                         <div style="text-align: center;">
                             <div style="font-size: 11px; color: #9ca3af;">Cantidad</div>
-                            <div style="font-weight: 700; color: #1e293b;">${parseFloat(item.cantidad).toFixed(1)}</div>
+                            <input type="number" step="0.1" min="0" value="${parseFloat(item.cantidad).toFixed(1)}"
+                                onchange="window.editarCampoPendiente(${item.id}, 'cantidad', this.value, this)"
+                                style="width: 60px; text-align: center; font-weight: 700; color: #1e293b; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; font-size: 14px; background: #f9fafb;" />
                         </div>
                         <div style="text-align: center;">
                             <div style="font-size: 11px; color: #9ca3af;">Precio</div>
-                            <div style="font-weight: 700; color: #1e293b;">${parseFloat(item.precio).toFixed(2)}€</div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+                                <input type="number" step="0.01" min="0" value="${parseFloat(item.precio).toFixed(2)}"
+                                    onchange="window.editarCampoPendiente(${item.id}, 'precio', this.value, this)"
+                                    style="width: 70px; text-align: center; font-weight: 700; color: #1e293b; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; font-size: 14px; background: #f9fafb;" />
+                                <span style="font-weight: 700; color: #1e293b;">€</span>
+                            </div>
                         </div>
                         <div style="text-align: center;">
                             <div style="font-size: 11px; color: #9ca3af;">Total</div>
-                            <div style="font-weight: 700; color: #059669;">${(item.precio * item.cantidad).toFixed(2)}€</div>
+                            <div data-total style="font-weight: 700; color: #059669;">${(item.precio * item.cantidad).toFixed(2)}€</div>
                         </div>
                         <div style="display: flex; gap: 6px;">
                             ${item.ingrediente_id ? `
@@ -260,6 +267,35 @@ export async function rechazarItemPendiente(id) {
     } catch (err) {
         console.error('Error rechazando item:', err);
         window.showToast?.('Error al rechazar: ' + err.message, 'error');
+    }
+}
+
+/**
+ * Editar campo individual (precio o cantidad) de un item pendiente
+ */
+export async function editarCampoPendiente(id, campo, valor, inputEl) {
+    try {
+        const numVal = parseFloat(valor);
+        if (isNaN(numVal) || numVal < 0) {
+            window.showToast?.('Valor no válido', 'error');
+            return;
+        }
+        await editarItemPendiente(id, { [campo]: numVal });
+        // Actualizar el total inline sin recargar todo el panel
+        const itemDiv = inputEl?.closest('.pending-item');
+        if (itemDiv) {
+            const inputs = itemDiv.querySelectorAll('input[type=number]');
+            const cant = parseFloat(inputs[0]?.value || 0);
+            const precio = parseFloat(inputs[1]?.value || 0);
+            const totalDiv = itemDiv.querySelector('[data-total]');
+            if (totalDiv) totalDiv.textContent = (cant * precio).toFixed(2) + '€';
+        }
+        inputEl.style.borderColor = '#22c55e';
+        setTimeout(() => { if (inputEl) inputEl.style.borderColor = '#e5e7eb'; }, 1500);
+    } catch (err) {
+        console.error('Error editando campo:', err);
+        window.showToast?.('Error al guardar: ' + err.message, 'error');
+        inputEl.style.borderColor = '#ef4444';
     }
 }
 
