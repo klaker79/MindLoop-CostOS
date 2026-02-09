@@ -379,11 +379,13 @@ export async function confirmarRecepcionPedido() {
         }
 
         // Solo si TODOS los stocks se actualizaron, marcar pedido como recibido
+        // 📅 FIX: Usar la fecha original del pedido para que el Diario registre en el día correcto
+        const fechaOriginal = ped.fecha || new Date().toISOString();
         await window.api.updatePedido(window.pedidoRecibiendoId, {
             ...ped,
             estado: 'recibido',
             ingredientes: ingredientesActualizados, // ← IMPORTANTE: Esto guarda precioReal
-            fecha_recepcion: new Date().toISOString(),
+            fecha_recepcion: fechaOriginal,
             total_recibido: totalRecibido,
             totalRecibido: totalRecibido
         });

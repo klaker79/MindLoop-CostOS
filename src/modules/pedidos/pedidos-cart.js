@@ -6,6 +6,7 @@
 // Estado del carrito (persistido en localStorage)
 let carrito = [];
 let carritoProveedorId = null;
+let carritoFecha = null;
 
 /**
  * Inicializa el carrito desde localStorage
@@ -17,6 +18,7 @@ function initCarrito() {
             const data = JSON.parse(saved);
             carrito = data.items || [];
             carritoProveedorId = data.proveedorId || null;
+            carritoFecha = data.fecha || null;
         }
     } catch (e) {
         console.error('Error cargando carrito:', e);
@@ -30,9 +32,15 @@ function initCarrito() {
  * Guarda el carrito en localStorage
  */
 function guardarCarrito() {
+    // Capturar fecha del formulario si está abierto
+    const fechaInput = document.getElementById('ped-fecha');
+    if (fechaInput && fechaInput.value) {
+        carritoFecha = fechaInput.value;
+    }
     localStorage.setItem('pedidoCarrito', JSON.stringify({
         items: carrito,
         proveedorId: carritoProveedorId,
+        fecha: carritoFecha,
         updatedAt: new Date().toISOString()
     }));
     actualizarBadgeCarrito();
@@ -372,7 +380,7 @@ window.confirmarCarrito = async function () {
             const pedido = {
                 proveedorId: parseInt(provId) || null,
                 proveedor_id: parseInt(provId) || null,
-                fecha: document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
+                fecha: carritoFecha || document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
                 estado: 'pendiente',
                 ingredientes: ingredientes,
                 total: total
@@ -385,6 +393,7 @@ window.confirmarCarrito = async function () {
         // Limpiar carrito
         carrito = [];
         carritoProveedorId = null;
+        carritoFecha = null;
         guardarCarrito();
 
         // Recargar datos

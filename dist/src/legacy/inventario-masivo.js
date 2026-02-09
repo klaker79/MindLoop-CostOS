@@ -1398,7 +1398,7 @@ function renderizarTablaComprasDiarias() {
     html +=
         '<thead><tr><th style="position: sticky; left: 0; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); z-index: 1; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 16px;">Ingrediente</th>';
     dias.forEach(dia => {
-        const fecha = new Date(dia);
+        const fecha = new Date(dia + 'T12:00:00');
         html += `<th style="min-width: 80px; text-align: center; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 16px; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
     });
     html +=
@@ -1450,7 +1450,7 @@ function renderizarTablaVentasDiarias() {
     html +=
         '<thead><tr><th style="position: sticky; left: 0; background: #f8f8f8; z-index: 1;">Receta</th>';
     dias.forEach(dia => {
-        const fecha = new Date(dia);
+        const fecha = new Date(dia + 'T12:00:00');
         html += `<th style="min-width: 100px; text-align: center;">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
     });
     html += '<th style="background: #e8f5e9; font-weight: bold;">TOTAL</th></tr></thead>';
@@ -1560,7 +1560,7 @@ async function renderizarTablaPLDiario() {
     // Header
     html += '<thead><tr><th style="position: sticky; left: 0; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); padding: 14px 16px; text-align: left; font-weight: 600; color: #334155; border-bottom: 2px solid #cbd5e1;">Concepto</th>';
     dias.forEach(dia => {
-        const fecha = new Date(dia);
+        const fecha = new Date(dia + 'T12:00:00');
         const diaSemana = fecha.toLocaleDateString('es-ES', { weekday: 'short' }).charAt(0).toUpperCase();
         html += `<th style="min-width: 85px; text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border-bottom: 2px solid #cbd5e1; font-weight: 600; color: #334155;">${diaSemana} ${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
     });
@@ -1652,7 +1652,7 @@ async function renderizarTablaPLDiario() {
     `;
 
     dias.forEach(dia => {
-        const fecha = new Date(dia);
+        const fecha = new Date(dia + 'T12:00:00');
         const val = comprasPorDia[dia] || 0;
         if (val > 0) {
             html += `<span style="background: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; border: 1px solid #fcd34d;">${fecha.getDate()}/${fecha.getMonth() + 1}: <strong style="color: #d97706;">${val.toFixed(2)}€</strong></span>`;
