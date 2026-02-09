@@ -1418,7 +1418,13 @@ function renderizarTablaComprasDiarias() {
         dias.forEach(dia => {
             const diaData = data.dias[dia];
             if (diaData) {
-                html += `<td style="text-align: center; background: #FFF5F2; padding: 18px; border-right: 1px solid #E2E8F0;">${diaData.precio.toFixed(2)}€<br><small style="color:#64748B; font-weight: 600;">${diaData.cantidad} ${unidad}</small></td>`;
+                const calculado = diaData.precio * diaData.cantidad;
+                const hayDescuento = Math.abs(calculado - diaData.total) > 0.02;
+                const totalColor = hayDescuento ? '#dc2626' : '#64748B';
+                const totalLabel = hayDescuento
+                    ? `<br><small style="color: ${totalColor}; font-weight: 700;" title="Total real difiere de precio×cantidad (posible descuento)">🏷️ ${diaData.total.toFixed(2)}€</small>`
+                    : '';
+                html += `<td style="text-align: center; background: #FFF5F2; padding: 18px; border-right: 1px solid #E2E8F0;">${diaData.precio.toFixed(2)}€<br><small style="color:#64748B; font-weight: 600;">${diaData.cantidad} ${unidad}</small>${totalLabel}</td>`;
             } else {
                 html +=
                     '<td style="text-align: center; color: #CBD5E1; padding: 18px; border-right: 1px solid #E2E8F0;">-</td>';
