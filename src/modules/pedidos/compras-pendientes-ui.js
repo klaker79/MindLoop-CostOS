@@ -133,7 +133,7 @@ export async function renderizarComprasPendientes() {
                 html += `
                     <div class="pending-item" data-item-id="${item.id}" style="
                         background: white; border-radius: 12px; padding: 14px 16px;
-                        display: grid; grid-template-columns: 1fr auto auto auto auto; gap: 12px; align-items: center;
+                        display: grid; grid-template-columns: 1fr auto auto auto auto auto auto; gap: 12px; align-items: center;
                         border: 1px solid ${matchClass === 'match-none' ? '#fca5a5' : '#e5e7eb'};
                     ">
                         <div>
@@ -148,6 +148,12 @@ export async function renderizarComprasPendientes() {
                                     ${[...ingredientesCache].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map(ing => `<option value="${ing.id}" ${ing.id === item.ingrediente_id ? 'selected' : ''}>${ing.nombre}</option>`).join('')}
                                 </select>` : ''}
                             </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 11px; color: #9ca3af;">Fecha</div>
+                            <input type="date" value="${item.fecha ? item.fecha.substring(0, 10) : ''}"
+                                onchange="window.editarCampoPendiente(${item.id}, 'fecha', this.value, this)"
+                                style="width: 120px; text-align: center; font-weight: 600; color: #1e293b; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; font-size: 13px; background: #f9fafb;" />
                         </div>
                         <div style="text-align: center;">
                             <div style="font-size: 11px; color: #9ca3af;">Cantidad</div>
@@ -277,24 +283,32 @@ export async function rechazarItemPendiente(id) {
 }
 
 /**
- * Editar campo individual (precio o cantidad) de un item pendiente
+ * Editar campo individual (precio, cantidad, o fecha) de un item pendiente
  */
 export async function editarCampoPendiente(id, campo, valor, inputEl) {
     try {
-        const numVal = parseFloat(valor);
-        if (isNaN(numVal) || numVal < 0) {
-            window.showToast?.('Valor no válido', 'error');
-            return;
+        let valorFinal;
+        if (campo === 'fecha') {
+            if (!valor) { window.showToast?.('Fecha no válida', 'error'); return; }
+            valorFinal = valor; // string YYYY-MM-DD
+        } else {
+            valorFinal = parseFloat(valor);
+            if (isNaN(valorFinal) || valorFinal < 0) {
+                window.showToast?.('Valor no válido', 'error');
+                return;
+            }
         }
-        await editarItemPendiente(id, { [campo]: numVal });
-        // Actualizar el total inline sin recargar todo el panel
-        const itemDiv = inputEl?.closest('.pending-item');
-        if (itemDiv) {
-            const inputs = itemDiv.querySelectorAll('input[type=number]');
-            const cant = parseFloat(inputs[0]?.value || 0);
-            const precio = parseFloat(inputs[1]?.value || 0);
-            const totalInput = itemDiv.querySelector('[data-total]');
-            if (totalInput) totalInput.value = (cant * precio).toFixed(2);
+        await editarItemPendiente(id, { [campo]: valorFinal });
+        // Actualizar el total inline sin recargar todo el panel (solo para campos numéricos)
+        if (campo !== 'fecha') {
+            const itemDiv = inputEl?.closest('.pending-item');
+            if (itemDiv) {
+                const inputs = itemDiv.querySelectorAll('input[type=number]');
+                const cant = parseFloat(inputs[0]?.value || 0);
+                const precio = parseFloat(inputs[1]?.value || 0);
+                const totalInput = itemDiv.querySelector('[data-total]');
+                if (totalInput) totalInput.value = (cant * precio).toFixed(2);
+            }
         }
         inputEl.style.borderColor = '#22c55e';
         setTimeout(() => { if (inputEl) inputEl.style.borderColor = '#e5e7eb'; }, 1500);
