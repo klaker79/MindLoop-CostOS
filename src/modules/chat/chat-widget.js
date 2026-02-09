@@ -6,6 +6,7 @@
 import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
+import { jsPDF } from 'jspdf';
 
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
@@ -70,6 +71,183 @@ function speakResponse(text) {
 
     speechSynthesis.speak(utterance);
 }
+
+/**
+ * Exporta un mensaje del chat a PDF profesional
+ * Renderiza tablas manualmente sin dependencia de autoTable
+ * @param {string} rawText - Texto raw del mensaje (markdown)
+ */
+function exportMessageToPDF(rawText) {
+    try {
+        window.showToast?.('Generando PDF...', 'info');
+
+        const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'Mi Restaurante';
+        const fecha = new Date().toLocaleDateString('es-ES', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        const usableWidth = pageWidth - margin * 2;
+        let y = margin;
+
+        // --- Header con gradiente simulado ---
+        doc.setFillColor(102, 126, 234);
+        doc.rect(0, 0, pageWidth, 12, 'F');
+        doc.setFillColor(118, 108, 230);
+        doc.rect(0, 12, pageWidth, 12, 'F');
+        doc.setFillColor(139, 92, 226);
+        doc.rect(0, 24, pageWidth, 11, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text(restaurante, margin, 18);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Informe de Inteligencia Empresarial', margin, 27);
+        doc.setFontSize(9);
+        doc.text(fecha, pageWidth - margin, 32, { align: 'right' });
+
+        y = 45;
+        doc.setTextColor(30, 41, 59);
+
+        function cleanText(text) {
+            if (!text) return '';
+            return text
+                .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+                .replace(/[\u{2600}-\u{26FF}]/gu, '')
+                .replace(/[\u{2700}-\u{27BF}]/gu, '')
+                .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+                .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+                .replace(/\*\*(.+?)\*\*/g, '$1')
+                .replace(/\*(.+?)\*/g, '$1')
+                .replace(/__(.+?)__/g, '$1')
+                .replace(/_(.+?)_/g, '$1')
+                .replace(/`([^`]+)`/g, '$1')
+                .replace(/^#{1,3}\s*/, '')
+                .trim();
+        }
+
+        function renderTable(headers, rows, startY) {
+            const rowHeight = 8;
+            const cellPadding = 3;
+            const colCount = headers.length;
+            const colWidth = usableWidth / colCount;
+            let currentY = startY;
+
+            const cleanHeaders = headers.map(h => cleanText(h));
+
+            doc.setFillColor(102, 126, 234);
+            doc.rect(margin, currentY, usableWidth, rowHeight, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            cleanHeaders.forEach((header, idx) => {
+                doc.text(header.substring(0, 20), margin + idx * colWidth + cellPadding, currentY + 5.5);
+            });
+            currentY += rowHeight;
+
+            doc.setTextColor(30, 41, 59);
+            doc.setFont('helvetica', 'normal');
+            rows.forEach((row, rowIdx) => {
+                if (rowIdx % 2 === 0) {
+                    doc.setFillColor(248, 250, 252);
+                    doc.rect(margin, currentY, usableWidth, rowHeight, 'F');
+                }
+                doc.setDrawColor(226, 232, 240);
+                doc.rect(margin, currentY, usableWidth, rowHeight, 'S');
+                row.forEach((cell, idx) => {
+                    doc.text(cleanText(cell).substring(0, 25), margin + idx * colWidth + cellPadding, currentY + 5.5);
+                });
+                currentY += rowHeight;
+            });
+            return currentY + 5;
+        }
+
+        const lines = rawText.split('\n');
+        let i = 0;
+        while (i < lines.length) {
+            if (i + 1 < lines.length && lines[i].includes('|') &&
+                /^[\s\-:|]+$/.test(lines[i + 1].trim())) {
+                const tableLines = [];
+                let j = i;
+                while (j < lines.length && (lines[j].includes('|') || /^[\s\-:|]+$/.test(lines[j].trim()))) {
+                    if (!/^[\s\-:|]+$/.test(lines[j].trim())) tableLines.push(lines[j]);
+                    j++;
+                }
+                if (tableLines.length >= 2) {
+                    const parseCells = line => line.split('|').map(c => c.trim()).filter(c => c !== '');
+                    const headers = parseCells(tableLines[0]);
+                    const rows = tableLines.slice(1).map(parseCells);
+                    const tableHeight = (rows.length + 1) * 8 + 10;
+                    if (y + tableHeight > 270) { doc.addPage(); y = margin; }
+                    y = renderTable(headers, rows, y);
+                }
+                i = j;
+                continue;
+            }
+
+            const line = lines[i].trim();
+            if (y > 270) { doc.addPage(); y = margin; }
+            if (!line) { y += 4; i++; continue; }
+
+            const cleanedLine = cleanText(line);
+            const isMdHeader = /^#{1,3}\s/.test(line);
+            const isEmojiHeader = /^[^\w\s]/.test(line) && /[A-ZÁÉÍÓÚÑ]{2,}/.test(line);
+
+            if (isMdHeader || isEmojiHeader) {
+                y += 3;
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(102, 126, 234);
+                const splitLines = doc.splitTextToSize(cleanedLine, usableWidth);
+                doc.text(splitLines, margin, y);
+                y += splitLines.length * 6;
+                doc.setTextColor(30, 41, 59);
+            } else if (line.startsWith('- ') || line.startsWith('• ')) {
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                const bulletText = cleanedLine.replace(/^[-•]\s*/, '');
+                const splitLines = doc.splitTextToSize('  •  ' + bulletText, usableWidth);
+                doc.text(splitLines, margin, y);
+                y += splitLines.length * 5;
+            } else {
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                const splitLines = doc.splitTextToSize(cleanedLine, usableWidth);
+                doc.text(splitLines, margin, y);
+                y += splitLines.length * 5;
+            }
+            i++;
+        }
+
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let p = 1; p <= totalPages; p++) {
+            doc.setPage(p);
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.setDrawColor(226, 232, 240);
+            doc.line(margin, 284, pageWidth - margin, 284);
+            doc.text(
+                `${restaurante} — Generado por MindLoop CostOS — Página ${p}/${totalPages}`,
+                pageWidth / 2, 289, { align: 'center' }
+            );
+        }
+
+        const fechaFile = new Date().toISOString().split('T')[0];
+        const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+        doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
+        window.showToast?.('PDF descargado correctamente', 'success');
+    } catch (error) {
+        console.error('Error generando PDF:', error);
+        window.showToast?.('Error al generar PDF: ' + error.message, 'error');
+    }
+}
+
+// Exponer para uso desde botones
+window.exportMessageToPDF = exportMessageToPDF;
 
 /**
  * Inicializa el widget de chat
@@ -307,13 +485,33 @@ function addMessage(type, text, save = true) {
     const messagesContainer = document.getElementById('chat-messages');
     const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
+    // Verificar si es mensaje de bienvenida (no mostrar botón PDF)
+    const isWelcome = text === CHAT_CONFIG.welcomeMessage;
+
+    // Botón PDF para mensajes del bot
+    let pdfButton = '';
+    if (type === 'bot' && !isWelcome) {
+        try {
+            const encodedText = btoa(unescape(encodeURIComponent(text)));
+            pdfButton = `<button class="chat-pdf-btn" 
+                 data-pdf-text="${encodedText}"
+                 title="Exportar a PDF" 
+                 style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
+                 onmouseover="this.style.opacity='1'" 
+                 onmouseout="this.style.opacity='0.6'"
+                 onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
+        } catch (e) {
+            console.warn('Error encoding text for PDF:', e);
+        }
+    }
+
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${type}`;
     messageEl.innerHTML = `
         <div class="chat-message-avatar">${type === 'bot' ? '🤖' : '👤'}</div>
         <div>
             <div class="chat-message-content">${parseMarkdown(text)}</div>
-            <div class="chat-message-time">${time}</div>
+            <div class="chat-message-time">${time} ${pdfButton}</div>
         </div>
     `;
 
@@ -813,11 +1011,28 @@ function renderChatHistory() {
         });
         const messageEl = document.createElement('div');
         messageEl.className = `chat-message ${msg.type}`;
+        // Botón PDF para mensajes del bot (no para bienvenida)
+        let pdfButton = '';
+        if (msg.type === 'bot' && msg.text !== CHAT_CONFIG.welcomeMessage) {
+            try {
+                const encodedText = btoa(unescape(encodeURIComponent(msg.text)));
+                pdfButton = `<button class="chat-pdf-btn" 
+                     data-pdf-text="${encodedText}"
+                     title="Exportar a PDF" 
+                     style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
+                     onmouseover="this.style.opacity='1'" 
+                     onmouseout="this.style.opacity='0.6'"
+                     onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
+            } catch (e) {
+                console.warn('Error encoding text for PDF:', e);
+            }
+        }
+
         messageEl.innerHTML = `
             <div class="chat-message-avatar">${msg.type === 'bot' ? '🤖' : '👤'}</div>
             <div>
                 <div class="chat-message-content">${parseMarkdown(msg.text)}</div>
-                <div class="chat-message-time">${time}</div>
+                <div class="chat-message-time">${time} ${pdfButton}</div>
             </div>
         `;
         fragment.appendChild(messageEl);
