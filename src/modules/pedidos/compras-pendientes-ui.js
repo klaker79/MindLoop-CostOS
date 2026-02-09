@@ -166,7 +166,13 @@ export async function renderizarComprasPendientes() {
                         </div>
                         <div style="text-align: center;">
                             <div style="font-size: 11px; color: #9ca3af;">Total</div>
-                            <div data-total style="font-weight: 700; color: #059669;">${(item.precio * item.cantidad).toFixed(2)}€</div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+                                <input type="number" step="0.01" min="0" value="${(item.precio * item.cantidad).toFixed(2)}"
+                                    onchange="window.editarTotalPendiente(${item.id}, this.value, this)"
+                                    data-total
+                                    style="width: 75px; text-align: center; font-weight: 700; color: #059669; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; font-size: 14px; background: #f0fdf4;" />
+                                <span style="font-weight: 700; color: #059669;">€</span>
+                            </div>
                         </div>
                         <div style="display: flex; gap: 6px;">
                             ${item.ingrediente_id ? `
@@ -287,13 +293,42 @@ export async function editarCampoPendiente(id, campo, valor, inputEl) {
             const inputs = itemDiv.querySelectorAll('input[type=number]');
             const cant = parseFloat(inputs[0]?.value || 0);
             const precio = parseFloat(inputs[1]?.value || 0);
-            const totalDiv = itemDiv.querySelector('[data-total]');
-            if (totalDiv) totalDiv.textContent = (cant * precio).toFixed(2) + '€';
+            const totalInput = itemDiv.querySelector('[data-total]');
+            if (totalInput) totalInput.value = (cant * precio).toFixed(2);
         }
         inputEl.style.borderColor = '#22c55e';
         setTimeout(() => { if (inputEl) inputEl.style.borderColor = '#e5e7eb'; }, 1500);
     } catch (err) {
         console.error('Error editando campo:', err);
+        window.showToast?.('Error al guardar: ' + err.message, 'error');
+        inputEl.style.borderColor = '#ef4444';
+    }
+}
+
+/**
+ * Editar total directamente — recalcula precio unitario (total ÷ cantidad)
+ */
+export async function editarTotalPendiente(id, totalStr, inputEl) {
+    try {
+        const total = parseFloat(totalStr);
+        if (isNaN(total) || total < 0) {
+            window.showToast?.('Valor no válido', 'error');
+            return;
+        }
+        const itemDiv = inputEl?.closest('.pending-item');
+        const cantInput = itemDiv?.querySelectorAll('input[type=number]')?.[0];
+        const cant = parseFloat(cantInput?.value || 1);
+        const nuevoPrecio = cant > 0 ? +(total / cant).toFixed(4) : 0;
+
+        await editarItemPendiente(id, { precio: nuevoPrecio });
+
+        const precioInput = itemDiv?.querySelectorAll('input[type=number]')?.[1];
+        if (precioInput) precioInput.value = nuevoPrecio.toFixed(2);
+
+        inputEl.style.borderColor = '#22c55e';
+        setTimeout(() => { if (inputEl) inputEl.style.borderColor = '#e5e7eb'; }, 1500);
+    } catch (err) {
+        console.error('Error editando total:', err);
         window.showToast?.('Error al guardar: ' + err.message, 'error');
         inputEl.style.borderColor = '#ef4444';
     }

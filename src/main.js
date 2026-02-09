@@ -259,6 +259,7 @@ window.aprobarBatchPendiente = ComprasPendientesUI.aprobarBatchPendiente;
 window.cambiarIngredientePendiente = ComprasPendientesUI.cambiarIngredientePendiente;
 window.rechazarItemPendiente = ComprasPendientesUI.rechazarItemPendiente;
 window.editarCampoPendiente = ComprasPendientesUI.editarCampoPendiente;
+window.editarTotalPendiente = ComprasPendientesUI.editarTotalPendiente;
 window.checkPendientes = ComprasPendientesUI.checkPendientes;
 
 // Cargar pendientes al abrir pestaña Pedidos y al login
