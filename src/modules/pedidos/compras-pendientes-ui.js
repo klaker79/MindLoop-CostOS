@@ -145,7 +145,7 @@ export async function renderizarComprasPendientes() {
                                     margin-left: 8px; padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; max-width: 180px;
                                 ">
                                     <option value="">Seleccionar...</option>
-                                    ${ingredientesCache.map(ing => `<option value="${ing.id}" ${ing.id === item.ingrediente_id ? 'selected' : ''}>${ing.nombre}</option>`).join('')}
+                                    ${[...ingredientesCache].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map(ing => `<option value="${ing.id}" ${ing.id === item.ingrediente_id ? 'selected' : ''}>${ing.nombre}</option>`).join('')}
                                 </select>` : ''}
                             </div>
                         </div>
