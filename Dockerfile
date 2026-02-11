@@ -4,6 +4,15 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+
+# Build-time variables from Dokploy (ARG → ENV for Vite)
+ARG VITE_CHAT_WEBHOOK_URL
+ARG VITE_API_BASE_URL
+ARG VITE_APP_ENV
+ENV VITE_CHAT_WEBHOOK_URL=$VITE_CHAT_WEBHOOK_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_APP_ENV=$VITE_APP_ENV
+
 RUN npm run build
 
 # Stage 2: Serve with nginx
