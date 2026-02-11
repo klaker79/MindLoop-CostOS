@@ -278,74 +278,62 @@ export async function confirmarRecepcionPedido() {
          * El backend calcula precio_medio correctamente desde los pedidos.
          * Modificar esto causará corrupción de datos de precio.
          *
-         * 🔒 FIX: Procesamiento secuencial con tracking para evitar datos inconsistentes
+         * 🔒 FIX v2: Usar ajuste atómico de stock (delta) en vez de valor absoluto
+         * Esto evita que datos stale en window.ingredientes sobreescriban el stock real
          */
-        // 🔒 FIX: Recargar ingredientes frescos para evitar stock stale
-        window.ingredientes = await window.api.getIngredientes();
+        // Preparar ajustes atómicos: solo enviar el delta (+cantidadRecibida)
+        const adjustments = ingredientesActualizados
+            .filter(item => item.estado !== 'no-entregado' && parseFloat(item.cantidadRecibida) > 0)
+            .map(item => ({
+                id: item.ingredienteId,
+                delta: parseFloat(item.cantidadRecibida)
+            }));
 
         const actualizacionesExitosas = [];
         const actualizacionesFallidas = [];
 
-        for (const item of ingredientesActualizados) {
-            if (item.estado === 'no-entregado') continue;
-
-            const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
-            if (!ing) {
-                actualizacionesFallidas.push({
-                    id: item.ingredienteId,
-                    nombre: `ID ${item.ingredienteId}`,
-                    error: 'Ingrediente no encontrado'
-                });
-                continue;
-            }
-
-            // 🔒 FIX: Usar stock_actual primero (snake_case del backend)
-            const stockAnterior = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
-            const cantidadRecibida = parseFloat(item.cantidadRecibida) || 0;
-
-            // 🔒 FIX: Validar que cantidadRecibida sea razonable (no negativa, no absurda)
-            if (cantidadRecibida < 0) {
-                actualizacionesFallidas.push({
-                    id: ing.id,
-                    nombre: ing.nombre,
-                    error: `Cantidad negativa: ${cantidadRecibida}`
-                });
-                continue;
-            }
-
-            const nuevoStock = stockAnterior + cantidadRecibida;
-
+        if (adjustments.length > 0) {
             try {
-                console.log(`📦 ${ing.nombre}: Stock ${stockAnterior} → ${nuevoStock}`);
+                const result = await window.api.bulkAdjustStock(adjustments, 'recepcion_pedido');
 
-                await window.api.updateIngrediente(item.ingredienteId, {
-                    nombre: ing.nombre,
-                    unidad: ing.unidad,
-                    precio: ing.precio,
-                    proveedor_id: ing.proveedor_id || ing.proveedorId,
-                    familia: ing.familia,
-                    formato_compra: ing.formato_compra,
-                    cantidad_por_formato: ing.cantidad_por_formato,
-                    stock_minimo: ing.stock_minimo ?? ing.stockMinimo,
-                    stock_actual: nuevoStock
-                    // ⚠️ PROHIBIDO tocar precio - el backend calcula precio_medio ⚠️
-                });
-
-                actualizacionesExitosas.push({
-                    id: ing.id,
-                    nombre: ing.nombre,
-                    stockAnterior,
-                    stockNuevo: nuevoStock,
-                    cantidadRecibida
-                });
-
-            } catch (itemError) {
-                actualizacionesFallidas.push({
-                    id: ing.id,
-                    nombre: ing.nombre,
-                    error: itemError.message
-                });
-                console.error(`❌ Error actualizando stock de ${ing.nombre}:`, itemError);
+                // Procesar resultados
+                for (const r of (result.results || [])) {
+                    actualizacionesExitosas.push({
+                        id: r.id,
+                        nombre: r.nombre,
+                        stockNuevo: r.stock_actual,
+                        cantidadRecibida: r.delta
+                    });
+                    console.log(`📦 ${r.nombre}: +${r.delta} → Stock = ${r.stock_actual}`);
+                }
+                for (const e of (result.errors || [])) {
+                    actualizacionesFallidas.push({
+                        id: e.id,
+                        nombre: `ID ${e.id}`,
+                        error: e.error
+                    });
+                    console.error(`❌ Error stock ID ${e.id}: ${e.error}`);
+                }
+            } catch (bulkError) {
+                // Fallback: intentar uno por uno
+                console.error('❌ Bulk adjust falló, intentando uno por uno:', bulkError);
+                for (const adj of adjustments) {
+                    try {
+                        const r = await window.api.adjustStock(adj.id, adj.delta, 'recepcion_pedido');
+                        actualizacionesExitosas.push({
+                            id: r.id,
+                            nombre: r.nombre,
+                            stockNuevo: r.stock_actual,
+                            cantidadRecibida: r.delta
+                        });
+                    } catch (itemError) {
+                        actualizacionesFallidas.push({
+                            id: adj.id,
+                            nombre: `ID ${adj.id}`,
+                            error: itemError.message
+                        });
+                    }
+                }
             }
         }
 

@@ -256,7 +256,7 @@ export async function confirmarMermasMultiples() {
         const actualizacionesExitosas = [];
         const actualizacionesFallidas = [];
 
-        // Procesar cada merma SECUENCIALMENTE con tracking
+        // Procesar cada merma con ajuste atómico
         for (const merma of mermasARegistrar) {
             const ingrediente = (window.ingredientes || []).find(i => i.id === merma.ingredienteId);
             if (!ingrediente) {
@@ -268,7 +268,6 @@ export async function confirmarMermasMultiples() {
                 continue;
             }
 
-            const stockActualValue = parseFloat(ingrediente.stock_actual ?? ingrediente.stockActual ?? 0);
             const cantidadMerma = parseFloat(merma.cantidad) || 0;
 
             // Validar cantidad
@@ -281,29 +280,17 @@ export async function confirmarMermasMultiples() {
                 continue;
             }
 
-            const nuevoStock = Math.max(0, stockActualValue - cantidadMerma);
-
             try {
-                console.log(`📉 Merma: ${ingrediente.nombre} - Stock anterior: ${stockActualValue}, Restando: ${cantidadMerma}, Nuevo stock: ${nuevoStock}`);
+                console.log(`📉 Merma: ${ingrediente.nombre} - Restando: ${cantidadMerma}`);
 
-                await window.api.updateIngrediente(merma.ingredienteId, {
-                    nombre: ingrediente.nombre,
-                    unidad: ingrediente.unidad,
-                    precio: ingrediente.precio,
-                    proveedor_id: ingrediente.proveedor_id || ingrediente.proveedorId,
-                    familia: ingrediente.familia,
-                    formato_compra: ingrediente.formato_compra,
-                    cantidad_por_formato: ingrediente.cantidad_por_formato,
-                    stock_minimo: ingrediente.stock_minimo ?? ingrediente.stockMinimo,
-                    stock_actual: nuevoStock
-                });
+                // 🔒 FIX v2: Ajuste atómico negativo (-cantidadMerma)
+                const result = await window.api.adjustStock(merma.ingredienteId, -cantidadMerma, 'merma');
 
                 // Trackear éxito
                 actualizacionesExitosas.push({
                     id: ingrediente.id,
                     nombre: ingrediente.nombre,
-                    stockAnterior: stockActualValue,
-                    stockNuevo: nuevoStock,
+                    stockNuevo: result.stock_actual,
                     cantidadMerma
                 });
 
@@ -329,8 +316,7 @@ export async function confirmarMermasMultiples() {
                     motivo: merma.motivo,
                     medidaCorrectora: merma.medidaCorrectora,
                     valorPerdida: merma.valorPerdida,
-                    stockAnterior: stockActualValue,
-                    stockNuevo: nuevoStock,
+                    stockNuevo: result.stock_actual,
                     responsableId,
                     fecha: new Date().toISOString()
                 });

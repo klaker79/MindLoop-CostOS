@@ -366,6 +366,34 @@
             return await res.json();
         },
 
+        // 🔒 ATOMIC STOCK: Ajusta stock sin sobreescribir — usa delta (+X o -X)
+        async adjustStock(id, delta, reason = '') {
+            const res = await fetchWithCreds(getApiBase() + `/ingredients/${id}/adjust-stock`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ delta, reason }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || 'Error ajustando stock');
+            }
+            return await res.json();
+        },
+
+        // 🔒 BULK ATOMIC STOCK: Ajuste masivo atómico
+        async bulkAdjustStock(adjustments, reason = '') {
+            const res = await fetchWithCreds(getApiBase() + `/ingredients/bulk-adjust-stock`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ adjustments, reason }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || 'Error en ajuste masivo de stock');
+            }
+            return await res.json();
+        },
+
         async getRecetas() {
             const res = await fetchWithCreds(getApiBase() + '/recipes', {
                 headers: getAuthHeaders(),

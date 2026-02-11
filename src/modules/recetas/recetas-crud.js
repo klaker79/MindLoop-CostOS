@@ -310,51 +310,55 @@ export async function confirmarProduccion() {
     window.showLoading();
 
     try {
-        // 🔒 FIX CRÍTICO: Procesamiento SECUENCIAL con tracking de cambios
-        // Promise.all puede dejar datos inconsistentes si falla a mitad
-        // Ahora procesamos uno por uno y trackeamos qué se actualizó
+        // 🔒 FIX v2: Usar ajuste atómico de stock con deltas negativos
+        const adjustments = rec.ingredientes
+            .filter(item => ingMap.has(item.ingredienteId))
+            .map(item => ({
+                id: item.ingredienteId,
+                delta: -(item.cantidad * cant) // Negativo = restar stock
+            }));
+
         const actualizacionesExitosas = [];
         const actualizacionesFallidas = [];
 
-        for (const item of rec.ingredientes) {
-            const ing = ingMap.get(item.ingredienteId);
-            if (!ing) continue;
+        try {
+            const result = await window.api.bulkAdjustStock(adjustments, `produccion_${rec.nombre}_x${cant}`);
 
-            const stockAnterior = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
-            const cantidadDescontar = item.cantidad * cant;
-            const nuevoStock = Math.max(0, stockAnterior - cantidadDescontar);
-
-            try {
-                await window.api.updateIngrediente(ing.id, {
-                    nombre: ing.nombre,
-                    unidad: ing.unidad,
-                    precio: ing.precio,
-                    proveedor_id: ing.proveedor_id || ing.proveedorId,
-                    familia: ing.familia,
-                    formato_compra: ing.formato_compra,
-                    cantidad_por_formato: ing.cantidad_por_formato,
-                    stock_minimo: ing.stock_minimo ?? ing.stockMinimo,
-                    stock_actual: nuevoStock,
-                });
-
-                // Trackear éxito para posible rollback
+            for (const r of (result.results || [])) {
                 actualizacionesExitosas.push({
-                    id: ing.id,
-                    nombre: ing.nombre,
-                    stockAnterior,
-                    stockNuevo: nuevoStock,
-                    cantidadDescontada: cantidadDescontar
+                    id: r.id,
+                    nombre: r.nombre,
+                    stockNuevo: r.stock_actual,
+                    cantidadDescontada: Math.abs(r.delta)
                 });
-
-                console.log(`✅ ${ing.nombre}: ${stockAnterior} → ${nuevoStock}`);
-
-            } catch (itemError) {
+                console.log(`✅ ${r.nombre}: -${Math.abs(r.delta)} → Stock = ${r.stock_actual}`);
+            }
+            for (const e of (result.errors || [])) {
                 actualizacionesFallidas.push({
-                    id: ing.id,
-                    nombre: ing.nombre,
-                    error: itemError.message
+                    id: e.id,
+                    nombre: `ID ${e.id}`,
+                    error: e.error
                 });
-                console.error(`❌ Error actualizando ${ing.nombre}:`, itemError);
+            }
+        } catch (bulkError) {
+            console.error('❌ Bulk adjust falló, intentando uno por uno:', bulkError);
+            for (const adj of adjustments) {
+                const ing = ingMap.get(adj.id);
+                try {
+                    const r = await window.api.adjustStock(adj.id, adj.delta, `produccion_${rec.nombre}`);
+                    actualizacionesExitosas.push({
+                        id: r.id,
+                        nombre: r.nombre,
+                        stockNuevo: r.stock_actual,
+                        cantidadDescontada: Math.abs(r.delta)
+                    });
+                } catch (itemError) {
+                    actualizacionesFallidas.push({
+                        id: adj.id,
+                        nombre: ing?.nombre || `ID ${adj.id}`,
+                        error: itemError.message
+                    });
+                }
             }
         }
 

@@ -67,16 +67,8 @@ export async function guardarProveedor(event) {
         for (const ingId of ingredientesNuevos) {
             const ing = (window.ingredientes || []).find(i => i.id === ingId);
             if (ing) {
-                // 🔒 FIX: No hacer spread de ...ing para evitar enviar stockActual que podría sobrescribir stock_actual
+                // 🔒 FIX v2: Solo enviar proveedor_id, NO tocar stock_actual
                 await window.api.updateIngrediente(ingId, {
-                    nombre: ing.nombre,
-                    unidad: ing.unidad,
-                    precio: ing.precio,
-                    familia: ing.familia,
-                    formato_compra: ing.formato_compra,
-                    cantidad_por_formato: ing.cantidad_por_formato,
-                    stock_minimo: ing.stock_minimo ?? ing.stockMinimo,
-                    stock_actual: ing.stock_actual ?? ing.stockActual,
                     proveedor_id: proveedorId
                 });
             }
@@ -87,16 +79,8 @@ export async function guardarProveedor(event) {
         for (const ingId of ingredientesQuitados) {
             const ing = (window.ingredientes || []).find(i => i.id === ingId);
             if (ing && (ing.proveedor_id === proveedorId || ing.proveedorId === proveedorId)) {
-                // 🔒 FIX: No hacer spread de ...ing para evitar enviar stockActual
+                // 🔒 FIX v2: Solo limpiar proveedor_id, NO tocar stock_actual
                 await window.api.updateIngrediente(ingId, {
-                    nombre: ing.nombre,
-                    unidad: ing.unidad,
-                    precio: ing.precio,
-                    familia: ing.familia,
-                    formato_compra: ing.formato_compra,
-                    cantidad_por_formato: ing.cantidad_por_formato,
-                    stock_minimo: ing.stock_minimo ?? ing.stockMinimo,
-                    stock_actual: ing.stock_actual ?? ing.stockActual,
                     proveedor_id: null
                 });
             }

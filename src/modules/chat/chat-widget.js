@@ -611,25 +611,17 @@ async function executeAction(actionData) {
                 return false;
             }
 
-            // 🔒 FIX CRÍTICO: No hacer spread de ...ing
-            // El spread incluía stockActual que podía sobrescribir stock_actual en backend
-            // Preparar actualización con campos específicos
-            const updates = {
-                nombre: ing.nombre,
-                unidad: ing.unidad,
-                precio: ing.precio,
-                proveedor_id: ing.proveedor_id || ing.proveedorId,
-                familia: ing.familia,
-                formato_compra: ing.formato_compra,
-                cantidad_por_formato: ing.cantidad_por_formato,
-                stock_minimo: ing.stock_minimo ?? ing.stockMinimo,
-                stock_actual: ing.stock_actual ?? ing.stockActual
-            };
-            if (field === 'precio') updates.precio = parseFloat(value);
-            if (field === 'stock') updates.stock_actual = parseFloat(value);
+            // 🔒 FIX v2: Para stock usar ajuste atómico, para precio usar updateIngrediente
+            if (field === 'stock') {
+                // Calcular delta: nuevo_valor - valor_actual
+                const stockActual = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
+                const nuevoValor = parseFloat(value);
+                const delta = nuevoValor - stockActual;
+                await window.api.adjustStock(ing.id, delta, 'chat_voice');
+            } else if (field === 'precio') {
+                await window.api.updateIngrediente(ing.id, { precio: parseFloat(value) });
+            }
 
-            // Llamar API
-            await window.api.updateIngrediente(ing.id, updates);
             await window.cargarDatos();
             window.renderizarIngredientes?.();
 
@@ -785,20 +777,8 @@ async function executeAction(actionData) {
                 return false;
             }
 
-            const nuevoStock = Math.max(0, (parseFloat(ing.stock_actual) || 0) - cantidad);
-            // 🔒 FIX CRÍTICO: No hacer spread de ...ing
-            // El spread incluía stockActual que podía sobrescribir stock_actual en backend
-            await window.api.updateIngrediente(ing.id, {
-                nombre: ing.nombre,
-                unidad: ing.unidad,
-                precio: ing.precio,
-                proveedor_id: ing.proveedor_id || ing.proveedorId,
-                familia: ing.familia,
-                formato_compra: ing.formato_compra,
-                cantidad_por_formato: ing.cantidad_por_formato,
-                stock_minimo: ing.stock_minimo ?? ing.stockMinimo,
-                stock_actual: nuevoStock
-            });
+            // 🔒 FIX v2: Ajuste atómico negativo (-cantidad)
+            await window.api.adjustStock(ing.id, -cantidad, 'merma_chat');
 
             await window.cargarDatos();
             window.renderizarIngredientes?.();

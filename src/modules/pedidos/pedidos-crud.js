@@ -161,47 +161,71 @@ export async function guardarPedido(event) {
     console.log('📝 Creando pedido con fecha:', pedido.fecha, '| ped-fecha value:', document.getElementById('ped-fecha')?.value);
     await window.api.createPedido(pedido);
 
-    // 🏪 Para compras del mercado: actualizar stock inmediatamente
+    // 🏪 Para compras del mercado: actualizar stock inmediatamente con ajuste atómico
     if (esCompraMercado) {
+      // 🔒 FIX v2: Usar ajuste atómico de stock (delta) en vez de valor absoluto
+      const stockAdjustments = ingredientesPedido
+        .filter(item => parseFloat(item.cantidad || 0) > 0)
+        .map(item => ({
+          id: item.ingredienteId,
+          delta: parseFloat(item.cantidad)
+        }));
+
+      if (stockAdjustments.length > 0) {
+        try {
+          const result = await window.api.bulkAdjustStock(stockAdjustments, 'compra_mercado');
+          console.log('🏪 Stock ajustado atómicamente:', result);
+
+          if (result.errors && result.errors.length > 0) {
+            console.error('⚠️ Errores en ajuste:', result.errors);
+          }
+        } catch (bulkErr) {
+          console.error('❌ Error bulk adjust:', bulkErr);
+          // Fallback uno por uno
+          for (const adj of stockAdjustments) {
+            try {
+              await window.api.adjustStock(adj.id, adj.delta, 'compra_mercado');
+            } catch (e) {
+              console.error(`❌ Error ajustando stock ID ${adj.id}:`, e);
+            }
+          }
+        }
+      }
+
+      // Actualizar precios (media ponderada) - esto sí necesita leer datos actuales
+      // Recargar ingredientes frescos DESPUÉS del ajuste de stock
+      window.ingredientes = await window.api.getIngredientes();
+
       for (const item of ingredientesPedido) {
         const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
         if (ing) {
-          // 🔒 FIX: Usar stock_actual primero (snake_case del backend)
-          const stockAnterior = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
+          const stockActual = parseFloat(ing.stock_actual || 0);
           const precioAnterior = parseFloat(ing.precio || 0);
           const cantidadRecibida = parseFloat(item.cantidad || 0);
           const precioNuevo = parseFloat(item.precio_unitario || item.precio || 0);
 
-          // Cálculo de media ponderada de precios
-          let precioMedioPonderado;
-          if (stockAnterior + cantidadRecibida > 0) {
-            precioMedioPonderado =
-              (stockAnterior * precioAnterior + cantidadRecibida * precioNuevo) /
-              (stockAnterior + cantidadRecibida);
-          } else {
-            precioMedioPonderado = precioNuevo;
+          // Solo actualizar precio si cambió
+          if (precioNuevo > 0 && Math.abs(precioNuevo - precioAnterior) > 0.001) {
+            // Media ponderada: (stockViejo * precioViejo + cantNueva * precioNuevo) / stockTotal
+            const stockSinCompra = stockActual - cantidadRecibida; // stockActual ya incluye la compra
+            let precioMedioPonderado;
+            if (stockActual > 0) {
+              precioMedioPonderado = (stockSinCompra * precioAnterior + cantidadRecibida * precioNuevo) / stockActual;
+            } else {
+              precioMedioPonderado = precioNuevo;
+            }
+
+            console.log(`🏪 ${ing.nombre}: Precio ${precioAnterior.toFixed(2)}€ → ${precioMedioPonderado.toFixed(2)}€`);
+
+            // Solo enviar precio, NO stock_actual (ya ajustado atómicamente)
+            await window.api.updateIngrediente(item.ingredienteId, {
+              precio: precioMedioPonderado
+            });
           }
-
-          const nuevoStock = stockAnterior + cantidadRecibida;
-
-          console.log(`🏪 Mercado - ${ing.nombre}: Stock ${stockAnterior} → ${nuevoStock}, Precio ${precioAnterior.toFixed(2)}€ → ${precioMedioPonderado.toFixed(2)}€`);
-
-          // 🔒 FIX CRÍTICO: No hacer spread de ...ing
-          // El spread incluía stockActual que podía sobrescribir stock_actual en backend
-          await window.api.updateIngrediente(item.ingredienteId, {
-            nombre: ing.nombre,
-            unidad: ing.unidad,
-            proveedor_id: ing.proveedor_id || ing.proveedorId,
-            familia: ing.familia,
-            formato_compra: ing.formato_compra,
-            cantidad_por_formato: ing.cantidad_por_formato,
-            stock_minimo: ing.stock_minimo ?? ing.stockMinimo,
-            stock_actual: nuevoStock,
-            precio: precioMedioPonderado
-          });
         }
       }
-      // Recargar ingredientes para reflejar cambios
+
+      // Recargar para reflejar cambios
       window.ingredientes = await window.api.getIngredientes();
       window.renderizarIngredientes?.();
       window.renderizarInventario?.();
