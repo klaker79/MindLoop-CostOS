@@ -26,8 +26,8 @@ export const appConfig = {
      * Configuración de Chat
      */
     chat: {
-        webhookUrl: import.meta.env.VITE_CHAT_WEBHOOK_URL || 'https://n8niker.mindloop.cloud/webhook/3f075a6e-b005-407d-911c-93f710727449',
-        // FALLBACK: URL de producción por defecto. Override con VITE_CHAT_WEBHOOK_URL en .env
+        webhookUrl: import.meta.env.VITE_CHAT_WEBHOOK_URL || '',
+        // Requiere VITE_CHAT_WEBHOOK_URL en .env (no hardcodear UUID en el bundle)
         botName: 'Asistente CostOS',
         enabled: true,
         maxHistoryMessages: 50,

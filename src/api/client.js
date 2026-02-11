@@ -49,9 +49,13 @@ async function handleResponse(response) {
 
         // Handle specific status codes
         if (response.status === 401) {
-            console.warn('🔒 API: Token expirado o inválido');
-            // Could trigger logout here if needed
-            // window.dispatchEvent(new CustomEvent('auth:expired'));
+            console.warn('🔒 API: Token expirado o inválido — redirigiendo a login');
+            window.dispatchEvent(new CustomEvent('auth:expired'));
+            // Clear auth state and redirect
+            document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            if (!window.location.pathname.includes('login')) {
+                window.location.href = '/login.html';
+            }
         }
 
         throw new Error(errorMessage);
