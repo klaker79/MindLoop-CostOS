@@ -353,6 +353,7 @@ export function cerrarFormularioIngrediente() {
  * Se llama cada vez que se abre el formulario (nuevo o editar)
  */
 export function setupYieldSlider() {
+    // v2.1.0 - Visual fix for slider gap
     setTimeout(() => {
         const sliderEl = document.getElementById('ing-rendimiento-slider');
         const rendimientoEl = document.getElementById('ing-rendimiento');
