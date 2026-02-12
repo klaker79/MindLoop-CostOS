@@ -450,3 +450,5 @@ export function getEditandoIngredienteId() {
 export function setEditandoIngredienteId(id) {
     editandoIngredienteId = id;
 }
+
+// Force deployment - syntax fix check
