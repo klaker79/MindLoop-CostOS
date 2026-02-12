@@ -66,7 +66,7 @@
       });
     }
   </script>
-  <script type="module" crossorigin src="/assets/main-Cu2OaJBX.js"></script>
+  <script type="module" crossorigin src="/assets/main-CrM5zjyz.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/main-YG_B1f7L.css">
 </head>
 
@@ -626,17 +626,35 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Rendimiento (%)</label>
-                  <input type="number" id="ing-rendimiento" step="1" min="0" max="100" value="100" placeholder="100">
-                  <small style="color: #64748b; font-size: 11px;">% Aprovechable (mermas)</small>
-                </div>
-                <div class="form-group">
                   <label>Stock actual</label>
                   <input type="number" id="ing-stockActual" step="0.01" min="0">
                 </div>
                 <div class="form-group">
                   <label>Stock mínimo</label>
                   <input type="number" id="ing-stockMinimo" step="0.01" min="0">
+                </div>
+
+                <!-- RENDIMIENTO / MERMA (Moved to bottom with Slider) -->
+                <div class="form-group"
+                  style="grid-column: span 2; margin-top: 10px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label style="margin: 0; color: #334155; font-weight: 600;">Rendimiento / Aprovechamiento
+                      (%)</label>
+                    <span id="ing-rendimiento-val"
+                      style="font-weight: bold; color: #7c3aed; font-size: 1.1em;">100%</span>
+                  </div>
+                  <div style="display: flex; gap: 15px; align-items: center;">
+                    <span style="font-size: 12px; color: #ef4444;">0% (Todo merma)</span>
+                    <input type="range" id="ing-rendimiento-slider" min="1" max="100" value="100" step="1"
+                      style="flex: 1; accent-color: #7c3aed; cursor: pointer;">
+                    <span style="font-size: 12px; color: #10b981;">100% (Todo útil)</span>
+                  </div>
+                  <input type="number" id="ing-rendimiento" step="1" min="1" max="100" value="100"
+                    style="display: none;"> <!-- Hidden sync input -->
+                  <p style="font-size: 11px; color: #64748b; margin-top: 8px;">
+                    ℹ️ Define qué porcentaje del producto realmente usas. <br>
+                    Ej: Si compras 1kg de carne y limpias 200g de grasa, el rendimiento es <strong>80%</strong>.
+                  </p>
                 </div>
 
                 <!-- Formato de compra (opcional) -->
