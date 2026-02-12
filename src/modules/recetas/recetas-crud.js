@@ -118,10 +118,21 @@ export function editarReceta(id) {
         }
         lastItem.querySelector('.receta-cantidad').value = item.cantidad;
 
-        // 🆕 Cargar Rendimiento
+        // 🆕 Cargar Rendimiento con fallback al ingrediente original
         const inputRend = lastItem.querySelector('.receta-rendimiento');
         if (inputRend) {
-            inputRend.value = item.rendimiento || 100;
+            let rendimiento = item.rendimiento;
+
+            // Si no tiene rendimiento guardado, o es 100 (por defecto),
+            // intentar buscar el rendimiento actual del ingrediente base.
+            if (!rendimiento || rendimiento === 100) {
+                const ingBase = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
+                if (ingBase && ingBase.rendimiento) {
+                    rendimiento = ingBase.rendimiento;
+                }
+            }
+
+            inputRend.value = rendimiento || 100;
         }
     });
 
