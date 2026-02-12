@@ -46,7 +46,7 @@ window.confirmarEliminacion = function (config) {
 };
 
 // ==================== GASTOS FIJOS ====================
-let gastosFijos = [];
+var gastosFijos = [];
 
 async function cargarGastosFijos() {
     try {
@@ -201,7 +201,7 @@ setInterval(actualizarBeneficioRealDiario, 2000);
 
 // ============ FINANZAS: Guardar/Cargar Gastos Fijos desde BD ============
 // Mapeo de conceptos de sliders a IDs de la base de datos
-const GASTOS_FIJOS_MAP = {
+var GASTOS_FIJOS_MAP = {
     'alquiler': { id: 1, concepto: 'Alquiler' },
     'personal': { id: 2, concepto: 'Nóminas' },
     'suministros': { id: 3, concepto: 'Agua' },
@@ -209,9 +209,9 @@ const GASTOS_FIJOS_MAP = {
 };
 
 // Cache para evitar llamadas repetidas a la API
-let gastosFijosCache = null;
-let gastosFijosCacheTime = 0;
-const CACHE_TTL = 5000; // 5 segundos
+var gastosFijosCache = null;
+var gastosFijosCacheTime = 0;
+var CACHE_TTL = 5000; // 5 segundos
 
 // ⚡ API BASE URL - 🔧 FIX: Lazy resolution (window.API_CONFIG se configura DESPUÉS por main.js)
 function getGastosApiBase() {

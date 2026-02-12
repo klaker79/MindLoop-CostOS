@@ -5,11 +5,13 @@
   <!-- Sentry Error Monitoring - Full SDK -->
   <script src="https://browser.sentry-cdn.com/7.99.0/bundle.min.js" crossorigin="anonymous"></script>
   <script>
-    Sentry.init({
-      dsn: "https://ac722e9d30983357b092ee766be13c5e@o4510649135661056.ingest.de.sentry.io/4510649155190864",
-      tracesSampleRate: 0.1,
-      environment: window.location.hostname === 'localhost' ? 'development' : 'production'
-    });
+    if (typeof Sentry !== 'undefined') {
+      Sentry.init({
+        dsn: "https://ac722e9d30983357b092ee766be13c5e@o4510649135661056.ingest.de.sentry.io/4510649155190864",
+        tracesSampleRate: 0.1,
+        environment: window.location.hostname === 'localhost' ? 'development' : 'production'
+      });
+    }
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">

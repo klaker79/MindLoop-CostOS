@@ -12,7 +12,8 @@ function escapeHTML(str) {
     })[char] || char);
 }
 
-let datosInventarioMasivo = [];
+// var instead of let: prevents "Identifier already declared" crash on Vite HMR double-load
+var datosInventarioMasivo = [];
 
 window.mostrarModalInventarioMasivo = function () {
     document.getElementById('modal-inventario-masivo').classList.add('active');
@@ -373,7 +374,7 @@ window.cancelarInventarioMasivo = function () {
 };
 
 // ========== IMPORTAR INGREDIENTES ==========
-let datosImportarIngredientes = [];
+var datosImportarIngredientes = [];
 
 window.mostrarModalImportarIngredientes = function () {
     document.getElementById('modal-importar-ingredientes').classList.add('active');
@@ -538,7 +539,7 @@ window.cancelarImportarIngredientes = function () {
 };
 
 // ========== IMPORTAR RECETAS ==========
-let datosImportarRecetas = [];
+var datosImportarRecetas = [];
 
 window.mostrarModalImportarRecetas = function () {
     document.getElementById('modal-importar-recetas').classList.add('active');
@@ -679,7 +680,7 @@ window.cancelarImportarRecetas = function () {
 };
 
 // ========== IMPORTAR VENTAS TPV ==========
-let datosImportarVentas = [];
+var datosImportarVentas = [];
 
 window.mostrarModalImportarVentas = function () {
     document.getElementById('modal-importar-ventas').classList.add('active');
@@ -1026,7 +1027,7 @@ window.cancelarImportarVentas = function () {
 };
 
 // ========== IMPORTAR PEDIDOS (COMPRAS) ==========
-let datosImportarPedidos = [];
+var datosImportarPedidos = [];
 
 window.mostrarModalImportarPedidos = function () {
     document.getElementById('modal-importar-pedidos').classList.add('active');

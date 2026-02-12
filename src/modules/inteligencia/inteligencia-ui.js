@@ -26,7 +26,7 @@ async function fetchIntelligence(endpoint) {
 }
 
 // ========== ESTILOS ==========
-const INTEL_STYLES = `
+var INTEL_STYLES = `
 <style id="intel-styles">
 .intel-dashboard {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
