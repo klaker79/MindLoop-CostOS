@@ -359,25 +359,35 @@ export function setupYieldSlider() {
         const valorVisualEl = document.getElementById('ing-rendimiento-val');
 
         if (sliderEl && rendimientoEl) {
-            // Eliminar listeners anteriores para evitar duplicados (clonando el nodo)
-            // O simplemente reasignando .oninput (que sobrescribe)
 
+            const updateSliderVisuals = (val) => {
+                // Actualizar Background con gradiente para que llegue exactamente al 100%
+                // Esto arregla el "hueco" visual al final que menciona el usuario
+                const percentage = val;
+                sliderEl.style.background = `linear-gradient(to right, #7c3aed 0%, #7c3aed ${percentage}%, #e2e8f0 ${percentage}%, #e2e8f0 100%)`;
+
+                if (valorVisualEl) {
+                    valorVisualEl.textContent = val + '%';
+                    valorVisualEl.style.color = val < 50 ? '#ef4444' : val < 80 ? '#f59e0b' : '#10b981';
+                }
+            };
+
+            // Eliminar listeners anteriores
             sliderEl.oninput = function () {
                 rendimientoEl.value = this.value;
-                if (valorVisualEl) {
-                    valorVisualEl.textContent = this.value + '%';
-                    valorVisualEl.style.color = this.value < 50 ? '#ef4444' : this.value < 80 ? '#f59e0b' : '#10b981';
-                }
+                updateSliderVisuals(this.value);
             };
 
             rendimientoEl.onchange = function () {
                 sliderEl.value = this.value;
-                sliderEl.oninput(); // Trigger update visual
+                updateSliderVisuals(this.value);
             };
 
             // Inicializar visual
-            sliderEl.oninput();
+            updateSliderVisuals(sliderEl.value);
         }
+    }, 100);
+}
     }, 100);
 }
 
