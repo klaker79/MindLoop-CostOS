@@ -131,7 +131,17 @@ export function agregarIngredienteReceta() {
                 background-repeat: no-repeat;
                 background-position: right 12px center;
                 background-size: 20px;
-            " onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'" onchange="window.calcularCosteReceta()">
+            " onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'" 
+            onchange="
+                const ingId = parseInt(this.value);
+                const ing = (window.ingredientes || []).find(i => i.id === ingId);
+                const row = this.closest('.ingrediente-item');
+                const rendInput = row.querySelector('.receta-rendimiento');
+                if (ing && rendInput) {
+                    rendInput.value = ing.rendimiento !== undefined && ing.rendimiento !== null ? ing.rendimiento : 100;
+                }
+                window.calcularCosteReceta();
+            ">
                 ${optionsHtml}
             </select>
         </div>
