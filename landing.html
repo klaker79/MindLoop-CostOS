@@ -2115,6 +2115,360 @@
 
     <hr class="section-divider">
 
+    <!-- ===== INTERACTIVE DEMO ===== -->
+    <section id="prueba-demo" style="padding: 100px 0;">
+        <div class="container">
+            <div class="section-header section-center reveal">
+                <div class="section-label">Pruébalo ahora</div>
+                <h2 class="section-title">Crea tu primera receta<br>en 60 segundos</h2>
+                <p class="section-sub">Sin registro. Sin compromiso. Experimenta el poder de CostOS.</p>
+            </div>
+
+            <div id="demo-wizard"
+                style="max-width:600px; margin:48px auto 0; background:rgba(12,12,20,0.8); border:1px solid rgba(124,92,252,0.25); border-radius:20px; padding:40px 32px; backdrop-filter:blur(20px); position:relative; overflow:hidden;">
+
+                <!-- Glow effect -->
+                <div
+                    style="position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%, rgba(124,92,252,0.06) 0%, transparent 50%);pointer-events:none;">
+                </div>
+
+                <!-- Progress dots -->
+                <div id="demo-progress"
+                    style="display:flex;justify-content:center;gap:8px;margin-bottom:32px;position:relative;">
+                    <div class="demo-dot active"
+                        style="width:40px;height:5px;border-radius:3px;background:var(--accent);transition:all 0.3s;">
+                    </div>
+                    <div class="demo-dot"
+                        style="width:40px;height:5px;border-radius:3px;background:rgba(255,255,255,0.15);transition:all 0.3s;">
+                    </div>
+                    <div class="demo-dot"
+                        style="width:40px;height:5px;border-radius:3px;background:rgba(255,255,255,0.15);transition:all 0.3s;">
+                    </div>
+                </div>
+
+                <!-- STEP 1: Recipe basics -->
+                <div id="demo-step-1" class="demo-step" style="position:relative;">
+                    <div style="text-align:center;font-size:48px;margin-bottom:16px;">📝</div>
+                    <h3 style="text-align:center;font-size:22px;color:white;margin-bottom:6px;">Nombra tu plato <span
+                            style="color:var(--accent-2);">estrella</span></h3>
+                    <p style="text-align:center;color:var(--text-2);font-size:14px;margin-bottom:28px;">¿Cuál es el
+                        plato más vendido de tu carta?</p>
+
+                    <div style="margin-bottom:16px;">
+                        <label
+                            style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-2);margin-bottom:6px;font-weight:600;">Nombre
+                            del plato</label>
+                        <input id="demo-nombre" type="text" placeholder="Ej: Paella Valenciana"
+                            value="Paella Valenciana"
+                            style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:white;font-size:15px;outline:none;transition:border 0.3s;"
+                            onfocus="this.style.borderColor='var(--accent)'"
+                            onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
+                        <div>
+                            <label
+                                style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-2);margin-bottom:6px;font-weight:600;">Precio
+                                venta (€)</label>
+                            <input id="demo-precio" type="number" placeholder="18" value="18"
+                                style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:white;font-size:15px;outline:none;transition:border 0.3s;"
+                                onfocus="this.style.borderColor='var(--accent)'"
+                                onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+                        </div>
+                        <div>
+                            <label
+                                style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-2);margin-bottom:6px;font-weight:600;">Porciones</label>
+                            <input id="demo-porciones" type="number" value="4" min="1"
+                                style="width:100%;padding:14px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:white;font-size:15px;outline:none;transition:border 0.3s;"
+                                onfocus="this.style.borderColor='var(--accent)'"
+                                onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+                        </div>
+                    </div>
+                    <button onclick="demoGoStep(2)"
+                        style="width:100%;padding:16px;background:linear-gradient(135deg, var(--accent), var(--accent-2));color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;"
+                        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 32px rgba(124,92,252,0.4)'"
+                        onmouseout="this.style.transform='';this.style.boxShadow=''">
+                        Añadir ingredientes →
+                    </button>
+                </div>
+
+                <!-- STEP 2: Ingredients -->
+                <div id="demo-step-2" class="demo-step" style="display:none;position:relative;">
+                    <div style="text-align:center;font-size:48px;margin-bottom:16px;">👨‍🍳</div>
+                    <h3 style="text-align:center;font-size:22px;color:white;margin-bottom:6px;">Selecciona <span
+                            style="color:var(--accent-2);">ingredientes</span></h3>
+                    <p style="text-align:center;color:var(--text-2);font-size:14px;margin-bottom:24px;">Haz click para
+                        añadir y ajusta la cantidad.</p>
+
+                    <div id="demo-ingredients"
+                        style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;max-height:320px;overflow-y:auto;padding-right:4px;">
+                    </div>
+
+                    <!-- Cost gauge -->
+                    <div id="demo-gauge"
+                        style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:20px;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                            <span style="color:var(--text-2);font-size:13px;">Coste total del lote</span>
+                            <span id="demo-cost-total" style="color:white;font-weight:700;font-size:14px;">0.00€</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                            <span style="color:var(--text-2);font-size:13px;">Coste por porción</span>
+                            <span id="demo-cost-portion"
+                                style="color:white;font-weight:700;font-size:14px;">0.00€</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <span style="color:var(--text-2);font-size:13px;">Food Cost</span>
+                            <span id="demo-food-cost" style="font-weight:700;font-size:15px;">0%</span>
+                        </div>
+                        <div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+                            <div id="demo-gauge-bar"
+                                style="height:100%;width:0%;background:var(--green);border-radius:3px;transition:all 0.5s ease;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:12px;">
+                        <button onclick="demoGoStep(1)"
+                            style="flex:1;padding:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:var(--text-2);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;">
+                            ← Atrás
+                        </button>
+                        <button onclick="demoGoStep(3)"
+                            style="flex:2;padding:14px;background:linear-gradient(135deg, var(--accent), var(--accent-2));color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.3s;"
+                            onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 32px rgba(124,92,252,0.4)'"
+                            onmouseout="this.style.transform='';this.style.boxShadow=''">
+                            Ver resultado →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Results -->
+                <div id="demo-step-3" class="demo-step" style="display:none;position:relative;">
+                    <div style="text-align:center;font-size:48px;margin-bottom:16px;">🎉</div>
+                    <h3 style="text-align:center;font-size:22px;color:white;margin-bottom:6px;">Tu receta <span
+                            id="demo-result-name" style="color:var(--accent-2);">Paella</span></h3>
+                    <p style="text-align:center;color:var(--text-2);font-size:14px;margin-bottom:28px;">Análisis
+                        completo de rentabilidad</p>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+                        <div
+                            style="background:rgba(124,92,252,0.1);border:1px solid rgba(124,92,252,0.2);border-radius:12px;padding:20px;text-align:center;">
+                            <div style="font-size:24px;margin-bottom:4px;">💰</div>
+                            <div id="demo-r-cost" style="font-size:22px;font-weight:800;color:white;">0.00€</div>
+                            <div
+                                style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-2);margin-top:4px;">
+                                Coste / ración</div>
+                        </div>
+                        <div
+                            style="background:rgba(124,92,252,0.1);border:1px solid rgba(124,92,252,0.2);border-radius:12px;padding:20px;text-align:center;">
+                            <div style="font-size:24px;margin-bottom:4px;">📊</div>
+                            <div id="demo-r-fc" style="font-size:22px;font-weight:800;color:var(--green);">0%</div>
+                            <div
+                                style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-2);margin-top:4px;">
+                                Food Cost</div>
+                        </div>
+                        <div
+                            style="background:rgba(124,92,252,0.1);border:1px solid rgba(124,92,252,0.2);border-radius:12px;padding:20px;text-align:center;">
+                            <div style="font-size:24px;margin-bottom:4px;">📈</div>
+                            <div id="demo-r-margin" style="font-size:22px;font-weight:800;color:white;">0.00€</div>
+                            <div
+                                style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-2);margin-top:4px;">
+                                Margen bruto</div>
+                        </div>
+                        <div
+                            style="background:rgba(124,92,252,0.1);border:1px solid rgba(124,92,252,0.2);border-radius:12px;padding:20px;text-align:center;">
+                            <div style="font-size:24px;margin-bottom:4px;">🧂</div>
+                            <div id="demo-r-count" style="font-size:22px;font-weight:800;color:white;">0</div>
+                            <div
+                                style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-2);margin-top:4px;">
+                                Ingredientes</div>
+                        </div>
+                    </div>
+
+                    <!-- Verdict -->
+                    <div id="demo-verdict"
+                        style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:12px;padding:16px;text-align:center;margin-bottom:24px;">
+                        <p style="color:rgba(52,211,153,0.9);font-size:14px;line-height:1.6;margin:0;"></p>
+                    </div>
+
+                    <a href="#contacto"
+                        style="display:block;width:100%;padding:18px;background:linear-gradient(135deg, var(--green), #10b981);color:white;border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;transition:all 0.3s;letter-spacing:0.5px;"
+                        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 32px rgba(52,211,153,0.4)'"
+                        onmouseout="this.style.transform='';this.style.boxShadow=''">
+                        🚀 Quiero esto en mi restaurante
+                    </a>
+                    <button onclick="demoReset()"
+                        style="display:block;width:100%;padding:12px;background:none;border:none;color:var(--text-2);font-size:13px;cursor:pointer;margin-top:8px;transition:color 0.3s;"
+                        onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-2)'">
+                        ← Probar con otra receta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // ===== INTERACTIVE DEMO WIZARD =====
+        (function () {
+            const DEMO_INGREDIENTS = [
+                { name: 'Arroz bomba', price: 1.80, unit: 'kg', qty: 0.5 },
+                { name: 'Pollo troceado', price: 4.50, unit: 'kg', qty: 0.4 },
+                { name: 'Judía verde', price: 2.80, unit: 'kg', qty: 0.15 },
+                { name: 'Garrofón', price: 8.50, unit: 'kg', qty: 0.1 },
+                { name: 'Tomate triturado', price: 1.20, unit: 'kg', qty: 0.15 },
+                { name: 'Aceite de oliva', price: 7.90, unit: 'L', qty: 0.08 },
+                { name: 'Azafrán', price: 28.00, unit: 'g', qty: 0.3 },
+                { name: 'Pimentón', price: 12.00, unit: 'kg', qty: 0.01 },
+                { name: 'Sal', price: 0.40, unit: 'kg', qty: 0.02 },
+                { name: 'Limón', price: 1.50, unit: 'kg', qty: 0.1 },
+            ];
+
+            let demoSelected = new Set([0, 1, 2, 5]); // pre-select some
+            let demoStep = 1;
+
+            function renderIngredients() {
+                const container = document.getElementById('demo-ingredients');
+                if (!container) return;
+                container.innerHTML = DEMO_INGREDIENTS.map((ing, i) => {
+                    const sel = demoSelected.has(i);
+                    return `
+                <div onclick="window.demoToggle(${i})" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${sel ? 'rgba(124,92,252,0.12)' : 'rgba(255,255,255,0.03)'};border:1px solid ${sel ? 'rgba(124,92,252,0.35)' : 'rgba(255,255,255,0.08)'};border-radius:10px;cursor:pointer;transition:all 0.2s;user-select:none;"
+                    onmouseover="this.style.background='${sel ? 'rgba(124,92,252,0.18)' : 'rgba(255,255,255,0.06)'}'"
+                    onmouseout="this.style.background='${sel ? 'rgba(124,92,252,0.12)' : 'rgba(255,255,255,0.03)'}'">
+                    <div style="width:22px;height:22px;border-radius:6px;border:2px solid ${sel ? 'var(--accent)' : 'rgba(255,255,255,0.2)'};background:${sel ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;">
+                        ${sel ? '<span style="color:white;font-size:12px;">✓</span>' : ''}
+                    </div>
+                    <span style="flex:1;color:white;font-size:14px;font-weight:${sel ? '600' : '400'};">${ing.name}</span>
+                    <input type="number" value="${ing.qty}" step="0.05" min="0.01" style="width:60px;padding:6px 8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:white;font-size:13px;text-align:center;outline:none;${sel ? '' : 'opacity:0.3;pointer-events:none;'}"
+                        onclick="event.stopPropagation()" onchange="window.demoQty(${i}, this.value)">
+                    <span style="color:var(--text-2);font-size:12px;min-width:55px;text-align:right;">${ing.price.toFixed(2)}€/${ing.unit}</span>
+                </div>`;
+                }).join('');
+                updateDemoCost();
+            }
+
+            function updateDemoCost() {
+                let totalCost = 0;
+                let count = 0;
+                demoSelected.forEach(i => {
+                    totalCost += DEMO_INGREDIENTS[i].price * DEMO_INGREDIENTS[i].qty;
+                    count++;
+                });
+                const porciones = parseInt(document.getElementById('demo-porciones')?.value) || 1;
+                const pvp = parseFloat(document.getElementById('demo-precio')?.value) || 1;
+                const costPortion = totalCost / porciones;
+                const fc = pvp > 0 ? (costPortion / pvp * 100) : 0;
+
+                const elTotal = document.getElementById('demo-cost-total');
+                const elPortion = document.getElementById('demo-cost-portion');
+                const elFC = document.getElementById('demo-food-cost');
+                const elBar = document.getElementById('demo-gauge-bar');
+
+                if (elTotal) elTotal.textContent = totalCost.toFixed(2) + '€';
+                if (elPortion) elPortion.textContent = costPortion.toFixed(2) + '€';
+
+                let color = 'var(--green)';
+                let emoji = '🟢';
+                if (fc > 35) { color = '#ef4444'; emoji = '🔴'; }
+                else if (fc > 28) { color = '#f59e0b'; emoji = '🟡'; }
+
+                if (elFC) { elFC.textContent = emoji + ' ' + fc.toFixed(1) + '%'; elFC.style.color = color; }
+                if (elBar) { elBar.style.width = Math.min(fc, 50) * 2 + '%'; elBar.style.background = color; }
+
+                // Store for results
+                window._demoData = { totalCost, costPortion, fc, count, color, pvp, porciones };
+            }
+
+            window.demoToggle = function (i) {
+                if (demoSelected.has(i)) demoSelected.delete(i);
+                else demoSelected.add(i);
+                renderIngredients();
+            };
+
+            window.demoQty = function (i, val) {
+                DEMO_INGREDIENTS[i].qty = parseFloat(val) || 0;
+                updateDemoCost();
+            };
+
+            window.demoGoStep = function (step) {
+                demoStep = step;
+                document.querySelectorAll('.demo-step').forEach(el => el.style.display = 'none');
+                const target = document.getElementById('demo-step-' + step);
+                if (target) {
+                    target.style.display = 'block';
+                    target.style.animation = 'fadeInDemo 0.4s ease';
+                }
+
+                // Update dots
+                document.querySelectorAll('#demo-progress .demo-dot').forEach((dot, i) => {
+                    dot.style.background = i < step ? 'var(--accent)' : 'rgba(255,255,255,0.15)';
+                });
+
+                if (step === 2) renderIngredients();
+                if (step === 3) showDemoResults();
+            };
+
+            window.demoReset = function () {
+                demoSelected = new Set([0, 1, 2, 5]);
+                DEMO_INGREDIENTS.forEach((ing, i) => {
+                    ing.qty = [0.5, 0.4, 0.15, 0.1, 0.15, 0.08, 0.3, 0.01, 0.02, 0.1][i];
+                });
+                document.getElementById('demo-nombre').value = '';
+                document.getElementById('demo-precio').value = '18';
+                document.getElementById('demo-porciones').value = '4';
+                demoGoStep(1);
+            };
+
+            function showDemoResults() {
+                const d = window._demoData || {};
+                const name = document.getElementById('demo-nombre')?.value || 'Tu plato';
+
+                document.getElementById('demo-result-name').textContent = name;
+                document.getElementById('demo-r-cost').textContent = (d.costPortion || 0).toFixed(2) + '€';
+                document.getElementById('demo-r-fc').textContent = (d.fc || 0).toFixed(1) + '%';
+                document.getElementById('demo-r-fc').style.color = d.color || 'var(--green)';
+                document.getElementById('demo-r-margin').textContent = ((d.pvp || 0) - (d.costPortion || 0)).toFixed(2) + '€';
+                document.getElementById('demo-r-count').textContent = d.count || 0;
+
+                const verdict = document.getElementById('demo-verdict');
+                const fc = d.fc || 0;
+                const margin = (d.pvp || 0) - (d.costPortion || 0);
+                if (fc <= 28) {
+                    verdict.style.borderColor = 'rgba(52,211,153,0.2)';
+                    verdict.style.background = 'rgba(52,211,153,0.08)';
+                    verdict.querySelector('p').innerHTML = `<strong>¡Margen excelente!</strong> Un food cost del ${fc.toFixed(1)}% te deja <strong>${margin.toFixed(2)}€ de margen</strong> por ración. Este plato es una mina de oro.`;
+                    verdict.querySelector('p').style.color = 'rgba(52,211,153,0.9)';
+                } else if (fc <= 35) {
+                    verdict.style.borderColor = 'rgba(245,158,11,0.2)';
+                    verdict.style.background = 'rgba(245,158,11,0.08)';
+                    verdict.querySelector('p').innerHTML = `<strong>Margen aceptable.</strong> Food cost del ${fc.toFixed(1)}%. Podrías mejorar el margen ajustando cantidades o subiendo 1-2€ el precio.`;
+                    verdict.querySelector('p').style.color = 'rgba(245,158,11,0.9)';
+                } else {
+                    verdict.style.borderColor = 'rgba(239,68,68,0.2)';
+                    verdict.style.background = 'rgba(239,68,68,0.08)';
+                    verdict.querySelector('p').innerHTML = `<strong>⚠️ Food cost alto (${fc.toFixed(1)}%).</strong> Cada ración te deja solo ${margin.toFixed(2)}€. Revisa ingredientes caros o sube el precio de venta.`;
+                    verdict.querySelector('p').style.color = 'rgba(239,68,68,0.9)';
+                }
+            }
+
+            // Inject animation keyframe
+            if (!document.getElementById('demo-anim-style')) {
+                const s = document.createElement('style');
+                s.id = 'demo-anim-style';
+                s.textContent = `
+                @keyframes fadeInDemo {
+                    from { opacity: 0; transform: translateY(12px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                #demo-ingredients::-webkit-scrollbar { width: 4px; }
+                #demo-ingredients::-webkit-scrollbar-track { background: transparent; }
+                #demo-ingredients::-webkit-scrollbar-thumb { background: rgba(124,92,252,0.3); border-radius: 2px; }
+            `;
+                document.head.appendChild(s);
+            }
+        })();
+    </script>
+
+    <hr class="section-divider">
+
     <!-- ===== PRICING ===== -->
     <section class="pricing-section" id="precio">
         <div class="container">

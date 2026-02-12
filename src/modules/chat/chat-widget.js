@@ -777,8 +777,24 @@ async function executeAction(actionData) {
                 return false;
             }
 
-            // 🔒 FIX v2: Ajuste atómico negativo (-cantidad)
-            await window.api.adjustStock(ing.id, -cantidad, 'merma_chat');
+            // Backend handles stock deduction in POST /api/mermas (symmetric with DELETE restore)
+            if (window.API?.fetch) {
+                await window.API.fetch('/api/mermas', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        mermas: [{
+                            ingredienteId: ing.id,
+                            ingredienteNombre: ing.nombre,
+                            cantidad: cantidad,
+                            unidad: ing.unidad || 'ud',
+                            valorPerdida: 0,
+                            motivo: 'Chat/Voz',
+                            nota: 'Registrado vía chat',
+                            responsableId: null
+                        }]
+                    })
+                });
+            }
 
             await window.cargarDatos();
             window.renderizarIngredientes?.();

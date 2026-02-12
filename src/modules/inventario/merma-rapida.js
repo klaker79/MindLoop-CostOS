@@ -5,6 +5,8 @@
  * @module modules/inventario/merma-rapida
  */
 
+import { escapeHTML } from '../../utils/helpers.js';
+
 // Array para almacenar las líneas de merma
 let lineasMerma = [];
 let contadorLineas = 0;
@@ -67,7 +69,7 @@ function getIngredientesOptionsHtml() {
     let html = '<option value="">Selecciona producto...</option>';
     ingredientes.forEach(ing => {
         const stock = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0).toFixed(2);
-        html += `<option value="${ing.id}" data-unidad="${ing.unidad || 'ud'}" data-stock="${stock}" data-precio="${ing.precio || 0}" data-formato="${ing.cantidad_por_formato || 1}">${ing.nombre} (${stock} ${ing.unidad || 'ud'})</option>`;
+        html += `<option value="${ing.id}" data-unidad="${escapeHTML(ing.unidad || 'ud')}" data-stock="${stock}" data-precio="${ing.precio || 0}" data-formato="${ing.cantidad_por_formato || 1}">${escapeHTML(ing.nombre)} (${stock} ${escapeHTML(ing.unidad || 'ud')})</option>`;
     });
     return html;
 }
@@ -281,16 +283,15 @@ export async function confirmarMermasMultiples() {
             }
 
             try {
-                console.log(`📉 Merma: ${ingrediente.nombre} - Restando: ${cantidadMerma}`);
+                console.log(`📉 Merma: ${ingrediente.nombre} - Cantidad: ${cantidadMerma}`);
 
-                // 🔒 FIX v2: Ajuste atómico negativo (-cantidadMerma)
-                const result = await window.api.adjustStock(merma.ingredienteId, -cantidadMerma, 'merma');
+                // Backend now handles stock deduction in POST /api/mermas (symmetric with DELETE restore)
+                // NO frontend adjustStock call needed — avoids double-deduction
 
-                // Trackear éxito
+                // Trackear éxito (stock_actual will be updated after backend call + reload)
                 actualizacionesExitosas.push({
                     id: ingrediente.id,
                     nombre: ingrediente.nombre,
-                    stockNuevo: result.stock_actual,
                     cantidadMerma
                 });
 
@@ -310,13 +311,12 @@ export async function confirmarMermasMultiples() {
                 });
 
                 // Log para auditoría
-                console.log('📝 Merma registrada:', {
+                console.log('📝 Merma preparada:', {
                     ingrediente: ingrediente.nombre,
                     cantidad: cantidadMerma,
                     motivo: merma.motivo,
                     medidaCorrectora: merma.medidaCorrectora,
                     valorPerdida: merma.valorPerdida,
-                    stockNuevo: result.stock_actual,
                     responsableId,
                     fecha: new Date().toISOString()
                 });

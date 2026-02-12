@@ -1,0 +1,851 @@
+/**
+ * ═══════════════════════════════════════════════════
+ * 🚀 Onboarding Wizard — Premium Styles
+ * ═══════════════════════════════════════════════════
+ * Fullscreen wizard with glassmorphism, animations,
+ * and micro-interactions for new user setup.
+ */
+
+/* ─── Base Overlay ─── */
+.wizard-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    opacity: 0;
+    animation: wizardFadeIn 0.6s ease forwards;
+    overflow: hidden;
+}
+
+.wizard-overlay::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+    top: -100px;
+    right: -100px;
+    border-radius: 50%;
+    animation: wizardFloat 8s ease-in-out infinite;
+}
+
+.wizard-overlay::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 140, 66, 0.1) 0%, transparent 70%);
+    bottom: -80px;
+    left: -80px;
+    border-radius: 50%;
+    animation: wizardFloat 10s ease-in-out infinite reverse;
+}
+
+/* ─── Card Container ─── */
+.wizard-card {
+    position: relative;
+    width: 90%;
+    max-width: 560px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 48px 40px;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    z-index: 1;
+}
+
+/* ─── Progress Bar ─── */
+.wizard-progress {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 36px;
+}
+
+.wizard-progress-dot {
+    width: 40px;
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wizard-progress-dot.active {
+    background: linear-gradient(90deg, #8B5CF6, #a78bfa);
+    width: 56px;
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.wizard-progress-dot.completed {
+    background: #10B981;
+}
+
+/* ─── Step Content ─── */
+.wizard-step {
+    text-align: center;
+    display: none;
+    animation: wizardSlideUp 0.5s ease forwards;
+}
+
+.wizard-step.active {
+    display: block;
+}
+
+.wizard-step-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    display: inline-block;
+    animation: wizardBounce 1s ease;
+}
+
+.wizard-step h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.5px;
+}
+
+.wizard-step h2 .highlight {
+    background: linear-gradient(135deg, #ff8c42, #ffb347);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.wizard-step .wizard-subtitle {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 32px 0;
+    line-height: 1.6;
+}
+
+/* ─── Feature Cards (Step 1 Welcome) ─── */
+.wizard-features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.wizard-feature {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 18px 12px;
+    transition: all 0.3s ease;
+}
+
+.wizard-feature:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-4px);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.wizard-feature-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.wizard-feature-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.wizard-feature-desc {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 4px;
+}
+
+/* ─── Upload Zone (Step 2: PDF) ─── */
+.wizard-upload-zone {
+    border: 2px dashed rgba(139, 92, 246, 0.3);
+    border-radius: 16px;
+    padding: 40px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.wizard-upload-zone:hover,
+.wizard-upload-zone.dragover {
+    border-color: #8B5CF6;
+    background: rgba(139, 92, 246, 0.08);
+    transform: scale(1.01);
+}
+
+.wizard-upload-zone.dragover {
+    animation: wizardPulse 1s ease infinite;
+}
+
+.wizard-upload-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: block;
+    opacity: 0.8;
+}
+
+.wizard-upload-text {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 6px;
+}
+
+.wizard-upload-hint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.wizard-upload-zone.uploading {
+    pointer-events: none;
+    border-color: #8B5CF6;
+}
+
+.wizard-upload-zone.success {
+    border-color: #10B981;
+    border-style: solid;
+    background: rgba(16, 185, 129, 0.08);
+}
+
+/* ─── Parsed Results (Step 2) ─── */
+.wizard-parsed-results {
+    display: none;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.wizard-parsed-results.visible {
+    display: block;
+    animation: wizardSlideUp 0.4s ease;
+}
+
+.wizard-parsed-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.wizard-parsed-header span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #10B981;
+}
+
+.wizard-parsed-list {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.wizard-parsed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    animation: wizardItemIn 0.3s ease forwards;
+    opacity: 0;
+    transform: translateX(-10px);
+}
+
+.wizard-parsed-item:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.wizard-parsed-item:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.wizard-parsed-item:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.wizard-parsed-item:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+.wizard-parsed-item:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+.wizard-parsed-item:nth-child(6) {
+    animation-delay: 0.3s;
+}
+
+.wizard-parsed-item:nth-child(7) {
+    animation-delay: 0.35s;
+}
+
+.wizard-parsed-item:nth-child(8) {
+    animation-delay: 0.4s;
+}
+
+.wizard-parsed-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.wizard-parsed-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: #a78bfa;
+}
+
+/* ─── Recipe Form (Step 3) ─── */
+.wizard-recipe-form {
+    text-align: left;
+    margin-bottom: 24px;
+}
+
+.wizard-form-group {
+    margin-bottom: 16px;
+}
+
+.wizard-form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.wizard-form-group input,
+.wizard-form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: white;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.wizard-form-group input:focus,
+.wizard-form-group select:focus {
+    outline: none;
+    border-color: #8B5CF6;
+    background: rgba(139, 92, 246, 0.06);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.wizard-form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.25);
+}
+
+.wizard-form-group select option {
+    background: #1e1b4b;
+    color: white;
+}
+
+.wizard-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.wizard-ingredient-list {
+    max-height: 160px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.wizard-ingredient-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    margin-bottom: 4px;
+}
+
+.wizard-ingredient-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #8B5CF6;
+    cursor: pointer;
+}
+
+.wizard-ingredient-row label {
+    flex: 1;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0;
+    text-transform: none;
+    letter-spacing: 0;
+    cursor: pointer;
+}
+
+.wizard-ingredient-row input[type="number"] {
+    width: 80px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    color: white;
+    font-size: 13px;
+    text-align: right;
+}
+
+.wizard-ingredient-row input[type="number"]:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.wizard-ingredient-row.selected {
+    background: rgba(139, 92, 246, 0.1);
+    border-left: 3px solid #8B5CF6;
+    padding-left: 9px;
+}
+
+.wizard-ingredient-row.selected label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Step container transitions */
+#wizard-steps-container {
+    transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Food Cost Gauge (Step 3 + 4) ─── */
+.wizard-foodcost-live {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 16px;
+    transition: all 0.3s ease;
+}
+
+.wizard-foodcost-live.good {
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.wizard-foodcost-live.warning {
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.wizard-foodcost-live.danger {
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.wizard-foodcost-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.wizard-foodcost-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.wizard-foodcost-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+}
+
+.wizard-foodcost-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.wizard-foodcost-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease;
+    background: linear-gradient(90deg, #10B981, #34D399);
+    width: 0%;
+}
+
+.wizard-foodcost-bar-fill.warning {
+    background: linear-gradient(90deg, #F59E0B, #FBBF24);
+}
+
+.wizard-foodcost-bar-fill.danger {
+    background: linear-gradient(90deg, #EF4444, #F87171);
+}
+
+/* ─── Results Dashboard (Step 4) ─── */
+.wizard-results {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.wizard-result-card {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.3s ease;
+}
+
+.wizard-result-card:hover {
+    background: rgba(255, 255, 255, 0.09);
+    transform: translateY(-2px);
+}
+
+.wizard-result-card .icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.wizard-result-card .value {
+    font-size: 24px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.wizard-result-card .label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.wizard-result-card.highlight {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05));
+    border-color: rgba(139, 92, 246, 0.2);
+}
+
+.wizard-result-card.highlight .value {
+    color: #a78bfa;
+}
+
+.wizard-verdict {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.wizard-verdict.warning {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.wizard-verdict.danger {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.wizard-verdict-text {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+}
+
+.wizard-verdict-text strong {
+    color: white;
+}
+
+/* ─── Buttons ─── */
+.wizard-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.wizard-btn {
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    font-family: inherit;
+}
+
+.wizard-btn-primary {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    color: white;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    min-width: 160px;
+}
+
+.wizard-btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.45);
+}
+
+.wizard-btn-primary:active {
+    transform: translateY(-1px);
+}
+
+.wizard-btn-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wizard-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.wizard-btn-success {
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    min-width: 200px;
+}
+
+.wizard-btn-success:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
+}
+
+.wizard-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.wizard-skip {
+    display: block;
+    margin: 16px auto 0;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 8px 16px;
+    transition: color 0.2s;
+    font-family: inherit;
+}
+
+.wizard-skip:hover {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.wizard-demo-link {
+    display: inline-block;
+    margin-top: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    font-family: inherit;
+}
+
+.wizard-demo-link:hover {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* ─── Loading Spinner ─── */
+.wizard-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: wizardSpin 0.6s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* ─── Confetti particles ─── */
+.wizard-confetti {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.wizard-confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: wizardConfettiFall 2.5s ease-out forwards;
+}
+
+/* ─── Animations ─── */
+@keyframes wizardFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes wizardSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes wizardBounce {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+
+    75% {
+        transform: scale(0.9);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes wizardFloat {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(-30px, 30px);
+    }
+}
+
+@keyframes wizardPulse {
+
+    0%,
+    100% {
+        border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    50% {
+        border-color: rgba(139, 92, 246, 0.6);
+    }
+}
+
+@keyframes wizardSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes wizardItemIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes wizardConfettiFall {
+    0% {
+        transform: translateY(-20px) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(400px) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* ─── Wizard Close ─── */
+.wizard-overlay.closing {
+    animation: wizardFadeOut 0.4s ease forwards;
+}
+
+@keyframes wizardFadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+    .wizard-card {
+        padding: 32px 24px;
+        border-radius: 20px;
+    }
+
+    .wizard-step h2 {
+        font-size: 22px;
+    }
+
+    .wizard-features {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .wizard-feature {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        text-align: left;
+    }
+
+    .wizard-feature-icon {
+        font-size: 24px;
+        margin-bottom: 0;
+    }
+
+    .wizard-results {
+        grid-template-columns: 1fr;
+    }
+
+    .wizard-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .wizard-btn {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+}

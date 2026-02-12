@@ -37,6 +37,7 @@ export async function guardarIngrediente(event) {
         precio: parseFloat(getInputValue('ing-precio')) || 0,
         unidad: getInputValue('ing-unidad'),
         familia: getInputValue('ing-familia') || 'alimento',
+        rendimiento: parseFloat(getInputValue('ing-rendimiento')) || 100,
         // Solo enviar si tiene valor, undefined = backend preserva actual
         stock_actual: stockActualValue !== '' ? parseFloat(stockActualValue) : undefined,
         stock_minimo: stockMinimoValue !== '' ? parseFloat(stockMinimoValue) : undefined,
@@ -243,6 +244,10 @@ export function editarIngrediente(id) {
     // Cargar familia
     const familiaEl = getElement('ing-familia');
     if (familiaEl) familiaEl.value = ing.familia || 'alimento';
+
+    // Cargar rendimiento
+    const rendimientoEl = getElement('ing-rendimiento');
+    if (rendimientoEl) rendimientoEl.value = ing.rendimiento !== undefined && ing.rendimiento !== null ? ing.rendimiento : 100;
 
     // Cargar formato de compra
     const formatoEl = getElement('ing-formato-compra');

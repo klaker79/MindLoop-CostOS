@@ -5,6 +5,8 @@
  * @module modules/ingredientes/evolucion-precio
  */
 
+import { escapeHTML } from '../../utils/helpers.js';
+
 let chartEvolucionPrecio = null;
 let currentHistorial = [];
 let currentIngrediente = null;
@@ -29,7 +31,7 @@ export async function verEvolucionPrecio(ingredienteId) {
 
     // Update modal content
     document.getElementById('evolucion-ingrediente-nombre').innerHTML =
-        `<strong>${ingrediente.nombre}</strong> - Precio actual: ${parseFloat(ingrediente.precio || 0).toFixed(2)}€/${ingrediente.unidad}`;
+        `<strong>${escapeHTML(ingrediente.nombre)}</strong> - Precio actual: ${parseFloat(ingrediente.precio || 0).toFixed(2)}€/${escapeHTML(ingrediente.unidad)}`;
 
     // Calculate summary stats
     const precioActual = parseFloat(ingrediente.precio) || 0;
@@ -113,7 +115,7 @@ function renderTablaHistorial() {
 
         tableHtml += `<tr>
             <td style="padding: 8px;">${formatDate(h.fecha)}</td>
-            <td style="padding: 8px;">${h.proveedor}</td>
+            <td style="padding: 8px;">${escapeHTML(h.proveedor)}</td>
             <td style="padding: 8px; text-align: right;">${h.cantidad.toFixed(2)}</td>
             <td style="padding: 8px; text-align: right; font-weight: 600;">${h.precio.toFixed(2)}€</td>
             <td style="padding: 8px; text-align: right; color: ${varColor};">${varIcon} ${Math.abs(variacionItem).toFixed(1)}%</td>

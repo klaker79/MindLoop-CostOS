@@ -230,10 +230,10 @@ export function renderizarIngredientes() {
             if (precioMedio !== null && Math.abs(diferencia) > 1) {
                 const colorDif = diferencia > 0 ? '#ef4444' : '#10B981';
                 const iconDif = diferencia > 0 ? '↑' : '↓';
-                precioHtml = `<span style="font-weight: 600;">${precioMostrar.toFixed(2)} €/${ing.unidad}</span>
+                precioHtml = `<span style="font-weight: 600;">${precioMostrar.toFixed(2)} €/${escapeHTML(ing.unidad)}</span>
                     <br><small style="color: ${colorDif};">${iconDif} ${Math.abs(diferencia).toFixed(0)}% vs base</small>`;
             } else {
-                precioHtml = precioMostrar ? `${precioMostrar.toFixed(2)} €/${ing.unidad}` : '-';
+                precioHtml = precioMostrar ? `${precioMostrar.toFixed(2)} €/${escapeHTML(ing.unidad)}` : '-';
             }
 
             // Detectar si está inactivo
@@ -249,11 +249,11 @@ export function renderizarIngredientes() {
                 <td>${escapeHTML(nombreProv)}</td>
                 <td>${precioHtml}</td>
                 <td>${ing.stock_actual
-                    ? `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${ing.unidad}</span>${stockBajo && ing.stock_minimo ? ' ⚠️' : ''}`
+                    ? `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${escapeHTML(ing.unidad)}</span>${stockBajo && ing.stock_minimo ? ' ⚠️' : ''}`
                     : '-'
                 }
                 </td>
-                <td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + ing.unidad : '-'}</td>
+                <td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + escapeHTML(ing.unidad) : '-'}</td>
                 <td>
                     <button class="icon-btn" onclick="window.agregarAlCarrito(${ing.id}, 1)" title="Añadir al carrito" style="color: #f97316;">🛒</button>
                     <button class="icon-btn" onclick="window.verEvolucionPrecio(${ing.id})" title="Ver evolución de precio" style="color: #3b82f6;">📈</button>
@@ -356,7 +356,7 @@ function actualizarSelectProveedores() {
     const proveedores = window.proveedores || [];
     // ⚡ OPTIMIZACIÓN: Una sola operación DOM con map+join
     const options = proveedores.map(prov =>
-        `<option value="${prov.id}">${prov.nombre}</option>`
+        `<option value="${prov.id}">${escapeHTML(prov.nombre)}</option>`
     ).join('');
     select.innerHTML = '<option value="">Sin proveedor</option>' + options;
 }

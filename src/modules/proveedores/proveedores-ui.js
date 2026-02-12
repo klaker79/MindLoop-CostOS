@@ -105,10 +105,10 @@ export function renderizarProveedores() {
         const ingredientesCount = prov.ingredientes?.length || 0;
 
         html += '<tr>';
-        html += `<td><strong>${prov.nombre}</strong></td>`;
+        html += `<td><strong>${escapeHTML(prov.nombre)}</strong></td>`;
         html += `<td>`;
-        if (prov.telefono) html += `📞 ${prov.telefono}<br>`;
-        if (prov.email) html += `✉️ ${prov.email}`;
+        if (prov.telefono) html += `📞 ${escapeHTML(prov.telefono)}<br>`;
+        if (prov.email) html += `✉️ ${escapeHTML(prov.email)}`;
         html += `</td>`;
         html += `<td>${ingredientesCount} items</td>`;
         html += `<td><div class="actions">`;
@@ -141,16 +141,16 @@ export function verProveedorDetalles(id) {
     tituloEl.textContent = prov.nombre;
 
     let html = '<div style="margin-bottom: 16px;">';
-    if (prov.telefono) html += `<p>📞 ${prov.telefono}</p>`;
-    if (prov.email) html += `<p>✉️ ${prov.email}</p>`;
-    if (prov.direccion) html += `<p>📍 ${prov.direccion}</p>`;
+    if (prov.telefono) html += `<p>📞 ${escapeHTML(prov.telefono)}</p>`;
+    if (prov.email) html += `<p>✉️ ${escapeHTML(prov.email)}</p>`;
+    if (prov.direccion) html += `<p>📍 ${escapeHTML(prov.direccion)}</p>`;
     html += '</div>';
 
     html += '<h4 style="margin-bottom: 8px;">Ingredientes:</h4><ul>';
     if (prov.ingredientes && prov.ingredientes.length > 0) {
         prov.ingredientes.forEach(ingId => {
             const ing = window.ingredientes.find(i => i.id === ingId);
-            if (ing) html += `<li>${ing.nombre}</li>`;
+            if (ing) html += `<li>${escapeHTML(ing.nombre)}</li>`;
         });
     } else {
         html += '<li style="color:#999;">Sin ingredientes asignados</li>';

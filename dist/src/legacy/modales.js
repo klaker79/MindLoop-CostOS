@@ -233,7 +233,8 @@ async function fetchGastosFijos() {
     }
     try {
         const res = await fetch(getGastosApiBase() + '/gastos-fijos', {
-            headers: getGastosAuthHeaders()
+            headers: getGastosAuthHeaders(),
+            credentials: 'include'
         });
         if (!res.ok) throw new Error('Error fetching gastos fijos');
         const gastos = await res.json();
@@ -264,6 +265,7 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
         const res = await fetch(getGastosApiBase() + '/gastos-fijos/' + gastoInfo.id, {
             method: 'PUT',
             headers: getGastosAuthHeaders(),
+            credentials: 'include',
             body: JSON.stringify({ concepto: gastoInfo.concepto, monto_mensual: monto })
         });
 
