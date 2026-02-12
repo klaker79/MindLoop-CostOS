@@ -247,7 +247,20 @@ export function editarIngrediente(id) {
 
     // Cargar rendimiento
     const rendimientoEl = getElement('ing-rendimiento');
-    if (rendimientoEl) rendimientoEl.value = ing.rendimiento !== undefined && ing.rendimiento !== null ? ing.rendimiento : 100;
+    const sliderEl = getElement('ing-rendimiento-slider');
+    const valorVisualEl = getElement('ing-rendimiento-val');
+
+    if (rendimientoEl) {
+        const val = ing.rendimiento !== undefined && ing.rendimiento !== null ? ing.rendimiento : 100;
+        rendimientoEl.value = val;
+
+        // Sincronizar UI del slider
+        if (sliderEl) sliderEl.value = val;
+        if (valorVisualEl) {
+            valorVisualEl.textContent = val + '%';
+            valorVisualEl.style.color = val < 50 ? '#ef4444' : val < 80 ? '#f59e0b' : '#10b981';
+        }
+    }
 
     // Cargar formato de compra
     const formatoEl = getElement('ing-formato-compra');

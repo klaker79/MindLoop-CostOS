@@ -344,6 +344,30 @@ export function cerrarFormularioIngrediente() {
 
     const btn = getElement('btn-text-ingrediente');
     if (btn) btn.textContent = 'Añadir';
+
+    // 🆕 INICIALIZAR EVENTOS DEL SLIDER DE RENDIMIENTO
+    setTimeout(() => {
+        const sliderEl = document.getElementById('ing-rendimiento-slider');
+        const rendimientoEl = document.getElementById('ing-rendimiento');
+        const valorVisualEl = document.getElementById('ing-rendimiento-val');
+
+        if (sliderEl && rendimientoEl) {
+            // Sincronizar Slider -> Input Oculto
+            sliderEl.oninput = function () {
+                rendimientoEl.value = this.value;
+                if (valorVisualEl) {
+                    valorVisualEl.textContent = this.value + '%';
+                    valorVisualEl.style.color = this.value < 50 ? '#ef4444' : this.value < 80 ? '#f59e0b' : '#10b981';
+                }
+            };
+
+            // Sincronizar Input -> Slider (si cambiara programáticamente)
+            rendimientoEl.onchange = function () {
+                sliderEl.value = this.value;
+                if (valorVisualEl) valorVisualEl.textContent = this.value + '%';
+            };
+        }
+    }, 100); // Pequeño delay para asegurar que el DOM está listo si se abre modal
 }
 
 /**
