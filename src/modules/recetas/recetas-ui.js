@@ -135,17 +135,21 @@ export function agregarIngredienteReceta() {
                 ${optionsHtml}
             </select>
         </div>
-        <div style="flex: 1; position: relative;">
+        <div style="flex: 1.5; position: relative;">
             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #94a3b8; pointer-events: none;">📏</span>
             <input type="number" step="0.001" min="0" placeholder="Cantidad" 
-                style="
-                    width: 100%;
-                    padding: 12px 12px 12px 40px;
-                    border: 2px solid #e2e8f0;
-                    border-radius: 10px;
-                    font-size: 14px;
-                    transition: border-color 0.2s;
-                " onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'" onchange="window.calcularCosteReceta()">
+                class="receta-cantidad"
+                style="width: 100%; padding: 12px 12px 12px 35px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;" 
+                onchange="window.calcularCosteReceta()">
+        </div>
+        
+        <!-- MERMA / RENDIMIENTO EN RECETA -->
+        <div style="flex: 1; position: relative;" title="% Rendimiento (Merma)">
+            <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #64748b; pointer-events: none;">%</span>
+            <input type="number" step="1" min="1" max="100" placeholder="Rend." value="100"
+                class="receta-rendimiento"
+                style="width: 100%; padding: 12px 8px 12px 25px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fffbeb;" 
+                onchange="window.calcularCosteReceta()">
         </div>
         <button type="button" onclick="this.parentElement.remove(); window.calcularCosteReceta();" 
             style="
@@ -217,7 +221,16 @@ export function calcularCosteReceta() {
                     precio = precioFormato / cantidadPorFormato;
                 }
 
-                costeTotalLote += precio * cantidad;
+                // 🆕 CÁLCULO CON MERMA/RENDIMIENTO
+                // Si rendimiento es 80%, el coste aumenta (se divide por 0.8)
+                const inputRendimiento = item.querySelector('.receta-rendimiento');
+                const rendimiento = inputRendimiento ? parseFloat(inputRendimiento.value) || 100 : 100;
+                const factorRendimiento = rendimiento / 100;
+
+                // Evitar división por cero
+                const costeReal = factorRendimiento > 0 ? (precio / factorRendimiento) : precio;
+
+                costeTotalLote += costeReal * cantidad;
             }
         }
     });
@@ -493,7 +506,12 @@ export function exportarRecetas() {
                 precioUnitario = parseFloat(ing.precio) / cantidadFormato;
             }
 
-            return sum + (precioUnitario * parseFloat(item.cantidad));
+            // 🆕 CÁLCULO CON MERMA (Rendimiento)
+            const rendimiento = parseFloat(item.rendimiento) || 100;
+            const factorRendimiento = rendimiento / 100;
+            const costeReal = factorRendimiento > 0 ? (precioUnitario / factorRendimiento) : precioUnitario;
+
+            return sum + (costeReal * parseFloat(item.cantidad));
         }, 0);
         costesCalculados.set(rec.id, costeLote / porciones);
     });

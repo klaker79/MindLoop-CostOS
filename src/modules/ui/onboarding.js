@@ -73,6 +73,12 @@ export function resetOnboarding() {
     localStorage.removeItem(STORAGE_KEY);
 }
 
+export function initOnboarding() {
+    if (!isOnboardingComplete()) {
+        renderWizard();
+    }
+}
+
 // ─── Get available ingredients ───
 function getIngredients() {
     // Try real data first

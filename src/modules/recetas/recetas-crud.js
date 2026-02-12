@@ -26,15 +26,16 @@ export async function guardarReceta(event) {
             if (select.value.startsWith('rec_')) {
                 const recetaId = parseInt(select.value.replace('rec_', ''));
                 ingredientesReceta.push({
-                    // Guardar con ID offset (100000+) para identificar como receta base
-                    // El backend acepta IDs positivos, y al cargar detectamos que es receta base
                     ingredienteId: 100000 + recetaId,
                     cantidad: parseFloat(input.value),
+                    rendimiento: 100 // Recetas base asumen 100% por ahora
                 });
             } else {
+                const inputRend = item.querySelector('.receta-rendimiento');
                 ingredientesReceta.push({
                     ingredienteId: parseInt(select.value),
                     cantidad: parseFloat(input.value),
+                    rendimiento: inputRend ? parseFloat(inputRend.value) || 100 : 100
                 });
             }
         }
@@ -115,7 +116,13 @@ export function editarReceta(id) {
         } else {
             selectEl.value = item.ingredienteId;
         }
-        lastItem.querySelector('input').value = item.cantidad;
+        lastItem.querySelector('.receta-cantidad').value = item.cantidad;
+
+        // 🆕 Cargar Rendimiento
+        const inputRend = lastItem.querySelector('.receta-rendimiento');
+        if (inputRend) {
+            inputRend.value = item.rendimiento || 100;
+        }
     });
 
     window.calcularCosteReceta();
@@ -223,7 +230,12 @@ export function calcularCosteRecetaCompleto(receta) {
             precio = precioFormato / cantidadPorFormato;
         }
 
-        return total + precio * item.cantidad;
+        // 🆕 CÁLCULO CON MERMA (Rendimiento)
+        const rendimiento = parseFloat(item.rendimiento) || 100;
+        const factorRendimiento = rendimiento / 100;
+        const costeReal = factorRendimiento > 0 ? (precio / factorRendimiento) : precio;
+
+        return total + costeReal * item.cantidad;
     }, 0);
 
     // 🔧 FIX: Dividir por porciones para obtener coste POR PORCIÓN

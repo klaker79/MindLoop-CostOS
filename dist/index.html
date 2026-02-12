@@ -66,8 +66,8 @@
       });
     }
   </script>
-  <script type="module" crossorigin src="/assets/main-DykAx4cw.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/main-B5b-V_a_.css">
+  <script type="module" crossorigin src="/assets/main-Cu2OaJBX.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-YG_B1f7L.css">
 </head>
 
 <body>
@@ -93,6 +93,35 @@
       <div class="login-footer">
         <p>¿No tienes cuenta? <a href="#" data-action="mostrar-registro">Registrar restaurante</a></p>
       </div>
+
+      <!-- Formulario de Registro -->
+      <form id="register-form" class="login-form" style="display: none;">
+        <div class="form-group">
+          <label for="reg-nombre">Nombre del restaurante</label>
+          <input type="text" id="reg-nombre" placeholder="Mi Restaurante" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" placeholder="tu@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Contraseña</label>
+          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" minlength="6" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-password2">Confirmar contraseña</label>
+          <input type="password" id="reg-password2" placeholder="Repite la contraseña" minlength="6" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-codigo">Código de invitación</label>
+          <input type="text" id="reg-codigo" placeholder="Código proporcionado" required>
+        </div>
+        <button type="submit" class="login-btn">Crear Restaurante</button>
+        <p id="register-error" class="login-error"></p>
+        <p style="text-align: center; margin-top: 12px;">
+          <a href="#" data-action="mostrar-login">← Volver al login</a>
+        </p>
+      </form>
     </div>
   </div>
   <!-- 📱 App Container con Sidebar -->
@@ -595,6 +624,11 @@
                     <option value="bebida">Bebida</option>
                     <option value="suministro">Suministro</option>
                   </select>
+                </div>
+                <div class="form-group">
+                  <label>Rendimiento (%)</label>
+                  <input type="number" id="ing-rendimiento" step="1" min="0" max="100" value="100" placeholder="100">
+                  <small style="color: #64748b; font-size: 11px;">% Aprovechable (mermas)</small>
                 </div>
                 <div class="form-group">
                   <label>Stock actual</label>
