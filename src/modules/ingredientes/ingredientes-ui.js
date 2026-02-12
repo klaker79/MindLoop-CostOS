@@ -388,8 +388,6 @@ export function setupYieldSlider() {
         }
     }, 100);
 }
-    }, 100);
-}
 
 /**
  * Actualiza el select de proveedores
