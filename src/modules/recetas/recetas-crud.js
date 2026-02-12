@@ -205,8 +205,15 @@ function getIngMap() {
     return _ingMapCache;
 }
 
-export function calcularCosteRecetaCompleto(receta) {
+export function calcularCosteRecetaCompleto(receta, _visitados = new Set()) {
     if (!receta || !receta.ingredientes) return 0;
+
+    // Deteccion de ciclos: si ya estamos calculando esta receta, retornar 0
+    if (receta.id && _visitados.has(receta.id)) {
+        console.warn(`Ciclo detectado en receta ID ${receta.id} — coste parcial = 0`);
+        return 0;
+    }
+    if (receta.id) _visitados.add(receta.id);
 
     // ⚡ OPTIMIZACIÓN: Usar Maps O(1) en lugar de .find() O(n)
     const invMap = getInvMap();
@@ -220,8 +227,7 @@ export function calcularCosteRecetaCompleto(receta) {
             const recetaId = item.ingredienteId - 100000;
             const recetaBase = recetasMap.get(recetaId);
             if (recetaBase) {
-                // Calcular coste recursivamente (evitar recursión infinita)
-                const costeRecetaBase = calcularCosteRecetaCompleto(recetaBase);
+                const costeRecetaBase = calcularCosteRecetaCompleto(recetaBase, _visitados);
                 return total + costeRecetaBase * item.cantidad;
             }
             return total;

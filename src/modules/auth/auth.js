@@ -145,7 +145,7 @@ export function initRegisterForm() {
                 if (loginScreen) loginScreen.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'block';
                 if (typeof window.cargarDatos === 'function') {
-                    window.cargarDatos();
+                    await window.cargarDatos();
                 }
             } else {
                 // Login failed but registration succeeded - go back to login
@@ -232,7 +232,7 @@ export function initLoginForm() {
 
             // Cargar datos iniciales
             if (typeof window.cargarDatos === 'function') {
-                window.cargarDatos();
+                await window.cargarDatos();
             }
         } catch (err) {
             if (errorEl) errorEl.textContent = 'Error de conexión';

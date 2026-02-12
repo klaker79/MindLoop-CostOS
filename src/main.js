@@ -646,9 +646,12 @@ function showAlertModal() {
             if (e.target === modal) closeAlertModal();
         });
 
-        // Cerrar con Escape
+        // Cerrar con Escape (solo si el modal esta visible)
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeAlertModal();
+            if (e.key === 'Escape') {
+                const m = document.getElementById('alert-modal');
+                if (m && m.style.display !== 'none') closeAlertModal();
+            }
         });
     }
 
