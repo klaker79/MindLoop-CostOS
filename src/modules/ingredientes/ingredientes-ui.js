@@ -345,14 +345,23 @@ export function cerrarFormularioIngrediente() {
     const btn = getElement('btn-text-ingrediente');
     if (btn) btn.textContent = 'Añadir';
 
-    // 🆕 INICIALIZAR EVENTOS DEL SLIDER DE RENDIMIENTO
+    setupYieldSlider();
+}
+
+/**
+ * Configura los eventos del slider de rendimiento
+ * Se llama cada vez que se abre el formulario (nuevo o editar)
+ */
+export function setupYieldSlider() {
     setTimeout(() => {
         const sliderEl = document.getElementById('ing-rendimiento-slider');
         const rendimientoEl = document.getElementById('ing-rendimiento');
         const valorVisualEl = document.getElementById('ing-rendimiento-val');
 
         if (sliderEl && rendimientoEl) {
-            // Sincronizar Slider -> Input Oculto
+            // Eliminar listeners anteriores para evitar duplicados (clonando el nodo)
+            // O simplemente reasignando .oninput (que sobrescribe)
+
             sliderEl.oninput = function () {
                 rendimientoEl.value = this.value;
                 if (valorVisualEl) {
@@ -361,13 +370,15 @@ export function cerrarFormularioIngrediente() {
                 }
             };
 
-            // Sincronizar Input -> Slider (si cambiara programáticamente)
             rendimientoEl.onchange = function () {
                 sliderEl.value = this.value;
-                if (valorVisualEl) valorVisualEl.textContent = this.value + '%';
+                sliderEl.oninput(); // Trigger update visual
             };
+
+            // Inicializar visual
+            sliderEl.oninput();
         }
-    }, 100); // Pequeño delay para asegurar que el DOM está listo si se abre modal
+    }, 100);
 }
 
 /**

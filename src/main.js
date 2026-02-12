@@ -98,7 +98,9 @@ setTimeout(() => initGlobalSearch(), 2000);
 
 // Evolución de precios de ingredientes
 import { verEvolucionPrecio } from './modules/ingredientes/evolucion-precio.js';
+import { setupYieldSlider } from './modules/ingredientes/ingredientes-ui.js';
 window.verEvolucionPrecio = verEvolucionPrecio;
+window.setupYieldSlider = setupYieldSlider;
 
 // Sales Forecast (predicción)
 import { calcularForecast, renderForecastChart } from './modules/analytics/forecast.js';

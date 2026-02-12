@@ -262,6 +262,9 @@ export function editarIngrediente(id) {
         }
     }
 
+    // Reinicializar eventos para asegurar que funcionen
+    if (window.setupYieldSlider) window.setupYieldSlider();
+
     // Cargar formato de compra
     const formatoEl = getElement('ing-formato-compra');
     if (formatoEl) formatoEl.value = ing.formato_compra || '';
