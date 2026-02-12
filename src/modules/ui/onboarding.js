@@ -12,40 +12,9 @@
  */
 
 import '../../styles/onboarding-wizard.css';
+import { DEMO_INGREDIENTS, DEFAULT_QUANTITIES } from '../../data/onboarding-defaults';
 
 const STORAGE_KEY = 'mindloop_onboarding_complete';
-
-// ─── Demo ingredients (used when real data not available) ───
-const DEMO_INGREDIENTS = [
-    { id: 1, nombre: 'Arroz bomba', precio: 1.80, unidad: 'kg' },
-    { id: 2, nombre: 'Pollo', precio: 4.50, unidad: 'kg' },
-    { id: 3, nombre: 'Pimiento rojo', precio: 2.20, unidad: 'kg' },
-    { id: 4, nombre: 'Cebolla', precio: 0.90, unidad: 'kg' },
-    { id: 5, nombre: 'Tomate triturado', precio: 1.10, unidad: 'kg' },
-    { id: 6, nombre: 'Aceite de oliva', precio: 6.50, unidad: 'L' },
-    { id: 7, nombre: 'Sal', precio: 0.40, unidad: 'kg' },
-    { id: 8, nombre: 'Ajo', precio: 4.00, unidad: 'kg' },
-    { id: 9, nombre: 'Azafrán', precio: 28.00, unidad: 'g' },
-    { id: 10, nombre: 'Limón', precio: 1.60, unidad: 'kg' },
-    { id: 11, nombre: 'Queso parmesano', precio: 18.00, unidad: 'kg' },
-    { id: 12, nombre: 'Nata', precio: 3.20, unidad: 'L' },
-];
-
-// Default quantities for demo ingredients
-const DEFAULT_QUANTITIES = {
-    1: 0.5,   // Arroz 500g
-    2: 0.3,   // Pollo 300g
-    3: 0.15,  // Pimiento 150g
-    4: 0.1,   // Cebolla 100g
-    5: 0.2,   // Tomate 200g
-    6: 0.05,  // Aceite 50ml
-    7: 0.01,  // Sal 10g
-    8: 0.01,  // Ajo 10g
-    9: 0.5,   // Azafrán 0.5g
-    10: 0.1,  // Limón 100g
-    11: 0.05, // Queso 50g
-    12: 0.1,  // Nata 100ml
-};
 
 // ─── State ───
 let wizardState = {
@@ -229,7 +198,86 @@ function renderWelcome() {
     `;
 }
 
-// ─── Step 2: Recipe Form ───
+// ─── Step 1: Configuration (Costes Fijos) ───
+function renderConfiguration() {
+    return `
+        <div class="wizard-step active">
+            <div class="wizard-step-icon">⚙️</div>
+            <h2>Configura tu <span class="highlight">Negocio</span></h2>
+            <p class="wizard-subtitle">Para calcular márgenes reales, necesitamos un par de datos básicos.</p>
+
+            <div class="wizard-form-group">
+                <label>Costes Fijos Mensuales (€)</label>
+                <div class="wizard-input-hint">Alquiler, luz, agua, nóminas... (Aprox)</div>
+                <input type="number" id="wiz-costes-fijos" placeholder="Ej: 4500" min="0" step="100">
+            </div>
+
+            <div class="wizard-form-group">
+                <label>Margen de Beneficio Objetivo (%)</label>
+                <div class="wizard-input-hint">¿Cuánto quieres ganar netamente por plato?</div>
+                <div class="wizard-range-wrapper">
+                    <input type="range" id="wiz-margen-objetivo" min="5" max="50" value="20" step="1">
+                    <span id="wiz-margen-val">20%</span>
+                </div>
+            </div>
+
+            <div class="wizard-actions">
+                <button class="wizard-btn wizard-btn-secondary" id="wizard-back-welcome">← Atrás</button>
+                <button class="wizard-btn wizard-btn-primary" id="wizard-next-pantry">
+                    Siguiente: Despensa →
+                </button>
+            </div>
+            <button class="wizard-skip" id="wizard-skip-config">Saltar configuración</button>
+        </div>
+    `;
+}
+
+function bindConfigurationEvents() {
+    const nextBtn = document.getElementById('wizard-next-pantry');
+    const backBtn = document.getElementById('wizard-back-welcome');
+    const skipBtn = document.getElementById('wizard-skip-config');
+    const slider = document.getElementById('wiz-margen-objetivo');
+    const sliderVal = document.getElementById('wiz-margen-val');
+    const costesInput = document.getElementById('wiz-costes-fijos');
+
+    // Slider logic
+    if (slider && sliderVal) {
+        slider.addEventListener('input', (e) => {
+            sliderVal.textContent = e.target.value + '%';
+        });
+    }
+
+    // Save & Next
+    nextBtn?.addEventListener('click', async () => {
+        const costesFijos = parseFloat(costesInput?.value) || 0;
+        const margenObjetivo = parseInt(slider?.value) || 20;
+
+        // Guardar configuración (mock o real)
+        try {
+            if (window.api?.updateConfig) {
+                await window.api.updateConfig({ costesFijos, margenObjetivo });
+            }
+            // Guardar localmente también por si acaso
+            localStorage.setItem('mindloop_config_costes', costesFijos);
+            localStorage.setItem('mindloop_config_margen', margenObjetivo);
+        } catch (e) {
+            console.error(e);
+        }
+
+        wizardState.currentStep = 2;
+        renderStep(2);
+    });
+
+    backBtn?.addEventListener('click', () => {
+        wizardState.currentStep = 0;
+        renderStep(0);
+    });
+
+    skipBtn?.addEventListener('click', () => {
+        wizardState.currentStep = 2;
+        renderStep(2);
+    });
+}
 function renderRecipeForm() {
     const r = wizardState.recipe;
     return `

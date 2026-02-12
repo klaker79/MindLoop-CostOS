@@ -1,4 +1,5 @@
 import { escapeHTML } from '../../utils/helpers.js';
+import { calculateIngredientCost } from '../../utils/cost-calculator.js';
 /**
  * Recetas UI Module
  * Funciones de interfaz de usuario para recetas
@@ -231,16 +232,13 @@ export function calcularCosteReceta() {
                     precio = precioFormato / cantidadPorFormato;
                 }
 
-                // 🆕 CÁLCULO CON MERMA/RENDIMIENTO
-                // Si rendimiento es 80%, el coste aumenta (se divide por 0.8)
+                // 🆕 CÁLCULO CON MERMA/RENDIMIENTO (refactorizado a utilidad pura)
                 const inputRendimiento = item.querySelector('.receta-rendimiento');
                 const rendimiento = inputRendimiento ? parseFloat(inputRendimiento.value) || 100 : 100;
-                const factorRendimiento = rendimiento / 100;
 
-                // Evitar división por cero
-                const costeReal = factorRendimiento > 0 ? (precio / factorRendimiento) : precio;
-
-                costeTotalLote += costeReal * cantidad;
+                // Usar la función "anclada" para el cálculo
+                const costeReal = calculateIngredientCost(precio, cantidad, rendimiento);
+                costeTotalLote += costeReal;
             }
         }
     });
