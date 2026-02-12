@@ -182,7 +182,13 @@ export async function guardarIngrediente(event) {
     } catch (error) {
         if (typeof window.hideLoading === 'function') window.hideLoading();
         console.error('Error:', error);
-        showToast('Error guardando ingrediente: ' + error.message, 'error');
+
+        // 🔒 FIX: Mensaje amigable para duplicados (409 Conflict)
+        if (error.message && (error.message.includes('ya existe') || error.message.includes('409'))) {
+            showToast('⚠️ Ese ingrediente ya existe. Búscalo en la lista.', 'warning');
+        } else {
+            showToast('Error guardando ingrediente: ' + error.message, 'error');
+        }
     } finally {
         // 🔒 FIX: Siempre liberar el flag para permitir nuevos guardados
         _guardandoIngrediente = false;
