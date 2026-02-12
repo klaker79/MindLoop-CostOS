@@ -177,9 +177,15 @@ export async function logout() {
     } catch (_e) {
         // Continuar aunque falle
     }
+
+    // Limpiar TODO el almacenamiento local y de sesión
     localStorage.removeItem('user');
     localStorage.removeItem('token'); // Legacy cleanup
+    sessionStorage.clear(); // 🧹 Limpiar caché de sesión (KPIs, stock, etc.)
+
+    // Forzar recarga para limpiar estado en memoria
     mostrarLogin();
+    window.location.reload();
 }
 
 /**
