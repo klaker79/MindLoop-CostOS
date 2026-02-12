@@ -106,9 +106,10 @@ window.calcularForecast = calcularForecast;
 window.renderForecastChart = renderForecastChart;
 
 // Onboarding Tour (guía para nuevos usuarios)
-import { initOnboarding } from './modules/ui/onboarding.js';
+// Onboarding Tour (guía para nuevos usuarios)
+// import { initOnboarding } from './modules/ui/onboarding.js';
 // Initialize after data loads
-setTimeout(() => initOnboarding(), 3000);
+// setTimeout(() => initOnboarding(), 3000);
 
 // Utilidades adicionales
 window.showLoading = Helpers.showLoading;
