@@ -160,7 +160,7 @@ export function createChatStyles() {
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            overflow-x: hidden;
+            overflow-x: auto;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -173,6 +173,7 @@ export function createChatStyles() {
             gap: 10px;
             max-width: 92%;
             animation: messageIn 0.3s ease-out;
+            min-width: 0;
         }
         
         @keyframes messageIn {
@@ -221,6 +222,9 @@ export function createChatStyles() {
             word-break: break-word;
             white-space: normal;
             max-width: 100%;
+            min-width: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
         }
         
         /* Markdown Tables in Chat */

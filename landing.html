@@ -6,990 +6,2461 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MindLoop CostOS | Control de Costes en Piloto Automático</title>
     <meta name="description"
-        content="Software de gestión de costes para restaurantes que funciona solo. Ventas y compras se cargan automáticamente. Ahorra 30h/mes y reduce mermas.">
-
+        content="El único software de gestión de costes para restaurantes que funciona solo. Ventas y compras se cargan automáticamente.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-
     <style>
-        :root {
-            --primary: #667eea;
-            --primary-dark: #5a67d8;
-            --secondary: #764ba2;
-            --accent: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --dark: #1e1e2e;
-            --light: #f8fafc;
-            --gray: #64748b;
-        }
-
-        * {
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #050508;
+            --surface: #0c0c14;
+            --surface-2: #12121e;
+            --surface-3: #1a1a2e;
+            --border: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.08);
+            --text: #f0f0f8;
+            --text-2: #c0c0d0;
+            --text-dim: #6b6b85;
+            --accent: #7c5cfc;
+            --accent-2: #a78bfa;
+            --accent-3: #c084fc;
+            --pink: #f472b6;
+            --green: #34d399;
+            --amber: #fbbf24;
+            --red: #f87171;
+            --blue: #60a5fa;
+            --glow: rgba(124, 92, 252, 0.15);
+            --glow-strong: rgba(124, 92, 252, 0.35);
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--light);
-            color: var(--dark);
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* NOISE OVERLAY */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* SCROLL PROGRESS */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            z-index: 9000;
+            background: linear-gradient(90deg, var(--accent), var(--pink));
+            width: 0%;
+            transition: none;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1120px;
             margin: 0 auto;
             padding: 0 24px;
         }
 
-        /* Navigation */
+        /* NAV */
         nav {
-            background: white;
-            padding: 16px 0;
             position: fixed;
-            width: 100%;
             top: 0;
-            z-index: 1000;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        nav.scrolled {
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(24px) saturate(1.2);
+            border-bottom: 1px solid var(--border);
         }
 
         nav .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding-top: 18px;
+            padding-bottom: 18px;
         }
 
         .logo {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            font-size: 22px;
+        }
+
+        .logo span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
         }
 
         .nav-cta {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: var(--accent);
+            color: white !important;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-weight: 600 !important;
+            font-size: 14px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
         }
 
         .nav-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 0 30px var(--glow-strong);
+            transform: translateY(-1px);
+            border-color: var(--accent-2);
         }
 
-        /* Hero Section */
+        /* ===== HERO ===== */
         .hero {
-            background: linear-gradient(135deg, var(--dark) 0%, #2d2d44 100%);
-            padding: 160px 0 100px;
-            color: white;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23667eea' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
-
-        .hero-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
+            min-height: 100vh;
+            display: flex;
             align-items: center;
+            padding: 120px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: rgba(124, 92, 252, 0.12);
+            top: -200px;
+            left: -200px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(244, 114, 182, 0.08);
+            top: 100px;
+            right: -200px;
+            animation-delay: -7s;
+        }
+
+        .orb-3 {
+            width: 400px;
+            height: 400px;
+            background: rgba(96, 165, 250, 0.06);
+            bottom: -100px;
+            left: 30%;
+            animation-delay: -14s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -30px) scale(1.05);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.95);
+            }
+        }
+
+        .hero-inner {
+            text-align: center;
             position: relative;
             z-index: 1;
+            width: 100%;
         }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(102, 126, 234, 0.2);
-            border: 1px solid rgba(102, 126, 234, 0.4);
-            padding: 8px 16px;
+            background: rgba(124, 92, 252, 0.08);
+            border: 1px solid rgba(124, 92, 252, 0.2);
+            padding: 7px 18px;
             border-radius: 50px;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 24px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-2);
+            margin-bottom: 36px;
+            animation: badge-glow 3s ease-in-out infinite;
         }
 
-        .hero-badge span {
-            background: var(--success);
-            width: 8px;
-            height: 8px;
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--green);
             border-radius: 50%;
-            animation: pulse 2s infinite;
+            box-shadow: 0 0 8px var(--green);
         }
 
-        @keyframes pulse {
+        @keyframes badge-glow {
 
             0%,
             100% {
-                opacity: 1;
+                border-color: rgba(124, 92, 252, 0.2);
+                box-shadow: 0 0 0 rgba(124, 92, 252, 0);
             }
 
             50% {
-                opacity: 0.5;
+                border-color: rgba(124, 92, 252, 0.4);
+                box-shadow: 0 0 20px rgba(124, 92, 252, 0.08);
             }
         }
 
         .hero h1 {
-            font-size: 56px;
+            font-size: clamp(40px, 5.5vw, 70px);
             font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 24px;
+            line-height: 1.05;
+            margin-bottom: 28px;
+            letter-spacing: -2.5px;
         }
 
-        .hero h1 .gradient {
-            background: linear-gradient(135deg, var(--primary), #a855f7);
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--accent), var(--accent-3), var(--pink));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 4s ease-in-out infinite;
+        }
+
+        @keyframes gradient-shift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(17px, 2vw, 20px);
+            color: var(--text-2);
+            max-width: 580px;
+            margin: 0 auto 44px;
+            line-height: 1.7;
+            font-weight: 400;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--accent), #6d4de8);
+            color: white;
+            padding: 16px 36px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 40px var(--glow), 0 4px 16px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 60px var(--glow-strong), 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-2);
+            padding: 16px 28px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+            border: 1px solid var(--border-light);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .btn-secondary:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .hero-trust {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .hero-trust span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* DASHBOARD SHOWCASE */
+        .dashboard-wrap {
+            margin-top: 72px;
+            position: relative;
+            perspective: 1200px;
+        }
+
+        .dashboard-frame {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(124, 92, 252, 0.2);
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.03),
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 120px var(--glow);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s;
+        }
+
+        .dashboard-frame:hover {
+            transform: rotateX(1deg) scale(1.01);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 160px var(--glow-strong);
+        }
+
+        .dashboard-frame img {
+            width: 100%;
+            display: block;
+        }
+
+        .dashboard-frame::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(transparent, var(--bg));
+            pointer-events: none;
+        }
+
+        /* Glint animation */
+        .dashboard-frame::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(60deg, transparent 45%, rgba(255, 255, 255, 0.03) 50%, transparent 55%);
+            animation: glint 6s ease-in-out infinite;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        @keyframes glint {
+
+            0%,
+            100% {
+                transform: translateX(-100%);
+            }
+
+            50% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* FLOATING BADGE ON DASHBOARD */
+        .dash-badge {
+            position: absolute;
+            z-index: 3;
+            padding: 10px 16px;
+            background: rgba(12, 12, 20, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            animation: badge-float 4s ease-in-out infinite;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .dash-badge-1 {
+            top: 20%;
+            left: -60px;
+            animation-delay: 0s;
+        }
+
+        .dash-badge-2 {
+            top: 45%;
+            right: -70px;
+            animation-delay: -2s;
+        }
+
+        .dash-badge-3 {
+            bottom: 30%;
+            left: -50px;
+            animation-delay: -1s;
+        }
+
+        @keyframes badge-float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .badge-icon {
+            margin-right: 6px;
+        }
+
+        .badge-green {
+            color: var(--green);
+        }
+
+        .badge-amber {
+            color: var(--amber);
+        }
+
+        .badge-blue {
+            color: var(--blue);
+        }
+
+        /* ===== STATS ===== */
+        .stats-section {
+            padding: 0 0 100px;
+            margin-top: -60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+
+        .stat-item {
+            background: var(--surface);
+            padding: 36px 24px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .stat-item:hover {
+            background: var(--surface-2);
+        }
+
+        .stat-number {
+            font-size: 40px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, var(--text), var(--accent-2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .hero p {
-            font-size: 20px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 32px;
-            max-width: 500px;
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
 
-        .hero-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 18px 32px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 18px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .hero-cta:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
-        }
-
-        .hero-stats {
-            display: flex;
-            gap: 40px;
-            margin-top: 48px;
-        }
-
-        .hero-stat {
-            text-align: left;
-        }
-
-        .hero-stat-value {
-            font-size: 36px;
-            font-weight: 800;
-            color: var(--accent);
-        }
-
-        .hero-stat-label {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .hero-visual {
+        /* ===== SECTIONS ===== */
+        section {
+            padding: 120px 0;
             position: relative;
         }
 
-        .hero-image {
-            width: 100%;
-            border-radius: 16px;
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-2);
+            margin-bottom: 16px;
         }
 
-        /* Problem Section */
-        .problem {
-            padding: 100px 0;
-            background: white;
+        .section-label::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        .section-title {
+            font-size: clamp(30px, 4vw, 46px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            margin-bottom: 16px;
+            line-height: 1.1;
+        }
+
+        .section-sub {
+            font-size: 17px;
+            color: var(--text-dim);
+            max-width: 520px;
+            line-height: 1.7;
         }
 
         .section-header {
-            text-align: center;
-            max-width: 700px;
-            margin: 0 auto 60px;
+            margin-bottom: 64px;
         }
 
-        .section-label {
+        .section-center {
+            text-align: center;
+        }
+
+        .section-center .section-sub {
+            margin: 0 auto;
+        }
+
+        /* Dividers */
+        .section-divider {
+            height: 1px;
+            border: none;
+            background: linear-gradient(90deg, transparent, var(--border-light), transparent);
+            margin: 0;
+        }
+
+        /* ===== BEFORE/AFTER ===== */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 32px;
+            align-items: stretch;
+            margin-top: 0;
+        }
+
+        .comp-card {
+            border-radius: 20px;
+            padding: 40px 32px;
+            border: 1px solid var(--border);
+            transition: all 0.4s;
+        }
+
+        .comp-before {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.04), var(--surface));
+            border-color: rgba(248, 113, 113, 0.15);
+        }
+
+        .comp-after {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.04), var(--surface));
+            border-color: rgba(52, 211, 153, 0.15);
+        }
+
+        .comp-after:hover {
+            box-shadow: 0 0 60px rgba(52, 211, 153, 0.08);
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+        .comp-tag {
             display: inline-block;
-            background: rgba(102, 126, 234, 0.1);
-            color: var(--primary);
-            padding: 6px 16px;
-            border-radius: 50px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+        }
+
+        .comp-before .comp-tag {
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--red);
+        }
+
+        .comp-after .comp-tag {
+            background: rgba(52, 211, 153, 0.1);
+            color: var(--green);
+        }
+
+        .comp-card li {
+            list-style: none;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 15px;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comp-card li:last-child {
+            border: none;
+        }
+
+        .comp-vs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--surface-2);
+            border: 1px solid var(--border-light);
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-dim);
+            align-self: center;
+        }
+
+        /* ===== FLOW ===== */
+        .flow-section {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            position: relative;
+        }
+
+        /* Connection line */
+        .flow-grid::before {
+            content: '';
+            position: absolute;
+            top: 50px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--accent-3), var(--green), transparent);
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        .flow-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 32px 20px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            transition: all 0.4s;
+        }
+
+        .flow-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(124, 92, 252, 0.3);
+            box-shadow: 0 12px 40px var(--glow);
+        }
+
+        .flow-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent), var(--accent-3));
+            color: white;
+            margin: 0 auto 16px;
+        }
+
+        .flow-icon {
+            font-size: 44px;
+            margin-bottom: 16px;
+            line-height: 1;
+        }
+
+        .flow-card h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .flow-card p {
             font-size: 13px;
-            font-weight: 600;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        /* ===== FEATURES ===== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px 28px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-3));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(124, 92, 252, 0.2);
+            box-shadow: 0 16px 48px var(--glow);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            font-size: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(124, 92, 252, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.7;
+        }
+
+        /* ===== PRICING ===== */
+        .pricing-section {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pricing-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .pricing-left h3 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .pricing-left p {
+            font-size: 15px;
+            color: var(--text-dim);
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .pricing-left ul {
+            list-style: none;
+        }
+
+        .pricing-left li {
+            padding: 10px 0;
+            font-size: 15px;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pricing-left li:last-child {
+            border: none;
+        }
+
+        .check {
+            color: var(--green);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .pricing-right {
+            text-align: center;
+            padding: 48px 40px;
+            background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+            border: 1px solid rgba(124, 92, 252, 0.2);
+            border-radius: 24px;
+            position: relative;
+            box-shadow: 0 0 80px var(--glow), 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .pricing-right::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            height: 3px;
+            border-radius: 24px 24px 0 0;
+            background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--pink));
+        }
+
+        .price-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-3));
+            color: white;
+            padding: 4px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 16px;
         }
 
-        .section-title {
-            font-size: 42px;
+        .price-name {
+            font-size: 22px;
             font-weight: 800;
-            margin-bottom: 20px;
-            color: var(--dark);
+            margin-bottom: 4px;
         }
 
-        .section-subtitle {
-            font-size: 18px;
-            color: var(--gray);
-        }
-
-        .problem-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-        }
-
-        .problem-card {
-            background: var(--light);
-            padding: 32px;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .problem-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-        }
-
-        .problem-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-
-        .problem-card h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--danger);
-        }
-
-        .problem-card p {
-            color: var(--gray);
-            font-size: 15px;
-        }
-
-        /* Solution Section */
-        .solution {
-            padding: 100px 0;
-            background: linear-gradient(135deg, var(--dark) 0%, #2d2d44 100%);
-            color: white;
-        }
-
-        .solution .section-label {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-        }
-
-        .solution .section-title {
-            color: white;
-        }
-
-        .automation-visual {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 24px;
-            margin-top: 60px;
-            flex-wrap: wrap;
-        }
-
-        .auto-step {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 32px;
-            border-radius: 16px;
-            text-align: center;
-            width: 200px;
-            transition: transform 0.2s;
-        }
-
-        .auto-step:hover {
-            transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .auto-step-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        .auto-step h4 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .auto-step p {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .auto-arrow {
-            font-size: 32px;
-            color: var(--primary);
-        }
-
-        /* Features Section */
-        .features {
-            padding: 100px 0;
-            background: white;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-        }
-
-        .feature-card {
-            padding: 32px;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s;
-        }
-
-        .feature-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
-        }
-
-        .feature-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
-
-        .feature-card h3 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .feature-card p {
-            color: var(--gray);
+        .price-desc {
             font-size: 14px;
-        }
-
-        /* Pricing Section */
-        .pricing {
-            padding: 100px 0;
-            background: var(--light);
-        }
-
-        .pricing-cards {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .pricing-card {
-            background: white;
-            border-radius: 24px;
-            padding: 48px 40px;
-            width: 380px;
-            text-align: center;
-            border: 2px solid #e2e8f0;
-            position: relative;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .pricing-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
-        }
-
-        .pricing-card.featured {
-            border-color: var(--primary);
-            background: linear-gradient(135deg, var(--dark), #2d2d44);
-            color: white;
-        }
-
-        .pricing-badge {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--accent), #f97316);
-            color: white;
-            padding: 6px 20px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .pricing-name {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 8px;
-        }
-
-        .pricing-desc {
-            font-size: 14px;
-            color: var(--gray);
+            color: var(--text-dim);
             margin-bottom: 24px;
         }
 
-        .pricing-card.featured .pricing-desc {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .pricing-price {
-            margin-bottom: 32px;
-        }
-
-        .pricing-amount {
-            font-size: 64px;
+        .price-amount {
+            font-size: 80px;
             font-weight: 900;
             line-height: 1;
+            letter-spacing: -3px;
+            background: linear-gradient(135deg, var(--text), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .pricing-currency {
-            font-size: 24px;
+        .price-amount sup {
+            font-size: 28px;
             vertical-align: super;
+            opacity: 0.7;
         }
 
-        .pricing-period {
-            font-size: 16px;
-            color: var(--gray);
-        }
-
-        .pricing-card.featured .pricing-period {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .pricing-features {
-            list-style: none;
-            text-align: left;
-            margin-bottom: 32px;
-        }
-
-        .pricing-features li {
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .price-period {
+            color: var(--text-dim);
             font-size: 15px;
+            margin-bottom: 28px;
         }
 
-        .pricing-card.featured .pricing-features li {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .pricing-features li::before {
-            content: '✓';
-            color: var(--success);
-            font-weight: 700;
-        }
-
-        .pricing-cta {
+        .price-cta {
             display: block;
-            padding: 16px 32px;
-            border-radius: 12px;
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent), #6d4de8);
+            color: white;
+            padding: 16px;
+            border-radius: 14px;
             text-decoration: none;
             font-weight: 700;
             font-size: 16px;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px var(--glow);
         }
 
-        .pricing-card .pricing-cta {
-            background: var(--light);
-            color: var(--dark);
-        }
-
-        .pricing-card.featured .pricing-cta {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-        }
-
-        .pricing-cta:hover {
+        .price-cta:hover {
+            box-shadow: 0 8px 40px var(--glow-strong);
             transform: scale(1.02);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         }
 
-        /* FAQ Section */
-        .faq {
-            padding: 100px 0;
-            background: white;
+        .setup-info {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px dashed rgba(255, 255, 255, 0.08);
         }
 
-        .faq-grid {
+        .setup-price {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent-2);
+        }
+
+        .setup-note {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        /* ===== TESTIMONIALS ===== */
+        .testimonials-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 24px;
-            max-width: 900px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            position: relative;
+            transition: all 0.4s;
+        }
+
+        .testimonial-card:hover {
+            border-color: rgba(124, 92, 252, 0.2);
+        }
+
+        .testimonial-quote {
+            font-size: 48px;
+            color: var(--accent);
+            opacity: 0.3;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .testimonial-card p {
+            font-size: 15px;
+            color: var(--text-2);
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--pink));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .author-info cite {
+            font-style: normal;
+            font-size: 14px;
+            font-weight: 600;
+            display: block;
+        }
+
+        .author-info small {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        /* ===== FAQ ===== */
+        .faq-grid {
+            max-width: 700px;
             margin: 0 auto;
         }
 
         .faq-item {
-            background: var(--light);
-            padding: 28px;
-            border-radius: 16px;
+            border-bottom: 1px solid var(--border);
+            padding: 24px 0;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
-        .faq-item h4 {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--dark);
-        }
-
-        .faq-item p {
-            font-size: 14px;
-            color: var(--gray);
-        }
-
-        /* CTA Section */
-        .cta {
-            padding: 100px 0;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            text-align: center;
-        }
-
-        .cta h2 {
-            font-size: 42px;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
-
-        .cta p {
-            font-size: 20px;
-            opacity: 0.9;
-            margin-bottom: 32px;
-        }
-
-        .cta-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            background: white;
-            color: var(--primary);
-            padding: 18px 40px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 18px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .cta-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Footer */
-        footer {
-            background: var(--dark);
-            color: rgba(255, 255, 255, 0.6);
-            padding: 60px 0 30px;
-        }
-
-        .footer-content {
+        .faq-question {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
+            font-size: 16px;
+            font-weight: 600;
         }
 
-        .footer-logo {
-            font-size: 28px;
+        .faq-toggle {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-dim);
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .faq-answer p {
+            padding-top: 16px;
+            font-size: 15px;
+            color: var(--text-dim);
+            line-height: 1.7;
+        }
+
+        .faq-item.open .faq-toggle {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            transform: rotate(45deg);
+        }
+
+        .faq-item.open .faq-answer {
+            max-height: 200px;
+        }
+
+        /* ===== FINAL CTA ===== */
+        .final-cta {
+            text-align: center;
+            padding: 140px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-cta::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 500px;
+            background: radial-gradient(ellipse, var(--glow-strong), transparent 70%);
+            pointer-events: none;
+        }
+
+        .final-cta .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .final-cta h2 {
+            font-size: clamp(32px, 4vw, 50px);
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -1.5px;
+        }
+
+        .final-cta p {
+            font-size: 18px;
+            color: var(--text-dim);
+            margin-bottom: 36px;
+        }
+
+        /* TRUST BAR */
+        .trust-bar {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .trust-icon {
+            font-size: 18px;
+        }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        /* FLOATING WA */
+        .wa-float {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            background: #25d366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 24px rgba(37, 211, 102, 0.4), 0 0 0 4px rgba(37, 211, 102, 0.1);
+            transition: all 0.3s;
+            text-decoration: none;
+            animation: wa-pulse 2s ease-in-out infinite;
+        }
+
+        .wa-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 32px rgba(37, 211, 102, 0.5);
+        }
+
+        @keyframes wa-pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 24px rgba(37, 211, 102, 0.4), 0 0 0 4px rgba(37, 211, 102, 0.1);
+            }
+
+            50% {
+                box-shadow: 0 4px 24px rgba(37, 211, 102, 0.4), 0 0 0 10px rgba(37, 211, 102, 0.05);
+            }
+        }
+
+        /* REVEAL */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        .reveal-delay-1 {
+            transition-delay: 0.1s;
+        }
+
+        .reveal-delay-2 {
+            transition-delay: 0.2s;
+        }
+
+        .reveal-delay-3 {
+            transition-delay: 0.3s;
+        }
+
+        .reveal-delay-4 {
+            transition-delay: 0.4s;
+        }
+
+        /* ===== BEFORE/AFTER SLIDER ===== */
+        .ba-slider-wrap {
+            margin-top: 64px;
+            position: relative;
+        }
+
+        .ba-slider-label {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .ba-slider-label span {
+            color: var(--accent-2);
+            font-weight: 700;
+        }
+
+        .ba-slider {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: ew-resize;
+            border: 1px solid rgba(124, 92, 252, 0.25);
+            box-shadow: 0 0 80px var(--glow), 0 20px 60px rgba(0, 0, 0, 0.4);
+            aspect-ratio: 16 / 9;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .ba-slider img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .ba-before {
+            z-index: 1;
+            clip-path: inset(0 50% 0 0);
+        }
+
+        .ba-after {
+            z-index: 0;
+        }
+
+        .ba-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            z-index: 3;
+            width: 4px;
+            margin-left: -2px;
+            background: linear-gradient(180deg, var(--accent), var(--pink));
+            box-shadow: 0 0 20px var(--glow-strong);
+        }
+
+        .ba-handle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-3));
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px var(--glow-strong), 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .ba-handle::after {
+            content: '◀ ▶';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            letter-spacing: 4px;
+            color: white;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .ba-label-tag {
+            position: absolute;
+            top: 16px;
+            z-index: 4;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(12px);
+        }
+
+        .ba-label-before {
+            left: 16px;
+            background: rgba(248, 113, 113, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+
+        .ba-label-after {
+            right: 16px;
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .ba-hint {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--text-dim);
+            opacity: 0.6;
+            animation: hint-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes hint-pulse {
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* ===== APP BROWSER SHOWCASE ===== */
+        .showcase-section {
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-browser {
+            max-width: 1000px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            background: var(--surface);
+            border: 1px solid rgba(124, 92, 252, 0.2);
+            box-shadow: 0 0 120px rgba(124, 92, 252, 0.1), 0 40px 80px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .app-browser-topbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 18px;
+            background: rgba(20, 20, 35, 0.95);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .topbar-dot.red {
+            background: #ff5f57;
+        }
+
+        .topbar-dot.yellow {
+            background: #febc2e;
+        }
+
+        .topbar-dot.green {
+            background: #28c840;
+        }
+
+        .topbar-url {
+            flex: 1;
+            margin-left: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: 'Inter', monospace;
+        }
+
+        .topbar-url span {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .app-browser-body {
+            display: flex;
+            min-height: 500px;
+        }
+
+        .app-sidebar {
+            width: 180px;
+            min-width: 180px;
+            background: linear-gradient(180deg, #2b1a6e 0%, #3d1f9e 100%);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-sidebar-brand {
+            padding: 0 16px 16px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 12px;
+        }
+
+        .app-sidebar-brand .brand-name {
+            font-size: 14px;
             font-weight: 800;
             color: white;
         }
 
-        .footer-links {
+        .app-sidebar-brand .brand-sub {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 2px;
+        }
+
+        .sidebar-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.35);
+            padding: 12px 16px 6px;
+        }
+
+        .sidebar-tab {
             display: flex;
-            gap: 32px;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            position: relative;
         }
 
-        .footer-links a {
-            color: rgba(255, 255, 255, 0.6);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .footer-links a:hover {
+        .sidebar-tab:hover {
+            background: rgba(255, 255, 255, 0.08);
             color: white;
         }
 
-        .footer-bottom {
-            text-align: center;
-            padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 14px;
+        .sidebar-tab.active {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            font-weight: 700;
+            border-left-color: #fbbf24;
         }
 
-        /* Responsive */
+        .sidebar-tab .tab-icon {
+            font-size: 16px;
+            width: 22px;
+            text-align: center;
+        }
+
+        .sidebar-tab .tab-badge {
+            margin-left: auto;
+            font-size: 9px;
+            font-weight: 800;
+            background: var(--green);
+            color: #0a0a0f;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .app-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #f0f2f8;
+        }
+
+        .app-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            transform: scale(1.02);
+        }
+
+        .app-screen.active {
+            opacity: 1;
+            transform: scale(1);
+            z-index: 1;
+        }
+
+        .app-screen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top left;
+        }
+
+        .app-feature-callout {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 24px;
+            background: linear-gradient(0deg, rgba(5, 5, 8, 0.95) 0%, rgba(5, 5, 8, 0.7) 60%, transparent 100%);
+            z-index: 2;
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .app-screen.active .app-feature-callout {
+            transform: translateY(0);
+            opacity: 1;
+            transition-delay: 0.3s;
+        }
+
+        .callout-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .callout-desc {
+            font-size: 12px;
+            color: var(--text-2);
+            line-height: 1.5;
+        }
+
+        .showcase-auto-indicator {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .auto-dot {
+            width: 32px;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .auto-dot:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .auto-dot.active {
+            background: rgba(124, 92, 252, 0.3);
+        }
+
+        .auto-dot.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-3));
+            animation: dot-fill 5s linear forwards;
+        }
+
+        @keyframes dot-fill {
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-browser-body {
+                flex-direction: column;
+            }
+
+            .app-sidebar {
+                width: 100%;
+                min-width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                padding: 0;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .app-sidebar-brand {
+                display: none;
+            }
+
+            .sidebar-label {
+                display: none;
+            }
+
+            .sidebar-tab {
+                white-space: nowrap;
+                padding: 12px 16px;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+                font-size: 12px;
+            }
+
+            .sidebar-tab.active {
+                border-bottom-color: #fbbf24;
+                border-left-color: transparent;
+            }
+
+            .app-content {
+                min-height: 300px;
+            }
+
+            .app-feature-callout {
+                padding: 14px 16px;
+            }
+
+            .callout-title {
+                font-size: 13px;
+            }
+
+            .callout-desc {
+                font-size: 11px;
+            }
+        }
+
+        /* RESPONSIVE */
         @media (max-width: 900px) {
-            .hero-content {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .comparison {
                 grid-template-columns: 1fr;
-                text-align: center;
+                gap: 16px;
+            }
+
+            .comp-vs {
+                align-self: center;
+                justify-self: center;
+            }
+
+            .flow-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .flow-grid::before {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links a:not(.nav-cta) {
+                display: none;
+            }
+
+            .dash-badge {
+                display: none;
             }
 
             .hero h1 {
-                font-size: 40px;
+                letter-spacing: -1.5px;
             }
 
-            .hero p {
-                margin: 0 auto 32px;
+            .trust-bar {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
             }
 
-            .hero-stats {
-                justify-content: center;
-            }
-
-            .hero-visual {
-                order: -1;
-            }
-
-            .problem-grid,
-            .features-grid,
-            .faq-grid {
+            .flow-grid {
                 grid-template-columns: 1fr;
             }
 
-            .automation-visual {
+            .hero-actions {
                 flex-direction: column;
             }
 
-            .auto-arrow {
-                transform: rotate(90deg);
-            }
-
-            .pricing-cards {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .footer-content {
-                flex-direction: column;
-                gap: 24px;
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
 </head>
 
 <body>
+    <div class="scroll-progress" id="scrollProgress"></div>
 
-    <!-- Navigation -->
-    <nav>
+    <nav id="mainNav">
         <div class="container">
-            <div class="logo">🍳 MindLoop CostOS</div>
-            <a href="#pricing" class="nav-cta">Empezar Ahora</a>
+            <a href="#" class="logo">
+                <span class="logo-icon">🍳</span>
+                CostOS <span>by MindLoop</span>
+            </a>
+            <div class="nav-links">
+                <a href="#problema">Problema</a>
+                <a href="#como-funciona">Cómo funciona</a>
+                <a href="#funciones">Funciones</a>
+                <a href="#precio">Precio</a>
+                <a href="https://wa.me/34641557477?text=Hola%2C%20me%20interesa%20CostOS" target="_blank"
+                    class="nav-cta">Solicitar Demo</a>
+            </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- ===== HERO ===== -->
     <section class="hero">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
         <div class="container">
-            <div class="hero-content">
-                <div>
-                    <div class="hero-badge">
-                        <span></span>
-                        100% Automático
-                    </div>
-                    <h1>Control de Costes en <span class="gradient">Piloto Automático</span></h1>
-                    <p>El único software de gestión de costes para restaurantes que funciona solo. Las ventas y compras
-                        se cargan automáticamente. Tú solo miras el dashboard.</p>
-                    <a href="#pricing" class="hero-cta">
-                        Solicitar Demo Gratuita
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
+            <div class="hero-inner">
+                <div class="hero-badge"><span class="dot"></span> 100% Automático · Sin trabajo manual</div>
+                <h1>Tu restaurante pierde<br>dinero <span class="gradient-text">cada día</span><br>sin saberlo</h1>
+                <p class="hero-subtitle">CostOS conecta tu TPV y tus proveedores.<br>Calcula márgenes, detecta mermas y
+                    te dice exactamente<br>cuánto ganas por plato. <strong>Sin tocar nada.</strong></p>
+                <div class="hero-actions">
+                    <a href="https://wa.me/34641557477?text=Hola%2C%20me%20interesa%20una%20demo%20de%20CostOS%20para%20mi%20restaurante"
+                        target="_blank" class="btn-primary">
+                        Solicitar Demo Gratuita →
                     </a>
+                    <a href="#como-funciona" class="btn-secondary">
+                        Ver cómo funciona ↓
+                    </a>
+                </div>
+                <div class="hero-trust">
+                    <span>✦ Sin permanencia</span>
+                    <span>✦ Setup en 48h</span>
+                    <span>✦ Soporte real</span>
+                </div>
 
-                    <div class="hero-stats">
-                        <div class="hero-stat">
-                            <div class="hero-stat-value">30h</div>
-                            <div class="hero-stat-label">Ahorro mensual</div>
+                <div class="dashboard-wrap">
+                    <div class="dashboard-frame">
+                        <div class="dash-badge dash-badge-1">
+                            <span class="badge-icon">📈</span>
+                            <span class="badge-green">Margen +12%</span>
                         </div>
-                        <div class="hero-stat">
-                            <div class="hero-stat-value">0</div>
-                            <div class="hero-stat-label">Minutos de input</div>
+                        <div class="dash-badge dash-badge-2">
+                            <span class="badge-icon">🚨</span>
+                            <span class="badge-amber">15 alertas stock</span>
                         </div>
-                        <div class="hero-stat">
-                            <div class="hero-stat-value">-40%</div>
-                            <div class="hero-stat-label">Mermas detectadas</div>
+                        <div class="dash-badge dash-badge-3">
+                            <span class="badge-icon">🤖</span>
+                            <span class="badge-blue">Auto-sync OK</span>
+                        </div>
+                        <img src="dashboard-hero.png"
+                            alt="CostOS Dashboard - Control de costes en tiempo real para restaurantes">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== STATS ===== -->
+    <div class="stats-section">
+        <div class="container">
+            <div class="stats-grid reveal">
+                <div class="stat-item">
+                    <div class="stat-number" data-target="30" data-suffix="h">0h</div>
+                    <div class="stat-label">Ahorro mensual</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="0" data-suffix=" min">0 min</div>
+                    <div class="stat-label">Input necesario</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="40" data-prefix="-" data-suffix="%">0%</div>
+                    <div class="stat-label">Mermas detectadas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="500" data-prefix="+" data-suffix="€">0€</div>
+                    <div class="stat-label">Ahorro medio / mes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- ===== PROBLEM / COMPARISON ===== -->
+    <section id="problema">
+        <div class="container">
+            <div class="section-header section-center reveal">
+                <div class="section-label">El problema real</div>
+                <h2 class="section-title">El 80% abandona su software<br>de costes en 3 meses</h2>
+                <p class="section-sub">Porque requiere trabajo manual. CostOS no.</p>
+            </div>
+            <div class="comparison">
+                <div class="comp-card comp-before reveal">
+                    <div class="comp-tag">Sin CostOS</div>
+                    <ul>
+                        <li><span style="opacity: 0.5;">❌</span> Metes datos a mano cada día</li>
+                        <li><span style="opacity: 0.5;">❌</span> Facturas en cajones sin revisar</li>
+                        <li><span style="opacity: 0.5;">❌</span> No sabes tu margen real</li>
+                        <li><span style="opacity: 0.5;">❌</span> Mermas invisibles que te comen</li>
+                        <li><span style="opacity: 0.5;">❌</span> Inventario inexistente o en Excel</li>
+                        <li><span style="opacity: 0.5;">❌</span> Decisiones a ojo</li>
+                    </ul>
+                </div>
+                <div class="comp-vs">VS</div>
+                <div class="comp-card comp-after reveal reveal-delay-2">
+                    <div class="comp-tag">Con CostOS</div>
+                    <ul>
+                        <li><span>✅</span> Todo se carga automáticamente</li>
+                        <li><span>✅</span> OCR procesa facturas al instante</li>
+                        <li><span>✅</span> Dashboard con márgenes en vivo</li>
+                        <li><span>✅</span> Alertas de merma proactivas</li>
+                        <li><span>✅</span> Inventario teórico vs real</li>
+                        <li><span>✅</span> Datos → Decisiones con base</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- BEFORE / AFTER SLIDER -->
+            <div class="ba-slider-wrap reveal">
+                <p class="ba-slider-label">Desliza para ver la diferencia — <span>de Excel caótico a dashboard
+                        inteligente</span></p>
+                <div class="ba-slider" id="baSlider">
+                    <img src="excel-chaos.png" alt="Antes: Excel caótico para gestionar costes" class="ba-before"
+                        id="baBefore">
+                    <img src="dashboard-hero.png" alt="Después: Dashboard CostOS profesional" class="ba-after">
+                    <div class="ba-handle" id="baHandle"></div>
+                    <div class="ba-label-tag ba-label-before">❌ Antes</div>
+                    <div class="ba-label-tag ba-label-after">✅ Después</div>
+                </div>
+                <p class="ba-hint">← Desliza el control para comparar →</p>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ===== HOW IT WORKS ===== -->
+    <section class="flow-section" id="como-funciona">
+        <div class="container">
+            <div class="section-header section-center reveal">
+                <div class="section-label">Cómo funciona</div>
+                <h2 class="section-title">De zero a control total<br>en 3 pasos</h2>
+            </div>
+            <div class="flow-grid">
+                <div class="flow-card reveal reveal-delay-1">
+                    <div class="flow-num">1</div>
+                    <div class="flow-icon">🔌</div>
+                    <h4>Conectamos tu TPV</h4>
+                    <p>Enlazamos tu punto de venta. Las ventas llegan solas cada noche.</p>
+                </div>
+                <div class="flow-card reveal reveal-delay-2">
+                    <div class="flow-num">2</div>
+                    <div class="flow-icon">📸</div>
+                    <h4>Escaneo de facturas</h4>
+                    <p>OCR procesa tus albaranes. Precios y cantidades se actualizan automáticamente.</p>
+                </div>
+                <div class="flow-card reveal reveal-delay-3">
+                    <div class="flow-num">3</div>
+                    <div class="flow-icon">📊</div>
+                    <h4>Dashboard en vivo</h4>
+                    <p>Márgenes, mermas, food cost, PnL. Todo actualizado sin mover un dedo.</p>
+                </div>
+                <div class="flow-card reveal reveal-delay-4">
+                    <div class="flow-num">∞</div>
+                    <div class="flow-icon">🧘</div>
+                    <h4>Tú tranquilo</h4>
+                    <p>Recibe cada mañana un email con el resumen. Céntrate en lo que importa: tu cocina.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ===== INTERACTIVE APP BROWSER ===== -->
+    <section class="showcase-section" id="demo">
+        <div class="container">
+            <div class="section-header section-center reveal">
+                <div class="section-label">Explora el producto</div>
+                <h2 class="section-title">Mira CostOS<br>por dentro</h2>
+                <p class="section-sub">Haz click en cada módulo para explorar la plataforma real.</p>
+            </div>
+
+            <div class="app-browser reveal">
+                <div class="app-browser-topbar">
+                    <div class="topbar-dot red"></div>
+                    <div class="topbar-dot yellow"></div>
+                    <div class="topbar-dot green"></div>
+                    <div class="topbar-url">🔒 <span>app.mindloop.cloud</span></div>
+                </div>
+                <div class="app-browser-body">
+                    <div class="app-sidebar">
+                        <div class="app-sidebar-brand">
+                            <div class="brand-name">🔍 CostOS</div>
+                            <div class="brand-sub">Restaurant Intelligence</div>
+                        </div>
+                        <div class="sidebar-label">Operaciones</div>
+                        <div class="sidebar-tab active" data-screen="dashboard">
+                            <span class="tab-icon">📊</span> Dashboard
+                        </div>
+                        <div class="sidebar-tab" data-screen="pedidos">
+                            <span class="tab-icon">📦</span> Pedidos
+                        </div>
+                        <div class="sidebar-tab" data-screen="inventario">
+                            <span class="tab-icon">📋</span> Inventario
+                        </div>
+                        <div class="sidebar-label">Análisis</div>
+                        <div class="sidebar-tab" data-screen="recetas">
+                            <span class="tab-icon">🍽️</span> Recetas
+                        </div>
+                        <div class="sidebar-tab" data-screen="analisis">
+                            <span class="tab-icon">📈</span> Análisis
+                            <span class="tab-badge">NUEVO</span>
+                        </div>
+                    </div>
+                    <div class="app-content">
+                        <div class="app-screen active" data-screen="dashboard">
+                            <img src="showcase-dashboard.png" alt="Dashboard CostOS">
+                            <div class="app-feature-callout">
+                                <div class="callout-title">📊 Dashboard en Tiempo Real</div>
+                                <div class="callout-desc">KPIs de ventas, stock bajo, proyección de ingresos y actividad
+                                    del equipo — todo actualizado automáticamente.</div>
+                            </div>
+                        </div>
+                        <div class="app-screen" data-screen="pedidos">
+                            <img src="showcase-pedidos.png" alt="Pedidos CostOS">
+                            <div class="app-feature-callout">
+                                <div class="callout-title">📦 Gestión de Pedidos</div>
+                                <div class="callout-desc">Crea pedidos a proveedores, importa automáticamente y controla
+                                    el stock con cada recepción.</div>
+                            </div>
+                        </div>
+                        <div class="app-screen" data-screen="inventario">
+                            <img src="showcase-inventario.png" alt="Inventario CostOS">
+                            <div class="app-feature-callout">
+                                <div class="callout-title">📋 Inventario Inteligente</div>
+                                <div class="callout-desc">Stock virtual vs real con detección de diferencias. Alertas de
+                                    stock bajo y merma rápida integrada.</div>
+                            </div>
+                        </div>
+                        <div class="app-screen" data-screen="recetas">
+                            <img src="showcase-recetas.png" alt="Recetas CostOS">
+                            <div class="app-feature-callout">
+                                <div class="callout-title">🍽️ Recetas y Escandallos</div>
+                                <div class="callout-desc">Calcula el food cost de cada plato con precios actualizados
+                                    automáticamente desde tus proveedores.</div>
+                            </div>
+                        </div>
+                        <div class="app-screen" data-screen="analisis">
+                            <img src="showcase-analisis.png" alt="Análisis CostOS">
+                            <div class="app-feature-callout">
+                                <div class="callout-title">📈 Análisis Financiero</div>
+                                <div class="callout-desc">Ingresos vs gastos, margen promedio, coste por receta — datos
+                                    reales para decisiones inteligentes.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="hero-visual">
-                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop"
-                        alt="Dashboard" class="hero-image" style="object-fit: cover;">
-                </div>
+            <div class="showcase-auto-indicator">
+                <div class="auto-dot active" data-screen="dashboard"></div>
+                <div class="auto-dot" data-screen="pedidos"></div>
+                <div class="auto-dot" data-screen="inventario"></div>
+                <div class="auto-dot" data-screen="recetas"></div>
+                <div class="auto-dot" data-screen="analisis"></div>
             </div>
         </div>
     </section>
 
-    <!-- Problem Section -->
-    <section class="problem">
+    <!-- ===== FEATURES ===== -->
+    <section id="funciones">
         <div class="container">
-            <div class="section-header">
-                <div class="section-label">El Problema</div>
-                <h2 class="section-title">¿Por qué los software de costes fracasan?</h2>
-                <p class="section-subtitle">El 80% de los restaurantes abandonan su software de costes en los primeros 3
-                    meses</p>
-            </div>
-
-            <div class="problem-grid">
-                <div class="problem-card">
-                    <div class="problem-icon">⏰</div>
-                    <h3>Falta de tiempo</h3>
-                    <p>El encargado no tiene 30-60 minutos al día para meter datos. Hay que atender clientes, gestionar
-                        personal, resolver urgencias...</p>
-                </div>
-                <div class="problem-card">
-                    <div class="problem-icon">📝</div>
-                    <h3>Demasiado manual</h3>
-                    <p>Introducir cada venta, cada compra, cada ajuste de stock manualmente es tedioso y propenso a
-                        errores.</p>
-                </div>
-                <div class="problem-card">
-                    <div class="problem-icon">📉</div>
-                    <h3>Datos desactualizados</h3>
-                    <p>Si los datos no están al día, el sistema es inútil. Y si no ves valor, dejas de usarlo.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Solution Section -->
-    <section class="solution">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-label">La Solución</div>
-                <h2 class="section-title">MindLoop funciona solo</h2>
-                <p class="section-subtitle" style="color: rgba(255,255,255,0.7);">Conectamos tu TPV y tus proveedores.
-                    Los datos llegan automáticamente.</p>
-            </div>
-
-            <div class="automation-visual">
-                <div class="auto-step">
-                    <div class="auto-step-icon">🛒</div>
-                    <h4>TPV</h4>
-                    <p>Ventas del día</p>
-                </div>
-                <div class="auto-arrow">→</div>
-                <div class="auto-step">
-                    <div class="auto-step-icon">🤖</div>
-                    <h4>Automatización</h4>
-                    <p>Sin intervención</p>
-                </div>
-                <div class="auto-arrow">→</div>
-                <div class="auto-step">
-                    <div class="auto-step-icon">📊</div>
-                    <h4>Dashboard</h4>
-                    <p>KPIs al instante</p>
-                </div>
-                <div class="auto-arrow">→</div>
-                <div class="auto-step">
-                    <div class="auto-step-icon">📧</div>
-                    <h4>Email Diario</h4>
-                    <p>Resumen a las 23h</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <div class="section-header">
+            <div class="section-header reveal">
                 <div class="section-label">Funcionalidades</div>
-                <h2 class="section-title">Todo lo que necesitas</h2>
-                <p class="section-subtitle">Un sistema completo de gestión de costes diseñado para restaurantes reales
-                </p>
+                <h2 class="section-title">Todo lo que necesitas.<br>Nada que no.</h2>
+                <p class="section-sub">Diseñado para restaurantes reales, no para consultores con Excel.</p>
             </div>
-
             <div class="features-grid">
-                <div class="feature-card">
+                <div class="feature-card reveal reveal-delay-1">
                     <div class="feature-icon">🥬</div>
-                    <h3>Gestión de Ingredientes</h3>
-                    <p>Control de precios, stock mínimo, proveedores y evolución histórica de precios.</p>
+                    <h3>280+ Ingredientes</h3>
+                    <p>Control de precios, proveedores, evolución histórica y stock mínimo.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card reveal reveal-delay-2">
                     <div class="feature-icon">🍽️</div>
                     <h3>Escandallo Visual</h3>
-                    <p>Gráfico de tarta con desglose de costes. Exporta fichas técnicas profesionales en PDF.</p>
+                    <p>Gráfico de tarta con desglose de coste por ingrediente. Fichas en PDF.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card reveal reveal-delay-3">
                     <div class="feature-icon">📦</div>
                     <h3>Pedidos con Varianzas</h3>
-                    <p>Detecta diferencias entre lo pedido y lo recibido. Control total sobre proveedores.</p>
+                    <p>Detecta diferencias entre lo pedido y lo recibido. Control de proveedores.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card reveal reveal-delay-1">
                     <div class="feature-icon">📋</div>
                     <h3>Inventario Inteligente</h3>
-                    <p>Cuadre automático entre stock teórico y real. Gestión de mermas con un click.</p>
+                    <p>Cuadre automático entre stock teórico y real. Sin sorpresas.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card reveal reveal-delay-2">
                     <div class="feature-icon">📈</div>
-                    <h3>Dashboard en Tiempo Real</h3>
-                    <p>KPIs actualizados al segundo: ingresos, margen, food cost, alertas de stock.</p>
+                    <h3>Dashboard KPIs</h3>
+                    <p>Ingresos, margen, food cost, alertas de stock bajo. Todo al instante.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-card reveal reveal-delay-3">
                     <div class="feature-icon">🧩</div>
                     <h3>Matriz BCG</h3>
-                    <p>Ingeniería de menú: identifica estrellas, caballos, puzzles y perros de tu carta.</p>
+                    <p>Ingeniería de menú: identifica estrellas, caballos, puzzles y perros.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Pricing Section -->
-    <section class="pricing" id="pricing">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-label">Precios</div>
-                <h2 class="section-title">Simple y transparente</h2>
-                <p class="section-subtitle">Sin sorpresas. Sin permanencia. Cancela cuando quieras.</p>
-            </div>
+    <hr class="section-divider">
 
-            <div class="pricing-cards">
-                <div class="pricing-card featured" style="width: 450px;">
-                    <div class="pricing-badge">Todo Incluido</div>
-                    <div class="pricing-name">MindLoop Autopilot</div>
-                    <div class="pricing-desc">Control total de costes en piloto automático</div>
-                    <div class="pricing-price">
-                        <span class="pricing-currency">€</span>
-                        <span class="pricing-amount">80</span>
-                        <span class="pricing-period">/mes</span>
-                    </div>
-                    <ul class="pricing-features">
-                        <li>Ingredientes, recetas y escandallo visual</li>
-                        <li>Pedidos con control de varianzas</li>
-                        <li>Inventario con cuadre automático</li>
-                        <li>Dashboard KPIs en tiempo real</li>
-                        <li>Matriz BCG (ingeniería de menú)</li>
-                        <li>Automatización ventas TPV</li>
-                        <li>Automatización compras</li>
-                        <li>Email diario con resumen</li>
-                        <li>3 usuarios incluidos</li>
-                        <li>Soporte prioritario</li>
+    <!-- ===== PRICING ===== -->
+    <section class="pricing-section" id="precio">
+        <div class="container">
+            <div class="section-header section-center reveal">
+                <div class="section-label">Precio</div>
+                <h2 class="section-title">Simple. Transparente.<br>Sin sorpresas.</h2>
+                <p class="section-sub">Un precio. Todo incluido. Sin permanencia.</p>
+            </div>
+            <div class="pricing-layout reveal">
+                <div class="pricing-left">
+                    <h3>Tu control de costes<br>en piloto automático</h3>
+                    <p>Todo lo que necesitas para gestionar costes, márgenes y mermas sin trabajo manual.</p>
+                    <ul>
+                        <li><span class="check">✓</span> Ingredientes, recetas y escandallo</li>
+                        <li><span class="check">✓</span> Pedidos con varianzas</li>
+                        <li><span class="check">✓</span> Inventario automático</li>
+                        <li><span class="check">✓</span> Dashboard KPIs en vivo</li>
+                        <li><span class="check">✓</span> Matriz BCG de menú</li>
+                        <li><span class="check">✓</span> Automatización TPV + OCR</li>
+                        <li><span class="check">✓</span> Email diario con resumen</li>
+                        <li><span class="check">✓</span> 3 usuarios incluidos</li>
+                        <li><span class="check">✓</span> Soporte prioritario</li>
                     </ul>
-                    <a href="#" class="pricing-cta">Solicitar Demo Gratuita</a>
                 </div>
-            </div>
-
-            <!-- Setup Section -->
-            <div
-                style="max-width: 600px; margin: 50px auto 0; background: white; border-radius: 16px; padding: 32px; border: 2px dashed #e2e8f0; text-align: center;">
-                <div style="font-size: 28px; margin-bottom: 12px;">🔧</div>
-                <h3 style="font-size: 20px; margin-bottom: 8px; color: #1e1e2e;">Instalación y Configuración</h3>
-                <div style="font-size: 42px; font-weight: 900; color: #667eea; margin-bottom: 12px;">199€ <span
-                        style="font-size: 16px; color: #64748b; font-weight: 500;">pago único</span></div>
-                <p style="color: #64748b; font-size: 14px; margin-bottom: 16px;">Incluye conexión a tu TPV, carga
-                    inicial de ingredientes y recetas, configuración de automatizaciones, y formación de 2 horas para tu
-                    equipo.</p>
-                <div
-                    style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; font-size: 13px; color: #64748b;">
-                    <span>✓ Conexión TPV</span>
-                    <span>✓ Carga de datos</span>
-                    <span>✓ Automatizaciones</span>
-                    <span>✓ Formación 2h</span>
+                <div class="pricing-right">
+                    <div class="price-tag">Todo Incluido</div>
+                    <div class="price-name">Autopilot</div>
+                    <div class="price-desc">Control total de costes</div>
+                    <div class="price-amount"><sup>€</sup>80</div>
+                    <div class="price-period">/mes · sin permanencia</div>
+                    <a href="https://wa.me/34641557477?text=Hola%2C%20me%20interesa%20CostOS%20para%20mi%20restaurante"
+                        target="_blank" class="price-cta">
+                        Solicitar Demo por WhatsApp 💬
+                    </a>
+                    <div class="setup-info">
+                        <div class="setup-price">199€ <small style="font-weight: 400; font-size: 13px;">pago
+                                único</small></div>
+                        <div class="setup-note">Conexión TPV · Carga datos · Automatizaciones · Formación</div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FAQ Section -->
-    <section class="faq">
+    <!-- ===== TESTIMONIALS ===== -->
+    <section>
         <div class="container">
-            <div class="section-header">
+            <div class="section-header section-center reveal">
+                <div class="section-label">Opiniones</div>
+                <h2 class="section-title">Lo que dicen los profesionales</h2>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card reveal">
+                    <div class="testimonial-quote">"</div>
+                    <p>Lo que más me impacta es cómo escalaste desde foto→Excel hasta un sistema operativo completo. El
+                        PnL diario automático lo cambia todo.</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">🔥</div>
+                        <div class="author-info">
+                            <cite>Profesional de hostelería</cite>
+                            <small>Director de operaciones</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card reveal reveal-delay-2">
+                    <div class="testimonial-quote">"</div>
+                    <p>Vaya trabajo. Se nota que se toman en serio la infraestructura: backups, monitorización,
+                        seguridad. No es un juego.</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">💪</div>
+                        <div class="author-info">
+                            <cite>Experto en automatización</cite>
+                            <small>Consultor tecnológico</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- ===== FAQ ===== -->
+    <section>
+        <div class="container">
+            <div class="section-header section-center reveal">
                 <div class="section-label">FAQ</div>
-                <h2 class="section-title">Preguntas Frecuentes</h2>
+                <h2 class="section-title">Preguntas frecuentes</h2>
             </div>
-
-            <div class="faq-grid">
-                <div class="faq-item">
-                    <h4>¿Con qué TPV es compatible?</h4>
-                    <p>Actualmente nos integramos con los principales TPV del mercado español. Contacta para ver si el
-                        tuyo está soportado.</p>
+            <div class="faq-grid reveal">
+                <div class="faq-item" onclick="this.classList.toggle('open')">
+                    <div class="faq-question">
+                        ¿Es compatible con mi TPV?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Nos integramos con los principales TPV del mercado español: Agora, Revo, Last.app, Cover
+                            Manager y más. Contacta y verificamos compatibilidad en 24h.</p>
+                    </div>
                 </div>
-                <div class="faq-item">
-                    <h4>¿Cuánto tarda la configuración?</h4>
-                    <p>Entre 24-48h tenemos todo funcionando. Solo necesitamos acceso a tu TPV y listado de
-                        ingredientes.</p>
+                <div class="faq-item" onclick="this.classList.toggle('open')">
+                    <div class="faq-question">
+                        ¿Cuánto tarda la configuración?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>24-48h. Solo necesitamos acceso a tu TPV y listado de ingredientes. Nosotros hacemos todo el
+                            setup.</p>
+                    </div>
                 </div>
-                <div class="faq-item">
-                    <h4>¿Puedo cancelar cuando quiera?</h4>
-                    <p>Sí. Sin permanencia ni penalizaciones. Tus datos se conservan 30 días por si quieres volver.</p>
+                <div class="faq-item" onclick="this.classList.toggle('open')">
+                    <div class="faq-question">
+                        ¿Puedo cancelar cuando quiera?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sí. Sin permanencia ni penalizaciones. Si no estás contento, cancelas y listo. Tus datos se
+                            conservan 30 días.</p>
+                    </div>
                 </div>
-                <div class="faq-item">
-                    <h4>¿Hay prueba gratuita?</h4>
-                    <p>Ofrecemos demo personalizada donde configuramos el sistema con tus datos reales para que veas el
-                        valor.</p>
+                <div class="faq-item" onclick="this.classList.toggle('open')">
+                    <div class="faq-question">
+                        ¿Cuántos usuarios puedo tener?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>El plan incluye 3 usuarios. Usuarios adicionales por 10€/mes cada uno. Perfecto para chef,
+                            gerente y propietario.</p>
+                    </div>
+                </div>
+                <div class="faq-item" onclick="this.classList.toggle('open')">
+                    <div class="faq-question">
+                        ¿Hay prueba gratuita?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Ofrecemos una demo personalizada con tus datos reales. Así ves exactamente lo que CostOS hace
+                            por tu restaurante antes de decidir.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="cta">
+    <!-- ===== FINAL CTA ===== -->
+    <section class="final-cta">
         <div class="container">
-            <h2>¿Listo para controlar tus costes sin esfuerzo?</h2>
-            <p>Únete a los restaurantes que ya ahorran +500€/mes en mermas</p>
-            <a href="#" class="cta-btn">
-                Solicitar Demo Gratuita
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-            </a>
+            <div class="reveal">
+                <h2>¿Listo para dejar de<br>perder dinero?</h2>
+                <p>Cada día sin control de costes es dinero que se va. Literalmente.</p>
+                <a href="https://wa.me/34641557477?text=Hola%2C%20quiero%20probar%20CostOS" target="_blank"
+                    class="btn-primary" style="font-size: 18px; padding: 18px 44px;">
+                    Quiero mi demo gratuita →
+                </a>
+                <div class="trust-bar">
+                    <div class="trust-item"><span class="trust-icon">🔒</span> Datos encriptados</div>
+                    <div class="trust-item"><span class="trust-icon">🇪🇺</span> Servidores en Europa</div>
+                    <div class="trust-item"><span class="trust-icon">⚡</span> Setup en 48h</div>
+                    <div class="trust-item"><span class="trust-icon">🚫</span> Sin permanencia</div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer>
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">🍳 MindLoop CostOS</div>
-                <div class="footer-links">
-                    <a href="#">Términos y Condiciones</a>
-                    <a href="#">Privacidad</a>
-                    <a href="#">Contacto</a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                © 2025 MindLoop. Todos los derechos reservados.
-            </div>
+            <p style="opacity: 0.5;">© 2026 MindLoop. Todos los derechos reservados.</p>
         </div>
     </footer>
 
+    <!-- WhatsApp Float -->
+    <a href="https://wa.me/34641557477?text=Hola%2C%20me%20interesa%20CostOS" target="_blank" class="wa-float"
+        aria-label="Contactar por WhatsApp">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+            <path
+                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+            <path
+                d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.574-1.2A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818c-2.168 0-4.19-.592-5.927-1.621l-.424-.253-4.4 1.154 1.174-4.29-.278-.442A9.77 9.77 0 012.182 12 9.818 9.818 0 0112 2.182 9.818 9.818 0 0121.818 12 9.818 9.818 0 0112 21.818z" />
+        </svg>
+    </a>
+
+    <script>
+        // Before/After Slider
+        (function () {
+            const slider = document.getElementById('baSlider');
+            const handle = document.getElementById('baHandle');
+            const before = document.getElementById('baBefore');
+            if (!slider || !handle || !before) return;
+            let isDragging = false;
+
+            function setPosition(x) {
+                const rect = slider.getBoundingClientRect();
+                let pct = ((x - rect.left) / rect.width) * 100;
+                pct = Math.max(2, Math.min(98, pct));
+                before.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+                handle.style.left = pct + '%';
+            }
+
+            slider.addEventListener('mousedown', (e) => { isDragging = true; setPosition(e.clientX); });
+            window.addEventListener('mousemove', (e) => { if (isDragging) { e.preventDefault(); setPosition(e.clientX); } });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            slider.addEventListener('touchstart', (e) => { isDragging = true; setPosition(e.touches[0].clientX); }, { passive: true });
+            window.addEventListener('touchmove', (e) => { if (isDragging) { setPosition(e.touches[0].clientX); } }, { passive: true });
+            window.addEventListener('touchend', () => { isDragging = false; });
+
+            // Auto-animate on first view
+            const sliderObs = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (!e.isIntersecting) return;
+                    // Animate from 50% to 25% to 75% to 50%
+                    const rect = slider.getBoundingClientRect();
+                    const w = rect.width;
+                    let start = null;
+                    function autoAnimate(ts) {
+                        if (!start) start = ts;
+                        const elapsed = ts - start;
+                        const duration = 2500;
+                        if (elapsed > duration) { setPosition(rect.left + w * 0.5); return; }
+                        const t = elapsed / duration;
+                        // Ease in-out sine wave: goes 50% → 25% → 75% → 50%
+                        const pct = 0.5 + 0.25 * Math.sin(t * Math.PI * 2 - Math.PI / 2) * (1 - t);
+                        setPosition(rect.left + w * pct);
+                        requestAnimationFrame(autoAnimate);
+                    }
+                    setTimeout(() => requestAnimationFrame(autoAnimate), 300);
+                    sliderObs.unobserve(slider);
+                });
+            }, { threshold: 0.3 });
+            sliderObs.observe(slider);
+        })();
+
+        // App Browser Showcase
+        (function () {
+            const tabs = document.querySelectorAll('.sidebar-tab');
+            const screens = document.querySelectorAll('.app-screen');
+            const dots = document.querySelectorAll('.auto-dot');
+            let autoTimer = null;
+            let currentIndex = 0;
+            const screenNames = ['dashboard', 'pedidos', 'inventario', 'recetas', 'analisis'];
+
+            function switchScreen(name) {
+                currentIndex = screenNames.indexOf(name);
+                tabs.forEach(t => t.classList.toggle('active', t.dataset.screen === name));
+                screens.forEach(s => s.classList.toggle('active', s.dataset.screen === name));
+                dots.forEach(d => {
+                    d.classList.toggle('active', d.dataset.screen === name);
+                    // Restart animation
+                    if (d.dataset.screen === name) {
+                        const clone = d.cloneNode(true);
+                        d.parentNode.replaceChild(clone, d);
+                        clone.addEventListener('click', () => { switchScreen(clone.dataset.screen); resetAuto(); });
+                    }
+                });
+                // Re-query dots after cloning
+            }
+
+            function nextScreen() {
+                currentIndex = (currentIndex + 1) % screenNames.length;
+                switchScreen(screenNames[currentIndex]);
+            }
+
+            function resetAuto() {
+                clearInterval(autoTimer);
+                autoTimer = setInterval(nextScreen, 5000);
+            }
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    switchScreen(tab.dataset.screen);
+                    resetAuto();
+                });
+            });
+
+            dots.forEach(dot => {
+                dot.addEventListener('click', () => {
+                    switchScreen(dot.dataset.screen);
+                    resetAuto();
+                });
+            });
+
+            // Start auto-rotation when visible
+            const showcaseObs = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        resetAuto();
+                    } else {
+                        clearInterval(autoTimer);
+                    }
+                });
+            }, { threshold: 0.2 });
+            const showcaseEl = document.querySelector('.app-browser');
+            if (showcaseEl) showcaseObs.observe(showcaseEl);
+        })();
+
+        // Scroll progress bar
+        window.addEventListener('scroll', () => {
+            const h = document.documentElement.scrollHeight - window.innerHeight;
+            document.getElementById('scrollProgress').style.width = (window.scrollY / h * 100) + '%';
+        });
+
+        // Nav scroll effect
+        const nav = document.getElementById('mainNav');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Intersection Observer for reveals
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+        // Animated counters
+        const counterObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (!e.isIntersecting) return;
+                const el = e.target;
+                const target = parseInt(el.dataset.target);
+                const prefix = el.dataset.prefix || '';
+                const suffix = el.dataset.suffix || '';
+                const duration = 1800;
+                const start = performance.now();
+
+                function update(time) {
+                    const progress = Math.min((time - start) / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 4); // ease out quart
+                    const current = Math.round(eased * target);
+                    el.textContent = prefix + current + suffix;
+                    if (progress < 1) requestAnimationFrame(update);
+                }
+                requestAnimationFrame(update);
+                counterObs.unobserve(el);
+            });
+        }, { threshold: 0.5 });
+        document.querySelectorAll('[data-target]').forEach(el => counterObs.observe(el));
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const target = document.querySelector(a.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
 </body>
 
 </html>
