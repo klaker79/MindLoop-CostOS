@@ -54,11 +54,114 @@ export function mostrarLogin() {
  * Muestra la pantalla de registro
  */
 export function mostrarRegistro() {
-    // Toggle entre login y registro si existe
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+    const loginFooter = document.querySelector('.login-footer');
     if (loginForm) loginForm.style.display = 'none';
+    if (loginFooter) loginFooter.style.display = 'none';
     if (registerForm) registerForm.style.display = 'block';
+}
+
+/**
+ * Vuelve a la pantalla de login desde registro
+ */
+export function volverALogin() {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginFooter = document.querySelector('.login-footer');
+    if (loginForm) loginForm.style.display = 'block';
+    if (loginFooter) loginFooter.style.display = 'block';
+    if (registerForm) registerForm.style.display = 'none';
+    // Clear errors
+    const errorEl = document.getElementById('register-error');
+    if (errorEl) errorEl.textContent = '';
+}
+
+/**
+ * Initializes the registration form event listener
+ */
+export function initRegisterForm() {
+    const registerForm = document.getElementById('register-form');
+    if (!registerForm) return;
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nombre = document.getElementById('reg-nombre')?.value?.trim();
+        const email = document.getElementById('reg-email')?.value?.trim();
+        const password = document.getElementById('reg-password')?.value;
+        const password2 = document.getElementById('reg-password2')?.value;
+        const codigoInvitacion = document.getElementById('reg-codigo')?.value?.trim();
+        const errorEl = document.getElementById('register-error');
+        const submitBtn = registerForm.querySelector('button[type="submit"]');
+
+        if (!nombre || !email || !password || !codigoInvitacion) {
+            if (errorEl) errorEl.textContent = 'Completa todos los campos';
+            return;
+        }
+
+        if (password !== password2) {
+            if (errorEl) errorEl.textContent = 'Las contraseñas no coinciden';
+            return;
+        }
+
+        if (password.length < 6) {
+            if (errorEl) errorEl.textContent = 'La contraseña debe tener al menos 6 caracteres';
+            return;
+        }
+
+        try {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creando...';
+            }
+
+            const res = await fetch(API_AUTH_URL + '/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ nombre, email, password, codigoInvitacion }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                if (errorEl) errorEl.textContent = data.error || 'Error en el registro';
+                return;
+            }
+
+            // Registration successful - auto login
+            const loginRes = await fetch(API_AUTH_URL + '/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (loginRes.ok) {
+                const loginData = await loginRes.json();
+                localStorage.setItem('user', JSON.stringify(loginData.user));
+                const loginScreen = document.getElementById('login-screen');
+                const appContainer = document.getElementById('app-container');
+                if (loginScreen) loginScreen.style.display = 'none';
+                if (appContainer) appContainer.style.display = 'block';
+                if (typeof window.cargarDatos === 'function') {
+                    window.cargarDatos();
+                }
+            } else {
+                // Login failed but registration succeeded - go back to login
+                volverALogin();
+                const loginError = document.getElementById('login-error');
+                if (loginError) loginError.textContent = '✅ Restaurante creado. Inicia sesión con tus credenciales.';
+            }
+        } catch (err) {
+            if (errorEl) errorEl.textContent = 'Error de conexión';
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Crear Restaurante';
+            }
+        }
+    });
 }
 
 /**
@@ -136,5 +239,6 @@ if (typeof window !== 'undefined') {
     window.checkAuth = checkAuth;
     window.mostrarLogin = mostrarLogin;
     window.mostrarRegistro = mostrarRegistro;
+    window.volverALogin = volverALogin;
     window.logout = logout;
 }

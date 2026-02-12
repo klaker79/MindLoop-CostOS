@@ -13,6 +13,7 @@
 const actionHandlers = {
     // Auth
     'mostrar-registro': () => window.mostrarRegistro?.(),
+    'mostrar-login': () => window.volverALogin?.(),
     logout: () => window.logout?.(),
 
     // Theme Toggle

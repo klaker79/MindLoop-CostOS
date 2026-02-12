@@ -499,10 +499,12 @@ import * as Auth from './modules/auth/auth.js';
 window.checkAuth = Auth.checkAuth;
 window.mostrarLogin = Auth.mostrarLogin;
 window.mostrarRegistro = Auth.mostrarRegistro;
+window.volverALogin = Auth.volverALogin;
 window.logout = Auth.logout;
 
-// Inicializar formulario de login
+// Inicializar formularios de login y registro
 Auth.initLoginForm();
+Auth.initRegisterForm();
 
 // ============================================
 // MÓDULO: EQUIPO ✅
@@ -665,8 +667,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(updateAlertBadge, 3000); // Después de que carguen datos
 });
 
-// Actualizar cada 5 minutos
-setInterval(updateAlertBadge, 5 * 60 * 1000);
+// 🔒 FIX: Guard interval to prevent accumulation on re-login/module reload
+if (window._alertBadgeInterval) {
+    clearInterval(window._alertBadgeInterval);
+}
+window._alertBadgeInterval = setInterval(updateAlertBadge, 5 * 60 * 1000);
 
 // Exponer para actualización manual
 window.updateAlertBadge = updateAlertBadge;
