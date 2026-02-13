@@ -5,6 +5,23 @@
 
 import { showToast } from '../../ui/toast.js';
 import { escapeHTML } from '../../utils/helpers.js';
+import { getApiUrl } from '../../config/app-config.js';
+
+const API_BASE = getApiUrl();
+
+function _fetchOptions(method = 'GET', body = null) {
+    const token = localStorage.getItem('token');
+    const opts = {
+        method,
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    return opts;
+}
 
 // Variable para tracking de la receta actual
 let recetaActualId = null;
@@ -46,7 +63,9 @@ async function cargarVariantesReceta(recetaId) {
     try {
         window.showLoading?.();
 
-        const response = await window.API.fetch(`/api/recipes/${recetaId}/variants`);
+        const res = await fetch(`${API_BASE}/recipes/${recetaId}/variants`, _fetchOptions());
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const response = await res.json();
         const variantes = Array.isArray(response) ? response : [];
 
         renderizarVariantes(variantes);
@@ -208,15 +227,13 @@ export async function agregarVarianteReceta() {
     try {
         window.showLoading?.();
 
-        await window.API.fetch(`/api/recipes/${recetaActualId}/variants`, {
-            method: 'POST',
-            body: JSON.stringify({
-                nombre: nombre,
-                precio_venta: parseFloat(precio),
-                factor: parseFloat(factor),
-                codigo: codigo || null,
-            }),
-        });
+        const resAdd = await fetch(`${API_BASE}/recipes/${recetaActualId}/variants`, _fetchOptions('POST', {
+            nombre: nombre,
+            precio_venta: parseFloat(precio),
+            factor: parseFloat(factor),
+            codigo: codigo || null,
+        }));
+        if (!resAdd.ok) throw new Error(`HTTP ${resAdd.status}`);
 
         showToast('Variante añadida', 'success');
 
@@ -287,13 +304,11 @@ export async function editarVariante(recetaId, varianteId, nombreActual, precioA
         try {
             window.showLoading?.();
 
-            await window.API.fetch(`/api/recipes/${recetaId}/variants/${varianteId}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    precio_venta: parseFloat(nuevoPrecio),
-                    codigo: nuevoCodigo || null,
-                }),
-            });
+            const resEdit = await fetch(`${API_BASE}/recipes/${recetaId}/variants/${varianteId}`, _fetchOptions('PUT', {
+                precio_venta: parseFloat(nuevoPrecio),
+                codigo: nuevoCodigo || null,
+            }));
+            if (!resEdit.ok) throw new Error(`HTTP ${resEdit.status}`);
 
             showToast('Variante actualizada', 'success');
             modal.remove();
@@ -317,9 +332,8 @@ export async function eliminarVariante(recetaId, varianteId) {
     try {
         window.showLoading?.();
 
-        await window.API.fetch(`/api/recipes/${recetaId}/variants/${varianteId}`, {
-            method: 'DELETE',
-        });
+        const resDel = await fetch(`${API_BASE}/recipes/${recetaId}/variants/${varianteId}`, _fetchOptions('DELETE'));
+        if (!resDel.ok) throw new Error(`HTTP ${resDel.status}`);
 
         showToast('Variante eliminada', 'success');
         await cargarVariantesReceta(recetaId);
