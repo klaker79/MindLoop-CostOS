@@ -30,17 +30,19 @@ export const ingredientStore = createStore((set, get) => ({
     sortBy: 'nombre',
     sortOrder: 'asc',
 
-    // Computed
-    get totalValue() {
-        return get().ingredients.reduce((sum, ing) => {
+    // Computed (as functions — ES5 getters are lost on getState())
+    totalValue: () => {
+        const state = ingredientStore.getState();
+        return state.ingredients.reduce((sum, ing) => {
             const precio = parseFloat(ing.precio) || 0;
             const stock = parseFloat(ing.stock_actual) || 0;
             return sum + (precio * stock);
         }, 0);
     },
 
-    get lowStockItems() {
-        return get().ingredients.filter(ing => {
+    lowStockItems: () => {
+        const state = ingredientStore.getState();
+        return state.ingredients.filter(ing => {
             const stock = parseFloat(ing.stock_actual) || 0;
             const minStock = parseFloat(ing.stock_minimo) || 0;
             return stock <= minStock && minStock > 0;

@@ -57,23 +57,23 @@ async function _cargarDatosInternal() {
 
         const [ingredientes, recetas, proveedores, pedidos, inventario, ingredientesProveedores] = await Promise.all([
             fetch(API_BASE + '/ingredients', fetchOptions).then((r) =>
-                r.ok ? r.json() : []
+                r.ok ? r.json() : (console.warn('⚠️ /ingredients failed, keeping existing data'), window.ingredientes || [])
             ),
             fetch(API_BASE + '/recipes', fetchOptions).then((r) =>
-                r.ok ? r.json() : []
+                r.ok ? r.json() : (console.warn('⚠️ /recipes failed, keeping existing data'), window.recetas || [])
             ),
             fetch(API_BASE + '/suppliers', fetchOptions).then((r) =>
-                r.ok ? r.json() : []
+                r.ok ? r.json() : (console.warn('⚠️ /suppliers failed, keeping existing data'), window.proveedores || [])
             ),
             fetch(API_BASE + '/orders', fetchOptions).then((r) =>
-                r.ok ? r.json() : []
+                r.ok ? r.json() : (console.warn('⚠️ /orders failed, keeping existing data'), window.pedidos || [])
             ),
             fetch(API_BASE + '/inventory/complete', fetchOptions).then((r) =>
-                r.ok ? r.json() : []
+                r.ok ? r.json() : (console.warn('⚠️ /inventory failed, keeping existing data'), window.inventarioCompleto || [])
             ),
             // 💰 Cargar precios de cada proveedor por ingrediente
             fetch(API_BASE + '/ingredients-suppliers', fetchOptions).then((r) =>
-                r.ok ? r.json() : []
+                r.ok ? r.json() : (console.warn('⚠️ /ingredients-suppliers failed, keeping existing data'), window.ingredientesProveedores || [])
             ),
         ]);
 

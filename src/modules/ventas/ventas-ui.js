@@ -62,18 +62,24 @@ export async function renderizarVentas() {
             return;
         }
 
-        // Agrupar por fecha
+        // Agrupar por fecha (usando locale string como clave visual)
         const ventasPorFecha = {};
+        const fechaISO = {}; // Mapa: locale string → ISO string para sort correcto
         ventas.forEach(v => {
-            const fecha = new Date(v.fecha).toLocaleDateString('es-ES');
-            if (!ventasPorFecha[fecha]) ventasPorFecha[fecha] = [];
+            const dateObj = new Date(v.fecha);
+            const fecha = dateObj.toLocaleDateString('es-ES');
+            if (!ventasPorFecha[fecha]) {
+                ventasPorFecha[fecha] = [];
+                fechaISO[fecha] = v.fecha; // Guardar ISO original para sorting
+            }
             ventasPorFecha[fecha].push(v);
         });
 
         let html = '<table style="width:100%;border-collapse:collapse;"><tbody>';
 
+        // 🔒 P0-4 FIX: Ordenar por fecha ISO original, no por DD/MM/YYYY string
         Object.keys(ventasPorFecha)
-            .sort((a, b) => new Date(b) - new Date(a))
+            .sort((a, b) => new Date(fechaISO[b]) - new Date(fechaISO[a]))
             .forEach(fecha => {
                 const ventasDia = ventasPorFecha[fecha];
                 const totalDia = ventasDia.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);

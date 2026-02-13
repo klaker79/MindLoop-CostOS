@@ -68,6 +68,13 @@ export async function guardarIngrediente(event) {
         console.log('📤 Guardando ingrediente:', JSON.stringify(ingrediente, null, 2));
         console.log('📤 Stock enviado:', ingrediente.stockActual, '(tipo:', typeof ingrediente.stockActual, ')');
 
+        // 🔒 P0-2 FIX: Capturar datos del ingrediente ANTES del store update
+        // El store sincroniza window.ingredientes inmediatamente, así que después
+        // de updateIngredient() ya contiene los datos nuevos, no los anteriores.
+        const ingredienteAnterior = editandoId !== null
+            ? (window.ingredientes || []).find(i => i.id === editandoId)
+            : null;
+
         // 🆕 Usar Zustand store en lugar de window.api
         const store = ingredientStore.getState();
 
@@ -85,9 +92,8 @@ export async function guardarIngrediente(event) {
         // Sync bidireccional: Actualizar relación ingrediente-proveedor
         const nuevoProveedorId = ingrediente.proveedorId ? parseInt(ingrediente.proveedorId) : null;
 
-        // Si estamos editando, buscar el ingrediente anterior para ver si tenía otro proveedor
+        // Si estamos editando, usar el ingredienteAnterior capturado ANTES del store update
         if (editandoId !== null) {
-            const ingredienteAnterior = (window.ingredientes || []).find(i => i.id === editandoId);
             const proveedorAnteriorId = ingredienteAnterior?.proveedor_id || ingredienteAnterior?.proveedorId;
 
             // Si cambió de proveedor, quitar del anterior

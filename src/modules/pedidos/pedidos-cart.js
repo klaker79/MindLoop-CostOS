@@ -368,13 +368,16 @@ window.confirmarCarrito = async function () {
             });
 
             /**
-             * ⚠️ CRITICAL - NO MODIFICAR ESTA FÓRMULA ⚠️
-             * Total = (cantidad / cantidad_por_formato) × precio
-             * Ejemplo: (24 botellas / 24 por caja) × 33.12€ = 33.12€
+             * ⚠️ CRITICAL - TOTAL DEBE COINCIDIR CON renderizarCarrito() ⚠️
+             * Si precioYaEsUnitario = true: cantidad × precio (compra unitaria)
+             * Si precioYaEsUnitario = false: (cantidad / cantidadPorFormato) × precio (compra por formato)
              */
             const total = items.reduce((sum, item) => {
+                if (item.precioYaEsUnitario) {
+                    return sum + (item.cantidad * item.precio);
+                }
                 const cantFormato = parseFloat(item.cantidadPorFormato) || 1;
-                return sum + ((item.cantidad / cantFormato) * item.precio); // ⚠️ FÓRMULA INTOCABLE
+                return sum + ((item.cantidad / cantFormato) * item.precio);
             }, 0);
 
             const pedido = {
