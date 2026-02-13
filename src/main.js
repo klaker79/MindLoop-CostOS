@@ -76,6 +76,9 @@ import * as Performance from './utils/performance.js';
 import { initSearchOptimizations } from './utils/search-optimization.js';
 // 🆕 Error handler global
 import './utils/error-handler.js';
+// 🔒 Sentry init centralizado (DSN sacado de index.html)
+import { initSentry } from './utils/sentry.js';
+initSentry();
 
 window.showToast = showToast;
 window.DOM = DOM;
