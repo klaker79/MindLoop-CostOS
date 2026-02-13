@@ -20,7 +20,10 @@ export default {
         '^@stores/(.*)$': '<rootDir>/src/stores/$1'
     },
 
-    // Archivo de setup global
+    // Archivo de setup PRE-env (polyfill import.meta.env)
+    setupFiles: ['./__tests__/setup-esm.js'],
+
+    // Archivo de setup global (window mocks, etc.)
     setupFilesAfterEnv: ['./__tests__/setup.js'],
 
     // Verbose output
