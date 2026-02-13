@@ -325,9 +325,10 @@ window.filtrarRecetasPorCategoria = function (categoria) {
 
 export async function renderizarRecetas() {
     // 🍷 Cargar variantes si no están cargadas (para mostrar códigos TPV)
-    if (!window.recetasVariantes && window.API?.fetch) {
+    if (!Array.isArray(window.recetasVariantes) && window.API?.fetch) {
         try {
-            window.recetasVariantes = await window.API.fetch('/api/recipes-variants');
+            const result = await window.API.fetch('/api/recipes-variants');
+            window.recetasVariantes = Array.isArray(result) ? result : [];
         } catch (e) {
             console.warn('No se pudieron cargar variantes:', e);
             window.recetasVariantes = [];
@@ -414,7 +415,7 @@ export async function renderizarRecetas() {
 
             // 🍷 Para bebidas, buscar código de la variante BOTELLA
             let codigoMostrar = rec.codigo || '';
-            if ((rec.categoria?.toLowerCase() === 'bebidas' || rec.categoria?.toLowerCase() === 'bebida') && window.recetasVariantes) {
+            if ((rec.categoria?.toLowerCase() === 'bebidas' || rec.categoria?.toLowerCase() === 'bebida') && Array.isArray(window.recetasVariantes)) {
                 const varianteBotella = window.recetasVariantes.find(v =>
                     v.receta_id === rec.id && v.nombre?.toUpperCase() === 'BOTELLA'
                 );
