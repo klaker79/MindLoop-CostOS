@@ -262,6 +262,10 @@ export const api = {
     getInventario: () => apiClient.get('/inventory/complete'),
     updateStock: (data) => apiClient.post('/inventory/ajuste', data),
 
+    // 🔒 ATOMIC STOCK: Ajuste atómico individual y masivo
+    adjustStock: (id, delta, reason = '') => apiClient.post(`/ingredients/${id}/adjust-stock`, { delta, reason }),
+    bulkAdjustStock: (adjustments, reason = '') => apiClient.post('/ingredients/bulk-adjust-stock', { adjustments, reason }),
+
     // Auth
     login: (credentials) => apiClient.post('/auth/login', credentials),
     logout: () => apiClient.post('/auth/logout', {}),
