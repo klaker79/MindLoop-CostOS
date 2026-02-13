@@ -15,7 +15,7 @@ import { escapeHTML } from '../../utils/helpers.js';
  * Muestra el formulario de nuevo pedido
  */
 export function mostrarFormularioPedido() {
-    if (window.proveedores.length === 0) {
+    if ((window.proveedores || []).length === 0) {
         window.showToast('Primero añade proveedores', 'warning');
         window.cambiarTab('proveedores');
         return;
@@ -25,7 +25,7 @@ export function mostrarFormularioPedido() {
     const select = document.getElementById('ped-proveedor');
     if (select) {
         // ⚡ OPTIMIZACIÓN: Una sola operación DOM con map+join + ordenación A-Z
-        const proveedoresOrdenados = [...window.proveedores].sort((a, b) =>
+        const proveedoresOrdenados = [...(window.proveedores || [])].sort((a, b) =>
             (a.nombre || '').localeCompare(b.nombre || '')
         );
         const options = proveedoresOrdenados.map(prov =>
@@ -56,7 +56,7 @@ function mostrarCampoDetalleMercado() {
     if (!select || !campoDetalle) return;
 
     const proveedorId = parseInt(select.value);
-    const proveedor = window.proveedores.find(p => p.id === proveedorId);
+    const proveedor = (window.proveedores || []).find(p => p.id === proveedorId);
 
     // Mostrar campo si es "Compras Mercado" (buscar por nombre)
     const esCompasMercado = proveedor && proveedor.nombre.toLowerCase().includes('mercado');
@@ -254,7 +254,7 @@ export function cargarIngredientesPedido() {
 
     // 🏪 Para compras del mercado: mostrar TODOS los ingredientes
     if (esCompraMercado) {
-        if (window.ingredientes.length === 0) {
+        if ((window.ingredientes || []).length === 0) {
             if (containerWrapper) containerWrapper.style.display = 'none';
             window.showToast('No hay ingredientes en el sistema', 'warning');
             return;
@@ -303,7 +303,7 @@ export function agregarIngredientePedido() {
         // Pedido normal: mostrar solo ingredientes del proveedor
         if (!proveedor || !proveedor.ingredientes) return;
         const provIngSet = new Set(proveedor.ingredientes);
-        ingredientesDisponibles = window.ingredientes.filter(ing => provIngSet.has(ing.id));
+        ingredientesDisponibles = (window.ingredientes || []).filter(ing => provIngSet.has(ing.id));
     }
 
     const container = document.getElementById('lista-ingredientes-pedido');
@@ -521,7 +521,7 @@ export function renderizarPedidos() {
     const container = document.getElementById('tabla-pedidos');
     const filtro = document.getElementById('filtro-estado-pedido')?.value || 'todos';
 
-    let pedidosFiltrados = window.pedidos;
+    let pedidosFiltrados = window.pedidos || [];
     if (filtro !== 'todos') {
         pedidosFiltrados = window.pedidos.filter(p => p.estado === filtro);
     }

@@ -223,7 +223,7 @@ export function renderizarIngredientes() {
             const precioMedio = invItem?.precio_medio ? parseFloat(invItem.precio_medio) : null;
             const precioBase = parseFloat(ing.precio) || 0;
             const precioMostrar = precioMedio !== null ? precioMedio : precioBase;
-            const diferencia = precioMedio !== null ? ((precioMedio - precioBase) / precioBase * 100) : 0;
+            const diferencia = precioMedio !== null && precioBase > 0 ? ((precioMedio - precioBase) / precioBase * 100) : 0;
 
             // Indicador visual si el precio_medio difiere del precio base
             let precioHtml = '';

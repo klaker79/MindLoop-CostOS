@@ -69,7 +69,11 @@ export async function renderizarBalance() {
                     if (!ing) return sum;
                     const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
                     const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
-                    return sum + (precioUnitario * item.cantidad);
+                    // 🔒 P1-3 FIX: Aplicar factor de rendimiento (merma)
+                    // Si rendimiento = 50%, el coste real es el doble
+                    const rendimiento = parseFloat(ing.rendimiento || 100) / 100;
+                    const factorRendimiento = rendimiento > 0 ? (1 / rendimiento) : 1;
+                    return sum + (precioUnitario * item.cantidad * factorRendimiento);
                 }, 0);
                 cogs += costeReceta * venta.cantidad;
             }

@@ -148,8 +148,8 @@ export function actualizarLineaMerma(index) {
     // Actualizar unidad
     unidadSpan.textContent = unidad;
 
-    // Calcular precio unitario y valor de pérdida
-    const precioUnitario = precio / formato;
+    // 🔒 P1-2 FIX: Guard against formato=0 (division by zero → Infinity)
+    const precioUnitario = formato > 0 ? (precio / formato) : precio;
     const valor = precioUnitario * cantidad;
     valorSpan.textContent = valor.toFixed(2) + '€';
 

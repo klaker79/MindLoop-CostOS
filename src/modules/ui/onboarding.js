@@ -554,8 +554,8 @@ function bindRecipeFormEvents() {
     nextBtn?.addEventListener('click', () => {
         validateForm();
         if (!nextBtn.disabled) {
-            wizardState.currentStep = 2;
-            renderStep(2);
+            wizardState.currentStep = 4;
+            renderStep(4);
         }
     });
 }
@@ -631,8 +631,8 @@ function bindIngredientEvents() {
 
     nextBtn?.addEventListener('click', () => {
         if (wizardState.selectedIngredients.size > 0) {
-            wizardState.currentStep = 3;
-            renderStep(3);
+            wizardState.currentStep = 5;
+            renderStep(5);
             // Launch confetti after animation
             setTimeout(launchConfetti, 500);
         }

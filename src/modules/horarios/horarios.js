@@ -257,7 +257,10 @@ function calcularHorasSemanales(empleadoId) {
         if (turno.hora_inicio && turno.hora_fin) {
             const [hIni, mIni] = turno.hora_inicio.split(':').map(Number);
             const [hFin, mFin] = turno.hora_fin.split(':').map(Number);
-            const minutos = (hFin * 60 + mFin) - (hIni * 60 + mIni);
+            const ini = hIni * 60 + mIni;
+            const fin = hFin * 60 + mFin;
+            // 🔒 P1-4 FIX: Si fin < ini, el turno cruza medianoche (ej: 22:00→06:00)
+            const minutos = fin < ini ? (fin + 1440 - ini) : (fin - ini);
             totalHoras += minutos / 60;
         }
     });
@@ -521,7 +524,7 @@ window.guardarEmpleado = async function () {
             response = await fetch(`${API_BASE}/empleados/${empleadoEditando.id}`, {
                 method: 'PUT',
                 credentials: 'include',
-            headers: {
+                headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
@@ -532,7 +535,7 @@ window.guardarEmpleado = async function () {
             response = await fetch(`${API_BASE}/empleados`, {
                 method: 'POST',
                 credentials: 'include',
-            headers: {
+                headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
@@ -812,7 +815,7 @@ window.copiarSemana = async function () {
                 const resp = await fetch(`${API_BASE}/horarios`, {
                     method: 'POST',
                     credentials: 'include',
-            headers: {
+                    headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
@@ -862,7 +865,7 @@ window.generarHorarioIA = async function () {
                 await fetch(`${API_BASE}/horarios/empleado/${horario.empleado_id}/fecha/${fechaH}`, {
                     method: 'DELETE',
                     credentials: 'include',
-            headers: {
+                    headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
@@ -892,7 +895,7 @@ window.generarHorarioIA = async function () {
                 const response = await fetch(`${API_BASE}/horarios`, {
                     method: 'POST',
                     credentials: 'include',
-            headers: {
+                    headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
