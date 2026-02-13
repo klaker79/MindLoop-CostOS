@@ -146,6 +146,12 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
     } catch (networkError) {
         clearTimeout(timeout);
 
+        // 🔧 FIX BUG-1: NO reintentar errores de autenticación (401)
+        // Estos ya fueron manejados arriba con showToast + logout
+        if (networkError.message?.includes('Sesión expirada') || networkError.message?.includes('Token')) {
+            throw networkError;
+        }
+
         // 🔧 FIX CRÍTICO: Retry logic con backoff exponencial para errores de red
         // PERO: No reintentar mutaciones (POST/PUT/DELETE) - causaría operaciones duplicadas
         const method = (options.method || 'GET').toUpperCase();

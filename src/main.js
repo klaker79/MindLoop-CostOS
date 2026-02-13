@@ -625,6 +625,11 @@ async function updateAlertBadge() {
     }
 }
 
+// 🔒 FIX BUG-6: Escape listener global (solo una vez, no dentro de showAlertModal)
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAlertModal();
+});
+
 // Función para mostrar modal de alertas
 function showAlertModal() {
     // Crear modal si no existe
@@ -645,11 +650,6 @@ function showAlertModal() {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeAlertModal();
         });
-
-        // Cerrar con Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeAlertModal();
-        });
     }
 
     modal.style.display = 'flex';
@@ -661,16 +661,24 @@ function closeAlertModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// Inicializar badge después de login
+// 🔒 FIX BUG-2: Solo inicializar alertBadge si hay sesión activa
 document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(updateAlertBadge, 3000); // Después de que carguen datos
+    setTimeout(() => {
+        if (localStorage.getItem('token')) {
+            updateAlertBadge();
+        }
+    }, 3000);
 });
 
-// 🔒 FIX: Guard interval to prevent accumulation on re-login/module reload
+// 🔒 FIX: Guard interval behind auth + prevent accumulation
 if (window._alertBadgeInterval) {
     clearInterval(window._alertBadgeInterval);
 }
-window._alertBadgeInterval = setInterval(updateAlertBadge, 5 * 60 * 1000);
+window._alertBadgeInterval = setInterval(() => {
+    if (localStorage.getItem('token')) {
+        updateAlertBadge();
+    }
+}, 5 * 60 * 1000);
 
 // Exponer para actualización manual
 window.updateAlertBadge = updateAlertBadge;

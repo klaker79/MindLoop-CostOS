@@ -58,7 +58,10 @@ async function handleResponse(response) {
             }
         }
 
-        throw new Error(errorMessage);
+        // 🔧 FIX BUG-5: Incluir .status para que callers puedan distinguir 4xx de 5xx
+        const error = new Error(errorMessage);
+        error.status = response.status;
+        throw error;
     }
 
     // Handle empty responses

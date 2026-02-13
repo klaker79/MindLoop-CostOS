@@ -227,8 +227,13 @@ export async function actualizarKPIs() {
         if (stockMsgEl) stockMsgEl.textContent = stockBajo > 0 ? 'Requieren atención' : 'Todo OK';
 
         // 4. MARGEN PROMEDIO
-        const recetas = recipeStore.getState().recipes;
-        const recetasConMargen = recetas.filter(r => r.precio_venta > 0);
+        // 🔧 FIX BUG-3: Fallback a window.recetas si recipeStore está vacío
+        // Legacy cargarDatos() pone datos en window.recetas, no en recipeStore
+        let recetas = recipeStore.getState().recipes;
+        if (!recetas || recetas.length === 0) {
+            recetas = window.recetas || [];
+        }
+        const recetasConMargen = recetas.filter(r => parseFloat(r.precio_venta) > 0);
         if (recetasConMargen.length > 0) {
             // ⚡ OPTIMIZACIÓN: Usar función memoizada para calcular costes
             const calcularCoste =
@@ -236,10 +241,19 @@ export async function actualizarKPIs() {
                 window.calcularCosteRecetaCompleto;
 
             const margenTotal = recetasConMargen.reduce((sum, rec) => {
-                const coste = typeof calcularCoste === 'function' ? calcularCoste(rec) : 0;
+                let coste = 0;
+                if (typeof calcularCoste === 'function') {
+                    coste = calcularCoste(rec) || 0;
+                } else if (rec.ingredientes && Array.isArray(rec.ingredientes)) {
+                    // 🔧 FIX BUG-3: Fallback básico - sumar costes de ingredientes
+                    coste = rec.ingredientes.reduce((c, ing) => {
+                        return c + ((parseFloat(ing.precio_unitario) || 0) * (parseFloat(ing.cantidad) || 0));
+                    }, 0);
+                }
+                const precioVenta = parseFloat(rec.precio_venta) || 0;
                 const margen =
-                    rec.precio_venta > 0
-                        ? ((rec.precio_venta - coste) / rec.precio_venta) * 100
+                    precioVenta > 0
+                        ? ((precioVenta - coste) / precioVenta) * 100
                         : 0;
                 return sum + margen;
             }, 0);
