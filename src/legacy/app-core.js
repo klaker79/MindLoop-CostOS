@@ -2283,12 +2283,13 @@
         }
     };
 
-    // Verificar autenticación al cargar (después de que main.js defina checkAuth)
-    window.addEventListener('load', function () {
-        if (typeof window.checkAuth === 'function' && window.checkAuth()) {
-            init();
-        }
-    });
+    // DESACTIVADO: main.js ya maneja checkAuth() + init()
+    // Tener dos init() duplica TODAS las llamadas API y agota el rate limiter
+    // window.addEventListener('load', function () {
+    //     if (typeof window.checkAuth === 'function' && window.checkAuth()) {
+    //         init();
+    //     }
+    // });
 })();
 
 // === FUNCIONES DE AUTENTICACIÓN ===
