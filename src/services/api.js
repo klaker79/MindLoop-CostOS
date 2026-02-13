@@ -212,6 +212,12 @@ function getDefaultResponse(endpoint) {
         '/api/inventory/complete',
         '/api/balance/comparativa',
         '/api/analysis/menu-engineering',
+        '/api/recipes-variants',
+        '/variants',
+        '/api/gastos-fijos',
+        '/api/mermas',
+        '/api/daily/',
+        '/api/horarios',
     ];
 
     // Verificar si el endpoint devuelve array
