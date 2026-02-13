@@ -55,7 +55,7 @@ async function _cargarDatosInternal() {
         console.log('🛰️ Cargando datos desde API...');
         const fetchOptions = { credentials: 'include', headers: getAuthHeaders() };
 
-        const [ingredientes, recetas, proveedores, pedidos, inventario, ingredientesProveedores] = await Promise.all([
+        const [ingredientes, recetas, proveedores, pedidos, inventario, ingredientesProveedores, recetasVariantes] = await Promise.all([
             fetch(API_BASE + '/ingredients', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /ingredients failed, keeping existing data'), window.ingredientes || [])
             ),
@@ -75,6 +75,10 @@ async function _cargarDatosInternal() {
             fetch(API_BASE + '/ingredients-suppliers', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /ingredients-suppliers failed, keeping existing data'), window.ingredientesProveedores || [])
             ),
+            // 🍷 Cargar variantes de recetas (botella/copa)
+            fetch(API_BASE + '/recipes-variants', fetchOptions).then((r) =>
+                r.ok ? r.json() : (console.warn('⚠️ /recipes-variants failed, keeping existing data'), window.recetasVariantes || [])
+            ),
         ]);
 
         window.ingredientes = Array.isArray(ingredientes) ? ingredientes : [];
@@ -87,6 +91,9 @@ async function _cargarDatosInternal() {
 
         // 💰 Precios por proveedor (para calcular pedidos con precio correcto)
         window.ingredientesProveedores = Array.isArray(ingredientesProveedores) ? ingredientesProveedores : [];
+
+        // 🍷 Variantes de recetas (botella/copa)
+        window.recetasVariantes = Array.isArray(recetasVariantes) ? recetasVariantes : [];
 
         // ⚡ Actualizar mapas de búsqueda optimizados
         if (window.dataMaps?.update) {
@@ -104,7 +111,8 @@ async function _cargarDatosInternal() {
             ingredientes: window.ingredientes.length,
             recetas: window.recetas.length,
             proveedores: window.proveedores.length,
-            pedidos: window.pedidos.length
+            pedidos: window.pedidos.length,
+            variantes: window.recetasVariantes.length
         });
     } catch (error) {
         console.error('❌ Error cargando datos:', error);

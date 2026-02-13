@@ -744,9 +744,10 @@ window.procesarArchivoVentas = async function (input) {
             }
 
             // Asegurar que tenemos las variantes cargadas
-            if (!window.recetasVariantes && window.API?.fetch) {
+            if (!Array.isArray(window.recetasVariantes) && window.API?.fetch) {
                 try {
-                    window.recetasVariantes = await window.API.fetch('/api/recipes-variants');
+                    const result = await window.API.fetch('/api/recipes-variants');
+                    window.recetasVariantes = Array.isArray(result) ? result : [];
                 } catch (e) {
                     console.warn('No se pudieron cargar variantes:', e);
                     window.recetasVariantes = [];
@@ -764,7 +765,7 @@ window.procesarArchivoVentas = async function (input) {
                     recetaEncontrada = window.recetas.find(r => r.codigo && String(r.codigo) === String(v.codigo_tpv));
 
                     // 2. Si no encuentra, buscar en variantes (BOTELLA/COPA)
-                    if (!recetaEncontrada && window.recetasVariantes) {
+                    if (!recetaEncontrada && Array.isArray(window.recetasVariantes)) {
                         varianteEncontrada = window.recetasVariantes.find(va => va.codigo && String(va.codigo) === String(v.codigo_tpv));
                         if (varianteEncontrada) {
                             // Encontrar la receta padre de la variante
@@ -841,7 +842,7 @@ function validarDatosVentas(data) {
             );
 
             // 2. Si no encuentra, buscar en variantes (BOTELLA/COPA)
-            if (!recetaEncontrada && window.recetasVariantes) {
+            if (!recetaEncontrada && Array.isArray(window.recetasVariantes)) {
                 varianteEncontrada = window.recetasVariantes.find(va => va.codigo && String(va.codigo) === String(codigo));
                 if (varianteEncontrada) {
                     recetaEncontrada = window.recetas.find(r => r.id === varianteEncontrada.receta_id);
