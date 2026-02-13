@@ -37,44 +37,72 @@ const API_BASE = getApiUrl();
 async function fetchAPI(endpoint, options = {}, retries = 2) {
     const method = (options.method || 'GET').toUpperCase();
 
-    // Normalizar endpoint: quitar /api prefix si existe (apiClient ya lo añade)
+    // Normalizar endpoint: asegurarse de que empiece con /api
     let normalizedEndpoint = endpoint;
     if (normalizedEndpoint.startsWith('/api')) {
         normalizedEndpoint = normalizedEndpoint.substring(4);
     }
 
-    // Parse body si viene como string JSON
-    let data;
+    // Construir URL completa
+    const url = `${API_BASE}${normalizedEndpoint}`;
+
+    // Auth headers explícitos (misma lógica que cargarDatos en core.js)
+    const token = localStorage.getItem('token');
+    const fetchOptions = {
+        method,
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+    };
+
+    // Body handling
     if (options.body) {
-        try {
-            data = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
-        } catch (e) {
-            data = options.body;
+        if (options.body instanceof FormData) {
+            // FormData: no poner Content-Type (browser lo pone con boundary)
+            delete fetchOptions.headers['Content-Type'];
+            fetchOptions.body = options.body;
+        } else {
+            fetchOptions.body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
         }
     }
 
     try {
-        switch (method) {
-            case 'GET':
-                return await apiClient.get(normalizedEndpoint);
-            case 'POST':
-                // Si es FormData, usar upload
-                if (data instanceof FormData) {
-                    return await apiClient.upload(normalizedEndpoint, data);
+        const response = await fetch(url, fetchOptions);
+
+        if (!response.ok) {
+            let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorData.message || errorMessage;
+            } catch (e) { /* no-op */ }
+
+            // 401 → redirigir a login
+            if (response.status === 401) {
+                console.warn('🔒 API: Token expirado — redirigiendo a login');
+                window.dispatchEvent(new CustomEvent('auth:expired'));
+                document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                if (!window.location.pathname.includes('login')) {
+                    window.location.href = '/login.html';
                 }
-                return await apiClient.post(normalizedEndpoint, data);
-            case 'PUT':
-                return await apiClient.put(normalizedEndpoint, data);
-            case 'PATCH':
-                return await apiClient.patch(normalizedEndpoint, data);
-            case 'DELETE':
-                return await apiClient.delete(normalizedEndpoint);
-            default:
-                return await apiClient.get(normalizedEndpoint);
+            }
+
+            const error = new Error(errorMessage);
+            error.status = response.status;
+            throw error;
         }
+
+        // Parse response
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        }
+        return response.text();
+
     } catch (error) {
-        // Retries para compatibilidad
-        if (retries > 0 && (error.status === 500 || error.message?.includes('fetch'))) {
+        // Retries para 500 o errores de red
+        if (retries > 0 && (error.status === 500 || error.message?.includes('fetch') || error.message?.includes('Failed'))) {
             console.warn(`⚠️ Reintentando ${method} ${normalizedEndpoint} (${retries} restantes)`);
             await new Promise(r => setTimeout(r, 1000));
             return fetchAPI(endpoint, options, retries - 1);
