@@ -256,32 +256,8 @@ describe('P0-3: Data Preservation on API Error', () => {
     });
 });
 
-// ─── Onboarding Step Map Contract ───────────────────────────────────
-describe('P1-10: Onboarding Step Map', () => {
+// P1-10 test removed — onboarding code deleted from codebase
 
-    const STEP_MAP = {
-        0: 'Welcome',
-        1: 'Configuration',
-        2: 'Pantry',
-        3: 'RecipeForm',
-        4: 'Ingredients',
-        5: 'Results',
-    };
-
-    test('RecipeForm (step 3) should advance to Ingredients (step 4)', () => {
-        const currentStep = 3;
-        const nextStep = 4; // Must be 4, NOT 2 (was the bug)
-        expect(STEP_MAP[nextStep]).toBe('Ingredients');
-        expect(nextStep).toBe(currentStep + 1);
-    });
-
-    test('Ingredients (step 4) should advance to Results (step 5)', () => {
-        const currentStep = 4;
-        const nextStep = 5; // Must be 5, NOT 3 (was the bug)
-        expect(STEP_MAP[nextStep]).toBe('Results');
-        expect(nextStep).toBe(currentStep + 1);
-    });
-});
 
 // ─── P0-2: Race Condition Pattern ───────────────────────────────────
 describe('P0-2: Race Condition — Capture Before Update', () => {
