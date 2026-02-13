@@ -1,605 +1,119 @@
 /**
- * API Client Robusto para MindLoop CostOS
- * Maneja errores, reintenta conexiones, y previene TypeErrors
+ * ============================================
+ * services/api.js - COMPATIBILITY SHIM
+ * ============================================
  *
- * INSTRUCCIONES:
- * 1. Incluir este archivo en tu index.html ANTES del script principal
- * 2. O copiar el contenido dentro de <script> en index.html
+ * ⚠️  Este archivo es un SHIM de compatibilidad.
+ * La fuente de verdad es: src/api/client.js
+ *
+ * Expone window.API para módulos legacy que aún usan:
+ *   - window.API.fetch(endpoint, options)
+ *   - window.API.getGastosFijos()
+ *   - etc.
+ *
+ * TODO: Migrar todos los usos de window.API.* a:
+ *   import { api } from '../api/client.js';
+ *   api.getGastosFijos();
+ *
+ * Una vez migrados todos, ELIMINAR este archivo.
  */
 
-import { logger } from '../utils/logger.js';
+import { api, apiClient } from '../api/client.js';
+import { getApiUrl } from '../config/app-config.js';
 
-// API Base URL - configurable via environment variables
-// Fallback a URL de producción si no está configurada
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://lacaleta-api.mindloop.cloud';
-
-// Estado global de la aplicación
-const AppState = {
-    token: localStorage.getItem('token'), // Mantener para backwards compatibility
-    user: JSON.parse(localStorage.getItem('user') || 'null'),
-    isAuthenticated: false,
-    lastError: null,
-};
+const API_BASE = getApiUrl();
 
 /**
- * Inicializa el estado de autenticación
- * Ahora usa cookie httpOnly - verifica con el servidor directamente
- */
-async function initAuth() {
-    try {
-        // Verificar con el servidor (cookie se envía automáticamente)
-        const result = await fetchAPI('/api/auth/verify', { method: 'GET' });
-        if (result.valid) {
-            AppState.isAuthenticated = true;
-            AppState.user = result.user;
-            // Guardar user info para UI (no el token)
-            localStorage.setItem('user', JSON.stringify(result.user));
-            return true;
-        }
-    } catch (_e) {
-        // No hay sesión válida o cookie expirada
-        AppState.isAuthenticated = false;
-        AppState.user = null;
-        localStorage.removeItem('user');
-        localStorage.removeItem('token'); // Limpiar token legacy
-    }
-    return false;
-}
-
-/**
- * Cliente API con manejo robusto de errores
- * @param {string} endpoint - Ruta del API (ej: '/api/ingredients')
- * @param {object} options - Opciones de fetch
- * @param {number} retries - Número de reintentos (default: 2)
- * @returns {Promise<any>} - Datos de respuesta o array/objeto vacío en caso de error
+ * fetchAPI — wrapper compatible con la firma legacy.
+ * 
+ * Los módulos legacy llaman:
+ *   window.API.fetch('/api/mermas', { method: 'POST', body: JSON.stringify({...}) })
+ * 
+ * El apiClient moderno llama:
+ *   apiClient.post('/mermas', data)
+ * 
+ * Este bridge traduce entre ambos formatos.
  */
 async function fetchAPI(endpoint, options = {}, retries = 2) {
-    const token = localStorage.getItem('token');
+    const method = (options.method || 'GET').toUpperCase();
 
-    const defaultHeaders = {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-    };
-
-    if (token) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
+    // Normalizar endpoint: quitar /api prefix si existe (apiClient ya lo añade)
+    let normalizedEndpoint = endpoint;
+    if (normalizedEndpoint.startsWith('/api')) {
+        normalizedEndpoint = normalizedEndpoint.substring(4);
     }
 
-    // MEJORA: Timeout de 15 segundos para evitar requests colgados
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
-    const config = {
-        ...options,
-        signal: controller.signal,
-        credentials: 'include', // SEGURIDAD: Enviar cookies httpOnly automáticamente
-        headers: {
-            ...defaultHeaders,
-            ...options.headers,
-        },
-    };
+    // Parse body si viene como string JSON
+    let data;
+    if (options.body) {
+        try {
+            data = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+        } catch (e) {
+            data = options.body;
+        }
+    }
 
     try {
-        const response = await fetch(`${API_BASE}${endpoint}`, config);
-        clearTimeout(timeout);
-
-        // Intentar parsear JSON
-        let data;
-        try {
-            data = await response.json();
-        } catch (parseError) {
-            console.error(`Error parseando respuesta de ${endpoint}:`, parseError);
-            return getDefaultResponse(endpoint);
+        switch (method) {
+            case 'GET':
+                return await apiClient.get(normalizedEndpoint);
+            case 'POST':
+                // Si es FormData, usar upload
+                if (data instanceof FormData) {
+                    return await apiClient.upload(normalizedEndpoint, data);
+                }
+                return await apiClient.post(normalizedEndpoint, data);
+            case 'PUT':
+                return await apiClient.put(normalizedEndpoint, data);
+            case 'PATCH':
+                return await apiClient.patch(normalizedEndpoint, data);
+            case 'DELETE':
+                return await apiClient.delete(normalizedEndpoint);
+            default:
+                return await apiClient.get(normalizedEndpoint);
         }
-
-        // Manejar errores de autenticación
-        if (response.status === 401) {
-            logger.warn(`Auth error en ${endpoint}:`, data.error || 'Token inválido');
-            AppState.lastError = {
-                code: data.code || 'AUTH_ERROR',
-                message: data.error || 'Error de autenticación',
-            };
-
-            // 🔧 FIX CRÍTICO: Lanzar error para que el caller sepa que falló
-            // Antes retornaba objeto vacío, lo que causaba que guardarIngrediente
-            // mostrara "éxito" cuando realmente no se guardó nada.
-            showToast('⚠️ Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.', 'error');
-
-            // Pequeño delay para que el usuario vea el mensaje
-            setTimeout(() => {
-                logout();
-            }, 1500);
-
-            // CRÍTICO: Lanzar error para prevenir falsos positivos
-            throw new Error('Sesión expirada. Por favor, vuelve a iniciar sesión.');
-        }
-
-        // Manejar otros errores HTTP
-        if (!response.ok) {
-            console.error(
-                `Error HTTP ${response.status} en ${endpoint}:`,
-                data.error || response.statusText
-            );
-            AppState.lastError = {
-                code: response.status,
-                message: data.error || response.statusText,
-            };
-
-            // 🔧 FIX: Para operaciones de mutación (POST, PUT, DELETE), lanzar error
-            // Para GET, podemos devolver vacío para no romper la UI
-            const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(
-                (options.method || 'GET').toUpperCase()
-            );
-
-            if (isMutation) {
-                throw new Error(data.error || `Error ${response.status}: ${response.statusText}`);
-            }
-
-            // Para GET, devolver respuesta por defecto para no romper renders
-            return getDefaultResponse(endpoint);
-        }
-
-        // Éxito - limpiar último error
-        AppState.lastError = null;
-
-        return data;
-    } catch (networkError) {
-        clearTimeout(timeout);
-
-        // 🔧 FIX BUG-1: NO reintentar errores de autenticación (401)
-        // Estos ya fueron manejados arriba con showToast + logout
-        if (networkError.message?.includes('Sesión expirada') || networkError.message?.includes('Token')) {
-            throw networkError;
-        }
-
-        // 🔧 FIX CRÍTICO: Retry logic con backoff exponencial para errores de red
-        // PERO: No reintentar mutaciones (POST/PUT/DELETE) - causaría operaciones duplicadas
-        const method = (options.method || 'GET').toUpperCase();
-        const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
-
-        if (networkError.name === 'AbortError') {
-            console.error(`Timeout en ${endpoint} (15s)`);
-            AppState.lastError = {
-                code: 'TIMEOUT',
-                message: 'La solicitud tardó demasiado. Intenta de nuevo.',
-            };
-            // 🔧 FIX: Si es mutación con timeout, lanzar error para que el usuario reintente manualmente
-            if (isMutation) {
-                throw new Error('La operación tardó demasiado. Por favor, verifica los datos e intenta de nuevo.');
-            }
-        } else if (retries > 0 && !isMutation) {
-            // 🔧 FIX: Solo reintentar operaciones GET - las mutaciones NO son idempotentes
-            // Reintentar DELETE podría eliminar datos múltiples veces
-            const delay = (3 - retries) * 1000; // 1s, 2s
-            console.warn(`Reintentando GET ${endpoint} en ${delay}ms... (${retries} intentos restantes)`);
-            await new Promise(resolve => setTimeout(resolve, delay));
+    } catch (error) {
+        // Retries para compatibilidad
+        if (retries > 0 && (error.status === 500 || error.message?.includes('fetch'))) {
+            console.warn(`⚠️ Reintentando ${method} ${normalizedEndpoint} (${retries} restantes)`);
+            await new Promise(r => setTimeout(r, 1000));
             return fetchAPI(endpoint, options, retries - 1);
-        } else if (isMutation) {
-            // 🔧 FIX: Error de red en mutación - NO reintentar, lanzar error
-            console.error(`Error de red en ${method} ${endpoint} - NO reintentando (no idempotente)`);
-            AppState.lastError = {
-                code: 'NETWORK_ERROR',
-                message: 'Error de conexión. La operación no se completó.',
-            };
-            throw new Error('Error de conexión. La operación no se completó. Por favor, verifica e intenta de nuevo.');
-        } else {
-            console.error(`Error de red en ${endpoint}:`, networkError);
-            AppState.lastError = {
-                code: 'NETWORK_ERROR',
-                message: 'Error de conexión. Verifica tu internet.',
-            };
         }
 
-        showToast('Error de conexión con el servidor', 'error');
-
-        return getDefaultResponse(endpoint);
-    }
-}
-
-/**
- * Retorna respuesta por defecto según el tipo de endpoint
- * Previene TypeErrors como "ingredients.filter is not a function"
- */
-function getDefaultResponse(endpoint) {
-    // Endpoints que devuelven arrays
-    const arrayEndpoints = [
-        '/api/ingredients',
-        '/api/recipes',
-        '/api/suppliers',
-        '/api/orders',
-        '/api/sales',
-        '/api/team',
-        '/api/inventory/complete',
-        '/api/balance/comparativa',
-        '/api/analysis/menu-engineering',
-    ];
-
-    // Verificar si el endpoint devuelve array
-    for (const path of arrayEndpoints) {
-        if (endpoint.includes(path)) {
+        // Devolver respuesta vacía por defecto (comportamiento legacy)
+        console.error(`❌ API Error: ${method} ${normalizedEndpoint}`, error);
+        if (normalizedEndpoint.includes('ingredients') || normalizedEndpoint.includes('recipes') ||
+            normalizedEndpoint.includes('orders') || normalizedEndpoint.includes('sales') ||
+            normalizedEndpoint.includes('suppliers') || normalizedEndpoint.includes('mermas') ||
+            normalizedEndpoint.includes('alerts')) {
             return [];
         }
-    }
-
-    // Por defecto, devolver objeto vacío
-    return {};
-}
-
-/**
- * Funciones helper para cada tipo de recurso
- */
-async function getIngredients() {
-    const data = await fetchAPI('/api/ingredients');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getRecipes() {
-    const data = await fetchAPI('/api/recipes');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getSuppliers() {
-    const data = await fetchAPI('/api/suppliers');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getOrders() {
-    const data = await fetchAPI('/api/orders');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getSales(fecha = null) {
-    const query = fecha ? `?fecha=${fecha}` : '';
-    const data = await fetchAPI(`/api/sales${query}`);
-    return Array.isArray(data) ? data : [];
-}
-
-async function getInventoryComplete() {
-    const data = await fetchAPI('/api/inventory/complete');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getTeam() {
-    const data = await fetchAPI('/api/team');
-    return Array.isArray(data) ? data : [];
-}
-
-async function getBalance(mes, ano) {
-    const params = new URLSearchParams();
-    if (mes) params.append('mes', mes);
-    if (ano) params.append('ano', ano);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return await fetchAPI(`/api/balance/mes${query}`);
-}
-
-async function getGastosFijos() {
-    const data = await fetchAPI('/api/gastos-fijos');
-    return Array.isArray(data) ? data : [];
-}
-
-/**
- * Mermas (pérdidas de producto)
- */
-async function getMermas(mes, ano) {
-    const mesParam = mes || (new Date().getMonth() + 1);
-    const anoParam = ano || new Date().getFullYear();
-    const data = await fetchAPI(`/api/mermas?mes=${mesParam}&ano=${anoParam}`);
-    return Array.isArray(data) ? data : [];
-}
-
-async function getMermasResumen() {
-    const data = await fetchAPI('/api/mermas/resumen');
-    return data || { totalPerdida: 0, totalProductos: 0, totalRegistros: 0 };
-}
-
-/**
- * Funciones de modificación
- */
-async function createIngredient(data) {
-    return await fetchAPI('/api/ingredients', {
-        method: 'POST',
-        body: JSON.stringify(data),
-    });
-}
-
-async function updateIngredient(id, data) {
-    return await fetchAPI(`/api/ingredients/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-    });
-}
-
-async function deleteIngredient(id) {
-    return await fetchAPI(`/api/ingredients/${id}`, {
-        method: 'DELETE',
-    });
-}
-
-async function toggleIngredientActive(id, activo) {
-    return await fetchAPI(`/api/ingredients/${id}/toggle-active`, {
-        method: 'PATCH',
-        body: JSON.stringify({ activo }),
-    });
-}
-
-async function getIngredientsAll() {
-    const data = await fetchAPI('/api/ingredients?include_inactive=true');
-    return Array.isArray(data) ? data : [];
-}
-
-async function createRecipe(data) {
-    return await fetchAPI('/api/recipes', {
-        method: 'POST',
-        body: JSON.stringify(data),
-    });
-}
-
-async function updateRecipe(id, data) {
-    return await fetchAPI(`/api/recipes/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-    });
-}
-
-async function deleteRecipe(id) {
-    return await fetchAPI(`/api/recipes/${id}`, {
-        method: 'DELETE',
-    });
-}
-
-// ========== RECIPES V2 (Cost Calculation) ==========
-
-/**
- * Calcula el coste de una receta en el backend
- * @param {number} recipeId
- * @returns {Promise<Object>} { recipe, breakdown }
- */
-async function calculateRecipeCost(recipeId) {
-    return await fetchAPI(`/api/v2/recipes/${recipeId}/calculate-cost`, {
-        method: 'POST'
-    });
-}
-
-/**
- * Obtiene estadísticas de costes
- * @returns {Promise<Object>}
- */
-async function getRecipeCostStats() {
-    return await fetchAPI('/api/v2/recipes/stats');
-}
-
-/**
- * Recalcula todas las recetas
- * @returns {Promise<Object>}
- */
-async function recalculateAllRecipes() {
-    return await fetchAPI('/api/v2/recipes/recalculate-all', {
-        method: 'POST'
-    });
-}
-
-// ========== KPIs API ==========
-
-async function getDailyKPIs(date = null) {
-    const params = date ? `?date=${date}` : '';
-    return await fetchAPI(`/api/v2/kpis/daily${params}`);
-}
-
-async function getMonthlyKPIs(year, month) {
-    return await fetchAPI(`/api/v2/kpis/monthly?year=${year}&month=${month}`);
-}
-
-async function getKPIComparison(months = 6) {
-    return await fetchAPI(`/api/v2/kpis/comparison?months=${months}`);
-}
-
-async function getTopRecipes(limit = 10) {
-    return await fetchAPI(`/api/v2/kpis/top-recipes?limit=${limit}`);
-}
-
-// ========== ALERTS API ==========
-
-async function getActiveAlerts() {
-    return await fetchAPI('/api/v2/alerts');
-}
-
-async function getAlertStats() {
-    return await fetchAPI('/api/v2/alerts/stats');
-}
-
-async function acknowledgeAlert(alertId) {
-    return await fetchAPI(`/api/v2/alerts/${alertId}/acknowledge`, {
-        method: 'POST'
-    });
-}
-
-async function resolveAlert(alertId) {
-    return await fetchAPI(`/api/v2/alerts/${alertId}/resolve`, {
-        method: 'POST'
-    });
-}
-
-async function createSale(recetaId, cantidad) {
-    return await fetchAPI('/api/sales', {
-        method: 'POST',
-        body: JSON.stringify({ recetaId, cantidad }),
-    });
-}
-
-async function bulkSales(ventas) {
-    return await fetchAPI('/api/sales/bulk', {
-        method: 'POST',
-        body: JSON.stringify({ ventas }),
-    });
-}
-
-/**
- * Autenticación
- */
-async function login(email, password) {
-    const result = await fetchAPI('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-    });
-
-    if (result.user) {
-        // SEGURIDAD: Token ya está en cookie httpOnly (set por el servidor)
-        // Solo guardamos user info para UI display
-        localStorage.setItem('user', JSON.stringify(result.user));
-        AppState.user = result.user;
-        AppState.isAuthenticated = true;
-        return { success: true, user: result.user };
-    }
-
-    return { success: false, error: result.error || 'Error de autenticación' };
-}
-
-async function logout() {
-    // Llamar al backend para limpiar cookie httpOnly
-    try {
-        await fetch(`${API_BASE}/api/auth/logout`, {
-            method: 'POST',
-            credentials: 'include'
-        });
-    } catch (_e) {
-        // Continuar con logout local aunque falle el backend
-    }
-
-    // Limpiar estado local
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    AppState.token = null;
-    AppState.user = null;
-    AppState.isAuthenticated = false;
-
-    // Mostrar pantalla de login
-    if (typeof mostrarLogin === 'function') {
-        mostrarLogin();
-    } else {
-        // Fallback: recargar página
-        window.location.reload();
+        return null;
     }
 }
 
-/**
- * Toast/Notificaciones
- */
-function showToast(message, type = 'info') {
-    // Buscar contenedor de toast existente o crear uno
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        container.style.cssText =
-            'position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;';
-        document.body.appendChild(container);
-    }
-
-    const toast = document.createElement('div');
-    const colors = {
-        info: '#3498db',
-        success: '#27ae60',
-        error: '#e74c3c',
-        warning: '#f39c12',
-    };
-
-    toast.style.cssText = `
-        background: ${colors[type] || colors.info};
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 14px;
-        animation: slideIn 0.3s ease;
-        max-width: 350px;
-    `;
-    toast.textContent = message;
-
-    container.appendChild(toast);
-
-    // Auto-remove después de 5 segundos
-    setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 5000);
-}
-
-// CSS para animaciones
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes fadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
-
-/**
- * Generar token de API para n8n (solo admin)
- */
-async function generateAPIToken(nombre = 'n8n Integration', duracionDias = 365) {
-    const result = await fetchAPI('/api/auth/api-token', {
-        method: 'POST',
-        body: JSON.stringify({ nombre, duracionDias }),
-    });
-
-    if (result.apiToken) {
-        logger.info('✅ Token generado exitosamente');
-        logger.info('📋 Copia este token para n8n:', result.apiToken);
-        return result;
-    }
-
-    return null;
-}
-
-// Exponer funciones globalmente
+// ============================
+// window.API — Backward compat
+// ============================
+// Combina funciones de api/client.js con el fetchAPI bridge
 window.API = {
+    // Bridge method para llamadas raw
     fetch: fetchAPI,
-    getIngredients,
-    getIngredientsAll,
-    getRecipes,
-    getSuppliers,
-    getOrders,
-    getSales,
-    getInventoryComplete,
-    getTeam,
-    getBalance,
-    getGastosFijos,
-    getMermas,
-    getMermasResumen,
-    createIngredient,
-    updateIngredient,
-    deleteIngredient,
-    toggleIngredientActive,
-    createRecipe,
-    updateRecipe,
-    deleteRecipe,
-    createSale,
-    bulkSales,
-    // V2 - Cost Calculation
-    calculateRecipeCost,
-    getRecipeCostStats,
-    recalculateAllRecipes,
-    // V2 - KPIs
-    getDailyKPIs,
-    getMonthlyKPIs,
-    getKPIComparison,
-    getTopRecipes,
-    // V2 - Alerts
-    getActiveAlerts,
-    getAlertStats,
-    acknowledgeAlert,
-    resolveAlert,
-    // Auth
-    login,
-    logout,
-    initAuth,
-    generateAPIToken,
-    showToast,
-    state: AppState,
+
+    // Re-export todas las funciones del api client moderno
+    ...api,
+
+    // Estado de auth (legacy, solo lectura)
+    state: {
+        get token() { return localStorage.getItem('token'); },
+        get user() { return JSON.parse(localStorage.getItem('user') || 'null'); },
+        get isAuthenticated() { return !!document.cookie.includes('token'); },
+    },
+
+    // showToast delegado al global (definido en main.js)
+    showToast: (message, type = 'info') => {
+        if (window.showToast) {
+            window.showToast(message, type);
+        }
+    }
 };

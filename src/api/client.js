@@ -218,25 +218,49 @@ export const apiClient = {
 /**
  * Convenience exports for common endpoints
  * NOTE: Rutas EN INGLÉS para coincidir con backend lacaleta-api
+ * SINGLE SOURCE OF TRUTH — services/api.js es solo un shim de compatibilidad
  */
 export const api = {
+    // Raw fetch passthrough (para endpoints no definidos aquí)
+    fetch: (endpoint, options) => apiClient.get ?
+        (/POST|PUT|PATCH|DELETE/i.test(options?.method) ?
+            apiClient[options.method.toLowerCase()](endpoint, options?.body ? JSON.parse(options.body) : undefined) :
+            apiClient.get(endpoint)) :
+        null,
+
     // Ingredients (antes: ingredientes)
     getIngredientes: () => apiClient.get('/ingredients'),
     getIngrediente: (id) => apiClient.get(`/ingredients/${id}`),
+    getIngredients: () => apiClient.get('/ingredients'),
+    getIngredientsAll: () => apiClient.get('/ingredients?all=true'),
     createIngrediente: (data) => apiClient.post('/ingredients', data),
+    createIngredient: (data) => apiClient.post('/ingredients', data),
     updateIngrediente: (id, data) => apiClient.put(`/ingredients/${id}`, data),
+    updateIngredient: (id, data) => apiClient.put(`/ingredients/${id}`, data),
     deleteIngrediente: (id) => apiClient.delete(`/ingredients/${id}`),
+    deleteIngredient: (id) => apiClient.delete(`/ingredients/${id}`),
+    toggleIngredientActive: (id, activo) => apiClient.patch(`/ingredients/${id}/toggle`, { activo }),
 
     // Recipes (antes: recetas)
     getRecetas: () => apiClient.get('/recipes'),
     getReceta: (id) => apiClient.get(`/recipes/${id}`),
+    getRecipes: () => apiClient.get('/recipes'),
     createReceta: (data) => apiClient.post('/recipes', data),
+    createRecipe: (data) => apiClient.post('/recipes', data),
     updateReceta: (id, data) => apiClient.put(`/recipes/${id}`, data),
+    updateRecipe: (id, data) => apiClient.put(`/recipes/${id}`, data),
     deleteReceta: (id) => apiClient.delete(`/recipes/${id}`),
+    deleteRecipe: (id) => apiClient.delete(`/recipes/${id}`),
+
+    // Recipe Cost Calculation (V2)
+    calculateRecipeCost: (id) => apiClient.get(`/recipes/${id}/cost`),
+    getRecipeCostStats: () => apiClient.get('/recipes/cost-stats'),
+    recalculateAllRecipes: () => apiClient.post('/recipes/recalculate', {}),
 
     // Orders (antes: pedidos)
     getPedidos: () => apiClient.get('/orders'),
     getPedido: (id) => apiClient.get(`/orders/${id}`),
+    getOrders: () => apiClient.get('/orders'),
     createPedido: (data) => apiClient.post('/orders', data),
     updatePedido: (id, data) => apiClient.put(`/orders/${id}`, data),
     deletePedido: (id) => apiClient.delete(`/orders/${id}`),
@@ -244,32 +268,70 @@ export const api = {
     // Suppliers (antes: proveedores)
     getProveedores: () => apiClient.get('/suppliers'),
     getProveedor: (id) => apiClient.get(`/suppliers/${id}`),
+    getSuppliers: () => apiClient.get('/suppliers'),
     createProveedor: (data) => apiClient.post('/suppliers', data),
     updateProveedor: (id, data) => apiClient.put(`/suppliers/${id}`, data),
     deleteProveedor: (id) => apiClient.delete(`/suppliers/${id}`),
 
     // Sales (ya estaba en inglés)
-    getSales: () => apiClient.get('/sales'),
+    getSales: (fecha = null) => apiClient.get(fecha ? `/sales?fecha=${fecha}` : '/sales'),
     createSale: (data) => apiClient.post('/sales', data),
     createBulkSales: (data) => apiClient.post('/sales/bulk', data),
+    bulkSales: (data) => apiClient.post('/sales/bulk', data),
     deleteSale: (id) => apiClient.delete(`/sales/${id}`),
 
     // Team (antes: empleados)
     getEmpleados: () => apiClient.get('/team'),
+    getTeam: () => apiClient.get('/team'),
     getHorarios: (desde, hasta) => apiClient.get(`/horarios?desde=${desde}&hasta=${hasta}`),
 
     // Inventory (antes: inventario)
     getInventario: () => apiClient.get('/inventory/complete'),
+    getInventoryComplete: () => apiClient.get('/inventory/complete'),
     updateStock: (data) => apiClient.post('/inventory/ajuste', data),
 
     // 🔒 ATOMIC STOCK: Ajuste atómico individual y masivo
     adjustStock: (id, delta, reason = '') => apiClient.post(`/ingredients/${id}/adjust-stock`, { delta, reason }),
     bulkAdjustStock: (adjustments, reason = '') => apiClient.post('/ingredients/bulk-adjust-stock', { adjustments, reason }),
 
+    // Balance / P&L
+    getBalance: (mes, ano) => apiClient.get(`/balance/mes?month=${ano}-${String(mes).padStart(2, '0')}`),
+
+    // Gastos Fijos
+    getGastosFijos: () => apiClient.get('/gastos-fijos'),
+    getTotalGastosFijos: () => apiClient.get('/gastos-fijos/total'),
+    createGastoFijo: (concepto, monto) => apiClient.post('/gastos-fijos', { concepto, monto_mensual: monto }),
+    updateGastoFijo: (id, concepto, monto) => apiClient.put(`/gastos-fijos/${id}`, { concepto, monto_mensual: monto }),
+    deleteGastoFijo: (id) => apiClient.delete(`/gastos-fijos/${id}`),
+
+    // Mermas
+    getMermas: (mes, ano) => {
+        const params = [];
+        if (mes) params.push(`mes=${mes}`);
+        if (ano) params.push(`ano=${ano}`);
+        return apiClient.get(`/mermas${params.length ? '?' + params.join('&') : ''}`);
+    },
+    getMermasResumen: () => apiClient.get('/mermas/resumen'),
+
+    // KPIs
+    getDailyKPIs: (date = null) => apiClient.get(date ? `/kpis/daily?date=${date}` : '/kpis/daily'),
+    getMonthlyKPIs: (year, month) => apiClient.get(`/kpis/monthly?year=${year}&month=${month}`),
+    getKPIComparison: (months = 6) => apiClient.get(`/kpis/comparison?months=${months}`),
+    getTopRecipes: (limit = 10) => apiClient.get(`/kpis/top-recipes?limit=${limit}`),
+
+    // Alerts
+    getActiveAlerts: () => apiClient.get('/v2/alerts/active'),
+    getAlertStats: () => apiClient.get('/v2/alerts/stats'),
+    acknowledgeAlert: (id) => apiClient.patch(`/v2/alerts/${id}/acknowledge`, {}),
+    resolveAlert: (id) => apiClient.patch(`/v2/alerts/${id}/resolve`, {}),
+
     // Auth
     login: (credentials) => apiClient.post('/auth/login', credentials),
     logout: () => apiClient.post('/auth/logout', {}),
-    checkAuth: () => apiClient.get('/auth/check')
+    checkAuth: () => apiClient.get('/auth/check'),
+    initAuth: () => apiClient.get('/auth/check'),
+    generateAPIToken: (nombre = 'n8n Integration', duracionDias = 365) =>
+        apiClient.post('/auth/api-token', { nombre, duracionDias }),
 };
 
 // Expose globally for legacy code compatibility
@@ -279,3 +341,4 @@ if (typeof window !== 'undefined') {
 }
 
 export default apiClient;
+
