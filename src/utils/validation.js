@@ -214,6 +214,16 @@ export function validateReceta(data) {
         else sanitized.precio_venta = precio.value;
     }
 
+    // Porciones (> 0, evita división por cero en cálculos de coste)
+    if (data.porciones !== undefined && data.porciones !== '') {
+        const porciones = parseFloat(data.porciones);
+        if (isNaN(porciones) || porciones <= 0) {
+            errors.push('Porciones debe ser mayor a 0');
+        } else {
+            sanitized.porciones = Math.max(1, Math.round(porciones));
+        }
+    }
+
     // Ingredientes (array no vacío)
     if (!Array.isArray(data.ingredientes) || data.ingredientes.length === 0) {
         errors.push('La receta debe tener al menos un ingrediente');
