@@ -5,6 +5,15 @@ description: Comprehensive skill for the MindLoop CostOS restaurant management p
 
 # MindLoop CostOS Platform
 
+## ⚠️ FASE ACTUAL: Estabilización (Mes 1 de 3)
+
+> **La app está en producción con clientes activos.**
+> **Prioridad ABSOLUTA: estabilidad, control y robustez.**
+> **PROHIBIDO añadir features nuevas hasta completar estabilización.**
+>
+> Antes de cualquier cambio, leer obligatoriamente:
+> [stability-rules.md](file:///Users/ikerfernandezcaballero/.gemini/antigravity/scratch/mindloop-costos/.agent/skills/mindloop-platform/rules/stability-rules.md)
+
 ## Overview
 
 MindLoop CostOS is a **multi-tenant restaurant cost management platform** for managing ingredients, recipes, suppliers, orders, sales, inventory, staff schedules, waste tracking, and financial analytics. Currently deployed for **La Caleta 102** restaurant in Galicia, Spain.
@@ -63,6 +72,7 @@ For detailed information, consult these rule files:
 
 | Document | Path | Contents |
 |----------|------|----------|
+| **⚠️ Stability Rules** | [stability-rules.md](file:///rules/stability-rules.md) | **Reglas operativas obligatorias, flujos críticos, protocolo de cambio, prohibiciones** |
 | Database Schema | [database-schema.md](file:///rules/database-schema.md) | All 20+ tables, columns, types, relations, migrations |
 | API Endpoints | [api-endpoints.md](file:///rules/api-endpoints.md) | All 80+ endpoints with methods, auth, bodies, responses |
 | Frontend Architecture | [frontend-architecture.md](file:///rules/frontend-architecture.md) | 41 modules, patterns, state management, API client |
@@ -93,3 +103,12 @@ For detailed information, consult these rule files:
 - Recipe v2 routes exist at `/api/v2/recipes` but inline routes in `server.js` are the active ones
 - `server.js` is a monolith — only Suppliers have been migrated to clean architecture
 - Galicia holidays are hardcoded for 2026 in the overstock intelligence endpoint
+
+## Workflows Disponibles
+- `/change-protocol` — Protocolo obligatorio para cada cambio (9 pasos)
+- `/hotfix-protocol` — Protocolo de emergencia para producción
+
+## Tests (Estado actual: 144 tests, 13 suites, 0 fallos)
+- `__tests__/regression/p0-p1-regression.test.js` — 27 tests de regresión P0/P1
+- `__tests__/api/api-surface-contract.test.js` — Contrato de API client
+- `__tests__/modules/` — Tests unitarios por módulo
