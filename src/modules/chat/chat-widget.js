@@ -8,6 +8,14 @@ import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
 import { jsPDF } from 'jspdf';
 
+/**
+ * Escapa HTML para prevenir XSS en datos dinámicos del chat
+ */
+function escChatHTML(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
     webhookUrl: appConfig.chat.webhookUrl,
@@ -37,6 +45,11 @@ try {
             console.warn('⚠️ chatHistory corrupto, reseteando...');
             chatMessages = [];
             localStorage.removeItem('chatHistory');
+        }
+        // 🔒 FIX: Limitar historial al cargar para prevenir crecimiento descontrolado
+        if (chatMessages.length > 50) {
+            chatMessages = chatMessages.slice(-50);
+            localStorage.setItem('chatHistory', JSON.stringify(chatMessages));
         }
     }
 } catch (parseError) {
@@ -289,7 +302,7 @@ function createChatHTML() {
             <div class="chat-header">
                 <div class="chat-header-avatar">🤖</div>
                 <div class="chat-header-info">
-                    <h3>${CHAT_CONFIG.botName}</h3>
+                    <h3>${escChatHTML(CHAT_CONFIG.botName)}</h3>
                     <p>Asistente inteligente de costos</p>
                 </div>
                 <div class="chat-header-status"></div>

@@ -2,10 +2,20 @@
  * 🧠 Inteligencia - Dashboard Predictivo
  */
 
+import { getApiUrl } from '../../config/app-config.js';
+
+/**
+ * Escapa HTML para prevenir XSS en datos dinámicos
+ */
+function escHTML(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // ========== API ==========
 async function fetchIntelligence(endpoint) {
     try {
-        const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud';
+        const apiBase = getApiUrl();
         const token = localStorage.getItem('token');
 
         const response = await fetch(`${apiBase}/intelligence/${endpoint}`, {
@@ -148,8 +158,8 @@ function renderFreshness(data) {
     return `<div class="intel-list">${data.slice(0, 8).map(a => `
         <div class="intel-item">
             <div>
-                <div class="intel-item-name">${a.nombre}</div>
-                <div class="intel-item-detail">${a.stock_actual} ${a.unidad} · Hace ${a.dias_desde_compra || 0} días</div>
+                <div class="intel-item-name">${escHTML(a.nombre)}</div>
+                <div class="intel-item-detail">${escHTML(a.stock_actual)} ${escHTML(a.unidad)} · Hace ${parseInt(a.dias_desde_compra) || 0} días</div>
             </div>
             <span class="intel-badge ${a.urgencia === 'critico' ? 'badge-danger' : 'badge-warn'}">
                 ${a.urgencia === 'critico' ? '⚠️ REVISAR' : '📋 USAR HOY'}
@@ -165,13 +175,13 @@ function renderPurchase(data, day) {
     `).join('')}</div>`;
 
     if (!data || !data.sugerencias || data.sugerencias.length === 0) {
-        return dayBtns + `<div class="intel-empty"><div class="intel-empty-icon">📦</div><div>Stock suficiente para ${data?.dia_objetivo || 'este día'}</div></div>`;
+        return dayBtns + `<div class="intel-empty"><div class="intel-empty-icon">📦</div><div>Stock suficiente para ${escHTML(data?.dia_objetivo || 'este día')}</div></div>`;
     }
     return dayBtns + `<div class="intel-list">${data.sugerencias.slice(0, 6).map(s => `
         <div class="intel-item">
             <div>
-                <div class="intel-item-name">${s.nombre}</div>
-                <div class="intel-item-detail">Stock: ${parseFloat(s.stock_actual).toFixed(1)} ${s.unidad}</div>
+                <div class="intel-item-name">${escHTML(s.nombre)}</div>
+                <div class="intel-item-detail">Stock: ${parseFloat(s.stock_actual).toFixed(1)} ${escHTML(s.unidad)}</div>
             </div>
             <span class="intel-badge badge-warn">+${parseFloat(s.sugerencia_pedido).toFixed(1)}</span>
         </div>
@@ -185,8 +195,8 @@ function renderOverstock(data) {
     return `<div class="intel-list">${data.slice(0, 8).map(i => `
         <div class="intel-item">
             <div>
-                <div class="intel-item-name">${i.nombre}</div>
-                <div class="intel-item-detail">${parseFloat(i.stock_actual).toFixed(1)} ${i.unidad}</div>
+                <div class="intel-item-name">${escHTML(i.nombre)}</div>
+                <div class="intel-item-detail">${parseFloat(i.stock_actual).toFixed(1)} ${escHTML(i.unidad)}</div>
             </div>
             <span class="intel-badge badge-warn">📦 ${Math.round(i.dias_stock)} días</span>
         </div>
@@ -200,10 +210,10 @@ function renderPricing(data) {
     return `<div class="intel-list">${data.recetas_problema.slice(0, 6).map(r => `
         <div class="intel-item">
             <div>
-                <div class="intel-item-name">${r.nombre}</div>
-                <div class="intel-item-detail">Coste: ${r.coste.toFixed(2)}€ · Actual: ${r.precio_actual.toFixed(2)}€</div>
+                <div class="intel-item-name">${escHTML(r.nombre)}</div>
+                <div class="intel-item-detail">Coste: ${parseFloat(r.coste).toFixed(2)}€ · Actual: ${parseFloat(r.precio_actual).toFixed(2)}€</div>
             </div>
-            <span class="intel-badge badge-danger">${r.food_cost}% → ${r.precio_sugerido.toFixed(2)}€</span>
+            <span class="intel-badge badge-danger">${parseFloat(r.food_cost).toFixed(1)}% → ${parseFloat(r.precio_sugerido).toFixed(2)}€</span>
         </div>
     `).join('')}</div>`;
 }
@@ -234,8 +244,8 @@ function renderWaste(data) {
             html += `
                 <div class="intel-item">
                     <div>
-                        <div class="intel-item-name">${p.nombre}</div>
-                        <div class="intel-item-detail">${parseFloat(p.cantidad_total).toFixed(2)} tirados (${p.veces}x)</div>
+                        <div class="intel-item-name">${escHTML(p.nombre)}</div>
+                        <div class="intel-item-detail">${parseFloat(p.cantidad_total).toFixed(2)} tirados (${parseInt(p.veces) || 0}x)</div>
                     </div>
                     <span class="intel-badge badge-danger">${parseFloat(p.perdida_total).toFixed(2)}€</span>
                 </div>
@@ -257,11 +267,11 @@ async function renderizarInteligencia() {
 
     container.innerHTML = `<div class="intel-dashboard"><div style="text-align:center;padding:60px;"><div style="font-size:40px;">⏳</div><div style="color:#64748b;">Cargando...</div></div></div>`;
 
-    const [fresh, price, waste] = await Promise.all([
+    const [fresh, price, waste] = await Promise.allSettled([
         fetchIntelligence('freshness'),
         fetchIntelligence('price-check'),
         fetchIntelligence('waste-stats')
-    ]);
+    ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : null));
 
     const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 

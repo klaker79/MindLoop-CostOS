@@ -33,8 +33,17 @@ export {
  * Guarda un nuevo pedido
  * @param {Event} event - Evento del formulario
  */
+let _guardandoPedido = false; // 🔒 FIX: Prevenir doble submit
 export async function guardarPedido(event) {
   event.preventDefault();
+
+  // 🔒 FIX: Prevenir múltiples clicks
+  if (_guardandoPedido) {
+    console.warn('⚠️ Guardado de pedido en curso, ignorando click duplicado');
+    return;
+  }
+
+  _guardandoPedido = true;
 
   // Recoger ingredientes de las filas select+input
   const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
@@ -107,6 +116,7 @@ export async function guardarPedido(event) {
     // ========== COMPRA MERCADO (con ingredientes + actualización de stock inmediata) ==========
     if (ingredientesPedido.length === 0) {
       window.showToast('Selecciona al menos un ingrediente', 'warning');
+      _guardandoPedido = false;
       return;
     }
 
@@ -124,6 +134,7 @@ export async function guardarPedido(event) {
     // ========== PEDIDO NORMAL → AÑADIR AL CARRITO ==========
     if (ingredientesPedido.length === 0) {
       window.showToast('Selecciona al menos un ingrediente', 'warning');
+      _guardandoPedido = false;
       return;
     }
 
@@ -151,6 +162,7 @@ export async function guardarPedido(event) {
     if (typeof window.abrirCarrito === 'function') {
       setTimeout(() => window.abrirCarrito(), 300);
     }
+    _guardandoPedido = false;
     return; // No continuar con la creación directa
   }
 
@@ -245,6 +257,8 @@ export async function guardarPedido(event) {
     window.hideLoading();
     console.error('Error:', error);
     window.showToast('Error guardando pedido: ' + error.message, 'error');
+  } finally {
+    _guardandoPedido = false;
   }
 }
 

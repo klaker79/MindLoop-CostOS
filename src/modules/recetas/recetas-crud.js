@@ -12,8 +12,16 @@ import { validateReceta, showValidationErrors } from '../../utils/validation.js'
  * Guarda una receta (nueva o editada)
  * @param {Event} event - Evento del formulario
  */
+let _guardandoReceta = false; // 🔒 FIX: Prevenir doble submit
 export async function guardarReceta(event) {
     event.preventDefault();
+
+    // 🔒 FIX: Prevenir múltiples clicks
+    if (_guardandoReceta) {
+        console.warn('⚠️ Guardado de receta en curso, ignorando click duplicado');
+        return;
+    }
+    _guardandoReceta = true;
 
     const items = document.querySelectorAll('#lista-ingredientes-receta .ingrediente-item');
     const ingredientesReceta = [];
@@ -54,6 +62,7 @@ export async function guardarReceta(event) {
     const validation = validateReceta(receta);
     if (!validation.valid) {
         showValidationErrors(validation.errors);
+        _guardandoReceta = false;
         return;
     }
 
@@ -84,6 +93,8 @@ export async function guardarReceta(event) {
         window.hideLoading();
         console.error('Error:', error);
         window.showToast('Error guardando receta: ' + error.message, 'error');
+    } finally {
+        _guardandoReceta = false;
     }
 }
 
@@ -205,9 +216,21 @@ function getIngMap() {
     return _ingMapCache;
 }
 
+// 🔒 FIX: Set para detectar recursión infinita en recetas que se referencian mutuamente
+const _recursionGuard = new Set();
+
 export function calcularCosteRecetaCompleto(receta) {
     if (!receta || !receta.ingredientes) return 0;
 
+    // 🔒 FIX: Prevenir recursión infinita si receta A contiene receta B que contiene receta A
+    const recetaKey = receta.id || receta.nombre;
+    if (_recursionGuard.has(recetaKey)) {
+        console.warn(`⚠️ Recursión circular detectada en receta: ${receta.nombre}`);
+        return 0;
+    }
+    _recursionGuard.add(recetaKey);
+
+    try {
     // ⚡ OPTIMIZACIÓN: Usar Maps O(1) en lugar de .find() O(n)
     const invMap = getInvMap();
     const ingMap = getIngMap();
@@ -220,7 +243,7 @@ export function calcularCosteRecetaCompleto(receta) {
             const recetaId = item.ingredienteId - 100000;
             const recetaBase = recetasMap.get(recetaId);
             if (recetaBase) {
-                // Calcular coste recursivamente (evitar recursión infinita)
+                // Calcular coste recursivamente (con guard contra recursión infinita)
                 const costeRecetaBase = calcularCosteRecetaCompleto(recetaBase);
                 return total + costeRecetaBase * item.cantidad;
             }
@@ -255,6 +278,10 @@ export function calcularCosteRecetaCompleto(receta) {
 
     // Redondear a 2 decimales para evitar errores de precisión
     return parseFloat(costePorPorcion.toFixed(2));
+
+    } finally {
+        _recursionGuard.delete(recetaKey);
+    }
 }
 
 /**

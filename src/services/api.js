@@ -36,8 +36,9 @@ async function initAuth() {
             localStorage.setItem('user', JSON.stringify(result.user));
             return true;
         }
-    } catch (_e) {
+    } catch (authError) {
         // No hay sesión válida o cookie expirada
+        logger.info('Auth verification failed (expected if no session):', authError.message);
         AppState.isAuthenticated = false;
         AppState.user = null;
         localStorage.removeItem('user');
@@ -461,8 +462,9 @@ async function logout() {
             method: 'POST',
             credentials: 'include'
         });
-    } catch (_e) {
+    } catch (logoutError) {
         // Continuar con logout local aunque falle el backend
+        logger.warn('Backend logout failed (non-critical):', logoutError.message);
     }
 
     // Limpiar estado local

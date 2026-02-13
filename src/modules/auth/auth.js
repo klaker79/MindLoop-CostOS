@@ -13,10 +13,16 @@ const API_AUTH_URL = getAuthUrl();
  */
 export async function checkAuth() {
     try {
+        // 🔧 FIX: Timeout para evitar que el fetch cuelgue indefinidamente
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+
         // Verificar sesión via cookie httpOnly (se envía automáticamente)
         const res = await fetch(API_AUTH_URL + '/verify', {
-            credentials: 'include'
+            credentials: 'include',
+            signal: controller.signal
         });
+        clearTimeout(timeout);
         if (!res.ok) {
             mostrarLogin();
             return false;
@@ -145,7 +151,7 @@ export function initRegisterForm() {
                 if (loginScreen) loginScreen.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'block';
                 if (typeof window.cargarDatos === 'function') {
-                    window.cargarDatos();
+                    await window.cargarDatos();
                 }
             } else {
                 // Login failed but registration succeeded - go back to login
@@ -232,7 +238,7 @@ export function initLoginForm() {
 
             // Cargar datos iniciales
             if (typeof window.cargarDatos === 'function') {
-                window.cargarDatos();
+                await window.cargarDatos();
             }
         } catch (err) {
             if (errorEl) errorEl.textContent = 'Error de conexión';
