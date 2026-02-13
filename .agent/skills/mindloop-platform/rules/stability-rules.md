@@ -115,11 +115,11 @@ El agente **NO PUEDE:**
 ## 7. Testing
 
 ### Tests Obligatorios de Flujos Críticos
-- [ ] Cálculo PNL con datos simulados
-- [ ] Importación de compras masivas
-- [ ] Generación de PDF
-- [ ] Creación de horario
-- [ ] Cálculo de costes medios
+- [x] Cálculo PNL con datos simulados
+- [x] Importación de compras masivas
+- [x] Generación de PDF (smoke test)
+- [x] Creación de horario
+- [x] Cálculo de costes medios
 
 ### Regla de Regresión
 > **Un bug solucionado sin test asociado es un bug que volverá.**
@@ -128,10 +128,17 @@ Cada bug corregido DEBE generar:
 1. Un test que reproduzca ese bug
 2. Confirmación de que no vuelve a aparecer
 
-### Estado actual
-- 13 test suites, 144 tests, 0 fallos
-- Regression suite: `__tests__/regression/p0-p1-regression.test.js` (27 tests)
+### Estado actual (Feb 2026)
+- **Backend:** 39 suites, 162 tests (159 pass, 3 skip)
+- **Frontend:** 13 suites, 142 tests
+- **Total: 304 tests, 10/10 flujos críticos cubiertos**
+- Regression suite: `__tests__/regression/p0-p1-regression.test.js` (25 tests)
 - Contract tests: `__tests__/api/api-surface-contract.test.js`
+
+### Bugs documentados (pendientes Mes 2)
+- 🐛 2 ventas con cantidad>0 pero total≤0 en lacaleta_dev
+- ⚠️ `/api/backup` no existe — necesita implementación
+- ⚠️ 401 intermitentes por race condition del token blacklisting entre suites Jest
 
 ---
 
@@ -170,17 +177,20 @@ Cada actualización de librería requiere:
 
 ## 11. Plan de 90 Días
 
-### Mes 1 (ACTUAL — Feb 2026)
+### Mes 1 (COMPLETADO ✅ — Feb 2026)
 - [x] Congelación de features
-- [x] Tests de flujos críticos (P0/P1 regression suite)
-- [x] Auditoría técnica (frontend bug audit)
-- [ ] Documentación mínima de arquitectura
+- [x] Tests de flujos críticos — 10/10 flujos cubiertos
+- [x] Auditoría técnica (P0/P1 bugs corregidos)
+- [x] Documentación de arquitectura (skill completo)
+- [x] Separación entornos prod/dev/test
 
-### Mes 2
+### Mes 2 (ACTUAL — Mar 2026)
 - [ ] Refactorización de módulos inestables
 - [ ] Limpieza de dependencias
 - [ ] Mejora de validaciones
 - [ ] Optimización de consultas a BD
+- [ ] Implementar endpoint `/api/backup`
+- [ ] Corregir bugs documentados
 
 ### Mes 3
 - [ ] Tests de carga
