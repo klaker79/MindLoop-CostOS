@@ -688,4 +688,7 @@ window.addEventListener('dashboard:refresh', () => {
 
     // También actualizar los KPIs básicos
     actualizarKPIs();
+
+    // Actualizar widgets expandidos (Stock Bajo lista, Top Recetas, etc.)
+    window.actualizarDashboardExpandido?.();
 });
