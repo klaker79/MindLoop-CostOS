@@ -28,8 +28,10 @@ export async function checkAuth() {
         if (loginScreen) loginScreen.style.display = 'none';
         if (appContainer) appContainer.style.display = 'block';
 
-        // ✅ Importante: cargar datos cuando ya hay sesión activa
-        if (typeof window.cargarDatos === 'function') {
+        // ✅ Importante: cargar datos Y renderizar cuando ya hay sesión activa
+        if (typeof window.init === 'function') {
+            await window.init();
+        } else if (typeof window.cargarDatos === 'function') {
             await window.cargarDatos();
         }
 
@@ -230,9 +232,11 @@ export function initLoginForm() {
             if (loginScreen) loginScreen.style.display = 'none';
             if (appContainer) appContainer.style.display = 'block';
 
-            // Cargar datos iniciales
-            if (typeof window.cargarDatos === 'function') {
-                window.cargarDatos();
+            // Cargar datos iniciales Y renderizar
+            if (typeof window.init === 'function') {
+                await window.init();
+            } else if (typeof window.cargarDatos === 'function') {
+                await window.cargarDatos();
             }
         } catch (err) {
             if (errorEl) errorEl.textContent = 'Error de conexión';
