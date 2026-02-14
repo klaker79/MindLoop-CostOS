@@ -114,6 +114,9 @@ async function _cargarDatosInternal() {
             pedidos: window.pedidos.length,
             variantes: window.recetasVariantes.length
         });
+
+        // 🔄 Notificar al dashboard para que recalcule KPIs con datos frescos
+        window.dispatchEvent(new CustomEvent('dashboard:refresh'));
     } catch (error) {
         console.error('❌ Error cargando datos:', error);
         window.showToast?.('Error conectando con la API', 'error');
