@@ -84,18 +84,22 @@ export const apiClient = {
      */
     async get(endpoint, options = {}) {
         const url = `${API_BASE}${endpoint}`;
+        const headers = {
+            ...defaultConfig.headers,
+            ...getAuthHeaders(),
+            ...options.headers
+        };
+
+        console.log(`🌐 apiClient.get: ${url}`, { hasToken: !!headers.Authorization });
 
         const response = await fetch(url, {
             method: 'GET',
             ...defaultConfig,
-            headers: {
-                ...defaultConfig.headers,
-                ...getAuthHeaders(),
-                ...options.headers
-            },
+            headers,
             ...options
         });
 
+        console.log(`🌐 apiClient.get: ${url} → ${response.status}`);
         return handleResponse(response);
     },
 
