@@ -94,12 +94,11 @@ export function cambiarPeriodoVista(periodo) {
  * Actualiza KPIs filtrados por período
  * 🔧 FIX: NO sobrescribir window.ventas - usar datos existentes
  * El fetch de datos frescos debe hacerse SOLO desde cargarDatos()
+ * 🔧 FIX-2: Actualiza también el card "Actividad" (ventas, ingresos, estrella)
  */
 async function actualizarKPIsPorPeriodo(periodo) {
     try {
         // 🔧 FIX CRÍTICO: Usar datos existentes en lugar de hacer fetch
-        // Esto previene que datos editados por el usuario se pierdan
-        // cuando el dashboard se actualiza automáticamente
         let ventas = saleStore.getState().sales;
 
         // Solo hacer fetch si no hay datos cargados (primera vez)
@@ -108,7 +107,6 @@ async function actualizarKPIsPorPeriodo(periodo) {
             ventas = saleStore.getState().sales;
             console.log('📊 Dashboard: Cargando ventas iniciales via store');
         }
-        // 🔧 FIX: Ya no sobrescribimos window.ventas en cada actualización
 
         // Filtrar por período
         let ventasFiltradas = ventas;
@@ -116,14 +114,58 @@ async function actualizarKPIsPorPeriodo(periodo) {
             ventasFiltradas = filtrarPorPeriodo(ventas, 'fecha', periodo);
         }
 
-        const totalVentas = ventasFiltradas.reduce((acc, v) => acc + (parseFloat(v.total) || 0), 0);
+        const totalIngresos = ventasFiltradas.reduce((acc, v) => acc + (parseFloat(v.total) || 0), 0);
 
+        // 1. Actualizar KPI top bar (INGRESOS)
         const kpiIngresos = document.getElementById('kpi-ingresos');
         if (kpiIngresos) {
-            kpiIngresos.textContent = totalVentas.toFixed(0) + '€';
+            kpiIngresos.textContent = totalIngresos.toFixed(0) + '€';
         }
 
-        // Actualizar comparativa con período anterior (solo para semana)
+        // 2. Actualizar card "Actividad" — ventas count
+        const ventasHoyEl = document.getElementById('ventas-hoy');
+        if (ventasHoyEl) {
+            ventasHoyEl.textContent = ventasFiltradas.length;
+        }
+
+        // 3. Actualizar card "Actividad" — ingresos
+        const ingresosHoyEl = document.getElementById('ingresos-hoy');
+        if (ingresosHoyEl) {
+            ingresosHoyEl.textContent = totalIngresos.toFixed(0) + '€';
+        }
+
+        // 4. Actualizar card "Actividad" — plato estrella
+        const platoEstrellaEl = document.getElementById('plato-estrella-hoy');
+        if (platoEstrellaEl) {
+            const platosCount = {};
+            ventasFiltradas.forEach(v => {
+                const nombre = v.receta_nombre || v.nombre || 'Desconocido';
+                platosCount[nombre] = (platosCount[nombre] || 0) + (parseInt(v.cantidad) || 1);
+            });
+            const platoEstrella = Object.entries(platosCount).sort((a, b) => b[1] - a[1])[0];
+            platoEstrellaEl.textContent = platoEstrella
+                ? platoEstrella[0].substring(0, 10)
+                : 'Sin ventas';
+        }
+
+        // 5. Actualizar título del card según período
+        const tituloEl = document.getElementById('actividad-titulo');
+        const subtituloEl = document.getElementById('actividad-subtitulo');
+        if (tituloEl && subtituloEl) {
+            const titulos = {
+                'hoy': { titulo: 'Hoy', subtitulo: 'Actividad del día' },
+                'semana': { titulo: 'Semana', subtitulo: 'Actividad semanal' },
+                'mes': {
+                    titulo: new Date().toLocaleString('es-ES', { month: 'long' }).replace(/^./, c => c.toUpperCase()),
+                    subtitulo: 'Actividad mensual'
+                }
+            };
+            const config = titulos[periodo] || titulos['hoy'];
+            tituloEl.textContent = config.titulo;
+            subtituloEl.textContent = config.subtitulo;
+        }
+
+        // 6. Actualizar comparativa con período anterior (solo para semana)
         if (periodo === 'semana' && typeof compararConSemanaAnterior === 'function') {
             const comparativa = compararConSemanaAnterior(ventas, 'fecha', 'total');
             const trendEl = document.getElementById('kpi-ingresos-trend');
