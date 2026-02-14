@@ -5,7 +5,7 @@ description: Comprehensive skill for the MindLoop CostOS restaurant management p
 
 # MindLoop CostOS Platform
 
-## ⚠️ FASE ACTUAL: Estabilización (Mes 1 de 3)
+## ⚠️ FASE ACTUAL: Estabilización (Mes 2 de 3)
 
 > **La app está en producción con clientes activos.**
 > **Prioridad ABSOLUTA: estabilidad, control y robustez.**
@@ -108,7 +108,9 @@ For detailed information, consult these rule files:
 - `/change-protocol` — Protocolo obligatorio para cada cambio (9 pasos)
 - `/hotfix-protocol` — Protocolo de emergencia para producción
 
-## Tests (Estado actual: 144 tests, 13 suites, 0 fallos)
+## Tests (Estado actual: 491 tests, 62 suites, 0 fallos)
 - `__tests__/regression/p0-p1-regression.test.js` — 27 tests de regresión P0/P1
 - `__tests__/api/api-surface-contract.test.js` — Contrato de API client
 - `__tests__/modules/` — Tests unitarios por módulo
+- Backend: 47 suites, 216 tests
+- Frontend: 15 suites, 275 tests

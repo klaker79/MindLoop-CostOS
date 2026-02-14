@@ -128,17 +128,25 @@ Cada bug corregido DEBE generar:
 1. Un test que reproduzca ese bug
 2. Confirmación de que no vuelve a aparecer
 
-### Estado actual (Feb 2026)
-- **Backend:** 39 suites, 162 tests (159 pass, 3 skip)
-- **Frontend:** 13 suites, 142 tests
-- **Total: 304 tests, 10/10 flujos críticos cubiertos**
+### Estado actual (14 Feb 2026)
+- **Backend:** 47 suites, 216 tests (all pass)
+- **Frontend:** 15 suites, 275 tests (all pass)
+- **Total: 491 tests, 10/10 flujos críticos cubiertos**
 - Regression suite: `__tests__/regression/p0-p1-regression.test.js` (25 tests)
 - Contract tests: `__tests__/api/api-surface-contract.test.js`
 
-### Bugs documentados (pendientes Mes 2)
-- 🐛 2 ventas con cantidad>0 pero total≤0 en lacaleta_dev
-- ⚠️ `/api/backup` no existe — necesita implementación
-- ⚠️ 401 intermitentes por race condition del token blacklisting entre suites Jest
+### Bugs resueltos (Feb 2026)
+- ✅ Bug #3: 401 intermitentes por race condition del token — fix: token separado para logout test + `--runInBand`
+- ✅ Bug #4: `init()` duplicado en app-core.js — ya estaba comentado
+- ✅ Bug #5: apiClient spread pattern sobreescribía headers auth — fix: destructuring en 5 métodos
+- ✅ Bug #6: Logs diagnósticos en apiClient.get() — eliminados
+- ✅ Bug #7: CSP bloqueaba Google Fonts y Sentry — ya incluidos en nginx.conf
+- ✅ Bug #8: /api/alerts/stats sin auth check — ya tenía guard
+- ✅ Bug #9: Ingredientes no renderizaban al recargar página — fix: checkAuth() ahora llama init()
+
+### Bugs pendientes (Mes 2)
+- 🐛 2 ventas con cantidad>0 pero total≤0 en lacaleta_dev (requiere decisión del dueño)
+- ⚠️ `/api/backup` no existe — requiere decisión sobre implementación
 
 ---
 
@@ -179,18 +187,18 @@ Cada actualización de librería requiere:
 
 ### Mes 1 (COMPLETADO ✅ — Feb 2026)
 - [x] Congelación de features
-- [x] Tests de flujos críticos — 10/10 flujos cubiertos
-- [x] Auditoría técnica (P0/P1 bugs corregidos)
+- [x] Tests de flujos críticos — 10/10 flujos cubiertos, 491 tests total
+- [x] Auditoría técnica — 7 de 9 bugs corregidos
 - [x] Documentación de arquitectura (skill completo)
-- [x] Separación entornos prod/dev/test
+- [x] Separación entornos prod/dev/test (parcial — no hay staging real)
 
-### Mes 2 (ACTUAL — Mar 2026)
-- [ ] Refactorización de módulos inestables
+### Mes 2 (ACTUAL — Feb-Mar 2026)
+- [ ] Corregir bugs documentados restantes (#1, #2)
+- [ ] Mejora de validaciones (prevenir datos inválidos)
 - [ ] Limpieza de dependencias
-- [ ] Mejora de validaciones
 - [ ] Optimización de consultas a BD
+- [ ] Refactorización de módulos inestables (server.js, app-core.js)
 - [ ] Implementar endpoint `/api/backup`
-- [ ] Corregir bugs documentados
 
 ### Mes 3
 - [ ] Tests de carga
