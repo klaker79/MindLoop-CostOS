@@ -84,22 +84,20 @@ export const apiClient = {
      */
     async get(endpoint, options = {}) {
         const url = `${API_BASE}${endpoint}`;
+        const { headers: optHeaders, ...restOptions } = options;
         const headers = {
             ...defaultConfig.headers,
             ...getAuthHeaders(),
-            ...options.headers
+            ...optHeaders
         };
-
-        console.log(`🌐 apiClient.get: ${url}`, { hasToken: !!headers.Authorization });
 
         const response = await fetch(url, {
             method: 'GET',
             ...defaultConfig,
+            ...restOptions,
             headers,
-            ...options
         });
 
-        console.log(`🌐 apiClient.get: ${url} → ${response.status}`);
         return handleResponse(response);
     },
 
@@ -111,17 +109,18 @@ export const apiClient = {
      */
     async post(endpoint, data, options = {}) {
         const url = `${API_BASE}${endpoint}`;
+        const { headers: optHeaders, ...restOptions } = options;
 
         const response = await fetch(url, {
             method: 'POST',
             ...defaultConfig,
+            ...restOptions,
             headers: {
                 ...defaultConfig.headers,
                 ...getAuthHeaders(),
-                ...options.headers
+                ...optHeaders
             },
             body: JSON.stringify(data),
-            ...options
         });
 
         return handleResponse(response);
@@ -135,17 +134,18 @@ export const apiClient = {
      */
     async put(endpoint, data, options = {}) {
         const url = `${API_BASE}${endpoint}`;
+        const { headers: optHeaders, ...restOptions } = options;
 
         const response = await fetch(url, {
             method: 'PUT',
             ...defaultConfig,
+            ...restOptions,
             headers: {
                 ...defaultConfig.headers,
                 ...getAuthHeaders(),
-                ...options.headers
+                ...optHeaders
             },
             body: JSON.stringify(data),
-            ...options
         });
 
         return handleResponse(response);
@@ -159,17 +159,18 @@ export const apiClient = {
      */
     async patch(endpoint, data, options = {}) {
         const url = `${API_BASE}${endpoint}`;
+        const { headers: optHeaders, ...restOptions } = options;
 
         const response = await fetch(url, {
             method: 'PATCH',
             ...defaultConfig,
+            ...restOptions,
             headers: {
                 ...defaultConfig.headers,
                 ...getAuthHeaders(),
-                ...options.headers
+                ...optHeaders
             },
             body: JSON.stringify(data),
-            ...options
         });
 
         return handleResponse(response);
@@ -182,16 +183,17 @@ export const apiClient = {
      */
     async delete(endpoint, options = {}) {
         const url = `${API_BASE}${endpoint}`;
+        const { headers: optHeaders, ...restOptions } = options;
 
         const response = await fetch(url, {
             method: 'DELETE',
             ...defaultConfig,
+            ...restOptions,
             headers: {
                 ...defaultConfig.headers,
                 ...getAuthHeaders(),
-                ...options.headers
+                ...optHeaders
             },
-            ...options
         });
 
         return handleResponse(response);
