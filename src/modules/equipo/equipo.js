@@ -21,9 +21,24 @@ function getAuthHeaders() {
 
 
 /**
+ * Carga y muestra los datos del restaurante en la sección Configuración
+ */
+function cargarDatosRestaurante() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const nombreEl = document.getElementById('config-restaurante-nombre');
+    const idEl = document.getElementById('config-restaurante-id');
+
+    if (nombreEl) nombreEl.textContent = user.restaurante || user.nombre || 'Sin nombre';
+    if (idEl) idEl.textContent = user.restauranteId || '—';
+}
+
+/**
  * Renderiza la lista de miembros del equipo
  */
 export async function renderizarEquipo() {
+    // Cargar datos del restaurante
+    cargarDatosRestaurante();
+
     const container = document.getElementById('lista-equipo');
     if (!container) return;
 

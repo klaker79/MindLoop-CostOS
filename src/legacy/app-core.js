@@ -2278,6 +2278,88 @@
                     topRecetasEl.innerHTML = '<p style="color: #64748B; margin: 0; font-size: 12px;">Sin recetas</p>';
                 }
             }
+
+            // 📦 Top Proveedores este mes (usa /monthly/summary para capturar TODAS las compras: manuales + foto/OCR)
+            const provBarrasEl = document.getElementById('dashboard-proveedores-barras');
+            const provTotalEl = document.getElementById('dashboard-proveedores-total');
+            if (provBarrasEl) {
+                try {
+                    const ahora = new Date();
+                    const mes = ahora.getMonth() + 1;
+                    const ano = ahora.getFullYear();
+                    const token = localStorage.getItem('token');
+                    const baseUrl = window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud';
+
+                    const resp = await fetch(
+                        `${baseUrl}/api/monthly/summary?mes=${mes}&ano=${ano}`,
+                        { headers: { 'Authorization': `Bearer ${token}` } }
+                    );
+
+                    let gastoProveedor = {};
+
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        const porProveedor = data.compras?.porProveedor || {};
+                        // porProveedor = { "CONGELADOS PAZ": { id, dias: {...}, total }, ... }
+                        Object.entries(porProveedor).forEach(([nombre, info]) => {
+                            gastoProveedor[nombre] = info.total || 0;
+                        });
+                    } else {
+                        // Fallback: usar window.pedidos si el backend no tiene porProveedor aún
+                        if (window.pedidos && window.pedidos.length > 0) {
+                            const proveedoresMap = {};
+                            if (window.proveedores) {
+                                window.proveedores.forEach(prov => { proveedoresMap[prov.id] = prov.nombre; });
+                            }
+                            window.pedidos.forEach(p => {
+                                const provId = p.proveedor_id;
+                                if (!provId) return;
+                                const provNombre = proveedoresMap[provId] || 'Sin proveedor';
+                                const fechaPedido = new Date(p.fecha_recepcion || p.fecha);
+                                if (fechaPedido.getMonth() === ahora.getMonth() && fechaPedido.getFullYear() === ano) {
+                                    const total = parseFloat(p.total) || 0;
+                                    gastoProveedor[provNombre] = (gastoProveedor[provNombre] || 0) + total;
+                                }
+                            });
+                        }
+                    }
+
+                    const provOrdenados = Object.entries(gastoProveedor)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 8);
+
+                    const totalMes = provOrdenados.reduce((sum, [, v]) => sum + v, 0);
+                    const maxGasto = provOrdenados[0]?.[1] || 1;
+
+                    if (provTotalEl) provTotalEl.textContent = totalMes.toFixed(0) + '€';
+
+                    if (provOrdenados.length > 0) {
+                        const colores = [
+                            ['#6366F1', '#818CF8'], ['#8B5CF6', '#A78BFA'],
+                            ['#3B82F6', '#60A5FA'], ['#0EA5E9', '#38BDF8'],
+                            ['#10B981', '#34D399'], ['#F59E0B', '#FBBF24'],
+                            ['#EF4444', '#F87171'], ['#EC4899', '#F472B6']
+                        ];
+                        provBarrasEl.innerHTML = provOrdenados.map(([nombre, total], i) => {
+                            const pct = Math.max(8, (total / maxGasto) * 100);
+                            const [c1, c2] = colores[i % colores.length];
+                            return `<div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="min-width: 140px; font-size: 13px; font-weight: 600; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(nombre)}">${escapeHTML(nombre)}</div>
+                                <div style="flex: 1; height: 28px; background: #F1F5F9; border-radius: 8px; overflow: hidden; position: relative;">
+                                    <div style="height: 100%; width: ${pct}%; background: linear-gradient(90deg, ${c1}, ${c2}); border-radius: 8px; transition: width 0.5s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px;">
+                                        <span style="color: white; font-size: 11px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${total.toFixed(0)}€</span>
+                                    </div>
+                                </div>
+                            </div>`;
+                        }).join('');
+                    } else {
+                        provBarrasEl.innerHTML = '<p style="color: #64748B; text-align: center; margin: 0; padding: 16px 0;">Sin compras este mes</p>';
+                    }
+                } catch (provErr) {
+                    console.warn('Error cargando top proveedores:', provErr);
+                    provBarrasEl.innerHTML = '<p style="color: #64748B; text-align: center; margin: 0; padding: 16px 0;">Error cargando datos</p>';
+                }
+            }
         } catch (e) {
             console.error('Error dashboard:', e);
         }

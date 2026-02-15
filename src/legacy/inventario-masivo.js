@@ -1349,6 +1349,7 @@ window.cargarResumenMensual = async function () {
         // Renderizar tablas
         renderizarTablaComprasDiarias();
         renderizarTablaVentasDiarias();
+        renderizarTablaProveedoresDiarios();
         await renderizarTablaPLDiario();
         renderizarBeneficioNetoDiario();
         window.showToast('Datos cargados', 'success');
@@ -1358,7 +1359,7 @@ window.cargarResumenMensual = async function () {
     }
 };
 
-// Cambiar entre vistas (Compras, Ventas, P&L)
+// Cambiar entre vistas (Compras, Ventas, Proveedores, P&L)
 window.cambiarVistaDiario = function (vista) {
     // Ocultar todas las vistas
     document.querySelectorAll('.diario-vista').forEach(el => (el.style.display = 'none'));
@@ -1366,6 +1367,7 @@ window.cambiarVistaDiario = function (vista) {
     // Resetear botones
     document.getElementById('btn-vista-compras').className = 'btn btn-secondary';
     document.getElementById('btn-vista-ventas').className = 'btn btn-secondary';
+    document.getElementById('btn-vista-proveedores').className = 'btn btn-secondary';
     document.getElementById('btn-vista-combinada').className = 'btn btn-secondary';
 
     // Mostrar vista seleccionada
@@ -1375,6 +1377,9 @@ window.cambiarVistaDiario = function (vista) {
     } else if (vista === 'ventas') {
         document.getElementById('vista-ventas').style.display = 'block';
         document.getElementById('btn-vista-ventas').className = 'btn btn-primary';
+    } else if (vista === 'proveedores') {
+        document.getElementById('vista-proveedores').style.display = 'block';
+        document.getElementById('btn-vista-proveedores').className = 'btn btn-primary';
     } else if (vista === 'combinada') {
         document.getElementById('vista-combinada').style.display = 'block';
         document.getElementById('btn-vista-combinada').className = 'btn btn-primary';
@@ -1485,6 +1490,103 @@ function renderizarTablaVentasDiarias() {
     }
     html += '</tbody></table>';
 
+    container.innerHTML = html;
+}
+
+// Renderizar tabla de compras por proveedor (tipo Excel con heatmap)
+function renderizarTablaProveedoresDiarios() {
+    const container = document.getElementById('tabla-proveedores-diarios');
+    if (!window.datosResumenMensual || !window.datosResumenMensual.dias?.length) {
+        container.innerHTML = '<p class="empty-state">No hay datos de compras para este mes</p>';
+        return;
+    }
+
+    const dias = window.datosResumenMensual.dias;
+    const proveedores = window.datosResumenMensual.compras?.porProveedor || {};
+
+    if (Object.keys(proveedores).length === 0) {
+        container.innerHTML = '<p class="empty-state">No hay datos de proveedores para este mes</p>';
+        return;
+    }
+
+    // Ordenar proveedores por total descendente
+    const proveedoresOrdenados = Object.entries(proveedores).sort((a, b) => b[1].total - a[1].total);
+    const maxTotal = proveedoresOrdenados[0]?.[1].total || 1;
+
+    // Calcular totales por día
+    const totalesPorDia = {};
+    dias.forEach(dia => {
+        totalesPorDia[dia] = 0;
+        proveedoresOrdenados.forEach(([, data]) => {
+            totalesPorDia[dia] += data.dias[dia] || 0;
+        });
+    });
+    const totalGeneral = proveedoresOrdenados.reduce((sum, [, data]) => sum + data.total, 0);
+
+    let html = '<h3 style="margin-bottom: 15px;">📦 Compras por Proveedor / Día</h3>';
+    html += '<table style="min-width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden;">';
+
+    // Header
+    html += '<thead><tr>';
+    html += '<th style="position: sticky; left: 0; background: linear-gradient(135deg, #F0F4FF 0%, #E8EDFF 100%); z-index: 1; border-right: 2px solid #CBD5E1; border-bottom: 2px solid #CBD5E1; padding: 14px 16px; font-weight: 700; color: #334155; min-width: 180px;">Proveedor</th>';
+    dias.forEach(dia => {
+        const fecha = new Date(dia + 'T12:00:00');
+        const dayNames = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+        const dayName = dayNames[fecha.getDay()];
+        html += `<th style="min-width: 90px; text-align: center; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 10px 8px; background: linear-gradient(135deg, #F0F4FF 0%, #E8EDFF 100%); font-size: 0.85em;"><div style="font-weight: 700; color: #334155;">${dayName} ${fecha.getDate()}</div><div style="color: #94A3B8; font-size: 0.85em;">${fecha.getMonth() + 1}/${fecha.getFullYear().toString().slice(-2)}</div></th>`;
+    });
+    html += '<th style="background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); font-weight: 700; border-bottom: 2px solid #CBD5E1; padding: 14px 16px; min-width: 110px; text-align: center; color: #065F46;">TOTAL</th>';
+    html += '</tr></thead>';
+
+    // Body
+    html += '<tbody>';
+    proveedoresOrdenados.forEach(([nombre, data], idx) => {
+        const bgColor = idx % 2 === 0 ? '#FFFFFF' : '#FAFBFC';
+        // Intensidad de color según proporción del total
+        const intensidad = Math.max(0.05, data.total / maxTotal);
+        const barWidth = Math.round(intensidad * 100);
+
+        html += `<tr style="border-bottom: 1px solid #F1F5F9;">`;
+        // Nombre del proveedor con barra de proporción
+        html += `<td style="position: sticky; left: 0; background: ${bgColor}; padding: 14px 16px; border-right: 2px solid #E2E8F0; font-weight: 600; color: #1E293B;">`;
+        html += `<div>${nombre}</div>`;
+        html += `<div style="height: 4px; margin-top: 6px; background: #F1F5F9; border-radius: 2px;"><div style="height: 100%; width: ${barWidth}%; background: linear-gradient(90deg, #6366F1, #8B5CF6); border-radius: 2px;"></div></div>`;
+        html += '</td>';
+
+        dias.forEach(dia => {
+            const valor = data.dias[dia] || 0;
+            if (valor > 0) {
+                // Heatmap: más intenso = más gasto
+                const dayMax = totalesPorDia[dia] || 1;
+                const ratio = valor / dayMax;
+                const alpha = Math.max(0.08, Math.min(0.35, ratio * 0.4));
+                html += `<td style="text-align: center; padding: 14px 8px; border-right: 1px solid #E2E8F0; background: rgba(99, 102, 241, ${alpha});">`;
+                html += `<div style="font-weight: 600; color: #1E293B; font-size: 0.95em;">${valor.toFixed(0)}€</div>`;
+                html += '</td>';
+            } else {
+                html += '<td style="text-align: center; color: #CBD5E1; padding: 14px 8px; border-right: 1px solid #E2E8F0;">-</td>';
+            }
+        });
+
+        html += `<td style="text-align: center; background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); font-weight: 700; padding: 14px 16px; color: #065F46; font-size: 1.05em;">${data.total.toFixed(2)}€</td>`;
+        html += '</tr>';
+    });
+
+    // Fila de totales
+    html += '<tr style="border-top: 2px solid #CBD5E1;">';
+    html += '<td style="position: sticky; left: 0; background: linear-gradient(135deg, #F0F4FF 0%, #E8EDFF 100%); padding: 14px 16px; border-right: 2px solid #CBD5E1; font-weight: 700; color: #334155;">TOTAL / DÍA</td>';
+    dias.forEach(dia => {
+        const total = totalesPorDia[dia] || 0;
+        if (total > 0) {
+            html += `<td style="text-align: center; padding: 14px 8px; border-right: 1px solid #E2E8F0; background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); font-weight: 700; color: #9A3412;">${total.toFixed(0)}€</td>`;
+        } else {
+            html += '<td style="text-align: center; color: #CBD5E1; padding: 14px 8px; border-right: 1px solid #E2E8F0;">-</td>';
+        }
+    });
+    html += `<td style="text-align: center; background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%); font-weight: 700; padding: 14px 16px; color: #1E40AF; font-size: 1.1em;">${totalGeneral.toFixed(2)}€</td>`;
+    html += '</tr>';
+
+    html += '</tbody></table>';
     container.innerHTML = html;
 }
 

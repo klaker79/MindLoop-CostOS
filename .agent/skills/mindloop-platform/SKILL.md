@@ -72,6 +72,7 @@ For detailed information, consult these rule files:
 
 | Document | Path | Contents |
 |----------|------|----------|
+| **🚨 Professional Standards** | [professional-standards.md](file:///rules/professional-standards.md) | **Normas de honestidad, profesionalidad, anti-patrones, checklist pre-acción. LEER PRIMERO.** |
 | **⚠️ Stability Rules** | [stability-rules.md](file:///rules/stability-rules.md) | **Reglas operativas obligatorias, flujos críticos, protocolo de cambio, prohibiciones** |
 | Database Schema | [database-schema.md](file:///rules/database-schema.md) | All 20+ tables, columns, types, relations, migrations |
 | API Endpoints | [api-endpoints.md](file:///rules/api-endpoints.md) | All 80+ endpoints with methods, auth, bodies, responses |
