@@ -5,6 +5,7 @@
 
 import { showToast } from '../../ui/toast.js';
 import { getApiUrl } from '../../config/app-config.js';
+import { escapeHTML } from '../../utils/safe-html.js';
 
 /**
  * 🔒 Safe JSON parse para evitar crashes con JSON malformado
@@ -55,13 +56,9 @@ export async function initHorarios() {
  */
 async function cargarEmpleados() {
     try {
-        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE}/empleados`, {
             credentials: 'include',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
         });
 
         if (!response.ok) throw new Error('Error cargando empleados');
@@ -87,13 +84,9 @@ async function cargarHorariosSemana() {
         const desde = formatearFecha(inicio);
         const hasta = formatearFecha(fin);
 
-        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE}/horarios?desde=${desde}&hasta=${hasta}`, {
             credentials: 'include',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
         });
 
         if (!response.ok) throw new Error('Error cargando horarios');
@@ -157,16 +150,16 @@ function renderizarEmpleados() {
 
                 <!-- Avatar con color -->
                 <div style="width: 48px; height: 48px; border-radius: 50%; background: ${colorBorde}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
-                    ${emp.nombre.charAt(0).toUpperCase()}
+                    ${escapeHTML(emp.nombre).charAt(0).toUpperCase()}
                 </div>
 
                 <!-- Info -->
                 <div>
                     <div style="font-weight: 700; font-size: 16px; color: #1e293b; margin-bottom: 4px;">
-                        ${emp.nombre}
+                        ${escapeHTML(emp.nombre)}
                     </div>
                     <div style="font-size: 13px; color: #64748b; display: flex; gap: 12px; flex-wrap: wrap;">
-                        <span>${obtenerEmojiPuesto(emp.puesto)} ${emp.puesto}</span>
+                        <span>${obtenerEmojiPuesto(emp.puesto)} ${escapeHTML(emp.puesto)}</span>
                         <span>⏱️ ${horasSemanales}h/${emp.horas_contrato || 40}h</span>
                     </div>
                 </div>
@@ -357,9 +350,9 @@ function renderizarGridHorarios() {
             <td style="padding: 12px 16px; font-weight: 600; color: #1e293b; border-bottom: 1px solid #f1f5f9; position: sticky; left: 0; background: ${bgColor}; z-index: 1;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 32px; height: 32px; border-radius: 50%; background: ${emp.color || '#667eea'}; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 700;">
-                        ${emp.nombre.charAt(0).toUpperCase()}
+                        ${escapeHTML(emp.nombre).charAt(0).toUpperCase()}
                     </div>
-                    <span>${emp.nombre}</span>
+                    <span>${escapeHTML(emp.nombre)}</span>
                 </div>
             </td>
         `;
@@ -516,7 +509,6 @@ window.guardarEmpleado = async function () {
     };
 
     try {
-        const token = localStorage.getItem('token');
         let response;
 
         if (empleadoEditando) {
@@ -524,10 +516,7 @@ window.guardarEmpleado = async function () {
             response = await fetch(`${API_BASE}/empleados/${empleadoEditando.id}`, {
                 method: 'PUT',
                 credentials: 'include',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
                 body: JSON.stringify(empleado)
             });
         } else {
@@ -535,10 +524,7 @@ window.guardarEmpleado = async function () {
             response = await fetch(`${API_BASE}/empleados`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
                 body: JSON.stringify(empleado)
             });
         }
@@ -566,14 +552,10 @@ window.eliminarEmpleado = async function (id) {
     if (!confirm('¿Eliminar este empleado?')) return;
 
     try {
-        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE}/empleados/${id}`, {
             method: 'DELETE',
             credentials: 'include',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
         });
 
         if (!response.ok) throw new Error('Error eliminando empleado');
@@ -644,14 +626,10 @@ async function asignarTurno(empleadoId, fecha) {
     };
 
     try {
-        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE}/horarios`, {
             method: 'POST',
             credentials: 'include',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
+            headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
             body: JSON.stringify(turno)
         });
 
@@ -671,14 +649,10 @@ async function asignarTurno(empleadoId, fecha) {
  */
 async function quitarTurno(empleadoId, fecha) {
     try {
-        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE}/horarios/empleado/${empleadoId}/fecha/${fecha}`, {
             method: 'DELETE',
             credentials: 'include',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
         });
 
         if (!response.ok) throw new Error('Error quitando turno');
@@ -733,14 +707,10 @@ window.borrarTodosHorarios = async function () {
     try {
         showToast('🗑️ Borrando todos los horarios...', 'info');
 
-        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE}/horarios/all`, {
             method: 'DELETE',
             credentials: 'include',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
         });
 
         if (!response.ok) throw new Error('Error al borrar horarios');
@@ -767,8 +737,6 @@ window.copiarSemana = async function () {
     try {
         showToast('📋 Copiando turnos...', 'info');
 
-        const token = localStorage.getItem('token');
-
         // Obtener semana anterior
         const semanaAnterior = new Date(semanaActual);
         semanaAnterior.setDate(semanaAnterior.getDate() - 7);
@@ -780,10 +748,7 @@ window.copiarSemana = async function () {
 
         const response = await fetch(`${API_BASE}/horarios?desde=${desde}&hasta=${hasta}`, {
             credentials: 'include',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
         });
 
         if (!response.ok) throw new Error('Error cargando semana anterior');
@@ -815,10 +780,7 @@ window.copiarSemana = async function () {
                 const resp = await fetch(`${API_BASE}/horarios`, {
                     method: 'POST',
                     credentials: 'include',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
                     body: JSON.stringify(nuevoTurno)
                 });
                 if (resp.ok) copiados++;
@@ -856,7 +818,6 @@ window.generarHorarioIA = async function () {
 
     try {
         const { inicio, fin } = obtenerRangoSemana(semanaActual);
-        const token = localStorage.getItem('token');
 
         // PASO 1: Borrar todos los turnos de la semana actual
         for (const horario of horarios) {
@@ -865,10 +826,7 @@ window.generarHorarioIA = async function () {
                 await fetch(`${API_BASE}/horarios/empleado/${horario.empleado_id}/fecha/${fechaH}`, {
                     method: 'DELETE',
                     credentials: 'include',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
                 });
             } catch (e) {
                 // Ignorar errores individuales
@@ -895,10 +853,7 @@ window.generarHorarioIA = async function () {
                 const response = await fetch(`${API_BASE}/horarios`, {
                     method: 'POST',
                     credentials: 'include',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
                     body: JSON.stringify(turno)
                 });
                 if (response.ok) turnosCreados++;
@@ -1159,7 +1114,6 @@ window.descargarHorarioMensual = async function () {
     showToast('📥 Generando documento...', 'info');
 
     try {
-        const token = localStorage.getItem('token');
 
         // Obtener el mes actual basado en semanaActual
         const mesActual = semanaActual.getMonth();
@@ -1176,10 +1130,7 @@ window.descargarHorarioMensual = async function () {
 
         const response = await fetch(`${API_BASE}/horarios?desde=${desde}&hasta=${hasta}`, {
             credentials: 'include',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
         });
 
         if (!response.ok) throw new Error('Error cargando horarios del mes');

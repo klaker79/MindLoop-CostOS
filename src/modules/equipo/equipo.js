@@ -12,11 +12,11 @@ import { sanitizeHTML } from '../../utils/sanitize.js';
 const API_BASE = getApiUrl();
 
 function getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-        'Content-Type': 'application/json',
-        Authorization: token ? `Bearer ${token}` : '',
-    };
+    // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
+    const headers = { 'Content-Type': 'application/json' };
+    const token = typeof window !== 'undefined' ? window.authToken : null;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
 }
 
 

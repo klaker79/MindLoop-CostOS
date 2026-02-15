@@ -227,8 +227,8 @@
     }
 
     function checkAuth() {
-        const token = localStorage.getItem('token');
-        if (token) {
+        // 🔒 SECURITY: httpOnly cookie can't be read by JS, use 'user' as session proxy
+        if (localStorage.getItem('user')) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'block';
             return true;
@@ -245,6 +245,7 @@
         try {
             const res = await fetch(getApiAuthUrl() + '/login', {
                 method: 'POST',
+                credentials: 'include', // 🔒 Backend sets httpOnly cookie
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
@@ -256,7 +257,13 @@
                 return;
             }
 
-            localStorage.setItem('token', data.token);
+            // 🔒 SECURITY: Token in memory + sessionStorage (survives reload, clears on tab close)
+            if (data.token) {
+                window.authToken = data.token;
+                sessionStorage.setItem('_at', data.token);
+            }
+            // 🔒 SECURITY: Token lives ONLY in httpOnly cookie (set by backend)
+            // Do NOT store in localStorage — prevents XSS token theft
             localStorage.setItem('user', JSON.stringify(data.user));
 
             document.getElementById('login-screen').style.display = 'none';
@@ -284,11 +291,11 @@
     }
 
     function getAuthHeaders() {
-        const token = localStorage.getItem('token');
-        return {
-            'Content-Type': 'application/json',
-            Authorization: token ? 'Bearer ' + token : '',
-        };
+        // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
+        const headers = { 'Content-Type': 'application/json' };
+        const token = typeof window !== 'undefined' ? window.authToken : null;
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        return headers;
     }
 
     // 🔧 FIX: Wrapper para incluir credentials en todos los fetch
@@ -2287,12 +2294,11 @@
                     const ahora = new Date();
                     const mes = ahora.getMonth() + 1;
                     const ano = ahora.getFullYear();
-                    const token = localStorage.getItem('token');
                     const baseUrl = window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud';
 
                     const resp = await fetch(
                         `${baseUrl}/api/monthly/summary?mes=${mes}&ano=${ano}`,
-                        { headers: { 'Authorization': `Bearer ${token}` } }
+                        { credentials: 'include', headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}) }
                     );
 
                     let gastoProveedor = {};

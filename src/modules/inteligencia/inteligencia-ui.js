@@ -6,15 +6,15 @@
 async function fetchIntelligence(endpoint) {
     try {
         const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud';
-        const token = localStorage.getItem('token');
 
+        // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
+        const headers = { 'Content-Type': 'application/json' };
+        const token = typeof window !== 'undefined' ? window.authToken : null;
+        if (token) headers['Authorization'] = `Bearer ${token}`;
         const response = await fetch(`${apiBase}/intelligence/${endpoint}`, {
             method: 'GET',
             credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
+            headers
         });
 
         if (!response.ok) return null;
