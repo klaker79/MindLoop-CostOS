@@ -23,6 +23,26 @@
  */
 
 // ============================================
+// 🔒 SECURITY: Restore auth token from sessionStorage
+// Must happen BEFORE any module imports that make API calls
+// sessionStorage survives page reload but clears on tab close
+// ============================================
+if (typeof window !== 'undefined' && !window.authToken) {
+    const savedToken = sessionStorage.getItem('_at');
+    if (savedToken) window.authToken = savedToken;
+}
+
+// 🔒 SECURITY: Global auth cleanup on session expiry
+// Reset redirect flag on page load (fresh start)
+window._authRedirecting = false;
+window.addEventListener('auth:expired', () => {
+    window.authToken = null;
+    sessionStorage.removeItem('_at');
+    localStorage.removeItem('user');
+    if (window.stopTokenRefresh) window.stopTokenRefresh();
+});
+
+// ============================================
 // VENDORS - Bibliotecas externas (npm, no CDN)
 // ============================================
 import './vendors.js';
@@ -667,7 +687,8 @@ function closeAlertModal() {
 // 🔒 FIX BUG-2: Solo inicializar alertBadge si hay sesión activa
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-        if (localStorage.getItem('token')) {
+        // 🔒 SECURITY: httpOnly cookie can't be read by JS, use 'user' as session proxy
+        if (localStorage.getItem('user')) {
             updateAlertBadge();
         }
     }, 3000);
@@ -678,7 +699,8 @@ if (window._alertBadgeInterval) {
     clearInterval(window._alertBadgeInterval);
 }
 window._alertBadgeInterval = setInterval(() => {
-    if (localStorage.getItem('token')) {
+    // 🔒 SECURITY: httpOnly cookie can't be read by JS, use 'user' as session proxy
+    if (localStorage.getItem('user')) {
         updateAlertBadge();
     }
 }, 5 * 60 * 1000);

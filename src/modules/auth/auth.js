@@ -13,9 +13,16 @@ const API_AUTH_URL = getAuthUrl();
  */
 export async function checkAuth() {
     try {
-        // Verificar sesión via cookie httpOnly (se envía automáticamente)
+        // 🔒 Restore token from sessionStorage (survives reload)
+        if (!window.authToken && sessionStorage.getItem('_at')) {
+            window.authToken = sessionStorage.getItem('_at');
+        }
+        // Verificar sesión via cookie httpOnly + Bearer fallback
+        const verifyHeaders = {};
+        if (window.authToken) verifyHeaders['Authorization'] = `Bearer ${window.authToken}`;
         const res = await fetch(API_AUTH_URL + '/verify', {
-            credentials: 'include'
+            credentials: 'include',
+            headers: verifyHeaders
         });
         if (!res.ok) {
             mostrarLogin();
@@ -141,6 +148,10 @@ export function initRegisterForm() {
 
             if (loginRes.ok) {
                 const loginData = await loginRes.json();
+                if (loginData.token) {
+                    window.authToken = loginData.token;
+                    sessionStorage.setItem('_at', loginData.token);
+                }
                 localStorage.setItem('user', JSON.stringify(loginData.user));
                 const loginScreen = document.getElementById('login-screen');
                 const appContainer = document.getElementById('app-container');
@@ -183,7 +194,8 @@ export async function logout() {
     // Limpiar TODO el almacenamiento local y de sesión
     localStorage.removeItem('user');
     localStorage.removeItem('token'); // Legacy cleanup
-    sessionStorage.clear(); // 🧹 Limpiar caché de sesión (KPIs, stock, etc.)
+    sessionStorage.clear(); // 🧹 Limpiar caché de sesión (KPIs, stock, _at token, etc.)
+    window.authToken = null; // Clear in-memory token
 
     // Forzar recarga para limpiar estado en memoria
     mostrarLogin();
@@ -223,6 +235,11 @@ export function initLoginForm() {
                 return;
             }
 
+            // 🔒 SECURITY: Token in memory + sessionStorage (survives reload, clears on tab close)
+            if (data.token) {
+                window.authToken = data.token;
+                sessionStorage.setItem('_at', data.token);
+            }
             // Solo guardamos user info localmente (token está en cookie httpOnly)
             localStorage.setItem('user', JSON.stringify(data.user));
 

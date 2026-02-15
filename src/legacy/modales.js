@@ -219,11 +219,11 @@ function getGastosApiBase() {
 }
 
 function getGastosAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': token ? 'Bearer ' + token : '',
-    };
+    // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
+    const headers = { 'Content-Type': 'application/json' };
+    const token = typeof window !== 'undefined' ? window.authToken : null;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
 }
 
 async function fetchGastosFijos() {
@@ -367,8 +367,8 @@ async function cargarValoresGastosFijos() {
 
 // Llamar al cargar la página SOLO si hay sesión activa
 setTimeout(function () {
-    const token = localStorage.getItem('token');
-    if (token) {
+    // 🔒 SECURITY: Check cookie instead of localStorage
+    if (localStorage.getItem('user')) {
         cargarValoresGastosFijos();
     }
 }, 1000);
@@ -638,10 +638,9 @@ function parseJwt(token) {
     }
 }
 
-// 🔒 FIX: Guardar referencia del interval para poder limpiarlo
-// Esto previene memory leaks si el usuario navega o hace logout
-window._tokenRefreshInterval = null;
-
+// 🔒 SECURITY: Token refresh via cookie-based session
+// The httpOnly cookie is managed by the backend.
+// No need for client-side token refresh — the backend handles session validity.
 function startTokenRefresh() {
     // Limpiar interval anterior si existe
     if (window._tokenRefreshInterval) {
@@ -650,29 +649,24 @@ function startTokenRefresh() {
 
     window._tokenRefreshInterval = setInterval(
         async () => {
-            const token = localStorage.getItem('token');
-            if (!token) return;
             try {
-                const decoded = parseJwt(token);
-                if (!decoded?.exp) return;
-                const expiresIn = decoded.exp * 1000 - Date.now();
-                if (expiresIn < 5 * 60 * 1000 && expiresIn > 0) {
-                    // Renovando token
-                    const API_BASE =
-                        window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud';
-                    const response = await fetch(API_BASE + '/api/auth/refresh', {
-                        method: 'POST',
-                        headers: { Authorization: 'Bearer ' + token },
-                        credentials: 'include'
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        localStorage.setItem('token', data.token);
-                        window.showToast('Sesión renovada', 'info');
+                // Use the verify endpoint to check session validity
+                const API_BASE =
+                    window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud';
+                const response = await fetch(API_BASE + '/api/auth/verify', {
+                    credentials: 'include',
+                    headers: Object.assign({}, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
+                });
+                if (!response.ok) {
+                    // Session expired — redirect to login
+                    console.warn('🔒 Session expired, redirecting to login');
+                    window.dispatchEvent(new CustomEvent('auth:expired'));
+                    if (!window.location.pathname.includes('login')) {
+                        window.location.href = '/login.html';
                     }
                 }
             } catch (e) {
-                /* Auto-refresh no disponible */
+                /* Network error — skip */
             }
         },
         4 * 60 * 1000
@@ -687,8 +681,8 @@ window.stopTokenRefresh = function () {
     }
 };
 
-// Iniciar token refresh solo si hay token
-if (localStorage.getItem('token')) {
+// Iniciar session check si hay cookie de auth
+if (localStorage.getItem('user')) {
     startTokenRefresh();
 }
 

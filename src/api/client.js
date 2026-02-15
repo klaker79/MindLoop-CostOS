@@ -25,10 +25,13 @@ const defaultConfig = {
 };
 
 /**
- * Get authorization headers with Bearer token
+ * Get authorization headers
+ * 🔒 SECURITY: Uses in-memory token (window.authToken) — NOT localStorage
+ * This supports the backend's Dual-Mode auth (cookie + Bearer header)
+ * Cookie handles same-origin (production), Bearer handles cross-origin (local dev)
  */
 function getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    const token = typeof window !== 'undefined' ? window.authToken : null;
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
@@ -50,10 +53,13 @@ async function handleResponse(response) {
         // Handle specific status codes
         if (response.status === 401) {
             console.warn('🔒 API: Token expirado o inválido — redirigiendo a login');
+            // 🔒 SECURITY: Clean all auth state
+            window.authToken = null;
+            sessionStorage.removeItem('_at');
             window.dispatchEvent(new CustomEvent('auth:expired'));
-            // Clear auth state and redirect
-            document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            if (!window.location.pathname.includes('login')) {
+            // Redirect only if not already on login (prevent loops)
+            if (!window._authRedirecting && !window.location.pathname.includes('login')) {
+                window._authRedirecting = true;
                 window.location.href = '/login.html';
             }
         }

@@ -46,15 +46,14 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
     // Construir URL completa
     const url = `${API_BASE}${normalizedEndpoint}`;
 
-    // Auth headers explícitos (misma lógica que cargarDatos en core.js)
-    const token = localStorage.getItem('token');
+    // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
+    const headers = { 'Content-Type': 'application/json' };
+    const token = typeof window !== 'undefined' ? window.authToken : null;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
     const fetchOptions = {
         method,
         credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
+        headers,
     };
 
     // Body handling
@@ -78,12 +77,15 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
                 errorMessage = errorData.error || errorData.message || errorMessage;
             } catch (e) { /* no-op */ }
 
-            // 401 → redirigir a login
+            // 401 → clean auth state and redirect
             if (response.status === 401) {
                 console.warn('🔒 API: Token expirado — redirigiendo a login');
+                // 🔒 SECURITY: Clean all auth state
+                window.authToken = null;
+                sessionStorage.removeItem('_at');
                 window.dispatchEvent(new CustomEvent('auth:expired'));
-                document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                if (!window.location.pathname.includes('login')) {
+                if (!window._authRedirecting && !window.location.pathname.includes('login')) {
+                    window._authRedirecting = true;
                     window.location.href = '/login.html';
                 }
             }
@@ -133,9 +135,9 @@ window.API = {
 
     // Estado de auth (legacy, solo lectura)
     state: {
-        get token() { return localStorage.getItem('token'); },
+        get token() { return null; /* 🔒 Token lives only in httpOnly cookie */ },
         get user() { return JSON.parse(localStorage.getItem('user') || 'null'); },
-        get isAuthenticated() { return !!document.cookie.includes('token'); },
+        get isAuthenticated() { return !!window.authToken || !!sessionStorage.getItem('_at'); },
     },
 
     // showToast delegado al global (definido en main.js)

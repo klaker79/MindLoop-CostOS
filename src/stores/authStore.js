@@ -35,14 +35,18 @@ export const authStore = createStore((set, get) => ({
 
     setToken: (token) => {
         set({ token });
-        if (token) {
-            localStorage.setItem('token', token);
-        } else {
-            localStorage.removeItem('token');
-        }
-        // Sync with window
+        // 🔒 SECURITY: Token lives ONLY in httpOnly cookie (set by backend)
+        // Do NOT store in localStorage — prevents XSS token theft
+        // Legacy cleanup: remove any previously stored token
+        localStorage.removeItem('token');
+        // Sync with window + sessionStorage (survives reload, clears on tab close)
         if (typeof window !== 'undefined') {
             window.authToken = token;
+            if (token) {
+                sessionStorage.setItem('_at', token);
+            } else {
+                sessionStorage.removeItem('_at');
+            }
         }
     },
 

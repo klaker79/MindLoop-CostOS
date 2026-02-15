@@ -10,14 +10,14 @@ import { getApiUrl } from '../../config/app-config.js';
 const API_BASE = getApiUrl();
 
 function _fetchOptions(method = 'GET', body = null) {
-    const token = localStorage.getItem('token');
+    // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
+    const headers = { 'Content-Type': 'application/json' };
+    const token = typeof window !== 'undefined' ? window.authToken : null;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
     const opts = {
         method,
         credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        }
+        headers
     };
     if (body) opts.body = JSON.stringify(body);
     return opts;
