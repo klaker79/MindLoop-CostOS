@@ -314,7 +314,8 @@
             style="flex: 1; min-width: 150px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #10B981;">
             <span style="font-size: 24px;">💰</span>
             <div style="flex: 1;">
-              <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-ingresos" data-animate="true">0€
+              <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-ingresos" data-animate="true">
+                <span class="skeleton skeleton-number" data-skeleton>⠀</span>
               </div>
               <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Ingresos</div>
             </div>
@@ -326,7 +327,8 @@
             style="flex: 1; min-width: 150px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #3B82F6;">
             <span style="font-size: 24px;">📋</span>
             <div style="flex: 1;">
-              <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-pedidos" data-animate="true">0
+              <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-pedidos" data-animate="true"><span
+                  class="skeleton skeleton-number" data-skeleton>⠀</span>
               </div>
               <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Pedidos</div>
             </div>
@@ -337,7 +339,8 @@
             style="flex: 1; min-width: 150px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #F59E0B;">
             <span style="font-size: 24px;">⚠️</span>
             <div style="flex: 1;">
-              <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-stock" data-animate="true">0</div>
+              <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-stock" data-animate="true"><span
+                  class="skeleton skeleton-number" data-skeleton>⠀</span></div>
               <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Stock Bajo</div>
             </div>
           </div>
@@ -347,7 +350,8 @@
             style="flex: 1; min-width: 150px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #8B5CF6;">
             <span style="font-size: 24px;">📊</span>
             <div style="flex: 1;">
-              <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-margen" data-animate="true">0%
+              <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-margen" data-animate="true"><span
+                  class="skeleton skeleton-number" data-skeleton>⠀</span>
               </div>
               <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Margen</div>
             </div>
@@ -378,7 +382,20 @@
                 </div>
               </div>
               <div id="alertas-stock-lista" style="max-height: 120px; overflow-y: auto; font-size: 13px;">
-                <p style="color: #64748B; margin: 0;">Cargando...</p>
+                <div data-skeleton>
+                  <div class="skeleton-row">
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
+                  <div class="skeleton-row">
+                    <div class="skeleton skeleton-text" style="width:65%"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
+                  <div class="skeleton-row">
+                    <div class="skeleton skeleton-text" style="width:75%"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -399,19 +416,22 @@
               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
                 <div
                   style="text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-radius: 12px;">
-                  <div style="font-size: 24px; font-weight: 800; color: #10B981;" id="ventas-hoy">0</div>
+                  <div style="font-size: 24px; font-weight: 800; color: #10B981;" id="ventas-hoy"><span
+                      class="skeleton skeleton-number" data-skeleton style="margin:0 auto">⠀</span></div>
                   <div style="font-size: 11px; color: #059669; font-weight: 600;">Ventas</div>
                 </div>
                 <div
                   style="text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border-radius: 12px;">
-                  <div style="font-size: 24px; font-weight: 800; color: #3B82F6;" id="ingresos-hoy">0€</div>
+                  <div style="font-size: 24px; font-weight: 800; color: #3B82F6;" id="ingresos-hoy"><span
+                      class="skeleton skeleton-number" data-skeleton style="margin:0 auto">⠀</span></div>
                   <div style="font-size: 11px; color: #2563EB; font-weight: 600;">Ingresos</div>
                 </div>
                 <div
                   style="text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #FFF7ED, #FFEDD5); border-radius: 12px;">
                   <div
                     style="font-size: 13px; font-weight: 700; color: #F59E0B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                    id="plato-estrella-hoy">-</div>
+                    id="plato-estrella-hoy"><span class="skeleton skeleton-number" data-skeleton
+                      style="margin:0 auto;width:80px">⠀</span></div>
                   <div style="font-size: 11px; color: #D97706; font-weight: 600;">⭐ Estrella</div>
                 </div>
               </div>
@@ -430,9 +450,19 @@
                 </div>
               </div>
               <div id="personal-hoy-lista" style="max-height: 100px; overflow-y: auto; font-size: 13px;">
-                <div style="color: #64748B; text-align: center; padding: 12px 0;">
-                  <div style="font-size: 20px; margin-bottom: 4px;">📅</div>
-                  Cargando...
+                <div data-skeleton>
+                  <div class="skeleton-row">
+                    <div class="skeleton skeleton-text" style="width:50%"></div>
+                    <div class="skeleton skeleton-text-sm" style="width:30%"></div>
+                  </div>
+                  <div class="skeleton-row">
+                    <div class="skeleton skeleton-text" style="width:60%"></div>
+                    <div class="skeleton skeleton-text-sm" style="width:25%"></div>
+                  </div>
+                  <div class="skeleton-row">
+                    <div class="skeleton skeleton-text" style="width:45%"></div>
+                    <div class="skeleton skeleton-text-sm" style="width:35%"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -520,9 +550,19 @@
                 </div>
               </div>
               <div id="lista-cambios-precio" style="max-height: 120px; overflow-y: auto; font-size: 13px;">
-                <div style="color: #64748B; text-align: center; padding: 16px 0;">
-                  <div style="font-size: 24px; margin-bottom: 6px;">📉</div>
-                  Cargando...
+                <div data-skeleton>
+                  <div class="skeleton-row">
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
+                  <div class="skeleton-row">
+                    <div class="skeleton skeleton-text" style="width:70%"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
+                  <div class="skeleton-row">
+                    <div class="skeleton skeleton-text" style="width:85%"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -546,7 +586,28 @@
               </div>
               <div id="dashboard-proveedores-barras"
                 style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto;">
-                <p style="color: #64748B; text-align: center; margin: 0; padding: 16px 0;">Cargando...</p>
+                <div data-skeleton>
+                  <div class="skeleton-prov-bar">
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-bar"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
+                  <div class="skeleton-prov-bar">
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-bar" style="width:75%"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
+                  <div class="skeleton-prov-bar">
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-bar" style="width:55%"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
+                  <div class="skeleton-prov-bar">
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-bar" style="width:40%"></div>
+                    <div class="skeleton skeleton-number"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
