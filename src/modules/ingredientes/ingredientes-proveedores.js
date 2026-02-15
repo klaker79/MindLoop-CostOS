@@ -48,7 +48,7 @@ async function cargarProveedoresIngrediente(ingredienteId) {
         window.showLoading?.();
 
         // Obtener proveedores asociados del backend
-        const response = await window.API.fetch(`/api/ingredients/${ingredienteId}/suppliers`);
+        const response = await window.API.fetch(`/ingredients/${ingredienteId}/suppliers`);
         const proveedoresAsociados = Array.isArray(response) ? response : [];
 
         // Renderizar lista
@@ -228,7 +228,7 @@ export async function agregarProveedorIngrediente() {
     try {
         window.showLoading?.();
 
-        await window.API.fetch(`/api/ingredients/${ingredienteActualId}/suppliers`, {
+        await window.API.fetch(`/ingredients/${ingredienteActualId}/suppliers`, {
             method: 'POST',
             body: JSON.stringify({
                 proveedor_id: parseInt(proveedorId),
@@ -265,7 +265,7 @@ export async function marcarProveedorPrincipal(ingredienteId, proveedorId) {
 
         // Obtener precio actual del proveedor
         const proveedoresActuales = await window.API.fetch(
-            `/api/ingredients/${ingredienteId}/suppliers`
+            `/ingredients/${ingredienteId}/suppliers`
         );
         const proveedorActual = proveedoresActuales.find(p => p.proveedor_id === proveedorId);
 
@@ -273,7 +273,7 @@ export async function marcarProveedorPrincipal(ingredienteId, proveedorId) {
             throw new Error('Proveedor no encontrado');
         }
 
-        await window.API.fetch(`/api/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
+        await window.API.fetch(`/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
             method: 'PUT',
             body: JSON.stringify({
                 precio: proveedorActual.precio,
@@ -315,11 +315,11 @@ export async function editarPrecioProveedor(ingredienteId, proveedorId, precioAc
 
         // Obtener es_proveedor_principal actual
         const proveedoresActuales = await window.API.fetch(
-            `/api/ingredients/${ingredienteId}/suppliers`
+            `/ingredients/${ingredienteId}/suppliers`
         );
         const proveedorActual = proveedoresActuales.find(p => p.proveedor_id === proveedorId);
 
-        await window.API.fetch(`/api/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
+        await window.API.fetch(`/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
             method: 'PUT',
             body: JSON.stringify({
                 precio: parseFloat(nuevoPrecio),
@@ -351,7 +351,7 @@ export async function eliminarProveedorIngrediente(ingredienteId, proveedorId) {
     try {
         window.showLoading?.();
 
-        await window.API.fetch(`/api/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
+        await window.API.fetch(`/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
             method: 'DELETE',
         });
 

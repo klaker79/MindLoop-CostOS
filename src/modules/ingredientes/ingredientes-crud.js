@@ -135,11 +135,11 @@ export async function guardarIngrediente(event) {
             const precioProveedor = parseFloat(ingrediente.precio);
 
             try {
-                const proveedoresAsociados = await window.API.fetch(`/api/ingredients/${idIngrediente}/suppliers`) || [];
+                const proveedoresAsociados = await window.API.fetch(`/ingredients/${idIngrediente}/suppliers`) || [];
                 const yaAsociado = Array.isArray(proveedoresAsociados) && proveedoresAsociados.some(p => p.proveedor_id === idProveedor);
 
                 if (!yaAsociado) {
-                    await window.API.fetch(`/api/ingredients/${idIngrediente}/suppliers`, {
+                    await window.API.fetch(`/ingredients/${idIngrediente}/suppliers`, {
                         method: 'POST',
                         body: JSON.stringify({
                             proveedor_id: idProveedor,
