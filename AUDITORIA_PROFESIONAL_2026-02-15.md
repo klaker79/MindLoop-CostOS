@@ -1,6 +1,6 @@
 # Auditoría Profesional Completa — MindLoop CostOS
 
-**Fecha:** 15 febrero 2026
+**Fecha:** 15 febrero 2026 | **Actualización:** 15 febrero 2026 (re-análisis post PR #10)
 **Alcance:** Frontend (`mindloop-costos`) + Backend (`lacaleta-api`)
 **Metodología:** Revisión estática de código fuente, ejecución de tests, análisis de patrones de seguridad, robustez y rendimiento.
 **Clasificación:** Cada hallazgo se clasifica como NECESARIO / RECOMENDABLE / COSMÉTICO según las normas profesionales del proyecto.
@@ -9,14 +9,16 @@
 
 ## 1. Resumen Ejecutivo
 
-MindLoop CostOS es una plataforma SaaS de gestión de costes para restaurantes en producción con clientes reales. Tras una auditoría completa del frontend (34K líneas, 41 módulos ES6) y el backend (4.4K líneas server.js + rutas modulares + PostgreSQL), la evaluación general es **positiva con hallazgos accionables**:
+MindLoop CostOS es una plataforma SaaS de gestión de costes para restaurantes en producción con clientes reales. Tras una auditoría completa del frontend (34K líneas, 41 módulos ES6) y el backend (4.4K líneas server.js + rutas modulares + PostgreSQL), la evaluación general es **positiva con hallazgos accionables**.
 
-- **Tests:** 275/275 pasan en frontend. Backend requiere BD+servidor para tests de integración (5/5 unit tests pasan; 43 suites de integración no ejecutables en sandbox).
-- **Seguridad:** Fundamentos sólidos (queries parametrizadas, multi-tenant por restaurante_id, bcrypt, JWT). Los riesgos principales son: tokens en localStorage (amplía superficie XSS), CSP debilitada por unsafe-inline, y connection leak en `/auth/register`.
-- **Robustez:** Buen uso de transacciones y FOR UPDATE. Punto débil: connection pool leak en auth y falta de graceful shutdown completo.
+**Actualización post PR #10:** Se aplicaron fixes de autenticación que resuelven 3 hallazgos originales (SF1, SF7, SF8) y 2 problemas nuevos detectados durante la implementación (redirect loops, auth cleanup disperso). Se identificó 1 gap residual nuevo (SF-NEW: error-handler.js con patrón legacy).
+
+- **Tests:** 275/275 pasan en frontend (verificado post-fix). Backend: 5/5 unit tests pasan; 43 suites de integración requieren BD.
+- **Seguridad:** Fundamentos sólidos (queries parametrizadas, multi-tenant, bcrypt, JWT). ~~Tokens en localStorage~~ resuelto (PR #10). Riesgos abiertos: CSP debilitada por unsafe-inline, connection leak en `/auth/register`.
+- **Robustez:** Buen uso de transacciones y FOR UPDATE. Auth cleanup centralizado (PR #10). Punto débil: connection pool leak en auth y falta de graceful shutdown completo.
 - **Rendimiento:** Frontend carga todo upfront sin code splitting. Backend bien configurado con pool y timeouts.
 
-**Hallazgos totales: 15 NECESARIO, 18 RECOMENDABLE, 5 COSMÉTICO.**
+**Hallazgos abiertos: 14 NECESARIO, 16 RECOMENDABLE, 2 COSMÉTICO. Resueltos: 3 (PR #10).**
 
 ---
 
@@ -48,12 +50,40 @@ Los 43 suites que fallan son tests de integración que necesitan una BD PostgreS
 
 ## 3. Seguridad — Frontend
 
-### 3.1 NECESARIO
+### 3.0 Hallazgos resueltos (PR #10 — fix/auth-session-persistence)
 
-#### SF1. Tokens JWT en localStorage (Superficie de ataque XSS)
-**Archivos:** `src/api/client.js:31`, `src/stores/authStore.js:39,86`, y ~30 ubicaciones con `localStorage.getItem('token')`
-**Problema:** El token JWT se almacena en `localStorage` además de en la httpOnly cookie. Un XSS exitoso permite robo de sesión directa.
-**Recomendación:** Eliminar almacenamiento en `localStorage`. Las httpOnly cookies ya funcionan con `credentials: 'include'`.
+Los siguientes hallazgos de la auditoría original fueron corregidos y **verificados como resueltos**:
+
+#### ✅ SF1. Tokens JWT en localStorage → RESUELTO
+**Estado anterior:** Token JWT almacenado en `localStorage`, accesible via XSS.
+**Fix aplicado:** Migrado a `sessionStorage` (clave `_at`) + `window.authToken` in-memory. `localStorage.removeItem('token')` se ejecuta como limpieza legacy en `authStore.js:41,90` y `auth.js:196`.
+**Verificación:**
+- `localStorage.getItem('token')` ya no existe en ningún archivo ✅
+- `localStorage.setItem('token')` ya no existe en ningún archivo ✅
+- `document.cookie` ya no se usa para auth ✅
+- Token se restaura desde `sessionStorage` en `main.js:30-32` antes de imports ✅
+- `sessionStorage` se borra al cerrar pestaña (mejora sobre `localStorage`) ✅
+- **Evaluación:** Fix correcto. Reduce la superficie XSS significativamente. `sessionStorage` es mejor que `localStorage` porque se aísla por pestaña y se limpia al cerrarla.
+
+#### ✅ SF7. Cookie clearing inefectiva → RESUELTO
+**Estado anterior:** `document.cookie = 'auth_token=; expires=...'` intentaba borrar httpOnly cookies.
+**Fix aplicado:** Eliminado. Reemplazado por limpieza de `sessionStorage._at` + `window.authToken = null`.
+**Verificación:** `document.cookie` no aparece en ningún archivo de `src/` ✅
+
+#### ✅ SF8. Cookie auth check unreliable → RESUELTO
+**Estado anterior:** `document.cookie.includes('token')` siempre retornaba false con httpOnly cookies.
+**Fix aplicado:** `isAuthenticated` ahora es `!!window.authToken || !!sessionStorage.getItem('_at')` (`services/api.js:140`).
+**Verificación:** Check fiable, usa las mismas fuentes que el resto de la app ✅
+
+#### ✅ NEW: Redirect loops en 401 → RESUELTO
+**Fix aplicado:** Guard `window._authRedirecting` previene múltiples redirects simultáneos.
+**Verificación:** Flag se setea en `client.js:62` y `api.js:88`, se resetea en `main.js:37` al cargar ✅
+
+#### ✅ NEW: Auth cleanup disperso → RESUELTO
+**Fix aplicado:** Evento `auth:expired` centraliza la limpieza en `main.js:38-43`. Limpia: `authToken`, `sessionStorage._at`, `localStorage.user`, y para el token refresh interval.
+**Verificación:** Dispatched desde 3 puntos: `client.js:59`, `api.js:86`, `modales.js:663`. Listener único en `main.js:38` ✅
+
+### 3.1 NECESARIO (hallazgos abiertos)
 
 #### SF2. CSP con `unsafe-inline` y `unsafe-eval`
 **Archivo:** `nginx.conf:27`
@@ -73,19 +103,20 @@ Los 43 suites que fallan son tests de integración que necesitan una BD PostgreS
 
 #### SF5. ~31 llamadas `fetch()` directas sin apiClient
 **Archivos:** `auth.js` (5), `app-core.js` (5), `horarios.js` (13), `modales.js` (3), `inventario-masivo.js` (2)
-**Problema:** No pasan por el manejo centralizado de errores, retry ni 401.
+**Problema:** No pasan por el manejo centralizado de errores, retry ni 401. Todas usan `window.authToken` correctamente post-fix.
 
 #### SF6. Atributo `style` permitido en safe-html.js
 **Archivo:** `src/utils/safe-html.js:12`
 **Problema:** Permite CSS injection. La versión en `sanitize.js` ya lo excluye correctamente.
 
+#### SF-NEW. error-handler.js usa patrón auth legacy
+**Archivo:** `src/utils/error-handler.js:107`
+**Problema:** `localStorage.removeItem('token')` es ahora código muerto (no hay token en localStorage). Redirige a `/landing.html` en lugar de `/login.html`, inconsistente con el resto de handlers 401.
+**Recomendación:** Actualizar a `window.dispatchEvent(new CustomEvent('auth:expired'))` para unificarlo con el patrón centralizado del PR #10.
+
 ### 3.3 COSMÉTICO
 
-#### SF7. Cookie clearing inefectiva (código muerto)
-**Archivo:** `src/api/client.js:55` — `document.cookie` no puede borrar httpOnly cookies.
-
-#### SF8. Cookie auth check unreliable
-**Archivo:** `src/services/api.js:138` — `document.cookie.includes('token')` no lee httpOnly cookies.
+*(Todos los hallazgos cosméticos anteriores de esta sección han sido resueltos.)*
 
 ### Prácticas positivas (Frontend)
 - Headers nginx correctos: X-Frame-Options, HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy ✅
@@ -94,6 +125,9 @@ Los 43 suites que fallan son tests de integración que necesitan una BD PostgreS
 - Sin secrets en código; solo `.env.example` en git ✅
 - `credentials: 'include'` en todas las llamadas API ✅
 - Sin `eval()` ni `new Function()` ✅
+- **Auth token migrado a sessionStorage + in-memory** (PR #10) ✅
+- **Cleanup centralizado via evento `auth:expired`** (PR #10) ✅
+- **Anti-redirect-loop guard** (PR #10) ✅
 
 ---
 
@@ -318,26 +352,26 @@ No se encontraron bugs funcionales (275 tests pasan). Patrones de riesgo:
 
 ## 9. Recomendaciones Priorizadas (Top 5)
 
+### ~~1. Eliminar tokens de localStorage~~ → RESUELTO (PR #10)
+~~**Impacto:** Cierra el vector de ataque XSS más directo.~~
+**Estado:** Migrado a `sessionStorage` + `window.authToken` in-memory. Cleanup centralizado via evento `auth:expired`. Verificado: 275/275 tests pasan.
+
 ### 1. Corregir connection leak en /auth/register [NECESARIO — Seguridad/Robustez]
 **Impacto:** 20 registros fallidos consecutivos agotan el pool de conexiones, dejando el API inaccesible.
 **Cambio:** Mover las validaciones de input (nombre, email, password, código) ANTES de `pool.connect()` en `auth.routes.js:189-207`. Alternativa: usar `pool.query()` en lugar de `pool.connect()` para queries simples.
 
-### 2. Eliminar tokens de localStorage [NECESARIO — Seguridad]
-**Impacto:** Cierra el vector de ataque XSS más directo. Sin tokens en localStorage, un XSS no puede robar la sesión.
-**Cambio:** Modificar `src/api/client.js`, `src/stores/authStore.js`, y las ~30 ubicaciones que leen de `localStorage`. Las httpOnly cookies ya funcionan con `credentials: 'include'`.
-
-### 3. Corregir CSP eliminando unsafe-inline/unsafe-eval [NECESARIO — Seguridad]
+### 2. Corregir CSP eliminando unsafe-inline/unsafe-eval [NECESARIO — Seguridad]
 **Impacto:** Activa la protección real de CSP. Scripts inyectados no podrán ejecutarse.
 **Cambio:** Modificar `nginx.conf:27`. Extraer scripts inline a ficheros .js. Usar nonces si algún inline es imprescindible.
 
-### 4. Validar IDs de URL + sanitizar datos en horarios/exports [NECESARIO — Seguridad]
+### 3. Validar IDs de URL + sanitizar datos en horarios/exports [NECESARIO — Seguridad]
 **Impacto:** Cierra Stored XSS en 3 ubicaciones verificadas y previene errores 500 por IDs inválidos.
 **Cambio:**
 - Añadir `validateId(req.params.id)` en los 14 handlers del backend que lo omiten.
 - Sanitizar `emp.nombre` en `horarios.js` con `escapeHTML()`.
 - Sanitizar datos en `pedidos-export.js` y `dossier-v24.js` antes de `document.write()`.
 
-### 5. Implementar code splitting + cleanup de intervals/listeners [NECESARIO — Rendimiento/Robustez]
+### 4. Implementar code splitting + cleanup de intervals/listeners [NECESARIO — Rendimiento/Robustez]
 **Impacto:** Reduce carga inicial 35-45%. Previene memory leaks en sesiones largas.
 **Cambio:**
 - `vite.config.js`: Configurar `manualChunks` para Chart.js, jsPDF, XLSX.
@@ -351,14 +385,15 @@ No se encontraron bugs funcionales (275 tests pasan). Patrones de riesgo:
 
 | ID | Repo | Categoría | Clasificación | Descripción |
 |----|------|-----------|---------------|-------------|
-| SF1 | Frontend | Seguridad | NECESARIO | Tokens JWT en localStorage |
+| ~~SF1~~ | Frontend | Seguridad | ~~NECESARIO~~ | ~~Tokens JWT en localStorage~~ → **RESUELTO (PR #10)** |
 | SF2 | Frontend | Seguridad | NECESARIO | CSP con unsafe-inline/unsafe-eval |
 | SF3 | Frontend | Seguridad | NECESARIO | document.write() sin sanitizar |
 | SF4 | Frontend | Seguridad | NECESARIO | emp.nombre sin sanitizar en horarios |
 | SF5 | Frontend | Seguridad | RECOMENDABLE | 31 fetch() directas sin apiClient |
 | SF6 | Frontend | Seguridad | RECOMENDABLE | style attr en safe-html.js |
-| SF7 | Frontend | Seguridad | COSMÉTICO | Cookie clearing inefectiva |
-| SF8 | Frontend | Seguridad | COSMÉTICO | Cookie auth check unreliable |
+| SF-NEW | Frontend | Seguridad | RECOMENDABLE | error-handler.js usa patrón auth legacy |
+| ~~SF7~~ | Frontend | Seguridad | ~~COSMÉTICO~~ | ~~Cookie clearing inefectiva~~ → **RESUELTO (PR #10)** |
+| ~~SF8~~ | Frontend | Seguridad | ~~COSMÉTICO~~ | ~~Cookie auth check unreliable~~ → **RESUELTO (PR #10)** |
 | SB1 | Backend | Seguridad | NECESARIO | Connection leak en /auth/register |
 | SB2 | Backend | Seguridad | NECESARIO | Logout sin auth permite blacklist DoS |
 | SB3 | Backend | Seguridad | NECESARIO | Reset tokens en texto plano |
@@ -405,7 +440,11 @@ No se encontraron bugs funcionales (275 tests pasan). Patrones de riesgo:
 
 | Clasificación | Frontend | Backend | Total |
 |---------------|----------|---------|-------|
-| NECESARIO | 8 | 7 | **15** |
-| RECOMENDABLE | 7 | 11 | **18** |
-| COSMÉTICO | 2 | 3 | **5** |
-| **Total** | **17** | **21** | **38** |
+| NECESARIO | 7 (-1) | 7 | **14** |
+| RECOMENDABLE | 6 (+1 nuevo, -2 resueltos) | 11 | **17** |
+| COSMÉTICO | 0 (-2) | 3 | **3** |
+| ~~Resueltos~~ | ~~3~~ | ~~0~~ | ~~**3**~~ |
+| **Total abiertos** | **13** | **21** | **34** |
+
+> **Nota:** SF1 (NECESARIO), SF7 (COSMÉTICO), SF8 (COSMÉTICO) resueltos en PR #10.
+> SF-NEW (RECOMENDABLE) añadido como gap residual detectado durante re-análisis.
