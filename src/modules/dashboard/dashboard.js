@@ -31,6 +31,25 @@ import { renderQuickActions } from '../../components/domain/QuickActions.js';
 // Variable para recordar el período actual (default: semana)
 let periodoVistaActual = 'semana';
 
+// 💀 Skeleton helpers
+const SKELETON_SPAN = '<span class="skeleton skeleton-number" data-skeleton>⠀</span>';
+const SKELETON_ROW = '<div class="skeleton skeleton-row" data-skeleton></div>';
+
+function showSkeletonIn(el, type = 'number') {
+    if (!el) return;
+    if (type === 'number') {
+        el.innerHTML = SKELETON_SPAN;
+    } else if (type === 'rows') {
+        el.innerHTML = (SKELETON_ROW + SKELETON_ROW + SKELETON_ROW);
+    }
+}
+
+function isDataLoaded() {
+    const ings = window.ingredientes || [];
+    const recs = window.recetas || [];
+    return ings.length > 0 || recs.length > 0;
+}
+
 /**
  * Inicializa el banner de fecha actual en el dashboard
  */
@@ -187,6 +206,22 @@ async function actualizarKPIsPorPeriodo(periodo) {
  * Actualiza todos los KPIs del dashboard
  */
 export async function actualizarKPIs() {
+    // 💀 Si no hay datos aún, mostrar skeletons y salir
+    if (!isDataLoaded()) {
+        showSkeletonIn(document.getElementById('kpi-ingresos'));
+        showSkeletonIn(document.getElementById('kpi-pedidos'));
+        showSkeletonIn(document.getElementById('kpi-stock'));
+        showSkeletonIn(document.getElementById('kpi-margen'));
+        showSkeletonIn(document.getElementById('ventas-hoy'));
+        showSkeletonIn(document.getElementById('ingresos-hoy'));
+        showSkeletonIn(document.getElementById('plato-estrella-hoy'));
+        showSkeletonIn(document.getElementById('alertas-stock-lista'), 'rows');
+        showSkeletonIn(document.getElementById('personal-hoy-lista'), 'rows');
+        showSkeletonIn(document.getElementById('lista-cambios-precio'), 'rows');
+        console.log('💀 Skeleton loading: esperando datos...');
+        return;
+    }
+
     // Crear contenedor de acciones rápidas
     try {
         let actionsContainer = document.getElementById('quick-actions-container');
