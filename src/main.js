@@ -54,6 +54,17 @@ import './styles/components/alert-panel.css';
 import './styles/components/kpi-dashboard.css';
 import './styles/components/cost-breakdown.css';
 import './styles/components/quick-actions.css';
+import './styles/components/skeleton.css';
+
+// ============================================
+// 💀 SKELETON LOADING — Remove placeholders when data arrives
+// ============================================
+window.addEventListener('dashboard:refresh', () => {
+    document.querySelectorAll('[data-skeleton]').forEach(el => {
+        el.classList.add('skeleton-hide');
+        setTimeout(() => el.remove(), 300);
+    });
+}, { once: true });
 
 // ============================================
 // CONFIGURACIÓN GLOBAL - Multi-tenant
