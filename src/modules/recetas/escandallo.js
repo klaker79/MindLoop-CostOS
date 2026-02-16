@@ -210,10 +210,18 @@ export function verEscandallo(recetaId) {
         window._chartEscandallo.destroy();
     }
 
-    // Color palette
+    // Premium vibrant color palette
     const colors = [
         '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6',
-        '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
+        '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1',
+        '#14B8A6', '#F43F5E', '#A855F7', '#0EA5E9'
+    ];
+
+    // Hover colors (brighter variants)
+    const hoverColors = [
+        '#F87171', '#FBBF24', '#34D399', '#60A5FA', '#A78BFA',
+        '#F472B6', '#22D3EE', '#A3E635', '#FB923C', '#818CF8',
+        '#2DD4BF', '#FB7185', '#C084FC', '#38BDF8'
     ];
 
     window._chartEscandallo = new Chart(ctx, {
@@ -223,25 +231,49 @@ export function verEscandallo(recetaId) {
             datasets: [{
                 data: desglose.map(d => d.coste),
                 backgroundColor: colors.slice(0, desglose.length),
-                borderWidth: 2,
-                borderColor: '#ffffff'
+                hoverBackgroundColor: hoverColors.slice(0, desglose.length),
+                borderWidth: 3,
+                borderColor: '#ffffff',
+                hoverBorderColor: '#ffffff',
+                hoverBorderWidth: 3,
+                hoverOffset: 8,
+                borderRadius: 3,
+                spacing: 1
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '55%',
             plugins: {
                 legend: {
                     display: false
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    titleColor: '#F8FAFC',
+                    bodyColor: '#E2E8F0',
+                    borderColor: 'rgba(99, 102, 241, 0.3)',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 10,
+                    titleFont: { size: 12, weight: '700' },
+                    bodyFont: { size: 13, weight: '600' },
+                    displayColors: true,
+                    boxPadding: 4,
                     callbacks: {
                         label: function (context) {
                             const item = desglose[context.dataIndex];
-                            return `${item.nombre}: ${item.coste.toFixed(2)}€ (${item.porcentaje.toFixed(1)}%)`;
+                            return ` ${item.coste.toFixed(2)}€  ·  ${item.porcentaje.toFixed(1)}%`;
                         }
                     }
                 }
+            },
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 800,
+                easing: 'easeOutQuart'
             }
         }
     });

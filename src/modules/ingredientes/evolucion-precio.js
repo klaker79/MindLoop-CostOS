@@ -30,17 +30,20 @@ export async function verEvolucionPrecio(ingredienteId) {
     currentHistorial = obtenerHistorialPrecios(ingredienteId);
 
     // Update modal content
-    document.getElementById('evolucion-ingrediente-nombre').innerHTML =
-        `<strong>${escapeHTML(ingrediente.nombre)}</strong> - Precio actual: ${parseFloat(ingrediente.precio || 0).toFixed(2)}€/${escapeHTML(ingrediente.unidad)}`;
+    // 💰 FIX: Calcular precio UNITARIO (precio formato / cantidad_por_formato)
+    const cpf = parseFloat(ingrediente.cantidad_por_formato) || 1;
+    const precioActual = (parseFloat(ingrediente.precio) || 0) / cpf;
 
-    // Calculate summary stats
-    const precioActual = parseFloat(ingrediente.precio) || 0;
+    document.getElementById('evolucion-ingrediente-nombre').innerHTML =
+        `<strong>${escapeHTML(ingrediente.nombre)}</strong> - Precio actual: ${precioActual.toFixed(2)}€/${escapeHTML(ingrediente.unidad)}`;
+
+    // Calculate summary stats (incluyendo precio actual)
     let precioMin = precioActual;
     let precioMax = precioActual;
     let precioPromedio = precioActual;
 
     if (currentHistorial.length > 0) {
-        const precios = currentHistorial.map(h => h.precio);
+        const precios = [...currentHistorial.map(h => h.precio), precioActual];
         precioMin = Math.min(...precios);
         precioMax = Math.max(...precios);
         precioPromedio = precios.reduce((a, b) => a + b, 0) / precios.length;
@@ -230,20 +233,31 @@ function renderChart(historial, ingrediente) {
     // Prepare data
     let labels, data;
 
+    // 💰 FIX: Usar precio UNITARIO (precio formato / cantidad_por_formato)
+    const cpf = parseFloat(ingrediente.cantidad_por_formato) || 1;
+    const precioUnitarioActual = (parseFloat(ingrediente.precio) || 0) / cpf;
+
     if (historial.length === 0) {
         labels = ['Actual'];
-        data = [parseFloat(ingrediente.precio) || 0];
+        data = [precioUnitarioActual];
     } else {
         labels = historial.map(h => formatDate(h.fecha));
         data = historial.map(h => h.precio);
-        // Add current price at the end if different from last
+        // Add current unit price at the end if different from last
         const lastPrice = data[data.length - 1];
-        const currentPrice = parseFloat(ingrediente.precio) || 0;
-        if (Math.abs(lastPrice - currentPrice) > 0.01) {
+        if (Math.abs(lastPrice - precioUnitarioActual) > 0.01) {
             labels.push('Actual');
-            data.push(currentPrice);
+            data.push(precioUnitarioActual);
         }
     }
+
+    // Premium gradient fill
+    const canvasEl = ctx.canvas || ctx;
+    const chartCtx2d = canvasEl.getContext ? canvasEl.getContext('2d') : ctx;
+    const blueGradient = chartCtx2d.createLinearGradient(0, 0, 0, canvasEl.height || 200);
+    blueGradient.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+    blueGradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.12)');
+    blueGradient.addColorStop(1, 'rgba(59, 130, 246, 0.02)');
 
     chartEvolucionPrecio = new Chart(ctx, {
         type: 'line',
@@ -253,45 +267,70 @@ function renderChart(historial, ingrediente) {
                 label: `Precio (€/${ingrediente.unidad})`,
                 data: data,
                 borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                backgroundColor: blueGradient,
                 borderWidth: 3,
                 fill: true,
-                tension: 0.3,
+                tension: 0.4,
                 pointBackgroundColor: '#3b82f6',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 5,
-                pointHoverRadius: 7
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2.5,
+                pointRadius: 6,
+                pointHoverRadius: 9,
+                pointHoverBorderWidth: 3,
+                pointHoverBackgroundColor: '#2563EB',
+                pointHoverBorderColor: '#ffffff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
                 legend: {
                     display: false
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(30, 41, 59, 0.9)',
-                    titleFont: { size: 14 },
-                    bodyFont: { size: 13 },
-                    padding: 12,
-                    cornerRadius: 8,
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    titleColor: '#F8FAFC',
+                    bodyColor: '#E2E8F0',
+                    borderColor: 'rgba(59, 130, 246, 0.4)',
+                    borderWidth: 1,
+                    titleFont: { size: 13, weight: '700' },
+                    bodyFont: { size: 14, weight: '600' },
+                    padding: 14,
+                    cornerRadius: 10,
+                    displayColors: false,
                     callbacks: {
-                        label: (ctx) => `Precio: ${ctx.parsed.y.toFixed(2)}€/${ingrediente.unidad}`
+                        label: (ctx) => `💰 ${ctx.parsed.y.toFixed(2)}€ / ${ingrediente.unidad}`
                     }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: false,
-                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.08)',
+                        drawBorder: false
+                    },
+                    border: { display: false },
                     ticks: {
-                        callback: (value) => value.toFixed(2) + '€'
+                        callback: (value) => value.toFixed(2) + '€',
+                        color: '#94A3B8',
+                        font: { size: 11, weight: '500' },
+                        padding: 6
                     }
                 },
                 x: {
-                    grid: { display: false }
+                    grid: { display: false },
+                    border: { display: false },
+                    ticks: {
+                        color: '#94A3B8',
+                        font: { size: 11, weight: '500' },
+                        padding: 4
+                    }
                 }
             }
         }

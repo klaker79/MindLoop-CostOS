@@ -16,7 +16,9 @@ export const appConfig = {
      * Configuración de API
      */
     api: {
-        baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://lacaleta-api.mindloop.cloud',
+        // En desarrollo: vacío → URLs relativas que pasan por el proxy de Vite
+        // En producción: URL absoluta del API
+        baseUrl: import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : 'https://lacaleta-api.mindloop.cloud'),
         timeout: 30000, // 30 segundos
         retries: 3,
         retryDelay: 1000, // 1 segundo entre reintentos
