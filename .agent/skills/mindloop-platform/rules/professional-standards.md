@@ -23,6 +23,8 @@
 - ❌ Crear trabajo artificial para parecer productivo
 - ❌ Cambiar de opinión sobre la importancia de algo cuando el usuario te cuestiona
 - ❌ Usar palabras alarmistas (peligroso, crítico, urgente) sin evidencia concreta
+- ❌ **SUGERIR push/PR/deploy sin haber verificado en local primero** — JAMÁS
+- ❌ **Dar comandos de git push al usuario sin confirmar que funciona en localhost** — JAMÁS
 
 ### Test de honestidad antes de proponer algo:
 1. ¿La app se rompe sin esto? → Si no, NO es crítico

@@ -8,7 +8,18 @@ export default defineConfig({
     // Puerto de desarrollo
     server: {
         port: 3000,
-        open: true // Abre navegador automáticamente
+        open: true, // Abre navegador automáticamente
+        proxy: {
+            // Redirigir /api a la API de producción para desarrollo local
+            '/api': {
+                target: 'https://lacaleta-api.mindloop.cloud',
+                changeOrigin: true,
+                secure: true,
+                headers: {
+                    Origin: 'https://app.mindloop.cloud'
+                }
+            }
+        }
     },
 
     // Plugins
