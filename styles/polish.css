@@ -1,0 +1,658 @@
+/* ============================================
+   VISUAL POLISH v2 — Dramatic Premium Upgrade
+   Solo mejoras visuales, no cambia datos ni lógica.
+   ============================================ */
+
+/* --- Smooth scrolling & better rendering --- */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* --- Focus ring accesible --- */
+*:focus-visible {
+    outline: 2px solid rgba(102, 126, 234, 0.6);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* ==========================================
+   KPI MINI CARDS — Gradientes dramáticos
+   Antes: blanco plano con border-left
+   Ahora: gradientes de color por tipo
+   ========================================== */
+
+.kpi-mini {
+    background: white !important;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: none !important;
+}
+
+/* Borde inferior gradiente colorido en cada KPI */
+.kpi-mini::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    transition: height 0.3s ease;
+}
+
+.kpi-mini:hover::after {
+    height: 4px;
+}
+
+.kpi-mini:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Color de la barra inferior según tipo */
+.kpi-mini:nth-child(1)::after {
+    background: linear-gradient(90deg, #10B981, #34D399);
+}
+
+.kpi-mini:nth-child(2)::after {
+    background: linear-gradient(90deg, #3B82F6, #60A5FA);
+}
+
+.kpi-mini:nth-child(3)::after {
+    background: linear-gradient(90deg, #F59E0B, #FBBF24);
+}
+
+.kpi-mini:nth-child(4)::after {
+    background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+}
+
+/* ==========================================
+   DASHBOARD CARDS — Glassmorphism con color
+   Antes: blanco plano
+   Ahora: glass con toque de color y mejor elevación
+   ========================================== */
+
+#dashboard-premium .dashboard-card {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+#dashboard-premium .dashboard-card:hover {
+    transform: translateY(-6px) scale(1.01) !important;
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.12),
+        0 8px 16px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+/* Top gradient border on each card */
+#dashboard-premium .dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease, height 0.3s ease;
+}
+
+#dashboard-premium .dashboard-card:hover::before {
+    opacity: 1;
+    height: 4px;
+}
+
+/* Different color per card position - Row 1 */
+#dashboard-premium>div:nth-child(1)>.dashboard-card:nth-child(1)::before {
+    background: linear-gradient(90deg, #F59E0B, #FBBF24, #F59E0B);
+}
+
+#dashboard-premium>div:nth-child(1)>.dashboard-card:nth-child(2)::before {
+    background: linear-gradient(90deg, #3B82F6, #60A5FA, #3B82F6);
+}
+
+#dashboard-premium>div:nth-child(1)>.dashboard-card:nth-child(3)::before {
+    background: linear-gradient(90deg, #EC4899, #F472B6, #EC4899);
+}
+
+/* Row 2 */
+#dashboard-premium>div:nth-child(2)>.dashboard-card:nth-child(1)::before {
+    background: linear-gradient(90deg, #10B981, #34D399, #10B981);
+}
+
+#dashboard-premium>div:nth-child(2)>.dashboard-card:nth-child(2)::before {
+    background: linear-gradient(90deg, #8B5CF6, #A78BFA, #8B5CF6);
+}
+
+#dashboard-premium>div:nth-child(2)>.dashboard-card:nth-child(3)::before {
+    background: linear-gradient(90deg, #EF4444, #F87171, #EF4444);
+}
+
+/* Row 3 - full width */
+#dashboard-premium>div:nth-child(3)>.dashboard-card::before {
+    background: linear-gradient(90deg, #6366F1, #818CF8, #6366F1);
+}
+
+/* ==========================================
+   CHART AREAS — Fondo con patrón sutil
+   ========================================== */
+
+canvas {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
+}
+
+/* ==========================================
+   SIDEBAR — Más profundo y elegante
+   ========================================== */
+
+.sidebar {
+    background: linear-gradient(180deg,
+            rgba(88, 110, 220, 0.98) 0%,
+            rgba(100, 70, 180, 0.98) 40%,
+            rgba(75, 50, 145, 0.99) 100%) !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+}
+
+.nav-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+}
+
+/* Left indicator bar */
+.nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 60%;
+    background: white;
+    border-radius: 0 3px 3px 0;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    transform: translateX(4px);
+}
+
+.nav-item:hover::before {
+    transform: translateY(-50%) scaleY(1);
+}
+
+.nav-item.active {
+    box-shadow:
+        0 4px 15px rgba(249, 115, 22, 0.4),
+        0 0 30px rgba(249, 115, 22, 0.15) !important;
+}
+
+.nav-item.active::before {
+    transform: translateY(-50%) scaleY(1);
+    background: white;
+    width: 3px;
+    height: 70%;
+}
+
+/* Brand logo pulse on hover */
+.sidebar-brand-icon {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sidebar-brand:hover .sidebar-brand-icon {
+    transform: scale(1.08);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
+}
+
+/* User section refined */
+.sidebar-user {
+    transition: all 0.3s ease !important;
+}
+
+.sidebar-user:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    transform: translateY(-2px);
+}
+
+/* Nav badges bounce on hover */
+.nav-item-badge {
+    transition: transform 0.2s ease;
+}
+
+.nav-item:hover .nav-item-badge {
+    transform: scale(1.15);
+}
+
+/* ==========================================
+   HEADER — Glassmorphism
+   ========================================== */
+
+.header {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%) !important;
+    box-shadow: 0 4px 24px rgba(79, 70, 229, 0.2) !important;
+    border: none !important;
+}
+
+/* ==========================================
+   ICON CONTAINERS (44x44 squares in cards)
+   — Más 3D con sombra interna
+   ========================================== */
+
+#dashboard-premium div[style*="width: 44px"][style*="height: 44px"] {
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.05) !important;
+    transition: transform 0.3s ease;
+}
+
+#dashboard-premium .dashboard-card:hover div[style*="width: 44px"][style*="height: 44px"] {
+    transform: scale(1.08) rotate(-3deg);
+}
+
+/* ==========================================
+   BUTTONS dentro de cards — Más vivos
+   ========================================== */
+
+#dashboard-premium button[data-tab] {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#dashboard-premium button[data-tab]:hover {
+    transform: translateY(-2px) scale(1.04) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ==========================================
+   TABLES — Más refinadas
+   ========================================== */
+
+table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+table tbody tr {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+table tbody tr:hover {
+    transform: scale(1.005);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    z-index: 1;
+    position: relative;
+}
+
+/* Stagger animation */
+@keyframes tableRowFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+table tbody tr {
+    animation: tableRowFadeIn 0.3s ease forwards;
+}
+
+table tbody tr:nth-child(1) {
+    animation-delay: 0.02s;
+}
+
+table tbody tr:nth-child(2) {
+    animation-delay: 0.04s;
+}
+
+table tbody tr:nth-child(3) {
+    animation-delay: 0.06s;
+}
+
+table tbody tr:nth-child(4) {
+    animation-delay: 0.08s;
+}
+
+table tbody tr:nth-child(5) {
+    animation-delay: 0.10s;
+}
+
+table tbody tr:nth-child(6) {
+    animation-delay: 0.12s;
+}
+
+table tbody tr:nth-child(7) {
+    animation-delay: 0.14s;
+}
+
+table tbody tr:nth-child(8) {
+    animation-delay: 0.16s;
+}
+
+table tbody tr:nth-child(9) {
+    animation-delay: 0.18s;
+}
+
+table tbody tr:nth-child(10) {
+    animation-delay: 0.20s;
+}
+
+/* ==========================================
+   BUTTONS GENERAL — More punch
+   ========================================== */
+
+.btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    letter-spacing: 0.01em;
+}
+
+.btn:active {
+    transform: scale(0.97) !important;
+}
+
+.btn:disabled,
+.btn[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    filter: grayscale(20%);
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ==========================================
+   SEARCH BOX — Focus más vivo
+   ========================================== */
+
+.search-box input:focus {
+    border-color: #667eea !important;
+    box-shadow:
+        0 0 0 4px rgba(102, 126, 234, 0.15),
+        0 4px 16px rgba(102, 126, 234, 0.12) !important;
+}
+
+/* ==========================================
+   FORM INPUTS — Consistent focus
+   ========================================== */
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="tel"],
+select,
+textarea {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+input[type="tel"]:focus,
+select:focus,
+textarea:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12) !important;
+    outline: none;
+}
+
+/* ==========================================
+   MODALS — Mejor entrada
+   ========================================== */
+
+.modal.active {
+    animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal .modal-content,
+.modal>div>div {
+    animation: modalContentSlide 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalContentSlide {
+    from {
+        transform: translateY(20px) scale(0.96);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* ==========================================
+   SCROLLBAR — Custom premium
+   ========================================== */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.5);
+    background-clip: content-box;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    background-clip: content-box;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+    background-clip: content-box;
+}
+
+/* ==========================================
+   SELECTION
+   ========================================== */
+
+::selection {
+    background: rgba(102, 126, 234, 0.25);
+    color: inherit;
+}
+
+/* ==========================================
+   PAGE TRANSITIONS
+   ========================================== */
+
+.app-content {
+    animation: contentFadeIn 0.4s ease;
+}
+
+@keyframes contentFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================
+   DATE SELECTOR — Más elegante
+   ========================================== */
+
+#dashboard-premium~div,
+div[style*="Semana 8"] {
+    position: relative;
+}
+
+/* ==========================================
+   NUMBER ALIGNMENT
+   ========================================== */
+
+td:nth-child(n+3) {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================
+   VALOR STOCK & GRANDES NÚMEROS — Gradiente
+   ========================================== */
+
+#kpi-valor-stock {
+    background: linear-gradient(135deg, #10B981, #059669) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+#forecast-total {
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+/* ==========================================
+   LOADING OVERLAY — Blur backdrop
+   ========================================== */
+
+#loading-overlay {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* ==========================================
+   TOAST / NOTIFICATIONS — Slide in
+   ========================================== */
+
+.toast {
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    animation: toastSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(100%) scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* ==========================================
+   ESTADO BADGES — Más vividos
+   (stock bajo, stock ok, etc.)
+   ========================================== */
+
+span[style*="background: #dcfce7"],
+span[style*="background: #fef3c7"],
+span[style*="background: #fee2e2"] {
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+span[style*="background: #dcfce7"]:hover,
+span[style*="background: #fef3c7"]:hover,
+span[style*="background: #fee2e2"]:hover {
+    transform: scale(1.05);
+}
+
+/* ==========================================
+   ACTION BUTTONS IN CARDS — Better glow
+   (Venta, Pedido, Stock buttons)
+   ========================================== */
+
+button[style*="background: linear-gradient(135deg, #10B981"] {
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+}
+
+button[style*="background: linear-gradient(135deg, #3B82F6"] {
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
+}
+
+button[style*="background: linear-gradient(135deg, #F59E0B"] {
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+}
+
+button[style*="background: linear-gradient(135deg, #8B5CF6"] {
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35) !important;
+}
+
+/* ==========================================
+   SPARKLINES — subtle glow
+   ========================================== */
+
+#sparkline-ingresos svg,
+#sparkline-margen svg {
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
+}
+
+/* ==========================================
+   CERRAR SESION BUTTON — Glassmorphism
+   ========================================== */
+
+button[onclick*="cerrarSesion"],
+a[onclick*="cerrarSesion"] {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: all 0.3s ease !important;
+}
+
+button[onclick*="cerrarSesion"]:hover,
+a[onclick*="cerrarSesion"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35) !important;
+}

@@ -322,6 +322,22 @@ export function renderForecastChart(containerId, chartData) {
         window._forecastChart.destroy();
     }
 
+    // Create gradient fills for premium look
+    const canvas = ctx.canvas || ctx;
+    const chartCtx = canvas.getContext ? canvas.getContext('2d') : ctx;
+
+    // Green gradient for actual sales
+    const greenGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
+    greenGradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+    greenGradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.12)');
+    greenGradient.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
+
+    // Purple gradient for forecast
+    const purpleGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
+    purpleGradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
+    purpleGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.1)');
+    purpleGradient.addColorStop(1, 'rgba(139, 92, 246, 0.01)');
+
     window._forecastChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -331,58 +347,98 @@ export function renderForecastChart(containerId, chartData) {
                     label: 'Ventas reales',
                     data: chartData.historico,
                     borderColor: '#10B981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 2,
+                    backgroundColor: greenGradient,
+                    borderWidth: 2.5,
                     fill: true,
-                    tension: 0.3,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#10B981'
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#10B981',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointHoverBorderWidth: 3,
+                    pointHoverBackgroundColor: '#10B981',
+                    pointHoverBorderColor: '#ffffff'
                 },
                 {
                     label: 'Proyección',
                     data: chartData.forecast,
                     borderColor: '#8B5CF6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
+                    backgroundColor: purpleGradient,
+                    borderWidth: 2.5,
+                    borderDash: [6, 4],
                     fill: true,
-                    tension: 0.3,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#8B5CF6'
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#8B5CF6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointHoverBorderWidth: 3,
+                    pointHoverBackgroundColor: '#8B5CF6',
+                    pointHoverBorderColor: '#ffffff',
+                    pointStyle: 'rectRounded'
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
                     labels: {
                         usePointStyle: true,
-                        font: { size: 11 }
+                        font: { size: 11, weight: '600' },
+                        padding: 12,
+                        color: '#475569'
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(30, 41, 59, 0.9)',
-                    padding: 10,
-                    cornerRadius: 8,
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    titleColor: '#F8FAFC',
+                    bodyColor: '#E2E8F0',
+                    borderColor: 'rgba(139, 92, 246, 0.3)',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 10,
+                    titleFont: { size: 12, weight: '700' },
+                    bodyFont: { size: 13 },
+                    displayColors: true,
+                    boxPadding: 4,
                     callbacks: {
-                        label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}€`
+                        label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y}€`
                     }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.08)',
+                        drawBorder: false
+                    },
+                    border: { display: false },
                     ticks: {
-                        callback: (value) => value + '€'
+                        callback: (value) => value + '€',
+                        color: '#94A3B8',
+                        font: { size: 10, weight: '500' },
+                        padding: 6
                     }
                 },
                 x: {
-                    grid: { display: false }
+                    grid: { display: false },
+                    border: { display: false },
+                    ticks: {
+                        color: '#94A3B8',
+                        font: { size: 10, weight: '500' },
+                        padding: 4
+                    }
                 }
             }
         }

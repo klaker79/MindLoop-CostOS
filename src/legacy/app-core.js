@@ -799,6 +799,18 @@
             window.revenueChartInstance.destroy();
         }
 
+        // Premium gradient fills
+        const canvasRev = ctx.canvas || ctx;
+        const ctxRev2d = canvasRev.getContext ? canvasRev.getContext('2d') : ctx;
+        const greenGrad = ctxRev2d.createLinearGradient(0, 0, 0, canvasRev.height || 300);
+        greenGrad.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+        greenGrad.addColorStop(0.5, 'rgba(16, 185, 129, 0.12)');
+        greenGrad.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
+        const redGrad = ctxRev2d.createLinearGradient(0, 0, 0, canvasRev.height || 300);
+        redGrad.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
+        redGrad.addColorStop(0.5, 'rgba(239, 68, 68, 0.1)');
+        redGrad.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
+
         window.revenueChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
@@ -808,31 +820,35 @@
                         label: 'Ingresos',
                         data: ingresos,
                         borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        backgroundColor: greenGrad,
                         fill: true,
                         tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 6,
+                        borderWidth: 2.5,
+                        pointRadius: 5,
                         pointHoverRadius: 8,
                         pointBackgroundColor: '#10B981',
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointHoverBorderWidth: 3,
+                        pointHoverBackgroundColor: '#10B981',
+                        pointHoverBorderColor: '#ffffff',
                     },
                     {
                         label: 'Costos',
                         data: costos,
                         borderColor: '#EF4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                        backgroundColor: redGrad,
                         fill: true,
                         tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 6,
+                        borderWidth: 2.5,
+                        pointRadius: 5,
                         pointHoverRadius: 8,
                         pointBackgroundColor: '#EF4444',
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointHoverBorderWidth: 3,
+                        pointHoverBackgroundColor: '#EF4444',
+                        pointHoverBorderColor: '#ffffff',
                     },
                 ],
             },
@@ -858,19 +874,20 @@
                     },
                     tooltip: {
                         enabled: true,
-                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        padding: 16,
-                        cornerRadius: 12,
+                        backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                        titleColor: '#F8FAFC',
+                        bodyColor: '#E2E8F0',
+                        padding: 14,
+                        cornerRadius: 10,
                         displayColors: true,
-                        borderColor: '#FF6B35',
-                        borderWidth: 2,
-                        titleFont: { size: 14, weight: 'bold' },
+                        borderColor: 'rgba(16, 185, 129, 0.3)',
+                        borderWidth: 1,
+                        titleFont: { size: 13, weight: '700' },
                         bodyFont: { size: 13 },
+                        boxPadding: 4,
                         callbacks: {
                             label: function (context) {
-                                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '€';
+                                return ` ${context.dataset.label}: ${context.parsed.y.toFixed(2)}€`;
                             },
                         },
                     },
@@ -878,10 +895,11 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                        ticks: { callback: value => value + '€', font: { size: 12 } },
+                        grid: { color: 'rgba(148, 163, 184, 0.08)', drawBorder: false },
+                        border: { display: false },
+                        ticks: { callback: value => value + '€', font: { size: 11, weight: '500' }, color: '#94A3B8', padding: 6 },
                     },
-                    x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: '500' }, color: '#94A3B8' } },
                 },
             },
         });
@@ -1312,19 +1330,20 @@
                     legend: { display: false },
                     tooltip: {
                         enabled: true,
-                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        padding: 16,
-                        cornerRadius: 12,
-                        displayColors: false,
-                        borderColor: '#FF6B35',
-                        borderWidth: 2,
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
+                        backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                        titleColor: '#F8FAFC',
+                        bodyColor: '#E2E8F0',
+                        padding: 14,
+                        cornerRadius: 10,
+                        displayColors: true,
+                        borderColor: 'rgba(139, 92, 246, 0.3)',
+                        borderWidth: 1,
+                        titleFont: { size: 13, weight: '700' },
+                        bodyFont: { size: 13, weight: '600' },
+                        boxPadding: 4,
                         callbacks: {
                             label: function (context) {
-                                return 'Margen: ' + context.parsed.y + '%';
+                                return ` Margen: ${context.parsed.y}%`;
                             },
                         },
                     },
@@ -1332,17 +1351,21 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        grid: { color: 'rgba(148, 163, 184, 0.08)', drawBorder: false },
+                        border: { display: false },
                         ticks: {
                             callback: function (value) {
                                 return value + '%';
                             },
-                            font: { size: 12 },
+                            font: { size: 11, weight: '500' },
+                            color: '#94A3B8',
+                            padding: 6,
                         },
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { font: { size: 12 } },
+                        border: { display: false },
+                        ticks: { font: { size: 11, weight: '500' }, color: '#94A3B8' },
                     },
                 },
             },
