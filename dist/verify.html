@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Cuenta - MindLoop CostOS</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #1e293b;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8B5CF6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .success {
+            color: #10B981;
+        }
+
+        .error {
+            color: #EF4444;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #8B5CF6;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo">🍽️</div>
+        <h1>MindLoop CostOS</h1>
+
+        <div id="loading">
+            <div class="loader"></div>
+            <p class="message">Verificando tu cuenta...</p>
+        </div>
+
+        <div id="success" class="hidden">
+            <h2 class="success">✅ ¡Cuenta verificada!</h2>
+            <p class="message">Tu cuenta ha sido activada correctamente.</p>
+            <a href="index.html" class="btn">Ir al Dashboard</a>
+        </div>
+
+        <div id="error" class="hidden">
+            <h2 class="error">❌ Error de verificación</h2>
+            <p class="message" id="error-message">El enlace es inválido o ha expirado.</p>
+            <a href="index.html" class="btn">Volver al inicio</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://lacaleta-api.mindloop.cloud';
+
+        async function verifyEmail() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            if (!token) {
+                showError('No se encontró el token de verificación.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/verify-email?token=${token}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Guardar token y usuario
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    showSuccess();
+                } else {
+                    showError(data.error || 'Error al verificar');
+                }
+            } catch (err) {
+                showError('Error de conexión con el servidor');
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('success').classList.remove('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('error-message').textContent = message;
+        }
+
+        verifyEmail();
+    </script>
+</body>
+
+</html>

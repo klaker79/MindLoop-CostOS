@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - MindLoop CostOS</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #1e293b;
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #8B5CF6;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #8B5CF6 0%, #7c3aed 100%);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #8B5CF6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .password-hint {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo">🍽️</div>
+        <h1>Crear Cuenta</h1>
+        <p class="subtitle">Gestiona los costos de tu restaurante</p>
+
+        <div id="message" class="message hidden"></div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="nombre">Tu nombre</label>
+                <input type="text" id="nombre" name="nombre" placeholder="Juan García" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="tu@restaurante.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="codigo">Código de invitación</label>
+                <input type="text" id="codigo" name="codigo" placeholder="Introduce tu código" required>
+                <p class="password-hint">Solicita tu código al administrador</p>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required minlength="6">
+                <p class="password-hint">Mínimo 6 caracteres</p>
+            </div>
+
+            <div class="form-group">
+                <label for="password2">Confirmar contraseña</label>
+                <input type="password" id="password2" name="password2" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">Crear cuenta</button>
+        </form>
+
+        <p class="login-link">¿Ya tienes cuenta? <a href="index.html">Iniciar sesión</a></p>
+    </div>
+
+    <script>
+        const API_URL = 'https://lacaleta-api.mindloop.cloud';
+        const form = document.getElementById('registerForm');
+        const messageEl = document.getElementById('message');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function showMessage(text, type) {
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.classList.remove('hidden');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nombre = document.getElementById('nombre').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const codigo = document.getElementById('codigo').value.trim();
+            const password = document.getElementById('password').value;
+            const password2 = document.getElementById('password2').value;
+
+            if (password !== password2) {
+                showMessage('Las contraseñas no coinciden', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creando cuenta...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, email, password, codigoInvitacion: codigo })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Si el registro devuelve token, guardar y redirigir
+                    if (data.token) {
+                        localStorage.setItem('authToken', data.token);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        showMessage('✅ ¡Cuenta creada! Redirigiendo...', 'success');
+                        setTimeout(() => window.location.href = 'index.html', 1500);
+                    } else {
+                        showMessage('✅ Cuenta creada correctamente', 'success');
+                        form.reset();
+                    }
+                } else {
+                    showMessage(data.error || 'Error al registrar', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Crear cuenta';
+                }
+            } catch (err) {
+                showMessage('Error de conexión', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Crear cuenta';
+            }
+        });
+    </script>
+</body>
+
+</html>
