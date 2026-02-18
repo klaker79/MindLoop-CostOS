@@ -720,10 +720,8 @@ window.procesarArchivoVentas = async function (input) {
             // Llamar al endpoint del backend
             const response = await fetch(`${window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud'}/api/parse-pdf`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
+                credentials: 'include',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
                 body: JSON.stringify({
                     pdfBase64: base64,
                     filename: file.name
@@ -1011,7 +1009,8 @@ window.confirmarImportarVentas = async function () {
         window.showToast(`✓ ${importados} ventas importadas correctamente`, 'success');
         document.getElementById('modal-importar-ventas').classList.remove('active');
 
-        // Actualizar UI
+        // ⚡ Invalidar caché para forzar reload con datos frescos
+        window._ventasCache = null;
         await window.renderizarVentas();
         window.actualizarKPIs();
         window.actualizarDashboardExpandido();
@@ -1309,9 +1308,9 @@ window.datosResumenMensual = null;
 window.cargarResumenMensual = async function () {
     const mes = document.getElementById('diario-mes').value;
     const ano = document.getElementById('diario-ano').value;
-    const token = localStorage.getItem('token');
 
-    if (!token) {
+    // 🔒 SECURITY: httpOnly cookie can't be read by JS, use 'user' as session proxy
+    if (!localStorage.getItem('user')) {
         window.showToast('Sesión expirada', 'error');
         return;
     }
@@ -1325,10 +1324,7 @@ window.cargarResumenMensual = async function () {
             `${window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
             {
                 credentials: 'include',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
             }
         );
 
