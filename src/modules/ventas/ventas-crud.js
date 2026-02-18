@@ -20,6 +20,8 @@ export async function eliminarVenta(id) {
         const result = await store.deleteSale(id);
         if (!result.success) throw new Error(result.error || 'Error eliminando venta');
 
+        // ⚡ Invalidar caché para forzar reload con datos frescos
+        window._ventasCache = null;
         await window.renderizarVentas();
         window.hideLoading();
         window.showToast('Venta eliminada', 'success');

@@ -49,7 +49,16 @@ export async function renderizarVentas() {
             select.parentElement.insertBefore(input, select);
         }
 
-        const ventas = await window.api.getSales();
+        // ⚡ Usar caché para render instantáneo, luego refrescar en background
+        let ventas;
+        if (window._ventasCache) {
+            ventas = window._ventasCache;
+        } else {
+            ventas = await window.api.getSales();
+            window._ventasCache = ventas;
+        }
+        // Refrescar caché en background (sin bloquear render)
+        window.api.getSales().then(fresh => { window._ventasCache = fresh; }).catch(() => { });
         const container = document.getElementById('tabla-ventas');
 
         if (ventas.length === 0) {
