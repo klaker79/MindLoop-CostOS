@@ -187,12 +187,11 @@ export function cambiarTab(tab) {
 export async function init() {
     await cargarDatos();
 
-    // Renderizar datos iniciales
+    // Renderizar datos iniciales (solo lo visible en el dashboard)
+    // Las demás pestañas se renderizan bajo demanda en cambiarTab()
     window.renderizarIngredientes?.();
     window.renderizarRecetas?.();
     window.renderizarProveedores?.();
-    window.renderizarPedidos?.();
-    window.renderizarVentas?.();
     window.actualizarKPIs?.();
 
     // Inicializar fecha

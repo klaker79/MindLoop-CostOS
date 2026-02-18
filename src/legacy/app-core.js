@@ -1645,9 +1645,10 @@
     // Cache para persistir valores de stock introducidos por el usuario
     window.stockRealCache = window.stockRealCache || {};
 
-    window.renderizarInventario = async function () {
+    window.renderizarInventario = function () {
         try {
-            const inventario = await api.getInventoryComplete();
+            // ⚡ Usar datos en caché (ya cargados por cargarDatos()) para render instantáneo
+            const inventario = window.inventarioCompleto || [];
             const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
             const filtrados = inventario.filter(ing => ing.nombre.toLowerCase().includes(busqueda));
 

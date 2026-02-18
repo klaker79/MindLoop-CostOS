@@ -1011,7 +1011,8 @@ window.confirmarImportarVentas = async function () {
         window.showToast(`✓ ${importados} ventas importadas correctamente`, 'success');
         document.getElementById('modal-importar-ventas').classList.remove('active');
 
-        // Actualizar UI
+        // ⚡ Invalidar caché para forzar reload con datos frescos
+        window._ventasCache = null;
         await window.renderizarVentas();
         window.actualizarKPIs();
         window.actualizarDashboardExpandido();
