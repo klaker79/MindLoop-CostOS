@@ -666,45 +666,46 @@ a[onclick*="cerrarSesion"]:hover {
    ========================================== */
 
 @media (prefers-color-scheme: dark) {
+
     /* Tokens de color para dark mode */
     :root {
-        --dm-surface:   #1e293b;
+        --dm-surface: #1e293b;
         --dm-surface-2: #0f172a;
-        --dm-border:    #334155;
-        --dm-text:      #e2e8f0;
-        --dm-text-muted:#94a3b8;
+        --dm-border: #334155;
+        --dm-text: #e2e8f0;
+        --dm-text-muted: #94a3b8;
     }
 
     /* --- KPI mini cards (polish.css fuerza background: white) --- */
     .kpi-mini {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         color: var(--dm-text) !important;
     }
 
     /* --- equipo.js: .equipo-card --- */
     .equipo-card {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         border-color: var(--dm-border) !important;
         color: var(--dm-text) !important;
     }
 
     /* --- merma-rapida.js: .merma-linea --- */
     .merma-linea {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         border-color: var(--dm-border) !important;
         color: var(--dm-text) !important;
     }
 
     /* --- global-search.js: #global-search-results --- */
     #global-search-results {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         border-color: var(--dm-border) !important;
         color: var(--dm-text) !important;
     }
 
     /* --- ingredientes-ui.js: botones de filtro y paginación --- */
     .filtro-btn:not(.active) {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         color: var(--dm-text-muted) !important;
         border-color: var(--dm-border) !important;
     }
@@ -714,14 +715,14 @@ a[onclick*="cerrarSesion"]:hover {
     }
 
     .paginacion button:not(:hover):not(:disabled) {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         border-color: var(--dm-border) !important;
         color: var(--dm-text) !important;
     }
 
     /* --- chat-styles.js: CSS inyectado en <style> --- */
     .chat-window {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         color: var(--dm-text) !important;
     }
 
@@ -730,22 +731,22 @@ a[onclick*="cerrarSesion"]:hover {
     }
 
     .chat-message-content {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         color: var(--dm-text) !important;
     }
 
     .chat-typing {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         color: var(--dm-text) !important;
     }
 
     .chat-input-container {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         border-color: var(--dm-border) !important;
     }
 
     .chat-quick-actions {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
     }
 
     .chat-input {
@@ -764,7 +765,7 @@ a[onclick*="cerrarSesion"]:hover {
     }
 
     .chat-table tr:nth-child(even) {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
     }
 
     .chat-table th,
@@ -773,7 +774,7 @@ a[onclick*="cerrarSesion"]:hover {
     }
 
     .chat-mic-btn {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         border-color: var(--dm-border) !important;
     }
 
@@ -788,7 +789,7 @@ a[onclick*="cerrarSesion"]:hover {
     [style*="background:#fff"],
     [style*="background: #ffffff"],
     [style*="background:#ffffff"] {
-        background: var(--dm-surface) !important;
+        background-color: var(--dm-surface) !important;
         color: var(--dm-text) !important;
         border-color: var(--dm-border) !important;
     }
