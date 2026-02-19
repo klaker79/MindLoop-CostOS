@@ -9,11 +9,19 @@ let carritoProveedorId = null;
 let carritoFecha = null;
 
 /**
+ * Clave de localStorage aislada por restaurante (multi-tenant).
+ * Evita que el carrito de un restaurante aparezca en otro al cambiar de cuenta.
+ */
+function getCartKey() {
+    return `pedidoCarrito_${window.restauranteId || 'default'}`;
+}
+
+/**
  * Inicializa el carrito desde localStorage
  */
 function initCarrito() {
     try {
-        const saved = localStorage.getItem('pedidoCarrito');
+        const saved = localStorage.getItem(getCartKey());
         if (saved) {
             const data = JSON.parse(saved);
             carrito = data.items || [];
@@ -37,7 +45,7 @@ function guardarCarrito() {
     if (fechaInput && fechaInput.value) {
         carritoFecha = fechaInput.value;
     }
-    localStorage.setItem('pedidoCarrito', JSON.stringify({
+    localStorage.setItem(getCartKey(), JSON.stringify({
         items: carrito,
         proveedorId: carritoProveedorId,
         fecha: carritoFecha,

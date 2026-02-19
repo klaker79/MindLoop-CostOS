@@ -758,6 +758,11 @@
         const ingresos = [];
         const costos = [];
 
+        // 🔴 FIX N+1: pre-fetch UNA SOLA VEZ fuera del loop.
+        // Antes: getSales() se llamaba en cada iteración (7 peticiones al servidor).
+        let _ventasChart = [];
+        try { _ventasChart = await api.getSales() || []; } catch (_e) { console.warn('renderRevenueChart: getSales() falló', _e); }
+
         for (let i = 6; i >= 0; i--) {
             const fecha = new Date();
             fecha.setDate(fecha.getDate() - i);
@@ -765,10 +770,9 @@
             const diaSemana = fecha.toLocaleDateString('es-ES', { weekday: 'short' });
             labels.push(diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1));
 
-            // Filtrar ventas de ese día
+            // Filtrar ventas de ese día (usa _ventasChart pre-cargado antes del loop)
             try {
-                const ventas = await api.getSales();
-                const ventasDia = ventas.filter(v => v.fecha.split('T')[0] === fechaStr);
+                const ventasDia = _ventasChart.filter(v => v.fecha.split('T')[0] === fechaStr);
                 const ingresoDia = ventasDia.reduce((sum, v) => sum + parseFloat(v.total), 0);
                 ingresos.push(ingresoDia);
 
