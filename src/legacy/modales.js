@@ -86,7 +86,10 @@ function renderizarGastosFijos() {
 
 function actualizarTotalesGastosFijos() {
     const totalMensual = gastosFijos.reduce((sum, g) => sum + parseFloat(g.monto_mensual || 0), 0);
-    const totalDiario = totalMensual / 30;
+    // fix B4: usar días reales del mes en vez de 30 fijo
+    const hoy = new Date();
+    const diasMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+    const totalDiario = totalMensual / diasMes;
 
     const elemMensual = document.getElementById('total-mensual-gastos');
     const elemDiario = document.getElementById('total-diario-gastos');
@@ -215,7 +218,7 @@ const CACHE_TTL = 5000; // 5 segundos
 
 // ⚡ API BASE URL - 🔧 FIX: Lazy resolution (window.API_CONFIG se configura DESPUÉS por main.js)
 function getGastosApiBase() {
-    return (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+    return (window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud') + '/api';
 }
 
 function getGastosAuthHeaders() {
@@ -261,8 +264,12 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
     }
 
     try {
-        // Actualizar directamente via fetch
-        const res = await fetch(getGastosApiBase() + '/gastos-fijos/' + gastoInfo.id, {
+        // fix M3: buscar el ID real en la BD en vez de usar el ID hardcodeado
+        const gastosActuales = await fetchGastosFijos();
+        const gastoReal = gastosActuales.find(g => g.concepto === gastoInfo.concepto);
+        const gastoId = gastoReal?.id ?? gastoInfo.id; // fallback al hardcodeado si no se encuentra
+
+        const res = await fetch(getGastosApiBase() + '/gastos-fijos/' + gastoId, {
             method: 'PUT',
             headers: getGastosAuthHeaders(),
             credentials: 'include',
@@ -367,8 +374,8 @@ async function cargarValoresGastosFijos() {
 
 // Llamar al cargar la página SOLO si hay sesión activa
 setTimeout(function () {
-    // 🔒 SECURITY: Check cookie instead of localStorage
-    if (localStorage.getItem('user')) {
+    // fix M4: usar authToken/sessionStorage en vez de localStorage para coherencia con el resto de la app
+    if (window.authToken || sessionStorage.getItem('_at')) {
         cargarValoresGastosFijos();
     }
 }, 1000);
@@ -526,7 +533,10 @@ async function renderizarBeneficioNetoDiario() {
                 rec.ingredientes.forEach(ing => {
                     const ingData = window.ingredientes?.find(i => i.id === ing.ingredienteId);
                     if (ingData) {
-                        costeReceta += (parseFloat(ingData.precio) || 0) * (ing.cantidad || 0);
+                        // fix C3: precio es por FORMATO → dividir por cantidad_por_formato para obtener precio unitario
+                        const cpf = parseFloat(ingData.cantidad_por_formato) || 1;
+                        const precioUnitario = (parseFloat(ingData.precio) || 0) / cpf;
+                        costeReceta += precioUnitario * (ing.cantidad || 0);
                     }
                 });
             }
@@ -652,7 +662,7 @@ function startTokenRefresh() {
             try {
                 // Use the verify endpoint to check session validity
                 const API_BASE =
-                    window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud';
+                    window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud';
                 const response = await fetch(API_BASE + '/api/auth/verify', {
                     credentials: 'include',
                     headers: Object.assign({}, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
@@ -682,7 +692,8 @@ window.stopTokenRefresh = function () {
 };
 
 // Iniciar session check si hay cookie de auth
-if (localStorage.getItem('user')) {
+// fix M4: usar authToken/sessionStorage en vez de localStorage
+if (window.authToken || sessionStorage.getItem('_at')) {
     startTokenRefresh();
 }
 

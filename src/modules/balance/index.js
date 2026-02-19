@@ -50,10 +50,13 @@ export async function renderizarBalance() {
         }
 
         // 2. Obtener Datos Reales
-        const ventas = await window.api.getSales();
+        // fix M7: pasar la fecha al servidor para evitar cargar todo el historial de ventas
         const ahora = new Date();
         const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
-        const ventasMes = ventas.filter(v => v.fecha >= inicioMes);
+        const ventas = await window.api.getSales(inicioMes);
+        // fix M8: comparar con timestamps para tolerar distintos formatos de fecha del backend
+        const inicioMesMs = new Date(ahora.getFullYear(), ahora.getMonth(), 1).getTime();
+        const ventasMes = ventas.filter(v => new Date(v.fecha).getTime() >= inicioMesMs);
         const ingresos = ventasMes.reduce((sum, v) => sum + parseFloat(v.total), 0);
 
         // Calcular COGS
