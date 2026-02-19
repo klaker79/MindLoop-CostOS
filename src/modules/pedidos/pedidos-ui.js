@@ -174,7 +174,7 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
 
     try {
         // Primero buscar en la tabla de relación ingrediente_proveedores
-        const proveedoresAPI = await window.API?.fetch(`/api/ingredients/${ingredienteId}/suppliers`);
+        const proveedoresAPI = await window.API?.fetch(`/ingredients/${ingredienteId}/suppliers`);
         if (Array.isArray(proveedoresAPI) && proveedoresAPI.length > 0) {
             proveedores = proveedoresAPI.map(p => {
                 const provInfo = (window.proveedores || []).find(pr => pr.id === p.proveedor_id);
