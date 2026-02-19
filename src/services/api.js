@@ -119,7 +119,7 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
         const _now = Date.now();
         if (_now - _lastApiErrorToastMs > 5000 && typeof window !== 'undefined' && window.showToast) {
             _lastApiErrorToastMs = _now;
-            window.showToast('Error de conexión con el servidor', 'error');
+            window.showToast('⚠️ Error de conexión — los datos pueden estar incompletos', 'error');
         }
         if (normalizedEndpoint.includes('ingredients') || normalizedEndpoint.includes('recipes') ||
             normalizedEndpoint.includes('orders') || normalizedEndpoint.includes('sales') ||

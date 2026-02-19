@@ -5,7 +5,7 @@
 
 import { showToast } from '../../ui/toast.js';
 import { getApiUrl } from '../../config/app-config.js';
-import { escapeHTML } from '../../utils/safe-html.js';
+import { escapeHTML } from '../../utils/sanitize.js';
 
 /**
  * 🔒 Safe JSON parse para evitar crashes con JSON malformado
