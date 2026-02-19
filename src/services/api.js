@@ -23,6 +23,9 @@ import { getApiUrl } from '../config/app-config.js';
 
 const API_BASE = getApiUrl();
 
+// Throttle: evitar spam de toasts si hay varias peticiones fallidas a la vez
+let _lastApiErrorToastMs = 0;
+
 /**
  * fetchAPI — wrapper compatible con la firma legacy.
  * 
@@ -112,6 +115,12 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
 
         // Devolver respuesta vacía por defecto (comportamiento legacy)
         console.error(`❌ API Error: ${method} ${normalizedEndpoint}`, error);
+        // Notificar al usuario — máximo 1 toast cada 5 s para evitar spam cuando varios requests fallan a la vez
+        const _now = Date.now();
+        if (_now - _lastApiErrorToastMs > 5000 && typeof window !== 'undefined' && window.showToast) {
+            _lastApiErrorToastMs = _now;
+            window.showToast('Error de conexión con el servidor', 'error');
+        }
         if (normalizedEndpoint.includes('ingredients') || normalizedEndpoint.includes('recipes') ||
             normalizedEndpoint.includes('orders') || normalizedEndpoint.includes('sales') ||
             normalizedEndpoint.includes('suppliers') || normalizedEndpoint.includes('mermas') ||
