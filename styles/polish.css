@@ -665,7 +665,7 @@ a[onclick*="cerrarSesion"]:hover {
    !important necesario para ganar a inline styles.
    ========================================== */
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
 
     /* Tokens de color para dark mode */
     :root {
