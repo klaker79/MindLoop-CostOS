@@ -223,7 +223,7 @@
     // ⚡ Multi-tenant: usa config global si existe
     // 🔧 FIX: Lazy resolution - window.API_CONFIG se configura DESPUÉS por main.js
     function getApiAuthUrl() {
-        return (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api/auth';
+        return (window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud') + '/api/auth';
     }
 
     function checkAuth() {
@@ -287,7 +287,7 @@
     // ⚡ Multi-tenant: usa config global si existe
     // 🔧 FIX: Lazy resolution - window.API_CONFIG se configura DESPUÉS por main.js
     function getApiBase() {
-        return (window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud') + '/api';
+        return (window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud') + '/api';
     }
 
     function getAuthHeaders() {
@@ -2318,7 +2318,7 @@
                     const ahora = new Date();
                     const mes = ahora.getMonth() + 1;
                     const ano = ahora.getFullYear();
-                    const baseUrl = window.API_CONFIG?.baseUrl || 'https://lacaleta-api.mindloop.cloud';
+                    const baseUrl = window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud';
 
                     const resp = await fetch(
                         `${baseUrl}/api/monthly/summary?mes=${mes}&ano=${ano}`,

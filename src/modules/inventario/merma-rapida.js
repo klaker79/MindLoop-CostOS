@@ -258,7 +258,7 @@ export async function confirmarMermasMultiples() {
         const actualizacionesExitosas = [];
         const actualizacionesFallidas = [];
 
-        // Procesar cada merma con ajuste atómico
+        // fix C4: preparar datos primero — NO marcar éxito hasta que el backend confirme
         for (const merma of mermasARegistrar) {
             const ingrediente = (window.ingredientes || []).find(i => i.id === merma.ingredienteId);
             if (!ingrediente) {
@@ -282,56 +282,57 @@ export async function confirmarMermasMultiples() {
                 continue;
             }
 
-            try {
-                console.log(`📉 Merma: ${ingrediente.nombre} - Cantidad: ${cantidadMerma}`);
+            console.log(`📉 Merma preparada: ${ingrediente.nombre} - Cantidad: ${cantidadMerma}`);
 
-                // Backend now handles stock deduction in POST /api/mermas (symmetric with DELETE restore)
-                // NO frontend adjustStock call needed — avoids double-deduction
+            totalPerdida += merma.valorPerdida;
+            productosAfectados.push(ingrediente.nombre);
 
-                // Trackear éxito (stock_actual will be updated after backend call + reload)
+            // Añadir a array para backend (se envía todo junto)
+            mermasParaBackend.push({
+                ingredienteId: merma.ingredienteId,
+                ingredienteNombre: ingrediente.nombre,
+                cantidad: cantidadMerma,
+                unidad: ingrediente.unidad || 'ud',
+                valorPerdida: merma.valorPerdida,
+                motivo: merma.motivo,
+                nota: merma.nota || '',
+                responsableId: parseInt(responsableId) || null
+            });
+        }
+
+        // 🔒 Si hubo fallos en la preparación, notificar al usuario (ingredientes no encontrados, etc.)
+        if (actualizacionesFallidas.length > 0 && mermasParaBackend.length === 0) {
+            const fallidos = actualizacionesFallidas.map(a => `${a.nombre}: ${a.error}`).join('\n');
+
+            if (typeof window.hideLoading === 'function') window.hideLoading();
+
+            alert(
+                `⚠️ ATENCIÓN: No se pudo preparar ninguna merma\n\n` +
+                `❌ Errores:\n${fallidos}`
+            );
+            return;
+        }
+
+        // fix C4: enviar SIEMPRE al backend — sin guard opcional
+        // El éxito se marca DESPUÉS de que la API confirme, no antes
+        if (mermasParaBackend.length > 0) {
+            await window.API.fetch('/api/mermas', {
+                method: 'POST',
+                body: JSON.stringify({ mermas: mermasParaBackend })
+            });
+            console.log('✅ Mermas guardadas en servidor');
+
+            // Marcar como exitosas solo tras confirmación del backend
+            for (const m of mermasParaBackend) {
                 actualizacionesExitosas.push({
-                    id: ingrediente.id,
-                    nombre: ingrediente.nombre,
-                    cantidadMerma
+                    id: m.ingredienteId,
+                    nombre: m.ingredienteNombre,
+                    cantidadMerma: m.cantidad
                 });
-
-                totalPerdida += merma.valorPerdida;
-                productosAfectados.push(ingrediente.nombre);
-
-                // Añadir a array para backend
-                mermasParaBackend.push({
-                    ingredienteId: merma.ingredienteId,
-                    ingredienteNombre: ingrediente.nombre,
-                    cantidad: cantidadMerma,
-                    unidad: ingrediente.unidad || 'ud',
-                    valorPerdida: merma.valorPerdida,
-                    motivo: merma.motivo,
-                    nota: merma.nota || '',
-                    responsableId: parseInt(responsableId) || null
-                });
-
-                // Log para auditoría
-                console.log('📝 Merma preparada:', {
-                    ingrediente: ingrediente.nombre,
-                    cantidad: cantidadMerma,
-                    motivo: merma.motivo,
-                    medidaCorrectora: merma.medidaCorrectora,
-                    valorPerdida: merma.valorPerdida,
-                    responsableId,
-                    fecha: new Date().toISOString()
-                });
-
-            } catch (itemError) {
-                actualizacionesFallidas.push({
-                    id: ingrediente.id,
-                    nombre: ingrediente.nombre,
-                    error: itemError.message
-                });
-                console.error(`❌ Error registrando merma de ${ingrediente.nombre}:`, itemError);
             }
         }
 
-        // 🔒 FIX: Si hubo fallos parciales, notificar al usuario
+        // Si algunos ingredientes no se encontraron, notificar (las mermas válidas SÍ se guardaron)
         if (actualizacionesFallidas.length > 0) {
             const exitosos = actualizacionesExitosas.map(a => a.nombre).join(', ');
             const fallidos = actualizacionesFallidas.map(a => `${a.nombre}: ${a.error}`).join('\n');
@@ -342,27 +343,12 @@ export async function confirmarMermasMultiples() {
                 fecha: new Date().toISOString()
             });
 
-            if (typeof window.hideLoading === 'function') window.hideLoading();
-
             alert(
                 `⚠️ ATENCIÓN: Merma parcialmente registrada\n\n` +
-                `✅ Stock actualizado: ${exitosos || 'ninguno'}\n\n` +
-                `❌ Falló registrar:\n${fallidos}\n\n` +
-                `Las mermas exitosas ya se aplicaron. Revisa los errores y registra las faltantes manualmente.`
+                `✅ Guardadas: ${exitosos || 'ninguna'}\n\n` +
+                `❌ Falló preparar:\n${fallidos}\n\n` +
+                `Registra las faltantes manualmente.`
             );
-        }
-
-        // Enviar mermas EXITOSAS al backend para KPI
-        if (mermasParaBackend.length > 0 && window.API?.fetch) {
-            try {
-                await window.API.fetch('/api/mermas', {
-                    method: 'POST',
-                    body: JSON.stringify({ mermas: mermasParaBackend })
-                });
-                console.log('✅ Mermas guardadas en servidor para KPI');
-            } catch (apiError) {
-                console.warn('⚠️ Mermas aplicadas localmente pero no guardadas en servidor:', apiError.message);
-            }
         }
 
         // Recargar datos

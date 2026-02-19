@@ -5,7 +5,8 @@
 // ========== API ==========
 async function fetchIntelligence(endpoint) {
     try {
-        const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud';
+        // fix M6: el fallback necesita /api al final (igual que getApiUrl() que devuelve baseUrl+'/api')
+        const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud/api';
 
         // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
         const headers = { 'Content-Type': 'application/json' };

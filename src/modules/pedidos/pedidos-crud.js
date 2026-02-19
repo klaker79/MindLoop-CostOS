@@ -206,11 +206,15 @@ export async function guardarPedido(event) {
 
           // Solo actualizar precio si cambió
           if (precioNuevo > 0 && Math.abs(precioNuevo - precioAnterior) > 0.001) {
+            // fix C2: cantidadRecibida está en unidades de FORMATO, stockActual en unidades BASE
+            // hay que convertir a la misma unidad antes de calcular la media ponderada
+            const cantFormato = parseFloat(ing.cantidad_por_formato) || 1;
+            const cantidadEnBaseUnits = cantidadRecibida * cantFormato;
             // Media ponderada: (stockViejo * precioViejo + cantNueva * precioNuevo) / stockTotal
-            const stockSinCompra = stockActual - cantidadRecibida; // stockActual ya incluye la compra
+            const stockSinCompra = stockActual - cantidadEnBaseUnits; // stockActual ya incluye la compra
             let precioMedioPonderado;
             if (stockActual > 0) {
-              precioMedioPonderado = (stockSinCompra * precioAnterior + cantidadRecibida * precioNuevo) / stockActual;
+              precioMedioPonderado = (stockSinCompra * precioAnterior + cantidadEnBaseUnits * precioNuevo) / stockActual;
             } else {
               precioMedioPonderado = precioNuevo;
             }

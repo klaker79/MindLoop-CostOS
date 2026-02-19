@@ -34,15 +34,20 @@ export const ingredientStore = createStore((set, get) => ({
     totalValue: () => {
         const state = ingredientStore.getState();
         return state.ingredients.reduce((sum, ing) => {
+            // fix C1: precio es por FORMATO, stock_actual en unidades base → dividir por cantidad_por_formato
             const precio = parseFloat(ing.precio) || 0;
+            const cpf = parseFloat(ing.cantidad_por_formato) || 1;
+            const precioUnitario = precio / cpf;
             const stock = parseFloat(ing.stock_actual) || 0;
-            return sum + (precio * stock);
+            return sum + (precioUnitario * stock);
         }, 0);
     },
 
     lowStockItems: () => {
         const state = ingredientStore.getState();
         return state.ingredients.filter(ing => {
+            // fix B2: stock_actual=null significa "inventario físico registrado", no stock=0
+            if (ing.stock_actual === null || ing.stock_actual === undefined) return false;
             const stock = parseFloat(ing.stock_actual) || 0;
             const minStock = parseFloat(ing.stock_minimo) || 0;
             return stock <= minStock && minStock > 0;
