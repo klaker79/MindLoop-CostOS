@@ -281,13 +281,20 @@ export async function confirmarRecepcionPedido() {
          * 🔒 FIX v2: Usar ajuste atómico de stock (delta) en vez de valor absoluto
          * Esto evita que datos stale en window.ingredientes sobreescriban el stock real
          */
-        // Preparar ajustes atómicos: solo enviar el delta (+cantidadRecibida)
+        // Preparar ajustes atómicos: delta en UNIDADES BASE (litros, botellas)
+        // Multiplicar cantidadRecibida (en formatos: garrafas, cajas) × cantidad_por_formato
+        const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
         const adjustments = ingredientesActualizados
             .filter(item => item.estado !== 'no-entregado' && parseFloat(item.cantidadRecibida) > 0)
-            .map(item => ({
-                id: item.ingredienteId,
-                delta: parseFloat(item.cantidadRecibida)
-            }));
+            .map(item => {
+                const ing = ingMap.get(item.ingredienteId);
+                const cantFormato = parseFloat(ing?.cantidad_por_formato) || 1;
+                const deltaBase = parseFloat(item.cantidadRecibida) * cantFormato;
+                return {
+                    id: item.ingredienteId,
+                    delta: deltaBase
+                };
+            });
 
         const actualizacionesExitosas = [];
         const actualizacionesFallidas = [];
