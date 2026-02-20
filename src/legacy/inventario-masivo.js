@@ -360,6 +360,7 @@ window.confirmarInventarioMasivo = async function () {
         );
 
         document.getElementById('modal-inventario-masivo').classList.remove('active');
+        await window.cargarDatos();
         await window.renderizarInventario();
     } catch (error) {
         document.getElementById('loading-overlay').classList.remove('active');
