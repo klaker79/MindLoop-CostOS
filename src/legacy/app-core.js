@@ -1915,79 +1915,9 @@
         }
     };
 
-    // Función global para actualizar stock real
-    // Función para guardar stock masivo
-    // Función para guardar stock masivo con lógica de mermas
-    window.guardarCambiosStock = async function () {
-        const inputs = document.querySelectorAll('.input-stock-real');
-        const adjustments = [];
-        const mermas = [];
+    // guardarCambiosStock: definida más abajo (~L2212) con lógica completa de modal de mermas
+    // La definición anterior fue eliminada (código muerto que enviaba campos incorrectos al backend)
 
-        inputs.forEach(input => {
-            const val = input.value;
-            if (val !== '' && val !== null) {
-                const nuevoReal = parseFloat(val);
-                const dataId = parseInt(input.dataset.id);
-                const stockVirtual = parseFloat(input.dataset.stockVirtual || 0);
-
-                // Solo nos importa si hay cambios (aunque la lógica pide ajustar si es positivo,
-                // asumimos que si el usuario escribe algo es porque quiere fijarlo)
-                // Pero podemos optimizar enviando solo lo que difiere o todo lo escrito.
-                // El usuario dijo "Update Stock" button allow users to edit multiple...
-                // Enviamos todo lo que tenga valor explícito en el input.
-
-                const item = {
-                    id: dataId,
-                    stock_real: nuevoReal,
-                };
-                adjustments.push(item);
-
-                // Detectar mermas (Real < Ficticio)
-                // Nota: Javascript floats pueden ser tricky, usamos una pequeña tolerancia o simple comparación
-                if (nuevoReal < stockVirtual) {
-                    const nombreIng =
-                        window.ingredientes.find(i => i.id === dataId)?.nombre ||
-                        'Ingrediente ' + dataId;
-                    mermas.push({
-                        id: dataId,
-                        nombre: nombreIng,
-                        diferencia: (stockVirtual - nuevoReal).toFixed(2),
-                    });
-                }
-            }
-        });
-
-        if (adjustments.length === 0) {
-            showToast('No hay datos para guardar', 'info');
-            return;
-        }
-
-        // Lógica de confirmación
-        if (mermas.length > 0) {
-            // Abrir modal de gestión de mermas
-            window.mostrarModalConfirmarMermas(adjustments, mermas);
-            return;
-        }
-
-        let mensajeConfirmacion = `¿Actualizar stock de ${adjustments.length} ingredientes?`;
-        mensajeConfirmacion += `\n\nEl stock ficticio se ajustará automáticamente al stock real ingresado.`;
-
-        if (!confirm(mensajeConfirmacion)) return;
-
-        try {
-            showLoading();
-            // Usamos el endpoint de consolidación que actualiza AMBOS (read y actual)
-            await api.consolidateStock(adjustments);
-            // Limpiar cache después de guardar exitosamente
-            window.stockRealCache = {};
-            await window.renderizarInventario();
-            hideLoading();
-            showToast('Inventario consolidado correctamente', 'success');
-        } catch (error) {
-            hideLoading();
-            showToast('Error: ' + error.message, 'error');
-        }
-    };
 
     // Variables para el modal de mermas (Snapshot y Ajustes)
     let currentSnapshots = [];
@@ -2196,8 +2126,9 @@
 
             await api.consolidateStock(finalAdjustments, currentSnapshots, finalStock);
 
-            // Limpiar cache después de guardar exitosamente
+            // Limpiar cache y recargar datos frescos del servidor
             window.stockRealCache = {};
+            await window.cargarDatos();
             await window.renderizarInventario();
             hideLoading();
             showToast('Ajustes de inventario registrados correctamente', 'success');
