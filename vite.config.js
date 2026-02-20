@@ -59,8 +59,8 @@ export default defineConfig({
         // Minificación con esbuild (incluido por defecto)
         minify: 'esbuild',
 
-        // Source maps para debugging
-        sourcemap: true
+        // Source maps desactivados en producción (prevenir exposición de código fuente)
+        sourcemap: false
     },
 
     // Resolución de módulos

@@ -8,7 +8,7 @@
  * 2. Control centralizado de sampling y environment
  */
 
-const SENTRY_DSN = 'https://ac722e9d30983357b092ee766be13c5e@o4510649135661056.ingest.de.sentry.io/4510649155190864';
+const SENTRY_DSN = import.meta.env?.VITE_SENTRY_DSN || 'https://ac722e9d30983357b092ee766be13c5e@o4510649135661056.ingest.de.sentry.io/4510649155190864';
 
 export function initSentry() {
     // Solo inicializar si el SDK está cargado y estamos en producción
