@@ -97,6 +97,7 @@ export default [
         files: ['src/legacy/**/*.js'],
         rules: {
             'no-unused-vars': 'off',
+            'no-undef': 'off',
             'prefer-const': 'off',
             'no-console': 'off',
             'eqeqeq': 'off'
