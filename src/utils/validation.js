@@ -103,7 +103,7 @@ export function isPhone(value, fieldName = 'Teléfono') {
     if (!value) return { valid: true }; // Puede ser opcional
 
     // Limpiar y validar
-    const cleaned = value.replace(/[\s\-\(\)]/g, '');
+    const cleaned = value.replace(/[\s\-()]/g, '');
     if (!/^(\+34)?[6789]\d{8}$/.test(cleaned) && !/^\d{9,15}$/.test(cleaned)) {
         return { valid: false, error: `${fieldName} no es válido` };
     }
