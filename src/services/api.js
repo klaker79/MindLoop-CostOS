@@ -136,11 +136,13 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
 // ============================
 // Combina funciones de api/client.js con el fetchAPI bridge
 window.API = {
-    // Bridge method para llamadas raw
-    fetch: fetchAPI,
-
     // Re-export todas las funciones del api client moderno
+    // IMPORTANTE: ...api va PRIMERO porque incluye su propio .fetch que NO normaliza /api
     ...api,
+
+    // Bridge method para llamadas raw — DEBE ir DESPUÉS de ...api para sobreescribir api.fetch
+    // fetchAPI normaliza endpoints legacy que usan /api prefix (ej: '/api/mermas' → '/mermas')
+    fetch: fetchAPI,
 
     // Estado de auth (legacy, solo lectura)
     state: {
