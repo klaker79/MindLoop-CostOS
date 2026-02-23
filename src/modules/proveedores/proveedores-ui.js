@@ -36,7 +36,7 @@ export function cerrarFormularioProveedor() {
  */
 export function cargarIngredientesProveedor(seleccionados = []) {
     const container = document.getElementById('lista-ingredientes-proveedor');
-    if (window.ingredientes.length === 0) {
+    if (!window.ingredientes || window.ingredientes.length === 0) {
         container.innerHTML =
             '<p style="color:#999;text-align:center;padding:20px;">Primero añade ingredientes</p>';
         return;
@@ -46,7 +46,7 @@ export function cargarIngredientesProveedor(seleccionados = []) {
         '<div class="search-box-small"><input type="text" id="buscar-ing-prov" placeholder="Buscar ingrediente..." oninput="window.filtrarIngredientesProveedor()"></div>';
     html += '<div id="lista-ing-checks">';
 
-    window.ingredientes.forEach(ing => {
+    (window.ingredientes || []).forEach(ing => {
         const checked = seleccionados.includes(ing.id) ? 'checked' : '';
         html += `
       <div class="ing-check-item">
@@ -149,7 +149,7 @@ export function verProveedorDetalles(id) {
     html += '<h4 style="margin-bottom: 8px;">Ingredientes:</h4><ul>';
     if (prov.ingredientes && prov.ingredientes.length > 0) {
         prov.ingredientes.forEach(ingId => {
-            const ing = window.ingredientes.find(i => i.id === ingId);
+            const ing = (window.ingredientes || []).find(i => i.id === ingId);
             if (ing) html += `<li>${escapeHTML(ing.nombre)}</li>`;
         });
     } else {

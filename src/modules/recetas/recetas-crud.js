@@ -242,7 +242,15 @@ export function calcularCosteRecetaCompleto(receta) {
         }
 
         // 🆕 CÁLCULO CON MERMA (Rendimiento)
-        const rendimiento = parseFloat(item.rendimiento) || 100;
+        // 🔧 FIX: Fallback al rendimiento del ingrediente base si la receta no lo tiene guardado
+        let rendimiento = parseFloat(item.rendimiento);
+        if (!rendimiento || rendimiento === 100) {
+            if (ing?.rendimiento) {
+                rendimiento = parseFloat(ing.rendimiento);
+            } else {
+                rendimiento = 100;
+            }
+        }
         const factorRendimiento = rendimiento / 100;
         const costeReal = factorRendimiento > 0 ? (precio / factorRendimiento) : precio;
 

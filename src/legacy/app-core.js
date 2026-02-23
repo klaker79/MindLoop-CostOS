@@ -1533,9 +1533,16 @@
         const margenPorCategoria = {};
         const countPorCategoria = {};
 
+        // 🔧 Categorías excluidas del gráfico de margen (no son platos reales)
+        const CATEGORIAS_EXCLUIDAS = ['suministros', 'suministro', 'preparaciones base', 'preparacion base'];
+
         recetas.forEach(rec => {
             // Usar la categoría REAL de la receta (normalizada a minúsculas)
             const catOriginal = (rec.categoria || 'otros').toLowerCase().trim();
+
+            // Excluir categorías que no son platos reales
+            if (CATEGORIAS_EXCLUIDAS.includes(catOriginal)) return;
+
             // Capitalizar primera letra para display
             const familia = catOriginal.charAt(0).toUpperCase() + catOriginal.slice(1);
 
