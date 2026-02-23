@@ -310,7 +310,12 @@ export async function actualizarKPIs() {
         if (!recetas || recetas.length === 0) {
             recetas = window.recetas || [];
         }
-        const recetasConMargen = recetas.filter(r => parseFloat(r.precio_venta) > 0);
+        // 🔧 Categorías excluidas del cálculo de margen (no son platos reales)
+        const CATEGORIAS_EXCLUIDAS_MARGEN = ['bebidas', 'bebida', 'suministros', 'suministro', 'preparaciones base', 'preparacion base'];
+        const recetasConMargen = recetas.filter(r => {
+            const cat = (r.categoria || '').toLowerCase().trim();
+            return parseFloat(r.precio_venta) > 0 && !CATEGORIAS_EXCLUIDAS_MARGEN.includes(cat);
+        });
         if (recetasConMargen.length > 0) {
             // ⚡ OPTIMIZACIÓN: Usar función memoizada para calcular costes
             const calcularCoste =
