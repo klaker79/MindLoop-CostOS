@@ -205,8 +205,8 @@ function getIngMap() {
     return _ingMapCache;
 }
 
-export function calcularCosteRecetaCompleto(receta) {
-    if (!receta || !receta.ingredientes) return 0;
+export function calcularCosteRecetaCompleto(receta, _depth = 0) {
+    if (!receta || !receta.ingredientes || _depth > 5) return 0;
 
     // ⚡ OPTIMIZACIÓN: Usar Maps O(1) en lugar de .find() O(n)
     const invMap = getInvMap();
@@ -221,7 +221,7 @@ export function calcularCosteRecetaCompleto(receta) {
             const recetaBase = recetasMap.get(recetaId);
             if (recetaBase) {
                 // Calcular coste recursivamente (evitar recursión infinita)
-                const costeRecetaBase = calcularCosteRecetaCompleto(recetaBase);
+                const costeRecetaBase = calcularCosteRecetaCompleto(recetaBase, _depth + 1);
                 return total + costeRecetaBase * item.cantidad;
             }
             return total;

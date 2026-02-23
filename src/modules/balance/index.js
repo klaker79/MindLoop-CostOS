@@ -72,9 +72,17 @@ export async function renderizarBalance() {
                     if (!ing) return sum;
                     const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
                     const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
-                    // 🔒 P1-3 FIX: Aplicar factor de rendimiento (merma)
-                    // Si rendimiento = 50%, el coste real es el doble
-                    const rendimiento = parseFloat(ing.rendimiento || 100) / 100;
+                    // 🔒 H5 FIX: Priorizar rendimiento de la receta (item), fallback al ingrediente base
+                    // Idéntico a calcularCosteRecetaCompleto() en recetas-crud.js
+                    let rendimientoVal = parseFloat(item.rendimiento);
+                    if (!rendimientoVal || rendimientoVal === 100) {
+                        if (ing?.rendimiento) {
+                            rendimientoVal = parseFloat(ing.rendimiento);
+                        } else {
+                            rendimientoVal = 100;
+                        }
+                    }
+                    const rendimiento = rendimientoVal / 100;
                     const factorRendimiento = rendimiento > 0 ? (1 / rendimiento) : 1;
                     return sum + (precioUnitario * item.cantidad * factorRendimiento);
                 }, 0);
