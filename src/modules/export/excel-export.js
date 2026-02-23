@@ -4,7 +4,7 @@
  * @module modules/export/excel-export
  */
 
-import * as XLSX from 'xlsx-js-style';
+import { loadXLSX } from '../../utils/lazy-vendors.js';
 
 /**
  * Exporta datos a archivo Excel
@@ -12,7 +12,10 @@ import * as XLSX from 'xlsx-js-style';
  * @param {string} filename - Nombre del archivo (sin extensión)
  * @param {Object} options - Opciones de formato
  */
-export function exportToExcel(data, filename, options = {}) {
+export async function exportToExcel(data, filename, options = {}) {
+    // Cargar XLSX bajo demanda
+    await loadXLSX();
+    const XLSX = window.XLSX;
     if (!data || !data.length) {
         console.warn('exportToExcel: No hay datos para exportar');
         return;
@@ -48,7 +51,7 @@ export function exportToExcel(data, filename, options = {}) {
  * Exporta ingredientes a Excel con formato
  * @param {Array} ingredientes
  */
-export function exportIngredientesToExcel(ingredientes) {
+export async function exportIngredientesToExcel(ingredientes) {
     const data = ingredientes.map(ing => ({
         'Nombre': ing.nombre,
         'Familia': ing.familia_nombre || 'Sin familia',
@@ -59,7 +62,7 @@ export function exportIngredientesToExcel(ingredientes) {
         'Proveedor': ing.proveedor_nombre || 'Sin proveedor'
     }));
 
-    exportToExcel(data, `ingredientes_${new Date().toISOString().split('T')[0]}`, {
+    await exportToExcel(data, `ingredientes_${new Date().toISOString().split('T')[0]}`, {
         sheetName: 'Ingredientes',
         columnWidths: [30, 20, 12, 12, 12, 10, 25]
     });
@@ -69,7 +72,7 @@ export function exportIngredientesToExcel(ingredientes) {
  * Exporta recetas a Excel con formato
  * @param {Array} recetas
  */
-export function exportRecipesToExcel(recetas) {
+export async function exportRecipesToExcel(recetas) {
     const data = recetas.map(rec => ({
         'Nombre': rec.nombre,
         'Categoría': rec.categoria_nombre || 'Sin categoría',
@@ -80,7 +83,7 @@ export function exportRecipesToExcel(recetas) {
         'Raciones': rec.raciones || 1
     }));
 
-    exportToExcel(data, `recetas_${new Date().toISOString().split('T')[0]}`, {
+    await exportToExcel(data, `recetas_${new Date().toISOString().split('T')[0]}`, {
         sheetName: 'Recetas',
         columnWidths: [35, 20, 12, 12, 12, 12, 10]
     });

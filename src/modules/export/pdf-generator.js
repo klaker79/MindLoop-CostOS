@@ -3,15 +3,18 @@
  * Genera PDFs profesionales para recetas, ingredientes y pedidos
  */
 
+import { loadPDF } from '../../utils/lazy-vendors.js';
+
 /**
  * Genera PDF profesional de una receta con logo y formato premium
  * @param {Object} receta - Objeto receta con ingredientes
  * @param {Array} ingredientes - Array de todos los ingredientes disponibles
  */
-export function generarPDFReceta(receta, ingredientes) {
-    // Verificar que jsPDF está cargado
+export async function generarPDFReceta(receta, ingredientes) {
+    // Cargar jsPDF bajo demanda
+    await loadPDF();
     if (!window.jspdf) {
-        console.error('jsPDF no está cargado. Asegúrate de que los scripts CDN están cargados.');
+        console.error('jsPDF no está cargado.');
         window.showToast?.('Error: Librería PDF no cargada', 'error');
         return null;
     }
@@ -163,10 +166,10 @@ export function generarPDFReceta(receta, ingredientes) {
         foodCost <= 28
             ? [5, 150, 105]
             : foodCost <= 33
-              ? [16, 185, 129]
-              : foodCost <= 38
-                ? [245, 158, 11]
-                : [239, 68, 68]
+                ? [16, 185, 129]
+                : foodCost <= 38
+                    ? [245, 158, 11]
+                    : [239, 68, 68]
     );
     doc.text(`${margen.toFixed(1)}%`, 100, yPos, { align: 'right' });
 
@@ -188,7 +191,8 @@ export function generarPDFReceta(receta, ingredientes) {
  * Genera PDF de lista completa de ingredientes
  * @param {Array} ingredientes - Array de ingredientes
  */
-export function generarPDFIngredientes(ingredientes) {
+export async function generarPDFIngredientes(ingredientes) {
+    await loadPDF();
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 

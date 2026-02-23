@@ -53,6 +53,13 @@ export default defineConfig({
                 landing: './landing.html',
                 register: './register.html',
                 verify: './verify.html'
+            },
+            output: {
+                manualChunks: {
+                    'vendor-chart': ['chart.js/auto', 'chart.js'],
+                    'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+                    'vendor-xlsx': ['xlsx-js-style'],
+                }
             }
         },
 

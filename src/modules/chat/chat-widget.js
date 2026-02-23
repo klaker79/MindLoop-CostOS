@@ -6,7 +6,7 @@
 import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
-import { jsPDF } from 'jspdf';
+import { loadPDF } from '../../utils/lazy-vendors.js';
 
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
@@ -77,9 +77,13 @@ function speakResponse(text) {
  * Renderiza tablas manualmente sin dependencia de autoTable
  * @param {string} rawText - Texto raw del mensaje (markdown)
  */
-function exportMessageToPDF(rawText) {
+async function exportMessageToPDF(rawText) {
     try {
         window.showToast?.('Generando PDF...', 'info');
+
+        // Cargar jsPDF bajo demanda
+        await loadPDF();
+        const { jsPDF } = window.jspdf;
 
         const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'Mi Restaurante';
         const fecha = new Date().toLocaleDateString('es-ES', {

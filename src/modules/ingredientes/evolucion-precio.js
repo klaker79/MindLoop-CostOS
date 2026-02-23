@@ -6,6 +6,7 @@
  */
 
 import { escapeHTML } from '../../utils/helpers.js';
+import { loadChart } from '../../utils/lazy-vendors.js';
 
 let chartEvolucionPrecio = null;
 let currentHistorial = [];
@@ -69,7 +70,7 @@ export async function verEvolucionPrecio(ingredienteId) {
     renderTablaHistorial();
 
     // Render chart
-    renderChart(currentHistorial, ingrediente);
+    await renderChart(currentHistorial, ingrediente);
 
     // Show modal
     document.getElementById('modal-evolucion-precio').classList.add('active');
@@ -215,7 +216,7 @@ function obtenerHistorialPrecios(ingredienteId) {
 /**
  * Renders the Chart.js line chart
  */
-function renderChart(historial, ingrediente) {
+async function renderChart(historial, ingrediente) {
     const ctx = document.getElementById('chart-evolucion-precio');
     if (!ctx) return;
 
@@ -224,6 +225,7 @@ function renderChart(historial, ingrediente) {
         chartEvolucionPrecio.destroy();
     }
 
+    await loadChart();
     const Chart = window.Chart;
     if (!Chart) {
         console.warn('Chart.js not loaded');
