@@ -24,6 +24,9 @@ export async function guardarIngrediente(event) {
         return;
     }
     _guardandoIngrediente = true;
+    // 🔒 FIX F3: Deshabilitar botón visualmente para feedback al usuario
+    const submitBtn = document.querySelector('#formulario-ingrediente button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
 
     // 🔒 FIX CRÍTICO: Solo incluir stock si el campo tiene valor
     // Antes: stockActual: parseFloat(x) || 0 → convertía vacío a 0
@@ -198,6 +201,8 @@ export async function guardarIngrediente(event) {
     } finally {
         // 🔒 FIX: Siempre liberar el flag para permitir nuevos guardados
         _guardandoIngrediente = false;
+        // 🔒 FIX F3: Re-habilitar botón
+        if (submitBtn) submitBtn.disabled = false;
     }
 }
 
