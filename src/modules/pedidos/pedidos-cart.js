@@ -75,7 +75,7 @@ function actualizarBadgeCarrito() {
  * @param {boolean} esUnidadSuelta - Si es compra por unidad (botella) en lugar de formato (caja)
  */
 window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = null, precioProveedor = null, esUnidadSuelta = false) {
-    const ing = window.ingredientes.find(i => i.id === ingredienteId);
+    const ing = (window.ingredientes || []).find(i => i.id === ingredienteId);
     if (!ing) {
         window.showToast('Ingrediente no encontrado', 'error');
         return;

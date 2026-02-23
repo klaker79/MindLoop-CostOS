@@ -60,8 +60,8 @@ export async function renderizarBalance() {
         const ingresos = ventasMes.reduce((sum, v) => sum + parseFloat(v.total), 0);
 
         // Calcular COGS
-        const recetasMap = new Map(window.recetas.map(r => [r.id, r]));
-        const ingredientesMap = new Map(window.ingredientes.map(i => [i.id, i]));
+        const recetasMap = new Map((window.recetas || []).map(r => [r.id, r]));
+        const ingredientesMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
 
         let cogs = 0;
         ventasMes.forEach(venta => {
@@ -83,17 +83,19 @@ export async function renderizarBalance() {
         });
 
         // 3. Actualizar UI
-        document.getElementById('pl-ingresos').textContent = ingresos.toFixed(2) + ' €';
-        document.getElementById('pl-cogs').textContent = cogs.toFixed(2) + ' €';
+        // 🔒 FIX F2: Helper para acceso seguro a DOM (evita crash si el HTML no está listo)
+        const setEl = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+        setEl('pl-ingresos', ingresos.toFixed(2) + ' €');
+        setEl('pl-cogs', cogs.toFixed(2) + ' €');
         const cogsPct = ingresos > 0 ? (cogs / ingresos) * 100 : 0;
-        document.getElementById('pl-cogs-pct').textContent = cogsPct.toFixed(1) + '% sobre ventas';
+        setEl('pl-cogs-pct', cogsPct.toFixed(1) + '% sobre ventas');
         const margenBruto = ingresos - cogs;
-        document.getElementById('pl-margen-bruto').textContent = margenBruto.toFixed(2) + ' €';
+        setEl('pl-margen-bruto', margenBruto.toFixed(2) + ' €');
         const margenPct = ingresos > 0 ? (margenBruto / ingresos) * 100 : 0;
-        document.getElementById('pl-kpi-margen').textContent = margenPct.toFixed(1) + '%';
+        setEl('pl-kpi-margen', margenPct.toFixed(1) + '%');
         const diaDelMes = ahora.getDate();
         const ventasDiarias = ingresos / diaDelMes;
-        document.getElementById('pl-kpi-ventas-diarias').textContent = ventasDiarias.toFixed(2) + ' €';
+        setEl('pl-kpi-ventas-diarias', ventasDiarias.toFixed(2) + ' €');
 
         calcularPL();
     } catch (error) {
