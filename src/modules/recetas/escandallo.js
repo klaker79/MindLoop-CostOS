@@ -5,11 +5,13 @@
  * @module modules/recetas/escandallo
  */
 
+import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
+
 /**
  * Opens the escandallo modal for a recipe with pie chart
  * @param {number} recetaId - Recipe ID
  */
-export function verEscandallo(recetaId) {
+export async function verEscandallo(recetaId) {
     const receta = (window.recetas || []).find(r => r.id === recetaId);
     if (!receta) return;
 
@@ -224,6 +226,7 @@ export function verEscandallo(recetaId) {
         '#2DD4BF', '#FB7185', '#C084FC', '#38BDF8'
     ];
 
+    await loadChart();
     window._chartEscandallo = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -288,13 +291,14 @@ export function verEscandallo(recetaId) {
 /**
  * Exports the current escandallo as a professional PDF
  */
-export function exportarPDFEscandallo() {
+export async function exportarPDFEscandallo() {
     const data = window._escandalloActual;
     if (!data) return;
 
     const { receta, desglose, costeTotal, precioVenta, margenEuros, margenPct, foodCost } = data;
 
-    // jsPDF está expuesto como window.jsPDF en vendors.js
+    // Cargar jsPDF bajo demanda
+    await loadPDF();
     const jsPDF = window.jsPDF;
     if (!jsPDF) {
         console.error('jsPDF no está cargado');

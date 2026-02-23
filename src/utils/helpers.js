@@ -4,6 +4,8 @@
  * @copyright MindLoopIA
  */
 
+import { loadXLSX } from './lazy-vendors.js';
+
 /**
  * Obtiene el nombre del restaurante del usuario actual
  * Usado para exports, PDFs, y cualquier referencia dinámica
@@ -88,9 +90,11 @@ export function hideLoading() {
  * @param {string} nombreArchivo - Nombre base del archivo
  * @param {Array} columnas - Configuración de columnas [{header, key} o {header, value: fn}]
  */
-export function exportarAExcel(datos, nombreArchivo, columnas) {
-    // Verificar que XLSX esté disponible
-    if (typeof XLSX === 'undefined') {
+export async function exportarAExcel(datos, nombreArchivo, columnas) {
+    // Cargar XLSX bajo demanda
+    await loadXLSX();
+    const XLSX = window.XLSX;
+    if (!XLSX) {
         console.error('[Excel] SheetJS (XLSX) no está cargado');
         showToast('Error: Librería Excel no disponible', 'error');
         return;

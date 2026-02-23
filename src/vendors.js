@@ -1,24 +1,10 @@
 /**
- * Vendors - Bibliotecas externas
- * Importa y expone bibliotecas externas globalmente
- * Migrado de CDN a npm para mayor seguridad y control
+ * Vendors - Lazy loading (no se cargan hasta que se necesitan)
+ * Ver src/utils/lazy-vendors.js para los loaders
+ * 
+ * ANTES: Chart.js + jsPDF + XLSX se importaban aquí y añadían ~985 KB al bundle inicial
+ * AHORA: Se cargan bajo demanda cuando el usuario accede a gráficos, exporta PDF o exporta Excel
  */
 
-// Chart.js para gráficos
-import Chart from 'chart.js/auto';
-
-// XLSX para exportación a Excel
-import * as XLSX from 'xlsx-js-style';
-
-// jsPDF para generación de PDFs
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-
-// Exponer globalmente para compatibilidad con código legacy
-// autoTable se registra automáticamente con jsPDF al importarlo
-window.Chart = Chart;
-window.XLSX = XLSX;
-window.jsPDF = jsPDF;
-window.jspdf = { jsPDF }; // AutoTable busca window.jspdf.jsPDF
-
-console.log('📦 Vendors cargados desde npm (no CDN)');
+// No eager imports — vendors load on demand via lazy-vendors.js
+console.log('📦 Vendors: lazy loading habilitado (Chart.js, jsPDF, XLSX se cargan bajo demanda)');

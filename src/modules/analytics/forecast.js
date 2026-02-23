@@ -7,6 +7,8 @@
  * @module modules/analytics/forecast
  */
 
+import { loadChart } from '../../utils/lazy-vendors.js';
+
 /**
  * Calculates sales forecast for the next N days
  * @param {Array} ventas - Array of sales with {fecha, total}
@@ -307,10 +309,11 @@ function getDiaSemana(dia) {
 /**
  * Renders forecast chart using Chart.js
  */
-export function renderForecastChart(containerId, chartData) {
+export async function renderForecastChart(containerId, chartData) {
     const ctx = document.getElementById(containerId);
     if (!ctx) return null;
 
+    await loadChart();
     const Chart = window.Chart;
     if (!Chart) {
         console.warn('Chart.js not loaded');
