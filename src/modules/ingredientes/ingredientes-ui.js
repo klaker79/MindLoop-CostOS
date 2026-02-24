@@ -380,8 +380,11 @@ export function setupYieldSlider() {
             };
 
             rendimientoEl.onchange = function () {
-                sliderEl.value = this.value;
-                updateSliderVisuals(this.value);
+                // 🔒 H2 FIX: Clampar entrada manual a rango válido (1-100)
+                let val = Math.max(1, Math.min(100, parseInt(this.value) || 100));
+                this.value = val;
+                sliderEl.value = val;
+                updateSliderVisuals(val);
             };
 
             // Inicializar visual
