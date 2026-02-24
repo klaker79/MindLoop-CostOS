@@ -295,6 +295,11 @@ window.editarCampoPendiente = ComprasPendientesUI.editarCampoPendiente;
 window.editarTotalPendiente = ComprasPendientesUI.editarTotalPendiente;
 window.checkPendientes = ComprasPendientesUI.checkPendientes;
 
+// 📸 Albarán Scanner (Claude Vision)
+import * as AlbaranScanner from './modules/pedidos/albaran-scanner.js';
+window.procesarFotoAlbaran = AlbaranScanner.procesarFotoAlbaran;
+window.procesarFotoAlbaranInput = AlbaranScanner.procesarFotoAlbaranInput;
+
 // Cargar pendientes al abrir pestaña Pedidos y al login
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => ComprasPendientesUI.checkPendientes(), 3000);
