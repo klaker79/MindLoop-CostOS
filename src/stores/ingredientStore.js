@@ -33,12 +33,20 @@ export const ingredientStore = createStore((set, get) => ({
     // Computed (as functions — ES5 getters are lost on getState())
     totalValue: () => {
         const state = ingredientStore.getState();
+        const inventario = window.inventarioCompleto || [];
+        const invMap = new Map(inventario.map(i => [i.id, i]));
         return state.ingredients.reduce((sum, ing) => {
-            // fix C1: precio es por FORMATO, stock_actual en unidades base → dividir por cantidad_por_formato
-            const precio = parseFloat(ing.precio) || 0;
-            const cpf = parseFloat(ing.cantidad_por_formato) || 1;
-            const precioUnitario = precio / cpf;
             const stock = parseFloat(ing.stock_actual) || 0;
+            // 🔒 H3 FIX: Usar precio_medio (compras reales) con fallback a precio/cpf
+            // Idéntico a dashboard.js para que ambos muestren el mismo valor
+            const invItem = invMap.get(ing.id);
+            let precioUnitario = 0;
+            if (invItem?.precio_medio) {
+                precioUnitario = parseFloat(invItem.precio_medio);
+            } else if (ing.precio) {
+                const cpf = parseFloat(ing.cantidad_por_formato) || 1;
+                precioUnitario = parseFloat(ing.precio) / cpf;
+            }
             return sum + (precioUnitario * stock);
         }, 0);
     },
