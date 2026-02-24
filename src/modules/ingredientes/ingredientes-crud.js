@@ -40,7 +40,8 @@ export async function guardarIngrediente(event) {
         precio: parseFloat(getInputValue('ing-precio')) || 0,
         unidad: getInputValue('ing-unidad'),
         familia: getInputValue('ing-familia') || 'alimento',
-        rendimiento: parseFloat(getInputValue('ing-rendimiento')) || 100,
+        // 🔒 H2 FIX: Clampar rendimiento a rango válido (1-100%)
+        rendimiento: Math.max(1, Math.min(100, parseFloat(getInputValue('ing-rendimiento')) || 100)),
         // Solo enviar si tiene valor, undefined = backend preserva actual
         stock_actual: stockActualValue !== '' ? parseFloat(stockActualValue) : undefined,
         stock_minimo: stockMinimoValue !== '' ? parseFloat(stockMinimoValue) : undefined,
