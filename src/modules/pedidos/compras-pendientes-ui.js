@@ -129,15 +129,18 @@ export async function renderizarComprasPendientes() {
                     : 'match-none';
                 const matchIcon = matchClass === 'match-exact' ? '🟢' : matchClass === 'match-partial' ? '🟡' : '🔴';
                 const matchLabel = item.ingrediente_nombre_db || 'Sin asignar';
+                const esDuplicado = !!item.compra_diaria_existente;
+                const borderColor = matchClass === 'match-none' ? '#fca5a5' : esDuplicado ? '#f59e0b' : '#e5e7eb';
 
                 html += `
                     <div class="pending-item" data-item-id="${item.id}" style="
-                        background: white; border-radius: 12px; padding: 14px 16px;
+                        background: ${esDuplicado ? '#fffbeb' : 'white'}; border-radius: 12px; padding: 14px 16px;
                         display: grid; grid-template-columns: 1fr auto auto auto auto auto auto; gap: 12px; align-items: center;
-                        border: 1px solid ${matchClass === 'match-none' ? '#fca5a5' : '#e5e7eb'};
+                        border: 2px solid ${borderColor};
                     ">
                         <div>
                             <div style="font-size: 13px; color: #6b7280; margin-bottom: 2px;">📄 ${item.ingrediente_nombre}</div>
+                            ${esDuplicado ? `<div style="font-size: 11px; color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 6px; margin-bottom: 4px; font-weight: 600;">⚠️ Posible duplicado — ya registrada: ${parseFloat(item.cantidad_ya_registrada || 0).toFixed(1)} uds a ${parseFloat(item.precio_ya_registrado || 0).toFixed(2)}€</div>` : ''}
                             <div style="font-size: 14px; font-weight: 600; color: ${matchClass === 'match-none' ? '#dc2626' : '#1e293b'};">
                                 ${matchIcon} ${matchLabel}
                                 ${matchClass !== 'match-exact' ? `
