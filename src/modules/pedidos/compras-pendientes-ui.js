@@ -90,24 +90,44 @@ export async function renderizarComprasPendientes() {
             const totalItems = items.length;
             const sinMatch = items.filter(i => !i.ingrediente_id).length;
 
+            // 🔒 Detección de duplicado a nivel de albarán completo
+            const pedidoDup = items.find(i => i.pedido_duplicado_id);
+            const esBatchDuplicado = !!pedidoDup;
+            const fechaPedidoDup = pedidoDup?.pedido_duplicado_fecha ? new Date(pedidoDup.pedido_duplicado_fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+            const totalPedidoDup = pedidoDup?.pedido_duplicado_total ? parseFloat(pedidoDup.pedido_duplicado_total).toFixed(2) : '';
+            const estadoPedidoDup = pedidoDup?.pedido_duplicado_estado || '';
+
             html += `
             <div class="pending-batch" data-batch-id="${batchId}" style="
-                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-                border: 2px solid #f59e0b;
+                background: linear-gradient(135deg, ${esBatchDuplicado ? '#fef2f2 0%, #fee2e2 100%' : '#fef3c7 0%, #fde68a 100%'});
+                border: 2px solid ${esBatchDuplicado ? '#ef4444' : '#f59e0b'};
                 border-radius: 16px;
                 padding: 20px;
                 margin-bottom: 16px;
             ">
+                ${esBatchDuplicado ? `
+                <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">⚠️</span>
+                    <div>
+                        <div style="font-size: 13px; font-weight: 700; color: #dc2626;">Posible duplicado — ${estadoPedidoDup === 'ya aprobado' ? 'estos datos ya fueron aprobados' : estadoPedidoDup === 'pendiente en otro albarán' ? 'ya existe otro albarán pendiente igual' : 'ya existe un pedido manual'}</div>
+                        <div style="font-size: 12px; color: #b91c1c;">${fechaPedidoDup}${totalPedidoDup ? ` · ${totalPedidoDup}€` : ''} · Estado: ${estadoPedidoDup}</div>
+                    </div>
+                </div>` : ''}
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;">📋</div>
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, ${esBatchDuplicado ? '#ef4444, #dc2626' : '#f59e0b, #d97706'}); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;">${esBatchDuplicado ? '⚠️' : '📋'}</div>
                         <div>
-                            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #92400e;">Albarán del ${fecha}</h3>
-                            <p style="margin: 2px 0 0; font-size: 13px; color: #b45309;">${totalItems} productos${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${sinMatch} sin asignar</span>` : ''}</p>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">Albarán del ${fecha}</h3>
+                            <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${totalItems} productos${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${sinMatch} sin asignar</span>` : ''}</p>
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        ${sinMatch === 0 ? `
+                        ${esBatchDuplicado ? `
+                        <button disabled style="
+                            padding: 10px 20px; border: none; border-radius: 10px;
+                            background: #fca5a5; color: #991b1b; font-weight: 600; font-size: 13px; cursor: not-allowed;
+                        ">⚠️ Revisar duplicado</button>` :
+                    sinMatch === 0 ? `
                         <button onclick="window.aprobarBatchPendiente('${batchId}')" style="
                             padding: 10px 20px; border: none; border-radius: 10px;
                             background: linear-gradient(135deg, #22c55e, #16a34a);
