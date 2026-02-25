@@ -427,16 +427,147 @@ async function switchRestaurant(restauranteId) {
 
 // ========== Create Additional Restaurant ==========
 
-function promptCreateRestaurant() {
-    const nombre = prompt('Nombre del nuevo restaurante:');
-    if (!nombre || !nombre.trim()) return;
-    createAdditionalRestaurant(nombre.trim());
+const PLANS = {
+    starter:     { name: 'Starter',      monthly: 49,  annual: 490,  users: 2,   level: 1, features: 'Ingredientes, recetas, pedidos, ventas, inventario, mermas, PDF/Excel' },
+    profesional: { name: 'Profesional',  monthly: 89,  annual: 890,  users: 5,   level: 2, features: 'Todo Starter + alertas, plan de compras, menu engineering, balance P&L, KPIs, equipo' },
+    premium:     { name: 'Premium',      monthly: 149, annual: 1490, users: 999, level: 3, features: 'Todo Profesional + IA: escaneo albaranes, chat IA, compras auto. Soporte prioritario' }
+};
+
+async function promptCreateRestaurant() {
+    // Fetch current plan to filter available options
+    const API_BASE = API_AUTH_URL.replace('/api/auth', '/api');
+    let currentPlan = 'starter';
+    try {
+        const res = await fetch(API_BASE + '/stripe/subscription-status', {
+            credentials: 'include',
+            headers: window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}
+        });
+        if (res.ok) {
+            const data = await res.json();
+            currentPlan = data.plan || 'starter';
+        }
+    } catch (e) { /* fallback to starter */ }
+
+    const currentLevel = PLANS[currentPlan]?.level || (currentPlan === 'trial' ? 2 : 1);
+
+    // Build modal
+    const overlay = document.createElement('div');
+    overlay.id = 'create-restaurant-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+
+    const availablePlans = Object.entries(PLANS).filter(([, p]) => p.level >= currentLevel);
+
+    overlay.innerHTML = `
+    <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:16px;width:92%;max-width:560px;max-height:90vh;overflow-y:auto;padding:32px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+            <h2 style="margin:0;color:#f1f5f9;font-size:20px;">Nuevo restaurante</h2>
+            <button id="modal-close" style="background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;padding:4px 8px;">&times;</button>
+        </div>
+
+        <label style="display:block;color:#94a3b8;font-size:13px;margin-bottom:6px;">Nombre del restaurante</label>
+        <input id="modal-nombre" type="text" placeholder="Ej: Mi Segundo Restaurante"
+            style="width:100%;padding:12px 14px;background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#f1f5f9;font-size:15px;margin-bottom:20px;box-sizing:border-box;outline:none;"
+            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'" />
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <span style="color:#94a3b8;font-size:13px;">Elige tu plan</span>
+            <div style="display:flex;background:#0f172a;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">
+                <button class="billing-toggle active" data-billing="monthly"
+                    style="padding:6px 14px;border:none;font-size:12px;cursor:pointer;background:#6366f1;color:#fff;transition:all 0.2s;">Mensual</button>
+                <button class="billing-toggle" data-billing="annual"
+                    style="padding:6px 14px;border:none;font-size:12px;cursor:pointer;background:transparent;color:#94a3b8;transition:all 0.2s;">Anual <span style="color:#10b981;font-size:10px;">-17%</span></button>
+            </div>
+        </div>
+
+        <div id="modal-plans" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+            ${availablePlans.map(([key, p], i) => `
+                <label class="plan-card" data-plan="${key}"
+                    style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:${i === 0 ? 'rgba(99,102,241,0.12)' : '#0f172a'};border:2px solid ${i === 0 ? '#6366f1' : 'rgba(255,255,255,0.08)'};border-radius:12px;cursor:pointer;transition:all 0.2s;">
+                    <input type="radio" name="plan" value="${key}" ${i === 0 ? 'checked' : ''}
+                        style="accent-color:#6366f1;width:18px;height:18px;flex-shrink:0;" />
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                            <span style="color:#f1f5f9;font-weight:600;font-size:15px;">${p.name}</span>
+                            <span style="color:#f1f5f9;font-weight:700;font-size:16px;">
+                                <span class="plan-price-monthly">${p.monthly}&euro;</span><span class="plan-price-annual" style="display:none">${p.annual}&euro;</span><span class="plan-period-monthly" style="color:#94a3b8;font-size:12px;font-weight:400;">/mes</span><span class="plan-period-annual" style="display:none;color:#94a3b8;font-size:12px;font-weight:400;">/a&ntilde;o</span>
+                            </span>
+                        </div>
+                        <div style="color:#94a3b8;font-size:12px;margin-top:3px;line-height:1.4;">${p.features}</div>
+                        <div style="color:#64748b;font-size:11px;margin-top:2px;">${p.users === 999 ? 'Usuarios ilimitados' : `Hasta ${p.users} usuarios`}</div>
+                    </div>
+                </label>
+            `).join('')}
+        </div>
+
+        <button id="modal-submit"
+            style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.2s;">
+            Crear y pagar
+        </button>
+        <p style="text-align:center;color:#64748b;font-size:11px;margin:12px 0 0;">Pago seguro con Stripe. Puedes cancelar en cualquier momento.</p>
+    </div>`;
+
+    document.body.appendChild(overlay);
+
+    // Billing toggle
+    let billing = 'monthly';
+    overlay.querySelectorAll('.billing-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            billing = btn.dataset.billing;
+            overlay.querySelectorAll('.billing-toggle').forEach(b => {
+                const isActive = b.dataset.billing === billing;
+                b.style.background = isActive ? '#6366f1' : 'transparent';
+                b.style.color = isActive ? '#fff' : '#94a3b8';
+                b.classList.toggle('active', isActive);
+            });
+            overlay.querySelectorAll('.plan-price-monthly').forEach(el => el.style.display = billing === 'monthly' ? '' : 'none');
+            overlay.querySelectorAll('.plan-price-annual').forEach(el => el.style.display = billing === 'annual' ? '' : 'none');
+            overlay.querySelectorAll('.plan-period-monthly').forEach(el => el.style.display = billing === 'monthly' ? '' : 'none');
+            overlay.querySelectorAll('.plan-period-annual').forEach(el => el.style.display = billing === 'annual' ? '' : 'none');
+        });
+    });
+
+    // Plan card selection highlight
+    overlay.querySelectorAll('.plan-card').forEach(card => {
+        card.addEventListener('click', () => {
+            overlay.querySelectorAll('.plan-card').forEach(c => {
+                c.style.background = '#0f172a';
+                c.style.borderColor = 'rgba(255,255,255,0.08)';
+            });
+            card.style.background = 'rgba(99,102,241,0.12)';
+            card.style.borderColor = '#6366f1';
+            card.querySelector('input[type=radio]').checked = true;
+        });
+    });
+
+    // Close
+    const closeModal = () => overlay.remove();
+    overlay.querySelector('#modal-close').addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+    // Submit
+    overlay.querySelector('#modal-submit').addEventListener('click', async () => {
+        const nombre = overlay.querySelector('#modal-nombre').value.trim();
+        if (!nombre) {
+            overlay.querySelector('#modal-nombre').style.borderColor = '#ef4444';
+            overlay.querySelector('#modal-nombre').focus();
+            return;
+        }
+        const selectedPlan = overlay.querySelector('input[name=plan]:checked')?.value;
+        if (!selectedPlan) return;
+
+        const submitBtn = overlay.querySelector('#modal-submit');
+        submitBtn.textContent = 'Creando...';
+        submitBtn.style.opacity = '0.6';
+        submitBtn.disabled = true;
+
+        await createAdditionalRestaurant(nombre, selectedPlan, billing, closeModal);
+    });
+
+    overlay.querySelector('#modal-nombre').focus();
 }
 
-async function createAdditionalRestaurant(nombre) {
+async function createAdditionalRestaurant(nombre, plan, billing, closeModal) {
     try {
-        window.showToast?.('Creando restaurante...', 'info');
-
         const res = await fetch(API_AUTH_URL + '/create-restaurant', {
             method: 'POST',
             headers: {
@@ -444,26 +575,56 @@ async function createAdditionalRestaurant(nombre) {
                 ...(window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
             },
             credentials: 'include',
-            body: JSON.stringify({ nombre }),
+            body: JSON.stringify({ nombre, plan, billing }),
         });
 
         const data = await res.json();
 
         if (!res.ok) {
             window.showToast?.(data.error || 'Error creando restaurante', 'error');
+            const btn = document.querySelector('#modal-submit');
+            if (btn) { btn.textContent = 'Crear y pagar'; btn.style.opacity = '1'; btn.disabled = false; }
             return;
         }
 
-        // Auto-switch to the new restaurant
-        if (data.token) {
-            window.authToken = data.token;
-            sessionStorage.setItem('_at', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            window.showToast?.(`"${nombre}" creado con trial de 14 días`, 'success');
-            setTimeout(() => window.location.reload(), 1000);
+        // Redirect to Stripe Checkout
+        if (data.checkoutUrl) {
+            window.location.href = data.checkoutUrl;
+        } else {
+            window.showToast?.('Error: no se pudo crear la sesión de pago', 'error');
+            if (closeModal) closeModal();
         }
     } catch (err) {
         window.showToast?.('Error de conexión', 'error');
+        const btn = document.querySelector('#modal-submit');
+        if (btn) { btn.textContent = 'Crear y pagar'; btn.style.opacity = '1'; btn.disabled = false; }
+    }
+}
+
+// Handle Stripe Checkout return (?checkout=success&new_restaurant=ID)
+export function handleCheckoutReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get('checkout');
+    const newRestaurant = params.get('new_restaurant');
+
+    if (!checkout) return;
+
+    // Clean URL
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+
+    if (checkout === 'success' && newRestaurant) {
+        window.showToast?.('Restaurante creado. Activando suscripción...', 'success');
+        // Auto-switch to the new restaurant after a short delay (webhook may need a moment)
+        setTimeout(async () => {
+            try {
+                await switchRestaurant(parseInt(newRestaurant));
+            } catch (e) {
+                window.showToast?.('Pago confirmado. Recarga la página para ver tu nuevo restaurante.', 'info');
+            }
+        }, 2000);
+    } else if (checkout === 'canceled') {
+        window.showToast?.('Pago cancelado. El restaurante no fue activado.', 'warning');
     }
 }
 
