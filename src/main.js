@@ -574,6 +574,7 @@ window.logout = Auth.logout;
 Auth.initLoginForm();
 Auth.initRegisterForm();
 Auth.initRestaurantSwitcher();
+Auth.handleCheckoutReturn();
 
 // ============================================
 // MÓDULO: EQUIPO ✅
