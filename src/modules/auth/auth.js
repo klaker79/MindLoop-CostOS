@@ -428,9 +428,9 @@ async function switchRestaurant(restauranteId) {
 // ========== Create Additional Restaurant ==========
 
 const PLANS = {
-    starter:     { name: 'Starter',      monthly: 49,  annual: 490,  users: 2,   level: 1, features: 'Ingredientes, recetas, pedidos, ventas, inventario, mermas, PDF/Excel' },
-    profesional: { name: 'Profesional',  monthly: 89,  annual: 890,  users: 5,   level: 2, features: 'Todo Starter + alertas, plan de compras, menu engineering, balance P&L, KPIs, equipo' },
-    premium:     { name: 'Premium',      monthly: 149, annual: 1490, users: 999, level: 3, features: 'Todo Profesional + IA: escaneo albaranes, chat IA, compras auto. Soporte prioritario' }
+    starter: { name: 'Starter', monthly: 49, annual: 490, users: 2, level: 1, features: 'Ingredientes, recetas, pedidos, ventas, inventario, mermas, PDF/Excel' },
+    profesional: { name: 'Profesional', monthly: 89, annual: 890, users: 5, level: 2, features: 'Todo Starter + alertas, plan de compras, menu engineering, balance P&L, KPIs, equipo' },
+    premium: { name: 'Premium', monthly: 149, annual: 1490, users: 999, level: 3, features: 'Todo Profesional + IA: escaneo albaranes, chat IA, compras auto. Soporte prioritario' }
 };
 
 async function promptCreateRestaurant() {
@@ -602,7 +602,7 @@ async function createAdditionalRestaurant(nombre, plan, billing, closeModal) {
 }
 
 // Handle Stripe Checkout return (?checkout=success&new_restaurant=ID)
-export function handleCheckoutReturn() {
+export async function handleCheckoutReturn() {
     const params = new URLSearchParams(window.location.search);
     const checkout = params.get('checkout');
     const newRestaurant = params.get('new_restaurant');
@@ -623,8 +623,18 @@ export function handleCheckoutReturn() {
                 window.showToast?.('Pago confirmado. Recarga la página para ver tu nuevo restaurante.', 'info');
             }
         }, 2000);
-    } else if (checkout === 'canceled') {
+    } else if (checkout === 'canceled' && newRestaurant) {
         window.showToast?.('Pago cancelado. El restaurante no fue activado.', 'warning');
+        // Cleanup orphaned pending_payment restaurant
+        try {
+            await fetch(API_AUTH_URL + '/pending-restaurant/' + newRestaurant, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}
+            });
+        } catch (_e) { /* best effort */ }
+    } else if (checkout === 'canceled') {
+        window.showToast?.('Pago cancelado.', 'warning');
     }
 }
 
