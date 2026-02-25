@@ -38,6 +38,9 @@ export async function checkAuth() {
         if (selectorScreen) selectorScreen.style.display = 'none';
         if (appContainer) appContainer.style.display = 'block';
 
+        // Update sidebar with restaurant name
+        updateSidebarRestaurant();
+
         // ✅ Importante: cargar datos Y renderizar cuando ya hay sesión activa
         if (typeof window.init === 'function') {
             await window.init();
@@ -648,11 +651,32 @@ function enterApp() {
     if (selectorScreen) selectorScreen.style.display = 'none';
     if (appContainer) appContainer.style.display = 'block';
 
+    // Update sidebar with current restaurant name
+    updateSidebarRestaurant();
+
     if (typeof window.init === 'function') {
         window.init();
     } else if (typeof window.cargarDatos === 'function') {
         window.cargarDatos();
     }
+}
+
+function updateSidebarRestaurant() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const name = user.restaurante || user.nombre || 'Mi Restaurante';
+        const avatarEl = document.getElementById('sidebar-avatar');
+        const nameEl = document.getElementById('sidebar-restaurant-name');
+        if (avatarEl) {
+            // Generate initials from restaurant name (first 2 words)
+            const words = name.trim().split(/\s+/);
+            const initials = words.length >= 2
+                ? (words[0][0] + words[1][0]).toUpperCase()
+                : name.substring(0, 2).toUpperCase();
+            avatarEl.textContent = initials;
+        }
+        if (nameEl) nameEl.textContent = name;
+    } catch (_e) { /* ignore */ }
 }
 
 function escapeHtml(str) {
