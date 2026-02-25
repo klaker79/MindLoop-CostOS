@@ -16,11 +16,6 @@ export async function exportToExcel(data, filename, options = {}) {
     // Cargar XLSX bajo demanda
     await loadXLSX();
     const XLSX = window.XLSX;
-    if (!data || !data.length) {
-        console.warn('exportToExcel: No hay datos para exportar');
-        return;
-    }
-
     const {
         sheetName = 'Datos',
         headers = null,
@@ -30,10 +25,14 @@ export async function exportToExcel(data, filename, options = {}) {
     // Crear workbook
     const wb = XLSX.utils.book_new();
 
-    // Crear worksheet desde datos
-    const ws = XLSX.utils.json_to_sheet(data, {
-        header: headers
-    });
+    let ws;
+    if (!data || !data.length) {
+        // Export empty template with headers only
+        ws = XLSX.utils.aoa_to_sheet([headers || []]);
+    } else {
+        // Crear worksheet desde datos
+        ws = XLSX.utils.json_to_sheet(data, { header: headers });
+    }
 
     // Aplicar anchos de columna si se especifican
     if (columnWidths) {
