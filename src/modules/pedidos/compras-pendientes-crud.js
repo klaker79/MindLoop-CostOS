@@ -41,3 +41,10 @@ export async function editarItemPendiente(id, data) {
 export async function rechazarItem(id) {
     return apiClient.delete(`/purchases/pending/${id}`);
 }
+
+/**
+ * Cambiar formato_override de un item pendiente
+ */
+export async function cambiarFormato(id, formatoOverride) {
+    return apiClient.patch(`/purchases/pending/${id}/formato`, { formato_override: formatoOverride });
+}

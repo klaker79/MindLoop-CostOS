@@ -6,7 +6,7 @@
  * Se muestra en la pestaña Pedidos con notificación de badge
  */
 
-import { fetchComprasPendientes, aprobarItem, aprobarBatch, editarItemPendiente, rechazarItem } from './compras-pendientes-crud.js';
+import { fetchComprasPendientes, aprobarItem, aprobarBatch, editarItemPendiente, rechazarItem, cambiarFormato } from './compras-pendientes-crud.js';
 import { apiClient } from '../../api/client.js';
 
 let ingredientesCache = [];
@@ -155,7 +155,7 @@ export async function renderizarComprasPendientes() {
                 html += `
                     <div class="pending-item" data-item-id="${item.id}" style="
                         background: ${esDuplicado ? '#fffbeb' : 'white'}; border-radius: 12px; padding: 14px 16px;
-                        display: grid; grid-template-columns: 1fr auto auto auto auto auto auto; gap: 12px; align-items: center;
+                        display: grid; grid-template-columns: 1fr auto auto auto auto auto auto auto; gap: 12px; align-items: center;
                         border: 2px solid ${borderColor};
                     ">
                         <div>
@@ -184,6 +184,20 @@ export async function renderizarComprasPendientes() {
                                 onchange="window.editarCampoPendiente(${item.id}, 'cantidad', this.value, this)"
                                 style="width: 60px; text-align: center; font-weight: 700; color: #1e293b; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; font-size: 14px; background: #f9fafb;" />
                         </div>
+                        ${item.ingrediente_id && item.ingrediente_formato_compra && parseFloat(item.ingrediente_cantidad_por_formato || 0) > 1 ? `
+                        <div style="text-align: center;">
+                            <div style="font-size: 11px; color: #9ca3af;">Formato</div>
+                            <select onchange="window.cambiarFormatoPendiente(${item.id}, this.value, this)" style="
+                                padding: 4px 6px; border: 1px solid #a78bfa; border-radius: 6px; font-size: 11px;
+                                background: #f5f3ff; color: #5b21b6; font-weight: 600; max-width: 120px;
+                            ">
+                                <option value="1" ${parseFloat(item.formato_override || 1) === 1 ? 'selected' : ''}>${item.unidad || 'ud'} (×1)</option>
+                                <option value="${item.ingrediente_cantidad_por_formato}" ${parseFloat(item.formato_override || 1) > 1 ? 'selected' : ''}>${item.ingrediente_formato_compra} (×${parseFloat(item.ingrediente_cantidad_por_formato)})</option>
+                            </select>
+                            <div style="font-size: 10px; color: #7c3aed; margin-top: 2px; font-weight: 600;" data-stock-preview-${item.id}>
+                                Stock: +${(parseFloat(item.cantidad) * parseFloat(item.formato_override || 1)).toFixed(1)} ${item.unidad || 'ud'}
+                            </div>
+                        </div>` : ''}
                         <div style="text-align: center;">
                             <div style="font-size: 11px; color: #9ca3af;">Precio</div>
                             <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
@@ -287,6 +301,31 @@ export async function cambiarIngredientePendiente(id, ingredienteId) {
     } catch (err) {
         console.error('Error editando item:', err);
         window.showToast?.('Error al editar: ' + err.message, 'error');
+    }
+}
+
+/**
+ * Cambiar formato de compra (override para conversión de stock)
+ */
+export async function cambiarFormatoPendiente(id, formatoOverride, selectEl) {
+    try {
+        await cambiarFormato(id, parseFloat(formatoOverride));
+        // Actualizar preview de stock sin recargar todo
+        const itemEl = selectEl?.closest('.pending-item');
+        if (itemEl) {
+            const cantidadInput = itemEl.querySelector('input[type="number"]');
+            const cantidad = parseFloat(cantidadInput?.value || 0);
+            const unidad = selectEl.closest('div').querySelector('[data-stock-preview-' + id + ']') ||
+                selectEl.parentElement.querySelector('div:last-child');
+            if (unidad) {
+                const stockTotal = (cantidad * parseFloat(formatoOverride)).toFixed(1);
+                unidad.textContent = `Stock: +${stockTotal}`;
+            }
+        }
+        window.showToast?.(`Formato actualizado (×${formatoOverride})`, 'success');
+    } catch (err) {
+        console.error('Error cambiando formato:', err);
+        window.showToast?.('Error al cambiar formato: ' + err.message, 'error');
     }
 }
 
