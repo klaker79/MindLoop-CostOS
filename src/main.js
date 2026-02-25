@@ -290,6 +290,7 @@ window.renderizarComprasPendientes = ComprasPendientesUI.renderizarComprasPendie
 window.aprobarItemPendiente = ComprasPendientesUI.aprobarItemPendiente;
 window.aprobarBatchPendiente = ComprasPendientesUI.aprobarBatchPendiente;
 window.cambiarIngredientePendiente = ComprasPendientesUI.cambiarIngredientePendiente;
+window.cambiarFormatoPendiente = ComprasPendientesUI.cambiarFormatoPendiente;
 window.rechazarItemPendiente = ComprasPendientesUI.rechazarItemPendiente;
 window.editarCampoPendiente = ComprasPendientesUI.editarCampoPendiente;
 window.editarTotalPendiente = ComprasPendientesUI.editarTotalPendiente;
