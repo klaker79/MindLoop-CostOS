@@ -14,12 +14,20 @@
 import authStore, { getAuthState, getUser, isAuthenticated } from './authStore.js';
 import ingredientStore, { getIngredients, getFilteredIngredients, getIngredientById } from './ingredientStore.js';
 import uiStore, { showToast, showSuccess, showError, openModal, closeModal, getActiveTab } from './uiStore.js';
+import orderStore from './orderStore.js';
+import recipeStore from './recipeStore.js';
+import saleStore from './saleStore.js';
+import supplierStore from './supplierStore.js';
 
 // Export stores
 export {
     authStore,
     ingredientStore,
-    uiStore
+    uiStore,
+    orderStore,
+    recipeStore,
+    saleStore,
+    supplierStore
 };
 
 // Export auth functions
@@ -71,11 +79,15 @@ export function initializeStores() {
 }
 
 /**
- * Reset all stores (useful for logout)
+ * ⚡ FIX W2: Reset ALL stores on logout (no stale data)
  */
 export function resetAllStores() {
     authStore.getState().logout();
     ingredientStore.getState().reset();
+    orderStore.getState().reset();
+    recipeStore.getState().reset();
+    saleStore.getState().reset();
+    supplierStore.getState().reset();
     uiStore.getState().clearToasts();
 }
 
