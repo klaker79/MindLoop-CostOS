@@ -570,9 +570,10 @@ window.mostrarRegistro = Auth.mostrarRegistro;
 window.volverALogin = Auth.volverALogin;
 window.logout = Auth.logout;
 
-// Inicializar formularios de login y registro
+// Inicializar formularios de login, registro, y switcher multi-restaurante
 Auth.initLoginForm();
 Auth.initRegisterForm();
+Auth.initRestaurantSwitcher();
 
 // ============================================
 // MÓDULO: EQUIPO ✅

@@ -105,10 +105,6 @@
           <label for="reg-password2">Confirmar contraseña</label>
           <input type="password" id="reg-password2" placeholder="Repite la contraseña" minlength="6" required>
         </div>
-        <div class="form-group">
-          <label for="reg-codigo">Código de invitación</label>
-          <input type="text" id="reg-codigo" placeholder="Código proporcionado" required>
-        </div>
         <button type="submit" class="login-btn">Crear Restaurante</button>
         <p id="register-error" class="login-error"></p>
         <p style="text-align: center; margin-top: 12px;">
@@ -117,6 +113,19 @@
       </form>
     </div>
   </div>
+  <!-- 🏪 Pantalla de Selección de Restaurante (multi-restaurant) -->
+  <div id="restaurant-selector-screen" class="login-screen" style="display: none;">
+    <div class="login-container">
+      <div class="login-header">
+        <h1>MindLoopIA CostOS</h1>
+        <p>Selecciona un restaurante</p>
+      </div>
+      <div id="restaurant-list" style="display: flex; flex-direction: column; gap: 12px; padding: 20px 0;">
+        <!-- Populated dynamically by auth.js -->
+      </div>
+    </div>
+  </div>
+
   <!-- 📱 App Container con Sidebar -->
   <div class="app" id="app-container" style="display: none;">
 
@@ -204,13 +213,17 @@
         </div>
       </nav>
 
-      <div class="sidebar-footer">
-        <div class="sidebar-user" data-action="logout">
-          <div class="avatar">N5</div>
+      <div class="sidebar-footer" style="position: relative;">
+        <div class="sidebar-user" id="sidebar-restaurant-switcher" style="cursor: pointer;">
+          <div class="avatar" id="sidebar-avatar">N5</div>
           <div class="sidebar-user-info">
-            <div class="sidebar-user-name" id="sidebar-restaurant-name">La Nave 5</div>
-            <div class="sidebar-user-role">Cerrar Sesión</div>
+            <div class="sidebar-user-name" id="sidebar-restaurant-name">Mi Restaurante</div>
+            <div class="sidebar-user-role" style="font-size: 11px; opacity: 0.6;">Cambiar ▾</div>
           </div>
+        </div>
+        <div id="restaurant-switcher-dropdown" style="display: none; position: absolute; bottom: 70px; left: 8px; right: 8px;
+             background: var(--bg-secondary, #1e293b); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+             padding: 8px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
         </div>
       </div>
 
