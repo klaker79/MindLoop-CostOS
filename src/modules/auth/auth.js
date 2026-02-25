@@ -623,8 +623,18 @@ export function handleCheckoutReturn() {
                 window.showToast?.('Pago confirmado. Recarga la página para ver tu nuevo restaurante.', 'info');
             }
         }, 2000);
-    } else if (checkout === 'canceled') {
+    } else if (checkout === 'canceled' && newRestaurant) {
         window.showToast?.('Pago cancelado. El restaurante no fue activado.', 'warning');
+        // Cleanup orphaned pending_payment restaurant
+        try {
+            await fetch(API_AUTH_URL + '/pending-restaurant/' + newRestaurant, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}
+            });
+        } catch (_e) { /* best effort */ }
+    } else if (checkout === 'canceled') {
+        window.showToast?.('Pago cancelado.', 'warning');
     }
 }
 
