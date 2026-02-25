@@ -100,24 +100,26 @@ export async function exportarAExcel(datos, nombreArchivo, columnas) {
         return;
     }
 
-    if (!datos || !Array.isArray(datos) || datos.length === 0) {
-        showToast('No hay datos para exportar', 'warning');
-        return;
-    }
-
     try {
-        // Preparar datos para Excel
-        const datosExcel = datos.map(item => {
-            const fila = {};
-            columnas.forEach(col => {
-                fila[col.header] = col.key ? item[col.key] : col.value(item);
+        let ws;
+        if (!datos || !Array.isArray(datos) || datos.length === 0) {
+            // Export empty template with headers only
+            const headers = columnas.map(col => col.header);
+            ws = XLSX.utils.aoa_to_sheet([headers]);
+        } else {
+            // Preparar datos para Excel
+            const datosExcel = datos.map(item => {
+                const fila = {};
+                columnas.forEach(col => {
+                    fila[col.header] = col.key ? item[col.key] : col.value(item);
+                });
+                return fila;
             });
-            return fila;
-        });
+            ws = XLSX.utils.json_to_sheet(datosExcel);
+        }
 
         // Crear libro y hoja
         const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(datosExcel);
 
         // Ajustar ancho de columnas
         ws['!cols'] = columnas.map(() => ({ wch: 20 }));

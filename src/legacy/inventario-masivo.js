@@ -424,7 +424,7 @@ async function leerArchivoGenerico(file) {
 function validarDatosIngredientes(data) {
     return data.map(row => {
         const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
-        const precio = parseFloat(row['Precio'] || row['precio'] || row['PRECIO'] || 0);
+        const precio = parseFloat(row['Precio'] || row['Precio (€)'] || row['precio'] || row['PRECIO'] || 0);
         const unidad = row['Unidad'] || row['unidad'] || row['UNIDAD'] || 'kg';
         const stockActual = parseFloat(
             row['Stock Actual'] || row['stock_actual'] || row['Stock'] || 0
