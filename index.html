@@ -1028,6 +1028,26 @@
               autocomplete="off" oninput="window.renderizarPedidos()">
           </div>
 
+          <!-- 📸 Escanear albarán con IA -->
+          <div id="albaran-scanner-section" style="margin-bottom: 20px;">
+            <div id="albaran-dropzone" ondrop="window.procesarFotoAlbaran(event)"
+              ondragover="event.preventDefault(); this.style.borderColor='#3b82f6'; this.style.background='#eff6ff';"
+              ondragleave="this.style.borderColor='#cbd5e1'; this.style.background='';"
+              onclick="document.getElementById('albaran-foto-input').click()"
+              style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: transparent;">
+              <input type="file" id="albaran-foto-input" accept="image/*,.pdf" style="display:none"
+                onchange="window.procesarFotoAlbaranInput(event)">
+              <div id="albaran-dropzone-content"
+                style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #64748b; font-size: 14px; font-weight: 500;">
+                📸 <span>Arrastra aquí un albarán (foto o PDF) para escanearlo con IA</span>
+              </div>
+              <div id="albaran-dropzone-loading"
+                style="display: none; color: #3b82f6; font-weight: 600; font-size: 14px;">
+                ⏳ Analizando albarán con IA... (10-20 seg)
+              </div>
+            </div>
+          </div>
+
           <!-- Panel de Compras Pendientes (revisión de albaranes importados por n8n) -->
           <div id="compras-pendientes-panel" style="display: none; margin-bottom: 20px;"></div>
 
