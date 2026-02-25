@@ -351,13 +351,9 @@ export async function initRestaurantSwitcher() {
             });
             const data = await res.json();
 
-            if (!data.restaurants || data.restaurants.length <= 1) {
-                // Single restaurant: just logout
-                window.logout();
-                return;
-            }
+            const restaurants = data.restaurants || [];
 
-            dropdown.innerHTML = data.restaurants.map(r => `
+            dropdown.innerHTML = restaurants.map(r => `
                 <button class="switch-restaurant-btn" data-id="${r.id}"
                         style="width: 100%; padding: 10px 12px; background: ${r.id === data.current ? 'rgba(99,102,241,0.2)' : 'transparent'};
                                border: none; border-radius: 8px; color: #e2e8f0; cursor: pointer; text-align: left;
@@ -368,6 +364,11 @@ export async function initRestaurantSwitcher() {
                 </button>
             `).join('') + `
                 <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;">
+                <button id="switcher-add-btn"
+                        style="width: 100%; padding: 10px 12px; background: transparent;
+                        border: none; border-radius: 8px; color: #6366f1; cursor: pointer; text-align: left; font-size: 14px;">
+                    + Añadir restaurante
+                </button>
                 <button id="switcher-logout-btn"
                         style="width: 100%; padding: 10px 12px; background: transparent;
                         border: none; border-radius: 8px; color: #ef4444; cursor: pointer; text-align: left; font-size: 14px;">
@@ -382,6 +383,12 @@ export async function initRestaurantSwitcher() {
                     if (newId === data.current) { dropdown.style.display = 'none'; return; }
                     await switchRestaurant(newId);
                 });
+            });
+
+            const addBtn = dropdown.querySelector('#switcher-add-btn');
+            if (addBtn) addBtn.addEventListener('click', () => {
+                dropdown.style.display = 'none';
+                promptCreateRestaurant();
             });
 
             const logoutBtn = dropdown.querySelector('#switcher-logout-btn');
@@ -415,6 +422,48 @@ async function switchRestaurant(restauranteId) {
         }
     } catch (err) {
         window.showToast?.('Error cambiando restaurante', 'error');
+    }
+}
+
+// ========== Create Additional Restaurant ==========
+
+function promptCreateRestaurant() {
+    const nombre = prompt('Nombre del nuevo restaurante:');
+    if (!nombre || !nombre.trim()) return;
+    createAdditionalRestaurant(nombre.trim());
+}
+
+async function createAdditionalRestaurant(nombre) {
+    try {
+        window.showToast?.('Creando restaurante...', 'info');
+
+        const res = await fetch(API_AUTH_URL + '/create-restaurant', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
+            },
+            credentials: 'include',
+            body: JSON.stringify({ nombre }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            window.showToast?.(data.error || 'Error creando restaurante', 'error');
+            return;
+        }
+
+        // Auto-switch to the new restaurant
+        if (data.token) {
+            window.authToken = data.token;
+            sessionStorage.setItem('_at', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            window.showToast?.(`"${nombre}" creado con trial de 14 días`, 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        }
+    } catch (err) {
+        window.showToast?.('Error de conexión', 'error');
     }
 }
 
