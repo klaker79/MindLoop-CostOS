@@ -296,6 +296,35 @@ window.editarCampoPendiente = ComprasPendientesUI.editarCampoPendiente;
 window.editarTotalPendiente = ComprasPendientesUI.editarTotalPendiente;
 window.checkPendientes = ComprasPendientesUI.checkPendientes;
 
+// ⚡ FIX W3: Documentación de módulos con auto-registro en window.*
+// Estos módulos registran sus funciones directamente (window.fn = ...) en vez de exportar+mapear aquí.
+// Funciona correctamente, pero es un patrón distinto al resto de main.js.
+// Módulos self-registering:
+//   - pedidos-cart.js: abrirCarrito, cerrarCarrito, agregarAlCarrito, eliminarDelCarrito,
+//                      actualizarCantidadCarrito, vaciarCarrito, confirmarCarrito, seguirComprando,
+//                      initCarrito, actualizarBadgeCarrito
+//   - pedidos-ui.js: buscarIngredienteParaPedido, seleccionarIngredienteParaPedido, onIngredientePedidoChange
+//   - chat-widget.js: initChatWidget, clearChatHistory, toggleChat, exportMessageToPDF
+//   - horarios.js: nuevoEmpleado, editarEmpleado, guardarEmpleado, cerrarModalEmpleado,
+//                  eliminarEmpleado, toggleTurno, copiarSemana, semanaAnterior, semanaSiguiente,
+//                  borrarTodosHorarios, descargarHorarioMensual, generarHorarioIA, filtrarDepartamento
+//   - recetas-ui.js: cambiarPaginaRecetas, filtrarRecetasPorCategoria
+//   - recetas-variantes.js: gestionarVariantesReceta, agregarVarianteReceta, editarVariante,
+//                           eliminarVariante, cerrarModalVariantes
+//   - inteligencia-ui.js: loadPurchasePlan, renderizarInteligencia
+//   - ingredientes-ui.js: cambiarPaginaIngredientes, irAPaginaIngredientes, toggleIngredienteActivo,
+//                          filtrarPorCategoria
+//   - equipo.js: renderizarEquipo, mostrarModalInvitar, cerrarModalInvitar, invitarUsuarioEquipo,
+//                eliminarUsuarioEquipo
+//   - alertas-ui.js: renderizarAlertas, toggleAlertasExpanded, dismissAlerta, generarAlertas
+//   - inventario-ui.js: renderizarInventario, marcarInventarioRealizado
+//   - balance-ui.js: renderizarBalance, calcularPL
+//   - dashboard.js: actualizarKPIsPorPeriodo, cambiarPeriodoVista, actualizarDashboardExpandido,
+//                   renderKPICharts
+//   - analytics-ui.js: calcularForecast, renderForecastChart
+//   - auth.js: checkAuth, logout, mostrarLogin, mostrarRegistro, volverALogin
+//   - dossier-v24.js: abrirDossierV24
+
 // 📸 Albarán Scanner (Claude Vision)
 import * as AlbaranScanner from './modules/pedidos/albaran-scanner.js';
 window.procesarFotoAlbaran = AlbaranScanner.procesarFotoAlbaran;

@@ -4,6 +4,7 @@
  */
 
 import { getAuthUrl } from '../../config/app-config.js';
+import { resetAllStores } from '../../stores/index.js';
 
 const API_AUTH_URL = getAuthUrl();
 
@@ -196,6 +197,9 @@ export async function logout() {
     localStorage.removeItem('token'); // Legacy cleanup
     sessionStorage.clear(); // 🧹 Limpiar caché de sesión (KPIs, stock, _at token, etc.)
     window.authToken = null; // Clear in-memory token
+
+    // ⚡ FIX W2: Reset ALL Zustand stores before reload
+    resetAllStores();
 
     // Forzar recarga para limpiar estado en memoria
     mostrarLogin();
