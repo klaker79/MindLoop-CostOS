@@ -48,6 +48,25 @@ window.addEventListener('auth:expired', () => {
 import './vendors.js';
 
 // ============================================
+// 🌐 i18n — Internacionalización (ES/EN)
+// ============================================
+import { initI18n, setLang, getCurrentLang, t, translateDOM } from './i18n/i18n.js';
+window._i18n = { t, translateDOM, setLang, getCurrentLang };
+
+// Inicializar traducciones (carga JSON + traduce data-i18n del HTML)
+initI18n().then(() => {
+    // Actualizar botón de idioma
+    const langBtn = document.getElementById('lang-toggle');
+    if (langBtn) {
+        const lang = getCurrentLang();
+        langBtn.textContent = `🌐 ${lang.toUpperCase()}`;
+        langBtn.addEventListener('click', () => {
+            setLang(lang === 'es' ? 'en' : 'es');
+        });
+    }
+});
+
+// ============================================
 // CSS DE COMPONENTES - Estilos para componentes Clean Architecture
 // ============================================
 import './styles/components/alert-panel.css';

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-lang="es">
 
 <head>
   <!-- Sentry Error Monitoring SDK (init en src/utils/sentry.js) -->
@@ -148,67 +148,67 @@
       <nav class="sidebar-nav">
         <!-- Ingredientes -->
         <div class="nav-section">
-          <div class="nav-section-title">Ingredientes</div>
+          <div class="nav-section-title" data-i18n="nav.section.ingredients">Ingredientes</div>
           <button class="nav-item active" data-tab="ingredientes">
             <span class="nav-item-icon">📦</span>
-            <span class="nav-item-text">Ingredientes</span>
+            <span class="nav-item-text" data-i18n="nav.ingredients">Ingredientes</span>
           </button>
           <button class="nav-item" data-tab="recetas">
             <span class="nav-item-icon">👨‍🍳</span>
-            <span class="nav-item-text">Recetas</span>
+            <span class="nav-item-text" data-i18n="nav.recipes">Recetas</span>
           </button>
           <button class="nav-item" data-tab="proveedores">
             <span class="nav-item-icon">🚚</span>
-            <span class="nav-item-text">Proveedores</span>
+            <span class="nav-item-text" data-i18n="nav.suppliers">Proveedores</span>
           </button>
         </div>
 
         <!-- Operaciones -->
         <div class="nav-section">
-          <div class="nav-section-title">Operaciones</div>
+          <div class="nav-section-title" data-i18n="nav.section.operations">Operaciones</div>
           <button class="nav-item" data-tab="pedidos">
             <span class="nav-item-icon">📋</span>
-            <span class="nav-item-text">Pedidos</span>
+            <span class="nav-item-text" data-i18n="nav.orders">Pedidos</span>
           </button>
           <button class="nav-item" data-tab="ventas">
             <span class="nav-item-icon">💰</span>
-            <span class="nav-item-text">Ventas</span>
+            <span class="nav-item-text" data-i18n="nav.sales">Ventas</span>
           </button>
           <button class="nav-item" data-tab="inventario">
             <span class="nav-item-icon">📦</span>
-            <span class="nav-item-text">Inventario</span>
+            <span class="nav-item-text" data-i18n="nav.inventory">Inventario</span>
             <span class="nav-item-badge" id="badge-inventario-sidebar" style="display:none;">0</span>
           </button>
         </div>
 
         <!-- Análisis -->
         <div class="nav-section">
-          <div class="nav-section-title">Análisis</div>
+          <div class="nav-section-title" data-i18n="nav.section.analysis">Análisis</div>
           <button class="nav-item" data-tab="diario">
             <span class="nav-item-icon">📈</span>
-            <span class="nav-item-text">Diario</span>
+            <span class="nav-item-text" data-i18n="nav.daily">Diario</span>
           </button>
           <button class="nav-item" data-tab="analisis">
             <span class="nav-item-icon">📊</span>
-            <span class="nav-item-text">Análisis</span>
+            <span class="nav-item-text" data-i18n="nav.analytics">Análisis</span>
           </button>
           <button class="nav-item" data-tab="inteligencia">
             <span class="nav-item-icon">🧠</span>
-            <span class="nav-item-text">Inteligencia</span>
+            <span class="nav-item-text" data-i18n="nav.intelligence">Inteligencia</span>
             <span class="nav-item-badge intel">IA</span>
           </button>
         </div>
 
         <!-- Configuración -->
         <div class="nav-section">
-          <div class="nav-section-title">Configuración</div>
+          <div class="nav-section-title" data-i18n="nav.section.settings">Configuración</div>
           <button class="nav-item" data-tab="horarios">
             <span class="nav-item-icon">👥</span>
-            <span class="nav-item-text">Horarios</span>
+            <span class="nav-item-text" data-i18n="nav.schedules">Horarios</span>
           </button>
           <button class="nav-item" data-tab="configuracion">
             <span class="nav-item-icon">⚙️</span>
-            <span class="nav-item-text">Configuración</span>
+            <span class="nav-item-text" data-i18n="nav.config">Configuración</span>
           </button>
         </div>
       </nav>
@@ -217,8 +217,10 @@
         <div class="sidebar-user" id="sidebar-restaurant-switcher" style="cursor: pointer;">
           <div class="avatar" id="sidebar-avatar">--</div>
           <div class="sidebar-user-info">
-            <div class="sidebar-user-name" id="sidebar-restaurant-name">Mi Restaurante</div>
-            <div class="sidebar-user-role" style="font-size: 11px; opacity: 0.6;">Cambiar ▾</div>
+            <div class="sidebar-user-name" id="sidebar-restaurant-name" data-i18n="sidebar.my_restaurant">Mi Restaurante
+            </div>
+            <div class="sidebar-user-role" style="font-size: 11px; opacity: 0.6;" data-i18n="sidebar.switch">Cambiar ▾
+            </div>
           </div>
         </div>
         <div id="restaurant-switcher-dropdown" style="display: none; position: absolute; bottom: 70px; left: 8px; right: 8px;
@@ -253,11 +255,16 @@
               onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)';">
               <span class="theme-icon">🌙</span>
             </button>
+            <button id="lang-toggle" data-i18n-title="header.lang_toggle" title="Cambiar idioma"
+              style="background: rgba(255,255,255,0.15); color: white; border: none; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-weight: 600;"
+              onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-2px)';"
+              onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)';">🌐
+              ES</button>
             <button data-action="logout"
               style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 4px 15px rgba(239,68,68,0.4); transition: all 0.3s ease;"
               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.5)';"
-              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239,68,68,0.4)';">Cerrar
-              Sesión</button>
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239,68,68,0.4)';"><span
+                data-i18n="header.logout">Cerrar Sesión</span></button>
           </div>
         </div>
 
