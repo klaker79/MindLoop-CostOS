@@ -30,11 +30,11 @@ export function initGlobalSearch() {
         <div style="position: relative;">
             <input type="text" id="global-search-input" 
                 placeholder="🔍 ${t('common:search_placeholder')}"
-                style="width: 100%; padding: 10px 40px 10px 15px; border: none; border-radius: 25px; font-size: 14px; background: rgba(255,255,255,0.2); color: white; transition: all 0.2s;"
-                onfocus="this.style.background='rgba(255,255,255,0.3)'; this.placeholder=window.t('common:search_placeholder_expanded')"
-                onblur="if(!this.value) { this.style.background='rgba(255,255,255,0.2)'; this.placeholder='🔍 ' + window.t('common:search_placeholder'); }"
+                style="width: 100%; padding: 10px 40px 10px 15px; border: none; border-radius: 25px; font-size: 14px; background: rgba(255,255,255,0.85); color: #1e293b; transition: all 0.2s;"
+                onfocus="this.style.background='white'; this.placeholder=window.t('common:search_placeholder_expanded')"
+                onblur="if(!this.value) { this.style.background='rgba(255,255,255,0.85)'; this.placeholder='🔍 ' + window.t('common:search_placeholder'); }"
             >
-            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.6); font-size: 11px; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">⌘K</span>
+            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;">⌘K</span>
         </div>
         <div id="global-search-results" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); margin-top: 8px; max-height: 400px; overflow-y: auto; z-index: 9999;"></div>
     `;
