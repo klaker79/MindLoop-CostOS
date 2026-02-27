@@ -5,7 +5,7 @@
  */
 
 import { loadXLSX } from './lazy-vendors.js';
-import { getCurrentLanguage } from '@/i18n/index.js';
+import { getCurrentLanguage, t } from '@/i18n/index.js';
 
 /**
  * Obtiene el nombre del restaurante del usuario actual
@@ -97,7 +97,7 @@ export async function exportarAExcel(datos, nombreArchivo, columnas) {
     const XLSX = window.XLSX;
     if (!XLSX) {
         console.error('[Excel] SheetJS (XLSX) no está cargado');
-        showToast('Error: Librería Excel no disponible', 'error');
+        showToast(t('common:toast_excel_unavailable'), 'error');
         return;
     }
 
@@ -131,10 +131,10 @@ export async function exportarAExcel(datos, nombreArchivo, columnas) {
         const fecha = new Date().toISOString().split('T')[0];
         XLSX.writeFile(wb, `${nombreArchivo}_${fecha}.xlsx`);
 
-        showToast('Excel descargado correctamente', 'success');
+        showToast(t('common:toast_excel_downloaded'), 'success');
     } catch (error) {
         console.error('[Excel] Error exportando:', error);
-        showToast('Error al exportar Excel', 'error');
+        showToast(t('common:toast_excel_error'), 'error');
     }
 }
 

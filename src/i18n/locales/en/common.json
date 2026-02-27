@@ -121,5 +121,20 @@
 
   "confirm_delete_title": "Confirm Deletion",
   "btn_cancel_with_icon": "✖ Cancel",
-  "btn_delete_with_icon": "🗑️ Delete"
+  "btn_delete_with_icon": "🗑️ Delete",
+
+  "toast_excel_unavailable": "Error: Excel library not available",
+  "toast_excel_downloaded": "Excel downloaded successfully",
+  "toast_excel_error": "Error exporting Excel",
+  "toast_fn_unavailable": "Feature not available",
+  "toast_exporting_report": "Exporting report...",
+  "toast_error_recalc": "Error recalculating costs: {{message}}",
+  "toast_recalc_partial": "Recalculated {{successful}}/{{total}} recipes. {{failed}} errors.",
+  "toast_recalc_success": "{{successful}} recipes recalculated successfully",
+  "toast_all_good_margin": "All recipes have good margins (>60%)",
+  "toast_error_fetching_recipes": "Error fetching recipes",
+  "label_processing": "Processing...",
+  "label_recalculating": "Recalculating costs...",
+  "label_completed": "Completed!",
+  "label_recalculate_costs": "Recalculate Costs"
 }

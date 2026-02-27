@@ -3,6 +3,8 @@
  * Panel de acciones rápidas para el dashboard
  */
 
+const _t = window.t || ((k) => k);
+
 /**
  * Renderiza el panel de acciones rápidas
  */
@@ -50,7 +52,7 @@ export function renderQuickActions(container, options = {}) {
 
     document.getElementById('btn-export-report')?.addEventListener('click', () => {
         if (onExportReport) onExportReport();
-        else showToast('Exportando informe...', 'info');
+        else showToast(_t('common:toast_exporting_report'), 'info');
     });
 
     document.getElementById('btn-check-margins')?.addEventListener('click', () => {
@@ -72,23 +74,23 @@ async function handleRecalculateAll(container) {
     const btn = container.querySelector('#btn-recalculate-all');
 
     if (!window.API?.recalculateAllRecipes) {
-        showToast('Función no disponible', 'error');
+        showToast(_t('common:toast_fn_unavailable'), 'error');
         return;
     }
 
     // Mostrar progreso
     progressDiv?.classList.remove('hidden');
     btn.disabled = true;
-    btn.querySelector('.quick-action-btn__label').textContent = 'Procesando...';
+    btn.querySelector('.quick-action-btn__label').textContent = _t('common:label_processing');
 
     try {
-        progressText.textContent = 'Recalculando costes...';
+        progressText.textContent = _t('common:label_recalculating');
         progressBar.style.width = '30%';
 
         const result = await window.API.recalculateAllRecipes();
 
         progressBar.style.width = '100%';
-        progressText.textContent = '¡Completado!';
+        progressText.textContent = _t('common:label_completed');
 
         const data = result?.data || result;
         const total = data?.total || 0;
@@ -99,12 +101,12 @@ async function handleRecalculateAll(container) {
         setTimeout(() => {
             progressDiv?.classList.add('hidden');
             btn.disabled = false;
-            btn.querySelector('.quick-action-btn__label').textContent = 'Recalcular Costes';
+            btn.querySelector('.quick-action-btn__label').textContent = _t('common:label_recalculate_costs');
 
             if (failed > 0) {
-                showToast(`Recalculadas ${successful}/${total} recetas. ${failed} errores.`, 'warning');
+                showToast(_t('common:toast_recalc_partial', { successful, total, failed }), 'warning');
             } else {
-                showToast(`✅ ${successful} recetas recalculadas correctamente`, 'success');
+                showToast(_t('common:toast_recalc_success', { successful }), 'success');
             }
 
             // Recargar dashboard para mostrar nuevos datos
@@ -117,8 +119,8 @@ async function handleRecalculateAll(container) {
         console.error('Error recalculando costes:', error);
         progressDiv?.classList.add('hidden');
         btn.disabled = false;
-        btn.querySelector('.quick-action-btn__label').textContent = 'Recalcular Costes';
-        showToast('Error al recalcular costes: ' + error.message, 'error');
+        btn.querySelector('.quick-action-btn__label').textContent = _t('common:label_recalculate_costs');
+        showToast(_t('common:toast_error_recalc', { message: error.message }), 'error');
     }
 }
 
@@ -127,7 +129,7 @@ async function handleRecalculateAll(container) {
  */
 async function showLowMarginRecipes() {
     if (!window.API?.getTopRecipes) {
-        showToast('Función no disponible', 'error');
+        showToast(_t('common:toast_fn_unavailable'), 'error');
         return;
     }
 
@@ -139,7 +141,7 @@ async function showLowMarginRecipes() {
         ).sort((a, b) => (a.margen_porcentaje || 0) - (b.margen_porcentaje || 0));
 
         if (lowMargin.length === 0) {
-            showToast('✅ Todas las recetas tienen buen margen (>60%)', 'success');
+            showToast(_t('common:toast_all_good_margin'), 'success');
             return;
         }
 
@@ -148,7 +150,7 @@ async function showLowMarginRecipes() {
 
     } catch (error) {
         console.error('Error obteniendo recetas:', error);
-        showToast('Error al obtener recetas', 'error');
+        showToast(_t('common:toast_error_fetching_recipes'), 'error');
     }
 }
 
