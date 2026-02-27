@@ -388,6 +388,12 @@ import * as Horarios from './modules/horarios/horarios.js';
 window.initHorarios = Horarios.initHorarios;
 
 // ============================================
+// MÓDULO: INTELIGENCIA 🧠 (Predictive Dashboard)
+// ============================================
+// Self-registering: sets window.renderizarInteligencia + window.loadPurchasePlan
+import './modules/inteligencia/inteligencia-ui.js';
+
+// ============================================
 // MÓDULO: MERMA RÁPIDA 🗑️
 // ============================================
 import * as MermaRapida from './modules/inventario/merma-rapida.js';
