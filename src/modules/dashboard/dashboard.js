@@ -22,7 +22,6 @@ import { t, getCurrentLanguage } from '@/i18n/index.js';
 // Zustand Stores - acceso directo al estado
 import { saleStore } from '../../stores/saleStore.js';
 import { ingredientStore } from '../../stores/ingredientStore.js';
-import { recipeStore } from '../../stores/recipeStore.js';
 import { apiClient } from '../../api/client.js';
 
 // KPI Dashboard v2 - Clean Architecture
@@ -207,6 +206,69 @@ async function actualizarKPIsPorPeriodo(periodo) {
 }
 
 /**
+ * Calcula margen REAL ponderado por ventas del período
+ * Usa ventas reales × coste de ingredientes (no media teórica)
+ */
+async function actualizarMargenReal(periodo) {
+    const margenEl = document.getElementById('kpi-margen');
+    if (!margenEl) return;
+
+    try {
+        // Obtener ventas del período (ya cargadas en saleStore)
+        let ventas = saleStore.getState().sales || [];
+        if (typeof filtrarPorPeriodo === 'function') {
+            ventas = filtrarPorPeriodo(ventas, 'fecha', periodo);
+        }
+
+        if (ventas.length === 0) {
+            margenEl.textContent = '—';
+            return;
+        }
+
+        // Calcular ingresos y costes reales
+        const recetas = window.recetas || [];
+        const recetasMap = new Map(recetas.map(r => [r.id, r]));
+
+        const calcularCoste =
+            window.Performance?.calcularCosteRecetaMemoizado ||
+            window.calcularCosteRecetaCompleto;
+
+        let totalIngresos = 0;
+        let totalCostes = 0;
+
+        for (const venta of ventas) {
+            const ingreso = parseFloat(venta.total) || 0;
+            const cantidad = parseInt(venta.cantidad) || 1;
+            const recetaId = venta.receta_id || venta.recetaId;
+            const receta = recetasMap.get(recetaId);
+
+            totalIngresos += ingreso;
+
+            if (receta && typeof calcularCoste === 'function') {
+                const costePorcion = calcularCoste(receta) || 0;
+                const factor = parseFloat(venta.factor_variante || venta.factorVariante) || 1;
+                totalCostes += costePorcion * cantidad * factor;
+            }
+        }
+
+        // Margen = (Ingresos - Costes) / Ingresos × 100
+        const margenReal = totalIngresos > 0
+            ? ((totalIngresos - totalCostes) / totalIngresos) * 100
+            : 0;
+
+        const oldValue = parseInt(margenEl.textContent) || 0;
+        margenEl.textContent = Math.round(margenReal) + '%';
+        if (Math.abs(oldValue - margenReal) > 1) {
+            animateCounter(margenEl, Math.round(margenReal), '%', 1000);
+        }
+    } catch (error) {
+        console.error('Error calculando margen real:', error);
+        // Fallback: mostrar '—' en vez de dato incorrecto
+        margenEl.textContent = '—';
+    }
+}
+
+/**
  * Actualiza todos los KPIs del dashboard
  */
 export async function actualizarKPIs() {
@@ -307,53 +369,9 @@ export async function actualizarKPIs() {
         const stockMsgEl = document.getElementById('kpi-stock-msg');
         if (stockMsgEl) stockMsgEl.textContent = stockBajo > 0 ? t('dashboard:stock_needs_attention') : t('dashboard:stock_all_ok');
 
-        // 4. MARGEN PROMEDIO
-        // 🔧 FIX BUG-3: Fallback a window.recetas si recipeStore está vacío
-        // Legacy cargarDatos() pone datos en window.recetas, no en recipeStore
-        let recetas = recipeStore.getState().recipes;
-        if (!recetas || recetas.length === 0) {
-            recetas = window.recetas || [];
-        }
-        // 🔧 Categorías excluidas del cálculo de margen (no son platos reales)
-        const CATEGORIAS_EXCLUIDAS_MARGEN = ['bebidas', 'bebida', 'suministros', 'suministro', 'preparaciones base', 'preparacion base'];
-        const recetasConMargen = recetas.filter(r => {
-            const cat = (r.categoria || '').toLowerCase().trim();
-            return parseFloat(r.precio_venta) > 0 && !CATEGORIAS_EXCLUIDAS_MARGEN.includes(cat);
-        });
-        if (recetasConMargen.length > 0) {
-            // ⚡ OPTIMIZACIÓN: Usar función memoizada para calcular costes
-            const calcularCoste =
-                window.Performance?.calcularCosteRecetaMemoizado ||
-                window.calcularCosteRecetaCompleto;
-
-            const margenTotal = recetasConMargen.reduce((sum, rec) => {
-                let coste = 0;
-                if (typeof calcularCoste === 'function') {
-                    coste = calcularCoste(rec) || 0;
-                } else if (rec.ingredientes && Array.isArray(rec.ingredientes)) {
-                    // 🔧 FIX BUG-3: Fallback básico - sumar costes de ingredientes
-                    coste = rec.ingredientes.reduce((c, ing) => {
-                        return c + ((parseFloat(ing.precio_unitario) || 0) * (parseFloat(ing.cantidad) || 0));
-                    }, 0);
-                }
-                const precioVenta = parseFloat(rec.precio_venta) || 0;
-                const margen =
-                    precioVenta > 0
-                        ? ((precioVenta - coste) / precioVenta) * 100
-                        : 0;
-                return sum + margen;
-            }, 0);
-            const margenPromedio = margenTotal / recetasConMargen.length;
-            const margenEl = document.getElementById('kpi-margen');
-            if (margenEl) {
-                const oldValue = parseInt(margenEl.textContent) || 0;
-                margenEl.textContent = Math.round(margenPromedio) + '%';
-                // Animate if value changed significantly
-                if (Math.abs(oldValue - margenPromedio) > 1) {
-                    animateCounter(margenEl, Math.round(margenPromedio), '%', 1000);
-                }
-            }
-        }
+        // 4. MARGEN REAL (basado en ventas reales del período)
+        // Usa ventas_diarias_resumen via /balance/mes para margen ponderado por ventas
+        await actualizarMargenReal(periodoVistaActual);
 
         // 5. VALOR STOCK TOTAL - BLINDADO: Solo recalcula con acción explícita
         try {
