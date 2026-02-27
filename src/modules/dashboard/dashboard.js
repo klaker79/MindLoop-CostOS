@@ -27,6 +27,7 @@ import { apiClient } from '../../api/client.js';
 // KPI Dashboard v2 - Clean Architecture
 import { loadKPIDashboard } from '../../components/domain/KPIDashboard.js';
 import { renderQuickActions } from '../../components/domain/QuickActions.js';
+import { renderOnboardingBanner } from '../../components/domain/OnboardingBanner.js';
 
 // Variable para recordar el período actual (default: semana)
 let periodoVistaActual = 'semana';
@@ -306,6 +307,19 @@ export async function actualizarKPIs() {
         renderQuickActions(actionsContainer);
     } catch (e) {
         console.log('QuickActions no disponible:', e.message);
+    }
+
+    // Onboarding banner para restaurantes nuevos
+    try {
+        const dashboardContent = document.querySelector('.dashboard-content') ||
+            document.querySelector('#dashboard') ||
+            document.querySelector('.main-content') ||
+            document.querySelector('main');
+        if (dashboardContent) {
+            renderOnboardingBanner(dashboardContent);
+        }
+    } catch (e) {
+        console.log('Onboarding banner no disponible:', e.message);
     }
 
     // Inicializar banner de fecha actual

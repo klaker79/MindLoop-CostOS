@@ -36,6 +36,7 @@ import es_export from './locales/es/export.json';
 import es_settings from './locales/es/settings.json';
 import es_inteligencia from './locales/es/inteligencia.json';
 import es_simulador from './locales/es/simulador.json';
+import es_onboarding from './locales/es/onboarding.json';
 
 import en_common from './locales/en/common.json';
 import en_ingredientes from './locales/en/ingredientes.json';
@@ -55,6 +56,7 @@ import en_export from './locales/en/export.json';
 import en_settings from './locales/en/settings.json';
 import en_inteligencia from './locales/en/inteligencia.json';
 import en_simulador from './locales/en/simulador.json';
+import en_onboarding from './locales/en/onboarding.json';
 
 const SUPPORTED_LANGS = ['es', 'en'];
 const DEFAULT_LANG = 'es';
@@ -62,7 +64,7 @@ const NAMESPACES = [
     'common', 'ingredientes', 'recetas', 'proveedores',
     'pedidos', 'ventas', 'inventario', 'dashboard',
     'auth', 'chat', 'equipo', 'horarios',
-    'balance', 'alertas', 'export', 'settings', 'inteligencia', 'simulador'
+    'balance', 'alertas', 'export', 'settings', 'inteligencia', 'simulador', 'onboarding'
 ];
 
 i18next
@@ -95,6 +97,7 @@ i18next
                 settings: es_settings,
                 inteligencia: es_inteligencia,
                 simulador: es_simulador,
+                onboarding: es_onboarding,
             },
             en: {
                 common: en_common,
@@ -115,6 +118,7 @@ i18next
                 settings: en_settings,
                 inteligencia: en_inteligencia,
                 simulador: en_simulador,
+                onboarding: en_onboarding,
             },
         },
 
