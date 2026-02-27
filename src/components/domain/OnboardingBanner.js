@@ -183,6 +183,6 @@ export function renderOnboardingBanner(container) {
 
     document.getElementById('onboarding-assisted')?.addEventListener('click', () => {
         // Open WhatsApp or contact form
-        window.open('https://wa.me/34600000000?text=Hola!%20Quiero%20el%20Setup%20Asistido%20para%20mi%20restaurante', '_blank');
+        window.open('https://wa.me/34602629013?text=Hola!%20Quiero%20el%20Setup%20Asistido%20para%20mi%20restaurante', '_blank');
     });
 }
