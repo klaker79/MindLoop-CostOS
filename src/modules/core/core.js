@@ -7,6 +7,7 @@ import { getApiUrl } from '../../config/app-config.js';
 // 🆕 Zustand stores for state management
 import ingredientStore from '../../stores/ingredientStore.js';
 import { initializeStores } from '../../stores/index.js';
+import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
 
@@ -119,7 +120,7 @@ async function _cargarDatosInternal() {
         window.dispatchEvent(new CustomEvent('dashboard:refresh'));
     } catch (error) {
         console.error('❌ Error cargando datos:', error);
-        window.showToast?.('Error conectando con la API', 'error');
+        window.showToast?.(t('common:toast_error_api'), 'error');
     }
 }
 
@@ -128,16 +129,42 @@ async function _cargarDatosInternal() {
  */
 export function cambiarTab(tab) {
     // Desactivar todas las tabs (legacy horizontal tabs)
-    document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
-    document
-        .querySelectorAll('.tab-content')
-        .forEach((c) => c.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
 
-    // Activar tab seleccionada (legacy)
+    // Ocultar ALL tab-content
+    document.querySelectorAll('.tab-content').forEach((c) => {
+        c.classList.remove('active');
+        c.style.display = 'none';
+    });
+
+    // Activar tab seleccionada
     const tabBtn = document.getElementById('tab-btn-' + tab);
     const tabContent = document.getElementById('tab-' + tab);
     if (tabBtn) tabBtn.classList.add('active');
-    if (tabContent) tabContent.classList.add('active');
+    if (tabContent) {
+        tabContent.classList.add('active');
+        tabContent.style.display = 'block';
+    }
+
+    // 🔧 FIX: Hide dashboard sections when switching away from the default view
+    // Three sections sit above .main-card and fill the viewport (~800px total):
+    // 1. #fecha-actual-banner (date bar)
+    // 2. KPI row (div containing .kpi-mini cards)
+    // 3. #dashboard-premium (expanded dashboard grid)
+    const showDashboard = (tab === 'ingredientes');
+    const dashboard = document.getElementById('dashboard-premium');
+    const dateBanner = document.getElementById('fecha-actual-banner');
+    // KPI row is the parent of .kpi-mini elements
+    const kpiMini = document.querySelector('.kpi-mini');
+    const kpiRow = kpiMini?.parentElement;
+
+    if (dashboard) dashboard.style.display = showDashboard ? '' : 'none';
+    if (dateBanner) dateBanner.style.display = showDashboard ? '' : 'none';
+    if (kpiRow) kpiRow.style.display = showDashboard ? '' : 'none';
+
+    // Scroll main content area to top so tab content is visible
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) mainContent.scrollTop = 0;
 
     // ✨ Actualizar sidebar nav-items
     document.querySelectorAll('.sidebar .nav-item').forEach((item) => {
@@ -216,7 +243,8 @@ export function inicializarFechaActual() {
 
     if (periodoInfo && typeof window.getPeriodoActual === 'function') {
         const periodo = window.getPeriodoActual();
-        periodoInfo.textContent = `Semana ${periodo.semana} · ${periodo.mesNombre.charAt(0).toUpperCase() + periodo.mesNombre.slice(1)} ${periodo.año}`;
+        const weekLabel = t('dashboard:period_week') || 'Semana';
+        periodoInfo.textContent = `${weekLabel} ${periodo.semana} · ${periodo.mesNombre.charAt(0).toUpperCase() + periodo.mesNombre.slice(1)} ${periodo.año}`;
     }
 }
 
@@ -227,3 +255,8 @@ if (typeof window !== 'undefined') {
     window.init = init;
     window.inicializarFechaActual = inicializarFechaActual;
 }
+
+// Re-compute date when language changes
+window.addEventListener('languageChanged', () => {
+    inicializarFechaActual();
+});

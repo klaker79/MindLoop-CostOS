@@ -7,15 +7,17 @@ import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
 import { loadPDF } from '../../utils/lazy-vendors.js';
+import { t } from '@/i18n/index.js';
 
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
     webhookUrl: appConfig.chat.webhookUrl,
-    botName: appConfig.chat.botName || 'Asistente CostOS',
-    welcomeMessage:
-        '¡Hola! 👋 Soy tu asistente de costos. Puedo ayudarte con:\n\n• 📊 Análisis de food cost\n• 💰 Costes de platos y recetas\n• 📦 Stock y raciones disponibles\n• 📈 Márgenes y rentabilidad\n• 🏪 Comparativa de proveedores\n\n¿En qué puedo ayudarte?',
-    placeholderText: 'Escribe tu pregunta...',
-    errorMessage: 'Lo siento, hubo un error. Inténtalo de nuevo.',
+    get botName() { return t('chat:bot_name') || appConfig.chat.botName || 'CostOS Assistant'; },
+    get welcomeMessage() {
+        return `${t('chat:welcome')}\n\n• 📊 ${t('chat:welcome_food_cost')}\n• 💰 ${t('chat:welcome_costs')}\n• 📦 ${t('chat:welcome_stock')}\n• 📈 ${t('chat:welcome_margins')}\n• 🏪 ${t('chat:welcome_suppliers')}\n\n${t('chat:welcome_cta')}`;
+    },
+    get placeholderText() { return t('chat:placeholder'); },
+    get errorMessage() { return t('chat:error_generic'); },
 };
 
 // Generar sessionId único
@@ -79,7 +81,7 @@ function speakResponse(text) {
  */
 async function exportMessageToPDF(rawText) {
     try {
-        window.showToast?.('Generando PDF...', 'info');
+        window.showToast?.(t('chat:pdf_generating'), 'info');
 
         // Cargar jsPDF bajo demanda
         await loadPDF();
@@ -110,7 +112,7 @@ async function exportMessageToPDF(rawText) {
         doc.text(restaurante, margin, 18);
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
-        doc.text('Informe de Inteligencia Empresarial', margin, 27);
+        doc.text(t('chat:pdf_subtitle'), margin, 27);
         doc.setFontSize(9);
         doc.text(fecha, pageWidth - margin, 32, { align: 'right' });
 
@@ -243,10 +245,10 @@ async function exportMessageToPDF(rawText) {
         const fechaFile = new Date().toISOString().split('T')[0];
         const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
         doc.save(`Informe_${nombreFile}_${fechaFile}.pdf`);
-        window.showToast?.('PDF descargado correctamente', 'success');
+        window.showToast?.(t('chat:pdf_downloaded'), 'success');
     } catch (error) {
         console.error('Error generando PDF:', error);
-        window.showToast?.('Error al generar PDF: ' + error.message, 'error');
+        window.showToast?.(t('chat:pdf_error') + ': ' + error.message, 'error');
     }
 }
 
@@ -280,7 +282,7 @@ function createChatHTML() {
     chatContainer.id = 'chat-widget-container';
     chatContainer.innerHTML = `
         <!-- Chat FAB Button -->
-        <button class="chat-fab" id="chat-fab" title="Asistente IA">
+        <button class="chat-fab" id="chat-fab" title="${t('chat:fab_title')}">
             <svg viewBox="0 0 24 24">
                 <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
             </svg>
@@ -294,15 +296,15 @@ function createChatHTML() {
                 <div class="chat-header-avatar">🤖</div>
                 <div class="chat-header-info">
                     <h3>${CHAT_CONFIG.botName}</h3>
-                    <p>Asistente inteligente de costos</p>
+                    <p>${t('chat:subtitle')}</p>
                 </div>
                 <div class="chat-header-status"></div>
-                <button class="chat-clear-btn" id="chat-clear" title="Limpiar chat" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;">
+                <button class="chat-clear-btn" id="chat-clear" title="${t('chat:btn_clear')}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
                         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                     </svg>
                 </button>
-                <button class="chat-tts-btn" id="chat-tts" title="Activar/Desactivar voz" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;opacity:${ttsEnabled ? '1' : '0.5'}">
+                <button class="chat-tts-btn" id="chat-tts" title="${t('chat:toggle_voice_title')}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;opacity:${ttsEnabled ? '1' : '0.5'}">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
                         <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                     </svg>
@@ -330,7 +332,7 @@ function createChatHTML() {
                     placeholder="${CHAT_CONFIG.placeholderText}"
                     rows="1"
                 ></textarea>
-                <button class="chat-mic-btn" id="chat-mic" title="Hablar">
+                <button class="chat-mic-btn" id="chat-mic" title="${t('chat:btn_speak')}">
                     <svg viewBox="0 0 24 24">
                         <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
                     </svg>
@@ -371,9 +373,9 @@ function bindChatEvents() {
         ttsEnabled = !ttsEnabled;
         localStorage.setItem('ttsEnabled', ttsEnabled);
         ttsBtn.style.opacity = ttsEnabled ? '1' : '0.5';
-        ttsBtn.title = ttsEnabled ? 'Voz activada (clic para desactivar)' : 'Voz desactivada (clic para activar)';
-        window.showToast?.(ttsEnabled ? '🔊 Respuestas por voz activadas' : '🔇 Respuestas por voz desactivadas', 'info');
-        if (ttsEnabled) speakResponse('Respuestas por voz activadas');
+        ttsBtn.title = ttsEnabled ? t('chat:tts_toggle_on') : t('chat:tts_toggle_off');
+        window.showToast?.(ttsEnabled ? t('chat:tts_enabled') : t('chat:tts_disabled'), 'info');
+        if (ttsEnabled) speakResponse(t('chat:tts_speak_activated'));
     });
 
     // Send message
@@ -446,7 +448,7 @@ function bindChatEvents() {
             micBtn.classList.remove('recording');
             isRecording = false;
             if (event.error === 'not-allowed') {
-                window.showToast?.('Permite el acceso al micrófono', 'warning');
+                window.showToast?.(t('chat:mic_permission'), 'warning');
             }
         };
 
@@ -499,7 +501,7 @@ function addMessage(type, text, save = true) {
             const encodedText = btoa(unescape(encodeURIComponent(text)));
             pdfButton = `<button class="chat-pdf-btn" 
                  data-pdf-text="${encodedText}"
-                 title="Exportar a PDF" 
+                 title="${t('chat:export_pdf_title')}"
                  style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
                  onmouseover="this.style.opacity='1'" 
                  onmouseout="this.style.opacity='0.6'"
@@ -548,11 +550,11 @@ function addMessageWithAction(type, text, actionData) {
             <div class="chat-action-buttons" id="${actionId}" style="margin-top: 12px; display: flex; gap: 8px;">
                 <button class="chat-action-confirm" data-action="${encodeURIComponent(actionData)}" 
                     style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    ✅ Confirmar
+                    ✅ ${t('chat:action_confirm')}
                 </button>
-                <button class="chat-action-cancel" 
+                <button class="chat-action-cancel"
                     style="background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                    ❌ Cancelar
+                    ❌ ${t('chat:action_cancel')}
                 </button>
             </div>
             <div class="chat-message-time">${time}</div>
@@ -568,20 +570,20 @@ function addMessageWithAction(type, text, actionData) {
     const buttonsContainer = document.getElementById(actionId);
 
     confirmBtn.addEventListener('click', async () => {
-        buttonsContainer.innerHTML = '<span style="color: #f59e0b;">⏳ Ejecutando...</span>';
+        buttonsContainer.innerHTML = `<span style="color: #f59e0b;">⏳ ${t('chat:action_executing')}</span>`;
         const success = await executeAction(actionData);
         if (success) {
             buttonsContainer.innerHTML =
-                '<span style="color: #10b981;">✅ ¡Hecho! Cambio aplicado correctamente.</span>';
-            addMessage('bot', '✅ Acción completada. Los datos se han actualizado.', false);
+                `<span style="color: #10b981;">✅ ${t('chat:action_done')}</span>`;
+            addMessage('bot', `✅ ${t('chat:action_completed')}`, false);
         } else {
             buttonsContainer.innerHTML =
-                '<span style="color: #ef4444;">❌ Error al ejecutar la acción.</span>';
+                `<span style="color: #ef4444;">❌ ${t('chat:action_error')}</span>`;
         }
     });
 
     cancelBtn.addEventListener('click', () => {
-        buttonsContainer.innerHTML = '<span style="color: #64748b;">🚫 Acción cancelada.</span>';
+        buttonsContainer.innerHTML = `<span style="color: #64748b;">🚫 ${t('chat:action_cancelled')}</span>`;
     });
 
     // Guardar mensaje (sin la acción)
@@ -793,7 +795,7 @@ async function executeAction(actionData) {
                             unidad: ing.unidad || 'ud',
                             valorPerdida: 0,
                             motivo: 'Chat/Voz',
-                            nota: 'Registrado vía chat',
+                            nota: t('chat:note_registered_via_chat'),
                             responsableId: null
                         }]
                     })
@@ -979,7 +981,7 @@ async function sendMessage() {
             const cleanMessage = data.replace(/\[ACTION:[^\]]+\]/, '').trim();
             addMessageWithAction('bot', cleanMessage, actionData);
         } else {
-            addMessage('bot', data || 'No hay respuesta disponible.');
+            addMessage('bot', data || t('chat:no_response'));
         }
     } catch (error) {
         hideTyping();
@@ -1018,7 +1020,7 @@ function renderChatHistory() {
                 const encodedText = btoa(unescape(encodeURIComponent(msg.text)));
                 pdfButton = `<button class="chat-pdf-btn" 
                      data-pdf-text="${encodedText}"
-                     title="Exportar a PDF" 
+                     title="${t('chat:export_pdf_title')}"
                      style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
                      onmouseover="this.style.opacity='1'" 
                      onmouseout="this.style.opacity='0.6'"
@@ -1071,7 +1073,7 @@ function clearChat() {
 
     if (clearClickCount === 1) {
         // Primer clic - mostrar aviso
-        window.showToast?.('🗑️ Clic de nuevo para borrar el chat', 'warning');
+        window.showToast?.(t('chat:clear_confirm_hint'), 'warning');
         clearClickTimer = setTimeout(() => {
             clearClickCount = 0; // Reset después de 2 segundos
         }, 2000);
@@ -1080,7 +1082,7 @@ function clearChat() {
         clearTimeout(clearClickTimer);
         clearClickCount = 0;
         clearChatHistory();
-        window.showToast?.('✅ Conversación borrada', 'success');
+        window.showToast?.(t('chat:history_cleared'), 'success');
     }
 }
 
@@ -1095,29 +1097,29 @@ function updateQuickButtons() {
 
     const buttonsByTab = {
         ingredientes: [
-            { msg: '¿Qué ingrediente ha subido de precio?', label: '📈 Subidas' },
-            { msg: '¿Qué ingredientes tengo con stock bajo?', label: '⚠️ Stock bajo' },
-            { msg: '¿Cuál es mi ingrediente más caro?', label: '💰 Más caro' },
+            { msg: t('chat:suggestion_price_increase'), label: `📈 ${t('chat:suggestion_price_increase_short')}` },
+            { msg: t('chat:suggestion_low_stock'), label: `⚠️ ${t('chat:suggestion_low_stock_short')}` },
+            { msg: t('chat:suggestion_most_expensive'), label: `💰 ${t('chat:suggestion_most_expensive_short')}` },
         ],
         recetas: [
-            { msg: '¿Cuál es mi plato más rentable?', label: '⭐ Más rentable' },
-            { msg: '¿Qué platos tienen food cost alto?', label: '🔴 Food cost alto' },
-            { msg: '¿Qué precio debería poner a este plato?', label: '💵 Precio sugerido' },
+            { msg: t('chat:suggestion_most_profitable'), label: `⭐ ${t('chat:suggestion_most_profitable_short')}` },
+            { msg: t('chat:suggestion_high_food_cost'), label: `🔴 ${t('chat:suggestion_high_food_cost_short')}` },
+            { msg: t('chat:suggestion_price_suggestion'), label: `💵 ${t('chat:suggestion_price_suggestion_short')}` },
         ],
         proveedores: [
-            { msg: '¿Qué proveedor es más barato para el mismo producto?', label: '🏪 Comparar' },
-            { msg: '¿Cuánto gasto por proveedor?', label: '💳 Gastos' },
+            { msg: t('chat:suggestion_compare_suppliers'), label: `🏪 ${t('chat:suggestion_compare_suppliers_short')}` },
+            { msg: t('chat:suggestion_spending'), label: `💳 ${t('chat:suggestion_spending_short')}` },
         ],
         dashboard: [
-            { msg: 'Dame un resumen del día', label: '📊 Resumen' },
-            { msg: '¿Cuál es el food cost actual?', label: '🎯 Food Cost' },
-            { msg: '¿Cuántas raciones puedo hacer hoy?', label: '🍽️ Raciones' },
+            { msg: t('chat:suggestion_summary'), label: `📊 ${t('chat:suggestion_summary_short')}` },
+            { msg: t('chat:suggestion_food_cost'), label: `🎯 ${t('chat:suggestion_food_cost_short')}` },
+            { msg: t('chat:suggestion_portions'), label: `🍽️ ${t('chat:suggestion_portions_short')}` },
         ],
         default: [
-            { msg: '¿Cuál es el food cost actual?', label: '📊 Food Cost' },
-            { msg: '¿Cuántas raciones puedo hacer?', label: '🍽️ Raciones' },
-            { msg: '¿Qué proveedor es más barato?', label: '🏪 Proveedores' },
-            { msg: 'Muéstrame los márgenes', label: '📈 Márgenes' },
+            { msg: t('chat:suggestion_food_cost'), label: `📊 ${t('chat:suggestion_food_cost_short')}` },
+            { msg: t('chat:suggestion_portions'), label: `🍽️ ${t('chat:suggestion_portions_short')}` },
+            { msg: t('chat:suggestion_suppliers'), label: `🏪 ${t('chat:suggestion_suppliers_short')}` },
+            { msg: t('chat:suggestion_margins'), label: `📈 ${t('chat:suggestion_margins_short')}` },
         ],
     };
 

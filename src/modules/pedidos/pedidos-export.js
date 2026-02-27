@@ -1,11 +1,13 @@
 /**
  * Pedidos Export Module
  * Exportación de pedidos: PDF y WhatsApp
- * 
+ *
  * Funciones:
  * - descargarPedidoPDF: Genera PDF del pedido actual
  * - enviarPedidoWhatsApp: Envía pedido por WhatsApp al proveedor
  */
+
+import { t } from '@/i18n/index.js';
 
 /**
  * Descarga PDF del pedido actual
@@ -18,7 +20,7 @@ export function descargarPedidoPDF() {
 
   const provId = pedido.proveedorId || pedido.proveedor_id;
   const prov = (window.proveedores || []).find(p => p.id === provId);
-  const provNombre = prov ? prov.nombre : 'Sin proveedor';
+  const provNombre = prov ? prov.nombre : t('pedidos:detail_no_supplier');
   const provDir = prov?.direccion || '';
   const provTel = prov?.telefono || '';
   const provEmail = prov?.email || '';
@@ -33,7 +35,7 @@ export function descargarPedidoPDF() {
   items.forEach(item => {
     const ingId = item.ingredienteId || item.ingrediente_id;
     const ing = (window.ingredientes || []).find(i => i.id === ingId);
-    const nombre = ing ? ing.nombre : 'Ingrediente';
+    const nombre = ing ? ing.nombre : t('pedidos:detail_col_ingredient');
     const unidad = ing ? ing.unidad : '';
 
     const cantPedida = parseFloat(item.cantidad || 0);
@@ -53,14 +55,14 @@ export function descargarPedidoPDF() {
     let estadoTxt = '';
     if (esRecibido) {
       if (item.estado === 'no-entregado') {
-        estadoTxt = '❌ No entregado';
+        estadoTxt = `❌ ${t('pedidos:detail_not_delivered')}`;
       } else if (
         Math.abs(cantRecibida - cantPedida) > 0.01 ||
         Math.abs(precioReal - precioOrig) > 0.01
       ) {
-        estadoTxt = '⚠️ Varianza';
+        estadoTxt = `⚠️ ${t('pedidos:detail_variance')}`;
       } else {
-        estadoTxt = '✅ OK';
+        estadoTxt = `✅ ${t('pedidos:detail_ok')}`;
       }
     }
 
@@ -116,41 +118,41 @@ export function descargarPedidoPDF() {
       <div class="header">
         <div>
           <div class="logo">${window.getRestaurantName ? window.getRestaurantName() : 'MindLoop CostOS'}</div>
-          <p style="margin: 5px 0; color: #6b7280;">Sistema de Gestión de Costos</p>
+          <p style="margin: 5px 0; color: #6b7280;">${t('pedidos:pdf_cost_management')}</p>
         </div>
         <div class="doc-info">
-          <div class="doc-number">PEDIDO #${pedido.id}</div>
-          <p style="margin: 10px 0;"><span class="badge ${esRecibido ? 'badge-recibido' : 'badge-pendiente'}">${esRecibido ? 'RECIBIDO' : 'PENDIENTE'}</span></p>
+          <div class="doc-number">${t('pedidos:pdf_order_label')} #${pedido.id}</div>
+          <p style="margin: 10px 0;"><span class="badge ${esRecibido ? 'badge-recibido' : 'badge-pendiente'}">${esRecibido ? t('pedidos:detail_status_received').toUpperCase() : t('pedidos:detail_status_pending').toUpperCase()}</span></p>
           <p style="color: #6b7280;">${new Date(typeof pedido.fecha === 'string' && pedido.fecha.length === 10 ? pedido.fecha + 'T12:00:00' : pedido.fecha).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         </div>
       </div>
       
       <div class="info-grid">
         <div class="info-box">
-          <h3>📦 Proveedor</h3>
+          <h3>📦 ${t('pedidos:col_supplier')}</h3>
           <p><strong>${provNombre}</strong></p>
           ${provDir ? `<p>${provDir}</p>` : ''}
           ${provTel ? `<p>📞 ${provTel}</p>` : ''}
           ${provEmail ? `<p>✉️ ${provEmail}</p>` : ''}
         </div>
         <div class="info-box">
-          <h3>📋 Detalles del Pedido</h3>
-          <p><strong>Fecha pedido:</strong> ${new Date(typeof pedido.fecha === 'string' && pedido.fecha.length === 10 ? pedido.fecha + 'T12:00:00' : pedido.fecha).toLocaleDateString('es-ES')}</p>
-          ${pedido.fecha_recepcion ? `<p><strong>Fecha recepción:</strong> ${new Date(pedido.fecha_recepcion).toLocaleDateString('es-ES')}</p>` : ''}
-          <p><strong>Total ítems:</strong> ${items.length}</p>
+          <h3>📋 ${t('pedidos:pdf_order_details')}</h3>
+          <p><strong>${t('pedidos:pdf_order_date')}:</strong> ${new Date(typeof pedido.fecha === 'string' && pedido.fecha.length === 10 ? pedido.fecha + 'T12:00:00' : pedido.fecha).toLocaleDateString('es-ES')}</p>
+          ${pedido.fecha_recepcion ? `<p><strong>${t('pedidos:pdf_reception_date')}:</strong> ${new Date(pedido.fecha_recepcion).toLocaleDateString('es-ES')}</p>` : ''}
+          <p><strong>${t('pedidos:pdf_total_items')}:</strong> ${items.length}</p>
         </div>
       </div>
       
       <table>
         <thead>
           <tr>
-            <th>Ingrediente</th>
-            <th style="text-align: center;">Cant. Pedida</th>
-            ${esRecibido ? '<th style="text-align: center;">Cant. Recibida</th>' : ''}
-            <th style="text-align: right;">Precio Orig.</th>
-            ${esRecibido ? '<th style="text-align: right;">Precio Real</th>' : ''}
-            <th style="text-align: right;">Subtotal</th>
-            ${esRecibido ? '<th style="text-align: center;">Estado</th>' : ''}
+            <th>${t('pedidos:detail_col_ingredient')}</th>
+            <th style="text-align: center;">${t('pedidos:pdf_qty_ordered')}</th>
+            ${esRecibido ? `<th style="text-align: center;">${t('pedidos:pdf_qty_received')}</th>` : ''}
+            <th style="text-align: right;">${t('pedidos:pdf_price_orig')}</th>
+            ${esRecibido ? `<th style="text-align: right;">${t('pedidos:pdf_price_real')}</th>` : ''}
+            <th style="text-align: right;">${t('pedidos:detail_col_subtotal')}</th>
+            ${esRecibido ? `<th style="text-align: center;">${t('pedidos:detail_col_status')}</th>` : ''}
           </tr>
         </thead>
         <tbody>
@@ -162,21 +164,21 @@ export function descargarPedidoPDF() {
         ${esRecibido
       ? `
         <div class="total-box original">
-          <div class="total-label">Total Original</div>
+          <div class="total-label">${t('pedidos:detail_total_original')}</div>
           <div class="total-value" style="color: #374151;">${totalOriginal.toFixed(2)} €</div>
         </div>
         <div class="total-box recibido">
-          <div class="total-label">Total Recibido</div>
+          <div class="total-label">${t('pedidos:detail_total_received')}</div>
           <div class="total-value" style="color: #059669;">${totalRecibido.toFixed(2)} €</div>
         </div>
         <div class="total-box varianza">
-          <div class="total-label">Varianza</div>
+          <div class="total-label">${t('pedidos:detail_variance')}</div>
           <div class="total-value" style="color: ${varianzaColor};">${varianza > 0 ? '+' : ''}${varianza.toFixed(2)} €</div>
         </div>
         `
       : `
         <div class="total-box recibido">
-          <div class="total-label">Total del Pedido</div>
+          <div class="total-label">${t('pedidos:detail_total_order')}</div>
           <div class="total-value" style="color: #059669;">${parseFloat(pedido.total || totalOriginal).toFixed(2)} €</div>
         </div>
         `
@@ -184,7 +186,7 @@ export function descargarPedidoPDF() {
       </div>
       
       <div class="footer">
-        Documento generado el ${new Date().toLocaleString('es-ES')} • ${window.getRestaurantName ? window.getRestaurantName() : 'MindLoop CostOS'}
+        ${t('pedidos:pdf_generated_on')} ${new Date().toLocaleString('es-ES')} • ${window.getRestaurantName ? window.getRestaurantName() : 'MindLoop CostOS'}
       </div>
     </body>
     </html>
@@ -194,7 +196,7 @@ export function descargarPedidoPDF() {
   const ventana = window.open('', '', 'width=900,height=700');
 
   if (!ventana) {
-    window.showToast('⚠️ Pop-ups bloqueados. Permite pop-ups para descargar PDF.', 'warning');
+    window.showToast(t('pedidos:export_popup_blocked'), 'warning');
     return;
   }
 
@@ -204,7 +206,7 @@ export function descargarPedidoPDF() {
     ventana.print();
   } catch (error) {
     console.error('Error generando PDF:', error);
-    window.showToast('Error generando PDF', 'error');
+    window.showToast(t('pedidos:export_pdf_error'), 'error');
     ventana.close();
   }
 }
@@ -215,7 +217,7 @@ export function descargarPedidoPDF() {
  */
 export function enviarPedidoWhatsApp() {
   if (window.pedidoViendoId === null) {
-    window.showToast('No hay pedido seleccionado', 'warning');
+    window.showToast(t('pedidos:export_no_order_selected'), 'warning');
     return;
   }
 
@@ -227,7 +229,7 @@ export function enviarPedidoWhatsApp() {
 
   if (!prov || !prov.telefono) {
     // 🔧 Si no tiene teléfono, abrir edición del proveedor
-    window.showToast('⚠️ Configura el teléfono del proveedor', 'warning');
+    window.showToast(t('pedidos:export_configure_phone'), 'warning');
 
     // Cerrar modal del pedido
     const modalPedido = document.getElementById('modal-ver-pedido');
@@ -269,16 +271,16 @@ export function enviarPedidoWhatsApp() {
   let mensaje = `━━━━━━━━━━━━━━━━━━━━━━\n`;
   mensaje += `🍽️ *${restaurante.toUpperCase()}*\n`;
   mensaje += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-  mensaje += `📋 *Pedido Nº ${pedido.id}*\n`;
+  mensaje += `📋 *${t('pedidos:wa_order_number', { id: pedido.id })}*\n`;
   mensaje += `📅 ${fecha}\n\n`;
-  mensaje += `Estimado proveedor,\n\n`;
-  mensaje += `Le enviamos el siguiente pedido:\n\n`;
+  mensaje += `${t('pedidos:wa_greeting')}\n\n`;
+  mensaje += `${t('pedidos:wa_order_intro')}\n\n`;
   mensaje += `┌─────────────────────────\n`;
 
   items.forEach(item => {
     const ingId = item.ingredienteId || item.ingrediente_id;
     const ing = (window.ingredientes || []).find(i => i.id === ingId);
-    const nombre = ing ? ing.nombre : 'Ingrediente';
+    const nombre = ing ? ing.nombre : t('pedidos:detail_col_ingredient');
     const unidad = ing ? ing.unidad : '';
     const cantidad = parseFloat(item.cantidad || 0);
 
@@ -292,10 +294,10 @@ export function enviarPedidoWhatsApp() {
   });
 
   mensaje += `└─────────────────────────\n\n`;
-  mensaje += `💰 *Total estimado: ${parseFloat(pedido.total || 0).toFixed(2)} €*\n\n`;
-  mensaje += `Por favor, confirme disponibilidad y fecha de entrega.\n\n`;
-  mensaje += `Muchas gracias por su colaboración.\n`;
-  mensaje += `Un cordial saludo,\n`;
+  mensaje += `💰 *${t('pedidos:wa_estimated_total', { total: parseFloat(pedido.total || 0).toFixed(2) })}*\n\n`;
+  mensaje += `${t('pedidos:wa_confirm_availability')}\n\n`;
+  mensaje += `${t('pedidos:wa_thanks')}\n`;
+  mensaje += `${t('pedidos:wa_regards')}\n`;
   mensaje += `*${restaurante}* 🍽️`;
 
   // Codificar mensaje con los detalles del pedido
@@ -306,7 +308,7 @@ export function enviarPedidoWhatsApp() {
   window.open(url, '_blank');
 
   // Toast indicando que puede descargar PDF si quiere
-  window.showToast('📱 Chat abierto. Para adjuntar PDF usa el botón 📄 PDF', 'success');
+  window.showToast(t('pedidos:export_whatsapp_opened'), 'success');
 }
 
 // Exponer al window para compatibilidad con onclick en HTML

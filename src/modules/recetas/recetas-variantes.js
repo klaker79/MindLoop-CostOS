@@ -6,6 +6,7 @@
 import { showToast } from '../../ui/toast.js';
 import { escapeHTML } from '../../utils/helpers.js';
 import { getApiUrl } from '../../config/app-config.js';
+import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
 
@@ -36,14 +37,14 @@ export async function gestionarVariantesReceta(recetaId) {
     // Obtener datos de la receta
     const receta = window.recetas?.find(r => r.id === recetaId);
     if (!receta) {
-        showToast('Receta no encontrada', 'error');
+        showToast(t('recetas:variants_not_found'), 'error');
         return;
     }
 
     // Actualizar título del modal
     const modalTitulo = document.getElementById('modal-variantes-titulo');
     if (modalTitulo) {
-        modalTitulo.textContent = `Variantes de "${receta.nombre}"`;
+        modalTitulo.textContent = t('recetas:variants_modal_title', { name: receta.nombre });
     }
 
     // Cargar variantes
@@ -74,7 +75,7 @@ async function cargarVariantesReceta(recetaId) {
     } catch (error) {
         window.hideLoading?.();
         console.error('Error cargando variantes:', error);
-        showToast('Error cargando variantes', 'error');
+        showToast(t('recetas:variants_error_loading'), 'error');
     }
 }
 
@@ -89,8 +90,8 @@ function renderizarVariantes(variantes) {
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #94A3B8;">
                 <div style="font-size: 48px; margin-bottom: 16px;">🍷</div>
-                <p>No hay variantes definidas</p>
-                <p style="font-size: 14px;">Añade formatos de venta (ej: Botella, Copa)</p>
+                <p>${t('recetas:variants_empty')}</p>
+                <p style="font-size: 14px;">${t('recetas:variants_factor_hint')}</p>
             </div>
         `;
         return;
@@ -163,7 +164,7 @@ function renderizarVariantes(variantes) {
                     <div>
                         <h4 style="margin: 0; color: #1E293B; font-size: 16px;">${escapeHTML(v.nombre)}</h4>
                         <p style="margin: 4px 0; font-size: 13px; color: #64748B;">
-                            Factor: ${v.factor}x ${v.codigo ? '| Código: ' + escapeHTML(v.codigo) : ''}
+                            ${t('recetas:variants_factor')}: ${v.factor}x ${v.codigo ? `| ${t('recetas:variants_code')}: ` + escapeHTML(v.codigo) : ''}
                         </p>
                     </div>
                     <div style="text-align: right;">
@@ -176,25 +177,25 @@ function renderizarVariantes(variantes) {
                 <!-- KPIs -->
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #E2E8F0;">
                     <div style="text-align: center; padding: 8px; background: #FEE2E2; border-radius: 8px;">
-                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Coste</div>
+                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_cost')}</div>
                         <div style="font-size: 14px; font-weight: 600; color: #EF4444;">${costeVariante.toFixed(2)}€</div>
                     </div>
                     <div style="text-align: center; padding: 8px; background: #D1FAE5; border-radius: 8px;">
-                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Margen</div>
+                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_margin')}</div>
                         <div style="font-size: 14px; font-weight: 600; color: #10B981;">${margen.toFixed(2)}€</div>
                     </div>
                     <div style="text-align: center; padding: 8px; background: #FEF3C7; border-radius: 8px;">
-                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Food Cost</div>
+                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_food_cost')}</div>
                         <div style="font-size: 14px; font-weight: 600; color: ${fcColor};">${fcEmoji} ${foodCost.toFixed(1)}%</div>
                     </div>
                 </div>
                 
                 <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;">
                     <button class="btn-sm" onclick="window.editarVariante(${recetaActualId}, ${v.id}, '${escapeHTML(v.nombre)}', ${v.precio_venta}, ${v.factor}, '${escapeHTML(v.codigo || '')}')" style="background: #3B82F6; color: white;">
-                        ✏️ Editar
+                        ✏️ ${t('ingredientes:btn_edit_title')}
                     </button>
                     <button class="btn-sm" onclick="window.eliminarVariante(${recetaActualId}, ${v.id})" style="background: #EF4444; color: white;">
-                        🗑️ Eliminar
+                        🗑️ ${t('ingredientes:btn_delete_title')}
                     </button>
                 </div>
             </div>
@@ -215,12 +216,12 @@ export async function agregarVarianteReceta() {
     const codigo = document.getElementById('input-variante-codigo')?.value || null;
 
     if (!nombre) {
-        showToast('Ingresa un nombre (ej: Copa, Botella)', 'warning');
+        showToast(t('recetas:variants_add_hint'), 'warning');
         return;
     }
 
     if (!precio || parseFloat(precio) <= 0) {
-        showToast('Ingresa un precio válido', 'warning');
+        showToast(t('recetas:variants_price_invalid'), 'warning');
         return;
     }
 
@@ -235,7 +236,7 @@ export async function agregarVarianteReceta() {
         }));
         if (!resAdd.ok) throw new Error(`HTTP ${resAdd.status}`);
 
-        showToast('Variante añadida', 'success');
+        showToast(t('recetas:variants_added'), 'success');
 
         // Limpiar inputs
         document.getElementById('input-variante-nombre').value = '';
@@ -250,7 +251,7 @@ export async function agregarVarianteReceta() {
     } catch (error) {
         window.hideLoading?.();
         console.error('Error agregando variante:', error);
-        showToast('Error agregando variante: ' + (error.message || 'Error'), 'error');
+        showToast(t('recetas:variants_error_adding'), 'error');
     }
 }
 
@@ -264,26 +265,26 @@ export async function editarVariante(recetaId, varianteId, nombreActual, precioA
     modal.className = 'modal active';
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 400px;">
-            <h3 style="margin-bottom: 20px;">✏️ Editar Variante: ${escapeHTML(nombreActual)}</h3>
+            <h3 style="margin-bottom: 20px;">✏️ ${t('recetas:variants_edit_title')}: ${escapeHTML(nombreActual)}</h3>
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
-                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Precio €</label>
-                    <input type="number" id="edit-variante-precio" value="${precioActual}" step="0.01" 
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">${t('recetas:variants_price')}</label>
+                    <input type="number" id="edit-variante-precio" value="${precioActual}" step="0.01"
                            style="width: 100%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 8px;">
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Código TPV</label>
-                    <input type="text" id="edit-variante-codigo" value="${codigoActual}" placeholder="Ej: 1272"
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">${t('recetas:variants_code')}</label>
+                    <input type="text" id="edit-variante-codigo" value="${codigoActual}" placeholder="${t('recetas:variants_code_placeholder')}"
                            style="width: 100%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 8px;">
-                    <small style="color: #64748B;">ID del producto en el TPV</small>
+                    <small style="color: #64748B;">${t('recetas:variants_code_hint')}</small>
                 </div>
                 <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px;">
-                    <button onclick="document.getElementById('modal-editar-variante').remove()" 
+                    <button onclick="document.getElementById('modal-editar-variante').remove()"
                             style="padding: 10px 20px; border-radius: 8px; border: 1px solid #E2E8F0; background: white;">
-                        Cancelar
+                        ${t('common:btn_cancel')}
                     </button>
                     <button id="btn-guardar-variante" style="padding: 10px 20px; border-radius: 8px; border: none; background: #10B981; color: white; font-weight: 600;">
-                        💾 Guardar
+                        💾 ${t('common:btn_save')}
                     </button>
                 </div>
             </div>
@@ -297,7 +298,7 @@ export async function editarVariante(recetaId, varianteId, nombreActual, precioA
         const nuevoCodigo = document.getElementById('edit-variante-codigo').value;
 
         if (!nuevoPrecio || parseFloat(nuevoPrecio) <= 0) {
-            showToast('Precio inválido', 'error');
+            showToast(t('recetas:variants_price_invalid_edit'), 'error');
             return;
         }
 
@@ -310,7 +311,7 @@ export async function editarVariante(recetaId, varianteId, nombreActual, precioA
             }));
             if (!resEdit.ok) throw new Error(`HTTP ${resEdit.status}`);
 
-            showToast('Variante actualizada', 'success');
+            showToast(t('recetas:variants_updated'), 'success');
             modal.remove();
             await cargarVariantesReceta(recetaId);
 
@@ -318,7 +319,7 @@ export async function editarVariante(recetaId, varianteId, nombreActual, precioA
         } catch (error) {
             window.hideLoading?.();
             console.error('Error actualizando variante:', error);
-            showToast('Error actualizando variante', 'error');
+            showToast(t('recetas:variants_error_updating'), 'error');
         }
     };
 }
@@ -327,7 +328,7 @@ export async function editarVariante(recetaId, varianteId, nombreActual, precioA
  * Elimina una variante
  */
 export async function eliminarVariante(recetaId, varianteId) {
-    if (!confirm('¿Eliminar esta variante?')) return;
+    if (!confirm(t('recetas:variants_confirm_delete'))) return;
 
     try {
         window.showLoading?.();
@@ -335,14 +336,14 @@ export async function eliminarVariante(recetaId, varianteId) {
         const resDel = await fetch(`${API_BASE}/recipes/${recetaId}/variants/${varianteId}`, _fetchOptions('DELETE'));
         if (!resDel.ok) throw new Error(`HTTP ${resDel.status}`);
 
-        showToast('Variante eliminada', 'success');
+        showToast(t('recetas:variants_deleted'), 'success');
         await cargarVariantesReceta(recetaId);
 
         window.hideLoading?.();
     } catch (error) {
         window.hideLoading?.();
         console.error('Error eliminando variante:', error);
-        showToast('Error eliminando variante', 'error');
+        showToast(t('recetas:variants_error_deleting'), 'error');
     }
 }
 

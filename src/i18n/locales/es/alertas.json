@@ -1,0 +1,12 @@
+{
+  "title": "Alertas",
+  "section_low_stock": "Stock Bajo",
+  "section_pending_orders": "Pedidos Pendientes",
+  "no_stock": "SIN STOCK",
+  "stock_min": "(mín: {{min}})",
+  "suggestion_first_inventory": "Sugerencia: Realiza tu primer inventario",
+  "suggestion_first_inventory_desc": "Mantén tu stock actualizado para cálculos precisos",
+  "inventory_days_old": "Inventario: {{days}} días sin actualizar",
+  "inventory_update_hint": "Revisa tu stock para mantener datos precisos",
+  "pending_order_days": "Pedido #{{id}} lleva {{days}} días pendiente"
+}

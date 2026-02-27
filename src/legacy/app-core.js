@@ -1723,9 +1723,10 @@
             // Actualizar resumen
             const resumen = document.getElementById('resumen-inventario');
             if (stockBajo > 0 || stockCritico > 0) {
+                const _t = window.t || (k => k);
                 resumen.innerHTML = `
-            <div style="color: #f59e0b;">⚠️ Stock bajo: <strong>${stockBajo}</strong></div>
-            <div style="color: #ef4444;">🔴 Stock crítico: <strong>${stockCritico}</strong></div>
+            <div style="color: #f59e0b;">⚠️ ${_t('inventario:stock_low')}: <strong>${stockBajo}</strong></div>
+            <div style="color: #ef4444;">🔴 ${_t('inventario:stock_critical')}: <strong>${stockCritico}</strong></div>
           `;
                 resumen.style.display = 'flex';
             } else {
@@ -1733,19 +1734,21 @@
             }
 
             if (filtrados.length === 0) {
+                const _t2 = window.t || (k => k);
                 container.innerHTML = `
             <div class="empty-state">
               <div class="icon">📦</div>
-              <h3>No hay ingredientes</h3>
-              <p>Añade ingredientes para gestionar el inventario</p>
+              <h3>${_t2('inventario:empty_title')}</h3>
+              <p>${_t2('inventario:empty_hint')}</p>
             </div>
           `;
                 return;
             }
 
             let html = '<table><thead><tr>';
+            const _t = window.t || (k => k);
             html +=
-                '<th>Estado</th><th>Ingrediente</th><th>Stock Virtual</th><th>Stock Real</th><th>Diferencia</th><th>Precio Medio</th><th>Valor Stock</th><th>Unidad</th>';
+                `<th>${_t('inventario:col_status')}</th><th>${_t('inventario:col_ingredient')}</th><th>${_t('inventario:col_virtual_stock')}</th><th>${_t('inventario:col_real_stock')}</th><th>${_t('inventario:col_difference')}</th><th>${_t('inventario:col_avg_price')}</th><th>${_t('inventario:col_stock_value')}</th><th>${_t('inventario:col_unit')}</th>`;
             html += '</tr></thead><tbody>';
 
             filtrados.forEach(ing => {
@@ -1781,15 +1784,16 @@
                 // Mostrar siempre el botón de conversión 📦
                 const tieneFormato = ing.formato_compra && ing.cantidad_por_formato;
                 const btnColor = tieneFormato ? '#f59e0b' : '#94a3b8';
+                const _t = window.t || (k => k);
                 const btnTitle = tieneFormato
-                    ? `Calcular desde ${ing.formato_compra}s`
-                    : 'Configura formato de compra para usar conversión';
+                    ? _t('inventario:format_calc_from', { format: ing.formato_compra })
+                    : _t('inventario:format_configure_hint');
                 const formatoData = tieneFormato
                     ? `'${escapeHTML(ing.formato_compra)}', ${ing.cantidad_por_formato}`
                     : `null, null`;
 
                 const formatoHelper = `<div style="display:flex;align-items:center;gap:4px;">
-                     <input type="number" step="0.01" value="${stockReal}" placeholder="Sin datos" 
+                     <input type="number" step="0.01" value="${stockReal}" placeholder="${(window.t || (k=>k))('inventario:no_data_placeholder')}" 
                         class="input-stock-real" 
                         data-id="${ing.id}" 
                         data-stock-virtual="${ing.stock_virtual || 0}" 
@@ -1879,13 +1883,14 @@
     window.mostrarCalculadoraFormato = function (ingredienteId, formato, cantidadPorFormato, unidad, nombreIngrediente) {
         // Si no tiene formato configurado, permitir introducción manual
         if (!formato || !cantidadPorFormato) {
-            const respuesta = prompt(`${nombreIngrediente || 'Este ingrediente'} no tiene formato de compra configurado.\n\nIntroduce manualmente:\n1. Nombre del formato (ej: bote, caja, garrafa)\n2. Cantidad por formato en ${unidad}\n\nEjemplo: "bote,0.5" significa 1 bote = 0.5 ${unidad}\n\nEscribe formato,cantidad:`);
+            const _tf = window.t || (k => k);
+            const respuesta = prompt(_tf('inventario:format_no_config', { name: nombreIngrediente || _tf('inventario:format_this_ingredient'), unit: unidad }));
 
             if (!respuesta) return;
 
             const partes = respuesta.split(',');
             if (partes.length !== 2) {
-                showToast('Formato inválido. Usa: nombre,cantidad (ej: bote,0.5)', 'error');
+                showToast((window.t || (k=>k))('inventario:format_invalid'), 'error');
                 return;
             }
 
@@ -1893,18 +1898,18 @@
             cantidadPorFormato = parseFloat(partes[1].trim());
 
             if (isNaN(cantidadPorFormato) || cantidadPorFormato <= 0) {
-                showToast('Cantidad por formato inválida', 'error');
+                showToast((window.t || (k=>k))('inventario:format_qty_invalid'), 'error');
                 return;
             }
         }
 
-        const cantidad = prompt(`¿Cuántos ${formato}s tienes?\n\n(Cada ${formato} = ${cantidadPorFormato} ${unidad})`);
+        const cantidad = prompt((window.t || (k=>k))('inventario:format_how_many', { format: formato, qty: cantidadPorFormato, unit: unidad }));
 
         if (cantidad === null || cantidad === '') return;
 
         const numCantidad = parseFloat(cantidad);
         if (isNaN(numCantidad) || numCantidad < 0) {
-            showToast('Cantidad inválida', 'error');
+            showToast((window.t || (k=>k))('inventario:format_qty_invalid'), 'error');
             return;
         }
 

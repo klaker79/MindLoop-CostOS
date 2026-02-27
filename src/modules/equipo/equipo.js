@@ -8,6 +8,7 @@
 import { getApiUrl } from '../../config/app-config.js';
 import { escapeHTML } from '../../utils/helpers.js';
 import { sanitizeHTML } from '../../utils/sanitize.js';
+import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
 
@@ -48,7 +49,7 @@ export async function renderizarEquipo() {
 
         if (!Array.isArray(team) || team.length === 0) {
             container.innerHTML =
-                '<p style="text-align: center; color: #6b7280; padding: 40px;">No hay miembros en el equipo.</p>';
+                `<p style="text-align: center; color: #6b7280; padding: 40px;">${t('equipo:empty_no_members')}</p>`;
             return;
         }
 
@@ -115,7 +116,7 @@ export async function invitarUsuarioEquipo() {
     const rol = document.getElementById('team-rol')?.value || 'usuario';
 
     if (!nombre || !email || !password) {
-        window.showToast?.('Completa todos los campos', 'error');
+        window.showToast?.(t('auth:error_fill_all_fields'), 'error');
         return;
     }
 
@@ -129,10 +130,10 @@ export async function invitarUsuarioEquipo() {
         const data = await res.json();
 
         if (!res.ok) {
-            throw new Error(data.error || 'Error al invitar usuario');
+            throw new Error(data.error || t('equipo:toast_error_inviting', { message: '' }));
         }
 
-        window.showToast?.('Usuario invitado correctamente', 'success');
+        window.showToast?.(t('equipo:toast_invited'), 'success');
         cerrarModalInvitar();
         renderizarEquipo();
 
@@ -148,7 +149,7 @@ export async function invitarUsuarioEquipo() {
  * Elimina un usuario del equipo
  */
 export async function eliminarUsuarioEquipo(id) {
-    if (!confirm('¿Eliminar este usuario del equipo?')) return;
+    if (!confirm(t('equipo:confirm_remove'))) return;
 
     try {
         const res = await fetch(API_BASE + `/team/${id}`, {
@@ -161,7 +162,7 @@ export async function eliminarUsuarioEquipo(id) {
             throw new Error(data.error || 'Error al eliminar');
         }
 
-        window.showToast?.('Usuario eliminado', 'success');
+        window.showToast?.(t('equipo:toast_removed'), 'success');
         renderizarEquipo();
     } catch (error) {
         window.showToast?.(error.message, 'error');

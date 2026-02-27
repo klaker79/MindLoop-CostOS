@@ -8,6 +8,7 @@
 import { showToast } from '../../ui/toast.js';
 import { getElement, setElementHTML, hideElement, showElement } from '../../utils/dom-helpers.js';
 import { escapeHTML } from '../../utils/helpers.js';
+import { t } from '@/i18n/index.js';
 
 
 // Variables para paginación y filtros
@@ -38,15 +39,15 @@ function obtenerCategorias() {
 function renderizarFiltrosCategorias(container) {
     let html =
         '<div class="filtros-ingredientes" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center;">';
-    html += '<span style="font-weight: 600; color: #64748b; margin-right: 8px;">Filtrar:</span>';
+    html += `<span style="font-weight: 600; color: #64748b; margin-right: 8px;">${t('ingredientes:filter_label')}</span>`;
 
     // Botón "Todas"
-    html += `<button class="filtro-btn ${filtroCategoria === 'todas' ? 'active' : ''}" onclick="window.filtrarPorCategoria('todas')">🔍 Todas</button>`;
+    html += `<button class="filtro-btn ${filtroCategoria === 'todas' ? 'active' : ''}" onclick="window.filtrarPorCategoria('todas')">🔍 ${t('ingredientes:filter_all')}</button>`;
 
     // Filtros basados en campo 'familia' del formulario
-    html += `<button class="filtro-btn grupo ${filtroCategoria === 'alimento' ? 'active' : ''}" onclick="window.filtrarPorCategoria('alimento')" style="background: #dcfce7; border-color: #22c55e; color: #166534;">🥬 Alimentos</button>`;
-    html += `<button class="filtro-btn grupo ${filtroCategoria === 'bebida' ? 'active' : ''}" onclick="window.filtrarPorCategoria('bebida')" style="background: #dbeafe; border-color: #3b82f6; color: #1e40af;">🍺 Bebidas</button>`;
-    html += `<button class="filtro-btn grupo ${filtroCategoria === 'suministro' ? 'active' : ''}" onclick="window.filtrarPorCategoria('suministro')" style="background: #fef3c7; border-color: #f59e0b; color: #92400e;">🧹 Suministros</button>`;
+    html += `<button class="filtro-btn grupo ${filtroCategoria === 'alimento' ? 'active' : ''}" onclick="window.filtrarPorCategoria('alimento')" style="background: #dcfce7; border-color: #22c55e; color: #166534;">🥬 ${t('ingredientes:filter_food')}</button>`;
+    html += `<button class="filtro-btn grupo ${filtroCategoria === 'bebida' ? 'active' : ''}" onclick="window.filtrarPorCategoria('bebida')" style="background: #dbeafe; border-color: #3b82f6; color: #1e40af;">🍺 ${t('ingredientes:filter_drinks')}</button>`;
+    html += `<button class="filtro-btn grupo ${filtroCategoria === 'suministro' ? 'active' : ''}" onclick="window.filtrarPorCategoria('suministro')" style="background: #fef3c7; border-color: #f59e0b; color: #92400e;">🧹 ${t('ingredientes:filter_supplies')}</button>`;
 
     html += '</div>';
 
@@ -187,8 +188,8 @@ export function renderizarIngredientes() {
             `
       <div class="empty-state">
         <div class="icon">📦</div>
-        <h3>${busqueda || filtroCategoria !== 'todas' ? 'No encontrados' : 'Aún no hay ingredientes'}</h3>
-        <p>${busqueda ? 'Prueba otra búsqueda' : filtroCategoria !== 'todas' ? 'No hay ingredientes en esta categoría' : 'Añade tu primer ingrediente'}</p>
+        <h3>${busqueda || filtroCategoria !== 'todas' ? t('ingredientes:empty_not_found') : t('ingredientes:empty_none_yet')}</h3>
+        <p>${busqueda ? t('ingredientes:empty_try_another') : filtroCategoria !== 'todas' ? t('ingredientes:empty_no_in_category') : t('ingredientes:empty_add_first')}</p>
       </div>
     `;
         const resumen = getElement('resumen-ingredientes');
@@ -198,7 +199,7 @@ export function renderizarIngredientes() {
 
         html += '<table><thead><tr>';
         html +=
-            '<th>Ingrediente</th><th>Familia</th><th>Proveedor</th><th>Precio</th><th>Stock</th><th>Stock Mínimo</th><th>Acciones</th>';
+            `<th>${t('ingredientes:col_ingredient')}</th><th>${t('ingredientes:col_family')}</th><th>${t('ingredientes:col_supplier')}</th><th>${t('ingredientes:col_price')}</th><th>${t('ingredientes:col_stock')}</th><th>${t('ingredientes:col_stock_min')}</th><th>${t('ingredientes:col_actions')}</th>`;
         html += '</tr></thead><tbody>';
 
         // ⚡ OPTIMIZACIÓN: Array.map + join en lugar de concatenación en bucle
@@ -211,7 +212,7 @@ export function renderizarIngredientes() {
             const esBebida = familia === 'bebida' || familia === 'bebidas';
             const esSuministro = familia === 'suministro' || familia === 'suministros';
             const familiaBadge = esBebida ? 'badge-info' : esSuministro ? 'badge-warning' : 'badge-success';
-            const familiaLabel = esBebida ? '🍺 Bebida' : esSuministro ? '🧹 Suministro' : '🥬 Alimento';
+            const familiaLabel = esBebida ? `🍺 ${t('ingredientes:family_drink')}` : esSuministro ? `🧹 ${t('ingredientes:family_supply')}` : `🥬 ${t('ingredientes:family_food')}`;
 
             // ⚡ Búsqueda O(1) del proveedor
             const nombreProv = window.dataMaps
@@ -240,11 +241,11 @@ export function renderizarIngredientes() {
             const esInactivo = ing.activo === false;
             const rowStyle = esInactivo ? 'opacity: 0.5; background: #fef2f2;' : '';
             const toggleBtn = esInactivo
-                ? `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, true)" title="Activar ingrediente" style="color: #22c55e;">✅</button>`
-                : `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, false)" title="Desactivar ingrediente" style="color: #f59e0b;">⏸️</button>`;
+                ? `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, true)" title="${t('ingredientes:btn_activate_title')}" style="color: #22c55e;">✅</button>`
+                : `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, false)" title="${t('ingredientes:btn_deactivate_title')}" style="color: #f59e0b;">⏸️</button>`;
 
             return `<tr style="${rowStyle}">
-                <td><strong>${escapeHTML(ing.nombre)}</strong>${esInactivo ? '<br><small style="color:#ef4444;">⚠️ Inactivo</small>' : ''}</td>
+                <td><strong>${escapeHTML(ing.nombre)}</strong>${esInactivo ? `<br><small style="color:#ef4444;">⚠️ ${t('ingredientes:badge_inactive')}</small>` : ''}</td>
                 <td><span class="badge ${familiaBadge}">${familiaLabel}</span></td>
                 <td>${escapeHTML(nombreProv)}</td>
                 <td>${precioHtml}</td>
@@ -255,12 +256,12 @@ export function renderizarIngredientes() {
                 </td>
                 <td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + escapeHTML(ing.unidad) : '-'}</td>
                 <td>
-                    <button class="icon-btn" onclick="window.agregarAlCarrito(${ing.id}, 1)" title="Añadir al carrito" style="color: #f97316;">🛒</button>
-                    <button class="icon-btn" onclick="window.verEvolucionPrecio(${ing.id})" title="Ver evolución de precio" style="color: #3b82f6;">📈</button>
-                    <button class="icon-btn" onclick="window.gestionarProveedoresIngrediente(${ing.id})" title="Gestionar proveedores" style="color: #8b5cf6;">🏢</button>
-                    <button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})" title="Editar">✏️</button>
+                    <button class="icon-btn" onclick="window.agregarAlCarrito(${ing.id}, 1)" title="${t('ingredientes:btn_add_to_cart_title')}" style="color: #f97316;">🛒</button>
+                    <button class="icon-btn" onclick="window.verEvolucionPrecio(${ing.id})" title="${t('ingredientes:btn_price_evolution_title')}" style="color: #3b82f6;">📈</button>
+                    <button class="icon-btn" onclick="window.gestionarProveedoresIngrediente(${ing.id})" title="${t('ingredientes:btn_manage_suppliers_title')}" style="color: #8b5cf6;">🏢</button>
+                    <button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})" title="${t('ingredientes:btn_edit_title')}">✏️</button>
                     ${toggleBtn}
-                    <button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})" title="Eliminar">🗑️</button>
+                    <button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})" title="${t('ingredientes:btn_delete_title')}">🗑️</button>
                 </td>
             </tr>`;
         });
@@ -272,7 +273,7 @@ export function renderizarIngredientes() {
         // Añadir paginación si hay más de una página
         if (totalPaginas > 1) {
             html += '<div class="paginacion">';
-            html += `<button onclick="window.cambiarPaginaIngredientes(-1)" ${paginaActualIngredientes <= 1 ? 'disabled' : ''}>◀ Anterior</button>`;
+            html += `<button onclick="window.cambiarPaginaIngredientes(-1)" ${paginaActualIngredientes <= 1 ? 'disabled' : ''}>◀ ${t('ingredientes:pagination_prev')}</button>`;
 
             // Mostrar números de página
             for (let i = 1; i <= totalPaginas; i++) {
@@ -290,7 +291,7 @@ export function renderizarIngredientes() {
                 }
             }
 
-            html += `<button onclick="window.cambiarPaginaIngredientes(1)" ${paginaActualIngredientes >= totalPaginas ? 'disabled' : ''}>Siguiente ▶</button>`;
+            html += `<button onclick="window.cambiarPaginaIngredientes(1)" ${paginaActualIngredientes >= totalPaginas ? 'disabled' : ''}>${t('ingredientes:pagination_next')} ▶</button>`;
             html += `<span class="pagina-info">${inicio + 1}-${Math.min(fin, totalItems)} de ${totalItems}</span>`;
             html += '</div>';
         }
@@ -300,9 +301,9 @@ export function renderizarIngredientes() {
         const resumen = getElement('resumen-ingredientes');
         if (resumen) {
             resumen.innerHTML = `
-            <div>Total: <strong>${ingredientes.length}</strong></div>
-            <div>Filtrados: <strong>${filtrados.length}</strong></div>
-            <div>Mostrando: <strong>${paginados.length}</strong></div>
+            <div>${t('ingredientes:summary_total', { count: ingredientes.length })}</div>
+            <div>${t('ingredientes:summary_filtered', { count: filtrados.length })}</div>
+            <div>${t('ingredientes:summary_showing', { count: paginados.length })}</div>
           `;
             resumen.style.display = 'flex';
         }
@@ -340,10 +341,10 @@ export function cerrarFormularioIngrediente() {
     window.editandoIngredienteId = null;
 
     const title = getElement('form-title-ingrediente');
-    if (title) title.textContent = 'Nuevo Ingrediente';
+    if (title) title.textContent = t('ingredientes:form_title_new');
 
     const btn = getElement('btn-text-ingrediente');
-    if (btn) btn.textContent = 'Añadir';
+    if (btn) btn.textContent = t('ingredientes:btn_add');
 
     setupYieldSlider();
 }
@@ -405,7 +406,7 @@ function actualizarSelectProveedores() {
     const options = proveedores.map(prov =>
         `<option value="${prov.id}">${escapeHTML(prov.nombre)}</option>`
     ).join('');
-    select.innerHTML = '<option value="">Sin proveedor</option>' + options;
+    select.innerHTML = `<option value="">${t('ingredientes:no_supplier')}</option>` + options;
 }
 
 /**
@@ -414,7 +415,7 @@ function actualizarSelectProveedores() {
 function getNombreProveedor(proveedorId, proveedores = null) {
     const provs = proveedores || window.proveedores || [];
     const prov = provs.find(p => p.id === proveedorId);
-    return prov ? prov.nombre : 'Sin proveedor';
+    return prov ? prov.nombre : t('ingredientes:no_supplier');
 }
 
 /**
@@ -422,24 +423,24 @@ function getNombreProveedor(proveedorId, proveedores = null) {
  */
 export function exportarIngredientes() {
     if (typeof window.exportarAExcel !== 'function') {
-        showToast('Exportación no disponible', 'error');
+        showToast(t('ingredientes:export_not_available'), 'error');
         return;
     }
 
     const columnas = [
-        { header: 'Nombre', key: 'nombre' },
-        { header: 'Categoría', key: 'categoria' },
+        { header: t('ingredientes:export_col_name'), key: 'nombre' },
+        { header: t('ingredientes:export_col_category'), key: 'categoria' },
         {
-            header: 'Proveedor',
+            header: t('ingredientes:export_col_supplier'),
             value: ing => {
                 const prov = (window.proveedores || []).find(p => p.id === ing.proveedor_id);
-                return prov ? prov.nombre : 'Sin proveedor';
+                return prov ? prov.nombre : t('ingredientes:no_supplier');
             },
         },
-        { header: 'Precio (€)', value: ing => parseFloat(ing.precio || 0).toFixed(2) },
-        { header: 'Unidad', key: 'unidad' },
-        { header: 'Stock Actual', value: ing => parseFloat(ing.stock_actual || 0).toFixed(2) },
-        { header: 'Stock Mínimo', value: ing => parseFloat(ing.stock_minimo || 0).toFixed(2) },
+        { header: t('ingredientes:export_col_price'), value: ing => parseFloat(ing.precio || 0).toFixed(2) },
+        { header: t('ingredientes:export_col_unit'), key: 'unidad' },
+        { header: t('ingredientes:export_col_stock_actual'), value: ing => parseFloat(ing.stock_actual || 0).toFixed(2) },
+        { header: t('ingredientes:export_col_stock_min'), value: ing => parseFloat(ing.stock_minimo || 0).toFixed(2) },
     ];
 
     window.exportarAExcel(window.ingredientes || [], 'Ingredientes_CostOS', columnas);

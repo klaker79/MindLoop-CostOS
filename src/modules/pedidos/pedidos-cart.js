@@ -3,6 +3,8 @@
  * Permite añadir ingredientes al carrito y confirmar cuando esté listo
  */
 
+import { t } from '@/i18n/index.js';
+
 // Estado del carrito (persistido en localStorage)
 let carrito = [];
 let carritoProveedorId = null;
@@ -77,7 +79,7 @@ function actualizarBadgeCarrito() {
 window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = null, precioProveedor = null, esUnidadSuelta = false) {
     const ing = (window.ingredientes || []).find(i => i.id === ingredienteId);
     if (!ing) {
-        window.showToast('Ingrediente no encontrado', 'error');
+        window.showToast(t('pedidos:cart_ingredient_not_found'), 'error');
         return;
     }
 
@@ -114,7 +116,7 @@ window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = n
     else if (carritoProveedorId && provId && carritoProveedorId !== provId) {
         const provActual = window.proveedores.find(p => p.id === carritoProveedorId);
         const provNuevo = window.proveedores.find(p => p.id === provId);
-        if (!confirm(`El carrito tiene productos de "${provActual?.nombre || 'otro proveedor'}". ¿Quieres añadir "${ing.nombre}" de "${provNuevo?.nombre || 'otro proveedor'}"?\n\nNota: Se creará un pedido separado si continúas.`)) {
+        if (!confirm(t('pedidos:cart_mixed_supplier_confirm', { current: provActual?.nombre || 'otro proveedor', item: ing.nombre, new: provNuevo?.nombre || 'otro proveedor' }))) {
             return;
         }
         // Permitir mezclar, se ordenarán por proveedor al confirmar
@@ -124,7 +126,7 @@ window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = n
     const existente = carrito.find(item => item.ingredienteId === ingredienteId);
     if (existente) {
         existente.cantidad += cantidad;
-        window.showToast(`📦 ${ing.nombre}: +${cantidad} (Total: ${existente.cantidad})`, 'success');
+        window.showToast(t('pedidos:cart_item_updated', { name: ing.nombre, added: cantidad, total: existente.cantidad }), 'success');
     } else {
         carrito.push({
             ingredienteId: ingredienteId,
@@ -137,7 +139,7 @@ window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = n
             cantidadPorFormato: ing.cantidad_por_formato,
             precioYaEsUnitario: precioYaEsUnitario // Si true, no dividir por cantidadPorFormato
         });
-        window.showToast(`🛒 ${ing.nombre} añadido al carrito`, 'success');
+        window.showToast(t('pedidos:cart_item_added', { name: ing.nombre }), 'success');
     }
 
     guardarCarrito();
@@ -175,13 +177,13 @@ window.actualizarCantidadCarrito = function (ingredienteId, nuevaCantidad) {
  */
 window.vaciarCarrito = function () {
     if (carrito.length === 0) return;
-    if (!confirm('¿Vaciar todo el carrito?')) return;
+    if (!confirm(t('pedidos:cart_confirm_empty'))) return;
 
     carrito = [];
     carritoProveedorId = null;
     guardarCarrito();
     renderizarCarrito();
-    window.showToast('🗑️ Carrito vaciado', 'info');
+    window.showToast(t('pedidos:cart_emptied'), 'info');
 };
 
 /**
@@ -229,8 +231,7 @@ function renderizarCarrito() {
         contenedor.innerHTML = `
       <div style="text-align: center; padding: 50px; color: #94A3B8;">
         <div style="font-size: 64px; margin-bottom: 20px;">🛒</div>
-        <h3 style="margin: 0; color: #64748B;">Carrito vacío</h3>
-        <p style="margin-top: 10px;">Añade ingredientes desde la lista o el inventario</p>
+        <h3 style="margin: 0; color: #64748B;">${t('pedidos:cart_empty')}</h3>
       </div>
     `;
         document.getElementById('carrito-total').textContent = '0.00 €';
@@ -246,7 +247,7 @@ function renderizarCarrito() {
         if (!porProveedor[provId]) {
             const prov = window.proveedores.find(p => p.id === provId);
             porProveedor[provId] = {
-                nombre: prov?.nombre || 'Sin proveedor',
+                nombre: prov?.nombre || t('pedidos:detail_no_supplier'),
                 items: []
             };
         }
@@ -273,10 +274,10 @@ function renderizarCarrito() {
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr style="background: #f8fafc;">
-              <th style="padding: 10px; text-align: left;">Ingrediente</th>
-              <th style="padding: 10px; text-align: center; width: 120px;">Cantidad</th>
-              <th style="padding: 10px; text-align: right;">Precio</th>
-              <th style="padding: 10px; text-align: right;">Subtotal</th>
+              <th style="padding: 10px; text-align: left;">${t('pedidos:detail_col_ingredient')}</th>
+              <th style="padding: 10px; text-align: center; width: 120px;">${t('pedidos:detail_col_quantity')}</th>
+              <th style="padding: 10px; text-align: right;">${t('pedidos:detail_col_price')}</th>
+              <th style="padding: 10px; text-align: right;">${t('pedidos:detail_col_subtotal')}</th>
               <th style="padding: 10px; width: 50px;"></th>
             </tr>
           </thead>
@@ -330,11 +331,11 @@ function renderizarCarrito() {
  */
 window.confirmarCarrito = async function () {
     if (carrito.length === 0) {
-        window.showToast('El carrito está vacío', 'warning');
+        window.showToast(t('pedidos:cart_empty'), 'warning');
         return;
     }
 
-    if (!confirm(`¿Crear pedido con ${carrito.length} ingredientes?`)) return;
+    if (!confirm(t('pedidos:cart_confirm_order', { count: carrito.length }))) return;
 
     window.showLoading();
 
@@ -413,7 +414,7 @@ window.confirmarCarrito = async function () {
 
         window.hideLoading();
         window.cerrarCarrito();
-        window.showToast(`✅ ${pedidosCreados} pedido(s) creado(s)`, 'success');
+        window.showToast(t('pedidos:cart_orders_created', { count: pedidosCreados }), 'success');
 
         // Navegar a pedidos
         if (typeof window.showTab === 'function') {
@@ -423,7 +424,7 @@ window.confirmarCarrito = async function () {
     } catch (error) {
         window.hideLoading();
         console.error('Error creando pedidos:', error);
-        window.showToast('Error creando pedidos: ' + error.message, 'error');
+        window.showToast(t('pedidos:cart_error_creating', { message: error.message }), 'error');
     }
 };
 

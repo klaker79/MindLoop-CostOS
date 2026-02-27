@@ -1,5 +1,6 @@
 import { escapeHTML } from '../../utils/helpers.js';
 import { calculateIngredientCost } from '../../utils/cost-calculator.js';
+import { t } from '@/i18n/index.js';
 /**
  * Recetas UI Module
  * Funciones de interfaz de usuario para recetas
@@ -18,7 +19,7 @@ import { calculateIngredientCost } from '../../utils/cost-calculator.js';
 export function mostrarFormularioReceta() {
     const ingredientes = Array.isArray(window.ingredientes) ? window.ingredientes : [];
     if (ingredientes.length === 0) {
-        window.showToast('Primero añade ingredientes', 'warning');
+        window.showToast(t('recetas:need_ingredients_first'), 'warning');
         window.cambiarTab('ingredientes');
         if (typeof window.mostrarFormularioIngrediente === 'function') {
             window.mostrarFormularioIngrediente();
@@ -47,8 +48,8 @@ export function cerrarFormularioReceta() {
     document.getElementById('rec-precio_venta').value = '';
     document.getElementById('rec-porciones').value = '1';
     document.getElementById('lista-ingredientes-receta').innerHTML = '';
-    document.getElementById('form-title-receta').textContent = 'Nueva Receta';
-    document.getElementById('btn-text-receta').textContent = 'Guardar';
+    document.getElementById('form-title-receta').textContent = t('recetas:form_title_new');
+    document.getElementById('btn-text-receta').textContent = t('recetas:btn_save');
 }
 
 /**
@@ -90,7 +91,7 @@ export function agregarIngredienteReceta() {
         a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
     );
 
-    let optionsHtml = '<option value="">Selecciona ingrediente...</option>';
+    let optionsHtml = `<option value="">${t('recetas:select_ingredient')}</option>`;
 
     // Ingredientes normales
     ingredientesOrdenados.forEach(ing => {
@@ -148,7 +149,7 @@ export function agregarIngredienteReceta() {
         </div>
         <div style="flex: 1.5; position: relative;">
             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #94a3b8; pointer-events: none;">📏</span>
-            <input type="number" step="0.001" min="0" placeholder="Cantidad" 
+            <input type="number" step="0.001" min="0" placeholder="${t('recetas:placeholder_quantity')}"
                 class="receta-cantidad"
                 style="width: 100%; padding: 12px 12px 12px 35px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;" 
                 onchange="window.calcularCosteReceta()">
@@ -157,7 +158,7 @@ export function agregarIngredienteReceta() {
         <!-- MERMA / RENDIMIENTO EN RECETA -->
         <div style="flex: 1; position: relative;" title="% Rendimiento (Merma)">
             <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #64748b; pointer-events: none;">%</span>
-            <input type="number" step="1" min="1" max="100" placeholder="Rend." value="100"
+            <input type="number" step="1" min="1" max="100" placeholder="${t('recetas:placeholder_yield')}" value="100"
                 class="receta-rendimiento"
                 style="width: 100%; padding: 12px 8px 12px 25px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fffbeb;" 
                 onchange="window.calcularCosteReceta()">
@@ -390,14 +391,14 @@ export async function renderizarRecetas() {
         container.innerHTML = `
       <div class="empty-state">
         <div class="icon">👨‍🍳</div>
-        <h3>${busqueda || filtroRecetaCategoria !== 'todas' ? 'No encontradas' : 'Aún no hay recetas'}</h3>
+        <h3>${busqueda || filtroRecetaCategoria !== 'todas' ? t('recetas:empty_not_found') : t('recetas:empty_none_yet')}</h3>
       </div>
     `;
         document.getElementById('resumen-recetas').style.display = 'none';
     } else {
         let html = '<table><thead><tr>';
         html +=
-            '<th>Cód.</th><th>Plato</th><th>Categoría</th><th>Coste</th><th>Precio</th><th>Margen</th><th>Acciones</th>';
+            `<th>${t('recetas:export_col_code')}</th><th>${t('recetas:export_col_name')}</th><th>${t('recetas:export_col_category')}</th><th>${t('recetas:escandallo_cost')}</th><th>${t('recetas:export_col_sale_price')}</th><th>${t('recetas:escandallo_margin')}</th><th>${t('ingredientes:col_actions')}</th>`;
         html += '</tr></thead><tbody>';
 
         recetasPagina.forEach(rec => {
@@ -436,10 +437,10 @@ export async function renderizarRecetas() {
             html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
             html += `<td><span class="badge ${badgeClass}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
             html += `<td><div class="actions">`;
-            html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="Ver Escandallo">📊</button>`;
+            html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="${t('recetas:btn_view_escandallo')}">📊</button>`;
             // Botón de variantes solo para bebidas (botella/copa)
             if (rec.categoria?.toLowerCase() === 'bebidas' || rec.categoria?.toLowerCase() === 'bebida') {
-                html += `<button class="icon-btn" onclick="window.gestionarVariantesReceta(${rec.id})" title="Variantes (Botella/Copa)" style="color: #7C3AED;">🍷</button>`;
+                html += `<button class="icon-btn" onclick="window.gestionarVariantesReceta(${rec.id})" title="${t('recetas:btn_variants')}" style="color: #7C3AED;">🍷</button>`;
             }
             html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
             html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
@@ -457,15 +458,15 @@ export async function renderizarRecetas() {
             <button onclick="window.cambiarPaginaRecetas(-1)" 
                 ${paginaRecetasActual === 1 ? 'disabled' : ''} 
                 style="padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: ${paginaRecetasActual === 1 ? '#f1f5f9' : 'white'}; color: ${paginaRecetasActual === 1 ? '#94a3b8' : '#475569'}; cursor: ${paginaRecetasActual === 1 ? 'not-allowed' : 'pointer'}; font-weight: 500;">
-                ← Anterior
+                ${t('recetas:pagination_prev')}
             </button>
             <span style="font-size: 14px; color: #475569;">
-                Página <strong>${paginaRecetasActual}</strong> de <strong>${totalPages}</strong>
+                <strong>${paginaRecetasActual}</strong> / <strong>${totalPages}</strong>
             </span>
             <button onclick="window.cambiarPaginaRecetas(1)" 
                 ${paginaRecetasActual === totalPages ? 'disabled' : ''} 
                 style="padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: ${paginaRecetasActual === totalPages ? '#f1f5f9' : 'white'}; color: ${paginaRecetasActual === totalPages ? '#94a3b8' : '#475569'}; cursor: ${paginaRecetasActual === totalPages ? 'not-allowed' : 'pointer'}; font-weight: 500;">
-                Siguiente →
+                ${t('recetas:pagination_next')}
             </button>
         </div>`;
 
@@ -474,11 +475,11 @@ export async function renderizarRecetas() {
         const resumenEl = document.getElementById('resumen-recetas');
         if (resumenEl) {
             resumenEl.innerHTML = `
-              <div>Total: <strong>${recetas.length}</strong></div>
-              <div>Filtradas: <strong>${filtradas.length}</strong></div>
-              <div>Mostrando: <strong>${startIndex + 1}-${Math.min(endIndex, totalItems)}</strong></div>
+              <div>${t('recetas:summary_total', { count: recetas.length })}</div>
+              <div>${t('recetas:summary_filtered', { count: filtradas.length })}</div>
+              <div>${t('recetas:summary_showing', { count: `${startIndex + 1}-${Math.min(endIndex, totalItems)}` })}</div>
               <button onclick="window.mostrarCostTracker()" style="margin-left: auto; background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                📊 Seguimiento de Costes
+                📊 ${t('recetas:btn_cost_tracking')}
               </button>
             `;
             resumenEl.style.display = 'flex';
@@ -527,23 +528,23 @@ export function exportarRecetas() {
 
     const columnas = [
         { header: 'ID', key: 'id' },
-        { header: 'Código', value: rec => rec.codigo || `REC-${String(rec.id).padStart(4, '0')}` },
-        { header: 'Nombre', key: 'nombre' },
-        { header: 'Categoría', key: 'categoria' },
-        { header: 'Precio Venta (€)', value: rec => parseFloat(rec.precio_venta || 0).toFixed(2) },
+        { header: t('recetas:export_col_code'), value: rec => rec.codigo || `REC-${String(rec.id).padStart(4, '0')}` },
+        { header: t('recetas:export_col_name'), key: 'nombre' },
+        { header: t('recetas:export_col_category'), key: 'categoria' },
+        { header: t('recetas:export_col_sale_price'), value: rec => parseFloat(rec.precio_venta || 0).toFixed(2) },
         {
-            header: 'Coste (€)',
+            header: t('recetas:export_col_cost'),
             value: rec => costesCalculados.get(rec.id).toFixed(2),
         },
         {
-            header: 'Margen (€)',
+            header: t('recetas:export_col_margin_eur'),
             value: rec => {
                 const coste = costesCalculados.get(rec.id);
                 return (parseFloat(rec.precio_venta || 0) - coste).toFixed(2);
             },
         },
         {
-            header: 'Margen (%)',
+            header: t('recetas:export_col_margin_pct'),
             value: rec => {
                 const coste = costesCalculados.get(rec.id);
                 const margen =
@@ -554,8 +555,8 @@ export function exportarRecetas() {
                 return margen.toFixed(1) + '%';
             },
         },
-        { header: 'Porciones', key: 'porciones' },
-        { header: 'Nº Ingredientes', value: rec => (rec.ingredientes || []).length },
+        { header: t('recetas:export_col_servings'), key: 'porciones' },
+        { header: t('recetas:export_col_num_ingredients'), value: rec => (rec.ingredientes || []).length },
     ];
 
     if (

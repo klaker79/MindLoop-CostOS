@@ -1,14 +1,14 @@
 /**
  * Pedidos CRUD Module
  * Funciones de crear y eliminar pedidos
- * 
+ *
  * Las demás funciones han sido extraídas a módulos especializados:
  * - pedidos-recepcion.js: Flujo de recepción con varianza
  * - pedidos-detalles.js: Ver detalles en modal
  * - pedidos-export.js: PDF y WhatsApp
  */
 
-
+import { t } from '@/i18n/index.js';
 
 // Re-exportar funciones de los módulos especializados
 export {
@@ -106,7 +106,7 @@ export async function guardarPedido(event) {
   if (esCompraMercado) {
     // ========== COMPRA MERCADO (con ingredientes + actualización de stock inmediata) ==========
     if (ingredientesPedido.length === 0) {
-      window.showToast('Selecciona al menos un ingrediente', 'warning');
+      window.showToast(t('pedidos:select_ingredient'), 'warning');
       return;
     }
 
@@ -123,7 +123,7 @@ export async function guardarPedido(event) {
   } else {
     // ========== PEDIDO NORMAL → AÑADIR AL CARRITO ==========
     if (ingredientesPedido.length === 0) {
-      window.showToast('Selecciona al menos un ingrediente', 'warning');
+      window.showToast(t('pedidos:select_ingredient'), 'warning');
       return;
     }
 
@@ -145,7 +145,7 @@ export async function guardarPedido(event) {
 
     // Cerrar formulario y mostrar el carrito
     window.cerrarFormularioPedido();
-    window.showToast(`🛒 ${ingredientesPedido.length} ingrediente(s) añadidos al carrito`, 'success');
+    window.showToast(`🛒 ${t('pedidos:items_added_to_cart', { count: ingredientesPedido.length })}`, 'success');
 
     // Abrir el carrito automáticamente
     if (typeof window.abrirCarrito === 'function') {
@@ -243,12 +243,12 @@ export async function guardarPedido(event) {
     window.pedidos = await window.api.getPedidos();
     window.renderizarPedidos();
     window.hideLoading();
-    window.showToast(esCompraMercado ? '🏪 Compra del mercado registrada (stock actualizado)' : 'Pedido creado', 'success');
+    window.showToast(esCompraMercado ? t('pedidos:market_purchase_success') : t('pedidos:order_created'), 'success');
     window.cerrarFormularioPedido();
   } catch (error) {
     window.hideLoading();
     console.error('Error:', error);
-    window.showToast('Error guardando pedido: ' + error.message, 'error');
+    window.showToast(t('pedidos:toast_error_saving', { message: error.message }), 'error');
   }
 }
 
@@ -260,7 +260,7 @@ export async function eliminarPedido(id) {
   const ped = (window.pedidos || []).find(p => p.id === id);
   if (!ped) return;
 
-  if (!confirm(`¿Eliminar el pedido #${id}?`)) return;
+  if (!confirm(t('pedidos:confirm_delete', { id }))) return;
 
   window.showLoading();
 
@@ -273,10 +273,10 @@ export async function eliminarPedido(id) {
     await window.cargarDatos();
     window.renderizarPedidos();
     window.hideLoading();
-    window.showToast('Pedido eliminado', 'success');
+    window.showToast(t('pedidos:toast_deleted'), 'success');
   } catch (error) {
     window.hideLoading();
     console.error('Error:', error);
-    window.showToast('Error eliminando pedido: ' + error.message, 'error');
+    window.showToast(t('pedidos:toast_error_deleting', { message: error.message }), 'error');
   }
 }

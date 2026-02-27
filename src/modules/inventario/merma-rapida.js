@@ -6,6 +6,7 @@
  */
 
 import { escapeHTML } from '../../utils/helpers.js';
+import { t } from '@/i18n/index.js';
 
 // Array para almacenar las líneas de merma
 let lineasMerma = [];
@@ -23,20 +24,20 @@ export function mostrarModalMermaRapida() {
     const fechaDiv = document.getElementById('merma-fecha-actual');
     if (fechaDiv) {
         const hoy = new Date();
-        fechaDiv.innerHTML = `Semana del ${hoy.toLocaleDateString('es-ES')}<br>📅 ${hoy.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+        fechaDiv.innerHTML = `${t('inventario:merma_week_of', { date: hoy.toLocaleDateString('es-ES') })}<br>📅 ${hoy.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}`;
     }
 
     // Poblar selector de responsables (empleados)
     const selectResponsable = document.getElementById('merma-responsable');
     if (selectResponsable) {
         const empleados = window.empleados || [];
-        let html = '<option value="">Selecciona responsable...</option>';
+        let html = `<option value="">${t('inventario:merma_select_responsible')}</option>`;
         empleados.forEach(emp => {
             html += `<option value="${emp.id}">${emp.nombre}</option>`;
         });
         // Si no hay empleados, añadir opción manual
         if (empleados.length === 0) {
-            html += '<option value="manual">Registrar manualmente</option>';
+            html += `<option value="manual">${t('inventario:merma_register_manually')}</option>`;
         }
         selectResponsable.innerHTML = html;
     }
@@ -66,7 +67,7 @@ function getIngredientesOptionsHtml() {
         a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
     );
 
-    let html = '<option value="">Selecciona producto...</option>';
+    let html = `<option value="">${t('inventario:merma_select_product')}</option>`;
     ingredientes.forEach(ing => {
         const stock = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0).toFixed(2);
         html += `<option value="${ing.id}" data-unidad="${escapeHTML(ing.unidad || 'ud')}" data-stock="${stock}" data-precio="${ing.precio || 0}" data-formato="${ing.cantidad_por_formato || 1}">${escapeHTML(ing.nombre)} (${stock} ${escapeHTML(ing.unidad || 'ud')})</option>`;
@@ -102,23 +103,23 @@ export function agregarLineaMerma() {
             
             <!-- Motivo -->
             <select class="merma-motivo" style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px;">
-                <option value="Caduco">📅 Caduco</option>
-                <option value="Invitacion">🎁 Invitación</option>
-                <option value="Accidente">💥 Accidente</option>
-                <option value="Error Cocina">👨‍🍳 Error Cocina</option>
-                <option value="Error Inventario">📊 Error Conteo</option>
-                <option value="Otros">📝 Otros</option>
+                <option value="Caduco">📅 ${t('inventario:merma_reason_expired')}</option>
+                <option value="Invitacion">🎁 ${t('inventario:merma_reason_invitation')}</option>
+                <option value="Accidente">💥 ${t('inventario:merma_reason_accident')}</option>
+                <option value="Error Cocina">👨‍🍳 ${t('inventario:merma_reason_kitchen_error')}</option>
+                <option value="Error Inventario">📊 ${t('inventario:merma_reason_count_error')}</option>
+                <option value="Otros">📝 ${t('inventario:merma_reason_other')}</option>
             </select>
-            
+
             <!-- Valor + Eliminar -->
             <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
                 <span class="merma-valor" style="font-weight: 600; color: #dc2626; font-size: 13px; width: 55px; text-align: right;">0.00€</span>
-                <button type="button" onclick="window.eliminarLineaMerma(${index})" 
+                <button type="button" onclick="window.eliminarLineaMerma(${index})"
                     style="background: #fee2e2; color: #dc2626; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; flex-shrink: 0;">×</button>
             </div>
         </div>
         <!-- Nota opcional -->
-        <input type="text" class="merma-nota" placeholder="📝 Nota (opcional)..."
+        <input type="text" class="merma-nota" placeholder="${t('inventario:merma_note_placeholder')}"
             style="width: 100%; margin-top: 6px; padding: 5px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px; color: #64748b;">
     </div>
     `;
@@ -193,7 +194,7 @@ function actualizarResumenMermas() {
 
     if (totalProductos > 0) {
         resumenDiv.style.display = 'block';
-        detalleDiv.textContent = `${totalProductos} producto${totalProductos > 1 ? 's' : ''} afectado${totalProductos > 1 ? 's' : ''}`;
+        detalleDiv.textContent = t('inventario:merma_products_affected', { count: totalProductos });
         totalDiv.textContent = totalPerdida.toFixed(2) + '€';
     } else {
         resumenDiv.style.display = 'none';
@@ -233,7 +234,7 @@ export async function confirmarMermasMultiples() {
     });
 
     if (mermasARegistrar.length === 0) {
-        window.showToast?.('Añade al menos un producto con cantidad', 'warning');
+        window.showToast?.(t('inventario:merma_min_one_product'), 'warning');
         return;
     }
 
@@ -265,7 +266,7 @@ export async function confirmarMermasMultiples() {
                 actualizacionesFallidas.push({
                     id: merma.ingredienteId,
                     nombre: `ID ${merma.ingredienteId}`,
-                    error: 'Ingrediente no encontrado'
+                    error: t('inventario:merma_ingredient_not_found')
                 });
                 continue;
             }
@@ -277,7 +278,7 @@ export async function confirmarMermasMultiples() {
                 actualizacionesFallidas.push({
                     id: ingrediente.id,
                     nombre: ingrediente.nombre,
-                    error: `Cantidad inválida: ${merma.cantidad}`
+                    error: t('inventario:merma_invalid_quantity', { value: merma.cantidad })
                 });
                 continue;
             }
@@ -307,7 +308,7 @@ export async function confirmarMermasMultiples() {
             if (typeof window.hideLoading === 'function') window.hideLoading();
 
             alert(
-                `⚠️ ATENCIÓN: No se pudo preparar ninguna merma\n\n` +
+                `⚠️ ${t('inventario:merma_alert_no_prepare')}\n\n` +
                 `❌ Errores:\n${fallidos}`
             );
             return;
@@ -344,10 +345,10 @@ export async function confirmarMermasMultiples() {
             });
 
             alert(
-                `⚠️ ATENCIÓN: Merma parcialmente registrada\n\n` +
-                `✅ Guardadas: ${exitosos || 'ninguna'}\n\n` +
-                `❌ Falló preparar:\n${fallidos}\n\n` +
-                `Registra las faltantes manualmente.`
+                `⚠️ ${t('inventario:merma_alert_partial')}\n\n` +
+                `✅ ${t('inventario:merma_alert_saved')}: ${exitosos || t('inventario:merma_alert_none')}\n\n` +
+                `❌ ${t('inventario:merma_alert_prepare_failed')}:\n${fallidos}\n\n` +
+                t('inventario:merma_alert_register_manually')
             );
         }
 
@@ -368,14 +369,14 @@ export async function confirmarMermasMultiples() {
 
         // Mostrar confirmación
         window.showToast?.(
-            `✅ ${mermasARegistrar.length} merma${mermasARegistrar.length > 1 ? 's' : ''} registrada${mermasARegistrar.length > 1 ? 's' : ''}: ${totalPerdida.toFixed(2)}€ pérdida`,
+            t('inventario:merma_success_count', { count: mermasARegistrar.length, total: totalPerdida.toFixed(2) }),
             'success'
         );
 
     } catch (error) {
         if (typeof window.hideLoading === 'function') window.hideLoading();
         console.error('Error registrando mermas:', error);
-        window.showToast?.('Error registrando mermas: ' + error.message, 'error');
+        window.showToast?.(t('inventario:merma_error', { message: error.message }), 'error');
     }
 }
 
@@ -395,7 +396,7 @@ export async function procesarFotoMerma(event) {
 
     const file = files[0];
     if (!file.type.startsWith('image/')) {
-        window.showToast?.('Solo se permiten imágenes', 'warning');
+        window.showToast?.(t('inventario:merma_images_only'), 'warning');
         return;
     }
 
@@ -440,7 +441,7 @@ async function procesarImagenMerma(file) {
         });
 
         if (!response.success || !response.mermas || response.mermas.length === 0) {
-            window.showToast?.('No se pudieron detectar productos en la imagen', 'warning');
+            window.showToast?.(t('inventario:merma_no_products_detected'), 'warning');
             resetDropzone();
             return;
         }
@@ -455,11 +456,11 @@ async function procesarImagenMerma(file) {
             agregarLineaMermaConDatos(merma);
         }
 
-        window.showToast?.(`✅ ${response.mermas.length} productos detectados`, 'success');
+        window.showToast?.(t('inventario:merma_products_detected', { count: response.mermas.length }), 'success');
 
     } catch (error) {
         console.error('Error procesando imagen:', error);
-        window.showToast?.('Error procesando imagen: ' + error.message, 'error');
+        window.showToast?.(t('inventario:merma_image_error') + ': ' + error.message, 'error');
     }
 
     resetDropzone();
@@ -544,12 +545,12 @@ function agregarLineaMermaConDatos(merma) {
             </div>
             
             <select class="merma-motivo" style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px;">
-                <option value="Caduco" ${motivoNormalizado === 'caduco' ? 'selected' : ''}>📅 Caduco</option>
-                <option value="Invitacion" ${motivoNormalizado === 'invitacion' ? 'selected' : ''}>🎁 Invitación</option>
-                <option value="Accidente" ${motivoNormalizado === 'accidente' ? 'selected' : ''}>💥 Accidente</option>
-                <option value="Error Cocina" ${motivoNormalizado === 'error_cocina' ? 'selected' : ''}>👨‍🍳 Error Cocina</option>
-                <option value="Error Inventario" ${motivoNormalizado === 'error_inventario' ? 'selected' : ''}>📊 Error Conteo</option>
-                <option value="Otros" ${motivoNormalizado === 'otros' ? 'selected' : ''}>📝 Otros</option>
+                <option value="Caduco" ${motivoNormalizado === 'caduco' ? 'selected' : ''}>📅 ${t('inventario:merma_reason_expired')}</option>
+                <option value="Invitacion" ${motivoNormalizado === 'invitacion' ? 'selected' : ''}>🎁 ${t('inventario:merma_reason_invitation')}</option>
+                <option value="Accidente" ${motivoNormalizado === 'accidente' ? 'selected' : ''}>💥 ${t('inventario:merma_reason_accident')}</option>
+                <option value="Error Cocina" ${motivoNormalizado === 'error_cocina' ? 'selected' : ''}>👨‍🍳 ${t('inventario:merma_reason_kitchen_error')}</option>
+                <option value="Error Inventario" ${motivoNormalizado === 'error_inventario' ? 'selected' : ''}>📊 ${t('inventario:merma_reason_count_error')}</option>
+                <option value="Otros" ${motivoNormalizado === 'otros' ? 'selected' : ''}>📝 ${t('inventario:merma_reason_other')}</option>
             </select>
             
             <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
@@ -558,8 +559,8 @@ function agregarLineaMermaConDatos(merma) {
                     style="background: #fee2e2; color: #dc2626; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; flex-shrink: 0;">×</button>
             </div>
         </div>
-        ${!ingredienteEncontrado ? `<div style="margin-top: 6px; font-size: 10px; color: #92400e;">⚠️ No se encontró "${merma.producto}" - selecciona manualmente</div>` : ''}
-        <input type="text" class="merma-nota" placeholder="📝 Nota (opcional)..."
+        ${!ingredienteEncontrado ? `<div style="margin-top: 6px; font-size: 10px; color: #92400e;">⚠️ ${t('inventario:merma_not_found_warning', { product: merma.producto })}</div>` : ''}
+        <input type="text" class="merma-nota" placeholder="${t('inventario:merma_note_placeholder')}"
             style="width: 100%; margin-top: 6px; padding: 5px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px; color: #64748b;">
     </div>
     `;

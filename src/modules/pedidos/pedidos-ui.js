@@ -1,4 +1,5 @@
 import { escapeHTML } from '../../utils/helpers.js';
+import { t } from '@/i18n/index.js';
 /**
  * Pedidos UI Module
  * Funciones de interfaz de usuario para pedidos
@@ -16,7 +17,7 @@ import { escapeHTML } from '../../utils/helpers.js';
  */
 export function mostrarFormularioPedido() {
     if ((window.proveedores || []).length === 0) {
-        window.showToast('Primero añade proveedores', 'warning');
+        window.showToast(t('pedidos:need_suppliers_first'), 'warning');
         window.cambiarTab('proveedores');
         return;
     }
@@ -31,7 +32,7 @@ export function mostrarFormularioPedido() {
         const options = proveedoresOrdenados.map(prov =>
             `<option value="${prov.id}">${prov.nombre}</option>`
         ).join('');
-        select.innerHTML = '<option value="">Seleccionar proveedor...</option>' + options;
+        select.innerHTML = `<option value="">${t('pedidos:form_select_supplier')}</option>` + options;
 
         // Añadir listener para mostrar/ocultar campo detalle mercado
         select.addEventListener('change', mostrarCampoDetalleMercado);
@@ -123,7 +124,7 @@ window.buscarIngredienteParaPedido = function (query) {
     ).slice(0, 10); // Máximo 10 sugerencias
 
     if (ingredientesMatch.length === 0) {
-        container.innerHTML = '<div style="padding: 12px; color: #64748b; font-style: italic;">No se encontraron ingredientes</div>';
+        container.innerHTML = `<div style="padding: 12px; color: #64748b; font-style: italic;">${t('pedidos:no_ingredients_system')}</div>`;
         container.style.display = 'block';
         return;
     }
@@ -132,15 +133,15 @@ window.buscarIngredienteParaPedido = function (query) {
     ingredientesMatch.forEach(ing => {
         const provId = ing.proveedor_id || ing.proveedorId;
         const prov = provId ? (window.proveedores || []).find(p => p.id === provId) : null;
-        const provNombre = prov ? prov.nombre : 'Sin proveedor';
+        const provNombre = prov ? prov.nombre : t('pedidos:detail_no_supplier');
 
-        html += `<div onclick="window.seleccionarIngredienteParaPedido(${ing.id})" 
+        html += `<div onclick="window.seleccionarIngredienteParaPedido(${ing.id})"
             style="padding: 12px; cursor: pointer; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;"
-            onmouseover="this.style.background='#f1f5f9'" 
+            onmouseover="this.style.background='#f1f5f9'"
             onmouseout="this.style.background='white'">
             <span style="font-weight: 500;">${escapeHTML(ing.nombre)}</span>
             <span style="font-size: 12px; color: ${provId ? '#10b981' : '#f59e0b'}; background: ${provId ? '#f0fdf4' : '#fffbeb'}; padding: 4px 8px; border-radius: 4px;">
-                ${provId ? '📦 ' + escapeHTML(provNombre) : '⚠️ Sin proveedor'}
+                ${provId ? '📦 ' + escapeHTML(provNombre) : `⚠️ ${t('pedidos:detail_no_supplier')}`}
             </span>
         </div>`;
     });
@@ -199,7 +200,7 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
     }
 
     if (proveedores.length === 0) {
-        window.showToast(`${ing.nombre} no tiene proveedor asignado. Selecciona uno manualmente.`, 'warning');
+        window.showToast(t('pedidos:no_supplier_assigned', { name: ing.nombre }), 'warning');
         return;
     }
 
@@ -217,7 +218,7 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
 
         const idx = parseInt(respuesta) - 1;
         if (isNaN(idx) || idx < 0 || idx >= proveedores.length) {
-            window.showToast('Selección inválida', 'error');
+            window.showToast(t('pedidos:invalid_selection'), 'error');
             return;
         }
 
@@ -232,7 +233,7 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
         selectProveedor.dispatchEvent(new Event('change'));
     }
 
-    window.showToast(`Proveedor seleccionado: ${proveedorSeleccionado.nombre}`, 'success');
+    window.showToast(t('pedidos:supplier_selected', { name: proveedorSeleccionado.nombre }), 'success');
 };
 
 /**
@@ -256,7 +257,7 @@ export function cargarIngredientesPedido() {
     if (esCompraMercado) {
         if ((window.ingredientes || []).length === 0) {
             if (containerWrapper) containerWrapper.style.display = 'none';
-            window.showToast('No hay ingredientes en el sistema', 'warning');
+            window.showToast(t('pedidos:no_ingredients_system'), 'warning');
             return;
         }
         // Mostrar contenedor de ingredientes
@@ -270,7 +271,7 @@ export function cargarIngredientesPedido() {
     // Pedido normal: mostrar solo ingredientes del proveedor
     if (!proveedor || !proveedor.ingredientes || proveedor.ingredientes.length === 0) {
         if (containerWrapper) containerWrapper.style.display = 'none';
-        window.showToast('Este proveedor no tiene ingredientes asignados', 'warning');
+        window.showToast(t('pedidos:no_ingredients_supplier'), 'warning');
         return;
     }
 
@@ -316,7 +317,7 @@ export function agregarIngredientePedido() {
     div.style.cssText =
         'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; flex-wrap: wrap;';
 
-    let opciones = '<option value="">Seleccionar...</option>';
+    let opciones = `<option value="">${t('pedidos:form_select_supplier')}</option>`;
     ingredientesDisponibles.forEach(ing => {
         // Guardar datos del formato en data attributes
         const formatoInfo = ing.formato_compra && ing.cantidad_por_formato
@@ -336,8 +337,8 @@ export function agregarIngredientePedido() {
         <select id="${rowId}-formato-select" style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; width: 100%;" onchange="window.calcularTotalPedido()">
         </select>
       </div>
-      <input type="number" placeholder="Cant." step="0.01" min="0" class="cantidad-input" style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" oninput="window.calcularTotalPedido()">
-      <input type="number" placeholder="€/ud" step="0.01" min="0" class="precio-input" style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: right; ${esCompraMercado ? 'border-color: #10b981; background: #f0fdf4;' : ''}" oninput="window.calcularTotalPedido()">
+      <input type="number" placeholder="${t('pedidos:placeholder_quantity')}" step="0.01" min="0" class="cantidad-input" style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" oninput="window.calcularTotalPedido()">
+      <input type="number" placeholder="${t('pedidos:placeholder_price_unit')}" step="0.01" min="0" class="precio-input" style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: right; ${esCompraMercado ? 'border-color: #10b981; background: #f0fdf4;' : ''}" oninput="window.calcularTotalPedido()">
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">0.00€</span>
       <span id="${rowId}-conversion" style="font-size: 10px; color: #64748b; min-width: 70px;"></span>
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
@@ -530,7 +531,7 @@ export function renderizarPedidos() {
         container.innerHTML = `
       <div class="empty-state">
         <div class="icon">📦</div>
-        <h3>No hay pedidos</h3>
+        <h3>${t('pedidos:empty_no_orders')}</h3>
       </div>
     `;
         return;
@@ -541,7 +542,7 @@ export function renderizarPedidos() {
 
     let html = '<table><thead><tr>';
     html +=
-        '<th>ID</th><th>Fecha</th><th>Proveedor</th><th>Items</th><th>Total</th><th>Estado</th><th>Acciones</th>';
+        `<th>ID</th><th>${t('pedidos:col_date')}</th><th>${t('pedidos:col_supplier')}</th><th>Items</th><th>Total</th><th>${t('pedidos:col_status')}</th><th>${t('ingredientes:col_actions')}</th>`;
     html += '</tr></thead><tbody>';
 
     pedidosFiltrados.forEach(ped => {
@@ -557,9 +558,9 @@ export function renderizarPedidos() {
 
         // Proveedor + detalle mercado
         if (esCompraMercado && ped.detalle_mercado) {
-            html += `<td>${escapeHTML(prov ? prov.nombre : 'Sin proveedor')}<br><small style="color:#10b981;">📍 ${escapeHTML(ped.detalle_mercado)}</small></td>`;
+            html += `<td>${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}<br><small style="color:#10b981;">📍 ${escapeHTML(ped.detalle_mercado)}</small></td>`;
         } else {
-            html += `<td>${escapeHTML(prov ? prov.nombre : 'Sin proveedor')}</td>`;
+            html += `<td>${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}</td>`;
         }
 
         // Items: descripción para mercado, count para normal
@@ -574,13 +575,14 @@ export function renderizarPedidos() {
         html += `<td>${parseFloat(totalMostrar || 0).toFixed(2)}€</td>`;
 
         const estadoClass = ped.estado === 'recibido' ? 'badge-success' : 'badge-warning';
-        html += `<td><span class="badge ${estadoClass}">${ped.estado}</span></td>`;
+        const estadoTexto = ped.estado === 'recibido' ? t('pedidos:status_received') : t('pedidos:status_pending');
+        html += `<td><span class="badge ${estadoClass}">${estadoTexto}</span></td>`;
 
         html += `<td><div class="actions">`;
-        html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="Ver detalles">👁️</button>`;
+        html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="${t('pedidos:btn_view_details')}">👁️</button>`;
 
         if (ped.estado === 'pendiente') {
-            html += `<button type="button" class="icon-btn success" onclick="window.marcarPedidoRecibido(${ped.id})" title="Recibir">➡️</button>`;
+            html += `<button type="button" class="icon-btn success" onclick="window.marcarPedidoRecibido(${ped.id})" title="${t('pedidos:btn_receive')}">➡️</button>`;
         }
 
         html += `<button type="button" class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})">🗑️</button>`;
@@ -602,20 +604,20 @@ export function exportarPedidos() {
 
     const columnas = [
         { header: 'ID', key: 'id' },
-        { header: 'Fecha Pedido', value: p => { const f = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha; return new Date(f).toLocaleDateString('es-ES'); } },
+        { header: t('pedidos:export_col_order_date'), value: p => { const f = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha; return new Date(f).toLocaleDateString('es-ES'); } },
         {
-            header: 'Proveedor',
+            header: t('pedidos:col_supplier'),
             value: p => {
                 const prov = provMap.get(p.proveedorId);
-                return prov ? prov.nombre : 'Sin proveedor';
+                return prov ? prov.nombre : t('pedidos:detail_no_supplier');
             },
         },
-        { header: 'Estado', key: 'estado' },
-        { header: 'Nº Ingredientes', value: p => (p.ingredientes || []).length },
-        { header: 'Total (€)', value: p => parseFloat(p.total || 0).toFixed(2) },
-        { header: 'Total Recibido (€)', value: p => parseFloat(p.total_recibido || 0).toFixed(2) },
+        { header: t('pedidos:col_status'), key: 'estado' },
+        { header: t('pedidos:export_col_num_ingredients'), value: p => (p.ingredientes || []).length },
+        { header: t('pedidos:export_col_total'), value: p => parseFloat(p.total || 0).toFixed(2) },
+        { header: t('pedidos:export_col_total_received'), value: p => parseFloat(p.total_recibido || 0).toFixed(2) },
         {
-            header: 'Fecha Recepción',
+            header: t('pedidos:export_col_reception_date'),
             value: p =>
                 p.fecha_recepcion ? new Date(p.fecha_recepcion).toLocaleDateString('es-ES') : '-',
         },

@@ -1,4 +1,5 @@
 import { escapeHTML } from '../../utils/helpers.js';
+import { t } from '@/i18n/index.js';
 /**
  * Proveedores UI Module
  * Funciones de interfaz de usuario para proveedores
@@ -27,8 +28,8 @@ export function cerrarFormularioProveedor() {
     document.getElementById('formulario-proveedor').style.display = 'none';
     document.querySelector('#formulario-proveedor form').reset();
     window.editandoProveedorId = null;
-    document.getElementById('form-title-proveedor').textContent = 'Nuevo Proveedor';
-    document.getElementById('btn-text-proveedor').textContent = 'Añadir';
+    document.getElementById('form-title-proveedor').textContent = t('proveedores:form_title_new');
+    document.getElementById('btn-text-proveedor').textContent = t('proveedores:btn_add');
 }
 
 /**
@@ -38,12 +39,12 @@ export function cargarIngredientesProveedor(seleccionados = []) {
     const container = document.getElementById('lista-ingredientes-proveedor');
     if (!window.ingredientes || window.ingredientes.length === 0) {
         container.innerHTML =
-            '<p style="color:#999;text-align:center;padding:20px;">Primero añade ingredientes</p>';
+            `<p style="color:#999;text-align:center;padding:20px;">${t('proveedores:add_ingredients_first')}</p>`;
         return;
     }
 
     let html =
-        '<div class="search-box-small"><input type="text" id="buscar-ing-prov" placeholder="Buscar ingrediente..." oninput="window.filtrarIngredientesProveedor()"></div>';
+        `<div class="search-box-small"><input type="text" id="buscar-ing-prov" placeholder="${t('proveedores:search_ingredient_placeholder')}" oninput="window.filtrarIngredientesProveedor()"></div>`;
     html += '<div id="lista-ing-checks">';
 
     (window.ingredientes || []).forEach(ing => {
@@ -91,14 +92,14 @@ export function renderizarProveedores() {
         container.innerHTML = `
       <div class="empty-state">
         <div class="icon">🚚</div>
-        <h3>${busqueda ? 'No encontrados' : 'Aún no hay proveedores'}</h3>
+        <h3>${busqueda ? t('proveedores:empty_not_found') : t('proveedores:empty_none_yet')}</h3>
       </div>
     `;
         return;
     }
 
     let html = '<table><thead><tr>';
-    html += '<th>Nombre</th><th>Contacto</th><th>Ingredientes</th><th>Acciones</th>';
+    html += `<th>${t('proveedores:col_name')}</th><th>${t('proveedores:col_contact')}</th><th>${t('proveedores:col_ingredients')}</th><th>${t('proveedores:col_actions')}</th>`;
     html += '</tr></thead><tbody>';
 
     filtrados.forEach(prov => {
@@ -146,14 +147,14 @@ export function verProveedorDetalles(id) {
     if (prov.direccion) html += `<p>📍 ${escapeHTML(prov.direccion)}</p>`;
     html += '</div>';
 
-    html += '<h4 style="margin-bottom: 8px;">Ingredientes:</h4><ul>';
+    html += `<h4 style="margin-bottom: 8px;">${t('proveedores:detail_ingredients')}</h4><ul>`;
     if (prov.ingredientes && prov.ingredientes.length > 0) {
         prov.ingredientes.forEach(ingId => {
             const ing = (window.ingredientes || []).find(i => i.id === ingId);
             if (ing) html += `<li>${escapeHTML(ing.nombre)}</li>`;
         });
     } else {
-        html += '<li style="color:#999;">Sin ingredientes asignados</li>';
+        html += `<li style="color:#999;">${t('proveedores:no_ingredients_assigned')}</li>`;
     }
     html += '</ul>';
 

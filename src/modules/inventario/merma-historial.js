@@ -4,6 +4,7 @@
  * @module modules/inventario/merma-historial
  */
 
+import { t } from '@/i18n/index.js';
 import { escapeHTML } from '../../utils/sanitize.js';
 import { formatCurrency, formatDate } from '../../utils/helpers.js';
 
@@ -39,7 +40,7 @@ export function renderizarHistorialMermas(mermas) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" style="text-align: center; padding: 20px; color: #64748b;">
-                    No hay registros de merma para este período
+                    ${t('inventario:history_empty')}
                 </td>
             </tr>
         `;
@@ -48,7 +49,7 @@ export function renderizarHistorialMermas(mermas) {
 
     const rows = mermas.map(m => {
         const ingredienteNombre = escapeHTML(m.ingrediente_nombre || 'N/A');
-        const motivo = escapeHTML(m.motivo || 'Sin especificar');
+        const motivo = escapeHTML(m.motivo || t('inventario:merma_no_reason'));
         const notas = escapeHTML(m.notas || '-');
 
         return `

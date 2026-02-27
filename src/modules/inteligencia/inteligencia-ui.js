@@ -1,3 +1,5 @@
+import { t } from '@/i18n/index.js';
+
 /**
  * 🧠 Inteligencia - Dashboard Predictivo
  */
@@ -144,29 +146,29 @@ const INTEL_STYLES = `
 // ========== RENDER PANELS ==========
 function renderFreshness(data) {
     if (!data || data.length === 0) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">✅</div><div>Todo el stock está fresco</div></div>`;
+        return `<div class="intel-empty"><div class="intel-empty-icon">✅</div><div>${t('inteligencia:empty_fresh')}</div></div>`;
     }
     return `<div class="intel-list">${data.slice(0, 8).map(a => `
         <div class="intel-item">
             <div>
                 <div class="intel-item-name">${a.nombre}</div>
-                <div class="intel-item-detail">${a.stock_actual} ${a.unidad} · Hace ${a.dias_desde_compra || 0} días</div>
+                <div class="intel-item-detail">${a.stock_actual} ${a.unidad} · ${t('inteligencia:label_days_since', { days: a.dias_desde_compra || 0 })}</div>
             </div>
             <span class="intel-badge ${a.urgencia === 'critico' ? 'badge-danger' : 'badge-warn'}">
-                ${a.urgencia === 'critico' ? '⚠️ REVISAR' : '📋 USAR HOY'}
+                ${a.urgencia === 'critico' ? '⚠️ ' + t('inteligencia:badge_review') : '📋 ' + t('inteligencia:badge_use_today')}
             </span>
         </div>
     `).join('')}</div>`;
 }
 
 function renderPurchase(data, day) {
-    const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const DIAS = [t('inteligencia:day_short_sun'), t('inteligencia:day_short_mon'), t('inteligencia:day_short_tue'), t('inteligencia:day_short_wed'), t('inteligencia:day_short_thu'), t('inteligencia:day_short_fri'), t('inteligencia:day_short_sat')];
     const dayBtns = `<div class="intel-days">${DIAS.map((d, i) => `
         <button class="intel-day-btn ${i === day ? 'active' : ''}" onclick="window.loadPurchasePlan(${i})">${d}</button>
     `).join('')}</div>`;
 
     if (!data || !data.sugerencias || data.sugerencias.length === 0) {
-        return dayBtns + `<div class="intel-empty"><div class="intel-empty-icon">📦</div><div>Stock suficiente para ${data?.dia_objetivo || 'este día'}</div></div>`;
+        return dayBtns + `<div class="intel-empty"><div class="intel-empty-icon">📦</div><div>${t('inteligencia:label_stock_sufficient', { day: data?.dia_objetivo || '' })}</div></div>`;
     }
     return dayBtns + `<div class="intel-list">${data.sugerencias.slice(0, 6).map(s => `
         <div class="intel-item">
@@ -181,7 +183,7 @@ function renderPurchase(data, day) {
 
 function renderOverstock(data) {
     if (!data || data.length === 0) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">👍</div><div>Niveles óptimos</div></div>`;
+        return `<div class="intel-empty"><div class="intel-empty-icon">👍</div><div>${t('inteligencia:empty_optimal')}</div></div>`;
     }
     return `<div class="intel-list">${data.slice(0, 8).map(i => `
         <div class="intel-item">
@@ -189,14 +191,14 @@ function renderOverstock(data) {
                 <div class="intel-item-name">${i.nombre}</div>
                 <div class="intel-item-detail">${parseFloat(i.stock_actual).toFixed(1)} ${i.unidad}</div>
             </div>
-            <span class="intel-badge badge-warn">📦 ${Math.round(i.dias_stock)} días</span>
+            <span class="intel-badge badge-warn">📦 ${t('inteligencia:label_days_stock', { days: Math.round(i.dias_stock) })}</span>
         </div>
     `).join('')}</div>`;
 }
 
 function renderPricing(data) {
     if (!data || !data.recetas_problema || data.recetas_problema.length === 0) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">💰</div><div>Precios rentables</div></div>`;
+        return `<div class="intel-empty"><div class="intel-empty-icon">💰</div><div>${t('inteligencia:empty_profitable')}</div></div>`;
     }
     return `<div class="intel-list">${data.recetas_problema.slice(0, 6).map(r => `
         <div class="intel-item">
@@ -211,21 +213,21 @@ function renderPricing(data) {
 
 function renderWaste(data) {
     if (!data || !data.mes_actual) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">📊</div><div>Sin datos de mermas</div></div>`;
+        return `<div class="intel-empty"><div class="intel-empty-icon">📊</div><div>${t('inteligencia:empty_no_waste_data')}</div></div>`;
     }
     const total = parseFloat(data.mes_actual.total_perdida || 0);
     const variacion = data.comparacion?.variacion || 0;
     const topProductos = data.top_productos || [];
 
     if (total === 0 && topProductos.length === 0) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">✅</div><div>Sin pérdidas este mes</div></div>`;
+        return `<div class="intel-empty"><div class="intel-empty-icon">✅</div><div>${t('inteligencia:empty_no_losses')}</div></div>`;
     }
 
     let html = `
         <div style="text-align:center;margin-bottom:16px;">
             <div style="font-size:2.5rem;font-weight:700;color:#ef4444;">${total.toFixed(2)}€</div>
-            <div style="color:#94a3b8;font-size:0.85rem;">Pérdidas este mes</div>
-            ${variacion !== 0 ? `<div style="color:${variacion > 0 ? '#ef4444' : '#22c55e'};font-size:0.8rem;margin-top:4px;">${variacion > 0 ? '↑' : '↓'} ${Math.abs(variacion)}% vs mes anterior</div>` : ''}
+            <div style="color:#94a3b8;font-size:0.85rem;">${t('inteligencia:label_losses_this_month')}</div>
+            ${variacion !== 0 ? `<div style="color:${variacion > 0 ? '#ef4444' : '#22c55e'};font-size:0.8rem;margin-top:4px;">${variacion > 0 ? '↑' : '↓'} ${Math.abs(variacion)}% ${t('inteligencia:label_vs_prev_month')}</div>` : ''}
         </div>
     `;
 
@@ -236,7 +238,7 @@ function renderWaste(data) {
                 <div class="intel-item">
                     <div>
                         <div class="intel-item-name">${p.nombre}</div>
-                        <div class="intel-item-detail">${parseFloat(p.cantidad_total).toFixed(2)} tirados (${p.veces}x)</div>
+                        <div class="intel-item-detail">${parseFloat(p.cantidad_total).toFixed(2)} ${t('inteligencia:label_discarded')} (${p.veces}x)</div>
                     </div>
                     <span class="intel-badge badge-danger">${parseFloat(p.perdida_total).toFixed(2)}€</span>
                 </div>
@@ -256,7 +258,7 @@ async function renderizarInteligencia() {
         document.head.insertAdjacentHTML('beforeend', INTEL_STYLES);
     }
 
-    container.innerHTML = `<div class="intel-dashboard"><div style="text-align:center;padding:60px;"><div style="font-size:40px;">⏳</div><div style="color:#64748b;">Cargando...</div></div></div>`;
+    container.innerHTML = `<div class="intel-dashboard"><div style="text-align:center;padding:60px;"><div style="font-size:40px;">⏳</div><div style="color:#64748b;">${t('inteligencia:loading')}</div></div></div>`;
 
     const [fresh, price, waste] = await Promise.all([
         fetchIntelligence('freshness'),
@@ -271,29 +273,29 @@ async function renderizarInteligencia() {
             <div class="intel-header">
                 <div class="intel-title">
                     <span style="font-size:40px;">🧠</span>
-                    <div><h1>Inteligencia</h1><div style="color:#64748b;font-size:0.8rem;">Actualizado: ${time}</div></div>
+                    <div><h1>${t('inteligencia:title')}</h1><div style="color:#64748b;font-size:0.8rem;">${t('inteligencia:updated_at', { time })}</div></div>
                 </div>
-                <button class="intel-btn" onclick="window.renderizarInteligencia()">🔄 Actualizar</button>
+                <button class="intel-btn" onclick="window.renderizarInteligencia()">🔄 ${t('inteligencia:btn_refresh')}</button>
             </div>
             <div class="intel-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="intel-panel panel-fresh">
                     <div class="intel-panel-header">
                         <div class="intel-panel-icon">🧊</div>
-                        <div><div class="intel-panel-title">Frescura del Stock</div><div class="intel-panel-sub">Productos frescos a revisar</div></div>
+                        <div><div class="intel-panel-title">${t('inteligencia:panel_freshness_title')}</div><div class="intel-panel-sub">${t('inteligencia:panel_freshness_sub')}</div></div>
                     </div>
                     ${renderFreshness(fresh)}
                 </div>
                 <div class="intel-panel panel-price">
                     <div class="intel-panel-header">
                         <div class="intel-panel-icon">💰</div>
-                        <div><div class="intel-panel-title">Revisión de Precios</div><div class="intel-panel-sub">Recetas con food cost > 40%</div></div>
+                        <div><div class="intel-panel-title">${t('inteligencia:panel_pricing_title')}</div><div class="intel-panel-sub">${t('inteligencia:panel_pricing_sub')}</div></div>
                     </div>
                     ${renderPricing(price)}
                 </div>
                 <div class="intel-panel panel-waste">
                     <div class="intel-panel-header">
                         <div class="intel-panel-icon">🗑️</div>
-                        <div><div class="intel-panel-title">Pérdidas del Mes</div><div class="intel-panel-sub">Productos tirados por exceso de compra</div></div>
+                        <div><div class="intel-panel-title">${t('inteligencia:panel_waste_title')}</div><div class="intel-panel-sub">${t('inteligencia:panel_waste_sub')}</div></div>
                     </div>
                     ${renderWaste(waste)}
                 </div>

@@ -3,6 +3,8 @@
  * Seguimiento de Costes de Recetas basado en precios de compra
  */
 
+import { t } from '@/i18n/index.js';
+
 /**
  * Muestra el modal de seguimiento de costes
  */
@@ -62,10 +64,10 @@ function crearModalCostTracker() {
             ">
                 <div>
                     <h2 style="margin: 0; color: white; font-size: 26px; font-weight: 700; display: flex; align-items: center; gap: 12px;">
-                        📊 Seguimiento de Costes en Tiempo Real
+                        📊 ${t('recetas:cost_tracker_title')}
                     </h2>
                     <p style="margin: 8px 0 0; color: rgba(255,255,255,0.85); font-size: 14px;">
-                        Los costes se actualizan automáticamente según tus compras
+                        ${t('recetas:cost_tracker_subtitle')}
                     </p>
                 </div>
                 <button onclick="window.cerrarCostTracker()" style="
@@ -93,13 +95,13 @@ function crearModalCostTracker() {
                 <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                     <thead>
                         <tr>
-                            <th style="width: 22%; padding: 14px 16px; text-align: left; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Receta</th>
-                            <th style="width: 12%; padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Categoría</th>
-                            <th style="width: 12%; padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Coste</th>
-                            <th style="width: 12%; padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Precio</th>
-                            <th style="width: 14%; padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Beneficio</th>
-                            <th style="width: 13%; padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Food Cost</th>
-                            <th style="width: 15%; padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">Estado</th>
+                            <th style="width: 22%; padding: 14px 16px; text-align: left; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">${t('recetas:cost_tracker_col_recipe')}</th>
+                            <th style="width: 12%; padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">${t('recetas:cost_tracker_col_category')}</th>
+                            <th style="width: 12%; padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">${t('recetas:cost_tracker_col_cost')}</th>
+                            <th style="width: 12%; padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">${t('recetas:cost_tracker_col_price')}</th>
+                            <th style="width: 14%; padding: 14px 16px; text-align: right; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">${t('recetas:cost_tracker_col_profit')}</th>
+                            <th style="width: 13%; padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">${t('recetas:cost_tracker_col_food_cost')}</th>
+                            <th style="width: 15%; padding: 14px 16px; text-align: center; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid rgba(255,255,255,0.3); background: #1a1a2e;">${t('recetas:cost_tracker_col_status')}</th>
                         </tr>
                     </thead>
                 </table>
@@ -122,7 +124,7 @@ function crearModalCostTracker() {
             ">
                 <div style="display: flex; align-items: center; gap: 12px; color: #94a3b8; font-size: 14px;">
                     <span style="font-size: 20px;">💡</span>
-                    <span>Los costes se calculan con el <strong style="color: #a78bfa;">precio medio</strong> de tus últimas compras. Recibe un pedido con precio diferente y verás el impacto aquí.</span>
+                    <span>${t('recetas:cost_tracker_tip')}</span>
                 </div>
             </div>
         </div>
@@ -233,19 +235,19 @@ function actualizarDatosCostTracker() {
         // Determinar estado y colores
         let estado, bgColor, textColor, icon;
         if (foodCost <= 33) {
-            estado = 'Rentable';
+            estado = t('recetas:cost_tracker_profitable');
             bgColor = 'rgba(16, 185, 129, 0.2)';
             textColor = '#10B981';
             icon = '✅';
             recetasRentables++;
         } else if (foodCost <= 38) {
-            estado = 'Ajustado';
+            estado = t('recetas:cost_tracker_tight');
             bgColor = 'rgba(245, 158, 11, 0.2)';
             textColor = '#F59E0B';
             icon = '⚠️';
             recetasAjustadas++;
         } else {
-            estado = 'Alerta';
+            estado = t('recetas:cost_tracker_alert');
             bgColor = 'rgba(239, 68, 68, 0.2)';
             textColor = '#EF4444';
             icon = '🚨';
@@ -259,17 +261,17 @@ function actualizarDatosCostTracker() {
         const barWidth = Math.min(foodCost, 100);
 
         // Build recipe name HTML - use yellow/gold color as originally designed
-        const nombreReceta = receta.nombre || 'SIN NOMBRE';
+        const nombreReceta = receta.nombre || t('recetas:cost_tracker_no_name');
 
         html += `
             <tr style="background:transparent">
                 <td style="width: 22%; padding:16px;border-bottom:1px solid rgba(255,255,255,0.08)">
                     <div style="color:#FFD700;font-size:15px;font-weight:700">${nombreReceta}</div>
-                    <small style="color:#9CA3AF">${receta.numIngredientes} ingredientes</small>
+                    <small style="color:#9CA3AF">${receta.numIngredientes} ${t('recetas:cost_tracker_ingredients')}</small>
                 </td>
                 <td style="width: 12%; padding: 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                        ${receta.categoria || 'Sin categoría'}
+                        ${receta.categoria || t('recetas:cost_tracker_no_category')}
                     </span>
                 </td>
                 <td style="width: 12%; padding: 16px; text-align: right; color: #F97316; font-weight: 700; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -298,7 +300,7 @@ function actualizarDatosCostTracker() {
         `;
     });
 
-    tbody.innerHTML = html || '<tr><td colspan="7" style="padding: 60px; text-align: center; color: #64748b;">No hay recetas configuradas</td></tr>';
+    tbody.innerHTML = html || `<tr><td colspan="7" style="padding: 60px; text-align: center; color: #64748b;">${t('recetas:cost_tracker_no_recipes')}</td></tr>`;
 
     // Actualizar summary cards
     const summary = document.getElementById('cost-tracker-summary');
@@ -312,7 +314,7 @@ function actualizarDatosCostTracker() {
                 text-align: center;
             ">
                 <div style="font-size: 36px; font-weight: 800; color: #10B981;">${recetasRentables}</div>
-                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">✅ Rentables</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">✅ ${t('recetas:cost_tracker_profitable_count')}</div>
                 <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Food Cost &lt; 33%</div>
             </div>
             <div style="
@@ -323,7 +325,7 @@ function actualizarDatosCostTracker() {
                 text-align: center;
             ">
                 <div style="font-size: 36px; font-weight: 800; color: #F59E0B;">${recetasAjustadas}</div>
-                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">⚠️ Ajustadas</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">⚠️ ${t('recetas:cost_tracker_tight_count')}</div>
                 <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Food Cost 33-38%</div>
             </div>
             <div style="
@@ -334,7 +336,7 @@ function actualizarDatosCostTracker() {
                 text-align: center;
             ">
                 <div style="font-size: 36px; font-weight: 800; color: #EF4444;">${recetasAlerta}</div>
-                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">🚨 En Alerta</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">🚨 ${t('recetas:cost_tracker_alert_count')}</div>
                 <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Food Cost &gt; 38%</div>
             </div>
             <div style="
@@ -345,8 +347,8 @@ function actualizarDatosCostTracker() {
                 text-align: center;
             ">
                 <div style="font-size: 28px; font-weight: 800; color: ${totalBeneficio >= 0 ? '#a78bfa' : '#EF4444'};">${totalBeneficio >= 0 ? '+' : ''}${totalBeneficio.toFixed(0)}€</div>
-                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">💰 Beneficio Total</div>
-                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Suma de márgenes</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">💰 ${t('recetas:cost_tracker_total_profit')}</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">${t('recetas:cost_tracker_margin_sum')}</div>
             </div>
         `;
     }

@@ -5,6 +5,7 @@
  */
 
 import { showToast } from '../../ui/toast.js';
+import { t } from '@/i18n/index.js';
 
 // === BALANCE / P&L UNIFICADO ===
 export async function renderizarBalance() {
@@ -96,7 +97,7 @@ export async function renderizarBalance() {
         setEl('pl-ingresos', ingresos.toFixed(2) + ' €');
         setEl('pl-cogs', cogs.toFixed(2) + ' €');
         const cogsPct = ingresos > 0 ? (cogs / ingresos) * 100 : 0;
-        setEl('pl-cogs-pct', cogsPct.toFixed(1) + '% sobre ventas');
+        setEl('pl-cogs-pct', cogsPct.toFixed(1) + t('balance:pct_over_sales'));
         const margenBruto = ingresos - cogs;
         setEl('pl-margen-bruto', margenBruto.toFixed(2) + ' €');
         const margenPct = ingresos > 0 ? (margenBruto / ingresos) * 100 : 0;
@@ -108,7 +109,7 @@ export async function renderizarBalance() {
         calcularPL();
     } catch (error) {
         console.error('Error renderizando P&L:', error);
-        showToast('Error cargando datos financieros', 'error');
+        showToast(t('balance:error_loading'), 'error');
     }
 }
 
@@ -121,7 +122,7 @@ export function calcularPL() {
     const otrosEl = document.getElementById('pl-input-otros');
 
     if (!ingresosEl || !cogsEl || !alquilerEl || !personalEl || !suministrosEl || !otrosEl) {
-        console.warn('Inputs de P&L no cargados aún');
+        console.warn(t('balance:inputs_not_loaded'));
         return;
     }
 
@@ -145,7 +146,7 @@ export function calcularPL() {
     netoEl.style.color = beneficioNeto >= 0 ? '#10b981' : '#ef4444';
 
     const rentabilidad = ingresos > 0 ? (beneficioNeto / ingresos) * 100 : 0;
-    document.getElementById('pl-neto-pct').textContent = rentabilidad.toFixed(1) + '% Rentabilidad';
+    document.getElementById('pl-neto-pct').textContent = rentabilidad.toFixed(1) + t('balance:pct_profitability');
 
     let margenContribucionPct = ingresos > 0 ? margenBruto / ingresos : 0.7;
     if (margenContribucionPct <= 0) margenContribucionPct = 0.1;
@@ -162,17 +163,17 @@ export function calcularPL() {
     termometroFill.style.height = `${alturaTermometro}%`;
 
     if (ingresos < breakEven) {
-        estadoBadge.textContent = 'EN PÉRDIDAS';
+        estadoBadge.textContent = t('balance:status_loss');
         estadoBadge.style.background = '#fee2e2';
         estadoBadge.style.color = '#991b1b';
         const falta = breakEven - ingresos;
-        mensajeAnalisis.innerHTML = `Te faltan <strong>${falta.toFixed(0)}€</strong> para cubrir gastos.<br>Estás al <strong>${porcentajeCumplimiento.toFixed(0)}%</strong> del objetivo.`;
+        mensajeAnalisis.innerHTML = t('balance:analysis_loss', { amount: falta.toFixed(0), pct: porcentajeCumplimiento.toFixed(0) });
     } else {
-        estadoBadge.textContent = 'EN BENEFICIOS';
+        estadoBadge.textContent = t('balance:status_profit');
         estadoBadge.style.background = '#d1fae5';
         estadoBadge.style.color = '#065f46';
         const sobra = ingresos - breakEven;
-        mensajeAnalisis.innerHTML = `¡Enhorabuena! Cubres gastos y generas <strong>${beneficioNeto.toFixed(0)}€</strong> de beneficio.<br>Superas el equilibrio por <strong>${sobra.toFixed(0)}€</strong>.`;
+        mensajeAnalisis.innerHTML = t('balance:analysis_profit', { amount: beneficioNeto.toFixed(0), surplus: sobra.toFixed(0) });
     }
 }
 

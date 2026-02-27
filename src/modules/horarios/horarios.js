@@ -6,6 +6,7 @@
 import { showToast } from '../../ui/toast.js';
 import { getApiUrl } from '../../config/app-config.js';
 import { escapeHTML } from '../../utils/sanitize.js';
+import { t } from '@/i18n/index.js';
 
 /**
  * 🔒 Safe JSON parse para evitar crashes con JSON malformado
@@ -69,7 +70,7 @@ async function cargarEmpleados() {
         console.log(`📋 Empleados cargados: ${empleados.length}`);
     } catch (error) {
         console.error('❌ Error cargando empleados:', error);
-        showToast('Error cargando empleados: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_loading_employees') + ': ' + error.message, 'error');
         empleados = [];
         window.empleados = [];
     }
@@ -97,7 +98,7 @@ async function cargarHorariosSemana() {
         console.log(`📅 Horarios cargados: ${horarios.length}`);
     } catch (error) {
         console.error('❌ Error cargando horarios:', error);
-        showToast('Error cargando horarios: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_loading_schedules') + ': ' + error.message, 'error');
         horarios = [];
         window.horarios = [];
     }
@@ -114,8 +115,8 @@ function renderizarEmpleados() {
         container.innerHTML = `
             <div style="text-align: center; padding: 40px; color: #94a3b8;">
                 <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
-                <p style="font-size: 16px;">No hay empleados todavía</p>
-                <p style="font-size: 14px; color: #cbd5e1;">Añade tu primer empleado para empezar</p>
+                <p style="font-size: 16px;">${t('horarios:empty_no_employees')}</p>
+                <p style="font-size: 14px; color: #cbd5e1;">${t('horarios:empty_add_first')}</p>
             </div>
         `;
         return;
@@ -171,13 +172,13 @@ function renderizarEmpleados() {
 
                 <!-- Botones -->
                 <div style="display: flex; gap: 8px;">
-                    <button class="icon-btn" onclick="window.editarEmpleado(${emp.id})" title="Editar"
+                    <button class="icon-btn" onclick="window.editarEmpleado(${emp.id})" title="${t('horarios:btn_edit')}"
                         style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #e2e8f0; background: white; color: #667eea; font-size: 16px; cursor: pointer; transition: all 0.2s;"
                         onmouseenter="this.style.background='#667eea'; this.style.color='white';"
                         onmouseleave="this.style.background='white'; this.style.color='#667eea';">
                         ✏️
                     </button>
-                    <button class="icon-btn" onclick="window.eliminarEmpleado(${emp.id})" title="Eliminar"
+                    <button class="icon-btn" onclick="window.eliminarEmpleado(${emp.id})" title="${t('horarios:btn_delete')}"
                         style="width: 36px; height: 36px; border-radius: 8px; border: 2px solid #e2e8f0; background: white; color: #ef4444; font-size: 16px; cursor: pointer; transition: all 0.2s;"
                         onmouseenter="this.style.background='#ef4444'; this.style.color='white';"
                         onmouseleave="this.style.background='white'; this.style.color='#ef4444';">
@@ -196,10 +197,10 @@ function renderizarEmpleados() {
  * Renderiza días libres como badges
  */
 function renderizarDiasLibres(diasLibres) {
-    if (!diasLibres || diasLibres.length === 0) return '<span style="font-size: 12px; color: #cbd5e1;">Sin días libres</span>';
+    if (!diasLibres || diasLibres.length === 0) return `<span style="font-size: 12px; color: #cbd5e1;">${t('horarios:no_days_off')}</span>`;
 
     const dias = typeof diasLibres === 'string' ? safeJSONParse(diasLibres, []) : diasLibres;
-    const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const nombresDias = [t('horarios:days_short_sun'), t('horarios:days_short_mon'), t('horarios:days_short_tue'), t('horarios:days_short_wed'), t('horarios:days_short_thu'), t('horarios:days_short_fri'), t('horarios:days_short_sat')];
 
     return dias.map(d => {
         return `<span style="background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">${nombresDias[d]}</span>`;
@@ -211,7 +212,7 @@ function renderizarDiasLibres(diasLibres) {
  */
 function renderizarDiasLibresSemana(empleadoId) {
     const { inicio } = obtenerRangoSemana(semanaActual);
-    const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const nombresDias = [t('horarios:days_short_sun'), t('horarios:days_short_mon'), t('horarios:days_short_tue'), t('horarios:days_short_wed'), t('horarios:days_short_thu'), t('horarios:days_short_fri'), t('horarios:days_short_sat')];
     const diasLibres = [];
 
     // Solo Lunes a Sábado (6 días, sin domingo)
@@ -231,7 +232,7 @@ function renderizarDiasLibresSemana(empleadoId) {
     }
 
     if (diasLibres.length === 0) {
-        return '<span style="font-size: 12px; color: #cbd5e1;">Sin días libres</span>';
+        return `<span style="font-size: 12px; color: #cbd5e1;">${t('horarios:no_days_off')}</span>`;
     }
 
     return diasLibres.map(d => {
@@ -272,7 +273,7 @@ function renderizarGridHorarios() {
         container.innerHTML = `
             <div style="text-align: center; padding: 60px; color: #94a3b8;">
                 <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
-                <p style="font-size: 16px;">Añade empleados para ver el horario</p>
+                <p style="font-size: 16px;">${t('horarios:empty_add_for_grid')}</p>
             </div>
         `;
         return;
@@ -291,13 +292,13 @@ function renderizarGridHorarios() {
     let html = `
         <div style="display: flex; gap: 8px; margin-bottom: 16px;">
             <button onclick="window.filtrarDepartamento('todos')" style="padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; ${filtroDepartamento === 'todos' ? 'background: #667eea; color: white; border: none;' : 'background: white; color: #64748b; border: 2px solid #e2e8f0;'}">
-                👥 TODOS
+                👥 ${t('horarios:filter_all')}
             </button>
             <button onclick="window.filtrarDepartamento('cocina')" style="padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; ${filtroDepartamento === 'cocina' ? 'background: #f97316; color: white; border: none;' : 'background: white; color: #64748b; border: 2px solid #e2e8f0;'}">
-                🍳 COCINA
+                🍳 ${t('horarios:filter_kitchen')}
             </button>
             <button onclick="window.filtrarDepartamento('sala')" style="padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; ${filtroDepartamento === 'sala' ? 'background: #22c55e; color: white; border: none;' : 'background: white; color: #64748b; border: 2px solid #e2e8f0;'}">
-                🍽️ SALA
+                🍽️ ${t('horarios:filter_dining')}
             </button>
         </div>
     `;
@@ -307,7 +308,7 @@ function renderizarGridHorarios() {
 
     // Header con días
     html += '<thead><tr style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">';
-    html += '<th style="padding: 16px; text-align: left; font-weight: 700; color: #1e293b; border-bottom: 2px solid #e2e8f0; position: sticky; left: 0; background: #f8fafc; z-index: 2; min-width: 180px;">Empleado</th>';
+    html += `<th style="padding: 16px; text-align: left; font-weight: 700; color: #1e293b; border-bottom: 2px solid #e2e8f0; position: sticky; left: 0; background: #f8fafc; z-index: 2; min-width: 180px;">${t('horarios:grid_header_employee')}</th>`;
 
     dias.forEach(dia => {
         const nombreDia = dia.toLocaleDateString('es-ES', { weekday: 'short' }).toUpperCase();
@@ -372,17 +373,17 @@ function renderizarGridHorarios() {
 
             if (esDiaLibre) {
                 // Día libre fijo del empleado - NO se puede cambiar
-                html += '<div style="padding: 16px 12px; background: #fef2f2; border: 2px solid #fca5a5; border-radius: 8px; color: #ef4444; font-size: 14px; font-weight: 700; cursor: not-allowed;">LIBRE</div>';
+                html += `<div style="padding: 16px 12px; background: #fef2f2; border: 2px solid #fca5a5; border-radius: 8px; color: #ef4444; font-size: 14px; font-weight: 700; cursor: not-allowed;">${t('horarios:grid_libre')}</div>`;
             } else if (turno) {
                 // TRABAJA - mostrar A CURRAR (verde) - clic para quitar
                 html += `
                     <div onclick="window.toggleTurno(${emp.id}, '${fechaStr}')" style="padding: 16px 12px; background: #dcfce7; border: 2px solid #86efac; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #166534; font-size: 13px; font-weight: 700;" onmouseenter="this.style.transform='scale(1.05)'; this.style.background='#bbf7d0';" onmouseleave="this.style.transform='scale(1)'; this.style.background='#dcfce7';">
-                        💪 A CURRAR
+                        💪 ${t('horarios:grid_working')}
                     </div>
                 `;
             } else {
                 // NO TRABAJA - mostrar LIBRE (rojo claro) - clic para añadir
-                html += `<div onclick="window.toggleTurno(${emp.id}, '${fechaStr}')" style="padding: 16px 12px; background: #fef2f2; border: 2px dashed #fca5a5; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #ef4444; font-size: 13px; font-weight: 700;" onmouseenter="this.style.borderColor='#f87171'; this.style.background='#fee2e2';" onmouseleave="this.style.borderColor='#fca5a5'; this.style.background='#fef2f2';">LIBRE</div>`;
+                html += `<div onclick="window.toggleTurno(${emp.id}, '${fechaStr}')" style="padding: 16px 12px; background: #fef2f2; border: 2px dashed #fca5a5; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #ef4444; font-size: 13px; font-weight: 700;" onmouseenter="this.style.borderColor='#f87171'; this.style.background='#fee2e2';" onmouseleave="this.style.borderColor='#fca5a5'; this.style.background='#fef2f2';">${t('horarios:grid_libre')}</div>`;
             }
 
             html += '</td>';
@@ -414,8 +415,8 @@ window.nuevoEmpleado = function () {
     });
 
     // Cambiar título
-    document.getElementById('modal-empleado-titulo').innerHTML = '<span style="font-size: 28px;">👤</span> Nuevo Empleado';
-    document.getElementById('btn-guardar-empleado-text').textContent = 'Guardar';
+    document.getElementById('modal-empleado-titulo').innerHTML = `<span style="font-size: 28px;">👤</span> ${t('horarios:employee_modal_title_new')}`;
+    document.getElementById('btn-guardar-empleado-text').textContent = t('horarios:btn_save');
 
     // Mostrar modal centrado
     const modal = document.getElementById('modal-empleado');
@@ -457,8 +458,8 @@ window.editarEmpleado = async function (id) {
     });
 
     // Cambiar título
-    document.getElementById('modal-empleado-titulo').innerHTML = '<span style="font-size: 28px;">✏️</span> Editar Empleado';
-    document.getElementById('btn-guardar-empleado-text').textContent = 'Actualizar';
+    document.getElementById('modal-empleado-titulo').innerHTML = `<span style="font-size: 28px;">✏️</span> ${t('horarios:employee_modal_title_edit')}`;
+    document.getElementById('btn-guardar-empleado-text').textContent = t('horarios:btn_update');
 
     // Mostrar modal centrado
     const modal = document.getElementById('modal-empleado');
@@ -486,7 +487,7 @@ window.guardarEmpleado = async function () {
 
     // Validar
     if (!nombre) {
-        showToast('El nombre es obligatorio', 'error');
+        showToast(t('horarios:error_name_required'), 'error');
         return;
     }
 
@@ -531,7 +532,7 @@ window.guardarEmpleado = async function () {
 
         if (!response.ok) throw new Error('Error guardando empleado');
 
-        showToast(empleadoEditando ? 'Empleado actualizado' : 'Empleado creado', 'success');
+        showToast(empleadoEditando ? t('horarios:toast_employee_updated') : t('horarios:toast_employee_created'), 'success');
 
         // Recargar y cerrar
         await cargarEmpleados();
@@ -541,7 +542,7 @@ window.guardarEmpleado = async function () {
 
     } catch (error) {
         console.error('Error guardando empleado:', error);
-        showToast('Error guardando empleado: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_saving_employee') + ': ' + error.message, 'error');
     }
 };
 
@@ -549,7 +550,7 @@ window.guardarEmpleado = async function () {
  * Elimina un empleado
  */
 window.eliminarEmpleado = async function (id) {
-    if (!confirm('¿Eliminar este empleado?')) return;
+    if (!confirm(t('horarios:confirm_delete_employee'))) return;
 
     try {
         const response = await fetch(`${API_BASE}/empleados/${id}`, {
@@ -560,7 +561,7 @@ window.eliminarEmpleado = async function (id) {
 
         if (!response.ok) throw new Error('Error eliminando empleado');
 
-        showToast('Empleado eliminado', 'success');
+        showToast(t('horarios:toast_employee_deleted'), 'success');
 
         await cargarEmpleados();
         renderizarEmpleados();
@@ -568,7 +569,7 @@ window.eliminarEmpleado = async function (id) {
 
     } catch (error) {
         console.error('Error eliminando empleado:', error);
-        showToast('Error eliminando empleado: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_deleting_employee') + ': ' + error.message, 'error');
     }
 };
 
@@ -591,7 +592,7 @@ window.toggleTurno = async function (empleadoId, fecha) {
     // Verificar si es día libre fijo
     const fechaObj = new Date(fecha + 'T00:00:00');
     if (esDiaLibreFijo(emp.dias_libres_fijos, fechaObj.getDay())) {
-        showToast('Este es un día libre fijo del empleado', 'warning');
+        showToast(t('horarios:fixed_day_off'), 'warning');
         return;
     }
 
@@ -640,7 +641,7 @@ async function asignarTurno(empleadoId, fecha) {
 
     } catch (error) {
         console.error('Error asignando turno:', error);
-        showToast('Error asignando turno: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_assigning_shift') + ': ' + error.message, 'error');
     }
 }
 
@@ -662,7 +663,7 @@ async function quitarTurno(empleadoId, fecha) {
 
     } catch (error) {
         console.error('Error quitando turno:', error);
-        showToast('Error quitando turno: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_removing_shift') + ': ' + error.message, 'error');
     }
 }
 
@@ -701,11 +702,11 @@ window.filtrarDepartamento = function (departamento) {
  * Borrar TODOS los horarios (limpieza masiva)
  */
 window.borrarTodosHorarios = async function () {
-    if (!confirm('⚠️ ¿BORRAR TODOS LOS HORARIOS?\n\nEsto eliminará TODOS los turnos de TODAS las semanas.\nLos empleados se mantienen.\n\n¿Continuar?')) return;
-    if (!confirm('🔴 CONFIRMACIÓN FINAL\n\n¿Estás SEGURO de borrar todos los horarios?')) return;
+    if (!confirm(t('horarios:confirm_clear_all_full'))) return;
+    if (!confirm(t('horarios:confirm_clear_all_final'))) return;
 
     try {
-        showToast('🗑️ Borrando todos los horarios...', 'info');
+        showToast(t('horarios:toast_clearing_all'), 'info');
 
         const response = await fetch(`${API_BASE}/horarios/all`, {
             method: 'DELETE',
@@ -716,7 +717,7 @@ window.borrarTodosHorarios = async function () {
         if (!response.ok) throw new Error('Error al borrar horarios');
 
         const result = await response.json();
-        showToast(`✅ ${result.deleted || 0} horarios eliminados`, 'success');
+        showToast(t('horarios:toast_cleared_count', { count: result.deleted || 0 }), 'success');
 
         await cargarHorariosSemana();
         renderizarGridHorarios();
@@ -724,7 +725,7 @@ window.borrarTodosHorarios = async function () {
 
     } catch (error) {
         console.error('Error borrando horarios:', error);
-        showToast('Error borrando horarios: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_clearing') + ': ' + error.message, 'error');
     }
 };
 
@@ -732,10 +733,10 @@ window.borrarTodosHorarios = async function () {
  * Copiar semana anterior
  */
 window.copiarSemana = async function () {
-    if (!confirm('¿Copiar los turnos de la semana anterior a esta semana?\n\nEsto añadirá los turnos de la semana pasada a esta semana.')) return;
+    if (!confirm(t('horarios:confirm_copy_week'))) return;
 
     try {
-        showToast('📋 Copiando turnos...', 'info');
+        showToast(t('horarios:toast_copying'), 'info');
 
         // Obtener semana anterior
         const semanaAnterior = new Date(semanaActual);
@@ -756,7 +757,7 @@ window.copiarSemana = async function () {
         const horariosAnteriores = await response.json();
 
         if (horariosAnteriores.length === 0) {
-            showToast('⚠️ No hay turnos en la semana anterior para copiar', 'warning');
+            showToast(t('horarios:toast_no_shifts_to_copy'), 'warning');
             return;
         }
 
@@ -789,7 +790,7 @@ window.copiarSemana = async function () {
             }
         }
 
-        showToast(`✅ ${copiados} turnos copiados`, 'success');
+        showToast(t('horarios:toast_copied_count', { count: copiados }), 'success');
 
         await cargarHorariosSemana();
         renderizarGridHorarios();
@@ -797,7 +798,7 @@ window.copiarSemana = async function () {
 
     } catch (error) {
         console.error('Error copiando semana:', error);
-        showToast('Error copiando semana: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_copying') + ': ' + error.message, 'error');
     }
 };
 
@@ -806,15 +807,15 @@ window.copiarSemana = async function () {
  */
 window.generarHorarioIA = async function () {
     if (empleados.length === 0) {
-        showToast('Añade empleados primero', 'warning');
+        showToast(t('horarios:toast_add_employees_first'), 'warning');
         return;
     }
 
-    const accion = confirm('¿Generar horario automático con IA?\n\n✅ Aceptar = BORRAR semana actual y generar desde cero\n\nReglas aplicadas:\n- Bea: Mié+Jue libres\n- Fran/Lola: Sab+Dom libres\n- Laura: Lun+Mar libres\n- Iker: Dom + 2 días entre semana\n- Javi: Solo sábados\n- Fran: 11:30-19:30\n- Resto: 10:00-18:00');
+    const accion = confirm(t('horarios:confirm_generate_ai') + '\n\n✅ OK = BORRAR semana actual\n\n' + t('horarios:ai_rules_title') + '\n- Bea: Mié+Jue\n- Fran/Lola: Sab+Dom\n- Laura: Lun+Mar\n- Iker: Dom + 2\n- Javi: Solo sábados\n- Fran: 11:30-19:30\n- Resto: 10:00-18:00');
 
     if (!accion) return;
 
-    showToast('🗑️ Borrando turnos existentes...', 'info');
+    showToast(t('horarios:toast_clearing_existing'), 'info');
 
     try {
         const { inicio, fin } = obtenerRangoSemana(semanaActual);
@@ -833,13 +834,13 @@ window.generarHorarioIA = async function () {
             }
         }
 
-        showToast('⚡ Generando horario inteligente...', 'info');
+        showToast(t('horarios:toast_generating_ai'), 'info');
 
         // PASO 2: Generar nuevos turnos (pasando array vacío porque borramos todo)
         const turnosNuevos = await generarHorarioInteligente(empleados, inicio, fin, []);
 
         if (turnosNuevos.length === 0) {
-            showToast('⚠️ No se generaron turnos', 'warning');
+            showToast(t('horarios:toast_no_shifts_generated'), 'warning');
             await cargarHorariosSemana();
             renderizarGridHorarios();
             return;
@@ -862,7 +863,7 @@ window.generarHorarioIA = async function () {
             }
         }
 
-        showToast(`✅ ${turnosCreados} turnos generados`, 'success');
+        showToast(t('horarios:toast_generated_count', { count: turnosCreados }), 'success');
 
         await cargarHorariosSemana();
         renderizarGridHorarios();
@@ -870,7 +871,7 @@ window.generarHorarioIA = async function () {
 
     } catch (error) {
         console.error('Error generando horario:', error);
-        showToast('Error generando horario: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_generating') + ': ' + error.message, 'error');
     }
 };
 
@@ -1111,7 +1112,7 @@ function obtenerEmojiPuesto(puesto) {
  * Descarga el horario mensual como documento HTML/PDF
  */
 window.descargarHorarioMensual = async function () {
-    showToast('📥 Generando documento...', 'info');
+    showToast(t('horarios:toast_generating_doc'), 'info');
 
     try {
 
@@ -1397,12 +1398,12 @@ window.descargarHorarioMensual = async function () {
                 <div class="logo">⚓</div>
                 <div class="header-text">
                     <h1>${restaurantName}</h1>
-                    <div class="subtitle">📅 Planificación de Personal</div>
+                    <div class="subtitle">📅 ${t('horarios:download_staff_planning')}</div>
                     <div class="month-year">${nombresMeses[mesActual]} ${anioActual}</div>
                 </div>
             </div>
             <div class="header-badge">
-                📊 HORARIO MENSUAL
+                📊 ${t('horarios:download_monthly_schedule')}
             </div>
         </header>
 `;
@@ -1419,12 +1420,12 @@ window.descargarHorarioMensual = async function () {
             </div>
             <table>
                 <tr>
-                    <th>Lunes</th>
-                    <th>Martes</th>
-                    <th>Miércoles</th>
-                    <th>Jueves</th>
-                    <th>Viernes</th>
-                    <th>Sábado</th>
+                    <th>${t('horarios:days_mon')}</th>
+                    <th>${t('horarios:days_tue')}</th>
+                    <th>${t('horarios:days_wed')}</th>
+                    <th>${t('horarios:days_thu')}</th>
+                    <th>${t('horarios:days_fri')}</th>
+                    <th>${t('horarios:days_sat')}</th>
                 </tr>
                 <tr>
 `;
@@ -1469,8 +1470,8 @@ window.descargarHorarioMensual = async function () {
 
         html += `
         <footer class="footer">
-            <p>Generado con ❤️ por <strong>MindLoop CostOS</strong></p>
-            <p style="margin-top: 8px; opacity: 0.7;">© ${anioActual} ${restaurantName} • Todos los derechos reservados</p>
+            <p>${t('horarios:download_footer_generated')} <strong>MindLoop CostOS</strong></p>
+            <p style="margin-top: 8px; opacity: 0.7;">© ${anioActual} ${restaurantName} • ${t('horarios:download_footer_rights')}</p>
         </footer>
     </div>
 </body>
@@ -1488,11 +1489,11 @@ window.descargarHorarioMensual = async function () {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        showToast('✅ Horario descargado', 'success');
+        showToast(t('horarios:toast_downloaded'), 'success');
 
     } catch (error) {
         console.error('Error descargando horario:', error);
-        showToast('Error descargando horario: ' + error.message, 'error');
+        showToast(t('horarios:toast_error_downloading') + ': ' + error.message, 'error');
     }
 };
 

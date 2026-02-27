@@ -5,6 +5,7 @@
  */
 
 import { loadXLSX } from './lazy-vendors.js';
+import { getCurrentLanguage } from '@/i18n/index.js';
 
 /**
  * Obtiene el nombre del restaurante del usuario actual
@@ -155,7 +156,8 @@ export function formatCurrency(value) {
 export function formatDate(date) {
     if (!date) return '-';
     const d = new Date(date);
-    return d.toLocaleDateString('es-ES');
+    const locale = getCurrentLanguage() === 'en' ? 'en-GB' : 'es-ES';
+    return d.toLocaleDateString(locale);
 }
 
 /**
@@ -166,7 +168,8 @@ export function formatDate(date) {
 export function formatDateTime(date) {
     if (!date) return '-';
     const d = new Date(date);
-    return d.toLocaleString('es-ES');
+    const locale = getCurrentLanguage() === 'en' ? 'en-GB' : 'es-ES';
+    return d.toLocaleString(locale);
 }
 
 /**
@@ -205,13 +208,15 @@ export function getFechaHoy() {
  */
 export function getFechaHoyFormateada() {
     const hoy = new Date();
+    const lang = getCurrentLanguage();
+    const locale = lang === 'en' ? 'en-US' : 'es-ES';
     const opciones = {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
     };
-    return hoy.toLocaleDateString('es-ES', opciones);
+    return hoy.toLocaleDateString(locale, opciones);
 }
 
 /**
@@ -220,16 +225,18 @@ export function getFechaHoyFormateada() {
  */
 export function getPeriodoActual() {
     const hoy = new Date();
+    const lang = getCurrentLanguage();
+    const locale = lang === 'en' ? 'en-US' : 'es-ES';
     const inicioAño = new Date(hoy.getFullYear(), 0, 1);
     const diasDesdeInicio = Math.floor((hoy - inicioAño) / (24 * 60 * 60 * 1000));
     const semana = Math.ceil((diasDesdeInicio + inicioAño.getDay() + 1) / 7);
 
     return {
         dia: hoy.getDate(),
-        diaSemana: hoy.toLocaleDateString('es-ES', { weekday: 'long' }),
+        diaSemana: hoy.toLocaleDateString(locale, { weekday: 'long' }),
         semana: semana,
         mes: hoy.getMonth() + 1,
-        mesNombre: hoy.toLocaleDateString('es-ES', { month: 'long' }),
+        mesNombre: hoy.toLocaleDateString(locale, { month: 'long' }),
         año: hoy.getFullYear(),
         trimestre: Math.ceil((hoy.getMonth() + 1) / 3),
     };
