@@ -59,27 +59,25 @@ async function _cargarDatosInternal() {
         const [ingredientes, recetas, proveedores, pedidos, inventario, ingredientesProveedores, recetasVariantes] = await Promise.all([
             fetch(API_BASE + '/ingredients', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /ingredients failed, keeping existing data'), window.ingredientes || [])
-            ),
+            ).catch(() => (console.warn('⚠️ /ingredients network error'), window.ingredientes || [])),
             fetch(API_BASE + '/recipes', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /recipes failed, keeping existing data'), window.recetas || [])
-            ),
+            ).catch(() => (console.warn('⚠️ /recipes network error'), window.recetas || [])),
             fetch(API_BASE + '/suppliers', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /suppliers failed, keeping existing data'), window.proveedores || [])
-            ),
+            ).catch(() => (console.warn('⚠️ /suppliers network error'), window.proveedores || [])),
             fetch(API_BASE + '/orders', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /orders failed, keeping existing data'), window.pedidos || [])
-            ),
+            ).catch(() => (console.warn('⚠️ /orders network error'), window.pedidos || [])),
             fetch(API_BASE + '/inventory/complete', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /inventory failed, keeping existing data'), window.inventarioCompleto || [])
-            ),
-            // 💰 Cargar precios de cada proveedor por ingrediente
+            ).catch(() => (console.warn('⚠️ /inventory network error'), window.inventarioCompleto || [])),
             fetch(API_BASE + '/ingredients-suppliers', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /ingredients-suppliers failed, keeping existing data'), window.ingredientesProveedores || [])
-            ),
-            // 🍷 Cargar variantes de recetas (botella/copa)
+            ).catch(() => (console.warn('⚠️ /ingredients-suppliers network error'), window.ingredientesProveedores || [])),
             fetch(API_BASE + '/recipes-variants', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /recipes-variants failed, keeping existing data'), window.recetasVariantes || [])
-            ),
+            ).catch(() => (console.warn('⚠️ /recipes-variants network error'), window.recetasVariantes || [])),
         ]);
 
         window.ingredientes = Array.isArray(ingredientes) ? ingredientes : [];

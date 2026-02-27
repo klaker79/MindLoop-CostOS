@@ -34,8 +34,11 @@ export function mostrarFormularioPedido() {
         ).join('');
         select.innerHTML = `<option value="">${t('pedidos:form_select_supplier')}</option>` + options;
 
-        // Añadir listener para mostrar/ocultar campo detalle mercado
-        select.addEventListener('change', mostrarCampoDetalleMercado);
+        // Añadir listener para mostrar/ocultar campo detalle mercado (guard to prevent accumulation)
+        if (!select._hasCampoDetalleListener) {
+            select.addEventListener('change', mostrarCampoDetalleMercado);
+            select._hasCampoDetalleListener = true;
+        }
     }
 
     // Ocultar campo detalle mercado al inicio

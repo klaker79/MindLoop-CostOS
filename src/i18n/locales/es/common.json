@@ -121,5 +121,20 @@
 
   "confirm_delete_title": "Confirmar Eliminación",
   "btn_cancel_with_icon": "✖ Cancelar",
-  "btn_delete_with_icon": "🗑️ Eliminar"
+  "btn_delete_with_icon": "🗑️ Eliminar",
+
+  "toast_excel_unavailable": "Error: Librería Excel no disponible",
+  "toast_excel_downloaded": "Excel descargado correctamente",
+  "toast_excel_error": "Error al exportar Excel",
+  "toast_fn_unavailable": "Función no disponible",
+  "toast_exporting_report": "Exportando informe...",
+  "toast_error_recalc": "Error al recalcular costes: {{message}}",
+  "toast_recalc_partial": "Recalculadas {{successful}}/{{total}} recetas. {{failed}} errores.",
+  "toast_recalc_success": "{{successful}} recetas recalculadas correctamente",
+  "toast_all_good_margin": "Todas las recetas tienen buen margen (>60%)",
+  "toast_error_fetching_recipes": "Error al obtener recetas",
+  "label_processing": "Procesando...",
+  "label_recalculating": "Recalculando costes...",
+  "label_completed": "¡Completado!",
+  "label_recalculate_costs": "Recalcular Costes"
 }

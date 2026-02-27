@@ -280,7 +280,7 @@ function showRestaurantSelector(restaurants, selectionToken) {
                 onmouseover="this.style.background='rgba(99,102,241,0.2)'; this.style.borderColor='#6366f1'"
                 onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.15)'">
             <strong style="font-weight: 600;">${escapeHtml(r.nombre)}</strong>
-            <span style="opacity: 0.5; font-size: 13px;">${r.rol}</span>
+            <span style="opacity: 0.5; font-size: 13px;">${escapeHtml(r.rol)}</span>
         </button>
     `).join('');
 

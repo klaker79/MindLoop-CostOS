@@ -15,6 +15,7 @@
 
 import i18next from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import DOMPurify from 'dompurify';
 
 // Import all locale bundles (bundled by Vite, no HTTP requests)
 import es_common from './locales/es/common.json';
@@ -126,7 +127,7 @@ i18next
 
         // Interpolation (compatible with template literals)
         interpolation: {
-            escapeValue: false, // Not needed for non-HTML contexts
+            escapeValue: true, // Defense-in-depth: escape interpolated values by default
             prefix: '{{',
             suffix: '}}',
         },
@@ -204,10 +205,10 @@ export function translateHTML(root = document) {
         const key = el.getAttribute('data-i18n-title');
         if (key) el.title = t(key);
     });
-    // innerHTML (for keys containing HTML markup)
+    // innerHTML (for keys containing HTML markup) — sanitized with DOMPurify
     root.querySelectorAll('[data-i18n-html]').forEach(el => {
         const key = el.getAttribute('data-i18n-html');
-        if (key) el.innerHTML = t(key);
+        if (key) el.innerHTML = DOMPurify.sanitize(t(key));
     });
 }
 
@@ -239,6 +240,5 @@ window.t = t;
 window.changeLanguage = changeLanguage;
 window.getCurrentLanguage = getCurrentLanguage;
 window.translateHTML = translateHTML;
-window.i18next = i18next;
 
 export default i18next;
