@@ -112,7 +112,7 @@
   "tab_proveedores": "🏭 Suppliers",
   "tab_pedidos": "📋 Orders",
   "tab_ventas": "💰 Sales",
-  "tab_inventario": "📦 Inventory<span id=\"badge-inventario\" class=\"tab-badge\" style=\"display:none;\">0</span>",
+  "tab_inventario_text": "📦 Inventory",
   "tab_diario": "📈 Daily",
   "tab_analisis": "📊 Analysis",
   "tab_inteligencia": "🧠 Intelligence",

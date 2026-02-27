@@ -156,7 +156,8 @@ export function formatCurrency(value) {
 export function formatDate(date) {
     if (!date) return '-';
     const d = new Date(date);
-    return d.toLocaleDateString('es-ES');
+    const locale = getCurrentLanguage() === 'en' ? 'en-GB' : 'es-ES';
+    return d.toLocaleDateString(locale);
 }
 
 /**
@@ -167,7 +168,8 @@ export function formatDate(date) {
 export function formatDateTime(date) {
     if (!date) return '-';
     const d = new Date(date);
-    return d.toLocaleString('es-ES');
+    const locale = getCurrentLanguage() === 'en' ? 'en-GB' : 'es-ES';
+    return d.toLocaleString(locale);
 }
 
 /**
