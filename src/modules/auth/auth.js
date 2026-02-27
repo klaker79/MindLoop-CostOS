@@ -5,6 +5,7 @@
 
 import { getAuthUrl } from '../../config/app-config.js';
 import { resetAllStores } from '../../stores/index.js';
+import { t } from '@/i18n/index.js';
 
 const API_AUTH_URL = getAuthUrl();
 
@@ -110,24 +111,24 @@ export function initRegisterForm() {
         const submitBtn = registerForm.querySelector('button[type="submit"]');
 
         if (!nombre || !email || !password) {
-            if (errorEl) errorEl.textContent = 'Completa todos los campos';
+            if (errorEl) errorEl.textContent = t('auth:error_fill_all_fields');
             return;
         }
 
         if (password !== password2) {
-            if (errorEl) errorEl.textContent = 'Las contraseñas no coinciden';
+            if (errorEl) errorEl.textContent = t('auth:error_passwords_dont_match');
             return;
         }
 
         if (password.length < 8) {
-            if (errorEl) errorEl.textContent = 'La contraseña debe tener al menos 8 caracteres';
+            if (errorEl) errorEl.textContent = t('auth:error_password_min_length');
             return;
         }
 
         try {
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Creando...';
+                submitBtn.textContent = t('auth:btn_creating');
             }
 
             const res = await fetch(API_AUTH_URL + '/register', {
@@ -148,7 +149,7 @@ export function initRegisterForm() {
             if (data.needsVerification) {
                 if (errorEl) {
                     errorEl.style.color = '#10b981';
-                    errorEl.textContent = 'Cuenta creada. Revisa tu email para verificarla.';
+                    errorEl.textContent = t('auth:success_account_created');
                 }
                 setTimeout(() => volverALogin(), 4000);
                 return;
@@ -165,15 +166,15 @@ export function initRegisterForm() {
                 const loginError = document.getElementById('login-error');
                 if (loginError) {
                     loginError.style.color = '#10b981';
-                    loginError.textContent = 'Restaurante creado. Inicia sesión con tus credenciales.';
+                    loginError.textContent = t('auth:success_restaurant_created');
                 }
             }
         } catch (err) {
-            if (errorEl) errorEl.textContent = 'Error de conexión';
+            if (errorEl) errorEl.textContent = t('auth:error_connection');
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Crear Restaurante';
+                submitBtn.textContent = t('auth:btn_register');
             }
         }
     });
@@ -218,7 +219,7 @@ export function initLoginForm() {
         const errorEl = document.getElementById('login-error');
 
         if (!email || !password) {
-            if (errorEl) errorEl.textContent = 'Completa todos los campos';
+            if (errorEl) errorEl.textContent = t('auth:error_fill_all_fields');
             return;
         }
 
@@ -234,9 +235,9 @@ export function initLoginForm() {
 
             if (!res.ok) {
                 if (data.needsVerification) {
-                    if (errorEl) errorEl.textContent = 'Tu email no está verificado. Revisa tu bandeja de entrada.';
+                    if (errorEl) errorEl.textContent = t('auth:error_email_not_verified');
                 } else {
-                    if (errorEl) errorEl.textContent = data.error || 'Error de autenticación';
+                    if (errorEl) errorEl.textContent = data.error || t('auth:error_auth_generic');
                 }
                 return;
             }
@@ -256,7 +257,7 @@ export function initLoginForm() {
 
             enterApp();
         } catch (err) {
-            if (errorEl) errorEl.textContent = 'Error de conexión';
+            if (errorEl) errorEl.textContent = t('auth:error_connection');
         }
     });
 }
@@ -300,7 +301,7 @@ async function selectRestaurant(restauranteId, selectionToken) {
         const data = await res.json();
 
         if (!res.ok) {
-            window.showToast?.('Error: ' + (data.error || 'No se pudo seleccionar'), 'error');
+            window.showToast?.(t('auth:error_selecting_restaurant', { message: data.error || 'No se pudo seleccionar' }), 'error');
             mostrarLogin();
             return;
         }
@@ -316,7 +317,7 @@ async function selectRestaurant(restauranteId, selectionToken) {
 
         enterApp();
     } catch (err) {
-        window.showToast?.('Error de conexión', 'error');
+        window.showToast?.(t('auth:error_connection'), 'error');
         mostrarLogin();
     }
 }
@@ -370,12 +371,12 @@ export async function initRestaurantSwitcher() {
                 <button id="switcher-add-btn"
                         style="width: 100%; padding: 10px 12px; background: transparent;
                         border: none; border-radius: 8px; color: #6366f1; cursor: pointer; text-align: left; font-size: 14px;">
-                    + Añadir restaurante
+                    + ${t('auth:add_restaurant')}
                 </button>
                 <button id="switcher-logout-btn"
                         style="width: 100%; padding: 10px 12px; background: transparent;
                         border: none; border-radius: 8px; color: #ef4444; cursor: pointer; text-align: left; font-size: 14px;">
-                    Cerrar Sesión
+                    ${t('auth:btn_logout')}
                 </button>`;
 
             dropdown.style.display = 'block';
@@ -424,16 +425,16 @@ async function switchRestaurant(restauranteId) {
             window.location.reload();
         }
     } catch (err) {
-        window.showToast?.('Error cambiando restaurante', 'error');
+        window.showToast?.(t('auth:error_switching_restaurant'), 'error');
     }
 }
 
 // ========== Create Additional Restaurant ==========
 
 const PLANS = {
-    starter: { name: 'Starter', monthly: 49, annual: 490, users: 2, level: 1, features: 'Ingredientes, recetas, pedidos, ventas, inventario, mermas, PDF/Excel' },
-    profesional: { name: 'Profesional', monthly: 89, annual: 890, users: 5, level: 2, features: 'Todo Starter + alertas, plan de compras, menu engineering, balance P&L, KPIs, equipo' },
-    premium: { name: 'Premium', monthly: 149, annual: 1490, users: 999, level: 3, features: 'Todo Profesional + IA: escaneo albaranes, chat IA, compras auto. Soporte prioritario' }
+    starter: { name: 'Starter', monthly: 49, annual: 490, users: 2, level: 1, featuresKey: 'auth:plan_features_starter' },
+    profesional: { name: 'Profesional', monthly: 89, annual: 890, users: 5, level: 2, featuresKey: 'auth:plan_features_profesional' },
+    premium: { name: 'Premium', monthly: 149, annual: 1490, users: 999, level: 3, featuresKey: 'auth:plan_features_premium' }
 };
 
 async function promptCreateRestaurant() {
@@ -463,22 +464,22 @@ async function promptCreateRestaurant() {
     overlay.innerHTML = `
     <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:16px;width:92%;max-width:560px;max-height:90vh;overflow-y:auto;padding:32px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-            <h2 style="margin:0;color:#f1f5f9;font-size:20px;">Nuevo restaurante</h2>
+            <h2 style="margin:0;color:#f1f5f9;font-size:20px;">${t('auth:new_restaurant_title')}</h2>
             <button id="modal-close" style="background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;padding:4px 8px;">&times;</button>
         </div>
 
-        <label style="display:block;color:#94a3b8;font-size:13px;margin-bottom:6px;">Nombre del restaurante</label>
+        <label style="display:block;color:#94a3b8;font-size:13px;margin-bottom:6px;">${t('auth:restaurant_name_label')}</label>
         <input id="modal-nombre" type="text" placeholder="Ej: Mi Segundo Restaurante"
             style="width:100%;padding:12px 14px;background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#f1f5f9;font-size:15px;margin-bottom:20px;box-sizing:border-box;outline:none;"
             onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'" />
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-            <span style="color:#94a3b8;font-size:13px;">Elige tu plan</span>
+            <span style="color:#94a3b8;font-size:13px;">${t('auth:choose_plan')}</span>
             <div style="display:flex;background:#0f172a;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">
                 <button class="billing-toggle active" data-billing="monthly"
-                    style="padding:6px 14px;border:none;font-size:12px;cursor:pointer;background:#6366f1;color:#fff;transition:all 0.2s;">Mensual</button>
+                    style="padding:6px 14px;border:none;font-size:12px;cursor:pointer;background:#6366f1;color:#fff;transition:all 0.2s;">${t('auth:billing_monthly')}</button>
                 <button class="billing-toggle" data-billing="annual"
-                    style="padding:6px 14px;border:none;font-size:12px;cursor:pointer;background:transparent;color:#94a3b8;transition:all 0.2s;">Anual <span style="color:#10b981;font-size:10px;">-17%</span></button>
+                    style="padding:6px 14px;border:none;font-size:12px;cursor:pointer;background:transparent;color:#94a3b8;transition:all 0.2s;">${t('auth:billing_annual')} <span style="color:#10b981;font-size:10px;">-17%</span></button>
             </div>
         </div>
 
@@ -492,11 +493,11 @@ async function promptCreateRestaurant() {
                         <div style="display:flex;justify-content:space-between;align-items:baseline;">
                             <span style="color:#f1f5f9;font-weight:600;font-size:15px;">${p.name}</span>
                             <span style="color:#f1f5f9;font-weight:700;font-size:16px;">
-                                <span class="plan-price-monthly">${p.monthly}&euro;</span><span class="plan-price-annual" style="display:none">${p.annual}&euro;</span><span class="plan-period-monthly" style="color:#94a3b8;font-size:12px;font-weight:400;">/mes</span><span class="plan-period-annual" style="display:none;color:#94a3b8;font-size:12px;font-weight:400;">/a&ntilde;o</span>
+                                <span class="plan-price-monthly">${p.monthly}&euro;</span><span class="plan-price-annual" style="display:none">${p.annual}&euro;</span><span class="plan-period-monthly" style="color:#94a3b8;font-size:12px;font-weight:400;">/${t('auth:per_month')}</span><span class="plan-period-annual" style="display:none;color:#94a3b8;font-size:12px;font-weight:400;">/${t('auth:per_year')}</span>
                             </span>
                         </div>
-                        <div style="color:#94a3b8;font-size:12px;margin-top:3px;line-height:1.4;">${p.features}</div>
-                        <div style="color:#64748b;font-size:11px;margin-top:2px;">${p.users === 999 ? 'Usuarios ilimitados' : `Hasta ${p.users} usuarios`}</div>
+                        <div style="color:#94a3b8;font-size:12px;margin-top:3px;line-height:1.4;">${t(p.featuresKey)}</div>
+                        <div style="color:#64748b;font-size:11px;margin-top:2px;">${p.users === 999 ? t('auth:unlimited_users') : t('auth:up_to_users', { count: p.users })}</div>
                     </div>
                 </label>
             `).join('')}
@@ -504,9 +505,9 @@ async function promptCreateRestaurant() {
 
         <button id="modal-submit"
             style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.2s;">
-            Crear y pagar
+            ${t('auth:btn_create_and_pay')}
         </button>
-        <p style="text-align:center;color:#64748b;font-size:11px;margin:12px 0 0;">Pago seguro con Stripe. Puedes cancelar en cualquier momento.</p>
+        <p style="text-align:center;color:#64748b;font-size:11px;margin:12px 0 0;">${t('auth:payment_secure_note')}</p>
     </div>`;
 
     document.body.appendChild(overlay);
@@ -559,7 +560,7 @@ async function promptCreateRestaurant() {
         if (!selectedPlan) return;
 
         const submitBtn = overlay.querySelector('#modal-submit');
-        submitBtn.textContent = 'Creando...';
+        submitBtn.textContent = t('auth:btn_creating');
         submitBtn.style.opacity = '0.6';
         submitBtn.disabled = true;
 
@@ -584,9 +585,9 @@ async function createAdditionalRestaurant(nombre, plan, billing, closeModal) {
         const data = await res.json();
 
         if (!res.ok) {
-            window.showToast?.(data.error || 'Error creando restaurante', 'error');
+            window.showToast?.(data.error || t('auth:error_creating_restaurant'), 'error');
             const btn = document.querySelector('#modal-submit');
-            if (btn) { btn.textContent = 'Crear y pagar'; btn.style.opacity = '1'; btn.disabled = false; }
+            if (btn) { btn.textContent = t('auth:btn_create_and_pay'); btn.style.opacity = '1'; btn.disabled = false; }
             return;
         }
 
@@ -594,13 +595,13 @@ async function createAdditionalRestaurant(nombre, plan, billing, closeModal) {
         if (data.checkoutUrl) {
             window.location.href = data.checkoutUrl;
         } else {
-            window.showToast?.('Error: no se pudo crear la sesión de pago', 'error');
+            window.showToast?.(t('auth:error_payment_session'), 'error');
             if (closeModal) closeModal();
         }
     } catch (err) {
-        window.showToast?.('Error de conexión', 'error');
+        window.showToast?.(t('auth:error_connection'), 'error');
         const btn = document.querySelector('#modal-submit');
-        if (btn) { btn.textContent = 'Crear y pagar'; btn.style.opacity = '1'; btn.disabled = false; }
+        if (btn) { btn.textContent = t('auth:btn_create_and_pay'); btn.style.opacity = '1'; btn.disabled = false; }
     }
 }
 
@@ -617,17 +618,17 @@ export async function handleCheckoutReturn() {
     window.history.replaceState({}, '', cleanUrl);
 
     if (checkout === 'success' && newRestaurant) {
-        window.showToast?.('Restaurante creado. Activando suscripción...', 'success');
+        window.showToast?.(t('auth:success_restaurant_activating'), 'success');
         // Auto-switch to the new restaurant after a short delay (webhook may need a moment)
         setTimeout(async () => {
             try {
                 await switchRestaurant(parseInt(newRestaurant));
             } catch (e) {
-                window.showToast?.('Pago confirmado. Recarga la página para ver tu nuevo restaurante.', 'info');
+                window.showToast?.(t('auth:success_payment_confirmed'), 'info');
             }
         }, 2000);
     } else if (checkout === 'canceled' && newRestaurant) {
-        window.showToast?.('Pago cancelado. El restaurante no fue activado.', 'warning');
+        window.showToast?.(t('auth:warning_payment_cancelled'), 'warning');
         // Cleanup orphaned pending_payment restaurant
         try {
             await fetch(API_AUTH_URL + '/pending-restaurant/' + newRestaurant, {
@@ -637,7 +638,7 @@ export async function handleCheckoutReturn() {
             });
         } catch (_e) { /* best effort */ }
     } else if (checkout === 'canceled') {
-        window.showToast?.('Pago cancelado.', 'warning');
+        window.showToast?.(t('auth:warning_payment_cancelled_short'), 'warning');
     }
 }
 

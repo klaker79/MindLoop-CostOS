@@ -4,6 +4,8 @@
  * Fecha: 2026-01-30
  */
 
+import { t } from '@/i18n/index.js';
+
 export function actualizarSimulador() {
     const alquiler = parseInt(document.getElementById('input-alquiler')?.value) || 0;
     const personal = parseInt(document.getElementById('input-personal')?.value) || 0;
@@ -56,10 +58,10 @@ export function actualizarSimulador() {
 
     if (analytics) {
         if (neto >= 0) {
-            analytics.innerHTML = '<span>🚀</span> ¡Beneficio! Cubres el <strong>' + porcentajeCubierto.toFixed(0) + '%</strong> de tus costes fijos.';
+            analytics.innerHTML = '<span>🚀</span> ' + t('simulador:profit_message', { pct: porcentajeCubierto.toFixed(0) });
             analytics.style.color = '#059669';
         } else {
-            analytics.innerHTML = '<span>🚑</span> Pérdidas. Solo cubres el <strong>' + porcentajeCubierto.toFixed(0) + '%</strong> de tus costos fijos.';
+            analytics.innerHTML = '<span>🚑</span> ' + t('simulador:loss_message', { pct: porcentajeCubierto.toFixed(0) });
             analytics.style.color = '#dc2626';
         }
     }

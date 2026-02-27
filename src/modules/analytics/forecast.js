@@ -8,6 +8,7 @@
  */
 
 import { loadChart } from '../../utils/lazy-vendors.js';
+import { t } from '@/i18n/index.js';
 
 /**
  * Calculates sales forecast for the next N days
@@ -230,7 +231,7 @@ function prepararDatosChart(ventasPorDia, predicciones, dias = 7) {
         };
     } else {
         // WEEKLY VIEW for month
-        const labels = ['Sem -2', 'Sem -1', 'Sem actual', 'Sem +1', 'Sem +2', 'Sem +3', 'Sem +4'];
+        const labels = [t('dashboard:forecast_week_minus_2'), t('dashboard:forecast_week_minus_1'), t('dashboard:forecast_week_current'), t('dashboard:forecast_week_plus_1'), t('dashboard:forecast_week_plus_2'), t('dashboard:forecast_week_plus_3'), t('dashboard:forecast_week_plus_4')];
 
         // Calculate weekly totals for historical
         const semanas = [0, 0, 0]; // -2, -1, actual
@@ -291,18 +292,18 @@ function getEmptyForecast(dias) {
  * Format date as "Lun 28"
  */
 function formatearFecha(date) {
-    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const dias = [t('dashboard:day_short_sun'), t('dashboard:day_short_mon'), t('dashboard:day_short_tue'), t('dashboard:day_short_wed'), t('dashboard:day_short_thu'), t('dashboard:day_short_fri'), t('dashboard:day_short_sat')];
     return `${dias[date.getDay()]} ${date.getDate()}`;
 }
 
 function formatearFechaCorta(fechaStr) {
     const date = new Date(fechaStr);
-    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const dias = [t('dashboard:day_short_sun'), t('dashboard:day_short_mon'), t('dashboard:day_short_tue'), t('dashboard:day_short_wed'), t('dashboard:day_short_thu'), t('dashboard:day_short_fri'), t('dashboard:day_short_sat')];
     return `${dias[date.getDay()]} ${date.getDate()}`;
 }
 
 function getDiaSemana(dia) {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dias = [t('dashboard:day_full_sun'), t('dashboard:day_full_mon'), t('dashboard:day_full_tue'), t('dashboard:day_full_wed'), t('dashboard:day_full_thu'), t('dashboard:day_full_fri'), t('dashboard:day_full_sat')];
     return dias[dia];
 }
 
@@ -347,7 +348,7 @@ export async function renderForecastChart(containerId, chartData) {
             labels: chartData.labels,
             datasets: [
                 {
-                    label: 'Ventas reales',
+                    label: t('dashboard:forecast_chart_actual'),
                     data: chartData.historico,
                     borderColor: '#10B981',
                     backgroundColor: greenGradient,
@@ -364,7 +365,7 @@ export async function renderForecastChart(containerId, chartData) {
                     pointHoverBorderColor: '#ffffff'
                 },
                 {
-                    label: 'Proyección',
+                    label: t('dashboard:forecast_chart_projection'),
                     data: chartData.forecast,
                     borderColor: '#8B5CF6',
                     backgroundColor: purpleGradient,

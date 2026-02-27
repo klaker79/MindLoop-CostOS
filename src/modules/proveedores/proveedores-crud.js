@@ -3,6 +3,7 @@
  * Funciones de crear, editar y eliminar proveedores
  */
 
+import { t } from '@/i18n/index.js';
 // 🆕 Zustand store para gestión de estado
 import supplierStore from '../../stores/supplierStore.js';
 // 🆕 Validación centralizada
@@ -46,10 +47,10 @@ export async function guardarProveedor(event) {
 
         if (proveedorId !== null) {
             const result = await store.updateSupplier(proveedorId, proveedor);
-            if (!result.success) throw new Error(result.error || 'Error actualizando proveedor');
+            if (!result.success) throw new Error(result.error || t('proveedores:toast_error_saving', { message: 'update failed' }));
         } else {
             const result = await store.createSupplier(proveedor);
-            if (!result.success) throw new Error(result.error || 'Error creando proveedor');
+            if (!result.success) throw new Error(result.error || t('proveedores:toast_error_saving', { message: 'create failed' }));
             proveedorId = result.data.id;
         }
 
@@ -90,14 +91,14 @@ export async function guardarProveedor(event) {
         window.renderizarProveedores();
         window.hideLoading();
         window.showToast(
-            window.editandoProveedorId ? 'Proveedor actualizado' : 'Proveedor creado',
+            window.editandoProveedorId ? t('proveedores:toast_updated') : t('proveedores:toast_created'),
             'success'
         );
         window.cerrarFormularioProveedor();
     } catch (error) {
         window.hideLoading();
         console.error('Error:', error);
-        window.showToast('Error guardando proveedor: ' + error.message, 'error');
+        window.showToast(t('proveedores:toast_error_saving', { message: error.message }), 'error');
     }
 }
 
@@ -119,8 +120,8 @@ export function editarProveedor(id) {
     window.cargarIngredientesProveedor(prov.ingredientes || []);
 
     window.editandoProveedorId = id;
-    document.getElementById('form-title-proveedor').textContent = 'Editar Proveedor';
-    document.getElementById('btn-text-proveedor').textContent = 'Guardar';
+    document.getElementById('form-title-proveedor').textContent = t('proveedores:form_title_edit');
+    document.getElementById('btn-text-proveedor').textContent = t('proveedores:btn_save');
     window.mostrarFormularioProveedor();
 }
 
@@ -131,7 +132,7 @@ export async function eliminarProveedor(id) {
     const prov = (window.proveedores || []).find(p => p.id === id);
     if (!prov) return;
 
-    if (!confirm(`¿Eliminar proveedor "${prov.nombre}"?`)) return;
+    if (!confirm(t('proveedores:confirm_delete', { name: prov.nombre }))) return;
 
     window.showLoading();
 
@@ -139,15 +140,15 @@ export async function eliminarProveedor(id) {
         // 🆕 Usar Zustand store en lugar de window.api
         const store = supplierStore.getState();
         const result = await store.deleteSupplier(id);
-        if (!result.success) throw new Error(result.error || 'Error eliminando proveedor');
+        if (!result.success) throw new Error(result.error || t('proveedores:toast_error_deleting', { message: '' }));
 
         await window.cargarDatos();
         window.renderizarProveedores();
         window.hideLoading();
-        window.showToast('Proveedor eliminado', 'success');
+        window.showToast(t('proveedores:toast_deleted'), 'success');
     } catch (error) {
         window.hideLoading();
         console.error('Error:', error);
-        window.showToast('Error eliminando proveedor: ' + error.message, 'error');
+        window.showToast(t('proveedores:toast_error_deleting', { message: error.message }), 'error');
     }
 }

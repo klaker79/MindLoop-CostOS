@@ -73,42 +73,42 @@
       </div>
       <form id="login-form" class="login-form">
         <div class="form-group">
-          <label for="login-email">Email</label>
-          <input type="email" id="login-email" placeholder="tu@email.com" required>
+          <label for="login-email" data-i18n="auth:email_label">Email</label>
+          <input type="email" id="login-email" placeholder="tu@email.com" data-i18n-placeholder="auth:email_placeholder" required>
         </div>
         <div class="form-group">
-          <label for="login-password">Contraseña</label>
+          <label for="login-password" data-i18n="auth:password_label">Contraseña</label>
           <input type="password" id="login-password" placeholder="••••••••" required>
         </div>
-        <button type="submit" class="login-btn">Iniciar Sesión</button>
+        <button type="submit" class="login-btn" data-i18n="auth:btn_login">Iniciar Sesión</button>
         <p id="login-error" class="login-error"></p>
       </form>
       <div class="login-footer">
-        <p>¿No tienes cuenta? <a href="#" data-action="mostrar-registro">Registrar restaurante</a></p>
+        <p data-i18n="auth:link_register">¿No tienes cuenta? <a href="#" data-action="mostrar-registro" data-i18n="auth:link_register_action">Registrar restaurante</a></p>
       </div>
 
       <!-- Formulario de Registro -->
       <form id="register-form" class="login-form" style="display: none;">
         <div class="form-group">
-          <label for="reg-nombre">Nombre del restaurante</label>
-          <input type="text" id="reg-nombre" placeholder="Mi Restaurante" required>
+          <label for="reg-nombre" data-i18n="auth:restaurant_name_label">Nombre del restaurante</label>
+          <input type="text" id="reg-nombre" placeholder="Mi Restaurante" data-i18n-placeholder="common:sidebar_my_restaurant" required>
         </div>
         <div class="form-group">
-          <label for="reg-email">Email</label>
-          <input type="email" id="reg-email" placeholder="tu@email.com" required>
+          <label for="reg-email" data-i18n="auth:email_label">Email</label>
+          <input type="email" id="reg-email" placeholder="tu@email.com" data-i18n-placeholder="auth:email_placeholder" required>
         </div>
         <div class="form-group">
-          <label for="reg-password">Contraseña</label>
-          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" minlength="6" required>
+          <label for="reg-password" data-i18n="auth:password_label">Contraseña</label>
+          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" data-i18n-placeholder="auth:password_placeholder" minlength="6" required>
         </div>
         <div class="form-group">
-          <label for="reg-password2">Confirmar contraseña</label>
-          <input type="password" id="reg-password2" placeholder="Repite la contraseña" minlength="6" required>
+          <label for="reg-password2" data-i18n="auth:password_confirm_label">Confirmar contraseña</label>
+          <input type="password" id="reg-password2" placeholder="Repite la contraseña" data-i18n-placeholder="auth:password_confirm_placeholder" minlength="6" required>
         </div>
-        <button type="submit" class="login-btn">Crear Restaurante</button>
+        <button type="submit" class="login-btn" data-i18n="auth:btn_register">Crear Restaurante</button>
         <p id="register-error" class="login-error"></p>
         <p style="text-align: center; margin-top: 12px;">
-          <a href="#" data-action="mostrar-login">← Volver al login</a>
+          <a href="#" data-action="mostrar-login" data-i18n="auth:link_back_to_login">← Volver al login</a>
         </p>
       </form>
     </div>
@@ -118,7 +118,7 @@
     <div class="login-container">
       <div class="login-header">
         <h1>MindLoopIA CostOS</h1>
-        <p>Selecciona un restaurante</p>
+        <p data-i18n="auth:select_restaurant_title">Selecciona un restaurante</p>
       </div>
       <div id="restaurant-list" style="display: flex; flex-direction: column; gap: 12px; padding: 20px 0;">
         <!-- Populated dynamically by auth.js -->
@@ -148,77 +148,89 @@
       <nav class="sidebar-nav">
         <!-- Ingredientes -->
         <div class="nav-section">
-          <div class="nav-section-title">Ingredientes</div>
+          <div class="nav-section-title" data-i18n="common:nav_ingredientes">Ingredientes</div>
           <button class="nav-item active" data-tab="ingredientes">
             <span class="nav-item-icon">📦</span>
-            <span class="nav-item-text">Ingredientes</span>
+            <span class="nav-item-text" data-i18n="common:nav_ingredientes">Ingredientes</span>
           </button>
           <button class="nav-item" data-tab="recetas">
             <span class="nav-item-icon">👨‍🍳</span>
-            <span class="nav-item-text">Recetas</span>
+            <span class="nav-item-text" data-i18n="common:nav_recetas">Recetas</span>
           </button>
           <button class="nav-item" data-tab="proveedores">
             <span class="nav-item-icon">🚚</span>
-            <span class="nav-item-text">Proveedores</span>
+            <span class="nav-item-text" data-i18n="common:nav_proveedores">Proveedores</span>
           </button>
         </div>
 
         <!-- Operaciones -->
         <div class="nav-section">
-          <div class="nav-section-title">Operaciones</div>
+          <div class="nav-section-title" data-i18n="common:nav_section_operations">Operaciones</div>
           <button class="nav-item" data-tab="pedidos">
             <span class="nav-item-icon">📋</span>
-            <span class="nav-item-text">Pedidos</span>
+            <span class="nav-item-text" data-i18n="common:nav_pedidos">Pedidos</span>
           </button>
           <button class="nav-item" data-tab="ventas">
             <span class="nav-item-icon">💰</span>
-            <span class="nav-item-text">Ventas</span>
+            <span class="nav-item-text" data-i18n="common:nav_ventas">Ventas</span>
           </button>
           <button class="nav-item" data-tab="inventario">
             <span class="nav-item-icon">📦</span>
-            <span class="nav-item-text">Inventario</span>
+            <span class="nav-item-text" data-i18n="common:nav_inventario">Inventario</span>
             <span class="nav-item-badge" id="badge-inventario-sidebar" style="display:none;">0</span>
           </button>
         </div>
 
         <!-- Análisis -->
         <div class="nav-section">
-          <div class="nav-section-title">Análisis</div>
+          <div class="nav-section-title" data-i18n="common:nav_section_analysis">Análisis</div>
           <button class="nav-item" data-tab="diario">
             <span class="nav-item-icon">📈</span>
-            <span class="nav-item-text">Diario</span>
+            <span class="nav-item-text" data-i18n="common:nav_dashboard">Diario</span>
           </button>
           <button class="nav-item" data-tab="analisis">
             <span class="nav-item-icon">📊</span>
-            <span class="nav-item-text">Análisis</span>
+            <span class="nav-item-text" data-i18n="common:nav_analisis">Análisis</span>
           </button>
           <button class="nav-item" data-tab="inteligencia">
             <span class="nav-item-icon">🧠</span>
-            <span class="nav-item-text">Inteligencia</span>
+            <span class="nav-item-text" data-i18n="common:nav_inteligencia">Inteligencia</span>
             <span class="nav-item-badge intel">IA</span>
           </button>
         </div>
 
         <!-- Configuración -->
         <div class="nav-section">
-          <div class="nav-section-title">Configuración</div>
+          <div class="nav-section-title" data-i18n="common:nav_section_config">Configuración</div>
           <button class="nav-item" data-tab="horarios">
             <span class="nav-item-icon">👥</span>
-            <span class="nav-item-text">Horarios</span>
+            <span class="nav-item-text" data-i18n="common:nav_horarios">Horarios</span>
           </button>
           <button class="nav-item" data-tab="configuracion">
             <span class="nav-item-icon">⚙️</span>
-            <span class="nav-item-text">Configuración</span>
+            <span class="nav-item-text" data-i18n="common:nav_configuracion">Configuración</span>
           </button>
         </div>
       </nav>
+
+      <!-- Language Switcher -->
+      <div id="language-switcher" style="padding: 8px 12px; display: flex; gap: 4px; justify-content: center;">
+        <button class="lang-btn" data-lang="es" onclick="window.changeLanguage('es')"
+          style="flex: 1; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.1); color: #e2e8f0; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <img src="https://flagcdn.com/w40/es.png" width="20" height="14" alt="ES" style="border-radius: 2px; object-fit: cover;"> ES
+        </button>
+        <button class="lang-btn" data-lang="en" onclick="window.changeLanguage('en')"
+          style="flex: 1; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <img src="https://flagcdn.com/w40/gb.png" width="20" height="14" alt="EN" style="border-radius: 2px; object-fit: cover;"> EN
+        </button>
+      </div>
 
       <div class="sidebar-footer" style="position: relative;">
         <div class="sidebar-user" id="sidebar-restaurant-switcher" style="cursor: pointer;">
           <div class="avatar" id="sidebar-avatar">--</div>
           <div class="sidebar-user-info">
-            <div class="sidebar-user-name" id="sidebar-restaurant-name">Mi Restaurante</div>
-            <div class="sidebar-user-role" style="font-size: 11px; opacity: 0.6;">Cambiar ▾</div>
+            <div class="sidebar-user-name" id="sidebar-restaurant-name" data-i18n="common:sidebar_my_restaurant">Mi Restaurante</div>
+            <div class="sidebar-user-role" style="font-size: 11px; opacity: 0.6;" data-i18n="common:sidebar_switch">Cambiar ▾</div>
           </div>
         </div>
         <div id="restaurant-switcher-dropdown" style="display: none; position: absolute; bottom: 70px; left: 8px; right: 8px;
@@ -227,7 +239,7 @@
         </div>
       </div>
 
-      <button class="sidebar-toggle" id="sidebar-toggle" title="Colapsar menú"
+      <button class="sidebar-toggle" id="sidebar-toggle" title="Colapsar menú" data-i18n-title="common:sidebar_collapse"
         onclick="document.querySelector('.app').classList.toggle('sidebar-collapsed')">◀</button>
     </aside>
 
@@ -247,13 +259,13 @@
           </div>
           <div style="display: flex; align-items: center; gap: 20px;">
             <span id="user-restaurant" style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;"></span>
-            <button id="theme-toggle" data-action="toggle-theme" title="Cambiar tema"
+            <button id="theme-toggle" data-action="toggle-theme" title="Cambiar tema" data-i18n-title="common:theme_toggle"
               style="background: rgba(255,255,255,0.15); color: white; border: none; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 18px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;"
               onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-2px)';"
               onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)';">
               <span class="theme-icon">🌙</span>
             </button>
-            <button data-action="logout"
+            <button data-action="logout" data-i18n="common:sidebar_logout"
               style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 4px 15px rgba(239,68,68,0.4); transition: all 0.3s ease;"
               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.5)';"
               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239,68,68,0.4)';">Cerrar
@@ -275,7 +287,7 @@
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 24px;">📅</span>
             <div>
-              <div id="fecha-hoy-texto" style="font-size: 16px; font-weight: 600; color: #0c4a6e;">
+              <div id="fecha-hoy-texto" data-i18n="common:loading_date" style="font-size: 16px; font-weight: 600; color: #0c4a6e;">
                 Cargando fecha...
               </div>
               <div id="periodo-info" style="font-size: 12px; color: #0369a1; margin-top: 2px;">
@@ -294,7 +306,7 @@
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s;
-        ">Hoy</button>
+        " data-i18n="dashboard:period_today">Hoy</button>
             <button onclick="window.cambiarPeriodoVista('semana')" class="periodo-btn active" data-periodo="semana"
               style="
           padding: 6px 12px;
@@ -306,7 +318,7 @@
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s;
-        ">Semana</button>
+        " data-i18n="dashboard:period_week">Semana</button>
             <button onclick="window.cambiarPeriodoVista('mes')" class="periodo-btn" data-periodo="mes" style="
           padding: 6px 12px;
           border-radius: 6px;
@@ -317,7 +329,7 @@
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s;
-        ">Mes</button>
+        " data-i18n="dashboard:period_month_short">Mes</button>
           </div>
         </div>
 
@@ -331,7 +343,7 @@
               <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-ingresos" data-animate="true">
                 <span class="skeleton skeleton-number" data-skeleton>⠀</span>
               </div>
-              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Ingresos</div>
+              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;" data-i18n="dashboard:kpi_revenue">Ingresos</div>
             </div>
             <div id="sparkline-ingresos" style="opacity: 0.8;"></div>
           </div>
@@ -344,7 +356,7 @@
               <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-pedidos" data-animate="true"><span
                   class="skeleton skeleton-number" data-skeleton>⠀</span>
               </div>
-              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Pedidos</div>
+              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;" data-i18n="dashboard:kpi_orders">Pedidos</div>
             </div>
           </div>
 
@@ -355,7 +367,7 @@
             <div style="flex: 1;">
               <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-stock" data-animate="true"><span
                   class="skeleton skeleton-number" data-skeleton>⠀</span></div>
-              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Stock Bajo</div>
+              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;" data-i18n="dashboard:kpi_low_stock">Stock Bajo</div>
             </div>
           </div>
 
@@ -367,7 +379,7 @@
               <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-margen" data-animate="true"><span
                   class="skeleton skeleton-number" data-skeleton>⠀</span>
               </div>
-              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Margen</div>
+              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;" data-i18n="dashboard:kpi_margin">Margen</div>
             </div>
             <div id="sparkline-margen" style="opacity: 0.8;"></div>
           </div>
@@ -388,8 +400,8 @@
                   style="width: 44px; height: 44px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
                   ⚠️</div>
                 <div>
-                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;">Stock Bajo</h3>
-                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;">Requieren atención</p>
+                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;" data-i18n="dashboard:kpi_low_stock">Stock Bajo</h3>
+                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;" data-i18n="dashboard:stock_needs_attention">Requieren atención</p>
                 </div>
                 <div style="margin-left: auto; font-size: 24px; font-weight: 800; color: #F59E0B;" id="kpi-stock-count">
                   0
@@ -421,9 +433,9 @@
                   style="width: 44px; height: 44px; background: linear-gradient(135deg, #DBEAFE, #BFDBFE); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
                   📊</div>
                 <div>
-                  <h3 id="actividad-titulo" style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;">Hoy
+                  <h3 id="actividad-titulo" style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;" data-i18n="dashboard:period_today">Hoy
                   </h3>
-                  <p id="actividad-subtitulo" style="margin: 2px 0 0; font-size: 12px; color: #64748B;">Actividad del
+                  <p id="actividad-subtitulo" style="margin: 2px 0 0; font-size: 12px; color: #64748B;" data-i18n="dashboard:activity_today">Actividad del
                     día</p>
                 </div>
               </div>
@@ -432,13 +444,13 @@
                   style="text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-radius: 12px;">
                   <div style="font-size: 24px; font-weight: 800; color: #10B981;" id="ventas-hoy"><span
                       class="skeleton skeleton-number" data-skeleton style="margin:0 auto">⠀</span></div>
-                  <div style="font-size: 11px; color: #059669; font-weight: 600;">Ventas</div>
+                  <div style="font-size: 11px; color: #059669; font-weight: 600;" data-i18n="dashboard:sales_label">Ventas</div>
                 </div>
                 <div
                   style="text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border-radius: 12px;">
                   <div style="font-size: 24px; font-weight: 800; color: #3B82F6;" id="ingresos-hoy"><span
                       class="skeleton skeleton-number" data-skeleton style="margin:0 auto">⠀</span></div>
-                  <div style="font-size: 11px; color: #2563EB; font-weight: 600;">Ingresos</div>
+                  <div style="font-size: 11px; color: #2563EB; font-weight: 600;" data-i18n="dashboard:income_label">Ingresos</div>
                 </div>
                 <div
                   style="text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #FFF7ED, #FFEDD5); border-radius: 12px;">
@@ -446,7 +458,7 @@
                     style="font-size: 13px; font-weight: 700; color: #F59E0B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                     id="plato-estrella-hoy"><span class="skeleton skeleton-number" data-skeleton
                       style="margin:0 auto;width:80px">⠀</span></div>
-                  <div style="font-size: 11px; color: #D97706; font-weight: 600;">⭐ Estrella</div>
+                  <div style="font-size: 11px; color: #D97706; font-weight: 600;" data-i18n="dashboard:kpi_star_dish">⭐ Estrella</div>
                 </div>
               </div>
             </div>
@@ -459,8 +471,8 @@
                   style="width: 44px; height: 44px; background: linear-gradient(135deg, #E0E7FF, #C7D2FE); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
                   👥</div>
                 <div>
-                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;">Personal Hoy</h3>
-                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;">Quién trabaja / libra</p>
+                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;" data-i18n="dashboard:staff_today">Personal Hoy</h3>
+                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;" data-i18n="dashboard:staff_who_works">Quién trabaja / libra</p>
                 </div>
               </div>
               <div id="personal-hoy-lista" style="max-height: 100px; overflow-y: auto; font-size: 13px;">
@@ -493,12 +505,12 @@
                   style="width: 44px; height: 44px; background: linear-gradient(135deg, #D1FAE5, #A7F3D0); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
                   💰</div>
                 <div style="flex: 1;">
-                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;">Valor Stock</h3>
-                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;">Inventario valorizado</p>
+                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;" data-i18n="dashboard:stock_value_title">Valor Stock</h3>
+                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;" data-i18n="dashboard:stock_value_subtitle">Inventario valorizado</p>
                 </div>
                 <div style="text-align: right;">
                   <div id="kpi-items-stock" style="font-size: 18px; font-weight: 700; color: #3B82F6;">-</div>
-                  <div style="font-size: 10px; color: #64748B;">Items</div>
+                  <div style="font-size: 10px; color: #64748B;" data-i18n="dashboard:kpi_items">Items</div>
                 </div>
               </div>
               <div id="kpi-valor-stock" style="font-size: 32px; font-weight: 800; color: #10B981; margin-bottom: 16px;">
@@ -507,15 +519,15 @@
               <div style="display: flex; gap: 8px;">
                 <button data-tab="ventas"
                   style="flex: 1; padding: 10px; background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 12px; transition: transform 0.2s;"
-                  onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">💰
+                  onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" data-i18n="dashboard:quick_sale">💰
                   Venta</button>
                 <button data-tab="pedidos"
                   style="flex: 1; padding: 10px; background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 12px; transition: transform 0.2s;"
-                  onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">📦
+                  onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" data-i18n="dashboard:quick_order">📦
                   Pedido</button>
                 <button data-tab="inventario"
                   style="flex: 1; padding: 10px; background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 12px; transition: transform 0.2s;"
-                  onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">🔍
+                  onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" data-i18n="dashboard:quick_stock">🔍
                   Stock</button>
               </div>
             </div>
@@ -528,17 +540,17 @@
                   style="width: 44px; height: 44px; background: linear-gradient(135deg, #EDE9FE, #DDD6FE); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
                   📈</div>
                 <div style="flex: 1;">
-                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;">Proyección</h3>
-                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;">Estimación de ingresos</p>
+                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;" data-i18n="dashboard:forecast_title">Proyección</h3>
+                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;" data-i18n="dashboard:forecast_subtitle">Estimación de ingresos</p>
                 </div>
                 <span id="forecast-total" style="font-size: 22px; font-weight: 800; color: #8B5CF6;">0€</span>
               </div>
               <div id="forecast-tabs" style="display: flex; gap: 6px; margin-bottom: 12px;">
                 <button class="forecast-period-tab active" data-period="7"
-                  style="flex: 1; padding: 8px 0; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; transition: all 0.2s;">7
+                  style="flex: 1; padding: 8px 0; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white; transition: all 0.2s;" data-i18n="dashboard:forecast_7days">7
                   días</button>
                 <button class="forecast-period-tab" data-period="30"
-                  style="flex: 1; padding: 8px 0; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; background: #f1f5f9; color: #64748b; transition: all 0.2s;">Mes</button>
+                  style="flex: 1; padding: 8px 0; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; background: #f1f5f9; color: #64748b; transition: all 0.2s;" data-i18n="dashboard:period_month_short">Mes</button>
               </div>
               <div style="height: 80px; position: relative;">
                 <canvas id="chart-forecast"></canvas>
@@ -547,7 +559,7 @@
                 <div id="forecast-comparativa"
                   style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #f1f5f9;">
                 </div>
-                <div id="forecast-confianza" style="font-size: 10px; color: #94a3b8;">Basado en historial</div>
+                <div id="forecast-confianza" style="font-size: 10px; color: #94a3b8;" data-i18n="dashboard:forecast_default">Basado en historial</div>
               </div>
             </div>
 
@@ -559,8 +571,8 @@
                   style="width: 44px; height: 44px; background: linear-gradient(135deg, #FEE2E2, #FECACA); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
                   📊</div>
                 <div>
-                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;">Variación Costes</h3>
-                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;">Últimas variaciones</p>
+                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;" data-i18n="dashboard:price_changes_title">Variación Costes</h3>
+                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;" data-i18n="dashboard:price_changes_subtitle">Últimas variaciones</p>
                 </div>
               </div>
               <div id="lista-cambios-precio" style="max-height: 120px; overflow-y: auto; font-size: 13px;">
@@ -592,8 +604,8 @@
                   style="width: 44px; height: 44px; background: linear-gradient(135deg, #E0E7FF, #C7D2FE); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
                   📦</div>
                 <div style="flex: 1;">
-                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;">Top Proveedores</h3>
-                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;">Gasto este mes</p>
+                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;" data-i18n="dashboard:top_suppliers_title">Top Proveedores</h3>
+                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;" data-i18n="dashboard:top_suppliers_subtitle">Gasto este mes</p>
                 </div>
                 <div id="dashboard-proveedores-total" style="font-size: 22px; font-weight: 800; color: #6366F1;">0€
                 </div>
@@ -630,21 +642,21 @@
 
       </div>
       <div class="tabs">
-        <button id="tab-btn-ingredientes" class="tab active" data-tab="ingredientes">📦
+        <button id="tab-btn-ingredientes" class="tab active" data-tab="ingredientes" data-i18n="common:tab_ingredientes">📦
           Ingredientes</button>
-        <button id="tab-btn-recetas" class="tab" data-tab="recetas">👨‍🍳 Recetas</button>
-        <button id="tab-btn-proveedores" class="tab" data-tab="proveedores">🚚 Proveedores</button>
-        <button id="tab-btn-pedidos" class="tab" data-tab="pedidos">📋 Pedidos</button>
-        <button id="tab-btn-ventas" class="tab" data-tab="ventas">💰 Ventas</button>
-        <button id="tab-btn-inventario" class="tab" data-tab="inventario">📦 Inventario<span id="badge-inventario"
+        <button id="tab-btn-recetas" class="tab" data-tab="recetas" data-i18n="common:tab_recetas">👨‍🍳 Recetas</button>
+        <button id="tab-btn-proveedores" class="tab" data-tab="proveedores" data-i18n="common:tab_proveedores">🚚 Proveedores</button>
+        <button id="tab-btn-pedidos" class="tab" data-tab="pedidos" data-i18n="common:tab_pedidos">📋 Pedidos</button>
+        <button id="tab-btn-ventas" class="tab" data-tab="ventas" data-i18n="common:tab_ventas">💰 Ventas</button>
+        <button id="tab-btn-inventario" class="tab" data-tab="inventario" data-i18n-html="common:tab_inventario">📦 Inventario<span id="badge-inventario"
             class="tab-badge" style="display:none;">0</span></button>
-        <button id="tab-btn-diario" class="tab" data-tab="diario">📈 Diario</button>
-        <button id="tab-btn-analisis" class="tab" data-tab="analisis">📊 Análisis</button>
+        <button id="tab-btn-diario" class="tab" data-tab="diario" data-i18n="common:tab_diario">📈 Diario</button>
+        <button id="tab-btn-analisis" class="tab" data-tab="analisis" data-i18n="common:tab_analisis">📊 Análisis</button>
         <button id="tab-btn-inteligencia" class="tab" data-tab="inteligencia"
-          style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none;">🧠
+          style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none;" data-i18n="common:tab_inteligencia">🧠
           Inteligencia</button>
-        <button id="tab-btn-horarios" class="tab" data-tab="horarios">👥 Horarios</button>
-        <button id="tab-btn-configuracion" class="tab" data-tab="configuracion">⚙️
+        <button id="tab-btn-horarios" class="tab" data-tab="horarios" data-i18n="common:tab_horarios">👥 Horarios</button>
+        <button id="tab-btn-configuracion" class="tab" data-tab="configuracion" data-i18n="common:tab_configuracion">⚙️
           Configuración</button>
       </div>
 
@@ -656,15 +668,14 @@
         <div id="tab-ingredientes" class="tab-content active">
           <div class="top-bar">
             <div>
-              <h2>Ingredientes</h2>
-              <p>Gestiona todos los ingredientes de tu restaurante</p>
+              <h2 data-i18n="ingredientes:title">Ingredientes</h2>
+              <p data-i18n="ingredientes:description">Gestiona todos los ingredientes de tu restaurante</p>
             </div>
             <div style="display: flex; gap: 10px;">
-              <button class="btn btn-primary" data-action="mostrar-form-ingrediente">➕ Añadir
-                Ingrediente</button>
-              <button class="btn btn-secondary" data-action="importar-ingredientes">📤 Importar
+              <button class="btn btn-primary" data-action="mostrar-form-ingrediente" data-i18n="ingredientes:btn_new">➕ Añadir Ingrediente</button>
+              <button class="btn btn-secondary" data-action="importar-ingredientes" data-i18n="common:btn_import_excel">📤 Importar
                 Excel</button>
-              <button class="btn btn-secondary" data-action="exportar-ingredientes">📥 Exportar Excel</button>
+              <button class="btn btn-secondary" data-action="exportar-ingredientes" data-i18n="common:btn_export_excel">📥 Exportar Excel</button>
             </div>
           </div>
           <div class="search-box">
@@ -672,56 +683,56 @@
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            <input type="search" id="busqueda-ingredientes" name="busqueda_ing_nocache" placeholder="Buscar..."
+            <input type="search" id="busqueda-ingredientes" name="busqueda_ing_nocache" placeholder="Buscar..." data-i18n-placeholder="common:search_placeholder"
               autocomplete="off" oninput="window.renderizarIngredientes()">
           </div>
           <div id="formulario-ingrediente" class="form-card" style="display: none;">
             <h3>
-              <span id="form-title-ingrediente">Nuevo Ingrediente</span>
+              <span id="form-title-ingrediente" data-i18n="ingredientes:form_title_new">Nuevo Ingrediente</span>
               <button class="close-btn" data-action="cerrar-form-ingrediente">×</button>
             </h3>
             <form onsubmit="window.guardarIngrediente(event)">
               <div class="form-grid">
                 <div class="form-group">
-                  <label>Nombre *</label>
+                  <label data-i18n="common:label_name_required">Nombre *</label>
                   <input type="text" id="ing-nombre" required>
                 </div>
                 <div class="form-group">
-                  <label>Proveedor</label>
+                  <label data-i18n="common:label_supplier">Proveedor</label>
                   <select id="ing-proveedor-select">
-                    <option value="">Sin proveedor</option>
+                    <option value="" data-i18n="ingredientes:no_supplier">Sin proveedor</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Precio (€)</label>
+                  <label data-i18n="common:label_price">Precio (€)</label>
                   <input type="number" id="ing-precio" step="0.01" min="0">
                 </div>
                 <div class="form-group">
-                  <label>Unidad</label>
+                  <label data-i18n="ingredientes:form_label_unit">Unidad</label>
                   <select id="ing-unidad">
                     <option value="kg">kg</option>
                     <option value="g">g</option>
                     <option value="l">L</option>
                     <option value="ml">ml</option>
-                    <option value="unidad">Unidades</option>
-                    <option value="botella">Botella</option>
-                    <option value="docena">Docena</option>
+                    <option value="unidad" data-i18n="ingredientes:form_unit_units">Unidades</option>
+                    <option value="botella" data-i18n="ingredientes:form_unit_bottle">Botella</option>
+                    <option value="docena" data-i18n="ingredientes:form_unit_dozen">Docena</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Familia</label>
+                  <label data-i18n="ingredientes:form_label_family">Familia</label>
                   <select id="ing-familia">
-                    <option value="alimento">Alimento</option>
-                    <option value="bebida">Bebida</option>
-                    <option value="suministro">Suministro</option>
+                    <option value="alimento" data-i18n="ingredientes:form_family_food">Alimento</option>
+                    <option value="bebida" data-i18n="ingredientes:form_family_drink">Bebida</option>
+                    <option value="suministro" data-i18n="ingredientes:form_family_supply">Suministro</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Stock actual</label>
+                  <label data-i18n="ingredientes:form_label_stock">Stock actual</label>
                   <input type="number" id="ing-stockActual" step="0.01" min="0">
                 </div>
                 <div class="form-group">
-                  <label>Stock mínimo</label>
+                  <label data-i18n="ingredientes:form_label_stock_min">Stock mínimo</label>
                   <input type="number" id="ing-stockMinimo" step="0.01" min="0">
                 </div>
 
@@ -729,20 +740,20 @@
                 <div class="form-group"
                   style="grid-column: span 2; margin-top: 10px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <label style="margin: 0; color: #334155; font-weight: 600;">Rendimiento / Aprovechamiento
+                    <label style="margin: 0; color: #334155; font-weight: 600;" data-i18n="ingredientes:form_label_yield">Rendimiento / Aprovechamiento
                       (%)</label>
                     <span id="ing-rendimiento-val"
                       style="font-weight: bold; color: #7c3aed; font-size: 1.1em;">100%</span>
                   </div>
                   <div style="display: flex; gap: 15px; align-items: center;">
-                    <span style="font-size: 12px; color: #ef4444;">0% (Todo merma)</span>
+                    <span style="font-size: 12px; color: #ef4444;" data-i18n="ingredientes:form_yield_all_waste">0% (Todo merma)</span>
                     <input type="range" id="ing-rendimiento-slider" min="1" max="100" value="100" step="1"
                       style="flex: 1; accent-color: #7c3aed; cursor: pointer;">
-                    <span style="font-size: 12px; color: #10b981;">100% (Todo útil)</span>
+                    <span style="font-size: 12px; color: #10b981;" data-i18n="ingredientes:form_yield_all_useful">100% (Todo útil)</span>
                   </div>
                   <input type="number" id="ing-rendimiento" step="1" min="1" max="100" value="100"
                     style="display: none;"> <!-- Hidden sync input -->
-                  <p style="font-size: 11px; color: #64748b; margin-top: 8px;">
+                  <p style="font-size: 11px; color: #64748b; margin-top: 8px;" data-i18n-html="ingredientes:form_yield_help">
                     ℹ️ Define qué porcentaje del producto realmente usas. <br>
                     Ej: Si compras 1kg de carne y limpias 200g de grasa, el rendimiento es <strong>80%</strong>.
                   </p>
@@ -751,23 +762,23 @@
                 <!-- Formato de compra (opcional) -->
                 <div class="form-group"
                   style="grid-column: span 2; margin-top: 10px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
-                  <label style="font-weight: 600; color: #7c3aed;">📦 Formato de compra (opcional)</label>
-                  <p style="font-size: 12px; color: #64748b; margin: 5px 0 10px;">Facilita los pedidos indicando cómo
+                  <label style="font-weight: 600; color: #7c3aed;" data-i18n="ingredientes:form_format_title">📦 Formato de compra (opcional)</label>
+                  <p style="font-size: 12px; color: #64748b; margin: 5px 0 10px;" data-i18n="ingredientes:form_format_hint">Facilita los pedidos indicando cómo
                     compras este producto</p>
                 </div>
                 <div class="form-group">
-                  <label>Formato</label>
-                  <input type="text" id="ing-formato-compra" placeholder="ej: bote, garrafa, caja...">
+                  <label data-i18n="ingredientes:form_format_label">Formato</label>
+                  <input type="text" id="ing-formato-compra" placeholder="ej: bote, garrafa, caja..." data-i18n-placeholder="ingredientes:form_format_placeholder">
                 </div>
                 <div class="form-group">
-                  <label>Cantidad por formato</label>
+                  <label data-i18n="ingredientes:form_format_quantity">Cantidad por formato</label>
                   <input type="number" id="ing-cantidad-formato" step="0.01" min="0"
-                    placeholder="ej: 0.65 (kg), 10 (L)...">
+                    placeholder="ej: 0.65 (kg), 10 (L)..." data-i18n-placeholder="ingredientes:form_format_qty_placeholder">
                 </div>
               </div>
               <div class="form-actions">
-                <button type="button" class="btn btn-secondary" data-action="cerrar-form-ingrediente">Cancelar</button>
-                <button type="submit" class="btn btn-primary"><span id="btn-text-ingrediente">Añadir</span></button>
+                <button type="button" class="btn btn-secondary" data-action="cerrar-form-ingrediente" data-i18n="common:btn_cancel">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><span id="btn-text-ingrediente" data-i18n="common:btn_add">Añadir</span></button>
               </div>
             </form>
           </div>
@@ -779,16 +790,15 @@
         <div id="tab-recetas" class="tab-content">
           <div class="top-bar">
             <div>
-              <h2>Recetas</h2>
-              <p>Crea recetas y calcula costes</p>
+              <h2 data-i18n="recetas:title">Recetas</h2>
+              <p data-i18n="recetas:description">Crea recetas y calcula costes</p>
             </div>
             <div style="display: flex; gap: 10px;">
-              <button class="btn btn-primary" data-action="mostrar-form-receta">➕ Nueva Receta</button>
-              <button class="btn btn-secondary" data-action="importar-recetas">📤 Importar Excel</button>
-              <button class="btn btn-secondary" data-action="exportar-recetas">📥 Exportar Excel</button>
+              <button class="btn btn-primary" data-action="mostrar-form-receta" data-i18n="recetas:btn_new">➕ Nueva Receta</button>
+              <button class="btn btn-secondary" data-action="importar-recetas" data-i18n="common:btn_import_excel">📤 Importar Excel</button>
+              <button class="btn btn-secondary" data-action="exportar-recetas" data-i18n="common:btn_export_excel">📥 Exportar Excel</button>
               <button class="btn" onclick="window.mostrarCostTracker()"
-                style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 Seguimiento
-                Costes</button>
+                style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 <span data-i18n="recetas:btn_cost_tracking">Seguimiento Costes</span></button>
             </div>
           </div>
           <div class="search-box">
@@ -796,69 +806,69 @@
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            <input type="search" id="busqueda-recetas" name="busqueda_rec_nocache" placeholder="Buscar..."
+            <input type="search" id="busqueda-recetas" name="busqueda_rec_nocache" placeholder="Buscar..." data-i18n-placeholder="common:search_placeholder"
               autocomplete="off" oninput="window.renderizarRecetas()">
           </div>
 
           <!-- Filtros por categoría -->
           <div id="filtros-recetas" style="display: flex; gap: 8px; margin: 0 0 16px 0; flex-wrap: wrap;">
             <span
-              style="font-size: 14px; font-weight: 500; color: #64748b; display: flex; align-items: center;">Filtrar:</span>
+              style="font-size: 14px; font-weight: 500; color: #64748b; display: flex; align-items: center;" data-i18n="recetas:filter_label">Filtrar:</span>
             <button class="filter-btn active" data-filter="todas" onclick="window.filtrarRecetasPorCategoria('todas')"
               style="padding: 6px 14px; border-radius: 20px; border: 1px solid #e2e8f0; background: #f1f5f9; color: #475569; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-              🔄 Todas
+              <span data-i18n="recetas:filter_all">🔄 Todas</span>
             </button>
             <button class="filter-btn" data-filter="alimentos" onclick="window.filtrarRecetasPorCategoria('alimentos')"
               style="padding: 6px 14px; border-radius: 20px; border: 1px solid #22c55e; background: white; color: #22c55e; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-              🥗 Alimentos
+              <span data-i18n="recetas:filter_food">🥗 Alimentos</span>
             </button>
             <button class="filter-btn" data-filter="bebida" onclick="window.filtrarRecetasPorCategoria('bebida')"
               style="padding: 6px 14px; border-radius: 20px; border: 1px solid #3b82f6; background: white; color: #3b82f6; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-              🍺 Bebidas
+              <span data-i18n="recetas:filter_drinks">🍺 Bebidas</span>
             </button>
             <button class="filter-btn" data-filter="base" onclick="window.filtrarRecetasPorCategoria('base')"
               style="padding: 6px 14px; border-radius: 20px; border: 1px solid #7c3aed; background: white; color: #7c3aed; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-              🧪 Base
+              <span data-i18n="recetas:filter_base">🧪 Base</span>
             </button>
           </div>
           <div id="formulario-receta" class="form-card" style="display: none;">
             <h3>
-              <span id="form-title-receta">Nueva Receta</span>
+              <span id="form-title-receta" data-i18n="recetas:form_title_new">Nueva Receta</span>
               <button class="close-btn" data-action="cerrar-form-receta">×</button>
             </h3>
             <form onsubmit="window.guardarReceta(event)">
               <div class="form-grid">
                 <div class="form-group">
-                  <label>Nombre *</label>
+                  <label data-i18n="common:label_name_required">Nombre *</label>
                   <input type="text" id="rec-nombre" required>
                 </div>
                 <div class="form-group">
-                  <label>Código TPV</label>
-                  <input type="text" id="rec-codigo" placeholder="Ej: 101">
+                  <label data-i18n="recetas:form_label_code">Código TPV</label>
+                  <input type="text" id="rec-codigo" placeholder="Ej: 101" data-i18n-placeholder="recetas:form_code_placeholder">
                 </div>
                 <div class="form-group">
-                  <label>Categoría</label>
+                  <label data-i18n="common:label_category">Categoría</label>
                   <select id="rec-categoria">
-                    <option value="alimentos">Alimentos</option>
-                    <option value="bebidas">Bebidas</option>
-                    <option value="base">🧪 Preparación Base</option>
-                    <option value="suministros">Suministros</option>
+                    <option value="alimentos" data-i18n="recetas:form_category_food">Alimentos</option>
+                    <option value="bebidas" data-i18n="recetas:form_category_drinks">Bebidas</option>
+                    <option value="base" data-i18n="recetas:form_category_base">🧪 Preparación Base</option>
+                    <option value="suministros" data-i18n="recetas:form_category_supplies">Suministros</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Precio venta (€)</label>
+                  <label data-i18n="recetas:form_label_sale_price">Precio venta (€)</label>
                   <input type="number" id="rec-precio_venta" step="0.01" min="0" oninput="window.calcularCosteReceta()">
                 </div>
                 <div class="form-group">
-                  <label>Porciones</label>
+                  <label data-i18n="recetas:form_label_servings">Porciones</label>
                   <input type="number" id="rec-porciones" min="1" value="1" onchange="window.calcularCosteReceta?.()"
                     oninput="window.calcularCosteReceta?.()">
                 </div>
               </div>
               <div class="ingredientes-receta">
-                <h4>Ingredientes</h4>
+                <h4 data-i18n="common:nav_ingredientes">Ingredientes</h4>
                 <div id="lista-ingredientes-receta"></div>
-                <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-receta">+
+                <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-receta" data-i18n="recetas:form_add_ingredient">+
                   Añadir</button>
               </div>
               <div id="coste-calculado-form" class="coste-calculado" style="display: none;">
@@ -868,8 +878,8 @@
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
                     <span style="font-size: 28px;">📊</span>
                     <div>
-                      <h4 style="margin: 0; font-size: 18px; font-weight: 700;">Análisis Financiero</h4>
-                      <p style="margin: 0; font-size: 13px; opacity: 0.9;">Rentabilidad en tiempo real</p>
+                      <h4 style="margin: 0; font-size: 18px; font-weight: 700;" data-i18n="recetas:form_analysis_title">Análisis Financiero</h4>
+                      <p style="margin: 0; font-size: 13px; opacity: 0.9;" data-i18n="recetas:form_analysis_subtitle">Rentabilidad en tiempo real</p>
                     </div>
                   </div>
 
@@ -880,9 +890,9 @@
                       <div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                           <span style="font-size: 20px;">💰</span>
-                          <span style="font-size: 15px; font-weight: 600;">Coste de Producción</span>
+                          <span style="font-size: 15px; font-weight: 600;" data-i18n="recetas:form_production_cost">Coste de Producción</span>
                         </div>
-                        <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
+                        <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;" data-i18n="recetas:form_production_cost_hint">
                           Calculado con precio medio de compra
                         </p>
                       </div>
@@ -899,9 +909,9 @@
                       <div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                           <span style="font-size: 20px;">🎯</span>
-                          <span style="font-size: 15px; font-weight: 600;">Food Cost</span>
+                          <span style="font-size: 15px; font-weight: 600;" data-i18n="common:label_food_cost">Food Cost</span>
                         </div>
-                        <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
+                        <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;" data-i18n="recetas:form_food_cost_hint">
                           % del precio que es coste (≤33% ideal)
                         </p>
                       </div>
@@ -918,9 +928,9 @@
                       <div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                           <span style="font-size: 20px;">📈</span>
-                          <span style="font-size: 15px; font-weight: 600;">Margen de Beneficio</span>
+                          <span style="font-size: 15px; font-weight: 600;" data-i18n="recetas:form_margin_label">Margen de Beneficio</span>
                         </div>
-                        <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;">
+                        <p style="margin: 4px 0 0 28px; font-size: 12px; opacity: 0.85;" data-i18n="recetas:form_margin_hint">
                           Beneficio por cada venta
                         </p>
                       </div>
@@ -932,8 +942,8 @@
                 </div>
               </div>
               <div class="form-actions">
-                <button type="button" class="btn btn-secondary" data-action="cerrar-form-receta">Cancelar</button>
-                <button type="submit" class="btn btn-primary"><span id="btn-text-receta">Guardar</span></button>
+                <button type="button" class="btn btn-secondary" data-action="cerrar-form-receta" data-i18n="common:btn_cancel">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><span id="btn-text-receta" data-i18n="common:btn_save">Guardar</span></button>
               </div>
             </form>
           </div>
@@ -945,66 +955,66 @@
         <div id="tab-proveedores" class="tab-content">
           <div class="top-bar">
             <div>
-              <h2>Proveedores</h2>
-              <p>Gestiona tus proveedores</p>
+              <h2 data-i18n="proveedores:title">Proveedores</h2>
+              <p data-i18n="proveedores:description">Gestiona tus proveedores</p>
             </div>
-            <button class="btn btn-primary" data-action="mostrar-form-proveedor">+ Añadir Proveedor</button>
+            <button class="btn btn-primary" data-action="mostrar-form-proveedor" data-i18n="proveedores:btn_new">+ Añadir Proveedor</button>
           </div>
           <div class="search-box">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            <input type="search" id="busqueda-proveedores" name="busqueda_prov_nocache" placeholder="Buscar..."
+            <input type="search" id="busqueda-proveedores" name="busqueda_prov_nocache" placeholder="Buscar..." data-i18n-placeholder="common:search_placeholder"
               autocomplete="off" oninput="window.renderizarProveedores()">
           </div>
           <div id="formulario-proveedor" class="form-card" style="display: none;">
             <h3>
-              <span id="form-title-proveedor">Nuevo Proveedor</span>
+              <span id="form-title-proveedor" data-i18n="proveedores:form_title_new">Nuevo Proveedor</span>
               <button class="close-btn" data-action="cerrar-form-proveedor">×</button>
             </h3>
             <form onsubmit="window.guardarProveedor(event)">
               <div class="form-grid">
                 <div class="form-group">
-                  <label>Nombre *</label>
+                  <label data-i18n="common:label_name_required">Nombre *</label>
                   <input type="text" id="prov-nombre" required>
                 </div>
                 <div class="form-group">
-                  <label>Contacto</label>
+                  <label data-i18n="proveedores:form_label_contact">Contacto</label>
                   <input type="text" id="prov-contacto">
                 </div>
                 <div class="form-group">
-                  <label>Teléfono</label>
+                  <label data-i18n="proveedores:form_label_phone">Teléfono</label>
                   <input type="tel" id="prov-telefono">
                 </div>
                 <div class="form-group">
-                  <label>Email</label>
+                  <label data-i18n="common:label_email">Email</label>
                   <input type="email" id="prov-email">
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
-                  <label>Dirección</label>
+                  <label data-i18n="proveedores:form_label_address">Dirección</label>
                   <textarea id="prov-direccion"></textarea>
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
-                  <label>Notas</label>
+                  <label data-i18n="proveedores:form_label_notes">Notas</label>
                   <textarea id="prov-notas"></textarea>
                 </div>
               </div>
               <div class="selector-ingredientes">
-                <h4>Ingredientes que suministra</h4>
+                <h4 data-i18n="proveedores:form_supplies_title">Ingredientes que suministra</h4>
                 <div class="search-box" style="margin-bottom: 10px;">
                   <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8" />
                     <path d="m21 21-4.35-4.35" />
                   </svg>
-                  <input type="text" id="buscar-ingredientes-proveedor" placeholder="Buscar..."
+                  <input type="text" id="buscar-ingredientes-proveedor" placeholder="Buscar..." data-i18n-placeholder="common:search_placeholder"
                     oninput="window.filtrarIngredientesProveedor()">
                 </div>
                 <div class="ingredientes-disponibles" id="lista-ingredientes-proveedor"></div>
               </div>
               <div class="form-actions">
-                <button type="button" class="btn btn-secondary" data-action="cerrar-form-proveedor">Cancelar</button>
-                <button type="submit" class="btn btn-primary"><span id="btn-text-proveedor">Añadir</span></button>
+                <button type="button" class="btn btn-secondary" data-action="cerrar-form-proveedor" data-i18n="common:btn_cancel">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><span id="btn-text-proveedor" data-i18n="common:btn_add">Añadir</span></button>
               </div>
             </form>
           </div>
@@ -1016,18 +1026,18 @@
         <div id="tab-pedidos" class="tab-content">
           <div class="top-bar">
             <div>
-              <h2>Pedidos a Proveedores</h2>
-              <p>Gestiona tus pedidos y actualiza stock automáticamente</p>
+              <h2 data-i18n="pedidos:tab_title">Pedidos a Proveedores</h2>
+              <p data-i18n="pedidos:description">Gestiona tus pedidos y actualiza stock automáticamente</p>
             </div>
             <div style="display: flex; gap: 10px;">
-              <button class="btn btn-primary" data-action="mostrar-form-pedido">+ Nuevo Pedido</button>
+              <button class="btn btn-primary" data-action="mostrar-form-pedido" data-i18n="pedidos:btn_new">+ Nuevo Pedido</button>
               <button class="btn" onclick="window.abrirCarrito()"
                 style="background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; position: relative;">
-                🛒 Carrito
+                <span data-i18n="pedidos:btn_cart">🛒 Carrito</span>
                 <span id="carrito-badge"
                   style="display: none; background: #22c55e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; justify-content: center; align-items: center; position: absolute; top: -8px; right: -8px; font-weight: 700;"></span>
               </button>
-              <button class="btn btn-secondary" data-action="importar-pedidos">📤 Importar
+              <button class="btn btn-secondary" data-action="importar-pedidos" data-i18n="pedidos:btn_import_orders">📤 Importar
                 Pedidos</button>
             </div>
           </div>
@@ -1037,7 +1047,7 @@
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.35-4.35" />
             </svg>
-            <input type="search" id="busqueda-pedidos" name="busqueda_ped_nocache" placeholder="Buscar pedidos..."
+            <input type="search" id="busqueda-pedidos" name="busqueda_ped_nocache" placeholder="Buscar pedidos..." data-i18n-placeholder="pedidos:search_placeholder"
               autocomplete="off" oninput="window.renderizarPedidos()">
           </div>
 
@@ -1052,11 +1062,11 @@
                 onchange="window.procesarFotoAlbaranInput(event)">
               <div id="albaran-dropzone-content"
                 style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #64748b; font-size: 14px; font-weight: 500;">
-                📸 <span>Arrastra aquí un albarán (foto o PDF) para escanearlo con IA</span>
+                📸 <span data-i18n="pedidos:scanner_drag_hint">Arrastra aquí un albarán (foto o PDF) para escanearlo con IA</span>
               </div>
               <div id="albaran-dropzone-loading"
                 style="display: none; color: #3b82f6; font-weight: 600; font-size: 14px;">
-                ⏳ Analizando albarán con IA... (10-20 seg)
+                <span data-i18n="pedidos:scanner_analyzing">⏳ Analizando albarán con IA... (10-20 seg)</span>
               </div>
             </div>
           </div>
@@ -1066,7 +1076,7 @@
 
           <div id="formulario-pedido" class="form-card" style="display: none;">
             <h3>
-              <span>Nuevo Pedido</span>
+              <span data-i18n="pedidos:form_title_new">Nuevo Pedido</span>
               <button class="close-btn" data-action="cerrar-form-pedido">×</button>
             </h3>
             <form onsubmit="window.guardarPedido(event)">
@@ -1075,10 +1085,10 @@
                 style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-radius: 12px; border: 2px solid #818cf8;">
                 <label
                   style="color: #4338ca; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                  🔍 Buscar por ingrediente <small style="font-weight: 400; color: #6366f1;">(opcional - auto-selecciona
+                  🔍 Buscar por ingrediente <small style="font-weight: 400; color: #6366f1;" data-i18n="pedidos:form_search_ingredient_hint">(opcional - auto-selecciona
                     proveedor)</small>
                 </label>
-                <input type="text" id="ped-buscar-ingrediente" placeholder="Escribe nombre del ingrediente..."
+                <input type="text" id="ped-buscar-ingrediente" placeholder="Escribe nombre del ingrediente..." data-i18n-placeholder="pedidos:form_search_ingredient_placeholder"
                   autocomplete="off" oninput="window.buscarIngredienteParaPedido(this.value)"
                   style="width: 100%; padding: 12px; border: 2px solid #a5b4fc; border-radius: 8px; background: white; font-size: 14px;">
                 <div id="sugerencias-ingrediente-pedido"
@@ -1087,13 +1097,13 @@
 
               <div class="form-grid">
                 <div class="form-group">
-                  <label>Proveedor *</label>
+                  <label data-i18n="pedidos:form_supplier_required">Proveedor *</label>
                   <select id="ped-proveedor" required onchange="window.cargarIngredientesPedido()">
-                    <option value="">Seleccionar proveedor...</option>
+                    <option value="" data-i18n="pedidos:form_select_supplier">Seleccionar proveedor...</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Fecha del pedido</label>
+                  <label data-i18n="pedidos:form_order_date">Fecha del pedido</label>
                   <input type="date" id="ped-fecha" required>
                 </div>
               </div>
@@ -1104,20 +1114,20 @@
                 <div class="form-group" style="margin: 0;">
                   <label
                     style="color: #047857; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px;">
-                    🏪 Puesto del Mercado <small style="font-weight: 400; color: #059669;">(opcional)</small>
+                    <span data-i18n="pedidos:form_market_stall">🏪 Puesto del Mercado</span> <small style="font-weight: 400; color: #059669;" data-i18n="pedidos:form_market_stall_hint">(opcional)</small>
                   </label>
-                  <input type="text" id="ped-mercado-puesto" placeholder="Ej: Pescadería Pepe, Frutería María..."
+                  <input type="text" id="ped-mercado-puesto" placeholder="Ej: Pescadería Pepe, Frutería María..." data-i18n-placeholder="pedidos:form_market_stall_placeholder"
                     style="width: 100%; padding: 10px; border: 2px solid #86efac; border-radius: 8px; background: white; margin-top: 6px;">
                   <small style="color: #059669; margin-top: 6px; display: block;">
-                    ✅ Selecciona ingredientes abajo, pon cantidad y precio, y el stock se actualizará automáticamente.
+                    <span data-i18n="pedidos:form_market_stock_hint">✅ Selecciona ingredientes abajo, pon cantidad y precio, y el stock se actualizará automáticamente.</span>
                   </small>
                 </div>
               </div>
 
               <div class="ingredientes-receta" id="container-ingredientes-pedido" style="display:none;">
-                <h4>Ingredientes del pedido</h4>
+                <h4 data-i18n="pedidos:form_ingredients_title">Ingredientes del pedido</h4>
                 <div id="lista-ingredientes-pedido"></div>
-                <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-pedido">+
+                <button type="button" class="btn btn-secondary btn-small" data-action="agregar-ingrediente-pedido" data-i18n="pedidos:form_add_ingredient">+
                   Añadir ingrediente</button>
               </div>
 
@@ -1128,7 +1138,7 @@
                   style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; justify-content: flex-end;">
                   <!-- Campo IVA -->
                   <div style="flex: 0 0 auto;">
-                    <label
+                    <label data-i18n="pedidos:form_iva_label"
                       style="font-size: 12px; font-weight: 600; color: #047857; display: block; margin-bottom: 4px;">IVA
                       %</label>
                     <input type="number" id="ped-iva" placeholder="0" step="0.5" min="0" max="21" value="0"
@@ -1139,11 +1149,11 @@
                   <!-- Desglose -->
                   <div style="flex: 1; min-width: 200px; text-align: right;">
                     <div style="display: flex; justify-content: flex-end; gap: 15px; font-size: 14px; color: #059669;">
-                      <span>Subtotal: <strong id="total-pedido-subtotal">0.00 €</strong></span>
-                      <span>IVA: <strong id="total-pedido-iva">0.00 €</strong></span>
+                      <span><span data-i18n="pedidos:form_subtotal">Subtotal</span>: <strong id="total-pedido-subtotal">0.00 €</strong></span>
+                      <span><span data-i18n="pedidos:form_iva_amount">IVA</span>: <strong id="total-pedido-iva">0.00 €</strong></span>
                     </div>
                     <div style="margin-top: 8px;">
-                      <span style="font-size: 13px; color: #047857;">Total:</span>
+                      <span style="font-size: 13px; color: #047857;" data-i18n="pedidos:form_total">Total:</span>
                       <strong id="total-pedido-value" style="font-size: 28px; color: #059669; margin-left: 10px;">0.00
                         €</strong>
                     </div>
@@ -1152,8 +1162,8 @@
               </div>
 
               <div class="form-actions" style="margin-top: 20px;">
-                <button type="button" class="btn btn-secondary" data-action="cerrar-form-pedido">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Crear Pedido</button>
+                <button type="button" class="btn btn-secondary" data-action="cerrar-form-pedido" data-i18n="common:btn_cancel">Cancelar</button>
+                <button type="submit" class="btn btn-primary" data-i18n="pedidos:btn_create">Crear Pedido</button>
               </div>
             </form>
           </div>
@@ -1166,57 +1176,57 @@
         <div id="tab-analisis" class="tab-content">
           <div class="chart-container">
             <div class="chart-header">
-              <h3>📊 Ingresos vs Gastos</h3>
-              <p>Evolución financiera de los últimos 7 días</p>
+              <h3 data-i18n="dashboard:analysis_revenue_vs_expenses">📊 Ingresos vs Gastos</h3>
+              <p data-i18n="dashboard:analysis_financial_evolution">Evolución financiera de los últimos 7 días</p>
             </div>
             <canvas id="revenueChart"></canvas>
           </div>
 
           <div id="analisis-vacio" class="empty-state">
             <div class="icon">📊</div>
-            <h3>Aún no hay datos</h3>
-            <p>Añade ingredientes y recetas</p>
+            <h3 data-i18n="dashboard:analysis_no_data">Aún no hay datos</h3>
+            <p data-i18n="dashboard:analysis_add_data_hint">Añade ingredientes y recetas</p>
           </div>
 
           <div id="analisis-contenido" style="display: none;">
             <div class="stats-grid">
               <div class="stat-card">
-                <h3>Total Recetas</h3>
+                <h3 data-i18n="dashboard:analysis_total_recipes">Total Recetas</h3>
                 <div class="value" id="stat-total-recetas">0</div>
               </div>
               <div class="stat-card green">
-                <h3>Margen Promedio</h3>
+                <h3 data-i18n="dashboard:analysis_avg_margin">Margen Promedio</h3>
                 <div class="value" id="stat-margen-promedio">0%</div>
               </div>
               <div class="stat-card blue">
-                <h3>Coste Promedio</h3>
+                <h3 data-i18n="dashboard:analysis_avg_cost">Coste Promedio</h3>
                 <div class="value" id="stat-coste-promedio">0 €</div>
               </div>
               <div class="stat-card orange">
-                <h3>Total Ingredientes</h3>
+                <h3 data-i18n="dashboard:analysis_total_ingredients">Total Ingredientes</h3>
                 <div class="value" id="stat-total-ingredientes">0</div>
               </div>
             </div>
             <div class="charts-grid charts-grid-compact">
               <div class="chart-card chart-card-compact">
-                <h3>📊 Rentabilidad por Plato</h3>
+                <h3 data-i18n="dashboard:analysis_profitability">📊 Rentabilidad por Plato</h3>
                 <canvas id="chart-rentabilidad"></canvas>
               </div>
               <div class="chart-card chart-card-compact">
-                <h3>🥬 Alimentos Más Caros</h3>
+                <h3 data-i18n="dashboard:analysis_expensive_food">🥬 Alimentos Más Caros</h3>
                 <canvas id="chart-ingredientes"></canvas>
               </div>
               <div class="chart-card chart-card-compact">
-                <h3>🍺 Bebidas Más Caras</h3>
+                <h3 data-i18n="dashboard:analysis_expensive_drinks">🍺 Bebidas Más Caras</h3>
                 <canvas id="chart-bebidas"></canvas>
               </div>
               <div class="chart-card chart-card-compact">
-                <h3>📈 Margen por Categoría</h3>
+                <h3 data-i18n="dashboard:analysis_margin_category">📈 Margen por Categoría</h3>
                 <canvas id="chart-margen-categoria"></canvas>
               </div>
             </div>
             <div class="chart-card">
-              <h3>Ranking de Rentabilidad</h3>
+              <h3 data-i18n="dashboard:analysis_profitability_ranking">Ranking de Rentabilidad</h3>
               <div id="tabla-rentabilidad"></div>
             </div>
 
@@ -1224,14 +1234,14 @@
             <div class="chart-card" id="bcg-matrix-container" style="margin-top: 20px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div>
-                  <h3 style="margin: 0;">🏆 Ingeniería de Menú</h3>
-                  <p style="margin: 5px 0 0; font-size: 13px; color: #64748b;">Optimiza tu carta con datos reales</p>
+                  <h3 style="margin: 0;" data-i18n="dashboard:bcg_title">🏆 Ingeniería de Menú</h3>
+                  <p style="margin: 5px 0 0; font-size: 13px; color: #64748b;" data-i18n="dashboard:bcg_subtitle">Optimiza tu carta con datos reales</p>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                  <span class="bcg-legend-item" style="--color: #22c55e;">⭐ Estrellas</span>
-                  <span class="bcg-legend-item" style="--color: #3b82f6;">❓ Puzzles</span>
-                  <span class="bcg-legend-item" style="--color: #f97316;">🐎 Caballos</span>
-                  <span class="bcg-legend-item" style="--color: #ef4444;">🐶 Perros</span>
+                  <span class="bcg-legend-item" style="--color: #22c55e;" data-i18n="dashboard:bcg_legend_stars">⭐ Estrellas</span>
+                  <span class="bcg-legend-item" style="--color: #3b82f6;" data-i18n="dashboard:bcg_legend_puzzles">❓ Puzzles</span>
+                  <span class="bcg-legend-item" style="--color: #f97316;" data-i18n="dashboard:bcg_legend_horses">🐎 Caballos</span>
+                  <span class="bcg-legend-item" style="--color: #ef4444;" data-i18n="dashboard:bcg_legend_dogs">🐶 Perros</span>
                 </div>
               </div>
 
@@ -1249,12 +1259,12 @@
                   <div class="bcg-action-card bcg-action-estrella" data-action="toggle-expand">
                     <div class="bcg-action-header">
                       <span class="bcg-action-icon">⭐</span>
-                      <span class="bcg-action-title">Estrellas</span>
+                      <span class="bcg-action-title" data-i18n="dashboard:bcg_stars">Estrellas</span>
                       <span class="bcg-action-count" id="count-estrella">0</span>
                       <span class="bcg-expand-icon">▼</span>
                     </div>
-                    <div class="bcg-action-text">Mantén y destaca</div>
-                    <div class="bcg-action-detail" id="detail-estrella">
+                    <div class="bcg-action-text" data-i18n="dashboard:bcg_stars_action">Mantén y destaca</div>
+                    <div class="bcg-action-detail" id="detail-estrella" data-i18n-html="dashboard:bcg_stars_detail">
                       <strong>Estrategia recomendada:</strong>
                       <ul>
                         <li>Mantén la calidad constante</li>
@@ -1270,12 +1280,12 @@
                   <div class="bcg-action-card bcg-action-puzzle" data-action="toggle-expand">
                     <div class="bcg-action-header">
                       <span class="bcg-action-icon">❓</span>
-                      <span class="bcg-action-title">Puzzles</span>
+                      <span class="bcg-action-title" data-i18n="dashboard:bcg_puzzles">Puzzles</span>
                       <span class="bcg-action-count" id="count-puzzle">0</span>
                       <span class="bcg-expand-icon">▼</span>
                     </div>
-                    <div class="bcg-action-text">Promociona más</div>
-                    <div class="bcg-action-detail" id="detail-puzzle">
+                    <div class="bcg-action-text" data-i18n="dashboard:bcg_puzzles_action">Promociona más</div>
+                    <div class="bcg-action-detail" id="detail-puzzle" data-i18n-html="dashboard:bcg_puzzles_detail">
                       <strong>Estrategia recomendada:</strong>
                       <ul>
                         <li>Mejora la visibilidad en la carta</li>
@@ -1291,12 +1301,12 @@
                   <div class="bcg-action-card bcg-action-caballo" data-action="toggle-expand">
                     <div class="bcg-action-header">
                       <span class="bcg-action-icon">🐎</span>
-                      <span class="bcg-action-title">Caballos</span>
+                      <span class="bcg-action-title" data-i18n="dashboard:bcg_horses">Caballos</span>
                       <span class="bcg-action-count" id="count-caballo">0</span>
                       <span class="bcg-expand-icon">▼</span>
                     </div>
-                    <div class="bcg-action-text">Sube el precio</div>
-                    <div class="bcg-action-detail" id="detail-caballo">
+                    <div class="bcg-action-text" data-i18n="dashboard:bcg_horses_action">Sube el precio</div>
+                    <div class="bcg-action-detail" id="detail-caballo" data-i18n-html="dashboard:bcg_horses_detail">
                       <strong>⚠️ Atención:</strong> Trabajan mucho pero ganan poco.
                       <ul>
                         <li>Sube el precio gradualmente (5-10%)</li>
@@ -1312,12 +1322,12 @@
                   <div class="bcg-action-card bcg-action-perro" data-action="toggle-expand">
                     <div class="bcg-action-header">
                       <span class="bcg-action-icon">🐶</span>
-                      <span class="bcg-action-title">Perros</span>
+                      <span class="bcg-action-title" data-i18n="dashboard:bcg_dogs">Perros</span>
                       <span class="bcg-action-count" id="count-perro">0</span>
                       <span class="bcg-expand-icon">▼</span>
                     </div>
-                    <div class="bcg-action-text">Retira o reforma</div>
-                    <div class="bcg-action-detail" id="detail-perro">
+                    <div class="bcg-action-text" data-i18n="dashboard:bcg_dogs_action">Retira o reforma</div>
+                    <div class="bcg-action-detail" id="detail-perro" data-i18n-html="dashboard:bcg_dogs_detail">
                       <strong>🚨 Acción urgente:</strong> Ocupan espacio sin aportar valor.
                       <ul>
                         <li>Retíralos del menú cuanto antes</li>
@@ -1336,35 +1346,35 @@
                 style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border-radius: 12px; border: 1px solid #c4b5fd;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                   <span style="font-size: 20px;">💡</span>
-                  <strong style="color: #5b21b6;">Recomendaciones Inteligentes</strong>
+                  <strong style="color: #5b21b6;" data-i18n="dashboard:bcg_recommendations">Recomendaciones Inteligentes</strong>
                 </div>
                 <div id="bcg-recommendations-list" style="font-size: 13px; color: #4c1d95; line-height: 1.6;"></div>
               </div>
 
               <!-- Lista detallada colapsable -->
               <details style="margin-top: 16px;">
-                <summary style="cursor: pointer; font-weight: 600; color: #64748b; padding: 10px 0;">
+                <summary style="cursor: pointer; font-weight: 600; color: #64748b; padding: 10px 0;" data-i18n="dashboard:bcg_detailed_list">
                   📋 Ver lista detallada de platos por categoría
                 </summary>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
                   <!-- Estrellas -->
                   <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border: 2px solid #22c55e;">
-                    <h4 style="color: #15803d; margin: 0 0 10px 0; font-size: 14px;">⭐ Estrellas</h4>
+                    <h4 style="color: #15803d; margin: 0 0 10px 0; font-size: 14px;" data-i18n="dashboard:bcg_legend_stars">⭐ Estrellas</h4>
                     <div id="lista-estrella" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
                   </div>
                   <!-- Puzzles -->
                   <div style="background: #eff6ff; padding: 15px; border-radius: 12px; border: 2px solid #3b82f6;">
-                    <h4 style="color: #1d4ed8; margin: 0 0 10px 0; font-size: 14px;">❓ Puzzles</h4>
+                    <h4 style="color: #1d4ed8; margin: 0 0 10px 0; font-size: 14px;" data-i18n="dashboard:bcg_legend_puzzles">❓ Puzzles</h4>
                     <div id="lista-puzzle" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
                   </div>
                   <!-- Caballos -->
                   <div style="background: #fff7ed; padding: 15px; border-radius: 12px; border: 2px solid #f97316;">
-                    <h4 style="color: #c2410c; margin: 0 0 10px 0; font-size: 14px;">🐎 Caballos</h4>
+                    <h4 style="color: #c2410c; margin: 0 0 10px 0; font-size: 14px;" data-i18n="dashboard:bcg_legend_horses">🐎 Caballos</h4>
                     <div id="lista-caballo" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
                   </div>
                   <!-- Perros -->
                   <div style="background: #fef2f2; padding: 15px; border-radius: 12px; border: 2px solid #ef4444;">
-                    <h4 style="color: #b91c1c; margin: 0 0 10px 0; font-size: 14px;">🐶 Perros</h4>
+                    <h4 style="color: #b91c1c; margin: 0 0 10px 0; font-size: 14px;" data-i18n="dashboard:bcg_legend_dogs">🐶 Perros</h4>
                     <div id="lista-perro" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
                   </div>
                 </div>
@@ -1379,19 +1389,19 @@
         <div id="tab-inventario" class="tab-content">
           <div class="top-bar">
             <div>
-              <h2>📦 Inventario</h2>
-              <p>Control de stock de ingredientes</p>
+              <h2 data-i18n="inventario:title">📦 Inventario</h2>
+              <p data-i18n="inventario:description">Control de stock de ingredientes</p>
             </div>
           </div>
 
           <div style="margin-bottom: 15px;">
-            <button class="btn btn-secondary" data-action="mostrar-modal-inventario-masivo">📊 ACTUALIZAR INVENTARIO
+            <button class="btn btn-secondary" data-action="mostrar-modal-inventario-masivo" data-i18n="inventario:btn_update_bulk">📊 ACTUALIZAR INVENTARIO
               MASIVO</button>
-            <button class="btn btn-primary" data-action="guardar-cambios-stock">💾 Guardar Stock</button>
+            <button class="btn btn-primary" data-action="guardar-cambios-stock" data-i18n="inventario:btn_save_stock">💾 Guardar Stock</button>
             <button class="btn" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white;"
-              data-action="mostrar-modal-merma-rapida">🗑️ Merma Rápida</button>
+              data-action="mostrar-modal-merma-rapida" data-i18n="inventario:btn_quick_waste">🗑️ Merma Rápida</button>
             <button class="btn" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white;"
-              data-action="ver-historial-mermas">📋 Ver Historial Mermas</button>
+              data-action="ver-historial-mermas" data-i18n="inventario:btn_waste_history">📋 Ver Historial Mermas</button>
           </div>
 
           <div id="resumen-inventario" style="display: none; gap: 20px;"></div>
@@ -1402,7 +1412,7 @@
               <div style="position: relative; max-width: 500px;">
                 <span
                   style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: #9CA3AF;">🔍</span>
-                <input type="text" id="busqueda-inventario" placeholder="Buscar ingrediente..."
+                <input type="text" id="busqueda-inventario" placeholder="Buscar ingrediente..." data-i18n-placeholder="inventario:search_placeholder"
                   style="width: 100%; padding: 14px 16px 14px 48px; border: 2px solid #E5E7EB; border-radius: 12px; font-size: 1rem; background: #F9FAFB; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
                   onfocus="this.style.borderColor='#F97316'; this.style.boxShadow='0 0 0 4px rgba(249,115,22,0.1)';"
                   onblur="this.style.borderColor='#E5E7EB'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
@@ -1416,10 +1426,10 @@
         <div id="tab-ventas" class="tab-content">
           <div class="top-bar">
             <div>
-              <h2>💰 Ventas</h2>
-              <p>Registro diario de ventas</p>
+              <h2 data-i18n="ventas:title">💰 Ventas</h2>
+              <p data-i18n="ventas:description">Registro diario de ventas</p>
             </div>
-            <button class="btn btn-secondary" data-action="importar-ventas">📤 Importar Ventas
+            <button class="btn btn-secondary" data-action="importar-ventas" data-i18n="ventas:btn_import">📤 Importar Ventas
               TPV</button>
           </div>
 
@@ -1427,7 +1437,7 @@
             <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
               <span
                 style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 8px 12px; border-radius: 10px; font-size: 1.2rem;">🧾</span>
-              Registrar Venta
+              <span data-i18n="ventas:btn_register">Registrar Venta</span>
             </h3>
             <form id="form-venta"
               style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; align-items: end;">
@@ -1435,7 +1445,7 @@
               <div class="form-group" style="margin: 0;">
                 <label
                   style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #374151; margin-bottom: 8px;">
-                  <span style="font-size: 1.1rem;">🍽️</span> Plato
+                  <span style="font-size: 1.1rem;">🍽️</span> <span data-i18n="ventas:form_dish">Plato</span>
                 </label>
                 <select id="venta-receta" required onchange="window.cargarVariantesVenta(this.value)"
                   style="width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 12px; font-size: 1rem; background: #F9FAFB; transition: all 0.2s; cursor: pointer;"
@@ -1447,7 +1457,7 @@
               <div class="form-group" style="margin: 0;">
                 <label
                   style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #374151; margin-bottom: 8px;">
-                  <span style="font-size: 1.1rem;">🔢</span> Cantidad
+                  <span style="font-size: 1.1rem;">🔢</span> <span data-i18n="ventas:form_quantity">Cantidad</span>
                 </label>
                 <input type="number" id="venta-cantidad" min="1" value="1" required
                   style="width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 12px; font-size: 1rem; background: #F9FAFB; transition: all 0.2s; text-align: center; font-weight: 600;"
@@ -1458,44 +1468,44 @@
               <!-- Columna 3: Botón -->
               <button type="submit" class="btn btn-success"
                 style="padding: 12px 24px; font-size: 1rem; font-weight: 600; border-radius: 12px; display: flex; align-items: center; gap: 8px; white-space: nowrap;">
-                ✅ Registrar
+                <span data-i18n="ventas:form_register_btn">✅ Registrar</span>
               </button>
 
               <!-- Selector de variante (solo para bebidas) - ocupa toda la fila -->
               <div id="venta-variante-container" style="display: none; grid-column: 1 / -1;">
                 <label
                   style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #374151; margin-bottom: 8px;">
-                  <span style="font-size: 1.1rem;">🍷</span> Formato de venta
+                  <span style="font-size: 1.1rem;">🍷</span> <span data-i18n="ventas:form_variant_label">Formato de venta</span>
                 </label>
                 <select id="venta-variante"
                   style="width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 12px; font-size: 1rem; background: #F9FAFB;">
-                  <option value="">Sin variante (unidad completa)</option>
+                  <option value="" data-i18n="ventas:no_variant">Sin variante (unidad completa)</option>
                 </select>
               </div>
             </form>
           </div>
 
           <div class="card" style="margin-bottom: 20px;">
-            <h3>📅 Filtrar por Fecha</h3>
+            <h3 data-i18n="ventas:filter_date">📅 Filtrar por Fecha</h3>
             <div style="display: flex; gap: 15px; align-items: end;">
               <div class="form-group" style="flex: 1;">
-                <label>Desde:</label>
+                <label data-i18n="ventas:filter_from">Desde:</label>
                 <input type="date" id="ventas-fecha-desde" class="form-control">
               </div>
               <div class="form-group" style="flex: 1;">
-                <label>Hasta:</label>
+                <label data-i18n="ventas:filter_to">Hasta:</label>
                 <input type="date" id="ventas-fecha-hasta" class="form-control">
               </div>
-              <button class="btn btn-primary" data-action="filtrar-ventas">🔍 Filtrar</button>
-              <button class="btn btn-secondary" data-action="limpiar-filtros-ventas">🔄
+              <button class="btn btn-primary" data-action="filtrar-ventas" data-i18n="ventas:btn_filter_action">🔍 Filtrar</button>
+              <button class="btn btn-secondary" data-action="limpiar-filtros-ventas" data-i18n="ventas:btn_clear_filters">🔄
                 Limpiar</button>
             </div>
           </div>
 
           <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-              <h3 style="margin: 0;">📊 Histórico de Ventas</h3>
-              <button class="btn btn-secondary" data-action="exportar-ventas">📥 Exportar Excel</button>
+              <h3 style="margin: 0;" data-i18n="ventas:history_title">📊 Histórico de Ventas</h3>
+              <button class="btn btn-secondary" data-action="exportar-ventas" data-i18n="ventas:btn_export">📥 Exportar Excel</button>
             </div>
             <div id="tabla-ventas"></div>
           </div>
@@ -1505,24 +1515,24 @@
         <div id="tab-diario" class="tab-content">
           <div class="top-bar">
             <div>
-              <h2>📈 Control Diario</h2>
-              <p>Tracking de compras y ventas por día - Vista tipo Excel</p>
+              <h2 data-i18n="balance:diario_title">📈 Control Diario</h2>
+              <p data-i18n="balance:diario_description">Tracking de compras y ventas por día - Vista tipo Excel</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
               <select id="diario-mes" class="form-control"
                 style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                <option value="1">Enero</option>
-                <option value="2">Febrero</option>
-                <option value="3">Marzo</option>
-                <option value="4">Abril</option>
-                <option value="5">Mayo</option>
-                <option value="6">Junio</option>
-                <option value="7">Julio</option>
-                <option value="8">Agosto</option>
-                <option value="9">Septiembre</option>
-                <option value="10">Octubre</option>
-                <option value="11">Noviembre</option>
-                <option value="12">Diciembre</option>
+                <option value="1" data-i18n="dashboard:month_jan">Enero</option>
+                <option value="2" data-i18n="dashboard:month_feb">Febrero</option>
+                <option value="3" data-i18n="dashboard:month_mar">Marzo</option>
+                <option value="4" data-i18n="dashboard:month_apr">Abril</option>
+                <option value="5" data-i18n="dashboard:month_may">Mayo</option>
+                <option value="6" data-i18n="dashboard:month_jun">Junio</option>
+                <option value="7" data-i18n="dashboard:month_jul">Julio</option>
+                <option value="8" data-i18n="dashboard:month_aug">Agosto</option>
+                <option value="9" data-i18n="dashboard:month_sep">Septiembre</option>
+                <option value="10" data-i18n="dashboard:month_oct">Octubre</option>
+                <option value="11" data-i18n="dashboard:month_nov">Noviembre</option>
+                <option value="12" data-i18n="dashboard:month_dec">Diciembre</option>
               </select>
               <select id="diario-ano" class="form-control"
                 style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
@@ -1530,53 +1540,53 @@
                 <option value="2025" selected>2025</option>
                 <option value="2026">2026</option>
               </select>
-              <button class="btn btn-primary" data-action="cargar-resumen-mensual">🔄 Cargar</button>
-              <button class="btn btn-secondary" data-action="exportar-diario-excel">📥 Exportar Excel</button>
+              <button class="btn btn-primary" data-action="cargar-resumen-mensual" data-i18n="balance:diario_btn_load">🔄 Cargar</button>
+              <button class="btn btn-secondary" data-action="exportar-diario-excel" data-i18n="balance:diario_btn_export">📥 Exportar Excel</button>
             </div>
           </div>
 
           <!-- Selector de Vista -->
           <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button id="btn-vista-compras" class="btn btn-primary" data-action="vista-diario" data-vista="compras">🛒
+            <button id="btn-vista-compras" class="btn btn-primary" data-action="vista-diario" data-vista="compras" data-i18n="balance:diario_view_purchases">🛒
               Compras (Costes)</button>
-            <button id="btn-vista-ventas" class="btn btn-secondary" data-action="vista-diario" data-vista="ventas">💰
+            <button id="btn-vista-ventas" class="btn btn-secondary" data-action="vista-diario" data-vista="ventas" data-i18n="balance:diario_view_sales">💰
               Ventas (Ingresos)</button>
             <button id="btn-vista-proveedores" class="btn btn-secondary" data-action="vista-diario"
-              data-vista="proveedores">📦
+              data-vista="proveedores" data-i18n="balance:diario_view_suppliers">📦
               Por Proveedor</button>
             <button id="btn-vista-combinada" class="btn btn-secondary" data-action="vista-diario"
-              data-vista="combinada">📊
+              data-vista="combinada" data-i18n="balance:diario_view_combined">📊
               P&L Diario</button>
           </div>
           <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
           <div style="margin-top: 30px;">
             <!-- Vista Compras -->
             <div id="vista-compras" class="diario-vista" style="display: block;">
-              <h3 style="margin-bottom: 15px;">🛒 Precio de Compra por Ingrediente / Día</h3>
+              <h3 style="margin-bottom: 15px;" data-i18n="balance:diario_purchase_title">🛒 Precio de Compra por Ingrediente / Día</h3>
               <div id="tabla-compras-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
-                <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+                <p class="empty-state" data-i18n="balance:diario_empty">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
               </div>
             </div>
 
             <!-- Vista Ventas -->
             <div id="vista-ventas" class="diario-vista" style="display: none;">
-              <h3 style="margin-bottom: 15px;">💰 Ventas por Receta / Día</h3>
+              <h3 style="margin-bottom: 15px;" data-i18n="balance:diario_sales_title">💰 Ventas por Receta / Día</h3>
               <div id="tabla-ventas-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
-                <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+                <p class="empty-state" data-i18n="balance:diario_empty">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
               </div>
             </div>
 
             <!-- Vista Combinada (P&L) -->
             <div id="vista-combinada" class="diario-vista" style="display: none;">
               <div id="tabla-pl-diario" style="overflow-x: auto; width: 100%; max-width: 100%;">
-                <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+                <p class="empty-state" data-i18n="balance:diario_empty">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
               </div>
             </div>
 
             <!-- Vista Por Proveedor -->
             <div id="vista-proveedores" class="diario-vista" style="display: none;">
               <div id="tabla-proveedores-diarios" style="overflow-x: auto; width: 100%; max-width: 100%;">
-                <p class="empty-state">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
+                <p class="empty-state" data-i18n="balance:diario_empty">Selecciona un mes y haz clic en "Cargar" para ver los datos</p>
               </div>
             </div>
           </div>
@@ -1586,11 +1596,11 @@
             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; margin-top: 20px; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);">
             <h3
               style="margin: 0 0 16px 0; font-size: 16px; color: white; display: flex; align-items: center; gap: 8px;">
-              💰 Beneficio Neto por Día
+              <span data-i18n="balance:diario_net_profit">💰 Beneficio Neto por Día</span>
             </h3>
             <div id="beneficio-neto-diario-lista"
               style="max-height: 300px; overflow-y: auto; background: white; border-radius: 12px; padding: 12px;">
-              <p style="color: #64748B; margin: 0; text-align: center; padding: 20px;">Carga un mes para ver los datos
+              <p style="color: #64748B; margin: 0; text-align: center; padding: 20px;" data-i18n="balance:diario_net_profit_empty">Carga un mes para ver los datos
               </p>
             </div>
           </div>
@@ -1600,13 +1610,13 @@
           <!-- 💰 GASTOS FIJOS MENSUALES -->
           <div
             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);">
-            <h3 style="margin: 0 0 20px 0; color: white; font-size: 20px; font-weight: 700;">💰 Gastos Fijos Mensuales
+            <h3 style="margin: 0 0 20px 0; color: white; font-size: 20px; font-weight: 700;" data-i18n="balance:diario_fixed_expenses">💰 Gastos Fijos Mensuales
             </h3>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
               <!-- Alquiler -->
               <div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Alquiler Local</label>
+                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;" data-i18n="balance:diario_rent">Alquiler Local</label>
                   <span id="gf-alquiler-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
                 </div>
                 <input type="range" id="gf-alquiler" min="0" max="10000" step="100" value="0"
@@ -1617,7 +1627,7 @@
               <!-- Personal -->
               <div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Personal
+                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;" data-i18n="balance:diario_payroll">Personal
                     (Nóminas)</label>
                   <span id="gf-personal-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
                 </div>
@@ -1629,7 +1639,7 @@
               <!-- Suministros -->
               <div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Suministros</label>
+                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;" data-i18n="balance:diario_utilities">Suministros</label>
                   <span id="gf-suministros-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
                 </div>
                 <input type="range" id="gf-suministros" min="0" max="5000" step="50" value="0"
@@ -1640,7 +1650,7 @@
               <!-- Otros -->
               <div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;">Otros Gastos</label>
+                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;" data-i18n="balance:diario_other_expenses">Otros Gastos</label>
                   <span id="gf-otros-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
                 </div>
                 <input type="range" id="gf-otros" min="0" max="5000" step="50" value="0"
@@ -1650,7 +1660,7 @@
             </div>
             <div
               style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 10px; text-align: center;">
-              <span style="color: white; font-size: 13px; font-weight: 500;">✓ Se guardan automáticamente y aparecen en
+              <span style="color: white; font-size: 13px; font-weight: 500;" data-i18n="balance:diario_autosave_hint">✓ Se guardan automáticamente y aparecen en
                 el
                 P&L Diario</span>
             </div>
@@ -1659,24 +1669,24 @@
           <!-- Resumen Rápido -->
           <div class="stats-grid" id="diario-resumen">
             <div class="stat-card">
-              <h3>Total Compras Mes</h3>
+              <h3 data-i18n="balance:diario_total_purchases">Total Compras Mes</h3>
               <div class="value" id="diario-total-compras">0.00 €</div>
             </div>
             <div class="stat-card green">
-              <h3>Total Ventas Mes</h3>
+              <h3 data-i18n="balance:diario_total_sales">Total Ventas Mes</h3>
               <div class="value" id="diario-total-ventas">0.00 €</div>
             </div>
             <div class="stat-card blue">
-              <h3>Beneficio Bruto</h3>
+              <h3 data-i18n="balance:diario_gross_profit">Beneficio Bruto</h3>
               <div class="value" id="diario-beneficio">0.00 €</div>
             </div>
             <div class="stat-card orange">
-              <h3>Food Cost</h3>
+              <h3 data-i18n="balance:diario_food_cost">Food Cost</h3>
               <div class="value" id="diario-food-cost">0.0%</div>
             </div>
             <div class="stat-card purple"
               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-              <h3 style="color: rgba(255,255,255,0.9);">💰 Gastos Fijos Totales</h3>
+              <h3 style="color: rgba(255,255,255,0.9);" data-i18n="balance:diario_fixed_total">💰 Gastos Fijos Totales</h3>
               <div class="value" id="diario-gastos-fijos-total" style="color: white;">0.00 €</div>
             </div>
           </div>
@@ -1691,17 +1701,17 @@
                 <span style="font-size: 32px;">👥</span>
                 MindLoop Staff Scheduler
               </h2>
-              <p style="color: rgba(255,255,255,0.9); font-size: 15px;">Gestión inteligente de horarios y plantilla</p>
+              <p style="color: rgba(255,255,255,0.9); font-size: 15px;" data-i18n="horarios:staff_scheduler_subtitle">Gestión inteligente de horarios y plantilla</p>
             </div>
             <div style="display: flex; gap: 12px; align-items: center;">
               <button class="btn" data-action="generar-horario-ia"
                 style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3); color: white; font-weight: 600; padding: 12px 24px; display: flex; align-items: center; gap: 8px; transition: all 0.3s;">
                 <span style="font-size: 18px;">⚡</span>
-                Generar Horario IA
+                <span data-i18n="horarios:btn_generate_ai">Generar Horario IA</span>
               </button>
               <button class="btn btn-primary" data-action="nuevo-empleado"
                 style="background: white; color: #667eea; font-weight: 600; padding: 12px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                <span style="font-size: 16px;">➕</span> Nuevo Empleado
+                <span style="font-size: 16px;">➕</span> <span data-i18n="horarios:btn_new_employee">Nuevo Empleado</span>
               </button>
             </div>
           </div>
@@ -1712,14 +1722,14 @@
             <div
               style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 20px; border-bottom: 2px solid #e2e8f0;">
               <h3 style="color: #1e293b; margin: 0; font-size: 18px; font-weight: 700;">
-                <span style="font-size: 20px;">👨‍💼</span> Plantilla Activa
+                <span style="font-size: 20px;">👨‍💼</span> <span data-i18n="horarios:active_staff">Plantilla Activa</span>
               </h3>
             </div>
             <div id="lista-empleados" style="padding: 20px;">
               <div style="text-align: center; padding: 40px; color: #94a3b8;">
                 <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
-                <p style="font-size: 16px;">No hay empleados todavía</p>
-                <p style="font-size: 14px; color: #cbd5e1;">Añade tu primer empleado para empezar</p>
+                <p style="font-size: 16px;" data-i18n="horarios:empty_no_employees">No hay empleados todavía</p>
+                <p style="font-size: 14px; color: #cbd5e1;" data-i18n="horarios:empty_add_first">Añade tu primer empleado para empezar</p>
               </div>
             </div>
           </div>
@@ -1729,35 +1739,35 @@
             <div
               style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 20px; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
               <h3 style="color: #1e293b; margin: 0; font-size: 18px; font-weight: 700;">
-                <span style="font-size: 20px;">📅</span> Horario Semanal
+                <span style="font-size: 20px;">📅</span> <span data-i18n="horarios:weekly_schedule">Horario Semanal</span>
               </h3>
               <div style="display: flex; gap: 12px; align-items: center;">
                 <button class="btn btn-icon" data-action="semana-anterior"
                   style="background: white; border: 2px solid #e2e8f0; color: #64748b; padding: 8px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s;">
-                  ◀ Anterior
+                  <span data-i18n="horarios:btn_previous">◀ Anterior</span>
                 </button>
-                <div id="semana-actual"
+                <div id="semana-actual" data-i18n="common:loading"
                   style="padding: 8px 20px; background: white; border-radius: 8px; border: 2px solid #e2e8f0; font-weight: 600; color: #1e293b; min-width: 200px; text-align: center;">
                   Cargando...
                 </div>
                 <button class="btn btn-icon" data-action="semana-siguiente"
                   style="background: white; border: 2px solid #e2e8f0; color: #64748b; padding: 8px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s;">
-                  Siguiente ▶
+                  <span data-i18n="horarios:btn_next">Siguiente ▶</span>
                 </button>
                 <button class="btn" data-action="copiar-semana"
                   style="background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; margin-left: 12px;">
-                  📋 Copiar Semana
+                  <span data-i18n="horarios:btn_copy_week_short">📋 Copiar Semana</span>
                 </button>
                 <button class="btn" onclick="window.descargarHorarioMensual?.()"
                   style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; margin-left: 8px;">
-                  📥 Descargar Mes
+                  <span data-i18n="horarios:btn_download_month">📥 Descargar Mes</span>
                 </button>
               </div>
             </div>
             <div id="grid-horarios" style="padding: 20px; overflow-x: auto;">
               <div style="text-align: center; padding: 60px; color: #94a3b8;">
                 <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
-                <p style="font-size: 16px;">Añade empleados para ver el horario</p>
+                <p style="font-size: 16px;" data-i18n="horarios:empty_add_for_grid">Añade empleados para ver el horario</p>
               </div>
             </div>
           </div>
@@ -1768,7 +1778,7 @@
           <div id="content-inteligencia">
             <div style="text-align: center; padding: 60px; color: #64748b;">
               <div style="font-size: 48px;">⏳</div>
-              <p>Cargando Inteligencia...</p>
+              <p data-i18n="horarios:inteligencia_loading">Cargando Inteligencia...</p>
             </div>
           </div>
         </div>
@@ -1777,15 +1787,15 @@
         <div id="tab-configuracion" class="tab-content">
           <div class="top-bar">
             <div>
-              <h2>⚙️ Configuración & Equipo</h2>
-              <p>Gestiona los accesos y datos de tu negocio</p>
+              <h2 data-i18n="settings:config_title">⚙️ Configuración & Equipo</h2>
+              <p data-i18n="settings:config_description">Gestiona los accesos y datos de tu negocio</p>
             </div>
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-secondary" onclick="window.resetOnboarding(); window.startTour();"
                 style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none;">
-                🎯 Reiniciar Tour
+                <span data-i18n="settings:btn_restart_tour">🎯 Reiniciar Tour</span>
               </button>
-              <button class="btn btn-secondary" data-action="abrir-manual-formulas">📘 Descargar/Imprimir
+              <button class="btn btn-secondary" data-action="abrir-manual-formulas" data-i18n="settings:btn_download_dossier">📘 Descargar/Imprimir
                 Dossier</button>
             </div>
           </div>
@@ -1797,18 +1807,18 @@
               style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
               <div class="card-header"
                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3>👥 Mi Equipo</h3>
-                <button class="btn btn-primary" data-action="mostrar-modal-invitar">+ Invitar Usuario</button>
+                <h3 data-i18n="settings:section_team">👥 Mi Equipo</h3>
+                <button class="btn btn-primary" data-action="mostrar-modal-invitar" data-i18n="equipo:btn_invite">+ Invitar Usuario</button>
               </div>
               <div class="table-container">
                 <table style="width:100%; border-collapse:collapse;">
                   <thead>
                     <tr style="border-bottom:2px solid #eee;">
-                      <th style="text-align:left; padding:10px;">Nombre</th>
-                      <th style="text-align:left; padding:10px;">Email</th>
-                      <th style="text-align:left; padding:10px;">Rol</th>
-                      <th style="text-align:left; padding:10px;">Fecha Alta</th>
-                      <th style="text-align:right; padding:10px;">Acciones</th>
+                      <th style="text-align:left; padding:10px;" data-i18n="common:label_name">Nombre</th>
+                      <th style="text-align:left; padding:10px;" data-i18n="common:label_email">Email</th>
+                      <th style="text-align:left; padding:10px;" data-i18n="equipo:col_role">Rol</th>
+                      <th style="text-align:left; padding:10px;" data-i18n="equipo:col_join_date">Fecha Alta</th>
+                      <th style="text-align:right; padding:10px;" data-i18n="common:label_actions">Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="lista-equipo-body">
@@ -1821,10 +1831,10 @@
             <!-- Placeholder Datos Restaurante -->
             <div class="card"
               style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-              <h3>🏢 Datos del Restaurante</h3>
+              <h3 data-i18n="settings:section_restaurant_data">🏢 Datos del Restaurante</h3>
               <div style="margin-top:10px; color:#666;">
-                <p><strong>Nombre:</strong> <span id="config-restaurante-nombre">Cargando...</span></p>
-                <p style="font-size:0.9em; margin-top:5px;">ID Restaurante: <span id="config-restaurante-id">...</span>
+                <p><strong data-i18n="settings:restaurant_name_label">Nombre:</strong> <span id="config-restaurante-nombre">Cargando...</span></p>
+                <p style="font-size:0.9em; margin-top:5px;"><span data-i18n="settings:restaurant_id_label">ID Restaurante:</span> <span id="config-restaurante-id">...</span>
                 </p>
               </div>
             </div>
@@ -1834,12 +1844,12 @@
               style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <div>
-                  <h3 style="margin:0;">🔗 Integraciones Activas</h3>
-                  <p style="font-size:0.85rem; color:#64748b; margin:4px 0 0 0;">Conexiones automatizadas con n8n</p>
+                  <h3 style="margin:0;" data-i18n="settings:section_integrations">🔗 Integraciones Activas</h3>
+                  <p style="font-size:0.85rem; color:#64748b; margin:4px 0 0 0;" data-i18n="settings:integrations_subtitle">Conexiones automatizadas con n8n</p>
                 </div>
                 <button onclick="window.checkAllIntegrations()"
                   style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; padding:8px 16px; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer; transition:all 0.3s;">
-                  🔄 Verificar Estado
+                  <span data-i18n="settings:btn_verify_status">🔄 Verificar Estado</span>
                 </button>
               </div>
               <div style="display:flex; flex-direction:column; gap:12px;">
@@ -1850,13 +1860,13 @@
                   <div style="display:flex; align-items:center; gap:12px;">
                     <span style="font-size:1.5rem;">🔄</span>
                     <div>
-                      <strong style="color:#1e293b;">n8n Webhooks</strong>
-                      <p style="font-size:0.8rem; color:#16a34a; margin:2px 0 0 0;">Automatización de flujos de trabajo
+                      <strong style="color:#1e293b;" data-i18n="settings:integration_n8n">n8n Webhooks</strong>
+                      <p style="font-size:0.8rem; color:#16a34a; margin:2px 0 0 0;" data-i18n="settings:integration_n8n_desc">Automatización de flujos de trabajo
                       </p>
                     </div>
                   </div>
                   <span id="status-n8n"
-                    style="font-size:0.75rem; padding:6px 12px; border-radius:20px; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; font-weight:600;">✓
+                    style="font-size:0.75rem; padding:6px 12px; border-radius:20px; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; font-weight:600;" data-i18n="settings:integration_connected">✓
                     Conectado</span>
                 </div>
 
@@ -1866,13 +1876,13 @@
                   <div style="display:flex; align-items:center; gap:12px;">
                     <span style="font-size:1.5rem;">📊</span>
                     <div>
-                      <strong style="color:#1e293b;">Google Sheets</strong>
-                      <p style="font-size:0.8rem; color:#16a34a; margin:2px 0 0 0;">📷 Albaranes → Foto → n8n → Pedidos
+                      <strong style="color:#1e293b;" data-i18n="settings:integration_sheets">Google Sheets</strong>
+                      <p style="font-size:0.8rem; color:#16a34a; margin:2px 0 0 0;" data-i18n="settings:integration_sheets_desc">📷 Albaranes → Foto → n8n → Pedidos
                       </p>
                     </div>
                   </div>
                   <span id="status-sheets"
-                    style="font-size:0.75rem; padding:6px 12px; border-radius:20px; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; font-weight:600;">✓
+                    style="font-size:0.75rem; padding:6px 12px; border-radius:20px; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; font-weight:600;" data-i18n="settings:integration_connected">✓
                     Conectado</span>
                 </div>
 
@@ -1882,14 +1892,14 @@
                   <div style="display:flex; align-items:center; gap:12px;">
                     <span style="font-size:1.5rem;">📧</span>
                     <div>
-                      <strong style="color:#1e293b;">Email Ventas (Cuiner)</strong>
-                      <p style="font-size:0.8rem; color:#16a34a; margin:2px 0 0 0;">📬 Email diario → n8n → Ventas del
+                      <strong style="color:#1e293b;" data-i18n="settings:integration_cuiner">Email Ventas (Cuiner)</strong>
+                      <p style="font-size:0.8rem; color:#16a34a; margin:2px 0 0 0;" data-i18n="settings:integration_cuiner_desc">📬 Email diario → n8n → Ventas del
                         día
                       </p>
                     </div>
                   </div>
                   <span id="status-cuiner"
-                    style="font-size:0.75rem; padding:6px 12px; border-radius:20px; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; font-weight:600;">✓
+                    style="font-size:0.75rem; padding:6px 12px; border-radius:20px; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; font-weight:600;" data-i18n="settings:integration_connected">✓
                     Conectado</span>
                 </div>
 
@@ -1897,9 +1907,9 @@
                 <div
                   style="margin-top:8px; padding:12px 14px; background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius:10px; border:1px solid #93c5fd;">
                   <p style="font-size:0.8rem; color:#1e40af; margin:0;">
-                    💡 <strong>Flujo automatizado:</strong> Los albaranes se procesan con IA desde fotos, y las ventas
+                    <span data-i18n-html="settings:integrations_hint">💡 <strong>Flujo automatizado:</strong> Los albaranes se procesan con IA desde fotos, y las ventas
                     de
-                    Cuiner llegan automáticamente cada día por email.
+                    Cuiner llegan automáticamente cada día por email.</span>
                   </p>
                 </div>
 
@@ -1919,16 +1929,16 @@
                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 8px; border-radius: 10px;">🤖</span>
               MindLoop Staff Scheduler
             </h2>
-            <p style="opacity: 0.7;">Generador inteligente de horarios con IA</p>
+            <p style="opacity: 0.7;" data-i18n="horarios:staff_scheduler_subtitle">Generador inteligente de horarios con IA</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button id="btn-descargar-horario" class="btn btn-secondary" onclick="window.descargarHorarioMensual?.()"
               style="background: #10b981; border: none; padding: 12px 20px; font-weight: 600; color: white; border-radius: 8px;">
-              📥 Descargar Mes
+              <span data-i18n="horarios:btn_download_month">📥 Descargar Mes</span>
             </button>
             <button id="btn-generar-horario" class="btn btn-primary" onclick="window.generarHorarioIA?.()"
               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 20px; font-weight: 600;">
-              ⚡ Generar Horario IA
+              <span data-i18n="horarios:btn_generate_ai">⚡ Generar Horario IA</span>
             </button>
           </div>
         </div>
@@ -1939,17 +1949,17 @@
           <div class="card" style="padding: 0; overflow: hidden;">
             <div
               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-              <h3 style="margin: 0; font-size: 1rem;">👥 Equipo</h3>
+              <h3 style="margin: 0; font-size: 1rem;" data-i18n="settings:section_team">👥 Equipo</h3>
               <button id="btn-add-empleado" onclick="window.mostrarModalEmpleado?.()"
                 style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
-                + Nuevo
+                <span data-i18n="common:btn_new">+ Nuevo</span>
               </button>
             </div>
             <div id="lista-empleados" style="padding: 15px; max-height: 400px; overflow-y: auto;">
               <div style="text-align: center; padding: 30px; color: #64748B;">
                 <div style="font-size: 2rem; margin-bottom: 10px;">👤</div>
-                <p style="font-size: 0.85rem;">Sin empleados</p>
-                <p style="font-size: 0.75rem; opacity: 0.7;">Haz clic en "+ Nuevo" para añadir</p>
+                <p style="font-size: 0.85rem;" data-i18n="horarios:empty_no_employees_team">Sin empleados</p>
+                <p style="font-size: 0.75rem; opacity: 0.7;" data-i18n="horarios:empty_click_new">Haz clic en "+ Nuevo" para añadir</p>
               </div>
             </div>
           </div>
@@ -1966,11 +1976,11 @@
               </div>
               <button id="btn-copiar-semana" onclick="window.copiarSemanaUI?.()"
                 style="background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">
-                📋 Copiar semana anterior
+                <span data-i18n="horarios:btn_copy_prev_week">📋 Copiar semana anterior</span>
               </button>
               <button id="btn-descargar-mes" onclick="window.descargarHorarioMensual?.()"
                 style="background: #10b981; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: white; font-weight: 600;">
-                📥 Descargar Mes
+                <span data-i18n="horarios:btn_download_month">📥 Descargar Mes</span>
               </button>
             </div>
 
@@ -1979,27 +1989,27 @@
               <table style="width: 100%; border-collapse: separate; border-spacing: 4px; min-width: 600px;">
                 <thead>
                   <tr>
-                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #64748B; font-size: 0.8rem;">
+                    <th style="padding: 12px; text-align: left; font-weight: 600; color: #64748B; font-size: 0.8rem;" data-i18n="horarios:grid_header_employee_upper">
                       EMPLEADO</th>
-                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;">
+                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;" data-i18n="horarios:days_short_mon">
                       LUN
                     </th>
-                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;">
+                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;" data-i18n="horarios:days_short_tue">
                       MAR
                     </th>
-                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;">
+                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;" data-i18n="horarios:days_short_wed">
                       MIÉ
                     </th>
-                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;">
+                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;" data-i18n="horarios:days_short_thu">
                       JUE
                     </th>
-                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;">
+                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;" data-i18n="horarios:days_short_fri">
                       VIE
                     </th>
-                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;">
+                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;" data-i18n="horarios:days_short_sat">
                       SÁB
                     </th>
-                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;">
+                    <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B; font-size: 0.8rem;" data-i18n="horarios:days_short_sun">
                       DOM
                     </th>
                   </tr>
@@ -2008,8 +2018,8 @@
                   <tr>
                     <td colspan="8" style="padding: 50px; text-align: center; color: #94A3B8;">
                       <div style="font-size: 2.5rem; margin-bottom: 15px;">📅</div>
-                      <p style="font-weight: 500;">Añade empleados para empezar</p>
-                      <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px;">El horario se generará
+                      <p style="font-weight: 500;" data-i18n="horarios:empty_add_for_schedule">Añade empleados para empezar</p>
+                      <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px;" data-i18n="horarios:empty_schedule_ai_hint">El horario se generará
                         automáticamente
                         con IA</p>
                     </td>
@@ -2025,24 +2035,24 @@
                 <div id="stat-empleados"
                   style="font-size: 1.8rem; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                   0</div>
-                <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="horarios:stat_employees">
                   Empleados
                 </div>
               </div>
               <div style="text-align: center;">
                 <div id="stat-turnos" style="font-size: 1.8rem; font-weight: 700; color: #059669;">0</div>
-                <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="horarios:stat_shifts">
                   Turnos
                 </div>
               </div>
               <div style="text-align: center;">
                 <div id="stat-horas" style="font-size: 1.8rem; font-weight: 700; color: #0EA5E9;">0h</div>
-                <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Horas
+                <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="horarios:stat_hours">Horas
                 </div>
               </div>
               <div style="text-align: center;">
                 <div id="stat-coste" style="font-size: 1.8rem; font-weight: 700; color: #DC2626;">0€</div>
-                <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Coste
+                <div style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="horarios:stat_cost">Coste
                 </div>
               </div>
             </div>
@@ -2056,31 +2066,31 @@
       <div id="modal-invitar-equipo" class="modal">
         <div class="modal-content" style="max-width:500px">
           <span class="close" data-action="cerrar-modal-invitar">&times;</span>
-          <h2>Invitar Nuevo Usuario</h2>
+          <h2 data-i18n="equipo:invite_modal_title">Invitar Nuevo Usuario</h2>
           <div style="margin-top:20px;">
             <div class="form-group" style="margin-bottom:15px;">
-              <label style="display:block; margin-bottom:5px; font-weight:bold;">Nombre Completo</label>
-              <input type="text" id="team-nombre" class="form-control" placeholder="Ej. Juan Cocinero"
+              <label style="display:block; margin-bottom:5px; font-weight:bold;" data-i18n="equipo:invite_name_label">Nombre Completo</label>
+              <input type="text" id="team-nombre" class="form-control" placeholder="Ej. Juan Cocinero" data-i18n-placeholder="equipo:invite_name_placeholder"
                 style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
             </div>
             <div class="form-group" style="margin-bottom:15px;">
-              <label style="display:block; margin-bottom:5px; font-weight:bold;">Email Corporativo</label>
-              <input type="email" id="team-email" class="form-control" placeholder="usuario@restaurante.com"
+              <label style="display:block; margin-bottom:5px; font-weight:bold;" data-i18n="equipo:invite_email_corporate">Email Corporativo</label>
+              <input type="email" id="team-email" class="form-control" placeholder="usuario@restaurante.com" data-i18n-placeholder="equipo:invite_email_placeholder"
                 style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
             </div>
             <div class="form-group" style="margin-bottom:15px;">
-              <label style="display:block; margin-bottom:5px; font-weight:bold;">Contraseña Inicial</label>
+              <label style="display:block; margin-bottom:5px; font-weight:bold;" data-i18n="equipo:invite_password_label">Contraseña Inicial</label>
               <input type="password" id="team-password" class="form-control" placeholder="******"
                 style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
             </div>
             <div class="form-group" style="margin-bottom:20px;">
               <label style="display:block; margin-bottom:5px; font-weight:bold;">Rol</label>
               <select id="team-rol" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                <option value="usuario">Usuario (Estándar)</option>
-                <option value="admin">Administrador (Acceso Total)</option>
+                <option value="usuario" data-i18n="equipo:role_user_standard">Usuario (Estándar)</option>
+                <option value="admin" data-i18n="equipo:role_admin_full">Administrador (Acceso Total)</option>
               </select>
             </div>
-            <button class="btn btn-primary" style="width:100%" data-action="invitar-usuario-equipo">Enviar
+            <button class="btn btn-primary" style="width:100%" data-action="invitar-usuario-equipo" data-i18n="equipo:btn_send_invitation">Enviar
               Invitación</button>
           </div>
         </div>
@@ -2089,20 +2099,20 @@
       <!-- Modales (simplificados) -->
       <div id="modal-producir" class="modal">
         <div class="modal-content">
-          <h3>Producir platos</h3>
-          <p style="margin-bottom: 20px;">¿Cuántas unidades de <strong id="modal-plato-nombre"></strong>?</p>
+          <h3 data-i18n="recetas:produce_title">Producir platos</h3>
+          <p style="margin-bottom: 20px;" data-i18n-html="recetas:produce_how_many_html">¿Cuántas unidades de <strong id="modal-plato-nombre"></strong>?</p>
           <div class="form-group">
-            <label>Cantidad</label>
+            <label data-i18n="common:label_quantity">Cantidad</label>
             <input type="number" id="modal-cantidad" min="1" value="1" style="width:100%;padding:10px;"
               oninput="window.actualizarDetalleDescuento()">
           </div>
           <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 6px;">
-            <strong>⚠️ Descuento de stock:</strong>
+            <strong data-i18n="recetas:produce_stock_deduction">⚠️ Descuento de stock:</strong>
             <div id="modal-descuento-detalle" style="margin-top: 10px;"></div>
           </div>
           <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-producir">Cancelar</button>
-            <button class="btn btn-success" data-action="confirmar-produccion">Confirmar</button>
+            <button class="btn btn-secondary" data-action="cerrar-modal-producir" data-i18n="common:btn_cancel">Cancelar</button>
+            <button class="btn btn-success" data-action="confirmar-produccion" data-i18n="recetas:produce_confirm">Confirmar</button>
           </div>
         </div>
       </div>
@@ -2115,7 +2125,7 @@
           <div
             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; margin: -24px -24px 24px -24px;">
             <h3 id="modal-empleado-titulo" style="color: white; margin: 0; font-size: 24px; font-weight: 700;">
-              <span style="font-size: 28px;">👤</span> Nuevo Empleado
+              <span style="font-size: 28px;">👤</span> <span data-i18n="horarios:employee_modal_title_new">Nuevo Empleado</span>
             </h3>
           </div>
 
@@ -2123,7 +2133,7 @@
             <!-- Nombre -->
             <div class="form-group">
               <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
-                Nombre Completo *
+                <span data-i18n="horarios:employee_name_required">Nombre Completo *</span>
               </label>
               <input type="text" id="empleado-nombre" class="form-input" placeholder="Ej. Juan Pérez"
                 style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
@@ -2133,7 +2143,7 @@
             <div style="display: grid; grid-template-columns: 120px 1fr; gap: 16px;">
               <!-- Color -->
               <div class="form-group">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;" data-i18n="horarios:employee_color">
                   Color
                 </label>
                 <input type="color" id="empleado-color" value="#667eea"
@@ -2142,13 +2152,13 @@
 
               <!-- Puesto -->
               <div class="form-group">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;" data-i18n="horarios:employee_position">
                   Puesto
                 </label>
                 <select id="empleado-puesto"
                   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
-                  <option value="cocina">👨‍🍳 Cocina</option>
-                  <option value="sala">🍽️ Sala</option>
+                  <option value="cocina" data-i18n="horarios:employee_position_kitchen">👨‍🍳 Cocina</option>
+                  <option value="sala" data-i18n="horarios:employee_position_dining">🍽️ Sala</option>
                 </select>
               </div>
             </div>
@@ -2156,7 +2166,7 @@
             <!-- Horas contrato -->
             <div class="form-group">
               <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
-                ⏱️ Horas contrato/semana
+                <span data-i18n="horarios:employee_hours_contract">⏱️ Horas contrato/semana</span>
               </label>
               <input type="number" id="empleado-horas-contrato" class="form-input" placeholder="40" min="0" max="168"
                 style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
@@ -2166,36 +2176,36 @@
           <!-- Días libres fijos -->
           <div class="form-group">
             <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #1e293b; font-size: 14px;">
-              📅 Días libres fijos
+              <span data-i18n="horarios:employee_days_off">📅 Días libres fijos</span>
             </label>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <label style="flex: 1; min-width: 80px; cursor: pointer;">
                 <input type="checkbox" id="libre-lunes" value="1" style="margin-right: 6px;">
-                Lun
+                <span data-i18n="horarios:days_short_mon">Lun</span>
               </label>
               <label style="flex: 1; min-width: 80px; cursor: pointer;">
                 <input type="checkbox" id="libre-martes" value="2" style="margin-right: 6px;">
-                Mar
+                <span data-i18n="horarios:days_short_tue">Mar</span>
               </label>
               <label style="flex: 1; min-width: 80px; cursor: pointer;">
                 <input type="checkbox" id="libre-miercoles" value="3" style="margin-right: 6px;">
-                Mié
+                <span data-i18n="horarios:days_short_wed">Mié</span>
               </label>
               <label style="flex: 1; min-width: 80px; cursor: pointer;">
                 <input type="checkbox" id="libre-jueves" value="4" style="margin-right: 6px;">
-                Jue
+                <span data-i18n="horarios:days_short_thu">Jue</span>
               </label>
               <label style="flex: 1; min-width: 80px; cursor: pointer;">
                 <input type="checkbox" id="libre-viernes" value="5" style="margin-right: 6px;">
-                Vie
+                <span data-i18n="horarios:days_short_fri">Vie</span>
               </label>
               <label style="flex: 1; min-width: 80px; cursor: pointer;">
                 <input type="checkbox" id="libre-sabado" value="6" style="margin-right: 6px;">
-                Sáb
+                <span data-i18n="horarios:days_short_sat">Sáb</span>
               </label>
               <label style="flex: 1; min-width: 80px; cursor: pointer;">
                 <input type="checkbox" id="libre-domingo" value="0" style="margin-right: 6px;">
-                Dom
+                <span data-i18n="horarios:days_short_sun">Dom</span>
               </label>
             </div>
           </div>
@@ -2203,12 +2213,12 @@
           <!-- Botones -->
           <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
             <button class="btn btn-secondary" data-action="cerrar-modal-empleado"
-              style="padding: 12px 24px; border-radius: 10px; font-weight: 600; background: #e2e8f0; border: none; cursor: pointer;">
+              style="padding: 12px 24px; border-radius: 10px; font-weight: 600; background: #e2e8f0; border: none; cursor: pointer;" data-i18n="common:btn_cancel">
               Cancelar
             </button>
             <button class="btn btn-primary" data-action="guardar-empleado"
               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 12px 32px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); cursor: pointer;">
-              <span id="btn-guardar-empleado-text">Guardar</span>
+              <span id="btn-guardar-empleado-text" data-i18n="horarios:btn_save">Guardar</span>
             </button>
           </div>
         </div>
@@ -2219,7 +2229,7 @@
           <h3 id="modal-proveedor-titulo"></h3>
           <div id="modal-proveedor-contenido"></div>
           <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-proveedor">Cerrar</button>
+            <button class="btn btn-secondary" data-action="cerrar-modal-proveedor" data-i18n="common:btn_close">Cerrar</button>
           </div>
         </div>
       </div>
@@ -2227,11 +2237,11 @@
       <!-- Modal gestionar proveedores de ingrediente -->
       <div id="modal-proveedores-ingrediente" class="modal">
         <div class="modal-content" style="max-width: 700px;">
-          <h3 id="modal-proveedores-titulo">Proveedores del ingrediente</h3>
+          <h3 id="modal-proveedores-titulo" data-i18n="ingredientes:suppliers_modal_title">Proveedores del ingrediente</h3>
 
           <!-- Lista de proveedores asociados -->
           <div style="margin: 20px 0;">
-            <h4 style="color: #64748B; font-size: 14px; margin-bottom: 12px;">PROVEEDORES ASOCIADOS</h4>
+            <h4 style="color: #64748B; font-size: 14px; margin-bottom: 12px;" data-i18n="ingredientes:suppliers_associated">PROVEEDORES ASOCIADOS</h4>
             <div id="lista-proveedores-asociados" style="max-height: 400px; overflow-y: auto;">
               <!-- Se renderiza dinámicamente -->
             </div>
@@ -2239,23 +2249,23 @@
 
           <!-- Formulario para agregar nuevo proveedor -->
           <div style="background: #F8FAFC; padding: 20px; border-radius: 12px; margin-top: 20px;">
-            <h4 style="color: #1E293B; font-size: 15px; margin-bottom: 16px;">➕ Agregar proveedor</h4>
+            <h4 style="color: #1E293B; font-size: 15px; margin-bottom: 16px;" data-i18n="ingredientes:suppliers_add_title">➕ Agregar proveedor</h4>
             <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
               <div>
-                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;">Proveedor</label>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;" data-i18n="common:label_supplier">Proveedor</label>
                 <select id="select-proveedor-nuevo" class="form-input" style="width: 100%;">
-                  <option value="">Seleccionar...</option>
+                  <option value="" data-i18n="ingredientes:suppliers_select">Seleccionar...</option>
                 </select>
               </div>
               <div>
-                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;">Precio</label>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;" data-i18n="ingredientes:suppliers_label_price">Precio</label>
                 <input type="number" id="input-precio-nuevo" class="form-input" placeholder="0.00" step="0.01" min="0"
                   style="width: 100%;">
               </div>
               <div>
                 <button class="btn btn-primary" onclick="window.agregarProveedorIngrediente()"
                   style="padding: 10px 20px;">
-                  ➕ Agregar
+                  <span data-i18n="ingredientes:suppliers_btn_add">➕ Agregar</span>
                 </button>
               </div>
             </div>
@@ -2263,7 +2273,7 @@
 
           <!-- Botones del modal -->
           <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn btn-secondary" onclick="window.cerrarModalProveedoresIngrediente()">Cerrar</button>
+            <button class="btn btn-secondary" onclick="window.cerrarModalProveedoresIngrediente()" data-i18n="common:btn_close">Cerrar</button>
           </div>
         </div>
       </div>
@@ -2271,11 +2281,11 @@
       <!-- Modal gestionar variantes de receta (botella/copa) -->
       <div id="modal-variantes-receta" class="modal">
         <div class="modal-content" style="max-width: 600px;">
-          <h3 id="modal-variantes-titulo">Variantes de la receta</h3>
+          <h3 id="modal-variantes-titulo" data-i18n="recetas:variants_title">Variantes de la receta</h3>
 
           <!-- Lista de variantes -->
           <div style="margin: 20px 0;">
-            <h4 style="color: #64748B; font-size: 14px; margin-bottom: 12px;">🍷 FORMATOS DE VENTA</h4>
+            <h4 style="color: #64748B; font-size: 14px; margin-bottom: 12px;" data-i18n="recetas:variants_formats">🍷 FORMATOS DE VENTA</h4>
             <div id="lista-variantes" style="max-height: 300px; overflow-y: auto;">
               <!-- Se renderiza dinámicamente -->
             </div>
@@ -2283,43 +2293,43 @@
 
           <!-- Formulario para agregar nueva variante -->
           <div style="background: #F8FAFC; padding: 20px; border-radius: 12px; margin-top: 20px;">
-            <h4 style="color: #1E293B; font-size: 15px; margin-bottom: 16px;">➕ Añadir variante</h4>
+            <h4 style="color: #1E293B; font-size: 15px; margin-bottom: 16px;" data-i18n="recetas:variants_add">➕ Añadir variante</h4>
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; align-items: end;">
               <div>
-                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;">Nombre</label>
-                <input type="text" id="input-variante-nombre" class="form-input" placeholder="Ej: Copa, Botella"
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;" data-i18n="recetas:variants_name">Nombre</label>
+                <input type="text" id="input-variante-nombre" class="form-input" placeholder="Ej: Copa, Botella" data-i18n-placeholder="recetas:variants_name_placeholder"
                   style="width: 100%;">
               </div>
               <div>
-                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;">Precio €</label>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;" data-i18n="recetas:variants_price">Precio €</label>
                 <input type="number" id="input-variante-precio" class="form-input" placeholder="0.00" step="0.01"
                   min="0" style="width: 100%;">
               </div>
               <div>
-                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;">Factor</label>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;" data-i18n="recetas:variants_factor">Factor</label>
                 <input type="number" id="input-variante-factor" class="form-input" placeholder="1" step="0.1" min="0.1"
                   value="1" style="width: 100%;">
               </div>
               <div>
-                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;">Código TPV</label>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;" data-i18n="recetas:variants_code">Código TPV</label>
                 <input type="text" id="input-variante-codigo" class="form-input" placeholder="Ej: 1272"
                   style="width: 100%;">
               </div>
             </div>
             <p style="font-size: 12px; color: #94A3B8; margin-top: 8px;">
-              💡 Factor = porción respecto a la unidad base (copa = 0.2, botella = 1) | Código TPV = ID del producto en
+              <span data-i18n="recetas:variants_factor_hint">💡 Factor = porción respecto a la unidad base (copa = 0.2, botella = 1) | Código TPV = ID del producto en
               el
-              TPV
+              TPV</span>
             </p>
             <button class="btn btn-primary" onclick="window.agregarVarianteReceta()"
               style="margin-top: 12px; width: 100%;">
-              ➕ Añadir Variante
+              <span data-i18n="recetas:variants_add_btn">➕ Añadir Variante</span>
             </button>
           </div>
 
           <!-- Botones del modal -->
           <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn btn-secondary" onclick="window.cerrarModalVariantes()">Cerrar</button>
+            <button class="btn btn-secondary" onclick="window.cerrarModalVariantes()" data-i18n="common:btn_close">Cerrar</button>
           </div>
         </div>
       </div>
@@ -2327,15 +2337,15 @@
       <!-- Modal ver detalles pedido -->
       <div id="modal-ver-pedido" class="modal">
         <div class="modal-content" style="max-width: 800px;">
-          <h3>Detalles del Pedido</h3>
+          <h3 data-i18n="pedidos:detail_modal_title">Detalles del Pedido</h3>
           <div id="modal-ver-pedido-contenido"></div>
           <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-pedido">Cerrar</button>
+            <button class="btn btn-secondary" data-action="cerrar-modal-pedido" data-i18n="common:btn_close">Cerrar</button>
             <button class="btn" style="background: #25D366; color: white;" onclick="window.enviarPedidoWhatsApp()">
-              📱 WhatsApp
+              <span data-i18n="pedidos:btn_whatsapp">📱 WhatsApp</span>
             </button>
             <button class="btn btn-primary" data-action="descargar-pedido-pdf" id="btn-descargar-pdf">
-              📄 Descargar PDF
+              <span data-i18n="pedidos:btn_download_pdf">📄 Descargar PDF</span>
             </button>
           </div>
         </div>
@@ -2344,29 +2354,29 @@
       <!-- Modal recibir pedido -->
       <div id="modal-recibir-pedido" class="modal">
         <div class="modal-content" style="max-width: 900px;">
-          <h3>Recibir Pedido</h3>
-          <p style="margin-bottom: 20px; color: #666;">
+          <h3 data-i18n="pedidos:reception_title">Recibir Pedido</h3>
+          <p style="margin-bottom: 20px; color: #666;" data-i18n="pedidos:reception_description">
             Verifica las cantidades y precios recibidos. Puedes ajustar los valores si hay diferencias.
           </p>
 
           <div style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <strong>Proveedor:</strong> <span id="modal-rec-proveedor"></span><br>
-            <strong>Fecha pedido:</strong> <span id="modal-rec-fecha"></span><br>
-            <strong>Total original:</strong> <span id="modal-rec-total-original"></span>
+            <strong data-i18n="pedidos:reception_supplier">Proveedor:</strong> <span id="modal-rec-proveedor"></span><br>
+            <strong data-i18n="pedidos:reception_date">Fecha pedido:</strong> <span id="modal-rec-fecha"></span><br>
+            <strong data-i18n="pedidos:reception_original_total">Total original:</strong> <span id="modal-rec-total-original"></span>
           </div>
 
           <div style="margin-bottom: 20px;">
-            <h4 style="margin-bottom: 10px;">Ingredientes del pedido:</h4>
+            <h4 style="margin-bottom: 10px;" data-i18n="pedidos:reception_ingredients_title">Ingredientes del pedido:</h4>
             <table style="font-size: 13px;">
               <thead>
                 <tr>
-                  <th>Ingrediente</th>
-                  <th>Pedido</th>
-                  <th>Recibido</th>
-                  <th>Precio Ped.</th>
-                  <th>Precio Real</th>
-                  <th>Subtotal</th>
-                  <th>Estado</th>
+                  <th data-i18n="pedidos:reception_col_ingredient">Ingrediente</th>
+                  <th data-i18n="pedidos:reception_col_ordered">Pedido</th>
+                  <th data-i18n="pedidos:reception_col_received">Recibido</th>
+                  <th data-i18n="pedidos:reception_col_price_ordered">Precio Ped.</th>
+                  <th data-i18n="pedidos:reception_col_price_real">Precio Real</th>
+                  <th data-i18n="pedidos:reception_col_subtotal">Subtotal</th>
+                  <th data-i18n="pedidos:reception_col_status">Estado</th>
                 </tr>
               </thead>
               <tbody id="modal-rec-items"></tbody>
@@ -2377,25 +2387,25 @@
             style="background: #f0fdf4; border: 2px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
               <div>
-                <strong style="color: #666;">Total Original:</strong><br>
+                <strong style="color: #666;" data-i18n="pedidos:reception_total_original">Total Original:</strong><br>
                 <span style="font-size: 20px; font-weight: bold; color: #333;" id="modal-rec-resumen-original">0.00
                   €</span>
               </div>
               <div>
-                <strong style="color: #666;">Total Recibido:</strong><br>
+                <strong style="color: #666;" data-i18n="pedidos:reception_total_received">Total Recibido:</strong><br>
                 <span style="font-size: 20px; font-weight: bold; color: #059669;" id="modal-rec-resumen-recibido">0.00
                   €</span>
               </div>
               <div>
-                <strong style="color: #666;">Varianza:</strong><br>
+                <strong style="color: #666;" data-i18n="pedidos:reception_variance">Varianza:</strong><br>
                 <span style="font-size: 20px; font-weight: bold;" id="modal-rec-resumen-varianza">0.00 €</span>
               </div>
             </div>
           </div>
 
           <div style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-recibir-pedido">Cancelar</button>
-            <button class="btn btn-success" data-action="confirmar-recepcion-pedido">Confirmar Recepción</button>
+            <button class="btn btn-secondary" data-action="cerrar-modal-recibir-pedido" data-i18n="common:btn_cancel">Cancelar</button>
+            <button class="btn btn-success" data-action="confirmar-recepcion-pedido" data-i18n="pedidos:reception_confirm">Confirmar Recepción</button>
           </div>
         </div>
       </div>
@@ -2413,7 +2423,7 @@
       <div id="modal-evolucion-precio" class="modal">
         <div class="modal-content" style="max-width: 700px;">
           <span class="close" data-action="cerrar-modal-evolucion-precio">&times;</span>
-          <h2 style="color: #3b82f6; display: flex; align-items: center; gap: 10px;">📈 Evolución del Precio</h2>
+          <h2 style="color: #3b82f6; display: flex; align-items: center; gap: 10px;" data-i18n="ingredientes:price_evolution_modal_title">📈 Evolución del Precio</h2>
           <p id="evolucion-ingrediente-nombre" style="color: #64748b; margin-bottom: 20px;"></p>
 
           <div id="evolucion-summary"
@@ -2428,7 +2438,7 @@
           </div>
 
           <div style="margin-top: 20px; text-align: right;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-evolucion-precio">Cerrar</button>
+            <button class="btn btn-secondary" data-action="cerrar-modal-evolucion-precio" data-i18n="common:btn_close">Cerrar</button>
           </div>
         </div>
       </div>
@@ -2437,18 +2447,18 @@
       <div id="modal-confirmar-mermas" class="modal">
         <div class="modal-content" style="max-width: 800px;">
           <span class="close" data-action="cerrar-modal-mermas">&times;</span>
-          <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px;">⚠️ Confirmar Mermas/Pérdidas</h2>
-          <p style="color: #64748b; margin-bottom: 20px;">Se han detectado diferencias negativas en el inventario. Por
+          <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px;" data-i18n="inventario:confirm_mermas_title">⚠️ Confirmar Mermas/Pérdidas</h2>
+          <p style="color: #64748b; margin-bottom: 20px;" data-i18n="inventario:confirm_mermas_desc">Se han detectado diferencias negativas en el inventario. Por
             favor, especifica el motivo de cada pérdida para el control de costes.</p>
 
           <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
             <table style="width: 100%; border-collapse: collapse;">
               <thead style="background: #f8fafc; position: sticky; top: 0;">
                 <tr>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ingrediente</th>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Diferencia</th>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Motivo</th>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Notas</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:confirm_mermas_col_ingredient">Ingrediente</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:confirm_mermas_col_diff">Diferencia</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:confirm_mermas_col_reason">Motivo</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:confirm_mermas_col_notes">Notas</th>
                 </tr>
               </thead>
               <tbody id="tabla-mermas-body">
@@ -2462,9 +2472,9 @@
           </div>
 
           <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-mermas">Cancelar</button>
+            <button class="btn btn-secondary" data-action="cerrar-modal-mermas" data-i18n="common:btn_cancel">Cancelar</button>
             <button class="btn btn-primary" id="btn-confirmar-split" style="background: #ef4444;"
-              data-action="confirmar-mermas">Confirmar Ajustes</button>
+              data-action="confirmar-mermas" data-i18n="inventario:confirm_mermas_btn">Confirmar Ajustes</button>
           </div>
         </div>
       </div>
@@ -2473,27 +2483,27 @@
       <div id="modal-historial-mermas" class="modal">
         <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
           <span class="close" data-action="cerrar-modal-historial-mermas">&times;</span>
-          <h2 style="color: #8B5CF6; display: flex; align-items: center; gap: 10px;">📋 Historial de Mermas/Pérdidas
+          <h2 style="color: #8B5CF6; display: flex; align-items: center; gap: 10px;" data-i18n="inventario:history_title">📋 Historial de Mermas/Pérdidas
           </h2>
-          <p style="color: #64748b; margin-bottom: 20px;">Registro de todas las mermas y pérdidas registradas este mes.
+          <p style="color: #64748b; margin-bottom: 20px;" data-i18n="inventario:history_subtitle">Registro de todas las mermas y pérdidas registradas este mes.
           </p>
 
           <!-- Filtros -->
           <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center;">
             <select id="mermas-mes" class="form-control"
               style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
-              <option value="1">Enero</option>
-              <option value="2">Febrero</option>
-              <option value="3">Marzo</option>
-              <option value="4">Abril</option>
-              <option value="5">Mayo</option>
-              <option value="6">Junio</option>
-              <option value="7">Julio</option>
-              <option value="8">Agosto</option>
-              <option value="9">Septiembre</option>
-              <option value="10">Octubre</option>
-              <option value="11">Noviembre</option>
-              <option value="12">Diciembre</option>
+              <option value="1" data-i18n="dashboard:month_january">Enero</option>
+              <option value="2" data-i18n="dashboard:month_february">Febrero</option>
+              <option value="3" data-i18n="dashboard:month_march">Marzo</option>
+              <option value="4" data-i18n="dashboard:month_april">Abril</option>
+              <option value="5" data-i18n="dashboard:month_may">Mayo</option>
+              <option value="6" data-i18n="dashboard:month_june">Junio</option>
+              <option value="7" data-i18n="dashboard:month_july">Julio</option>
+              <option value="8" data-i18n="dashboard:month_august">Agosto</option>
+              <option value="9" data-i18n="dashboard:month_september">Septiembre</option>
+              <option value="10" data-i18n="dashboard:month_october">Octubre</option>
+              <option value="11" data-i18n="dashboard:month_november">Noviembre</option>
+              <option value="12" data-i18n="dashboard:month_december">Diciembre</option>
             </select>
             <select id="mermas-ano" class="form-control"
               style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
@@ -2510,17 +2520,17 @@
             <div
               style="background: linear-gradient(135deg, #fee2e2, #fecaca); padding: 15px; border-radius: 12px; text-align: center;">
               <div style="font-size: 24px; font-weight: 700; color: #b91c1c;" id="mermas-total-valor">0.00€</div>
-              <div style="font-size: 12px; color: #7f1d1d;">Pérdida Total</div>
+              <div style="font-size: 12px; color: #7f1d1d;" data-i18n="inventario:history_total_loss">Pérdida Total</div>
             </div>
             <div
               style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); padding: 15px; border-radius: 12px; text-align: center;">
               <div style="font-size: 24px; font-weight: 700; color: #4338ca;" id="mermas-total-registros">0</div>
-              <div style="font-size: 12px; color: #3730a3;">Registros</div>
+              <div style="font-size: 12px; color: #3730a3;" data-i18n="inventario:history_records">Registros</div>
             </div>
             <div
               style="background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 15px; border-radius: 12px; text-align: center;">
               <div style="font-size: 24px; font-weight: 700; color: #92400e;" id="mermas-motivo-principal">-</div>
-              <div style="font-size: 12px; color: #78350f;">Motivo Principal</div>
+              <div style="font-size: 12px; color: #78350f;" data-i18n="inventario:history_main_reason_label">Motivo Principal</div>
             </div>
           </div>
 
@@ -2529,24 +2539,24 @@
             <table style="width: 100%; border-collapse: collapse;">
               <thead style="background: #f8fafc; position: sticky; top: 0;">
                 <tr>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Fecha</th>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ingrediente</th>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Cantidad</th>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Valor</th>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Motivo</th>
-                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Nota</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:history_col_date">Fecha</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:history_col_ingredient">Ingrediente</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:history_col_quantity">Cantidad</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:history_col_value">Valor</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:history_col_reason">Motivo</th>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;" data-i18n="inventario:history_col_note">Nota</th>
                 </tr>
               </thead>
               <tbody id="tabla-historial-mermas-body">
                 <tr>
-                  <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Cargando...</td>
+                  <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;" data-i18n="common:loading">Cargando...</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-historial-mermas">Cerrar</button>
+            <button class="btn btn-secondary" data-action="cerrar-modal-historial-mermas" data-i18n="common:btn_close">Cerrar</button>
           </div>
         </div>
       </div>
@@ -2560,9 +2570,9 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div>
               <h2 style="color: #ef4444; display: flex; align-items: center; gap: 10px; margin: 0;">
-                🗑️ Control de Mermas
+                <span data-i18n="inventario:merma_control_title">🗑️ Control de Mermas</span>
               </h2>
-              <p style="color: #64748b; margin: 5px 0 0; font-size: 14px;">
+              <p style="color: #64748b; margin: 5px 0 0; font-size: 14px;" data-i18n="inventario:merma_control_subtitle">
                 Registra pérdidas de producto (caducidad, averías, etc.)
               </p>
             </div>
@@ -2573,10 +2583,10 @@
 
           <!-- Responsable -->
           <div class="form-group" style="margin-bottom: 20px;">
-            <label style="font-weight: 600;">👤 Responsable:</label>
+            <label style="font-weight: 600;" data-i18n="inventario:merma_responsible">👤 Responsable:</label>
             <select id="merma-responsable"
               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
-              <option value="">Selecciona responsable...</option>
+              <option value="" data-i18n="inventario:merma_select_responsible">Selecciona responsable...</option>
             </select>
           </div>
 
@@ -2590,22 +2600,22 @@
               onchange="window.procesarFotoMermaInput(event)">
             <div id="merma-dropzone-content">
               <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
-              <div style="font-weight: 600; color: #334155;">Arrastra una foto de la hoja de mermas</div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 4px;">o haz clic para seleccionar archivo</div>
+              <div style="font-weight: 600; color: #334155;" data-i18n="inventario:merma_drop_photo">Arrastra una foto de la hoja de mermas</div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 4px;" data-i18n="inventario:merma_drop_click">o haz clic para seleccionar archivo</div>
             </div>
             <div id="merma-dropzone-loading" style="display: none;">
               <div style="font-size: 24px; margin-bottom: 8px;">⏳</div>
-              <div style="font-weight: 600; color: #3b82f6;">Analizando imagen con IA...</div>
+              <div style="font-weight: 600; color: #3b82f6;" data-i18n="inventario:merma_analyzing_image">Analizando imagen con IA...</div>
             </div>
           </div>
 
           <!-- Líneas de merma -->
           <div style="background: #f8fafc; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <span style="font-weight: 600; color: #334155;">📋 Productos afectados</span>
+              <span style="font-weight: 600; color: #334155;" data-i18n="inventario:merma_products_label">📋 Productos afectados</span>
               <button type="button" onclick="window.agregarLineaMerma()"
                 style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px;">
-                + Añadir producto
+                <span data-i18n="inventario:merma_add_product">+ Añadir producto</span>
               </button>
             </div>
 
@@ -2620,21 +2630,21 @@
             style="display: none; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <span style="font-weight: 600; color: #92400e;">📊 Resumen de mermas</span>
+                <span style="font-weight: 600; color: #92400e;" data-i18n="inventario:merma_summary">📊 Resumen de mermas</span>
                 <div id="merma-resumen-detalle" style="color: #78350f; margin-top: 5px;"></div>
               </div>
               <div style="text-align: right;">
                 <div style="font-size: 24px; font-weight: 700; color: #dc2626;" id="merma-total-perdida">0.00€</div>
-                <div style="font-size: 12px; color: #92400e;">Pérdida total</div>
+                <div style="font-size: 12px; color: #92400e;" data-i18n="inventario:merma_total_loss">Pérdida total</div>
               </div>
             </div>
           </div>
 
           <!-- Botones -->
           <div style="display: flex; justify-content: flex-end; gap: 10px;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-merma-rapida">Cancelar</button>
+            <button class="btn btn-secondary" data-action="cerrar-modal-merma-rapida" data-i18n="common:btn_cancel">Cancelar</button>
             <button class="btn" style="background: #ef4444; color: white;" onclick="window.confirmarMermasMultiples()">
-              🗑️ Registrar Mermas
+              <span data-i18n="inventario:merma_register_btn">🗑️ Registrar Mermas</span>
             </button>
           </div>
         </div>
@@ -2644,7 +2654,7 @@
       <div id="modal-inventario-masivo" class="modal">
         <div class="modal-content" style="max-width: 900px;">
           <span class="close" data-action="cerrar-modal-inventario-masivo">&times;</span>
-          <h2>📊 Actualizar Inventario Masivo</h2>
+          <h2 data-i18n="inventario:massive_title">📊 Actualizar Inventario Masivo</h2>
 
           <div style="margin: 20px 0;">
             <p style="color: #64748b; margin-bottom: 15px;">
@@ -2654,11 +2664,11 @@
 
             <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 10px;">
               <button class="btn btn-small" style="background: #64748b; color: white;"
-                data-action="descargar-plantilla-stock">📥 Completo</button>
+                data-action="descargar-plantilla-stock" data-i18n="inventario:massive_download_full">📥 Completo</button>
               <button class="btn btn-small" style="background: #10b981; color: white;"
-                onclick="window.descargarPlantillaAlimentos()">🥗 Alimentos</button>
+                onclick="window.descargarPlantillaAlimentos()" data-i18n="inventario:massive_download_food">🥗 Alimentos</button>
               <button class="btn btn-small" style="background: #3b82f6; color: white;"
-                onclick="window.descargarPlantillaBebidas()">🍺 Bebidas</button>
+                onclick="window.descargarPlantillaBebidas()" data-i18n="inventario:massive_download_drinks">🍺 Bebidas</button>
             </div>
 
             <div
@@ -2667,21 +2677,21 @@
                 onchange="window.procesarArchivoInventario(this)">
               <label for="file-inventario-masivo" style="cursor: pointer;">
                 <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-                <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+                <div style="font-size: 16px; color: #475569; font-weight: 500;" data-i18n="inventario:massive_click_to_select">Haz clic para seleccionar archivo
                 </div>
-                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;" data-i18n="inventario:massive_file_types">Excel (.xlsx) o CSV</div>
               </label>
             </div>
           </div>
 
           <div id="preview-inventario-masivo" style="display: none; margin-top: 20px;">
-            <h3>Vista Previa de Cambios</h3>
+            <h3 data-i18n="inventario:massive_preview_title">Vista Previa de Cambios</h3>
             <div id="preview-table-container"
               style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
             <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-              <button class="btn btn-secondary" data-action="cancelar-inventario-masivo">Cancelar</button>
-              <button class="btn btn-primary" data-action="confirmar-inventario-masivo" id="btn-confirmar-masivo">✓
+              <button class="btn btn-secondary" data-action="cancelar-inventario-masivo" data-i18n="common:btn_cancel">Cancelar</button>
+              <button class="btn btn-primary" data-action="confirmar-inventario-masivo" id="btn-confirmar-masivo" data-i18n="inventario:massive_confirm_btn">✓
                 Confirmar Actualización</button>
             </div>
           </div>
@@ -2692,7 +2702,7 @@
       <div id="modal-importar-ingredientes" class="modal">
         <div class="modal-content" style="max-width: 900px;">
           <span class="close" data-action="cerrar-modal-importar-ingredientes">&times;</span>
-          <h2>📤 Importar Ingredientes desde Excel</h2>
+          <h2 data-i18n="ingredientes:import_modal_title">📤 Importar Ingredientes desde Excel</h2>
 
           <div style="margin: 20px 0;">
             <p style="color: #64748b; margin-bottom: 15px;">
@@ -2706,22 +2716,22 @@
                 onchange="window.procesarArchivoIngredientes(this)">
               <label for="file-importar-ingredientes" style="cursor: pointer;">
                 <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-                <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+                <div style="font-size: 16px; color: #475569; font-weight: 500;" data-i18n="ingredientes:import_click_to_select">Haz clic para seleccionar archivo
                 </div>
-                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;" data-i18n="ingredientes:import_file_types">Excel (.xlsx) o CSV</div>
               </label>
             </div>
           </div>
 
           <div id="preview-importar-ingredientes" style="display: none; margin-top: 20px;">
-            <h3>Vista Previa de Ingredientes</h3>
+            <h3 data-i18n="ingredientes:import_preview_title">Vista Previa de Ingredientes</h3>
             <div id="preview-ingredientes-container"
               style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
             <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-              <button class="btn btn-secondary" data-action="cancelar-importar-ingredientes">Cancelar</button>
+              <button class="btn btn-secondary" data-action="cancelar-importar-ingredientes" data-i18n="common:btn_cancel">Cancelar</button>
               <button class="btn btn-primary" data-action="confirmar-importar-ingredientes"
-                id="btn-confirmar-importar-ingredientes">✓ Importar Ingredientes</button>
+                id="btn-confirmar-importar-ingredientes" data-i18n="ingredientes:import_confirm_btn">✓ Importar Ingredientes</button>
             </div>
           </div>
         </div>
@@ -2731,7 +2741,7 @@
       <div id="modal-importar-recetas" class="modal">
         <div class="modal-content" style="max-width: 900px;">
           <span class="close" data-action="cerrar-modal-importar-recetas">&times;</span>
-          <h2>📤 Importar Recetas desde Excel</h2>
+          <h2 data-i18n="recetas:import_modal_title">📤 Importar Recetas desde Excel</h2>
 
           <div style="margin: 20px 0;">
             <p style="color: #64748b; margin-bottom: 15px;">
@@ -2746,22 +2756,22 @@
                 onchange="window.procesarArchivoRecetas(this)">
               <label for="file-importar-recetas" style="cursor: pointer;">
                 <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-                <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+                <div style="font-size: 16px; color: #475569; font-weight: 500;" data-i18n="recetas:import_click_to_select">Haz clic para seleccionar archivo
                 </div>
-                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;" data-i18n="recetas:import_file_types">Excel (.xlsx) o CSV</div>
               </label>
             </div>
           </div>
 
           <div id="preview-importar-recetas" style="display: none; margin-top: 20px;">
-            <h3>Vista Previa de Recetas</h3>
+            <h3 data-i18n="recetas:import_preview_title">Vista Previa de Recetas</h3>
             <div id="preview-recetas-container"
               style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
             <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-              <button class="btn btn-secondary" data-action="cancelar-importar-recetas">Cancelar</button>
+              <button class="btn btn-secondary" data-action="cancelar-importar-recetas" data-i18n="common:btn_cancel">Cancelar</button>
               <button class="btn btn-primary" data-action="confirmar-importar-recetas"
-                id="btn-confirmar-importar-recetas">✓
+                id="btn-confirmar-importar-recetas" data-i18n="recetas:import_confirm_btn">✓
                 Importar Recetas</button>
             </div>
           </div>
@@ -2772,7 +2782,7 @@
       <div id="modal-importar-ventas" class="modal">
         <div class="modal-content" style="max-width: 900px;">
           <span class="close" data-action="cerrar-modal-importar-ventas">&times;</span>
-          <h2>📤 Importar Ventas TPV</h2>
+          <h2 data-i18n="ventas:import_modal_title">📤 Importar Ventas TPV</h2>
 
           <div style="margin: 20px 0;">
             <p style="color: #64748b; margin-bottom: 15px;">
@@ -2788,8 +2798,8 @@
               <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <span style="font-size: 24px;">📅</span>
                 <div style="flex: 1; min-width: 200px;">
-                  <label style="font-weight: 600; color: #92400e; font-size: 14px;">Fecha de las ventas:</label>
-                  <p style="font-size: 12px; color: #b45309; margin: 2px 0 8px;">Si dejas vacío, se usa la fecha de hoy.
+                  <label style="font-weight: 600; color: #92400e; font-size: 14px;" data-i18n="ventas:import_date_label">Fecha de las ventas:</label>
+                  <p style="font-size: 12px; color: #b45309; margin: 2px 0 8px;" data-i18n="ventas:import_date_hint">Si dejas vacío, se usa la fecha de hoy.
                     Usa
                     esto para importar ventas de días anteriores.</p>
                   <input type="date" id="fecha-importar-ventas"
@@ -2804,22 +2814,22 @@
                 onchange="window.procesarArchivoVentas(this)">
               <label for="file-importar-ventas" style="cursor: pointer;">
                 <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-                <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+                <div style="font-size: 16px; color: #475569; font-weight: 500;" data-i18n="ventas:import_click_to_select">Haz clic para seleccionar archivo
                 </div>
-                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">📄 PDF del TPV, Excel (.xlsx) o CSV</div>
+                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;" data-i18n="ventas:import_file_types">📄 PDF del TPV, Excel (.xlsx) o CSV</div>
               </label>
             </div>
           </div>
 
           <div id="preview-importar-ventas" style="display: none; margin-top: 20px;">
-            <h3>Vista Previa de Ventas</h3>
+            <h3 data-i18n="ventas:import_preview_title">Vista Previa de Ventas</h3>
             <div id="preview-ventas-container"
               style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
             <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-              <button class="btn btn-secondary" data-action="cancelar-importar-ventas">Cancelar</button>
+              <button class="btn btn-secondary" data-action="cancelar-importar-ventas" data-i18n="common:btn_cancel">Cancelar</button>
               <button class="btn btn-primary" data-action="confirmar-importar-ventas"
-                id="btn-confirmar-importar-ventas">✓
+                id="btn-confirmar-importar-ventas" data-i18n="ventas:import_confirm_btn">✓
                 Importar Ventas</button>
             </div>
           </div>
@@ -2830,7 +2840,7 @@
       <div id="modal-importar-pedidos" class="modal">
         <div class="modal-content" style="max-width: 900px;">
           <span class="close" data-action="cerrar-modal-importar-pedidos">&times;</span>
-          <h2>📤 Importar Pedidos (Compras)</h2>
+          <h2 data-i18n="pedidos:import_modal_title">📤 Importar Pedidos (Compras)</h2>
 
           <div style="margin: 20px 0;">
             <p style="color: #64748b; margin-bottom: 15px;">
@@ -2845,22 +2855,22 @@
                 onchange="window.procesarArchivoPedidos(this)">
               <label for="file-importar-pedidos" style="cursor: pointer;">
                 <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
-                <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo
+                <div style="font-size: 16px; color: #475569; font-weight: 500;" data-i18n="pedidos:import_click_to_select">Haz clic para seleccionar archivo
                 </div>
-                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;" data-i18n="pedidos:import_file_types">Excel (.xlsx) o CSV</div>
               </label>
             </div>
           </div>
 
           <div id="preview-importar-pedidos" style="display: none; margin-top: 20px;">
-            <h3>Vista Previa de Pedidos</h3>
+            <h3 data-i18n="pedidos:import_preview_title">Vista Previa de Pedidos</h3>
             <div id="preview-pedidos-container"
               style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
 
             <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-              <button class="btn btn-secondary" data-action="cancelar-importar-pedidos">Cancelar</button>
+              <button class="btn btn-secondary" data-action="cancelar-importar-pedidos" data-i18n="common:btn_cancel">Cancelar</button>
               <button class="btn btn-primary" data-action="confirmar-importar-pedidos"
-                id="btn-confirmar-importar-pedidos">✓
+                id="btn-confirmar-importar-pedidos" data-i18n="pedidos:import_confirm_btn">✓
                 Importar Pedidos</button>
             </div>
           </div>
@@ -2877,7 +2887,7 @@
       <div class="modal-content" style="max-width: 900px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h2 style="margin: 0; display: flex; align-items: center; gap: 10px;">
-            🛒 Carrito de Pedidos
+            <span data-i18n="pedidos:cart_modal_title">🛒 Carrito de Pedidos</span>
           </h2>
           <button onclick="window.cerrarCarrito()"
             style="background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b;">×</button>
@@ -2890,21 +2900,21 @@
         <div
           style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
           <div>
-            <span style="color: #64748b; font-size: 14px;">Total estimado:</span>
+            <span style="color: #64748b; font-size: 14px;" data-i18n="pedidos:cart_estimated_total">Total estimado:</span>
             <span id="carrito-total" style="font-size: 24px; font-weight: 700; color: #059669; margin-left: 10px;">0.00
               €</span>
           </div>
           <div style="display: flex; gap: 10px;">
             <button onclick="window.vaciarCarrito()" class="btn btn-secondary"
               style="background: #fee2e2; color: #dc2626; border: none;">
-              🗑️ Vaciar
+              <span data-i18n="pedidos:cart_empty_btn">🗑️ Vaciar</span>
             </button>
             <button onclick="window.seguirComprando()" class="btn btn-primary"
               style="background: linear-gradient(135deg, #3B82F6, #2563EB);">
-              ➕ Añadir más productos
+              <span data-i18n="pedidos:cart_add_more">➕ Añadir más productos</span>
             </button>
             <button onclick="window.confirmarCarrito()" class="btn btn-primary"
-              style="background: linear-gradient(135deg, #10B981, #059669);">
+              style="background: linear-gradient(135deg, #10B981, #059669);" data-i18n="pedidos:cart_create_orders">
               ✅ Crear Pedido(s)
             </button>
           </div>
@@ -2917,16 +2927,16 @@
         <div class="modal-confirmacion-content">
           <div class="modal-header-danger">
             <span class="modal-danger-icon">⚠️</span>
-            <h3 id="confirm-titulo">Confirmar Eliminación</h3>
+            <h3 id="confirm-titulo" data-i18n="common:confirm_delete_title">Confirmar Eliminación</h3>
           </div>
           <div class="modal-confirmacion-body">
             <p id="confirm-mensaje"></p>
           </div>
           <div class="modal-confirmacion-footer">
-            <button class="btn-modal-cancel" data-action="cancelar-confirmacion">
+            <button class="btn-modal-cancel" data-action="cancelar-confirmacion" data-i18n="common:btn_cancel_with_icon">
               <span>✖</span> Cancelar
             </button>
-            <button class="btn-modal-danger" id="btn-confirmar-eliminar">
+            <button class="btn-modal-danger" id="btn-confirmar-eliminar" data-i18n="common:btn_delete_with_icon">
               <span>🗑️</span> Eliminar
             </button>
           </div>
@@ -2939,24 +2949,24 @@
   <div id="modal-gasto-fijo" class="modal">
     <div class="modal-content">
       <span class="close" data-action="cerrar-form-gasto-fijo">&times;</span>
-      <h2 id="titulo-modal-gasto">Añadir Gasto Fijo</h2>
+      <h2 id="titulo-modal-gasto" data-i18n="balance:gasto_fijo_title">Añadir Gasto Fijo</h2>
 
       <form id="form-gasto-fijo" onsubmit="guardarGastoFijo(event)">
         <input type="hidden" id="gasto-id">
 
         <div class="form-group">
-          <label for="gasto-concepto">Concepto *</label>
-          <input type="text" id="gasto-concepto" required placeholder="ej: Alquiler, Nóminas, Luz...">
+          <label for="gasto-concepto" data-i18n="balance:gasto_fijo_concept">Concepto *</label>
+          <input type="text" id="gasto-concepto" required placeholder="ej: Alquiler, Nóminas, Luz..." data-i18n-placeholder="balance:gasto_fijo_concept_placeholder">
         </div>
 
         <div class="form-group">
-          <label for="gasto-monto">Monto Mensual (€) *</label>
+          <label for="gasto-monto" data-i18n="balance:gasto_fijo_amount">Monto Mensual (€) *</label>
           <input type="number" id="gasto-monto" step="0.01" min="0" required placeholder="0.00">
         </div>
 
         <div style="display:flex;gap:10px;margin-top:20px">
-          <button type="submit" class="btn-primary">Guardar</button>
-          <button type="button" class="btn-secondary" data-action="cerrar-form-gasto-fijo">Cancelar</button>
+          <button type="submit" class="btn-primary" data-i18n="common:btn_save">Guardar</button>
+          <button type="button" class="btn-secondary" data-action="cerrar-form-gasto-fijo" data-i18n="common:btn_cancel">Cancelar</button>
         </div>
       </form>
     </div>

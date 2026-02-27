@@ -43,6 +43,15 @@ window.addEventListener('auth:expired', () => {
 });
 
 // ============================================
+// 🌍 i18n - Internationalization (must load early)
+// ============================================
+import './i18n/index.js';
+import { translateHTML } from './i18n/index.js';
+
+// Translate static HTML elements once DOM is ready
+document.addEventListener('DOMContentLoaded', () => translateHTML());
+
+// ============================================
 // VENDORS - Bibliotecas externas (npm, no CDN)
 // ============================================
 import './vendors.js';

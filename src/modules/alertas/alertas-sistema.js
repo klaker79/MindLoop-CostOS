@@ -1,4 +1,5 @@
 import { escapeHTML } from '../../utils/helpers.js';
+import { t } from '@/i18n/index.js';
 /**
  * Sistema de Alertas Inteligentes
  * Detecta condiciones críticas y genera alertas proactivas
@@ -38,8 +39,8 @@ export function detectarStockBajo() {
                 porcentaje,
                 mensaje:
                     stockActual === 0
-                        ? `${ing.nombre}: SIN STOCK`
-                        : `${ing.nombre}: ${stockActual.toFixed(2)} ${ing.unidad || 'u'} (mín: ${stockMinimo})`,
+                        ? `${ing.nombre}: ${t('alertas:no_stock')}`
+                        : `${ing.nombre}: ${stockActual.toFixed(2)} ${ing.unidad || 'u'} ${t('alertas:stock_min', { min: stockMinimo })}`,
                 accion: () => window.cambiarTab?.('ingredientes'),
             });
         }
@@ -80,7 +81,7 @@ export function detectarPedidosPendientes(diasLimite = 3) {
                     diasPendiente,
                     fecha: fechaPedido.toLocaleDateString('es-ES'),
                     total: parseFloat(ped.total) || 0,
-                    mensaje: `Pedido #${ped.id} lleva ${diasPendiente} días pendiente`,
+                    mensaje: t('alertas:pending_order_days', { id: ped.id, days: diasPendiente }),
                     accion: () => {
                         window.cambiarTab?.('pedidos');
                         setTimeout(() => window.verDetallesPedido?.(ped.id), 100);
@@ -105,8 +106,8 @@ export function sugerirInventario(diasSugerencia = 7) {
         return {
             tipo: 'inventario_sugerido',
             criticidad: 'info',
-            mensaje: '📋 Sugerencia: Realiza tu primer inventario',
-            descripcion: 'Mantén tu stock actualizado para cálculos precisos',
+            mensaje: `📋 ${t('alertas:suggestion_first_inventory')}`,
+            descripcion: t('alertas:suggestion_first_inventory_desc'),
             accion: () => window.cambiarTab?.('ingredientes'),
             dismissKey: 'inventario_sugerido_dismissed',
         };
@@ -120,8 +121,8 @@ export function sugerirInventario(diasSugerencia = 7) {
         return {
             tipo: 'inventario_sugerido',
             criticidad: diasDesdeUltimo >= 14 ? 'advertencia' : 'info',
-            mensaje: `📋 Inventario: ${diasDesdeUltimo} días sin actualizar`,
-            descripcion: 'Revisa tu stock para mantener datos precisos',
+            mensaje: `📋 ${t('alertas:inventory_days_old', { days: diasDesdeUltimo })}`,
+            descripcion: t('alertas:inventory_update_hint'),
             diasDesdeUltimo,
             accion: () => window.cambiarTab?.('ingredientes'),
             dismissKey: 'inventario_sugerido_dismissed',
@@ -214,7 +215,7 @@ export function renderizarAlertas() {
         html += `
             <div class="alertas-section">
                 <div class="alertas-section-title">
-                    <span>📦 Stock Bajo</span>
+                    <span>📦 ${t('alertas:section_low_stock')}</span>
                     <span class="badge badge-danger">${alertas.stockBajo.length}</span>
                 </div>
                 <ul class="alertas-list">
@@ -247,7 +248,7 @@ export function renderizarAlertas() {
         html += `
             <div class="alertas-section">
                 <div class="alertas-section-title">
-                    <span>📋 Pedidos Pendientes</span>
+                    <span>📋 ${t('alertas:section_pending_orders')}</span>
                     <span class="badge badge-warning">${alertas.pedidosPendientes.length}</span>
                 </div>
                 <ul class="alertas-list">

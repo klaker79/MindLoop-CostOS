@@ -1,0 +1,12 @@
+{
+  "title": "Alerts",
+  "section_low_stock": "Low Stock",
+  "section_pending_orders": "Pending Orders",
+  "no_stock": "OUT OF STOCK",
+  "stock_min": "(min: {{min}})",
+  "suggestion_first_inventory": "Suggestion: Do your first inventory",
+  "suggestion_first_inventory_desc": "Keep your stock updated for accurate calculations",
+  "inventory_days_old": "Inventory: {{days}} days without update",
+  "inventory_update_hint": "Review your stock to maintain accurate data",
+  "pending_order_days": "Order #{{id}} has been pending for {{days}} days"
+}

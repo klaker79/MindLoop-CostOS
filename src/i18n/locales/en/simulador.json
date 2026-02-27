@@ -1,0 +1,4 @@
+{
+  "profit_message": "Profit! You cover <strong>{{pct}}%</strong> of your fixed costs.",
+  "loss_message": "Losses. You only cover <strong>{{pct}}%</strong> of your fixed costs."
+}

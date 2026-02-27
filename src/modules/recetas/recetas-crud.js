@@ -7,6 +7,7 @@
 import recipeStore from '../../stores/recipeStore.js';
 // 🆕 Validación centralizada
 import { validateReceta, showValidationErrors } from '../../utils/validation.js';
+import { t } from '@/i18n/index.js';
 
 /**
  * Guarda una receta (nueva o editada)
@@ -76,14 +77,14 @@ export async function guardarReceta(event) {
         window.renderizarRecetas();
         window.hideLoading();
         window.showToast(
-            window.editandoRecetaId ? 'Receta actualizada' : 'Receta creada',
+            window.editandoRecetaId ? t('recetas:toast_updated') : t('recetas:toast_created'),
             'success'
         );
         window.cerrarFormularioReceta();
     } catch (error) {
         window.hideLoading();
         console.error('Error:', error);
-        window.showToast('Error guardando receta: ' + error.message, 'error');
+        window.showToast(t('recetas:toast_error_saving', { message: error.message }), 'error');
     }
 }
 
@@ -138,8 +139,8 @@ export function editarReceta(id) {
 
     window.calcularCosteReceta();
     window.editandoRecetaId = id;
-    document.getElementById('form-title-receta').textContent = 'Editar';
-    document.getElementById('btn-text-receta').textContent = 'Guardar';
+    document.getElementById('form-title-receta').textContent = t('recetas:form_title_edit');
+    document.getElementById('btn-text-receta').textContent = t('recetas:btn_save');
     window.mostrarFormularioReceta();
 }
 
@@ -151,7 +152,7 @@ export async function eliminarReceta(id) {
     const rec = (window.recetas || []).find(r => r.id === id);
     if (!rec) return;
 
-    if (!confirm(`¿Eliminar la receta "${rec.nombre}"?`)) return;
+    if (!confirm(t('recetas:confirm_delete', { name: rec.nombre }))) return;
 
     window.showLoading();
 
@@ -165,11 +166,11 @@ export async function eliminarReceta(id) {
         await window.cargarDatos();
         window.renderizarRecetas();
         window.hideLoading();
-        window.showToast('Receta eliminada', 'success');
+        window.showToast(t('recetas:toast_deleted'), 'success');
     } catch (error) {
         window.hideLoading();
         console.error('Error:', error);
-        window.showToast('Error eliminando receta: ' + error.message, 'error');
+        window.showToast(t('recetas:toast_error_deleting', { message: error.message }), 'error');
     }
 }
 
@@ -320,7 +321,7 @@ export async function confirmarProduccion() {
     const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
 
     let falta = false;
-    let msg = 'Stock insuficiente:\n';
+    let msg = t('recetas:stock_insufficient') + '\n';
     rec.ingredientes.forEach(item => {
         const ing = ingMap.get(item.ingredienteId);
         if (ing) {
@@ -426,10 +427,10 @@ export async function confirmarProduccion() {
         window.renderizarIngredientes();
         window.hideLoading();
         cerrarModalProducir();
-        window.showToast(`Producidas ${cant} unidades de ${rec.nombre}`, 'success');
+        window.showToast(t('recetas:production_success', { quantity: cant, name: rec.nombre }), 'success');
     } catch (error) {
         window.hideLoading();
         console.error('Error:', error);
-        window.showToast('Error actualizando stock: ' + error.message, 'error');
+        window.showToast(t('recetas:toast_error_updating_stock', { message: error.message }), 'error');
     }
 }

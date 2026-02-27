@@ -8,6 +8,7 @@
 
 import { fetchComprasPendientes, aprobarItem, aprobarBatch, editarItemPendiente, rechazarItem, cambiarFormato } from './compras-pendientes-crud.js';
 import { apiClient } from '../../api/client.js';
+import { t } from '@/i18n/index.js';
 
 let ingredientesCache = [];
 
@@ -109,16 +110,16 @@ export async function renderizarComprasPendientes() {
                 <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 20px;">⚠️</span>
                     <div>
-                        <div style="font-size: 13px; font-weight: 700; color: #dc2626;">Posible duplicado — ${estadoPedidoDup === 'ya aprobado' ? 'estos datos ya fueron aprobados' : estadoPedidoDup === 'pendiente en otro albarán' ? 'ya existe otro albarán pendiente igual' : 'ya existe un pedido manual'}</div>
-                        <div style="font-size: 12px; color: #b91c1c;">${fechaPedidoDup}${totalPedidoDup ? ` · ${totalPedidoDup}€` : ''} · Estado: ${estadoPedidoDup}</div>
+                        <div style="font-size: 13px; font-weight: 700; color: #dc2626;">${t('pedidos:pending_possible_duplicate')} — ${estadoPedidoDup === 'ya aprobado' ? t('pedidos:pending_dup_already_approved') : estadoPedidoDup === 'pendiente en otro albarán' ? t('pedidos:pending_dup_pending_other') : t('pedidos:pending_dup_manual_exists')}</div>
+                        <div style="font-size: 12px; color: #b91c1c;">${fechaPedidoDup}${totalPedidoDup ? ` · ${totalPedidoDup}€` : ''} · ${t('pedidos:pending_status')}: ${estadoPedidoDup}</div>
                     </div>
                 </div>` : ''}
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div style="width: 44px; height: 44px; background: linear-gradient(135deg, ${esBatchDuplicado ? '#ef4444, #dc2626' : '#f59e0b, #d97706'}); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;">${esBatchDuplicado ? '⚠️' : '📋'}</div>
                         <div>
-                            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">Albarán del ${fecha}</h3>
-                            <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${totalItems} productos${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${sinMatch} sin asignar</span>` : ''}</p>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">${t('pedidos:pending_delivery_note_from', { date: fecha })}</h3>
+                            <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${t('pedidos:pending_products_count', { count: totalItems })}${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${t('pedidos:pending_unassigned', { count: sinMatch })}</span>` : ''}</p>
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
@@ -126,18 +127,18 @@ export async function renderizarComprasPendientes() {
                         <button disabled style="
                             padding: 10px 20px; border: none; border-radius: 10px;
                             background: #fca5a5; color: #991b1b; font-weight: 600; font-size: 13px; cursor: not-allowed;
-                        ">⚠️ Revisar duplicado</button>` :
+                        ">⚠️ ${t('pedidos:pending_review_duplicate')}</button>` :
                     sinMatch === 0 ? `
                         <button onclick="window.aprobarBatchPendiente('${batchId}')" style="
                             padding: 10px 20px; border: none; border-radius: 10px;
                             background: linear-gradient(135deg, #22c55e, #16a34a);
                             color: white; font-weight: 700; font-size: 14px; cursor: pointer;
                             box-shadow: 0 4px 12px rgba(34,197,94,0.3);
-                        ">✅ Aprobar Todo</button>` : `
+                        ">✅ ${t('pedidos:pending_approve_all')}</button>` : `
                         <button disabled style="
                             padding: 10px 20px; border: none; border-radius: 10px;
                             background: #d1d5db; color: #6b7280; font-weight: 600; font-size: 13px; cursor: not-allowed;
-                        ">⚠️ Asigna ingredientes primero</button>`}
+                        ">⚠️ ${t('pedidos:pending_assign_first')}</button>`}
                     </div>
                 </div>
 
@@ -148,7 +149,7 @@ export async function renderizarComprasPendientes() {
                     ? (item.ingrediente_nombre_db?.toLowerCase().includes(item.ingrediente_nombre?.toLowerCase()?.substring(0, 8)) ? 'match-exact' : 'match-partial')
                     : 'match-none';
                 const matchIcon = matchClass === 'match-exact' ? '🟢' : matchClass === 'match-partial' ? '🟡' : '🔴';
-                const matchLabel = item.ingrediente_nombre_db || 'Sin asignar';
+                const matchLabel = item.ingrediente_nombre_db || t('pedidos:pending_not_assigned');
                 const esDuplicado = !!item.compra_diaria_existente;
                 const borderColor = matchClass === 'match-none' ? '#fca5a5' : esDuplicado ? '#f59e0b' : '#e5e7eb';
 
@@ -160,33 +161,33 @@ export async function renderizarComprasPendientes() {
                     ">
                         <div>
                             <div style="font-size: 13px; color: #6b7280; margin-bottom: 2px;">📄 ${item.ingrediente_nombre}</div>
-                            ${esDuplicado ? `<div style="font-size: 11px; color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 6px; margin-bottom: 4px; font-weight: 600;">⚠️ Posible duplicado — ya registrada: ${parseFloat(item.cantidad_ya_registrada || 0).toFixed(1)} uds a ${parseFloat(item.precio_ya_registrado || 0).toFixed(2)}€</div>` : ''}
+                            ${esDuplicado ? `<div style="font-size: 11px; color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 6px; margin-bottom: 4px; font-weight: 600;">⚠️ ${t('pedidos:pending_possible_duplicate')} — ${t('pedidos:pending_already_registered', { qty: parseFloat(item.cantidad_ya_registrada || 0).toFixed(1), price: parseFloat(item.precio_ya_registrado || 0).toFixed(2) })}</div>` : ''}
                             <div style="font-size: 14px; font-weight: 600; color: ${matchClass === 'match-none' ? '#dc2626' : '#1e293b'};">
                                 ${matchIcon} ${matchLabel}
                                 ${matchClass !== 'match-exact' ? `
                                 <select onchange="window.cambiarIngredientePendiente(${item.id}, this.value)" style="
                                     margin-left: 8px; padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; max-width: 180px;
                                 ">
-                                    <option value="">Seleccionar...</option>
+                                    <option value="">${t('pedidos:form_select_supplier')}</option>
                                     ${[...ingredientesCache].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map(ing => `<option value="${ing.id}" ${ing.id === item.ingrediente_id ? 'selected' : ''}>${ing.nombre}</option>`).join('')}
                                 </select>` : ''}
                             </div>
                         </div>
                         <div style="text-align: center;">
-                            <div style="font-size: 11px; color: #9ca3af;">Fecha</div>
+                            <div style="font-size: 11px; color: #9ca3af;">${t('pedidos:pending_col_date')}</div>
                             <input type="date" value="${item.fecha ? item.fecha.substring(0, 10) : ''}"
                                 onchange="window.editarCampoPendiente(${item.id}, 'fecha', this.value, this)"
                                 style="width: 120px; text-align: center; font-weight: 600; color: #1e293b; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; font-size: 13px; background: #f9fafb;" />
                         </div>
                         <div style="text-align: center;">
-                            <div style="font-size: 11px; color: #9ca3af;">Cantidad</div>
+                            <div style="font-size: 11px; color: #9ca3af;">${t('pedidos:pending_col_quantity')}</div>
                             <input type="number" step="0.1" min="0" value="${parseFloat(item.cantidad).toFixed(1)}"
                                 onchange="window.editarCampoPendiente(${item.id}, 'cantidad', this.value, this)"
                                 style="width: 60px; text-align: center; font-weight: 700; color: #1e293b; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; font-size: 14px; background: #f9fafb;" />
                         </div>
                         ${item.ingrediente_id && item.ingrediente_formato_compra && parseFloat(item.ingrediente_cantidad_por_formato || 0) > 1 ? `
                         <div style="text-align: center;">
-                            <div style="font-size: 11px; color: #9ca3af;">Formato</div>
+                            <div style="font-size: 11px; color: #9ca3af;">${t('pedidos:pending_col_format')}</div>
                             <select onchange="window.cambiarFormatoPendiente(${item.id}, this.value, this)" style="
                                 padding: 4px 6px; border: 1px solid #a78bfa; border-radius: 6px; font-size: 11px;
                                 background: #f5f3ff; color: #5b21b6; font-weight: 600; max-width: 120px;
@@ -199,7 +200,7 @@ export async function renderizarComprasPendientes() {
                             </div>
                         </div>` : ''}
                         <div style="text-align: center;">
-                            <div style="font-size: 11px; color: #9ca3af;">Precio</div>
+                            <div style="font-size: 11px; color: #9ca3af;">${t('pedidos:pending_col_price')}</div>
                             <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
                                 <input type="number" step="0.01" min="0" value="${parseFloat(item.precio).toFixed(2)}"
                                     onchange="window.editarCampoPendiente(${item.id}, 'precio', this.value, this)"
@@ -209,6 +210,7 @@ export async function renderizarComprasPendientes() {
                         </div>
                         <div style="text-align: center;">
                             <div style="font-size: 11px; color: #9ca3af;">Total</div>
+
                             <div style="display: flex; align-items: center; justify-content: center; gap: 2px;">
                                 <input type="number" step="0.01" min="0" value="${(item.precio * item.cantidad).toFixed(2)}"
                                     onchange="window.editarTotalPendiente(${item.id}, this.value, this)"
@@ -243,10 +245,10 @@ export async function renderizarComprasPendientes() {
                 <span style="font-size: 28px;">🔔</span>
                 <div>
                     <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #92400e;">
-                        ${pendientes.length} compra${pendientes.length !== 1 ? 's' : ''} pendiente${pendientes.length !== 1 ? 's' : ''} de revisión
+                        ${t('pedidos:pending_review_title', { count: pendientes.length })}
                     </h3>
                     <p style="margin: 2px 0 0; font-size: 13px; color: #b45309;">
-                        Importadas automáticamente desde albarán. Revisa y aprueba antes de registrar.
+                        ${t('pedidos:pending_review_subtitle')}
                     </p>
                 </div>
             </div>
@@ -264,13 +266,13 @@ export async function renderizarComprasPendientes() {
  */
 export async function aprobarItemPendiente(id) {
     try {
-        window.showToast?.('Aprobando compra...', 'info');
+        window.showToast?.(t('pedidos:pending_approving'), 'info');
         await aprobarItem(id);
-        window.showToast?.('✅ Compra aprobada y registrada', 'success');
+        window.showToast?.(t('pedidos:pending_approved'), 'success');
         await renderizarComprasPendientes();
     } catch (err) {
         console.error('Error aprobando item:', err);
-        window.showToast?.('Error al aprobar: ' + err.message, 'error');
+        window.showToast?.(t('pedidos:pending_error_approving', { message: err.message }), 'error');
     }
 }
 
@@ -279,13 +281,15 @@ export async function aprobarItemPendiente(id) {
  */
 export async function aprobarBatchPendiente(batchId) {
     try {
-        window.showToast?.('Aprobando albarán completo...', 'info');
+        window.showToast?.(t('pedidos:pending_batch_approving'), 'info');
         const result = await aprobarBatch(batchId);
-        window.showToast?.(`✅ ${result.aprobados} compras aprobadas${result.omitidos ? `, ${result.omitidos} omitidas` : ''}`, 'success');
+        window.showToast?.(result.omitidos
+            ? t('pedidos:pending_batch_approved_with_skipped', { approved: result.aprobados, skipped: result.omitidos })
+            : t('pedidos:pending_batch_approved', { approved: result.aprobados }), 'success');
         await renderizarComprasPendientes();
     } catch (err) {
         console.error('Error aprobando batch:', err);
-        window.showToast?.('Error al aprobar: ' + err.message, 'error');
+        window.showToast?.(t('pedidos:pending_error_approving', { message: err.message }), 'error');
     }
 }
 
@@ -296,11 +300,11 @@ export async function cambiarIngredientePendiente(id, ingredienteId) {
     try {
         if (!ingredienteId) return;
         await editarItemPendiente(id, { ingrediente_id: parseInt(ingredienteId) });
-        window.showToast?.('Ingrediente asignado correctamente', 'success');
+        window.showToast?.(t('pedidos:pending_ingredient_assigned'), 'success');
         await renderizarComprasPendientes();
     } catch (err) {
         console.error('Error editando item:', err);
-        window.showToast?.('Error al editar: ' + err.message, 'error');
+        window.showToast?.(t('pedidos:pending_error_editing', { message: err.message }), 'error');
     }
 }
 
@@ -319,10 +323,10 @@ export async function cambiarFormatoPendiente(id, formatoOverride, selectEl) {
                 previewEl.textContent = `Stock: +${(cantidad * parseFloat(formatoOverride)).toFixed(1)}`;
             }
         }
-        window.showToast?.(`Formato actualizado (×${formatoOverride})`, 'success');
+        window.showToast?.(t('pedidos:pending_format_updated', { format: formatoOverride }), 'success');
     } catch (err) {
         console.error('Error cambiando formato:', err);
-        window.showToast?.('Error al cambiar formato: ' + err.message, 'error');
+        window.showToast?.(t('pedidos:pending_error_format', { message: err.message }), 'error');
     }
 }
 
@@ -330,14 +334,14 @@ export async function cambiarFormatoPendiente(id, formatoOverride, selectEl) {
  * Rechazar un item pendiente
  */
 export async function rechazarItemPendiente(id) {
-    if (!confirm('¿Rechazar esta compra? No se registrará en el diario.')) return;
+    if (!confirm(t('pedidos:pending_confirm_reject'))) return;
     try {
         await rechazarItem(id);
-        window.showToast?.('Compra rechazada', 'info');
+        window.showToast?.(t('pedidos:pending_rejected'), 'info');
         await renderizarComprasPendientes();
     } catch (err) {
         console.error('Error rechazando item:', err);
-        window.showToast?.('Error al rechazar: ' + err.message, 'error');
+        window.showToast?.(t('pedidos:pending_error_rejecting', { message: err.message }), 'error');
     }
 }
 
@@ -348,12 +352,12 @@ export async function editarCampoPendiente(id, campo, valor, inputEl) {
     try {
         let valorFinal;
         if (campo === 'fecha') {
-            if (!valor) { window.showToast?.('Fecha no válida', 'error'); return; }
+            if (!valor) { window.showToast?.(t('pedidos:pending_invalid_date'), 'error'); return; }
             valorFinal = valor; // string YYYY-MM-DD
         } else {
             valorFinal = parseFloat(valor);
             if (isNaN(valorFinal) || valorFinal < 0) {
-                window.showToast?.('Valor no válido', 'error');
+                window.showToast?.(t('pedidos:pending_invalid_value'), 'error');
                 return;
             }
         }
@@ -373,7 +377,7 @@ export async function editarCampoPendiente(id, campo, valor, inputEl) {
         setTimeout(() => { if (inputEl) inputEl.style.borderColor = '#e5e7eb'; }, 1500);
     } catch (err) {
         console.error('Error editando campo:', err);
-        window.showToast?.('Error al guardar: ' + err.message, 'error');
+        window.showToast?.(t('pedidos:pending_error_saving', { message: err.message }), 'error');
         inputEl.style.borderColor = '#ef4444';
     }
 }
@@ -385,7 +389,7 @@ export async function editarTotalPendiente(id, totalStr, inputEl) {
     try {
         const total = parseFloat(totalStr);
         if (isNaN(total) || total < 0) {
-            window.showToast?.('Valor no válido', 'error');
+            window.showToast?.(t('pedidos:pending_invalid_value'), 'error');
             return;
         }
         const itemDiv = inputEl?.closest('.pending-item');
@@ -402,7 +406,7 @@ export async function editarTotalPendiente(id, totalStr, inputEl) {
         setTimeout(() => { if (inputEl) inputEl.style.borderColor = '#e5e7eb'; }, 1500);
     } catch (err) {
         console.error('Error editando total:', err);
-        window.showToast?.('Error al guardar: ' + err.message, 'error');
+        window.showToast?.(t('pedidos:pending_error_saving', { message: err.message }), 'error');
         inputEl.style.borderColor = '#ef4444';
     }
 }

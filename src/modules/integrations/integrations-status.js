@@ -6,6 +6,7 @@
  */
 
 import { appConfig } from '../../config/app-config.js';
+import { t } from '@/i18n/index.js';
 
 /**
  * Estado de las integraciones
@@ -23,7 +24,7 @@ const integrationStatus = {
 async function checkN8nStatus() {
     const webhookUrl = appConfig.chat?.webhookUrl;
     if (!webhookUrl) {
-        integrationStatus.n8n = { connected: false, lastCheck: new Date(), error: 'URL no configurada' };
+        integrationStatus.n8n = { connected: false, lastCheck: new Date(), error: t('settings:integration_url_not_configured') };
         return false;
     }
 
@@ -125,11 +126,11 @@ function updateIntegrationUI(elementId, isConnected) {
     if (!element) return;
 
     if (isConnected) {
-        element.innerHTML = '✓ Conectado';
+        element.innerHTML = '✓ ' + t('settings:integration_connected');
         element.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
         element.style.color = 'white';
     } else {
-        element.innerHTML = '⚠️ Sin conexión';
+        element.innerHTML = '⚠️ ' + t('settings:integration_disconnected');
         element.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
         element.style.color = 'white';
     }

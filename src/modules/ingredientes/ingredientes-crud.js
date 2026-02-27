@@ -10,6 +10,7 @@ import { setEditandoIngredienteId } from './ingredientes-ui.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 // 🆕 Validación centralizada
 import { validateIngrediente, showValidationErrors } from '../../utils/validation.js';
+import { t } from '@/i18n/index.js';
 
 /**
  * Guarda un ingrediente (crear o actualizar)
@@ -187,7 +188,7 @@ export async function guardarIngrediente(event) {
             window.actualizarDashboardExpandido();
 
         if (typeof window.hideLoading === 'function') window.hideLoading();
-        showToast(editandoId ? 'Ingrediente actualizado' : 'Ingrediente creado', 'success');
+        showToast(editandoId ? t('ingredientes:toast_updated') : t('ingredientes:toast_created'), 'success');
         window.cerrarFormularioIngrediente();
     } catch (error) {
         if (typeof window.hideLoading === 'function') window.hideLoading();
@@ -195,9 +196,9 @@ export async function guardarIngrediente(event) {
 
         // 🔒 FIX: Mensaje amigable para duplicados (409 Conflict)
         if (error.message && (error.message.includes('ya existe') || error.message.includes('409'))) {
-            showToast('⚠️ Ese ingrediente ya existe. Búscalo en la lista.', 'warning');
+            showToast(t('ingredientes:toast_duplicate'), 'warning');
         } else {
-            showToast('Error guardando ingrediente: ' + error.message, 'error');
+            showToast(t('ingredientes:toast_error_saving', { message: error.message }), 'error');
         }
     } finally {
         // 🔒 FIX: Siempre liberar el flag para permitir nuevos guardados
@@ -220,10 +221,10 @@ export function editarIngrediente(id) {
     setEditandoIngredienteId(id);
 
     const titleEl = getElement('form-title-ingrediente');
-    if (titleEl) titleEl.textContent = 'Editar Ingrediente';
+    if (titleEl) titleEl.textContent = t('ingredientes:form_title_edit');
 
     const btnEl = getElement('btn-text-ingrediente');
-    if (btnEl) btnEl.textContent = 'Guardar';
+    if (btnEl) btnEl.textContent = t('ingredientes:btn_save');
 
     // Mostrar formulario PRIMERO (esto actualiza el select de proveedores)
     window.mostrarFormularioIngrediente();
@@ -307,7 +308,7 @@ export async function eliminarIngrediente(id) {
         return;
     }
 
-    const confirmar = window.confirm('¿Eliminar este ingrediente?');
+    const confirmar = window.confirm(t('ingredientes:confirm_delete'));
     if (!confirmar) return;
 
     _eliminandoIngrediente = true;
@@ -341,16 +342,16 @@ export async function eliminarIngrediente(id) {
 
         if (typeof window.hideLoading === 'function') window.hideLoading();
         if (typeof showToast === 'function') {
-            showToast('Ingrediente eliminado', 'success');
+            showToast(t('ingredientes:toast_deleted'), 'success');
         } else if (typeof window.showToast === 'function') {
-            window.showToast('Ingrediente eliminado', 'success');
+            window.showToast(t('ingredientes:toast_deleted'), 'success');
         }
     } catch (error) {
         if (typeof window.hideLoading === 'function') window.hideLoading();
         console.error('Error eliminando ingrediente:', error);
         const toastFn = typeof showToast === 'function' ? showToast : window.showToast;
         if (typeof toastFn === 'function') {
-            toastFn('Error eliminando ingrediente: ' + error.message, 'error');
+            toastFn(t('ingredientes:toast_error_deleting', { message: error.message }), 'error');
         }
     } finally {
         // 🔧 FIX: Liberar lock después de completar (éxito o error)
@@ -382,7 +383,7 @@ export async function toggleIngredienteActivo(id, activo) {
         window.renderizarIngredientes?.();
 
         if (typeof window.hideLoading === 'function') window.hideLoading();
-        showToast(activo ? 'Ingrediente activado' : 'Ingrediente desactivado', 'success');
+        showToast(activo ? t('ingredientes:toast_activated') : t('ingredientes:toast_deactivated'), 'success');
     } catch (error) {
         if (typeof window.hideLoading === 'function') window.hideLoading();
         console.error('Error toggle activo:', error);

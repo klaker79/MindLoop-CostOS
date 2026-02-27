@@ -2,6 +2,7 @@
  * Albarán Scanner — Escaneo de albaranes con Claude Vision
  * Sube foto/PDF → backend extrae datos con IA → inserta en compras_pendientes
  */
+import { t } from '@/i18n/index.js';
 import { apiClient } from '../../api/client.js';
 
 const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
@@ -25,12 +26,12 @@ export async function procesarFotoAlbaranInput(event) {
 
 async function procesarImagenAlbaran(file) {
     if (!VALID_TYPES.includes(file.type)) {
-        window.showToast?.('Formato no soportado. Usa JPG, PNG o PDF.', 'warning');
+        window.showToast?.(t('pedidos:scanner_unsupported_format'), 'warning');
         return;
     }
 
     if (file.size > MAX_SIZE) {
-        window.showToast?.('Archivo demasiado grande. Máximo 10MB.', 'warning');
+        window.showToast?.(t('pedidos:scanner_file_too_large'), 'warning');
         return;
     }
 
@@ -53,23 +54,22 @@ async function procesarImagenAlbaran(file) {
         });
 
         if (!response.success) {
-            window.showToast?.('Error procesando albarán', 'error');
+            window.showToast?.(t('pedidos:scanner_error_processing'), 'error');
             resetAlbaranDropzone();
             return;
         }
 
-        const prov = response.proveedor ? ` de ${response.proveedor}` : '';
-        window.showToast?.(
-            `${response.totalItems} productos detectados${prov} (${response.matched} asignados, ${response.unmatched} por revisar)`,
-            'success'
-        );
+        const toastMsg = response.proveedor
+            ? t('pedidos:scanner_items_detected', { total: response.totalItems, supplier: response.proveedor, matched: response.matched, unmatched: response.unmatched })
+            : t('pedidos:scanner_items_detected_no_supplier', { total: response.totalItems, matched: response.matched, unmatched: response.unmatched });
+        window.showToast?.(toastMsg, 'success');
 
         // Refrescar panel de compras pendientes (UI ya existente)
         await window.renderizarComprasPendientes?.();
 
     } catch (error) {
         console.error('Error procesando albarán:', error);
-        window.showToast?.('Error: ' + (error.message || 'No se pudo procesar el albarán'), 'error');
+        window.showToast?.(t('pedidos:scanner_error_generic', { message: error.message || t('pedidos:scanner_error_processing') }), 'error');
     }
 
     resetAlbaranDropzone();

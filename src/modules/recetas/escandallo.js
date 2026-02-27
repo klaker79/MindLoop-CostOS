@@ -5,6 +5,7 @@
  * @module modules/recetas/escandallo
  */
 
+import { t } from '@/i18n/index.js';
 import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
 
 /**
@@ -55,7 +56,7 @@ export async function verEscandallo(recetaId) {
                 desglose.push({
                     nombre: `🧪 ${subreceta.nombre}`,
                     cantidad: item.cantidad,
-                    unidad: 'porción',
+                    unidad: t('recetas:escandallo_subrecipe_unit'),
                     precioUnitario: costeSubreceta,
                     coste: coste,
                     porcentaje: 0,
@@ -137,7 +138,7 @@ export async function verEscandallo(recetaId) {
         modal.innerHTML = `
             <div class="modal-content" style="max-width: 650px; max-height: 90vh; overflow-y: auto; overflow-x: auto;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 id="escandallo-titulo" style="margin: 0;">📊 Escandallo</h3>
+                    <h3 id="escandallo-titulo" style="margin: 0;">📊 ${t('recetas:escandallo_title')}</h3>
                     <button onclick="document.getElementById('modal-escandallo').classList.remove('active')" 
                         style="background: none; border: none; font-size: 24px; cursor: pointer;">✕</button>
                 </div>
@@ -153,10 +154,10 @@ export async function verEscandallo(recetaId) {
                 </div>
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                     <button id="btn-exportar-pdf-escandallo" class="btn btn-primary" style="background: linear-gradient(135deg, #EF4444, #DC2626);">
-                        📄 Exportar PDF
+                        📄 ${t('export:btn_export_pdf')}
                     </button>
                     <button onclick="document.getElementById('modal-escandallo').classList.remove('active')" class="btn btn-secondary">
-                        Cerrar
+                        ${t('recetas:escandallo_close')}
                     </button>
                 </div>
             </div>
@@ -175,19 +176,19 @@ export async function verEscandallo(recetaId) {
     document.getElementById('escandallo-resumen').innerHTML = `
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
             <div style="background: #F0FDF4; padding: 12px; border-radius: 8px; text-align: center;">
-                <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Coste</div>
+                <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_cost')}</div>
                 <div style="font-size: 20px; font-weight: 700; color: #10B981;">${costeTotal.toFixed(2)}€</div>
             </div>
             <div style="background: #EFF6FF; padding: 12px; border-radius: 8px; text-align: center;">
-                <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">PVP</div>
+                <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_pvp')}</div>
                 <div style="font-size: 20px; font-weight: 700; color: #3B82F6;">${precioVenta.toFixed(2)}€</div>
             </div>
             <div style="background: #FEF3C7; padding: 12px; border-radius: 8px; text-align: center;">
-                <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Margen</div>
+                <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_margin')}</div>
                 <div style="font-size: 20px; font-weight: 700; color: #F59E0B;">${margenEuros.toFixed(2)}€</div>
             </div>
             <div style="background: ${foodCost <= 33 ? '#F0FDF4' : foodCost <= 38 ? '#FEF3C7' : '#FEE2E2'}; padding: 12px; border-radius: 8px; text-align: center;">
-                <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Food Cost</div>
+                <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_food_cost')}</div>
                 <div style="font-size: 20px; font-weight: 700; color: ${foodCostColor};">${foodCost.toFixed(1)}%</div>
             </div>
         </div>
@@ -196,9 +197,9 @@ export async function verEscandallo(recetaId) {
     // Table section - Tabla compacta sin cortes
     let tablaHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed;">';
     tablaHtml += '<thead><tr style="background: #F8FAFC;">';
-    tablaHtml += '<th style="text-align: left; padding: 6px; border-bottom: 2px solid #E2E8F0; width: 45%;">Ingrediente</th>';
-    tablaHtml += '<th style="text-align: right; padding: 6px; border-bottom: 2px solid #E2E8F0; width: 20%;">Cant.</th>';
-    tablaHtml += '<th style="text-align: right; padding: 6px; border-bottom: 2px solid #E2E8F0; width: 18%;">Coste</th>';
+    tablaHtml += `<th style="text-align: left; padding: 6px; border-bottom: 2px solid #E2E8F0; width: 45%;">${t('recetas:escandallo_col_ingredient')}</th>`;
+    tablaHtml += `<th style="text-align: right; padding: 6px; border-bottom: 2px solid #E2E8F0; width: 20%;">${t('recetas:escandallo_col_quantity')}</th>`;
+    tablaHtml += `<th style="text-align: right; padding: 6px; border-bottom: 2px solid #E2E8F0; width: 18%;">${t('recetas:escandallo_col_cost')}</th>`;
     tablaHtml += '<th style="text-align: right; padding: 6px; border-bottom: 2px solid #E2E8F0; width: 17%;">%</th>';
     tablaHtml += '</tr></thead><tbody>';
 
@@ -315,7 +316,7 @@ export async function exportarPDFEscandallo() {
     const jsPDF = window.jsPDF;
     if (!jsPDF) {
         console.error('jsPDF no está cargado');
-        window.showToast?.('Error: jsPDF no disponible', 'error');
+        window.showToast?.(t('recetas:escandallo_pdf_error'), 'error');
         return;
     }
 
@@ -330,7 +331,7 @@ export async function exportarPDFEscandallo() {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('FICHA TÉCNICA', pageWidth / 2, 15, { align: 'center' });
+    doc.text(t('recetas:escandallo_pdf_title'), pageWidth / 2, 15, { align: 'center' });
 
     doc.setFontSize(16);
     doc.setFont('helvetica', 'normal');
@@ -352,10 +353,10 @@ export async function exportarPDFEscandallo() {
     const startX = (pageWidth - (boxWidth * 4 + gap * 3)) / 2;
 
     const summaryData = [
-        { label: 'COSTE', value: `${costeTotal.toFixed(2)}€`, color: [16, 185, 129] },
-        { label: 'PVP', value: `${precioVenta.toFixed(2)}€`, color: [59, 130, 246] },
-        { label: 'MARGEN', value: `${margenEuros.toFixed(2)}€`, color: [245, 158, 11] },
-        { label: 'FOOD COST', value: `${foodCost.toFixed(1)}%`, color: foodCost <= 33 ? [16, 185, 129] : foodCost <= 38 ? [245, 158, 11] : [239, 68, 68] }
+        { label: t('recetas:escandallo_cost'), value: `${costeTotal.toFixed(2)}€`, color: [16, 185, 129] },
+        { label: t('recetas:escandallo_pvp'), value: `${precioVenta.toFixed(2)}€`, color: [59, 130, 246] },
+        { label: t('recetas:escandallo_margin'), value: `${margenEuros.toFixed(2)}€`, color: [245, 158, 11] },
+        { label: t('recetas:escandallo_food_cost'), value: `${foodCost.toFixed(1)}%`, color: foodCost <= 33 ? [16, 185, 129] : foodCost <= 38 ? [245, 158, 11] : [239, 68, 68] }
     ];
 
     summaryData.forEach((item, i) => {
@@ -375,7 +376,7 @@ export async function exportarPDFEscandallo() {
     doc.setTextColor(30, 41, 59);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text('DESGLOSE DE INGREDIENTES', 14, boxY + 35);
+    doc.text(t('recetas:escandallo_breakdown'), 14, boxY + 35);
 
     // Table header
     let tableY = boxY + 42;
@@ -389,10 +390,10 @@ export async function exportarPDFEscandallo() {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.text('#', 18, tableY + 5.5);
-    doc.text('Ingrediente', 28, tableY + 5.5);
-    doc.text('Cantidad', 88, tableY + 5.5);
-    doc.text('Precio Unit.', 118, tableY + 5.5);
-    doc.text('Coste', 153, tableY + 5.5);
+    doc.text(t('recetas:escandallo_col_ingredient'), 28, tableY + 5.5);
+    doc.text(t('recetas:escandallo_col_quantity'), 88, tableY + 5.5);
+    doc.text(t('recetas:escandallo_col_unit_price'), 118, tableY + 5.5);
+    doc.text(t('recetas:escandallo_col_cost'), 153, tableY + 5.5);
     doc.text('%', 178, tableY + 5.5);
 
     tableY += 8;
@@ -425,7 +426,7 @@ export async function exportarPDFEscandallo() {
     doc.rect(14, tableY, pageWidth - 28, 8, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL', 28, tableY + 5.5);
+    doc.text(t('recetas:escandallo_total'), 28, tableY + 5.5);
     doc.text(`${costeTotal.toFixed(2)}€`, 153, tableY + 5.5);
     doc.text('100%', 178, tableY + 5.5);
 
@@ -434,7 +435,9 @@ export async function exportarPDFEscandallo() {
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`, 14, tableY);
+    const lang = localStorage.getItem('mindloop_lang') || 'es';
+    const locale = lang === 'en' ? 'en-GB' : 'es-ES';
+    doc.text(`Generado: ${new Date().toLocaleDateString(locale)} ${new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`, 14, tableY);
     doc.text('Powered by MindLoop CostOS', pageWidth - 14, tableY, { align: 'right' });
 
     // Tips section
@@ -445,13 +448,15 @@ export async function exportarPDFEscandallo() {
         doc.setTextColor(180, 83, 9);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
-        doc.text('ANALISIS:', 18, tableY + 13);
+        doc.text(t('recetas:escandallo_analysis'), 18, tableY + 13);
 
         doc.setFont('helvetica', 'normal');
         const topIngredient = desglose[0];
         const tip = topIngredient
-            ? `"${topIngredient.nombre}" representa el ${topIngredient.porcentaje.toFixed(0)}% del coste. ${topIngredient.porcentaje > 40 ? 'Considera optimizar.' : 'Distribucion equilibrada.'}`
-            : 'Sin ingredientes.';
+            ? (topIngredient.porcentaje > 40
+                ? t('recetas:escandallo_top_ingredient_high', { name: topIngredient.nombre, pct: topIngredient.porcentaje.toFixed(0) })
+                : t('recetas:escandallo_top_ingredient_ok', { name: topIngredient.nombre, pct: topIngredient.porcentaje.toFixed(0) }))
+            : t('recetas:escandallo_no_ingredients');
         doc.text(tip, 18, tableY + 20);
     }
 
@@ -459,6 +464,6 @@ export async function exportarPDFEscandallo() {
     const fileName = `Escandallo_${receta.nombre.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(fileName);
 
-    window.showToast?.('PDF descargado correctamente', 'success');
+    window.showToast?.(t('recetas:escandallo_pdf_success'), 'success');
 }
 

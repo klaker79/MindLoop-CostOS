@@ -5,6 +5,7 @@
 
 import { showToast } from '../../ui/toast.js';
 import { escapeHTML } from '../../utils/helpers.js';
+import { t } from '@/i18n/index.js';
 
 // Variable para tracking del ingrediente actual
 let ingredienteActualId = null;
@@ -19,14 +20,14 @@ export async function gestionarProveedoresIngrediente(ingredienteId) {
     // Obtener datos del ingrediente
     const ingrediente = window.ingredientes?.find(i => i.id === ingredienteId);
     if (!ingrediente) {
-        showToast('Ingrediente no encontrado', 'error');
+        showToast(t('ingredientes:suppliers_not_found'), 'error');
         return;
     }
 
     // Actualizar título del modal
     const modalTitulo = document.getElementById('modal-proveedores-titulo');
     if (modalTitulo) {
-        modalTitulo.textContent = `Proveedores de "${ingrediente.nombre}"`;
+        modalTitulo.textContent = t('ingredientes:suppliers_modal_title', { name: ingrediente.nombre });
     }
 
     // Cargar proveedores asociados
@@ -61,7 +62,7 @@ async function cargarProveedoresIngrediente(ingredienteId) {
     } catch (error) {
         window.hideLoading?.();
         console.error('Error cargando proveedores del ingrediente:', error);
-        showToast('Error cargando proveedores', 'error');
+        showToast(t('ingredientes:suppliers_error_loading'), 'error');
     }
 }
 
@@ -77,8 +78,8 @@ function renderizarProveedoresAsociados(proveedoresAsociados) {
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #94A3B8;">
                 <div style="font-size: 48px; margin-bottom: 16px;">🏢</div>
-                <p>No hay proveedores asociados</p>
-                <p style="font-size: 14px;">Agrega un proveedor usando el selector de abajo</p>
+                <p>${t('ingredientes:suppliers_none_associated')}</p>
+                <p style="font-size: 14px;">${t('ingredientes:suppliers_add_hint')}</p>
             </div>
         `;
         return;
@@ -106,21 +107,21 @@ function renderizarProveedoresAsociados(proveedoresAsociados) {
         html += `
             <div style="background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); border: 2px solid #6366F1; border-radius: 12px; padding: 16px; margin-bottom: 8px;">
                 <h4 style="margin: 0 0 12px 0; color: #4338CA; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                    📊 Análisis de Precios
+                    📊 ${t('ingredientes:suppliers_analysis_title')}
                 </h4>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
                     <div style="background: #DCFCE7; padding: 12px; border-radius: 8px; border: 1px solid #22C55E;">
-                        <div style="font-size: 11px; color: #166534; text-transform: uppercase; font-weight: 600;">💰 Mejor Precio</div>
+                        <div style="font-size: 11px; color: #166534; text-transform: uppercase; font-weight: 600;">💰 ${t('ingredientes:suppliers_best_price')}</div>
                         <div style="font-size: 20px; font-weight: bold; color: #059669;">${precioMin.toFixed(2)}€</div>
                         <div style="font-size: 12px; color: #166534;">${escapeHTML(mejorProveedor.nombre)}</div>
                     </div>
                     <div style="background: #F1F5F9; padding: 12px; border-radius: 8px;">
-                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase; font-weight: 600;">📈 Precio Medio</div>
+                        <div style="font-size: 11px; color: #64748B; text-transform: uppercase; font-weight: 600;">📈 ${t('ingredientes:suppliers_avg_price')}</div>
                         <div style="font-size: 20px; font-weight: bold; color: #475569;">${precioMedio.toFixed(2)}€</div>
                         <div style="font-size: 12px; color: #64748B;">${precios.length} proveedores</div>
                     </div>
                     <div style="background: #FEF2F2; padding: 12px; border-radius: 8px; border: 1px solid #EF4444;">
-                        <div style="font-size: 11px; color: #991B1B; text-transform: uppercase; font-weight: 600;">⚠️ Más Caro</div>
+                        <div style="font-size: 11px; color: #991B1B; text-transform: uppercase; font-weight: 600;">⚠️ ${t('ingredientes:suppliers_most_expensive')}</div>
                         <div style="font-size: 20px; font-weight: bold; color: #DC2626;">${precioMax.toFixed(2)}€</div>
                         <div style="font-size: 12px; color: #991B1B;">${escapeHTML(peorProveedor.nombre)}</div>
                     </div>
@@ -140,11 +141,7 @@ function renderizarProveedoresAsociados(proveedoresAsociados) {
         const esMejorPrecio = parseFloat(pa.precio) === precioMin && hayDiferencia;
         const badgePrincipal = esPrincipal
             ? '<span style="background: #10B981; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">⭐ PRINCIPAL</span>'
-            : '<button class="btn-sm" onclick="window.marcarProveedorPrincipal(' +
-            ingredienteActualId +
-            ', ' +
-            pa.proveedor_id +
-            ')" style="font-size: 11px; padding: 4px 8px;">Marcar como principal</button>';
+            : `<button class="btn-sm" onclick="window.marcarProveedorPrincipal(${ingredienteActualId}, ${pa.proveedor_id})" style="font-size: 11px; padding: 4px 8px;">${t('ingredientes:suppliers_mark_main')}</button>`;
 
         const badgeMejorPrecio = esMejorPrecio
             ? '<span style="background: #22C55E; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 6px;">💰 MEJOR PRECIO</span>'
@@ -168,10 +165,10 @@ function renderizarProveedoresAsociados(proveedoresAsociados) {
                 </div>
                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                     <button class="btn-sm" onclick="window.editarPrecioProveedor(${ingredienteActualId}, ${pa.proveedor_id}, ${pa.precio})" style="background: #3B82F6; color: white;">
-                        ✏️ Editar precio
+                        ✏️ ${t('ingredientes:suppliers_edit_price')}
                     </button>
                     <button class="btn-sm" onclick="window.eliminarProveedorIngrediente(${ingredienteActualId}, ${pa.proveedor_id})" style="background: #EF4444; color: white;">
-                        🗑️ Eliminar
+                        🗑️ ${t('ingredientes:suppliers_delete')}
                     </button>
                 </div>
             </div>
@@ -196,13 +193,13 @@ function renderizarSelectProveedoresDisponibles(proveedoresAsociados) {
     );
 
     if (proveedoresDisponibles.length === 0) {
-        select.innerHTML = '<option value="">No hay más proveedores disponibles</option>';
+        select.innerHTML = `<option value="">${t('ingredientes:suppliers_none_available')}</option>`;
         select.disabled = true;
         return;
     }
 
     select.disabled = false;
-    select.innerHTML = '<option value="">Seleccionar proveedor...</option>';
+    select.innerHTML = `<option value="">${t('ingredientes:suppliers_select_placeholder')}</option>`;
     proveedoresDisponibles.forEach(p => {
         select.innerHTML += `<option value="${p.id}">${escapeHTML(p.nombre)}</option>`;
     });
@@ -216,12 +213,12 @@ export async function agregarProveedorIngrediente() {
     const precio = document.getElementById('input-precio-nuevo')?.value;
 
     if (!proveedorId) {
-        showToast('Selecciona un proveedor', 'warning');
+        showToast(t('ingredientes:suppliers_select_warning'), 'warning');
         return;
     }
 
     if (!precio || parseFloat(precio) <= 0) {
-        showToast('Ingresa un precio válido', 'warning');
+        showToast(t('ingredientes:suppliers_price_warning'), 'warning');
         return;
     }
 
@@ -237,7 +234,7 @@ export async function agregarProveedorIngrediente() {
             }),
         });
 
-        showToast('Proveedor agregado exitosamente', 'success');
+        showToast(t('ingredientes:suppliers_added'), 'success');
 
         // Limpiar inputs
         document.getElementById('select-proveedor-nuevo').value = '';
@@ -250,7 +247,7 @@ export async function agregarProveedorIngrediente() {
     } catch (error) {
         window.hideLoading?.();
         console.error('Error agregando proveedor:', error);
-        showToast('Error agregando proveedor: ' + (error.message || 'Error desconocido'), 'error');
+        showToast(t('ingredientes:suppliers_error_adding', { message: error.message }), 'error');
     }
 }
 
@@ -281,7 +278,7 @@ export async function marcarProveedorPrincipal(ingredienteId, proveedorId) {
             }),
         });
 
-        showToast('Proveedor marcado como principal', 'success');
+        showToast(t('ingredientes:suppliers_marked_main'), 'success');
 
         // Recargar lista
         await cargarProveedoresIngrediente(ingredienteId);
@@ -290,7 +287,7 @@ export async function marcarProveedorPrincipal(ingredienteId, proveedorId) {
     } catch (error) {
         window.hideLoading?.();
         console.error('Error marcando proveedor como principal:', error);
-        showToast('Error actualizando proveedor', 'error');
+        showToast(t('ingredientes:suppliers_error_updating'), 'error');
     }
 }
 
@@ -306,7 +303,7 @@ export async function editarPrecioProveedor(ingredienteId, proveedorId, precioAc
     if (nuevoPrecio === null) return; // Cancelado
 
     if (!nuevoPrecio || parseFloat(nuevoPrecio) <= 0) {
-        showToast('Precio inválido', 'error');
+        showToast(t('ingredientes:suppliers_invalid_price'), 'error');
         return;
     }
 
@@ -327,7 +324,7 @@ export async function editarPrecioProveedor(ingredienteId, proveedorId, precioAc
             }),
         });
 
-        showToast('Precio actualizado', 'success');
+        showToast(t('ingredientes:suppliers_price_updated'), 'success');
 
         // Recargar lista
         await cargarProveedoresIngrediente(ingredienteId);
@@ -336,7 +333,7 @@ export async function editarPrecioProveedor(ingredienteId, proveedorId, precioAc
     } catch (error) {
         window.hideLoading?.();
         console.error('Error actualizando precio:', error);
-        showToast('Error actualizando precio', 'error');
+        showToast(t('ingredientes:suppliers_error_updating_price'), 'error');
     }
 }
 
@@ -346,7 +343,7 @@ export async function editarPrecioProveedor(ingredienteId, proveedorId, precioAc
  * @param {number} proveedorId - ID del proveedor
  */
 export async function eliminarProveedorIngrediente(ingredienteId, proveedorId) {
-    if (!confirm('¿Eliminar este proveedor del ingrediente?')) return;
+    if (!confirm(t('ingredientes:suppliers_confirm_delete'))) return;
 
     try {
         window.showLoading?.();
@@ -355,7 +352,7 @@ export async function eliminarProveedorIngrediente(ingredienteId, proveedorId) {
             method: 'DELETE',
         });
 
-        showToast('Proveedor eliminado', 'success');
+        showToast(t('ingredientes:suppliers_deleted'), 'success');
 
         // Recargar lista
         await cargarProveedoresIngrediente(ingredienteId);
@@ -364,7 +361,7 @@ export async function eliminarProveedorIngrediente(ingredienteId, proveedorId) {
     } catch (error) {
         window.hideLoading?.();
         console.error('Error eliminando proveedor:', error);
-        showToast('Error eliminando proveedor', 'error');
+        showToast(t('ingredientes:suppliers_error_deleting'), 'error');
     }
 }
 

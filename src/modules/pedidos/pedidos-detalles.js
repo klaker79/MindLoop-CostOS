@@ -1,11 +1,12 @@
 /**
  * Pedidos Detalles Module
  * Visualización de detalles de pedidos en modal
- * 
+ *
  * Funciones:
  * - verDetallesPedido: Abre modal con info completa del pedido
  * - cerrarModalVerPedido: Cierra el modal
  */
+import { t } from '@/i18n/index.js';
 
 /**
  * Muestra detalles de un pedido en modal
@@ -19,10 +20,12 @@ export function verDetallesPedido(pedidoId) {
     const prov = (window.proveedores || []).find(
         p => p.id === ped.proveedorId || p.id === ped.proveedor_id
     );
-    const provNombre = prov ? prov.nombre : 'Sin proveedor';
-    const fechaFormateada = new Date(ped.fecha).toLocaleDateString('es-ES');
+    const provNombre = prov ? prov.nombre : t('pedidos:detail_no_supplier');
+    const lang = localStorage.getItem('mindloop_lang') || 'es';
+    const locale = lang === 'en' ? 'en-GB' : 'es-ES';
+    const fechaFormateada = new Date(ped.fecha).toLocaleDateString(locale);
     const estadoClass = ped.estado === 'recibido' ? '#10B981' : '#F59E0B';
-    const estadoText = ped.estado === 'recibido' ? 'Recibido' : 'Pendiente';
+    const estadoText = ped.estado === 'recibido' ? t('pedidos:detail_status_received') : t('pedidos:detail_status_pending');
     const esRecibido = ped.estado === 'recibido';
 
     let ingredientesHtml = '';
@@ -36,7 +39,7 @@ export function verDetallesPedido(pedidoId) {
         items.forEach(item => {
             const ingId = item.ingredienteId || item.ingrediente_id;
             const ing = (window.ingredientes || []).find(i => i.id === ingId);
-            const nombreIng = ing ? ing.nombre : 'Ingrediente';
+            const nombreIng = ing ? ing.nombre : t('pedidos:detail_col_ingredient');
             const unidadIng = ing ? ing.unidad : '';
 
             // 🆕 Detectar si se usó formato de compra
@@ -79,13 +82,13 @@ export function verDetallesPedido(pedidoId) {
             if (esRecibido) {
                 if (itemEstado === 'no-entregado') {
                     estadoBadge =
-                        '<span style="background:#EF4444;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">No entregado</span>';
+                        `<span style="background:#EF4444;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">${t('pedidos:detail_not_delivered')}</span>`;
                 } else if (Math.abs(varianzaCant) > 0.01 || Math.abs(varianzaPrecio) > 0.01) {
                     estadoBadge =
-                        '<span style="background:#F59E0B;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">Varianza</span>';
+                        `<span style="background:#F59E0B;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">${t('pedidos:detail_variance')}</span>`;
                 } else {
                     estadoBadge =
-                        '<span style="background:#10B981;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">OK</span>';
+                        `<span style="background:#10B981;color:white;padding:2px 8px;border-radius:10px;font-size:11px;">${t('pedidos:detail_ok')}</span>`;
                 }
             }
 
@@ -109,7 +112,7 @@ export function verDetallesPedido(pedidoId) {
             `;
         });
     } else {
-        ingredientesHtml = `<tr><td colspan="${esRecibido ? 5 : 4}" style="padding: 40px; text-align: center; color: #94A3B8;">No hay ingredientes</td></tr>`;
+        ingredientesHtml = `<tr><td colspan="${esRecibido ? 5 : 4}" style="padding: 40px; text-align: center; color: #94A3B8;">${t('pedidos:detail_no_ingredients')}</td></tr>`;
     }
 
     // Calcular varianza total
@@ -124,7 +127,7 @@ export function verDetallesPedido(pedidoId) {
     const html = `
       <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
         <div>
-          <h2 style="margin: 0; color: #1E293B;">Pedido #${ped.id}</h2>
+          <h2 style="margin: 0; color: #1E293B;">${t('pedidos:detail_order_title', { id: ped.id })}</h2>
           <p style="margin: 5px 0 0; color: #64748B;">${provNombre}</p>
           ${detalleMercadoHtml}
         </div>
@@ -137,11 +140,11 @@ export function verDetallesPedido(pedidoId) {
       <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">
         <thead>
           <tr style="background: #F8FAFC;">
-            <th style="padding: 12px; text-align: left; font-weight: 600; color: #64748B;">Ingrediente</th>
-            <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B;">Cantidad</th>
-            <th style="padding: 12px; text-align: right; font-weight: 600; color: #64748B;">Precio</th>
-            <th style="padding: 12px; text-align: right; font-weight: 600; color: #64748B;">Subtotal</th>
-            ${esRecibido ? '<th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B;">Estado</th>' : ''}
+            <th style="padding: 12px; text-align: left; font-weight: 600; color: #64748B;">${t('pedidos:detail_col_ingredient')}</th>
+            <th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B;">${t('pedidos:detail_col_quantity')}</th>
+            <th style="padding: 12px; text-align: right; font-weight: 600; color: #64748B;">${t('pedidos:detail_col_price')}</th>
+            <th style="padding: 12px; text-align: right; font-weight: 600; color: #64748B;">${t('pedidos:detail_col_subtotal')}</th>
+            ${esRecibido ? `<th style="padding: 12px; text-align: center; font-weight: 600; color: #64748B;">${t('pedidos:detail_col_status')}</th>` : ''}
           </tr>
         </thead>
         <tbody>
@@ -153,22 +156,22 @@ export function verDetallesPedido(pedidoId) {
             ? `
       <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
         <div style="padding: 15px; background: #F8FAFC; border-radius: 12px; text-align: center;">
-          <div style="color: #64748B; font-size: 12px;">Total Original</div>
+          <div style="color: #64748B; font-size: 12px;">${t('pedidos:detail_total_original')}</div>
           <div style="font-size: 20px; font-weight: bold; color: #1E293B;">${totalOriginal.toFixed(2)} €</div>
         </div>
         <div style="padding: 15px; background: #F0FDF4; border: 2px solid #10B981; border-radius: 12px; text-align: center;">
-          <div style="color: #64748B; font-size: 12px;">Total Recibido</div>
+          <div style="color: #64748B; font-size: 12px;">${t('pedidos:detail_total_received')}</div>
           <div style="font-size: 20px; font-weight: bold; color: #059669;">${totalRecibido.toFixed(2)} €</div>
         </div>
         <div style="padding: 15px; background: ${Math.abs(varianzaTotal) > 0.01 ? '#FEF3C7' : '#F8FAFC'}; border-radius: 12px; text-align: center;">
-          <div style="color: #64748B; font-size: 12px;">Varianza</div>
+          <div style="color: #64748B; font-size: 12px;">${t('pedidos:detail_variance')}</div>
           <div style="font-size: 20px; font-weight: bold; color: ${varianzaColor};">${varianzaTotal > 0 ? '+' : ''}${varianzaTotal.toFixed(2)} €</div>
         </div>
       </div>
       `
             : `
       <div style="margin-top: 20px; padding: 20px; background: #F0FDF4; border: 2px solid #10B981; border-radius: 12px; text-align: right;">
-        <strong style="color: #666;">Total del Pedido:</strong><br>
+        <strong style="color: #666;">${t('pedidos:detail_total_order')}</strong><br>
         <span style="font-size: 28px; font-weight: bold; color: #059669;">${parseFloat(ped.total || totalOriginal || 0).toFixed(2)} €</span>
       </div>
       `

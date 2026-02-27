@@ -5,12 +5,13 @@
 
 // 🆕 Zustand store para gestión de estado
 import saleStore from '../../stores/saleStore.js';
+import { t } from '@/i18n/index.js';
 
 /**
  * Elimina una venta
  */
 export async function eliminarVenta(id) {
-    if (!confirm('¿Eliminar esta venta?')) return;
+    if (!confirm(t('ventas:confirm_delete'))) return;
 
     window.showLoading();
 
@@ -18,16 +19,16 @@ export async function eliminarVenta(id) {
         // 🆕 Usar Zustand store en lugar de window.api
         const store = saleStore.getState();
         const result = await store.deleteSale(id);
-        if (!result.success) throw new Error(result.error || 'Error eliminando venta');
+        if (!result.success) throw new Error(result.error || t('ventas:toast_error_deleting', { message: '' }));
 
         // ⚡ Invalidar caché para forzar reload con datos frescos
         window._ventasCache = null;
         await window.renderizarVentas();
         window.hideLoading();
-        window.showToast('Venta eliminada', 'success');
+        window.showToast(t('ventas:toast_deleted'), 'success');
     } catch (error) {
         window.hideLoading();
         console.error('Error:', error);
-        window.showToast('Error eliminando venta: ' + error.message, 'error');
+        window.showToast(t('ventas:toast_error_deleting', { message: error.message }), 'error');
     }
 }

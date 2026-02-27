@@ -4,6 +4,7 @@
  */
 
 import { loadPDF } from '../../utils/lazy-vendors.js';
+import { t } from '@/i18n/index.js';
 
 /**
  * Genera PDF profesional de una receta con logo y formato premium
@@ -47,15 +48,15 @@ export async function generarPDFReceta(receta, ingredientes) {
     doc.setTextColor(...colorText);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(`RECETA: ${receta.nombre.toUpperCase()}`, 20, yPos);
+    doc.text(`${t('export:pdf_header_recipe')} ${receta.nombre.toUpperCase()}`, 20, yPos);
 
     yPos += 10;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...colorSecondary);
-    doc.text(`Código: ${receta.codigo || 'N/A'}`, 20, yPos);
-    doc.text(`Categoría: ${receta.categoria || 'N/A'}`, 80, yPos);
-    doc.text(`Porciones: ${receta.porciones || 1}`, 140, yPos);
+    doc.text(`${t('export:pdf_label_code')} ${receta.codigo || 'N/A'}`, 20, yPos);
+    doc.text(`${t('export:pdf_label_category')} ${receta.categoria || 'N/A'}`, 80, yPos);
+    doc.text(`${t('export:pdf_label_portions')} ${receta.porciones || 1}`, 140, yPos);
 
     // Línea de separación
     yPos += 8;
@@ -68,7 +69,7 @@ export async function generarPDFReceta(receta, ingredientes) {
     doc.setTextColor(...colorText);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('INGREDIENTES:', 20, yPos);
+    doc.text(t('export:pdf_section_ingredients'), 20, yPos);
 
     yPos += 8;
 
@@ -100,7 +101,7 @@ export async function generarPDFReceta(receta, ingredientes) {
     // Usar autoTable para tabla profesional
     doc.autoTable({
         startY: yPos,
-        head: [['Ingrediente', 'Cantidad', 'Precio/Unidad', 'Subtotal']],
+        head: [[t('export:pdf_col_ingredient'), t('export:pdf_col_quantity'), t('export:pdf_col_price_unit'), t('export:pdf_col_subtotal')]],
         body: ingredientesData,
         theme: 'striped',
         headStyles: {
@@ -142,24 +143,24 @@ export async function generarPDFReceta(receta, ingredientes) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...colorText);
 
-    doc.text(`COSTE TOTAL:`, 20, yPos);
+    doc.text(t('export:pdf_label_total_cost'), 20, yPos);
     doc.text(`${costoTotal.toFixed(2)}€`, 100, yPos, { align: 'right' });
 
     yPos += 8;
-    doc.text(`PRECIO VENTA:`, 20, yPos);
+    doc.text(t('export:pdf_label_sale_price'), 20, yPos);
     doc.setTextColor(16, 185, 129); // Verde
     doc.text(`${precioVenta.toFixed(2)}€`, 100, yPos, { align: 'right' });
 
     yPos += 8;
     doc.setTextColor(...colorText);
-    doc.text(`BENEFICIO:`, 20, yPos);
+    doc.text(t('export:pdf_label_profit'), 20, yPos);
     const beneficio = precioVenta - costoTotal;
     doc.setTextColor(beneficio >= 0 ? [16, 185, 129] : [239, 68, 68]);
     doc.text(`${beneficio.toFixed(2)}€`, 100, yPos, { align: 'right' });
 
     yPos += 8;
     doc.setTextColor(...colorText);
-    doc.text(`MARGEN:`, 20, yPos);
+    doc.text(t('export:pdf_label_margin'), 20, yPos);
     // Colores basados en Food Cost: ≤28% verde brillante, ≤33% verde, ≤38% amarillo, >38% rojo
     const foodCost = precioVenta > 0 ? (costoTotal / precioVenta) * 100 : 100;
     doc.setTextColor(
@@ -178,7 +179,7 @@ export async function generarPDFReceta(receta, ingredientes) {
     doc.setFontSize(8);
     doc.setTextColor(...colorSecondary);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Generado el ${fechaActual} por MindLoop CostOS`, 105, 280, { align: 'center' });
+    doc.text(t('export:pdf_footer', { date: fechaActual }), 105, 280, { align: 'center' });
 
     // Descargar PDF
     const nombreArchivo = `Receta_${receta.nombre.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
@@ -207,7 +208,7 @@ export async function generarPDFIngredientes(ingredientes) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.text('LISTA DE INGREDIENTES', 105, 22, { align: 'center' });
+    doc.text(t('export:pdf_title_ingredient_list'), 105, 22, { align: 'center' });
 
     // Datos tabla
     const data = ingredientes.map(ing => [
@@ -220,7 +221,7 @@ export async function generarPDFIngredientes(ingredientes) {
 
     doc.autoTable({
         startY: 45,
-        head: [['Ingrediente', 'Unidad', 'Precio', 'Stock', 'Proveedor']],
+        head: [[t('export:pdf_col_ingredient'), t('export:pdf_col_unit'), t('export:pdf_col_price'), t('export:pdf_col_stock'), t('export:pdf_col_supplier')]],
         body: data,
         theme: 'striped',
         headStyles: {
@@ -246,7 +247,7 @@ export async function generarPDFIngredientes(ingredientes) {
     const fechaActual = new Date().toLocaleDateString('es-ES');
     doc.setFontSize(8);
     doc.setTextColor(...colorSecondary);
-    doc.text(`Generado el ${fechaActual}`, 105, 280, { align: 'center' });
+    doc.text(t('export:pdf_footer', { date: fechaActual }), 105, 280, { align: 'center' });
 
     doc.save(`Ingredientes_${Date.now()}.pdf`);
     return doc;

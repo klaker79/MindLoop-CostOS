@@ -5,6 +5,7 @@
  * @module modules/ingredientes/evolucion-precio
  */
 
+import { t } from '@/i18n/index.js';
 import { escapeHTML } from '../../utils/helpers.js';
 import { loadChart } from '../../utils/lazy-vendors.js';
 
@@ -20,7 +21,7 @@ let itemsVisibles = 10; // Mostrar solo últimos 10 por defecto
 export async function verEvolucionPrecio(ingredienteId) {
     const ingrediente = (window.ingredientes || []).find(i => i.id === ingredienteId);
     if (!ingrediente) {
-        window.showToast?.('Ingrediente no encontrado', 'error');
+        window.showToast?.(t('ingredientes:price_evolution_ingredient_not_found'), 'error');
         return;
     }
 
@@ -36,7 +37,7 @@ export async function verEvolucionPrecio(ingredienteId) {
     const precioActual = (parseFloat(ingrediente.precio) || 0) / cpf;
 
     document.getElementById('evolucion-ingrediente-nombre').innerHTML =
-        `<strong>${escapeHTML(ingrediente.nombre)}</strong> - Precio actual: ${precioActual.toFixed(2)}€/${escapeHTML(ingrediente.unidad)}`;
+        `<strong>${escapeHTML(ingrediente.nombre)}</strong> - ${t('ingredientes:price_evolution_current_price', { price: precioActual.toFixed(2), unit: escapeHTML(ingrediente.unidad) })}`;
 
     // Calculate summary stats (incluyendo precio actual)
     let precioMin = precioActual;
@@ -53,15 +54,15 @@ export async function verEvolucionPrecio(ingredienteId) {
     // Render summary
     document.getElementById('evolucion-summary').innerHTML = `
         <div style="background: #ecfdf5; padding: 15px; border-radius: 10px; text-align: center;">
-            <div style="font-size: 11px; color: #059669; text-transform: uppercase; font-weight: 600;">Precio Mínimo</div>
+            <div style="font-size: 11px; color: #059669; text-transform: uppercase; font-weight: 600;">${t('ingredientes:price_evolution_min')}</div>
             <div style="font-size: 24px; font-weight: 700; color: #047857;">${precioMin.toFixed(2)}€</div>
         </div>
         <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; text-align: center;">
-            <div style="font-size: 11px; color: #0284c7; text-transform: uppercase; font-weight: 600;">Promedio</div>
+            <div style="font-size: 11px; color: #0284c7; text-transform: uppercase; font-weight: 600;">${t('ingredientes:price_evolution_avg')}</div>
             <div style="font-size: 24px; font-weight: 700; color: #0369a1;">${precioPromedio.toFixed(2)}€</div>
         </div>
         <div style="background: #fef2f2; padding: 15px; border-radius: 10px; text-align: center;">
-            <div style="font-size: 11px; color: #dc2626; text-transform: uppercase; font-weight: 600;">Precio Máximo</div>
+            <div style="font-size: 11px; color: #dc2626; text-transform: uppercase; font-weight: 600;">${t('ingredientes:price_evolution_max')}</div>
             <div style="font-size: 24px; font-weight: 700; color: #b91c1c;">${precioMax.toFixed(2)}€</div>
         </div>
     `;
@@ -87,8 +88,8 @@ function renderTablaHistorial() {
         contenedor.innerHTML = `
             <div style="text-align: center; padding: 30px; color: #94a3b8;">
                 <div style="font-size: 32px; margin-bottom: 10px;">📦</div>
-                <div>No hay historial de compras para este ingrediente.</div>
-                <div style="font-size: 12px; margin-top: 5px;">El precio se actualizará automáticamente al recibir pedidos.</div>
+                <div>${t('ingredientes:price_evolution_no_history')}</div>
+                <div style="font-size: 12px; margin-top: 5px;">${t('ingredientes:price_evolution_auto_update')}</div>
             </div>
         `;
         return;
@@ -101,11 +102,11 @@ function renderTablaHistorial() {
 
     let tableHtml = `<table style="width: 100%; font-size: 13px;">
         <thead><tr>
-            <th style="padding: 8px; text-align: left;">Fecha</th>
-            <th style="padding: 8px; text-align: left;">Proveedor</th>
-            <th style="padding: 8px; text-align: right;">Cantidad</th>
-            <th style="padding: 8px; text-align: right;">Precio/ud</th>
-            <th style="padding: 8px; text-align: right;">Variación</th>
+            <th style="padding: 8px; text-align: left;">${t('ingredientes:price_evolution_col_date')}</th>
+            <th style="padding: 8px; text-align: left;">${t('ingredientes:price_evolution_col_supplier')}</th>
+            <th style="padding: 8px; text-align: right;">${t('ingredientes:price_evolution_col_quantity')}</th>
+            <th style="padding: 8px; text-align: right;">${t('ingredientes:price_evolution_col_unit_price')}</th>
+            <th style="padding: 8px; text-align: right;">${t('ingredientes:price_evolution_col_variation')}</th>
         </tr></thead><tbody>`;
 
     itemsMostrar.forEach((h, i) => {
@@ -134,7 +135,7 @@ function renderTablaHistorial() {
         tableHtml += `
             <div style="text-align: center; margin-top: 10px;">
                 <button onclick="window.verMasHistorial()" style="padding: 8px 20px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; font-size: 13px; color: #64748b;">
-                    Ver ${Math.min(restantes, 10)} más de ${restantes} restantes
+                    ${t('ingredientes:price_evolution_show_more', { count: Math.min(restantes, 10), remaining: restantes })}
                 </button>
             </div>
         `;
@@ -204,7 +205,7 @@ function obtenerHistorialPrecios(ingredienteId) {
                     fecha: pedido.fecha || pedido.fecha_recepcion,
                     precio: precioUnitario,
                     cantidad: cantidad,
-                    proveedor: proveedor?.nombre || 'Proveedor'
+                    proveedor: proveedor?.nombre || t('ingredientes:price_evolution_supplier_fallback')
                 });
             }
         }
@@ -240,7 +241,7 @@ async function renderChart(historial, ingrediente) {
     const precioUnitarioActual = (parseFloat(ingrediente.precio) || 0) / cpf;
 
     if (historial.length === 0) {
-        labels = ['Actual'];
+        labels = [t('ingredientes:price_evolution_current_label')];
         data = [precioUnitarioActual];
     } else {
         labels = historial.map(h => formatDate(h.fecha));
@@ -248,7 +249,7 @@ async function renderChart(historial, ingrediente) {
         // Add current unit price at the end if different from last
         const lastPrice = data[data.length - 1];
         if (Math.abs(lastPrice - precioUnitarioActual) > 0.01) {
-            labels.push('Actual');
+            labels.push(t('ingredientes:price_evolution_current_label'));
             data.push(precioUnitarioActual);
         }
     }
@@ -266,7 +267,7 @@ async function renderChart(historial, ingrediente) {
         data: {
             labels: labels,
             datasets: [{
-                label: `Precio (€/${ingrediente.unidad})`,
+                label: t('ingredientes:price_evolution_chart_label', { unit: ingrediente.unidad }),
                 data: data,
                 borderColor: '#3b82f6',
                 backgroundColor: blueGradient,
@@ -345,7 +346,9 @@ async function renderChart(historial, ingrediente) {
 function formatDate(dateStr) {
     try {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+        const lang = localStorage.getItem('mindloop_lang') || 'es';
+        const locale = lang === 'en' ? 'en-GB' : 'es-ES';
+        return date.toLocaleDateString(locale, { day: '2-digit', month: 'short' });
     } catch {
         return dateStr;
     }

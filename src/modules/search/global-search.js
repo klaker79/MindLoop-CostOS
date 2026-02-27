@@ -1,4 +1,5 @@
 import { escapeHTML } from '../../utils/helpers.js';
+import { t } from '@/i18n/index.js';
 /**
  * Global Search Module
  * Search across ingredients, recipes, providers, and orders
@@ -28,10 +29,10 @@ export function initGlobalSearch() {
     searchContainer.innerHTML = `
         <div style="position: relative;">
             <input type="text" id="global-search-input" 
-                placeholder="🔍 Buscar..." 
+                placeholder="🔍 ${t('common:search_placeholder')}"
                 style="width: 100%; padding: 10px 40px 10px 15px; border: none; border-radius: 25px; font-size: 14px; background: rgba(255,255,255,0.2); color: white; transition: all 0.2s;"
-                onfocus="this.style.background='rgba(255,255,255,0.3)'; this.placeholder='Buscar ingredientes, recetas, pedidos...'"
-                onblur="if(!this.value) { this.style.background='rgba(255,255,255,0.2)'; this.placeholder='🔍 Buscar...'; }"
+                onfocus="this.style.background='rgba(255,255,255,0.3)'; this.placeholder=window.t('common:search_placeholder_expanded')"
+                onblur="if(!this.value) { this.style.background='rgba(255,255,255,0.2)'; this.placeholder='🔍 ' + window.t('common:search_placeholder'); }"
             >
             <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.6); font-size: 11px; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px;">⌘K</span>
         </div>
@@ -103,7 +104,7 @@ function performSearch(query) {
                 type: 'ingrediente',
                 icon: '🥬',
                 title: ing.nombre,
-                subtitle: `${escapeHTML(ing.categoria || 'Sin categoría')} • ${parseFloat(ing.precio || 0).toFixed(2)}€/${escapeHTML(ing.unidad || 'ud')}`,
+                subtitle: `${escapeHTML(ing.categoria || t('common:no_category'))} • ${parseFloat(ing.precio || 0).toFixed(2)}€/${escapeHTML(ing.unidad || 'ud')}`,
                 action: () => {
                     window.cambiarTab?.('ingredientes');
                     document.getElementById('busqueda-ingredientes').value = ing.nombre;
@@ -120,7 +121,7 @@ function performSearch(query) {
                 type: 'receta',
                 icon: '🍽️',
                 title: rec.nombre,
-                subtitle: `${escapeHTML(rec.categoria || 'Sin categoría')} • PVP: ${parseFloat(rec.precio_venta || 0).toFixed(2)}€`,
+                subtitle: `${escapeHTML(rec.categoria || t('common:no_category'))} • PVP: ${parseFloat(rec.precio_venta || 0).toFixed(2)}€`,
                 action: () => {
                     window.cambiarTab?.('recetas');
                     document.getElementById('busqueda-recetas').value = rec.nombre;
@@ -137,7 +138,7 @@ function performSearch(query) {
                 type: 'proveedor',
                 icon: '🚚',
                 title: prov.nombre,
-                subtitle: escapeHTML(prov.telefono || prov.email || 'Sin contacto'),
+                subtitle: escapeHTML(prov.telefono || prov.email || t('common:no_contact')),
                 action: () => {
                     window.cambiarTab?.('proveedores');
                     document.getElementById('busqueda-proveedores').value = prov.nombre;
@@ -173,7 +174,7 @@ function performSearch(query) {
         results.innerHTML = `
             <div style="padding: 30px; text-align: center; color: #94a3b8;">
                 <div style="font-size: 24px; margin-bottom: 10px;">🔍</div>
-                <div>No se encontraron resultados para "${escapeHTML(query)}"</div>
+                <div>${t('common:search_no_results', { query: escapeHTML(query) })}</div>
             </div>
         `;
     } else {

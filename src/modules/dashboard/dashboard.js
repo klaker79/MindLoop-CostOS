@@ -17,6 +17,7 @@ import {
 } from '../ui/visual-effects.js';
 
 import { getApiUrl } from '../../config/app-config.js';
+import { t, getCurrentLanguage } from '@/i18n/index.js';
 
 // Zustand Stores - acceso directo al estado
 import { saleStore } from '../../stores/saleStore.js';
@@ -64,7 +65,8 @@ export function inicializarFechaActual() {
             fechaTexto.textContent =
                 fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
         } catch (e) {
-            fechaTexto.textContent = new Date().toLocaleDateString('es-ES', {
+            const fallbackLocale = getCurrentLanguage() === 'en' ? 'en-US' : 'es-ES';
+            fechaTexto.textContent = new Date().toLocaleDateString(fallbackLocale, {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -78,9 +80,11 @@ export function inicializarFechaActual() {
             const periodo = getPeriodoActual();
             const mesCapitalizado =
                 periodo.mesNombre.charAt(0).toUpperCase() + periodo.mesNombre.slice(1);
-            periodoInfo.textContent = `Semana ${periodo.semana} · ${mesCapitalizado} ${periodo.año}`;
+            const weekLabel = getCurrentLanguage() === 'en' ? 'Week' : 'Semana';
+            periodoInfo.textContent = `${weekLabel} ${periodo.semana} · ${mesCapitalizado} ${periodo.año}`;
         } catch (e) {
-            periodoInfo.textContent = new Date().toLocaleDateString('es-ES', {
+            const fallbackLocale2 = getCurrentLanguage() === 'en' ? 'en-US' : 'es-ES';
+            periodoInfo.textContent = new Date().toLocaleDateString(fallbackLocale2, {
                 month: 'long',
                 year: 'numeric',
             });
@@ -158,13 +162,13 @@ async function actualizarKPIsPorPeriodo(periodo) {
         if (platoEstrellaEl) {
             const platosCount = {};
             ventasFiltradas.forEach(v => {
-                const nombre = v.receta_nombre || v.nombre || 'Desconocido';
+                const nombre = v.receta_nombre || v.nombre || t('dashboard:unknown_recipe');
                 platosCount[nombre] = (platosCount[nombre] || 0) + (parseInt(v.cantidad) || 1);
             });
             const platoEstrella = Object.entries(platosCount).sort((a, b) => b[1] - a[1])[0];
             platoEstrellaEl.textContent = platoEstrella
                 ? platoEstrella[0].substring(0, 10)
-                : 'Sin ventas';
+                : t('dashboard:no_sales');
         }
 
         // 5. Actualizar título del card según período
@@ -172,11 +176,11 @@ async function actualizarKPIsPorPeriodo(periodo) {
         const subtituloEl = document.getElementById('actividad-subtitulo');
         if (tituloEl && subtituloEl) {
             const titulos = {
-                'hoy': { titulo: 'Hoy', subtitulo: 'Actividad del día' },
-                'semana': { titulo: 'Semana', subtitulo: 'Actividad semanal' },
+                'hoy': { titulo: t('dashboard:period_today'), subtitulo: t('dashboard:period_today_subtitle') },
+                'semana': { titulo: t('dashboard:period_week'), subtitulo: t('dashboard:period_week_subtitle') },
                 'mes': {
                     titulo: new Date().toLocaleString('es-ES', { month: 'long' }).replace(/^./, c => c.toUpperCase()),
-                    subtitulo: 'Actividad mensual'
+                    subtitulo: t('dashboard:period_month_subtitle')
                 }
             };
             const config = titulos[periodo] || titulos['hoy'];
@@ -301,7 +305,7 @@ export async function actualizarKPIs() {
         }
 
         const stockMsgEl = document.getElementById('kpi-stock-msg');
-        if (stockMsgEl) stockMsgEl.textContent = stockBajo > 0 ? 'Requieren atención' : 'Todo OK';
+        if (stockMsgEl) stockMsgEl.textContent = stockBajo > 0 ? t('dashboard:stock_needs_attention') : t('dashboard:stock_all_ok');
 
         // 4. MARGEN PROMEDIO
         // 🔧 FIX BUG-3: Fallback a window.recetas si recipeStore está vacío
@@ -510,7 +514,7 @@ export async function actualizarKPIs() {
                     listaCambiosEl.innerHTML = `
                         <div style="color: #64748B; text-align: center; padding: 20px 0;">
                             <div style="font-size: 24px; margin-bottom: 8px;">✅</div>
-                            Sin cambios de precio recientes
+                            ${t('dashboard:no_price_changes')}
                         </div>
                     `;
                 }
@@ -518,7 +522,7 @@ export async function actualizarKPIs() {
                 listaCambiosEl.innerHTML = `
                     <div style="color: #64748B; text-align: center; padding: 20px 0;">
                         <div style="font-size: 24px; margin-bottom: 8px;">📦</div>
-                        Registra pedidos para ver<br>cambios de precio
+                        ${t('dashboard:no_price_changes_hint')}
                     </div>
                 `;
             }
@@ -534,7 +538,7 @@ export async function actualizarKPIs() {
                 const hoy = new Date();
                 const hoyStr = hoy.toISOString().split('T')[0];
                 const diaSemana = hoy.getDay(); // 0=domingo, 1=lunes...
-                const diasSemana = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+                const diasSemana = [t('dashboard:day_domingo'), t('dashboard:day_lunes'), t('dashboard:day_martes'), t('dashboard:day_miercoles'), t('dashboard:day_jueves'), t('dashboard:day_viernes'), t('dashboard:day_sabado')];
                 const diaHoy = diasSemana[diaSemana];
 
                 // Cargar empleados y horarios en paralelo (no hay dependencia entre ellos)
@@ -581,16 +585,16 @@ export async function actualizarKPIs() {
                         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                             <div style="flex: 1; text-align: center; padding: 8px; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-radius: 8px;">
                                 <div style="font-size: 20px; font-weight: 800; color: #10B981;">💪 ${trabajanHoy.length}</div>
-                                <div style="font-size: 10px; color: #059669; font-weight: 600;">Trabajan</div>
+                                <div style="font-size: 10px; color: #059669; font-weight: 600;">${t('dashboard:staff_working')}</div>
                             </div>
                             <div style="flex: 1; text-align: center; padding: 8px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-radius: 8px;">
                                 <div style="font-size: 20px; font-weight: 800; color: #D97706;">🏖️ ${libranHoy.length}</div>
-                                <div style="font-size: 10px; color: #B45309; font-weight: 600;">Libran</div>
+                                <div style="font-size: 10px; color: #B45309; font-weight: 600;">${t('dashboard:staff_off')}</div>
                             </div>
                         </div>
                         <div style="font-size: 11px; max-height: 60px; overflow-y: auto;">
-                            ${trabajanHoy.length > 0 ? `<div style="color: #059669; margin-bottom: 4px;"><b>Trabajan:</b> ${trabajanHoy.join(', ')}</div>` : ''}
-                            ${libranHoy.length > 0 ? `<div style="color: #B45309;"><b>Libran:</b> ${libranHoy.join(', ')}</div>` : ''}
+                            ${trabajanHoy.length > 0 ? `<div style="color: #059669; margin-bottom: 4px;"><b>${t('dashboard:staff_working')}:</b> ${trabajanHoy.join(', ')}</div>` : ''}
+                            ${libranHoy.length > 0 ? `<div style="color: #B45309;"><b>${t('dashboard:staff_off')}:</b> ${libranHoy.join(', ')}</div>` : ''}
                         </div>
                     `;
                     personalHoyEl.innerHTML = htmlPersonal;
@@ -599,15 +603,15 @@ export async function actualizarKPIs() {
                         <div style="display: flex; gap: 12px;">
                             <div style="flex: 1; text-align: center; padding: 12px; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-radius: 10px;">
                                 <div style="font-size: 22px; font-weight: 800; color: #10B981;">-</div>
-                                <div style="font-size: 11px; color: #059669; font-weight: 600;">Trabajan</div>
+                                <div style="font-size: 11px; color: #059669; font-weight: 600;">${t('dashboard:staff_working')}</div>
                             </div>
                             <div style="flex: 1; text-align: center; padding: 12px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-radius: 10px;">
                                 <div style="font-size: 22px; font-weight: 800; color: #D97706;">-</div>
-                                <div style="font-size: 11px; color: #B45309; font-weight: 600;">Libran</div>
+                                <div style="font-size: 11px; color: #B45309; font-weight: 600;">${t('dashboard:staff_off')}</div>
                             </div>
                         </div>
                         <div style="text-align: center; margin-top: 10px; font-size: 11px; color: #94a3b8;">
-                            <a href="#" data-tab="horarios" style="color: #8B5CF6; text-decoration: none;">Ir a Gestión de Personal →</a>
+                            <a href="#" data-tab="horarios" style="color: #8B5CF6; text-decoration: none;">${t('dashboard:link_staff_management')}</a>
                         </div>
                     `;
                 }
@@ -644,13 +648,13 @@ export async function actualizarKPIs() {
             const confianzaEl = document.getElementById('forecast-confianza');
             if (confianzaEl) {
                 const confianzaTextos = {
-                    'alta': '📊 Alta confianza (30+ días de datos)',
-                    'media': '📊 Confianza media (14-30 días de datos)',
-                    'baja': '📊 Baja confianza (7-14 días de datos)',
-                    'muy_baja': '📊 Datos limitados (<7 días)',
-                    'sin_datos': '📊 Sin datos históricos'
+                    'alta': `📊 ${t('dashboard:forecast_high_confidence')}`,
+                    'media': `📊 ${t('dashboard:forecast_medium_confidence')}`,
+                    'baja': `📊 ${t('dashboard:forecast_low_confidence')}`,
+                    'muy_baja': `📊 ${t('dashboard:forecast_limited_data')}`,
+                    'sin_datos': `📊 ${t('dashboard:forecast_no_data')}`
                 };
-                confianzaEl.textContent = confianzaTextos[forecast.confianza] || 'Basado en historial de ventas';
+                confianzaEl.textContent = confianzaTextos[forecast.confianza] || t('dashboard:forecast_default');
             }
 
             // Update week comparison
@@ -660,7 +664,7 @@ export async function actualizarKPIs() {
                 if (comp.anterior > 0 || comp.actual > 0) {
                     const signo = comp.tendencia === 'up' ? '↑' : comp.tendencia === 'down' ? '↓' : '→';
                     const color = comp.tendencia === 'up' ? '#10B981' : comp.tendencia === 'down' ? '#EF4444' : '#64748B';
-                    comparativaEl.innerHTML = `<span style="color: ${color}">${signo} ${comp.porcentaje}%</span> vs semana anterior`;
+                    comparativaEl.innerHTML = `<span style="color: ${color}">${signo} ${comp.porcentaje}%</span> ${t('dashboard:vs_prev_week')}`;
                     comparativaEl.style.background = comp.tendencia === 'up' ? '#ECFDF5' : comp.tendencia === 'down' ? '#FEF2F2' : '#F8FAFC';
                 } else {
                     comparativaEl.textContent = '';
@@ -731,15 +735,15 @@ function updateForecastPeriod(dias) {
     // Update confidence text with period info
     const confianzaEl = document.getElementById('forecast-confianza');
     if (confianzaEl) {
-        const periodoTexto = dias === 7 ? '7 días' : dias === 30 ? 'mes' : 'trimestre';
+        const periodoTexto = dias === 7 ? t('dashboard:forecast_7days') : dias === 30 ? t('dashboard:forecast_month') : t('dashboard:forecast_quarter');
         const confianzaTextos = {
-            'alta': `📊 Proyección ${periodoTexto} · Alta confianza`,
-            'media': `📊 Proyección ${periodoTexto} · Confianza media`,
-            'baja': `📊 Proyección ${periodoTexto} · Baja confianza`,
-            'muy_baja': `📊 Proyección ${periodoTexto} · Datos limitados`,
-            'sin_datos': `📊 Sin datos históricos`
+            'alta': `📊 ${t('dashboard:forecast_period_projection', { period: periodoTexto })} · ${t('dashboard:forecast_confidence_high')}`,
+            'media': `📊 ${t('dashboard:forecast_period_projection', { period: periodoTexto })} · ${t('dashboard:forecast_confidence_medium')}`,
+            'baja': `📊 ${t('dashboard:forecast_period_projection', { period: periodoTexto })} · ${t('dashboard:forecast_confidence_low')}`,
+            'muy_baja': `📊 ${t('dashboard:forecast_period_projection', { period: periodoTexto })} · ${t('dashboard:forecast_confidence_limited')}`,
+            'sin_datos': `📊 ${t('dashboard:forecast_no_data')}`
         };
-        confianzaEl.textContent = confianzaTextos[forecast.confianza] || `Proyección ${periodoTexto}`;
+        confianzaEl.textContent = confianzaTextos[forecast.confianza] || t('dashboard:forecast_period_projection', { period: periodoTexto });
     }
 
     // Re-render chart with new data

@@ -1,7 +1,7 @@
 /**
  * Pedidos Recepción Module
  * Flujo completo de recepción de pedidos con varianza de precio/cantidad
- * 
+ *
  * Funciones:
  * - marcarPedidoRecibido: Abre modal de recepción
  * - renderItemsRecepcionModal: Renderiza items con inputs
@@ -11,6 +11,8 @@
  * - cerrarModalRecibirPedido: Cierra modal
  * - confirmarRecepcionPedido: Confirma y actualiza stock
  */
+
+import { t } from '@/i18n/index.js';
 
 /**
  * Marca un pedido como recibido (abre modal)
@@ -395,11 +397,11 @@ export async function confirmarRecepcionPedido() {
         window.renderizarInventario?.();
         window.hideLoading();
         cerrarModalRecibirPedido();
-        window.showToast('✅ Pedido recibido: stock actualizado y registrado en Diario', 'success');
+        window.showToast(t('pedidos:reception_success'), 'success');
     } catch (error) {
         window.hideLoading();
         console.error('Error:', error);
-        window.showToast('Error recibiendo pedido: ' + error.message, 'error');
+        window.showToast(t('pedidos:reception_error', { message: error.message }), 'error');
     }
 }
 

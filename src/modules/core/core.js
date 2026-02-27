@@ -7,6 +7,7 @@ import { getApiUrl } from '../../config/app-config.js';
 // 🆕 Zustand stores for state management
 import ingredientStore from '../../stores/ingredientStore.js';
 import { initializeStores } from '../../stores/index.js';
+import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
 
@@ -119,7 +120,7 @@ async function _cargarDatosInternal() {
         window.dispatchEvent(new CustomEvent('dashboard:refresh'));
     } catch (error) {
         console.error('❌ Error cargando datos:', error);
-        window.showToast?.('Error conectando con la API', 'error');
+        window.showToast?.(t('common:toast_error_api'), 'error');
     }
 }
 

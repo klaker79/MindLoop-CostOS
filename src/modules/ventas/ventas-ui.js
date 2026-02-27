@@ -1,8 +1,9 @@
 import { escapeHTML } from '../../utils/helpers.js';
+import { t } from '@/i18n/index.js';
 /**
  * Ventas UI Module
  * Funciones de interfaz de usuario para ventas
- * 
+ *
  * SEGURIDAD: Usa escapeHTML para prevenir XSS en datos de usuario
  */
 
@@ -27,7 +28,7 @@ export async function renderizarVentas() {
                 const precio = parseFloat(r.precio_venta) || 0;
                 return `<option value="${r.id}" data-search="${escapeHTML(r.nombre.toLowerCase())}">${escapeHTML(r.nombre)} - ${precio.toFixed(2)}€</option>`;
             }).join('');
-            select.innerHTML = '<option value="">Selecciona un plato...</option>' + options;
+            select.innerHTML = `<option value="">${t('ventas:placeholder_select_dish')}</option>` + options;
         }
 
         // Añadir buscador si no existe
@@ -36,7 +37,7 @@ export async function renderizarVentas() {
             const input = document.createElement('input');
             input.type = 'text';
             input.id = 'busqueda-venta-receta';
-            input.placeholder = '🔍 Buscar plato...';
+            input.placeholder = `🔍 ${t('ventas:placeholder_search_dish')}`;
             input.style.cssText = 'width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ddd; border-radius: 6px;';
             input.oninput = function () {
                 const term = this.value.toLowerCase();
@@ -65,7 +66,7 @@ export async function renderizarVentas() {
             container.innerHTML = `
         <div class="empty-state">
           <div class="icon">💰</div>
-          <h3>No hay ventas registradas</h3>
+          <h3>${t('ventas:empty_none_yet')}</h3>
         </div>
       `;
             return;
@@ -93,14 +94,14 @@ export async function renderizarVentas() {
                 const ventasDia = ventasPorFecha[fecha];
                 const totalDia = ventasDia.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
 
-                html += `<tr style="background:#F8FAFC;"><td colspan="6" style="padding:12px 16px;font-weight:600;color:#1E293B;border-bottom:1px solid #E2E8F0;">${fecha} - Total: ${totalDia.toFixed(2)}€</td></tr>`;
+                html += `<tr style="background:#F8FAFC;"><td colspan="6" style="padding:12px 16px;font-weight:600;color:#1E293B;border-bottom:1px solid #E2E8F0;">${fecha} - ${t('common:label_total')}: ${totalDia.toFixed(2)}€</td></tr>`;
 
                 ventasDia.forEach(v => {
                     const hora = new Date(v.fecha).toLocaleTimeString('es-ES', {
                         hour: '2-digit',
                         minute: '2-digit',
                     });
-                    html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fecha}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${escapeHTML(v.receta_nombre || '')}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${parseFloat(v.total).toFixed(2)}€</strong></td><td style="padding:8px 16px;text-align:center;"><button class="icon-btn delete" onclick="window.eliminarVenta(${v.id})" title="Eliminar">🗑️</button></td></tr>`;
+                    html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fecha}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${escapeHTML(v.receta_nombre || '')}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${parseFloat(v.total).toFixed(2)}€</strong></td><td style="padding:8px 16px;text-align:center;"><button class="icon-btn delete" onclick="window.eliminarVenta(${v.id})" title="${t('common:btn_delete')}">🗑️</button></td></tr>`;
                 });
             });
 
@@ -108,7 +109,7 @@ export async function renderizarVentas() {
         container.innerHTML = html;
     } catch (error) {
         console.error('Error renderizando ventas:', error);
-        window.showToast('Error cargando ventas', 'error');
+        window.showToast(t('ventas:error_loading'), 'error');
     }
 }
 
@@ -119,9 +120,9 @@ export function exportarVentas() {
     window.api.getSales().then(ventas => {
         const columnas = [
             { header: 'ID', key: 'id' },
-            { header: 'Fecha', value: v => new Date(v.fecha).toLocaleDateString('es-ES') },
+            { header: t('ventas:col_date'), value: v => new Date(v.fecha).toLocaleDateString('es-ES') },
             {
-                header: 'Hora',
+                header: t('ventas:col_time'),
                 value: v =>
                     new Date(v.fecha).toLocaleTimeString('es-ES', {
                         hour: '2-digit',
@@ -129,28 +130,28 @@ export function exportarVentas() {
                     }),
             },
             {
-                header: 'Código Receta',
+                header: t('ventas:col_recipe_code'),
                 value: v => {
                     const rec = (window.recetas || []).find(r => r.id === v.receta_id);
                     return rec?.codigo || `REC-${String(v.receta_id).padStart(4, '0')}`;
                 },
             },
             {
-                header: 'Descripción',
+                header: t('ventas:col_description'),
                 value: v =>
                     v.receta_nombre ||
                     (window.recetas || []).find(r => r.id === v.receta_id)?.nombre ||
-                    'Desconocida',
+                    t('ventas:unknown_recipe'),
             },
-            { header: 'Cantidad', key: 'cantidad' },
+            { header: t('ventas:col_quantity'), key: 'cantidad' },
             {
-                header: 'Precio Unitario (€)',
+                header: t('ventas:col_unit_price_eur'),
                 value: v => parseFloat(v.precio_unitario || 0).toFixed(2),
             },
-            { header: 'Total (€)', value: v => parseFloat(v.total || 0).toFixed(2) },
+            { header: t('ventas:col_total_eur'), value: v => parseFloat(v.total || 0).toFixed(2) },
         ];
 
-        window.exportarAExcel(ventas, `Ventas_${window.getRestaurantNameForFile()}`, columnas);
+        window.exportarAExcel(ventas, `${t('ventas:export_filename')}_${window.getRestaurantNameForFile()}`, columnas);
     });
 }
 
@@ -174,7 +175,7 @@ export async function cargarVariantesVenta(recetaId) {
     // Si no hay receta seleccionada, ocultar
     if (!recetaId) {
         container.style.display = 'none';
-        select.innerHTML = '<option value="">Sin variante (unidad completa)</option>';
+        select.innerHTML = `<option value="">${t('ventas:no_variant')}</option>`;
         return;
     }
 
@@ -193,14 +194,14 @@ export async function cargarVariantesVenta(recetaId) {
         if (!Array.isArray(variantes) || variantes.length === 0) {
             console.log('🍷 Sin variantes, ocultando selector');
             container.style.display = 'none';
-            select.innerHTML = '<option value="">Sin variante (unidad completa)</option>';
+            select.innerHTML = `<option value="">${t('ventas:no_variant')}</option>`;
             return;
         }
 
         // Mostrar selector y poblar opciones
         console.log('🍷 Mostrando selector con', variantes.length, 'variantes');
         container.style.display = 'block';
-        let html = '<option value="">Sin variante (unidad completa)</option>';
+        let html = `<option value="">${t('ventas:no_variant')}</option>`;
         variantes.forEach(v => {
             html += `<option value="${v.id}" data-factor="${v.factor}" data-precio="${v.precio_venta}">
                 ${escapeHTML(v.nombre)} - ${parseFloat(v.precio_venta).toFixed(2)}€ (${v.factor}x)
