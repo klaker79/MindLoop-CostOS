@@ -1,0 +1,11 @@
+{
+    "welcome_title": "Bienvenido a CostOS",
+    "welcome_subtitle": "Tu restaurante está listo. Elige cómo empezar.",
+    "self_title": "Lo hago yo",
+    "self_desc": "Empieza añadiendo tus ingredientes, proveedores y recetas. Ya tienes una plantilla básica cargada.",
+    "self_cta": "Empezar ahora",
+    "assisted_title": "Setup Asistido",
+    "assisted_desc": "Nuestro equipo configura tus ingredientes, recetas y escandallos. Tú solo envíanos tu carta.",
+    "assisted_cta": "Solicitar setup",
+    "hint": "Puedes cerrar esto y volver cuando quieras desde Configuración."
+}

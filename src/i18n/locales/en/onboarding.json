@@ -1,0 +1,11 @@
+{
+    "welcome_title": "Welcome to CostOS",
+    "welcome_subtitle": "Your restaurant is ready. Choose how to start.",
+    "self_title": "I'll do it myself",
+    "self_desc": "Start adding your ingredients, suppliers and recipes. A basic template is already loaded.",
+    "self_cta": "Start now",
+    "assisted_title": "Assisted Setup",
+    "assisted_desc": "Our team configures your ingredients, recipes and cost analysis. Just send us your menu.",
+    "assisted_cta": "Request setup",
+    "hint": "You can close this and come back anytime from Settings."
+}
