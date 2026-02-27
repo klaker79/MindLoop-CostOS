@@ -408,7 +408,7 @@ function bindChatEvents() {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
-        recognition.lang = 'es-ES';
+        recognition.lang = (window.getCurrentLanguage?.() || 'es') === 'en' ? 'en-US' : 'es-ES';
         recognition.continuous = false;
         recognition.interimResults = false;
 
@@ -955,7 +955,7 @@ async function sendMessage() {
                 sessionId: chatSessionId,
                 restaurante: window.getRestaurantName ? window.getRestaurantName() : 'Restaurante',
                 timestamp: new Date().toISOString(),
-                fechaHoy: new Date().toLocaleDateString('es-ES', {
+                fechaHoy: new Date().toLocaleDateString((window.getCurrentLanguage?.() || 'es') === 'en' ? 'en-GB' : 'es-ES', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
@@ -963,6 +963,7 @@ async function sendMessage() {
                 }),
                 fechaISO: new Date().toISOString().split('T')[0],
                 contexto: tabContext,
+                lang: window.getCurrentLanguage?.() || 'es',
             }),
         });
 
