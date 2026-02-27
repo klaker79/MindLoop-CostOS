@@ -129,16 +129,22 @@ async function _cargarDatosInternal() {
  */
 export function cambiarTab(tab) {
     // Desactivar todas las tabs (legacy horizontal tabs)
-    document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
-    document
-        .querySelectorAll('.tab-content')
-        .forEach((c) => c.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
 
-    // Activar tab seleccionada (legacy)
+    // Ocultar ALL tab-content — both via class removal AND explicit display:none
+    document.querySelectorAll('.tab-content').forEach((c) => {
+        c.classList.remove('active');
+        c.style.display = 'none';
+    });
+
+    // Activar tab seleccionada
     const tabBtn = document.getElementById('tab-btn-' + tab);
     const tabContent = document.getElementById('tab-' + tab);
     if (tabBtn) tabBtn.classList.add('active');
-    if (tabContent) tabContent.classList.add('active');
+    if (tabContent) {
+        tabContent.classList.add('active');
+        tabContent.style.display = 'block';
+    }
 
     // ✨ Actualizar sidebar nav-items
     document.querySelectorAll('.sidebar .nav-item').forEach((item) => {
@@ -217,7 +223,8 @@ export function inicializarFechaActual() {
 
     if (periodoInfo && typeof window.getPeriodoActual === 'function') {
         const periodo = window.getPeriodoActual();
-        periodoInfo.textContent = `Semana ${periodo.semana} · ${periodo.mesNombre.charAt(0).toUpperCase() + periodo.mesNombre.slice(1)} ${periodo.año}`;
+        const weekLabel = t('dashboard:period_week') || 'Semana';
+        periodoInfo.textContent = `${weekLabel} ${periodo.semana} · ${periodo.mesNombre.charAt(0).toUpperCase() + periodo.mesNombre.slice(1)} ${periodo.año}`;
     }
 }
 
@@ -228,3 +235,8 @@ if (typeof window !== 'undefined') {
     window.init = init;
     window.inicializarFechaActual = inicializarFechaActual;
 }
+
+// Re-compute date when language changes
+window.addEventListener('languageChanged', () => {
+    inicializarFechaActual();
+});
