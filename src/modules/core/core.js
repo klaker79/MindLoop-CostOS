@@ -131,7 +131,7 @@ export function cambiarTab(tab) {
     // Desactivar todas las tabs (legacy horizontal tabs)
     document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
 
-    // Ocultar ALL tab-content — both via class removal AND explicit display:none
+    // Ocultar ALL tab-content
     document.querySelectorAll('.tab-content').forEach((c) => {
         c.classList.remove('active');
         c.style.display = 'none';
@@ -145,6 +145,26 @@ export function cambiarTab(tab) {
         tabContent.classList.add('active');
         tabContent.style.display = 'block';
     }
+
+    // 🔧 FIX: Hide dashboard sections when switching away from the default view
+    // Three sections sit above .main-card and fill the viewport (~800px total):
+    // 1. #fecha-actual-banner (date bar)
+    // 2. KPI row (div containing .kpi-mini cards)
+    // 3. #dashboard-premium (expanded dashboard grid)
+    const showDashboard = (tab === 'ingredientes');
+    const dashboard = document.getElementById('dashboard-premium');
+    const dateBanner = document.getElementById('fecha-actual-banner');
+    // KPI row is the parent of .kpi-mini elements
+    const kpiMini = document.querySelector('.kpi-mini');
+    const kpiRow = kpiMini?.parentElement;
+
+    if (dashboard) dashboard.style.display = showDashboard ? '' : 'none';
+    if (dateBanner) dateBanner.style.display = showDashboard ? '' : 'none';
+    if (kpiRow) kpiRow.style.display = showDashboard ? '' : 'none';
+
+    // Scroll main content area to top so tab content is visible
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) mainContent.scrollTop = 0;
 
     // ✨ Actualizar sidebar nav-items
     document.querySelectorAll('.sidebar .nav-item').forEach((item) => {
