@@ -438,28 +438,12 @@ const PLANS = {
 };
 
 async function promptCreateRestaurant() {
-    // Fetch current plan to filter available options
-    const API_BASE = API_AUTH_URL.replace('/api/auth', '/api');
-    let currentPlan = 'starter';
-    try {
-        const res = await fetch(API_BASE + '/stripe/subscription-status', {
-            credentials: 'include',
-            headers: window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}
-        });
-        if (res.ok) {
-            const data = await res.json();
-            currentPlan = data.plan || 'starter';
-        }
-    } catch (e) { /* fallback to starter */ }
-
-    const currentLevel = PLANS[currentPlan]?.level || (currentPlan === 'trial' ? 2 : 1);
-
-    // Build modal
+    // Build modal — each restaurant chooses its own plan independently
     const overlay = document.createElement('div');
     overlay.id = 'create-restaurant-modal';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
 
-    const availablePlans = Object.entries(PLANS).filter(([, p]) => p.level >= currentLevel);
+    const availablePlans = Object.entries(PLANS);
 
     overlay.innerHTML = `
     <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:16px;width:92%;max-width:560px;max-height:90vh;overflow-y:auto;padding:32px;">
