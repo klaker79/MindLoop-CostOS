@@ -61,15 +61,16 @@ function speakResponse(text) {
     speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'es-ES';
+    const currentLang = window.getCurrentLanguage?.() || 'es';
+    utterance.lang = currentLang === 'en' ? 'en-US' : 'es-ES';
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
 
-    // Buscar voz en español si está disponible
+    // Buscar voz en el idioma actual
     const voices = speechSynthesis.getVoices();
-    const spanishVoice = voices.find(v => v.lang.startsWith('es'));
-    if (spanishVoice) utterance.voice = spanishVoice;
+    const matchedVoice = voices.find(v => v.lang.startsWith(currentLang));
+    if (matchedVoice) utterance.voice = matchedVoice;
 
     speechSynthesis.speak(utterance);
 }
@@ -271,6 +272,23 @@ export function initChatWidget() {
     }
 
     // Chat Widget inicializado
+
+    // When language changes, update all chat UI text
+    window.addEventListener('languageChanged', () => {
+        // Update header text
+        const headerInfo = document.querySelector('.chat-header-info');
+        if (headerInfo) {
+            headerInfo.querySelector('h3').textContent = CHAT_CONFIG.botName;
+            headerInfo.querySelector('p').textContent = t('chat:subtitle');
+        }
+        // Update placeholder
+        const input = document.getElementById('chat-input');
+        if (input) input.placeholder = CHAT_CONFIG.placeholderText;
+        // Update quick buttons
+        updateQuickButtons();
+        // Reset chat so welcome message appears in new language
+        clearChatHistory();
+    });
 }
 
 
@@ -489,7 +507,8 @@ function toggleChat(forceState) {
  */
 function addMessage(type, text, save = true) {
     const messagesContainer = document.getElementById('chat-messages');
-    const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const lang = window.getCurrentLanguage?.() || 'es';
+    const time = new Date().toLocaleTimeString(lang === 'en' ? 'en-US' : 'es-ES', { hour: '2-digit', minute: '2-digit' });
 
     // Verificar si es mensaje de bienvenida (no mostrar botón PDF)
     const isWelcome = text === CHAT_CONFIG.welcomeMessage;
@@ -538,7 +557,8 @@ function addMessage(type, text, save = true) {
  */
 function addMessageWithAction(type, text, actionData) {
     const messagesContainer = document.getElementById('chat-messages');
-    const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const lang = window.getCurrentLanguage?.() || 'es';
+    const time = new Date().toLocaleTimeString(lang === 'en' ? 'en-US' : 'es-ES', { hour: '2-digit', minute: '2-digit' });
     const actionId = 'action_' + Date.now();
 
     const messageEl = document.createElement('div');
