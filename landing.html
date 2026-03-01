@@ -851,62 +851,35 @@
 
         .pricing-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 48px;
-            align-items: center;
-            max-width: 900px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+            align-items: stretch;
+            max-width: 960px;
             margin: 0 auto;
         }
 
-        .pricing-left h3 {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 12px;
-            letter-spacing: -0.5px;
-        }
-
-        .pricing-left p {
-            font-size: 15px;
-            color: var(--text-dim);
-            line-height: 1.7;
-            margin-bottom: 24px;
-        }
-
-        .pricing-left ul {
-            list-style: none;
-        }
-
-        .pricing-left li {
-            padding: 10px 0;
-            font-size: 15px;
-            color: var(--text-2);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .pricing-left li:last-child {
-            border: none;
-        }
-
-        .check {
-            color: var(--green);
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .pricing-right {
+        .pricing-card {
             text-align: center;
-            padding: 48px 40px;
+            padding: 36px 28px;
             background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
-            border: 1px solid rgba(124, 92, 252, 0.2);
+            border: 1px solid rgba(124, 92, 252, 0.15);
             border-radius: 24px;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .pricing-card.featured {
+            border-color: rgba(124, 92, 252, 0.4);
             box-shadow: 0 0 80px var(--glow), 0 20px 60px rgba(0, 0, 0, 0.4);
         }
 
-        .pricing-right::before {
+        .pricing-card.featured::before {
             content: '';
             position: absolute;
             top: -1px;
@@ -917,13 +890,26 @@
             background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--pink));
         }
 
+        .check {
+            color: var(--green);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .x-mark {
+            color: var(--text-dim);
+            opacity: 0.4;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
         .price-tag {
             display: inline-block;
             background: linear-gradient(135deg, var(--accent), var(--accent-3));
             color: white;
             padding: 4px 16px;
             border-radius: 50px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -937,16 +923,16 @@
         }
 
         .price-desc {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-dim);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .price-amount {
-            font-size: 80px;
+            font-size: 56px;
             font-weight: 900;
             line-height: 1;
-            letter-spacing: -3px;
+            letter-spacing: -2px;
             background: linear-gradient(135deg, var(--text), var(--accent-2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -954,15 +940,40 @@
         }
 
         .price-amount sup {
-            font-size: 28px;
+            font-size: 22px;
             vertical-align: super;
             opacity: 0.7;
         }
 
         .price-period {
             color: var(--text-dim);
-            font-size: 15px;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .price-features {
+            list-style: none;
+            text-align: left;
             margin-bottom: 28px;
+            flex: 1;
+        }
+
+        .price-features li {
+            padding: 7px 0;
+            font-size: 13px;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .price-features li:last-child {
+            border: none;
+        }
+
+        .price-features li.disabled {
+            opacity: 0.4;
         }
 
         .price-cta {
@@ -970,14 +981,15 @@
             width: 100%;
             background: linear-gradient(135deg, var(--accent), #6d4de8);
             color: white;
-            padding: 16px;
+            padding: 14px;
             border-radius: 14px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 15px;
             transition: all 0.3s;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 20px var(--glow);
+            margin-top: auto;
         }
 
         .price-cta:hover {
@@ -985,22 +997,40 @@
             transform: scale(1.02);
         }
 
+        .price-cta.secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: none;
+        }
+
+        .price-cta.secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .price-users {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 12px;
+        }
+
         .setup-info {
             margin-top: 20px;
-            padding: 16px;
+            padding: 14px;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
             border: 1px dashed rgba(255, 255, 255, 0.08);
         }
 
         .setup-price {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--accent-2);
         }
 
         .setup-note {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-dim);
             margin-top: 4px;
         }
@@ -1744,6 +1774,8 @@
 
             .pricing-layout {
                 grid-template-columns: 1fr;
+                max-width: 400px;
+                margin: 0 auto;
             }
 
             .testimonials-grid {
@@ -2472,39 +2504,69 @@
         <div class="container">
             <div class="section-header section-center reveal">
                 <div class="section-label">Precio</div>
-                <h2 class="section-title">Simple. Transparente.<br>Sin sorpresas.</h2>
-                <p class="section-sub">Un precio. Todo incluido. Sin permanencia.</p>
+                <h2 class="section-title">Elige el plan que<br>se adapta a ti</h2>
+                <p class="section-sub">14 dias gratis con acceso completo. Sin permanencia.</p>
             </div>
             <div class="pricing-layout reveal">
-                <div class="pricing-left">
-                    <h3>Tu control de costes<br>en piloto automático</h3>
-                    <p>Todo lo que necesitas para gestionar costes, márgenes y mermas sin trabajo manual.</p>
-                    <ul>
-                        <li><span class="check">✓</span> Ingredientes, recetas y escandallo</li>
-                        <li><span class="check">✓</span> Pedidos con varianzas</li>
-                        <li><span class="check">✓</span> Inventario automático</li>
-                        <li><span class="check">✓</span> Dashboard KPIs en vivo</li>
-                        <li><span class="check">✓</span> Matriz BCG de menú</li>
-                        <li><span class="check">✓</span> Automatización TPV + OCR</li>
-                        <li><span class="check">✓</span> Email diario con resumen</li>
-                        <li><span class="check">✓</span> 3 usuarios incluidos</li>
-                        <li><span class="check">✓</span> Soporte prioritario</li>
-                    </ul>
-                </div>
-                <div class="pricing-right">
-                    <div class="price-tag">Todo Incluido</div>
-                    <div class="price-name">Autopilot</div>
-                    <div class="price-desc">Control total de costes</div>
-                    <div class="price-amount"><sup>€</sup>80</div>
+                <!-- STARTER -->
+                <div class="pricing-card">
+                    <div class="price-name">Starter</div>
+                    <div class="price-desc">Para empezar a controlar costes</div>
+                    <div class="price-amount"><sup>€</sup>49</div>
                     <div class="price-period">/mes · sin permanencia</div>
-                    <a href="register.html" class="price-cta">
-                        Empezar prueba gratuita →
-                    </a>
+                    <ul class="price-features">
+                        <li><span class="check">✓</span> Ingredientes y recetas</li>
+                        <li><span class="check">✓</span> Pedidos e inventario</li>
+                        <li><span class="check">✓</span> Dashboard y KPIs</li>
+                        <li><span class="check">✓</span> Proveedores y precios</li>
+                        <li class="disabled"><span class="x-mark">✗</span> Escandallos y variantes</li>
+                        <li class="disabled"><span class="x-mark">✗</span> OCR albaranes</li>
+                        <li class="disabled"><span class="x-mark">✗</span> Analitica avanzada e IA</li>
+                        <li class="disabled"><span class="x-mark">✗</span> Gestion de horarios</li>
+                    </ul>
+                    <a href="register.html" class="price-cta secondary">Empezar prueba gratuita</a>
+                    <div class="price-users">Hasta 2 usuarios</div>
+                </div>
+                <!-- PROFESIONAL (featured) -->
+                <div class="pricing-card featured">
+                    <div class="price-tag">Recomendado</div>
+                    <div class="price-name">Profesional</div>
+                    <div class="price-desc">Control total de costes y margenes</div>
+                    <div class="price-amount"><sup>€</sup>89</div>
+                    <div class="price-period">/mes · sin permanencia</div>
+                    <ul class="price-features">
+                        <li><span class="check">✓</span> Todo lo de Starter</li>
+                        <li><span class="check">✓</span> Escandallos y variantes</li>
+                        <li><span class="check">✓</span> OCR albaranes automatico</li>
+                        <li><span class="check">✓</span> Matriz BCG de menu</li>
+                        <li><span class="check">✓</span> Inteligencia IA</li>
+                        <li><span class="check">✓</span> Balance P&L mensual</li>
+                        <li><span class="check">✓</span> Gestion de horarios</li>
+                        <li><span class="check">✓</span> Automatizacion TPV</li>
+                    </ul>
+                    <a href="register.html" class="price-cta">Empezar prueba gratuita →</a>
+                    <div class="price-users">Hasta 5 usuarios</div>
                     <div class="setup-info">
-                        <div class="setup-price">199€ <small style="font-weight: 400; font-size: 13px;">pago
-                                único</small></div>
-                        <div class="setup-note">Conexión TPV · Carga datos · Automatizaciones · Formación</div>
+                        <div class="setup-price">199€ <small style="font-weight: 400; font-size: 13px;">pago unico</small></div>
+                        <div class="setup-note">Conexion TPV · Carga datos · Automatizaciones · Formacion</div>
                     </div>
+                </div>
+                <!-- PREMIUM -->
+                <div class="pricing-card">
+                    <div class="price-name">Premium</div>
+                    <div class="price-desc">Para grupos y multi-restaurante</div>
+                    <div class="price-amount"><sup>€</sup>149</div>
+                    <div class="price-period">/mes · sin permanencia</div>
+                    <ul class="price-features">
+                        <li><span class="check">✓</span> Todo lo de Profesional</li>
+                        <li><span class="check">✓</span> Usuarios ilimitados</li>
+                        <li><span class="check">✓</span> API access</li>
+                        <li><span class="check">✓</span> Integraciones premium</li>
+                        <li><span class="check">✓</span> Soporte prioritario</li>
+                        <li><span class="check">✓</span> Multi-restaurante</li>
+                    </ul>
+                    <a href="register.html" class="price-cta secondary">Empezar prueba gratuita</a>
+                    <div class="price-users">Usuarios ilimitados</div>
                 </div>
             </div>
         </div>
@@ -2592,8 +2654,7 @@
                         <span class="faq-toggle">+</span>
                     </div>
                     <div class="faq-answer">
-                        <p>El plan incluye 3 usuarios. Usuarios adicionales por 10€/mes cada uno. Perfecto para chef,
-                            gerente y propietario.</p>
+                        <p>Starter incluye 2 usuarios, Profesional hasta 5, y Premium usuarios ilimitados. Perfecto para adaptarse al tamano de tu equipo.</p>
                     </div>
                 </div>
                 <div class="faq-item" onclick="this.classList.toggle('open')">
@@ -2602,8 +2663,7 @@
                         <span class="faq-toggle">+</span>
                     </div>
                     <div class="faq-answer">
-                        <p>Ofrecemos una demo personalizada con tus datos reales. Así ves exactamente lo que CostOS hace
-                            por tu restaurante antes de decidir.</p>
+                        <p>Si. 14 dias gratis con acceso completo a todas las funciones (nivel Profesional). Sin tarjeta. Despues eliges el plan que mejor se adapte a tu negocio.</p>
                     </div>
                 </div>
             </div>
