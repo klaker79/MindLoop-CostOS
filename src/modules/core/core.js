@@ -208,6 +208,7 @@ export function cambiarTab(tab) {
             break;
         case 'configuracion':
             window.renderizarEquipo?.();
+            window.loadSubscriptionStatus?.();
             break;
     }
 }
@@ -230,6 +231,9 @@ export async function init() {
 
     // Dashboard expandido (Stock Bajo, Top Recetas, etc.)
     window.actualizarDashboardExpandido?.();
+
+    // Cargar estado de suscripción (banner de trial)
+    window.loadSubscriptionStatus?.();
 }
 
 /**
