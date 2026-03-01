@@ -274,13 +274,13 @@ function showRestaurantSelector(restaurants, selectionToken) {
 
     listEl.innerHTML = restaurants.map(r => `
         <button class="restaurant-option" data-id="${r.restaurante_id}"
-                style="padding: 16px 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-                       border-radius: 12px; color: #e2e8f0; font-size: 16px; cursor: pointer; text-align: left;
+                style="padding: 16px 20px; background: #f8fafc; border: 1px solid #e2e8f0;
+                       border-radius: 12px; color: #1e293b; font-size: 16px; cursor: pointer; text-align: left;
                        transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;"
-                onmouseover="this.style.background='rgba(99,102,241,0.2)'; this.style.borderColor='#6366f1'"
-                onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.15)'">
-            <strong style="font-weight: 600;">${escapeHtml(r.nombre)}</strong>
-            <span style="opacity: 0.5; font-size: 13px;">${escapeHtml(r.rol)}</span>
+                onmouseover="this.style.background='#ede9fe'; this.style.borderColor='#6366f1'"
+                onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#e2e8f0'">
+            <strong style="font-weight: 600; color: #1e293b;">${escapeHtml(r.nombre)}</strong>
+            <span style="color: #64748b; font-size: 13px;">${escapeHtml(r.rol)}</span>
         </button>
     `).join('');
 
