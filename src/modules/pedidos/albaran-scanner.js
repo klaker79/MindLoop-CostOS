@@ -64,6 +64,19 @@ async function procesarImagenAlbaran(file) {
             : t('pedidos:scanner_items_detected_no_supplier', { total: response.totalItems, matched: response.matched, unmatched: response.unmatched });
         window.showToast?.(toastMsg, 'success');
 
+        // 🔍 Show duplicate warning if detected
+        if (response.duplicateWarning) {
+            const dup = response.duplicateWarning;
+            const dupDate = dup.fecha ? new Date(dup.fecha).toLocaleDateString('es-ES') : '?';
+            setTimeout(() => {
+                window.showToast?.(
+                    `⚠️ Este albarán ya fue importado el ${dupDate} (${dup.itemCount} productos, ${dup.similarity}% coincidencia). Revisa antes de aprobar.`,
+                    'warning',
+                    8000
+                );
+            }, 1500);
+        }
+
         // Refrescar panel de compras pendientes (UI ya existente)
         await window.renderizarComprasPendientes?.();
 
