@@ -611,6 +611,12 @@ export async function handleCheckoutReturn() {
                 window.showToast?.(t('auth:success_payment_confirmed'), 'info');
             }
         }, 2000);
+    } else if (checkout === 'success' && !newRestaurant) {
+        // Plan upgrade for current restaurant
+        const plan = params.get('plan') || '';
+        window.showToast?.(`Plan ${plan} activado correctamente`, 'success');
+        // Reload after brief delay so webhook can process
+        setTimeout(() => window.location.reload(), 2000);
     } else if (checkout === 'canceled' && newRestaurant) {
         window.showToast?.(t('auth:warning_payment_cancelled'), 'warning');
         // Cleanup orphaned pending_payment restaurant

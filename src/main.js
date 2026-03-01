@@ -603,6 +603,12 @@ window.invitarUsuarioEquipo = Equipo.invitarUsuarioEquipo;
 window.eliminarUsuarioEquipo = Equipo.eliminarUsuarioEquipo;
 
 // ============================================
+// MÓDULO: SUSCRIPCIÓN 💳
+// ============================================
+// Self-registering: sets window.loadSubscriptionStatus, promptUpgradePlan, openBillingPortal
+import './modules/subscription/subscription.js';
+
+// ============================================
 // MÓDULO: CHAT IA 🤖
 // ============================================
 import { initChatWidget, clearChatHistory } from './modules/chat/chat-widget.js';
