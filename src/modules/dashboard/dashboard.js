@@ -213,11 +213,12 @@ async function actualizarKPIsPorPeriodo(periodo) {
  */
 async function actualizarMargenReal(periodo) {
     const margenEl = document.getElementById('kpi-margen');
-    const margenRealEl = document.getElementById('kpi-margen-real');
+    const fcBar = document.getElementById('kpi-fc-bar');
+    const fcDetail = document.getElementById('kpi-fc-detail');
     if (!margenEl) return;
 
     try {
-        // Obtener ventas del período (ya cargadas en saleStore)
+        // Obtener ventas del período
         let ventas = saleStore.getState().sales || [];
         if (typeof filtrarPorPeriodo === 'function') {
             ventas = filtrarPorPeriodo(ventas, 'fecha', periodo);
@@ -225,14 +226,14 @@ async function actualizarMargenReal(periodo) {
 
         if (ventas.length === 0) {
             margenEl.textContent = '—';
-            if (margenRealEl) margenRealEl.textContent = '—';
+            if (fcBar) { fcBar.style.width = '0%'; fcBar.style.background = '#E2E8F0'; }
+            if (fcDetail) fcDetail.textContent = '';
             return;
         }
 
-        // === MARGEN TEÓRICO (basado en escandallos de recetas) ===
+        // Calcular Food Cost desde recetas
         const recetas = window.recetas || [];
         const recetasMap = new Map(recetas.map(r => [r.id, r]));
-
         const calcularCoste =
             window.Performance?.calcularCosteRecetaMemoizado ||
             window.calcularCosteRecetaCompleto;
@@ -255,36 +256,44 @@ async function actualizarMargenReal(periodo) {
             }
         }
 
-        const margenReceta = totalIngresos > 0
-            ? ((totalIngresos - totalCostesReceta) / totalIngresos) * 100
+        // Food Cost % = costes / ingresos × 100
+        const foodCost = totalIngresos > 0
+            ? (totalCostesReceta / totalIngresos) * 100
             : 0;
 
-        margenEl.textContent = Math.round(margenReceta) + '%';
+        // Mostrar Food Cost como número principal
+        margenEl.textContent = Math.round(foodCost) + '%';
+        // Color según umbrales de hostelería
+        margenEl.style.color = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#0EA5E9' : foodCost <= 38 ? '#D97706' : '#DC2626';
 
-        // === MARGEN REAL (basado en compras a proveedores) ===
-        if (margenRealEl) {
+        // Barra de progreso (máximo visual = 50%)
+        if (fcBar) {
+            const barWidth = Math.min(foodCost, 50) * 2; // 50% FC = 100% barra
+            fcBar.style.width = barWidth + '%';
+            fcBar.style.background = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#0EA5E9' : foodCost <= 38 ? '#D97706' : '#DC2626';
+        }
+
+        // Detalle: FC recetas + FC compras (solo si hay pedidos en el período)
+        if (fcDetail) {
             const pedidos = window.pedidos || [];
             let pedidosFiltrados = pedidos.filter(p => p.estado === 'recibido');
             if (typeof filtrarPorPeriodo === 'function') {
                 pedidosFiltrados = filtrarPorPeriodo(pedidosFiltrados, 'fecha', periodo);
             }
-
             const totalCompras = pedidosFiltrados.reduce((sum, p) => sum + (parseFloat(p.total) || 0), 0);
 
             if (totalCompras > 0 && totalIngresos > 0) {
-                const margenCompras = ((totalIngresos - totalCompras) / totalIngresos) * 100;
-                margenRealEl.textContent = Math.round(margenCompras) + '%';
-                // Color: verde si > 50%, naranja si 30-50%, rojo si < 30%
-                margenRealEl.style.color = margenCompras >= 50 ? '#059669' : margenCompras >= 30 ? '#D97706' : '#DC2626';
+                const fcCompras = (totalCompras / totalIngresos) * 100;
+                fcDetail.textContent = `${Math.round(foodCost)}% ${t('dashboard:kpi_fc_recipes')} · ${Math.round(fcCompras)}% ${t('dashboard:kpi_fc_purchases')}`;
             } else {
-                margenRealEl.textContent = '—';
-                margenRealEl.style.color = '#64748B';
+                fcDetail.textContent = `${Math.round(foodCost)}% ${t('dashboard:kpi_fc_recipes')}`;
             }
         }
     } catch (error) {
-        console.error('Error calculando margen:', error);
+        console.error('Error calculando food cost:', error);
         margenEl.textContent = '—';
-        if (margenRealEl) margenRealEl.textContent = '—';
+        if (fcBar) fcBar.style.width = '0%';
+        if (fcDetail) fcDetail.textContent = '';
     }
 }
 

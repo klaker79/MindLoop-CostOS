@@ -371,23 +371,20 @@
             </div>
           </div>
 
-          <!-- KPI Margen (Recetas + Real) -->
+          <!-- KPI Food Cost -->
           <div class="kpi-mini"
             style="flex: 1; min-width: 180px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #8B5CF6;">
             <span style="font-size: 24px;">📊</span>
-            <div style="flex: 1;">
-              <div style="display: flex; gap: 8px; align-items: baseline;">
-                <div>
-                  <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-margen" data-animate="true"><span class="skeleton skeleton-number" data-skeleton>⠀</span></div>
-                  <div style="font-size: 9px; color: #8B5CF6; text-transform: uppercase;" data-i18n="dashboard:kpi_margin_recipe">Recetas</div>
-                </div>
-                <div style="color: #CBD5E1;">|</div>
-                <div>
-                  <div style="font-size: 20px; font-weight: 700; color: #64748B;" id="kpi-margen-real" data-animate="true">—</div>
-                  <div style="font-size: 9px; color: #64748B; text-transform: uppercase;" data-i18n="dashboard:kpi_margin_real">Real</div>
-                </div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-margen" data-animate="true"><span class="skeleton skeleton-number" data-skeleton>⠀</span></div>
+              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Food Cost</div>
+              <div style="margin-top: 4px; height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;">
+                <div id="kpi-fc-bar" style="height: 100%; width: 0%; border-radius: 2px; transition: width 0.8s ease, background 0.3s;"></div>
               </div>
-              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;" data-i18n="dashboard:kpi_margin">Margen</div>
+              <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+                <span id="kpi-fc-detail" style="font-size: 9px; color: #94A3B8;"></span>
+                <span style="font-size: 9px; color: #94A3B8;" data-i18n="dashboard:kpi_food_cost_target">Objetivo ≤33%</span>
+              </div>
             </div>
           </div>
 
