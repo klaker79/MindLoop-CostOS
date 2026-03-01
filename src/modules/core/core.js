@@ -156,9 +156,15 @@ export function cambiarTab(tab) {
     const kpiMini = document.querySelector('.kpi-mini');
     const kpiRow = kpiMini?.parentElement;
 
-    if (dashboard) dashboard.style.display = showDashboard ? '' : 'none';
-    if (dateBanner) dateBanner.style.display = showDashboard ? '' : 'none';
-    if (kpiRow) kpiRow.style.display = showDashboard ? '' : 'none';
+    if (showDashboard) {
+        if (dashboard) dashboard.style.removeProperty('display');
+        if (dateBanner) dateBanner.style.removeProperty('display');
+        if (kpiRow) kpiRow.style.removeProperty('display');
+    } else {
+        if (dashboard) dashboard.style.display = 'none';
+        if (dateBanner) dateBanner.style.display = 'none';
+        if (kpiRow) kpiRow.style.display = 'none';
+    }
 
     // Scroll main content area to top so tab content is visible
     const mainContent = document.querySelector('.main-content');
