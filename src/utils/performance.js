@@ -270,6 +270,18 @@ export function calcularCosteRecetaMemoizado(receta) {
     const invMap = new Map(inventario.map(i => [i.id, i]));
 
     const costeTotalLote = receta.ingredientes.reduce((total, item) => {
+        // Sub-recetas (ingredienteId > 100000)
+        if (item.ingredienteId > 100000) {
+            const recetaId = item.ingredienteId - 100000;
+            const allRecetas = window.recetas || [];
+            const recetaBase = allRecetas.find(r => r.id === recetaId);
+            if (recetaBase) {
+                const costeBase = calcularCosteRecetaMemoizado(recetaBase);
+                return total + costeBase * (item.cantidad || 0);
+            }
+            return total;
+        }
+
         const ing = dataMaps.getIngrediente(item.ingredienteId);
         const invItem = invMap.get(item.ingredienteId);
 
@@ -282,7 +294,20 @@ export function calcularCosteRecetaMemoizado(receta) {
             const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
             precio = precioFormato / cantidadPorFormato;
         }
-        return total + precio * (item.cantidad || 0);
+
+        // Aplicar rendimiento (merma) — misma lógica que calcularCosteRecetaCompleto
+        let rendimiento = parseFloat(item.rendimiento);
+        if (!rendimiento || rendimiento === 100) {
+            if (ing?.rendimiento) {
+                rendimiento = parseFloat(ing.rendimiento);
+            } else {
+                rendimiento = 100;
+            }
+        }
+        const factorRendimiento = rendimiento / 100;
+        const costeReal = factorRendimiento > 0 ? (precio / factorRendimiento) : precio;
+
+        return total + costeReal * (item.cantidad || 0);
     }, 0);
 
     // 🔧 FIX: Dividir por porciones para obtener coste POR PORCIÓN

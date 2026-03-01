@@ -2186,36 +2186,17 @@
         .addEventListener('input', window.renderizarInventario);
 
     // Dashboard expandido - actualizar datos
+    // NOTA: ventas-hoy, ingresos-hoy y plato-estrella-hoy se gestionan
+    // en dashboard.js > actualizarKPIsPorPeriodo() con soporte de período
     window.actualizarDashboardExpandido = async function () {
         try {
-            // Verificar que los elementos existan antes de continuar
-            const ventasHoyEl = document.getElementById('ventas-hoy');
-            const ingresosHoyEl = document.getElementById('ingresos-hoy');
-            const platoEstrellaEl = document.getElementById('plato-estrella-hoy');
             const alertasListaEl = document.getElementById('alertas-stock-lista');
             const topRecetasEl = document.getElementById('top-recetas-lista');
 
-            if (!ventasHoyEl || !ingresosHoyEl || !platoEstrellaEl || !alertasListaEl) {
+            if (!alertasListaEl) {
                 console.warn('Dashboard elements not loaded yet');
                 return;
             }
-
-            const ventas = await api.getSales();
-            const hoy = new Date().toISOString().split('T')[0];
-            const ventasHoy = ventas.filter(v => v.fecha.split('T')[0] === hoy);
-
-            ventasHoyEl.textContent = ventasHoy.length;
-            const ingresosHoy = ventasHoy.reduce((sum, v) => sum + parseFloat(v.total), 0);
-            ingresosHoyEl.textContent = ingresosHoy.toFixed(0) + '€';
-
-            const platosHoy = {};
-            ventasHoy.forEach(v => {
-                platosHoy[v.receta_nombre] = (platosHoy[v.receta_nombre] || 0) + v.cantidad;
-            });
-            const platoEstrella = Object.entries(platosHoy).sort((a, b) => b[1] - a[1])[0];
-            platoEstrellaEl.textContent = platoEstrella
-                ? platoEstrella[0].substring(0, 10)
-                : 'Sin ventas';
 
             // Alertas Stock
             const alertas = window.ingredientes.filter(ing => {
