@@ -111,6 +111,7 @@ export function cambiarPeriodoVista(periodo) {
 
     // Actualizar KPIs según período
     actualizarKPIsPorPeriodo(periodo);
+    actualizarMargenReal(periodo);
 }
 
 /**
