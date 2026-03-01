@@ -180,7 +180,7 @@ async function actualizarKPIsPorPeriodo(periodo) {
                 'hoy': { titulo: t('dashboard:period_today'), subtitulo: t('dashboard:period_today_subtitle') },
                 'semana': { titulo: t('dashboard:period_week'), subtitulo: t('dashboard:period_week_subtitle') },
                 'mes': {
-                    titulo: new Date().toLocaleString('es-ES', { month: 'long' }).replace(/^./, c => c.toUpperCase()),
+                    titulo: new Date().toLocaleString(getCurrentLanguage() === 'en' ? 'en-US' : 'es-ES', { month: 'long' }).replace(/^./, c => c.toUpperCase()),
                     subtitulo: t('dashboard:period_month_subtitle')
                 }
             };
