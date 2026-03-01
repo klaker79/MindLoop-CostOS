@@ -273,21 +273,10 @@ async function actualizarMargenReal(periodo) {
             fcBar.style.background = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#0EA5E9' : foodCost <= 38 ? '#D97706' : '#DC2626';
         }
 
-        // Detalle: FC recetas + FC compras (solo si hay pedidos en el período)
+        // Detalle: Food Cost + Margen real
         if (fcDetail) {
-            const pedidos = window.pedidos || [];
-            let pedidosFiltrados = pedidos.filter(p => p.estado === 'recibido');
-            if (typeof filtrarPorPeriodo === 'function') {
-                pedidosFiltrados = filtrarPorPeriodo(pedidosFiltrados, 'fecha', periodo);
-            }
-            const totalCompras = pedidosFiltrados.reduce((sum, p) => sum + (parseFloat(p.total) || 0), 0);
-
-            if (totalCompras > 0 && totalIngresos > 0) {
-                const fcCompras = (totalCompras / totalIngresos) * 100;
-                fcDetail.textContent = `${Math.round(foodCost)}% ${t('dashboard:kpi_fc_recipes')} · ${Math.round(fcCompras)}% ${t('dashboard:kpi_fc_purchases')}`;
-            } else {
-                fcDetail.textContent = `${Math.round(foodCost)}% ${t('dashboard:kpi_fc_recipes')}`;
-            }
+            const margenReal = 100 - foodCost;
+            fcDetail.textContent = `Food Cost ${Math.round(foodCost)}% · ${t('dashboard:kpi_margin')} ${Math.round(margenReal)}%`;
         }
     } catch (error) {
         console.error('Error calculando food cost:', error);
