@@ -213,6 +213,7 @@ async function actualizarKPIsPorPeriodo(periodo) {
  */
 async function actualizarMargenReal(periodo) {
     const margenEl = document.getElementById('kpi-margen');
+    const margenRealEl = document.getElementById('kpi-margen-real');
     if (!margenEl) return;
 
     try {
@@ -224,10 +225,11 @@ async function actualizarMargenReal(periodo) {
 
         if (ventas.length === 0) {
             margenEl.textContent = '—';
+            if (margenRealEl) margenRealEl.textContent = '—';
             return;
         }
 
-        // Calcular ingresos y costes reales
+        // === MARGEN TEÓRICO (basado en escandallos de recetas) ===
         const recetas = window.recetas || [];
         const recetasMap = new Map(recetas.map(r => [r.id, r]));
 
@@ -236,8 +238,7 @@ async function actualizarMargenReal(periodo) {
             window.calcularCosteRecetaCompleto;
 
         let totalIngresos = 0;
-        let totalCostes = 0;
-        let sinReceta = 0;
+        let totalCostesReceta = 0;
 
         for (const venta of ventas) {
             const ingreso = parseFloat(venta.total) || 0;
@@ -250,27 +251,40 @@ async function actualizarMargenReal(periodo) {
             if (receta && typeof calcularCoste === 'function') {
                 const costePorcion = calcularCoste(receta) || 0;
                 const factor = parseFloat(venta.factor_variante || venta.factorVariante) || 1;
-                totalCostes += costePorcion * cantidad * factor;
-            } else {
-                sinReceta++;
+                totalCostesReceta += costePorcion * cantidad * factor;
             }
         }
-        console.log(`[MARGEN DEBUG] Ventas: ${ventas.length}, Ingresos: ${totalIngresos.toFixed(2)}, Costes: ${totalCostes.toFixed(2)}, Sin receta: ${sinReceta}, Recetas en map: ${recetasMap.size}, Margen: ${totalIngresos > 0 ? ((totalIngresos - totalCostes) / totalIngresos * 100).toFixed(1) : 0}%`);
 
-        // Margen = (Ingresos - Costes) / Ingresos × 100
-        const margenReal = totalIngresos > 0
-            ? ((totalIngresos - totalCostes) / totalIngresos) * 100
+        const margenReceta = totalIngresos > 0
+            ? ((totalIngresos - totalCostesReceta) / totalIngresos) * 100
             : 0;
 
-        const oldValue = parseInt(margenEl.textContent) || 0;
-        margenEl.textContent = Math.round(margenReal) + '%';
-        if (Math.abs(oldValue - margenReal) > 1) {
-            animateCounter(margenEl, Math.round(margenReal), '%', 1000);
+        margenEl.textContent = Math.round(margenReceta) + '%';
+
+        // === MARGEN REAL (basado en compras a proveedores) ===
+        if (margenRealEl) {
+            const pedidos = window.pedidos || [];
+            let pedidosFiltrados = pedidos.filter(p => p.estado === 'recibido');
+            if (typeof filtrarPorPeriodo === 'function') {
+                pedidosFiltrados = filtrarPorPeriodo(pedidosFiltrados, 'fecha', periodo);
+            }
+
+            const totalCompras = pedidosFiltrados.reduce((sum, p) => sum + (parseFloat(p.total) || 0), 0);
+
+            if (totalCompras > 0 && totalIngresos > 0) {
+                const margenCompras = ((totalIngresos - totalCompras) / totalIngresos) * 100;
+                margenRealEl.textContent = Math.round(margenCompras) + '%';
+                // Color: verde si > 50%, naranja si 30-50%, rojo si < 30%
+                margenRealEl.style.color = margenCompras >= 50 ? '#059669' : margenCompras >= 30 ? '#D97706' : '#DC2626';
+            } else {
+                margenRealEl.textContent = '—';
+                margenRealEl.style.color = '#64748B';
+            }
         }
     } catch (error) {
-        console.error('Error calculando margen real:', error);
-        // Fallback: mostrar '—' en vez de dato incorrecto
+        console.error('Error calculando margen:', error);
         margenEl.textContent = '—';
+        if (margenRealEl) margenRealEl.textContent = '—';
     }
 }
 

@@ -3,6 +3,8 @@
   "kpi_total_sales": "Ventas totales",
   "kpi_food_cost": "Food Cost",
   "kpi_margin": "Margen",
+  "kpi_margin_recipe": "Recetas",
+  "kpi_margin_real": "Real",
   "kpi_avg_ticket": "Ticket medio",
   "kpi_total_orders": "Pedidos totales",
   "kpi_stock_value": "Valor stock",

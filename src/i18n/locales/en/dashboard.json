@@ -3,6 +3,8 @@
   "kpi_total_sales": "Total sales",
   "kpi_food_cost": "Food Cost",
   "kpi_margin": "Margin",
+  "kpi_margin_recipe": "Recipes",
+  "kpi_margin_real": "Real",
   "kpi_avg_ticket": "Avg ticket",
   "kpi_total_orders": "Total orders",
   "kpi_stock_value": "Stock value",
