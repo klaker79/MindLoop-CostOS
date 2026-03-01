@@ -240,7 +240,7 @@ async function actualizarMargenReal(periodo) {
         for (const venta of ventas) {
             const ingreso = parseFloat(venta.total) || 0;
             const cantidad = parseInt(venta.cantidad) || 1;
-            const recetaId = venta.receta_id || venta.recetaId;
+            const recetaId = parseInt(venta.receta_id || venta.recetaId);
             const receta = recetasMap.get(recetaId);
 
             totalIngresos += ingreso;
