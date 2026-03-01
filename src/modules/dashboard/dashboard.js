@@ -237,6 +237,7 @@ async function actualizarMargenReal(periodo) {
 
         let totalIngresos = 0;
         let totalCostes = 0;
+        let sinReceta = 0;
 
         for (const venta of ventas) {
             const ingreso = parseFloat(venta.total) || 0;
@@ -250,8 +251,11 @@ async function actualizarMargenReal(periodo) {
                 const costePorcion = calcularCoste(receta) || 0;
                 const factor = parseFloat(venta.factor_variante || venta.factorVariante) || 1;
                 totalCostes += costePorcion * cantidad * factor;
+            } else {
+                sinReceta++;
             }
         }
+        console.log(`[MARGEN DEBUG] Ventas: ${ventas.length}, Ingresos: ${totalIngresos.toFixed(2)}, Costes: ${totalCostes.toFixed(2)}, Sin receta: ${sinReceta}, Recetas en map: ${recetasMap.size}, Margen: ${totalIngresos > 0 ? ((totalIngresos - totalCostes) / totalIngresos * 100).toFixed(1) : 0}%`);
 
         // Margen = (Ingresos - Costes) / Ingresos × 100
         const margenReal = totalIngresos > 0
