@@ -2655,6 +2655,22 @@ table tbody tr:nth-child(10) {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
 }
 
+.nav-item.nav-locked {
+  opacity: 0.55;
+  position: relative;
+}
+
+.nav-item.nav-locked .nav-lock-icon {
+  margin-left: auto;
+  font-size: 0.7rem;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.nav-item.nav-locked:hover {
+  opacity: 0.8;
+}
+
 .app.sidebar-collapsed .nav-item-badge {
   position: absolute;
   top: 4px;

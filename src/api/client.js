@@ -64,6 +64,13 @@ async function handleResponse(response) {
             }
         }
 
+        // 403 Plan gate: auto-open upgrade modal
+        if (response.status === 403 && typeof errorMessage === 'string' &&
+            (errorMessage.includes('requiere el plan') || errorMessage.includes('prueba ha expirado') || errorMessage.includes('no activa'))) {
+            window.showToast?.(errorMessage, 'warning');
+            setTimeout(() => window.promptUpgradePlan?.(), 300);
+        }
+
         // 🔧 FIX BUG-5: Incluir .status para que callers puedan distinguir 4xx de 5xx
         const error = new Error(errorMessage);
         error.status = response.status;

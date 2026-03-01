@@ -15,6 +15,8 @@ import { createStore } from 'zustand/vanilla';
 /**
  * Auth Store - Estado de autenticación
  */
+const PLAN_LEVELS = { starter: 1, trial: 2, profesional: 2, premium: 3 };
+
 export const authStore = createStore((set, get) => ({
     // State
     user: null,
@@ -22,6 +24,14 @@ export const authStore = createStore((set, get) => ({
     isAuthenticated: false,
     isLoading: true,
     error: null,
+
+    // Plan state (loaded after auth)
+    plan: null,
+    plan_status: null,
+    trial_days_left: null,
+    max_users: null,
+    has_subscription: false,
+    trial_ends_at: null,
 
     // Actions
     setUser: (user) => {
@@ -107,6 +117,8 @@ export const authStore = createStore((set, get) => ({
             if (response.ok) {
                 const data = await response.json();
                 get().setUser(data.user);
+                // Load plan data in background (non-blocking)
+                get().loadPlanData();
                 return true;
             } else {
                 get().logout();
@@ -120,13 +132,54 @@ export const authStore = createStore((set, get) => ({
         }
     },
 
+    loadPlanData: async () => {
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            const token = typeof window !== 'undefined' ? window.authToken : null;
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const res = await fetch('/api/stripe/subscription-status', {
+                headers,
+                credentials: 'include'
+            });
+            if (!res.ok) return;
+
+            const data = await res.json();
+            set({
+                plan: data.plan,
+                plan_status: data.plan_status,
+                trial_days_left: data.trial_days_left,
+                max_users: data.max_users,
+                has_subscription: data.has_subscription,
+                trial_ends_at: data.trial_ends_at
+            });
+
+            // Sync to window for legacy access
+            if (typeof window !== 'undefined') {
+                window._planData = data;
+                window.dispatchEvent(new CustomEvent('plan:loaded', { detail: data }));
+            }
+        } catch (e) {
+            console.warn('Could not load plan data:', e.message);
+        }
+    },
+
+    getPlanLevel: () => {
+        const plan = get().plan;
+        return PLAN_LEVELS[plan] || 0;
+    },
+
     clearError: () => set({ error: null })
 }));
+
+// Plan level constants (exported for use in gating)
+export { PLAN_LEVELS };
 
 // Getters for external use
 export const getAuthState = () => authStore.getState();
 export const getUser = () => authStore.getState().user;
 export const isAuthenticated = () => authStore.getState().isAuthenticated;
+export const getPlanLevel = () => authStore.getState().getPlanLevel();
 
 // Subscribe helper
 export const subscribeToAuth = (callback) => authStore.subscribe(callback);
