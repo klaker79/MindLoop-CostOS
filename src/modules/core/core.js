@@ -157,9 +157,9 @@ export function cambiarTab(tab) {
     const kpiRow = kpiMini?.parentElement;
 
     if (showDashboard) {
-        if (dashboard) dashboard.style.removeProperty('display');
-        if (dateBanner) dateBanner.style.removeProperty('display');
-        if (kpiRow) kpiRow.style.removeProperty('display');
+        if (dashboard) dashboard.style.display = '';
+        if (dateBanner) dateBanner.style.display = '';
+        if (kpiRow) kpiRow.style.display = 'flex';
     } else {
         if (dashboard) dashboard.style.display = 'none';
         if (dateBanner) dateBanner.style.display = 'none';
