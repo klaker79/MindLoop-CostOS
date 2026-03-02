@@ -64,16 +64,20 @@ async function procesarImagenAlbaran(file) {
             : t('pedidos:scanner_items_detected_no_supplier', { total: response.totalItems, matched: response.matched, unmatched: response.unmatched });
         window.showToast?.(toastMsg, 'success');
 
-        // 🔍 Show duplicate warning if detected
+        // 🔍 Show duplicate warning if detected (source-specific message)
         if (response.duplicateWarning) {
             const dup = response.duplicateWarning;
             const dupDate = dup.fecha ? new Date(dup.fecha).toLocaleDateString('es-ES') : '?';
+            let dupMsg;
+            if (dup.source === 'approved') {
+                dupMsg = `⚠️ Este albarán ya fue aprobado el ${dupDate} (${dup.itemCount} productos, ${dup.similarity}% coincidencia). Revisa antes de aprobar.`;
+            } else if (dup.source === 'manual_order') {
+                dupMsg = `⚠️ Ya existe un pedido manual del ${dupDate} con estos productos (${dup.similarity}% coincidencia). Revisa antes de aprobar.`;
+            } else {
+                dupMsg = `⚠️ Este albarán ya está pendiente de revisión (${dupDate}, ${dup.itemCount} productos, ${dup.similarity}% coincidencia).`;
+            }
             setTimeout(() => {
-                window.showToast?.(
-                    `⚠️ Este albarán ya fue importado el ${dupDate} (${dup.itemCount} productos, ${dup.similarity}% coincidencia). Revisa antes de aprobar.`,
-                    'warning',
-                    8000
-                );
+                window.showToast?.(dupMsg, 'warning', 8000);
             }, 1500);
         }
 
