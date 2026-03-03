@@ -13,6 +13,7 @@
  */
 
 import { t } from '@/i18n/index.js';
+import { escapeHTML } from '../../utils/helpers.js';
 
 /**
  * Marca un pedido como recibido (abre modal)
@@ -96,7 +97,7 @@ function renderItemsRecepcionModal(ped) {
 
         html += `
           <tr>
-            <td>${nombre}</td>
+            <td>${escapeHTML(nombre)}</td>
             <td>${cantPedida} ${unidad}</td>
             <td>
               ${item.estado === 'no-entregado'

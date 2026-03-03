@@ -6,6 +6,7 @@
  */
 
 import { t } from '@/i18n/index.js';
+import { escapeHTML } from '../../utils/helpers.js';
 import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
 
 /**
@@ -208,7 +209,7 @@ export async function verEscandallo(recetaId) {
         // Truncar nombre si es muy largo
         const nombreCorto = item.nombre.length > 25 ? item.nombre.substring(0, 23) + '...' : item.nombre;
         tablaHtml += `<tr style="background: ${bgColor};">`;
-        tablaHtml += `<td style="padding: 5px; border-bottom: 1px solid #E2E8F0; overflow: hidden; text-overflow: ellipsis;" title="${item.nombre}">${nombreCorto}</td>`;
+        tablaHtml += `<td style="padding: 5px; border-bottom: 1px solid #E2E8F0; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(item.nombre)}">${escapeHTML(nombreCorto)}</td>`;
         tablaHtml += `<td style="text-align: right; padding: 5px; border-bottom: 1px solid #E2E8F0;">${item.cantidad} ${item.unidad}</td>`;
         tablaHtml += `<td style="text-align: right; padding: 5px; border-bottom: 1px solid #E2E8F0; font-weight: 600;">${item.coste.toFixed(2)}€</td>`;
         tablaHtml += `<td style="text-align: right; padding: 5px; border-bottom: 1px solid #E2E8F0;">${item.porcentaje.toFixed(0)}%</td>`;

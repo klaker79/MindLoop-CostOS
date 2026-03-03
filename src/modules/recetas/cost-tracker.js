@@ -4,6 +4,7 @@
  */
 
 import { t } from '@/i18n/index.js';
+import { escapeHTML } from '../../utils/helpers.js';
 
 /**
  * Muestra el modal de seguimiento de costes
@@ -266,12 +267,12 @@ function actualizarDatosCostTracker() {
         html += `
             <tr style="background:transparent">
                 <td style="width: 22%; padding:16px;border-bottom:1px solid rgba(255,255,255,0.08)">
-                    <div style="color:#FFD700;font-size:15px;font-weight:700">${nombreReceta}</div>
+                    <div style="color:#FFD700;font-size:15px;font-weight:700">${escapeHTML(nombreReceta)}</div>
                     <small style="color:#9CA3AF">${receta.numIngredientes} ${t('recetas:cost_tracker_ingredients')}</small>
                 </td>
                 <td style="width: 12%; padding: 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <span style="background: rgba(139, 92, 246, 0.2); color: #a78bfa; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                        ${receta.categoria || t('recetas:cost_tracker_no_category')}
+                        ${escapeHTML(receta.categoria || t('recetas:cost_tracker_no_category'))}
                     </span>
                 </td>
                 <td style="width: 12%; padding: 16px; text-align: right; color: #F97316; font-weight: 700; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">

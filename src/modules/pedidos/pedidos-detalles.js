@@ -7,6 +7,7 @@
  * - cerrarModalVerPedido: Cierra el modal
  */
 import { t } from '@/i18n/index.js';
+import { escapeHTML } from '../../utils/helpers.js';
 
 /**
  * Muestra detalles de un pedido en modal
@@ -94,7 +95,7 @@ export function verDetallesPedido(pedidoId) {
 
             ingredientesHtml += `
               <tr style="border-bottom: 1px solid #F1F5F9;">
-                <td style="padding: 12px;"><strong>${nombreIng}</strong></td>
+                <td style="padding: 12px;"><strong>${escapeHTML(nombreIng)}</strong></td>
                 <td style="padding: 12px; text-align: center;">
                   ${cantidadDisplay}
                   ${esRecibido && Math.abs(varianzaCant) > 0.01 ? `<br><small style="color:${varianzaCant > 0 ? '#10B981' : '#EF4444'};">→ ${cantRecibida.toFixed(2)} (${varianzaCant > 0 ? '+' : ''}${varianzaCant.toFixed(2)})</small>` : ''}
@@ -121,14 +122,14 @@ export function verDetallesPedido(pedidoId) {
 
     // Mostrar detalle del mercado si existe
     const detalleMercadoHtml = ped.detalle_mercado
-        ? `<p style="margin: 5px 0 0; color: #10b981; font-size: 13px;">📍 ${ped.detalle_mercado}</p>`
+        ? `<p style="margin: 5px 0 0; color: #10b981; font-size: 13px;">📍 ${escapeHTML(ped.detalle_mercado)}</p>`
         : '';
 
     const html = `
       <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
         <div>
           <h2 style="margin: 0; color: #1E293B;">${t('pedidos:detail_order_title', { id: ped.id })}</h2>
-          <p style="margin: 5px 0 0; color: #64748B;">${provNombre}</p>
+          <p style="margin: 5px 0 0; color: #64748B;">${escapeHTML(provNombre)}</p>
           ${detalleMercadoHtml}
         </div>
         <div style="text-align: right;">
