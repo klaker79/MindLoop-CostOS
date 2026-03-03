@@ -362,16 +362,19 @@ export async function editarCampoPendiente(id, campo, valor, inputEl) {
             }
         }
         await editarItemPendiente(id, { [campo]: valorFinal });
+        if (campo === 'fecha') {
+            // Re-render full panel so server-side duplicate checks re-run with the new date
+            await renderizarComprasPendientes();
+            return;
+        }
         // Actualizar el total inline sin recargar todo el panel (solo para campos numéricos)
-        if (campo !== 'fecha') {
-            const itemDiv = inputEl?.closest('.pending-item');
-            if (itemDiv) {
-                const inputs = itemDiv.querySelectorAll('input[type=number]');
-                const cant = parseFloat(inputs[0]?.value || 0);
-                const precio = parseFloat(inputs[1]?.value || 0);
-                const totalInput = itemDiv.querySelector('[data-total]');
-                if (totalInput) totalInput.value = (cant * precio).toFixed(2);
-            }
+        const itemDiv = inputEl?.closest('.pending-item');
+        if (itemDiv) {
+            const inputs = itemDiv.querySelectorAll('input[type=number]');
+            const cant = parseFloat(inputs[0]?.value || 0);
+            const precio = parseFloat(inputs[1]?.value || 0);
+            const totalInput = itemDiv.querySelector('[data-total]');
+            if (totalInput) totalInput.value = (cant * precio).toFixed(2);
         }
         inputEl.style.borderColor = '#22c55e';
         setTimeout(() => { if (inputEl) inputEl.style.borderColor = '#e5e7eb'; }, 1500);
