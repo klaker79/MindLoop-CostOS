@@ -79,6 +79,8 @@ async function procesarImagenAlbaran(file) {
                 dupMsg = `⚠️ Este albarán ya fue aprobado el ${dupDate} (${dup.itemCount} productos, ${dup.similarity}% coincidencia). Revisa antes de aprobar.`;
             } else if (dup.source === 'manual_order') {
                 dupMsg = `⚠️ Ya existe un pedido manual del ${dupDate} con estos productos (${dup.similarity}% coincidencia). Revisa antes de aprobar.`;
+            } else if (dup.source === 'image_hash') {
+                dupMsg = `🚫 Esta MISMA imagen ya fue subida. El albarán ya está en el sistema (${dupDate}, ${dup.itemCount} productos).`;
             } else {
                 dupMsg = `⚠️ Este albarán ya está pendiente de revisión (${dupDate}, ${dup.itemCount} productos, ${dup.similarity}% coincidencia).`;
             }
