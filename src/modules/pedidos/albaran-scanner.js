@@ -75,7 +75,9 @@ async function procesarImagenAlbaran(file) {
             const dup = response.duplicateWarning;
             const dupDate = dup.fecha ? new Date(dup.fecha).toLocaleDateString('es-ES') : '?';
             let dupMsg;
-            if (dup.source === 'approved') {
+            if (dup.source === 'image_hash') {
+                dupMsg = `🚫 Esta imagen ya fue subida anteriormente (${dupDate}). No se ha procesado de nuevo.`;
+            } else if (dup.source === 'approved') {
                 dupMsg = `⚠️ Este albarán ya fue aprobado el ${dupDate} (${dup.itemCount} productos, ${dup.similarity}% coincidencia). Revisa antes de aprobar.`;
             } else if (dup.source === 'manual_order') {
                 dupMsg = `⚠️ Ya existe un pedido manual del ${dupDate} con estos productos (${dup.similarity}% coincidencia). Revisa antes de aprobar.`;
