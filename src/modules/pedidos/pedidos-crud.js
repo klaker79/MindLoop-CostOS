@@ -206,10 +206,10 @@ export async function guardarPedido(event) {
 
           // Solo actualizar precio si cambió
           if (precioNuevo > 0 && Math.abs(precioNuevo - precioAnterior) > 0.001) {
-            // fix C2: cantidadRecibida está en unidades de FORMATO, stockActual en unidades BASE
-            // hay que convertir a la misma unidad antes de calcular la media ponderada
-            const cantFormato = parseFloat(ing.cantidad_por_formato) || 1;
-            const cantidadEnBaseUnits = cantidadRecibida * cantFormato;
+            // cantidadRecibida (item.cantidad) ya está en unidades BASE
+            // (fue convertida en línea 75: cantidadReal = cantidadValue * formatoMult)
+            // NO multiplicar otra vez por cantidad_por_formato
+            const cantidadEnBaseUnits = cantidadRecibida;
             // Media ponderada: (stockViejo * precioViejo + cantNueva * precioNuevo) / stockTotal
             const stockSinCompra = stockActual - cantidadEnBaseUnits; // stockActual ya incluye la compra
             let precioMedioPonderado;
