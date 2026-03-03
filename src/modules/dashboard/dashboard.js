@@ -8,6 +8,7 @@ import {
     getPeriodoActual,
     filtrarPorPeriodo,
     compararConSemanaAnterior,
+    escapeHTML,
 } from '../../utils/helpers.js';
 
 import {
@@ -547,9 +548,9 @@ export async function actualizarKPIs() {
                             <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: ${bg}; border-radius: 8px; margin-bottom: 8px;">
                                 <span style="font-size: 18px; color: ${color};">${flecha}</span>
                                 <div style="flex: 1; min-width: 0;">
-                                    <div style="font-weight: 600; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.nombre}</div>
+                                    <div style="font-weight: 600; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(c.nombre)}</div>
                                     <div style="font-size: 11px; color: #64748B;">
-                                        ${c.anteriorPrecio.toFixed(2)}€ → ${c.ultimoPrecio.toFixed(2)}€/${c.unidad}
+                                        ${c.anteriorPrecio.toFixed(2)}€ → ${c.ultimoPrecio.toFixed(2)}€/${escapeHTML(c.unidad)}
                                     </div>
                                 </div>
                                 <div style="font-weight: 700; color: ${color}; font-size: 12px; white-space: nowrap;">
@@ -642,8 +643,8 @@ export async function actualizarKPIs() {
                             </div>
                         </div>
                         <div style="font-size: 11px; max-height: 60px; overflow-y: auto;">
-                            ${trabajanHoy.length > 0 ? `<div style="color: #059669; margin-bottom: 4px;"><b>${t('dashboard:staff_working')}:</b> ${trabajanHoy.join(', ')}</div>` : ''}
-                            ${libranHoy.length > 0 ? `<div style="color: #B45309;"><b>${t('dashboard:staff_off')}:</b> ${libranHoy.join(', ')}</div>` : ''}
+                            ${trabajanHoy.length > 0 ? `<div style="color: #059669; margin-bottom: 4px;"><b>${t('dashboard:staff_working')}:</b> ${escapeHTML(trabajanHoy.join(', '))}</div>` : ''}
+                            ${libranHoy.length > 0 ? `<div style="color: #B45309;"><b>${t('dashboard:staff_off')}:</b> ${escapeHTML(libranHoy.join(', '))}</div>` : ''}
                         </div>
                     `;
                     personalHoyEl.innerHTML = htmlPersonal;

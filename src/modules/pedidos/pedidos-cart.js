@@ -4,6 +4,7 @@
  */
 
 import { t } from '@/i18n/index.js';
+import { escapeHTML } from '../../utils/helpers.js';
 
 // Estado del carrito (persistido en localStorage)
 let carrito = [];
@@ -269,7 +270,7 @@ function renderizarCarrito() {
         html += `
       <div style="margin-bottom: 20px;">
         <h4 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 8px; margin-bottom: 12px;">
-          📦 ${data.nombre}
+          📦 ${escapeHTML(data.nombre)}
         </h4>
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
@@ -298,14 +299,14 @@ function renderizarCarrito() {
             html += `
         <tr style="border-bottom: 1px solid #e2e8f0;">
           <td style="padding: 12px;">
-            <strong>${item.nombre}</strong>
-            ${item.formatoCompra ? `<br><small style="color:#64748b;">📦 ${item.formatoCompra}</small>` : ''}
+            <strong>${escapeHTML(item.nombre)}</strong>
+            ${item.formatoCompra ? `<br><small style="color:#64748b;">📦 ${escapeHTML(item.formatoCompra)}</small>` : ''}
           </td>
           <td style="padding: 12px; text-align: center;">
             <input type="number" value="${item.cantidad}" min="0.01" step="0.01"
               style="width: 70px; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-align: center;"
               onchange="window.actualizarCantidadCarrito(${item.ingredienteId}, this.value)">
-            <span style="color: #64748b; font-size: 12px;">${item.unidad}</span>
+            <span style="color: #64748b; font-size: 12px;">${escapeHTML(item.unidad)}</span>
           </td>
           <td style="padding: 12px; text-align: right;">${item.precio.toFixed(2)} €</td>
           <td style="padding: 12px; text-align: right; font-weight: bold;">${subtotal.toFixed(2)} €</td>

@@ -1,4 +1,5 @@
 import { t } from '@/i18n/index.js';
+import { escapeHTML } from '../../utils/helpers.js';
 
 /**
  * 🧠 Inteligencia - Dashboard Predictivo
@@ -151,7 +152,7 @@ function renderFreshness(data) {
     return `<div class="intel-list">${data.slice(0, 8).map(a => `
         <div class="intel-item">
             <div>
-                <div class="intel-item-name">${a.nombre}</div>
+                <div class="intel-item-name">${escapeHTML(a.nombre)}</div>
                 <div class="intel-item-detail">${a.stock_actual} ${a.unidad} · ${t('inteligencia:label_days_since', { days: a.dias_desde_compra || 0 })}</div>
             </div>
             <span class="intel-badge ${a.urgencia === 'critico' ? 'badge-danger' : 'badge-warn'}">
@@ -173,7 +174,7 @@ function renderPurchase(data, day) {
     return dayBtns + `<div class="intel-list">${data.sugerencias.slice(0, 6).map(s => `
         <div class="intel-item">
             <div>
-                <div class="intel-item-name">${s.nombre}</div>
+                <div class="intel-item-name">${escapeHTML(s.nombre)}</div>
                 <div class="intel-item-detail">Stock: ${parseFloat(s.stock_actual).toFixed(1)} ${s.unidad}</div>
             </div>
             <span class="intel-badge badge-warn">+${parseFloat(s.sugerencia_pedido).toFixed(1)}</span>
@@ -188,7 +189,7 @@ function renderOverstock(data) {
     return `<div class="intel-list">${data.slice(0, 8).map(i => `
         <div class="intel-item">
             <div>
-                <div class="intel-item-name">${i.nombre}</div>
+                <div class="intel-item-name">${escapeHTML(i.nombre)}</div>
                 <div class="intel-item-detail">${parseFloat(i.stock_actual).toFixed(1)} ${i.unidad}</div>
             </div>
             <span class="intel-badge badge-warn">📦 ${t('inteligencia:label_days_stock', { days: Math.round(i.dias_stock) })}</span>
@@ -203,7 +204,7 @@ function renderPricing(data) {
     return `<div class="intel-list">${data.recetas_problema.slice(0, 6).map(r => `
         <div class="intel-item">
             <div>
-                <div class="intel-item-name">${r.nombre}</div>
+                <div class="intel-item-name">${escapeHTML(r.nombre)}</div>
                 <div class="intel-item-detail">Coste: ${r.coste.toFixed(2)}€ · Actual: ${r.precio_actual.toFixed(2)}€</div>
             </div>
             <span class="intel-badge badge-danger">${r.food_cost}% → ${r.precio_sugerido.toFixed(2)}€</span>
@@ -237,7 +238,7 @@ function renderWaste(data) {
             html += `
                 <div class="intel-item">
                     <div>
-                        <div class="intel-item-name">${p.nombre}</div>
+                        <div class="intel-item-name">${escapeHTML(p.nombre)}</div>
                         <div class="intel-item-detail">${parseFloat(p.cantidad_total).toFixed(2)} ${t('inteligencia:label_discarded')} (${p.veces}x)</div>
                     </div>
                     <span class="intel-badge badge-danger">${parseFloat(p.perdida_total).toFixed(2)}€</span>
