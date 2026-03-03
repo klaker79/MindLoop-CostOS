@@ -7,16 +7,19 @@ import { apiClient } from '../../api/client.js';
 
 const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+let isProcessing = false; // Guard against double uploads
 
 export async function procesarFotoAlbaran(event) {
     event.preventDefault();
     event.stopPropagation();
+    if (isProcessing) return; // Already processing
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) return;
     await procesarImagenAlbaran(files[0]);
 }
 
 export async function procesarFotoAlbaranInput(event) {
+    if (isProcessing) return; // Already processing
     const file = event.target?.files?.[0];
     if (!file) return;
     await procesarImagenAlbaran(file);
@@ -25,6 +28,7 @@ export async function procesarFotoAlbaranInput(event) {
 }
 
 async function procesarImagenAlbaran(file) {
+    if (isProcessing) return;
     if (!VALID_TYPES.includes(file.type)) {
         window.showToast?.(t('pedidos:scanner_unsupported_format'), 'warning');
         return;
@@ -34,6 +38,8 @@ async function procesarImagenAlbaran(file) {
         window.showToast?.(t('pedidos:scanner_file_too_large'), 'warning');
         return;
     }
+
+    isProcessing = true;
 
     // Mostrar loading
     const contentDiv = document.getElementById('albaran-dropzone-content');
@@ -87,6 +93,8 @@ async function procesarImagenAlbaran(file) {
     } catch (error) {
         console.error('Error procesando albarán:', error);
         window.showToast?.(t('pedidos:scanner_error_generic', { message: error.message || t('pedidos:scanner_error_processing') }), 'error');
+    } finally {
+        isProcessing = false;
     }
 
     resetAlbaranDropzone();
