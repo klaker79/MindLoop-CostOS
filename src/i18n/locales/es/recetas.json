@@ -7,13 +7,10 @@
   "placeholder_quantity": "Cantidad",
   "placeholder_yield": "Rend.",
   "need_ingredients_first": "Primero añade ingredientes",
-
   "empty_not_found": "No encontradas",
   "empty_none_yet": "Aún no hay recetas",
-
   "btn_view_escandallo": "Ver Escandallo",
   "btn_variants": "Variantes (Botella/Copa)",
-
   "toast_updated": "Receta actualizada",
   "toast_created": "Receta creada",
   "toast_deleted": "Receta eliminada",
@@ -21,10 +18,8 @@
   "toast_error_deleting": "Error eliminando receta: {{message}}",
   "toast_error_updating_stock": "Error actualizando stock: {{message}}",
   "confirm_delete": "¿Eliminar la receta \"{{name}}\"?",
-
   "production_success": "Producidas {{quantity}} unidades de {{name}}",
   "stock_insufficient": "Stock insuficiente:",
-
   "export_col_code": "Código",
   "export_col_name": "Nombre",
   "export_col_category": "Categoría",
@@ -34,14 +29,11 @@
   "export_col_margin_pct": "Margen (%)",
   "export_col_servings": "Porciones",
   "export_col_num_ingredients": "Nº Ingredientes",
-
   "summary_total": "Total: {{count}}",
   "summary_filtered": "Filtradas: {{count}}",
   "summary_showing": "Mostrando: {{count}}",
-
   "pagination_prev": "Anterior",
   "pagination_next": "Siguiente",
-
   "variants_modal_title": "Variantes de \"{{name}}\"",
   "variants_not_found": "Receta no encontrada",
   "variants_error_loading": "Error cargando variantes",
@@ -56,7 +48,6 @@
   "variants_error_deleting": "Error eliminando variante",
   "variants_confirm_delete": "¿Eliminar esta variante?",
   "variants_price_invalid_edit": "Precio inválido",
-
   "escandallo_title": "Escandallo",
   "escandallo_pdf_title": "FICHA TÉCNICA",
   "escandallo_cost": "COSTE",
@@ -75,7 +66,6 @@
   "escandallo_top_ingredient_high": "\"{{name}}\" representa el {{pct}}% del coste. Considera optimizar.",
   "escandallo_top_ingredient_ok": "\"{{name}}\" representa el {{pct}}% del coste. Distribución equilibrada.",
   "escandallo_no_ingredients": "Sin ingredientes.",
-
   "cost_tracker_profitable": "Rentable",
   "cost_tracker_tight": "Ajustado",
   "cost_tracker_alert": "Alerta",
@@ -98,10 +88,8 @@
   "cost_tracker_no_recipes": "No hay recetas configuradas",
   "cost_tracker_tip": "Los costes se calculan con el <strong style=\"color: #a78bfa;\">precio medio</strong> de tus últimas compras. Recibe un pedido con precio diferente y verás el impacto aquí.",
   "cost_tracker_ingredients": "ingredientes",
-
   "escandallo_pvp": "PVP",
   "escandallo_close": "Cerrar",
-
   "description": "Crea recetas y calcula costes",
   "btn_cost_tracking": "Seguimiento Costes",
   "filter_label": "Filtrar:",
@@ -125,7 +113,6 @@
   "form_category_base": "Preparación Base",
   "form_category_supplies": "Suministros",
   "form_code_placeholder": "Ej: 101",
-
   "produce_title": "Producir platos",
   "produce_how_many": "¿Cuántas unidades de",
   "produce_stock_deduction": "Descuento de stock",
@@ -146,11 +133,13 @@
   "import_confirm_btn": "Importar Recetas",
   "import_click_to_select": "Haz clic para seleccionar archivo",
   "import_file_types": "Excel (.xlsx) o CSV",
-
   "variants_edit_title": "Editar Variante",
   "variants_code_placeholder": "Ej: 1272",
   "variants_code_hint": "ID del producto en el TPV",
-
   "btn_new": "➕ Nueva Receta",
-  "produce_how_many_html": "¿Cuántas unidades de <strong id=\"modal-plato-nombre\"></strong>?"
+  "produce_how_many_html": "¿Cuántas unidades de <strong id=\"modal-plato-nombre\"></strong>?",
+  "price_simulator_title": "Simulador de Precio",
+  "price_simulator_hint": "Ajusta el food cost deseado para calcular el precio",
+  "suggested_price": "Precio Sugerido",
+  "apply_price": "Aplicar Precio"
 }
