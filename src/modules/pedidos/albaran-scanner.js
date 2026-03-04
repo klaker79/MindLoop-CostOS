@@ -59,6 +59,27 @@ async function procesarImagenAlbaran(file) {
             filename: file.name
         });
 
+        // 🔒 Duplicate detected — block and show clear message
+        if (response.duplicateWarning) {
+            const dup = response.duplicateWarning;
+            const dupDate = dup.fecha ? new Date(dup.fecha).toLocaleDateString('es-ES') : '?';
+            let dupMsg;
+            if (dup.source === 'numero_factura') {
+                dupMsg = `🚫 Albarán nº ${dup.numero_factura} ya existe (${dupDate}, ${dup.itemCount} productos). No se ha duplicado.`;
+            } else if (dup.source === 'image_hash') {
+                dupMsg = `🚫 Esta imagen ya fue subida anteriormente (${dupDate}). No se ha procesado de nuevo.`;
+            } else if (dup.source === 'approved') {
+                dupMsg = `🚫 Este albarán ya fue aprobado el ${dupDate} (${dup.itemCount} productos). No se ha duplicado.`;
+            } else if (dup.source === 'manual_order') {
+                dupMsg = `🚫 Ya existe un pedido manual del ${dupDate} con estos productos. No se ha duplicado.`;
+            } else {
+                dupMsg = `🚫 Este albarán ya está en revisión (${dupDate}, ${dup.itemCount} productos). No se ha duplicado.`;
+            }
+            window.showToast?.(dupMsg, 'warning', 8000);
+            resetAlbaranDropzone();
+            return;
+        }
+
         if (!response.success) {
             window.showToast?.(t('pedidos:scanner_error_processing'), 'error');
             resetAlbaranDropzone();
@@ -70,24 +91,7 @@ async function procesarImagenAlbaran(file) {
             : t('pedidos:scanner_items_detected_no_supplier', { total: response.totalItems, matched: response.matched, unmatched: response.unmatched });
         window.showToast?.(toastMsg, 'success');
 
-        // 🔍 Show duplicate warning if detected (source-specific message)
-        if (response.duplicateWarning) {
-            const dup = response.duplicateWarning;
-            const dupDate = dup.fecha ? new Date(dup.fecha).toLocaleDateString('es-ES') : '?';
-            let dupMsg;
-            if (dup.source === 'approved') {
-                dupMsg = `⚠️ Este albarán ya fue aprobado el ${dupDate} (${dup.itemCount} productos, ${dup.similarity}% coincidencia). Revisa antes de aprobar.`;
-            } else if (dup.source === 'manual_order') {
-                dupMsg = `⚠️ Ya existe un pedido manual del ${dupDate} con estos productos (${dup.similarity}% coincidencia). Revisa antes de aprobar.`;
-            } else if (dup.source === 'image_hash') {
-                dupMsg = `🚫 Esta MISMA imagen ya fue subida. El albarán ya está en el sistema (${dupDate}, ${dup.itemCount} productos).`;
-            } else {
-                dupMsg = `⚠️ Este albarán ya está pendiente de revisión (${dupDate}, ${dup.itemCount} productos, ${dup.similarity}% coincidencia).`;
-            }
-            setTimeout(() => {
-                window.showToast?.(dupMsg, 'warning', 8000);
-            }, 1500);
-        }
+
 
         // Refrescar panel de compras pendientes (UI ya existente)
         await window.renderizarComprasPendientes?.();

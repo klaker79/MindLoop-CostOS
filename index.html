@@ -1202,8 +1202,8 @@
               oninput="window.renderizarPedidos()">
           </div>
 
-          <!-- 📸 Escanear albarán con IA -->
-          <div id="albaran-scanner-section" style="margin-bottom: 20px;">
+          <!-- 📸 Escanear albarán con IA (DESACTIVADO — OCR no fiable con albaranes manuscritos, reactivar si se necesita) -->
+          <!-- <div id="albaran-scanner-section" style="margin-bottom: 20px;">
             <div id="albaran-dropzone" ondrop="window.procesarFotoAlbaran(event)"
               ondragover="event.preventDefault(); this.style.borderColor='#3b82f6'; this.style.background='#eff6ff';"
               ondragleave="this.style.borderColor='#cbd5e1'; this.style.background='';"
@@ -1221,7 +1221,7 @@
                 <span data-i18n="pedidos:scanner_analyzing">⏳ Analizando albarán con IA... (10-20 seg)</span>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <!-- Panel de Compras Pendientes (revisión de albaranes importados por n8n) -->
           <div id="compras-pendientes-panel" style="display: none; margin-bottom: 20px;"></div>

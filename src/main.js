@@ -336,10 +336,11 @@ window.checkPendientes = ComprasPendientesUI.checkPendientes;
 //   - auth.js: checkAuth, logout, mostrarLogin, mostrarRegistro, volverALogin
 //   - dossier-v24.js: abrirDossierV24
 
-// 📸 Albarán Scanner (Claude Vision)
-import * as AlbaranScanner from './modules/pedidos/albaran-scanner.js';
-window.procesarFotoAlbaran = AlbaranScanner.procesarFotoAlbaran;
-window.procesarFotoAlbaranInput = AlbaranScanner.procesarFotoAlbaranInput;
+// 📸 Albarán Scanner (Claude Vision) — DESACTIVADO (OCR no fiable con albaranes manuscritos)
+// Para reactivar: descomentar estas líneas + el HTML en index.html (buscar "albaran-scanner-section")
+// import * as AlbaranScanner from './modules/pedidos/albaran-scanner.js';
+// window.procesarFotoAlbaran = AlbaranScanner.procesarFotoAlbaran;
+// window.procesarFotoAlbaranInput = AlbaranScanner.procesarFotoAlbaranInput;
 
 // Cargar pendientes al abrir pestaña Pedidos y al login
 document.addEventListener('DOMContentLoaded', () => {

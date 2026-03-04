@@ -9,6 +9,7 @@
 import { fetchComprasPendientes, aprobarItem, aprobarBatch, editarItemPendiente, rechazarItem, cambiarFormato } from './compras-pendientes-crud.js';
 import { apiClient } from '../../api/client.js';
 import { t } from '@/i18n/index.js';
+import { escapeHTML } from '../../utils/helpers.js';
 
 let ingredientesCache = [];
 
@@ -160,16 +161,16 @@ export async function renderizarComprasPendientes() {
                         border: 2px solid ${borderColor};
                     ">
                         <div>
-                            <div style="font-size: 13px; color: #6b7280; margin-bottom: 2px;">📄 ${item.ingrediente_nombre}</div>
+                            <div style="font-size: 13px; color: #6b7280; margin-bottom: 2px;">📄 ${escapeHTML(item.ingrediente_nombre)}</div>
                             ${esDuplicado ? `<div style="font-size: 11px; color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 6px; margin-bottom: 4px; font-weight: 600;">⚠️ ${t('pedidos:pending_possible_duplicate')} — ${t('pedidos:pending_already_registered', { qty: parseFloat(item.cantidad_ya_registrada || 0).toFixed(1), price: parseFloat(item.precio_ya_registrado || 0).toFixed(2) })}</div>` : ''}
                             <div style="font-size: 14px; font-weight: 600; color: ${matchClass === 'match-none' ? '#dc2626' : '#1e293b'};">
-                                ${matchIcon} ${matchLabel}
+                                ${matchIcon} ${escapeHTML(matchLabel)}
                                 ${matchClass !== 'match-exact' ? `
                                 <select onchange="window.cambiarIngredientePendiente(${item.id}, this.value)" style="
                                     margin-left: 8px; padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; max-width: 180px;
                                 ">
                                     <option value="">${t('pedidos:form_select_supplier')}</option>
-                                    ${[...ingredientesCache].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map(ing => `<option value="${ing.id}" ${ing.id === item.ingrediente_id ? 'selected' : ''}>${ing.nombre}</option>`).join('')}
+                                    ${[...ingredientesCache].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map(ing => `<option value="${ing.id}" ${ing.id === item.ingrediente_id ? 'selected' : ''}>${escapeHTML(ing.nombre)}</option>`).join('')}
                                 </select>` : ''}
                             </div>
                         </div>

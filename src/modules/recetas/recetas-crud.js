@@ -8,6 +8,7 @@ import recipeStore from '../../stores/recipeStore.js';
 // 🆕 Validación centralizada
 import { validateReceta, showValidationErrors } from '../../utils/validation.js';
 import { t } from '@/i18n/index.js';
+import { escapeHTML } from '../../utils/helpers.js';
 
 /**
  * Guarda una receta (nueva o editada)
@@ -302,7 +303,7 @@ export function actualizarDetalleDescuento() {
     let html = '<ul style="margin:0;padding-left:20px;">';
     rec.ingredientes.forEach(item => {
         const ing = ingMap.get(item.ingredienteId);
-        if (ing) html += `<li>${ing.nombre}: -${item.cantidad * cant} ${ing.unidad}</li>`;
+        if (ing) html += `<li>${escapeHTML(ing.nombre)}: -${item.cantidad * cant} ${escapeHTML(ing.unidad)}</li>`;
     });
     html += '</ul>';
     document.getElementById('modal-descuento-detalle').innerHTML = html;
