@@ -279,6 +279,9 @@ export function calcularCosteReceta() {
         }
     }
 
+    // Sync price simulator if visible
+    actualizarPrecioSugerido();
+
     return costeTotal;
 }
 
@@ -564,5 +567,61 @@ export function exportarRecetas() {
         typeof window.getRestaurantNameForFile === 'function'
     ) {
         window.exportarAExcel(recetas, `Recetas_${window.getRestaurantNameForFile()}`, columnas);
+    }
+}
+
+/**
+ * 🧮 Simulador de Precio: actualiza precio sugerido en tiempo real
+ * Lee el coste actual del panel y el food cost deseado del slider/input.
+ * Formula: precioSugerido = coste / (foodCostDeseado / 100)
+ * 
+ * NOTA: Esta función es ADDITIVE — no modifica calcularCosteReceta ni ningún estado existente.
+ */
+export function actualizarPrecioSugerido() {
+    const slider = document.getElementById('simulador-foodcost-slider');
+    const input = document.getElementById('simulador-foodcost-input');
+    const precioSpan = document.getElementById('precio-sugerido-valor');
+    if (!slider || !input || !precioSpan) return;
+
+    // Sync slider ↔ input (determine which one triggered the event)
+    const activeEl = document.activeElement;
+    if (activeEl === slider) {
+        input.value = slider.value;
+    } else if (activeEl === input) {
+        // Clamp input value to valid range for the slider
+        const val = Math.min(99, Math.max(1, parseInt(input.value) || 30));
+        slider.value = Math.min(60, Math.max(20, val));
+    }
+
+    const foodCostDeseado = parseFloat(input.value) || 30;
+
+    // Read current cost from the panel (already calculated by calcularCosteReceta)
+    const costeText = document.getElementById('coste-receta-valor')?.textContent || '0';
+    const coste = parseFloat(costeText.replace('€', '').replace(',', '.')) || 0;
+
+    if (coste <= 0 || foodCostDeseado <= 0) {
+        precioSpan.textContent = '—';
+        return;
+    }
+
+    const precioSugerido = coste / (foodCostDeseado / 100);
+    precioSpan.textContent = precioSugerido.toFixed(2) + '€';
+}
+
+/**
+ * 🧮 Aplica el precio sugerido al campo rec-precio_venta
+ * y recalcula food cost + margen automáticamente.
+ */
+export function aplicarPrecioSugerido() {
+    const precioText = document.getElementById('precio-sugerido-valor')?.textContent || '';
+    const precio = parseFloat(precioText.replace('€', '').replace(',', '.'));
+
+    if (!precio || precio <= 0) return;
+
+    const precioInput = document.getElementById('rec-precio_venta');
+    if (precioInput) {
+        precioInput.value = precio.toFixed(2);
+        // Trigger recalculation of food cost and margin
+        window.calcularCosteReceta?.();
     }
 }
