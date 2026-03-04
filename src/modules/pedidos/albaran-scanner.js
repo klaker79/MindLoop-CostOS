@@ -91,6 +91,8 @@ async function procesarImagenAlbaran(file) {
             : t('pedidos:scanner_items_detected_no_supplier', { total: response.totalItems, matched: response.matched, unmatched: response.unmatched });
         window.showToast?.(toastMsg, 'success');
 
+
+
         // Refrescar panel de compras pendientes (UI ya existente)
         await window.renderizarComprasPendientes?.();
 
