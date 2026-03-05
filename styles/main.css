@@ -2768,8 +2768,11 @@ table tbody tr:nth-child(10) {
   overflow-y: auto;
 }
 
-/* Responsive - Mobile */
+/* ════════════════════════════════════════
+   RESPONSIVE — TABLET & MOBILE (≤768px)
+   ════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* --- Layout base --- */
   .app-content {
     margin-left: 0;
   }
@@ -2799,6 +2802,235 @@ table tbody tr:nth-child(10) {
     cursor: pointer;
     z-index: 99;
     box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+  }
+
+  /* --- Dashboard card grids (inline 3-col → 1-col) --- */
+  #dashboard-premium {
+    margin: 0 12px 16px 12px !important;
+  }
+  #dashboard-premium > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* --- KPI mini cards (4 → 2 per row) --- */
+  .kpi-row {
+    gap: 8px !important;
+    margin: 0 12px 12px 12px !important;
+  }
+  .kpi-row > .kpi-mini {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: 0 !important;
+    padding: 10px 12px !important;
+  }
+
+  /* --- Header --- */
+  .header {
+    flex-wrap: wrap !important;
+    padding: 12px 16px 12px 56px !important;
+    gap: 8px !important;
+  }
+  .header h1 {
+    font-size: 1.2rem !important;
+  }
+  .header p {
+    font-size: 0.75rem !important;
+  }
+
+  /* --- Fecha/period banner --- */
+  #fecha-actual-banner {
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin: 0 12px 12px 12px !important;
+    padding: 10px 14px !important;
+  }
+  #fecha-actual-banner > div {
+    justify-content: center !important;
+  }
+
+  /* --- Tablas — scroll horizontal --- */
+  #tabla-ingredientes,
+  #tabla-recetas,
+  #tabla-proveedores,
+  #tabla-pedidos,
+  #tabla-ventas,
+  #tabla-inventario,
+  #tabla-rentabilidad,
+  #tabla-equipo,
+  .table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-width: calc(100vw - 24px);
+  }
+  table {
+    min-width: 650px !important;
+    font-size: 12px !important;
+  }
+  th {
+    padding: 10px 8px !important;
+    font-size: 11px !important;
+  }
+  td {
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+  }
+  .icon-btn {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 14px !important;
+  }
+
+  /* --- Form grids (2-col → 1-col) --- */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .form-card {
+    padding: 16px !important;
+  }
+
+  /* --- Ingrediente item (4-col → 2-col) --- */
+  .ingrediente-item {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* --- Top bar (flex row → column) --- */
+  .top-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+  .top-bar h2 {
+    font-size: 20px !important;
+  }
+  .top-bar > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .top-bar .btn {
+    padding: 10px 14px !important;
+    font-size: 12px !important;
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* --- Ventas form (3-col → 1-col) --- */
+  #form-venta {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* --- Modales (800px → 95vw) --- */
+  .modal-content {
+    width: 95vw !important;
+    min-width: unset !important;
+    max-width: 95vw !important;
+    max-height: 85vh !important;
+    padding: 16px !important;
+    border-radius: 12px !important;
+  }
+  .modal-content h3 {
+    font-size: 18px !important;
+  }
+  .modal-content .form-grid,
+  .modal-content div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* --- Diario tab --- */
+  #tab-diario div[style*="grid-template-columns: repeat(2"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* --- Horarios tab --- */
+  #tab-horarios .top-bar {
+    text-align: center;
+  }
+  #tab-horarios .top-bar > div:last-child {
+    justify-content: center !important;
+  }
+  #tab-horarios .card > div[style*="justify-content: space-between"] {
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+  #tab-horarios .card > div[style*="justify-content: space-between"] > div[style*="display: flex"] {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 6px !important;
+  }
+
+  /* --- Analisis tab --- */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .bcg-legend-item {
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+  }
+
+  /* --- Inventario tab buttons --- */
+  #tab-inventario > div[style*="margin-bottom"] {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  #tab-inventario .btn {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* --- Global polish --- */
+  .main-content {
+    padding: 12px !important;
+  }
+  .main-card {
+    padding: 12px !important;
+  }
+  .card {
+    padding: 14px !important;
+  }
+  .summary {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .empty-state {
+    padding: 30px 16px !important;
+  }
+
+  /* Filter buttons compact */
+  #filtros-recetas .filter-btn,
+  #filtros-recetas button {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* ════════════════════════════════════════
+   RESPONSIVE — SMALL PHONES (≤480px)
+   ════════════════════════════════════════ */
+@media (max-width: 480px) {
+  /* KPI cards stack fully */
+  .kpi-row > .kpi-mini {
+    flex: 1 1 100% !important;
+  }
+
+  /* Ingrediente item full stack */
+  .ingrediente-item {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stats grid single column */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tables even more compact */
+  table {
+    min-width: 550px !important;
   }
 }
 
