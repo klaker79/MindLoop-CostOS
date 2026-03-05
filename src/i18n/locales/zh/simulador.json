@@ -1,0 +1,4 @@
+{
+  "profit_message": "盈利！您覆盖了 <strong>{{pct}}%</strong> 的固定成本。",
+  "loss_message": "亏损。您仅覆盖了 <strong>{{pct}}%</strong> 的固定成本。"
+}

@@ -16,6 +16,7 @@
   "language_label": "Idioma de la aplicación",
   "language_es": "Español",
   "language_en": "English",
+  "language_zh": "中文",
   "toast_saved": "Configuración guardada",
   "toast_error_saving": "Error guardando configuración: {{message}}",
   "current_plan": "Plan actual: {{plan}}",

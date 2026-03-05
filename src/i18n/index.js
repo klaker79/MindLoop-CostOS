@@ -58,7 +58,27 @@ import en_inteligencia from './locales/en/inteligencia.json';
 import en_simulador from './locales/en/simulador.json';
 import en_onboarding from './locales/en/onboarding.json';
 
-const SUPPORTED_LANGS = ['es', 'en'];
+import zh_common from './locales/zh/common.json';
+import zh_ingredientes from './locales/zh/ingredientes.json';
+import zh_recetas from './locales/zh/recetas.json';
+import zh_proveedores from './locales/zh/proveedores.json';
+import zh_pedidos from './locales/zh/pedidos.json';
+import zh_ventas from './locales/zh/ventas.json';
+import zh_inventario from './locales/zh/inventario.json';
+import zh_dashboard from './locales/zh/dashboard.json';
+import zh_auth from './locales/zh/auth.json';
+import zh_chat from './locales/zh/chat.json';
+import zh_equipo from './locales/zh/equipo.json';
+import zh_horarios from './locales/zh/horarios.json';
+import zh_balance from './locales/zh/balance.json';
+import zh_alertas from './locales/zh/alertas.json';
+import zh_export from './locales/zh/export.json';
+import zh_settings from './locales/zh/settings.json';
+import zh_inteligencia from './locales/zh/inteligencia.json';
+import zh_simulador from './locales/zh/simulador.json';
+import zh_onboarding from './locales/zh/onboarding.json';
+
+const SUPPORTED_LANGS = ['es', 'en', 'zh'];
 const DEFAULT_LANG = 'es';
 const NAMESPACES = [
     'common', 'ingredientes', 'recetas', 'proveedores',
@@ -119,6 +139,27 @@ i18next
                 inteligencia: en_inteligencia,
                 simulador: en_simulador,
                 onboarding: en_onboarding,
+            },
+            zh: {
+                common: zh_common,
+                ingredientes: zh_ingredientes,
+                recetas: zh_recetas,
+                proveedores: zh_proveedores,
+                pedidos: zh_pedidos,
+                ventas: zh_ventas,
+                inventario: zh_inventario,
+                dashboard: zh_dashboard,
+                auth: zh_auth,
+                chat: zh_chat,
+                equipo: zh_equipo,
+                horarios: zh_horarios,
+                balance: zh_balance,
+                alertas: zh_alertas,
+                export: zh_export,
+                settings: zh_settings,
+                inteligencia: zh_inteligencia,
+                simulador: zh_simulador,
+                onboarding: zh_onboarding,
             },
         },
 
