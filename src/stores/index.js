@@ -75,6 +75,7 @@ export function initializeStores() {
     window.currentUser = authState.user;
     window.isAuthenticated = authState.isAuthenticated;
 
+    // eslint-disable-next-line no-console
     console.log('✅ Zustand stores initialized');
 }
 
