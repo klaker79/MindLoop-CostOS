@@ -18,7 +18,7 @@
  * Una vez migrados todos, ELIMINAR este archivo.
  */
 
-import { api, apiClient } from '../api/client.js';
+import { api, apiClient as _apiClient } from '../api/client.js';
 import { getApiUrl } from '../config/app-config.js';
 
 const API_BASE = getApiUrl();
@@ -78,7 +78,7 @@ async function fetchAPI(endpoint, options = {}, retries = 2) {
             try {
                 const errorData = await response.json();
                 errorMessage = errorData.error || errorData.message || errorMessage;
-            } catch (e) { /* no-op */ }
+            } catch (_e) { /* no-op */ }
 
             // 401 → clean auth state and redirect
             if (response.status === 401) {

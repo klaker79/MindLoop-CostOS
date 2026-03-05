@@ -1520,12 +1520,12 @@ function renderizarTablaProveedoresDiarios() {
     });
     const totalGeneral = proveedoresOrdenados.reduce((sum, [, data]) => sum + data.total, 0);
 
-    let html = '<h3 style="margin-bottom: 15px;">📦 Compras por Proveedor / Día</h3>';
+    let html = `<h3 style="margin-bottom: 15px;">${window.t('balance:supplier_title')}</h3>`;
     html += '<table style="min-width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden;">';
 
     // Header
     html += '<thead><tr>';
-    html += '<th style="position: sticky; left: 0; background: linear-gradient(135deg, #F0F4FF 0%, #E8EDFF 100%); z-index: 1; border-right: 2px solid #CBD5E1; border-bottom: 2px solid #CBD5E1; padding: 14px 16px; font-weight: 700; color: #334155; min-width: 180px;">Proveedor</th>';
+    html += `<th style="position: sticky; left: 0; background: linear-gradient(135deg, #F0F4FF 0%, #E8EDFF 100%); z-index: 1; border-right: 2px solid #CBD5E1; border-bottom: 2px solid #CBD5E1; padding: 14px 16px; font-weight: 700; color: #334155; min-width: 180px;">${window.t('balance:supplier_col_name')}</th>`;
     dias.forEach(dia => {
         const fecha = new Date(dia + 'T12:00:00');
         const dayNames = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
@@ -1571,7 +1571,7 @@ function renderizarTablaProveedoresDiarios() {
 
     // Fila de totales
     html += '<tr style="border-top: 2px solid #CBD5E1;">';
-    html += '<td style="position: sticky; left: 0; background: linear-gradient(135deg, #F0F4FF 0%, #E8EDFF 100%); padding: 14px 16px; border-right: 2px solid #CBD5E1; font-weight: 700; color: #334155;">TOTAL / DÍA</td>';
+    html += `<td style="position: sticky; left: 0; background: linear-gradient(135deg, #F0F4FF 0%, #E8EDFF 100%); padding: 14px 16px; border-right: 2px solid #CBD5E1; font-weight: 700; color: #334155;">${window.t('balance:supplier_total_day')}</td>`;
     dias.forEach(dia => {
         const total = totalesPorDia[dia] || 0;
         if (total > 0) {
@@ -1657,20 +1657,20 @@ async function renderizarTablaPLDiario() {
     let html = `
     <div style="margin-bottom: 24px;">
         <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-            📊 Cuenta de Resultados Diaria
-            <span style="font-size: 12px; color: #64748b; font-weight: normal;">(P&L Operativo)</span>
+            ${window.t('balance:pl_title')}
+            <span style="font-size: 12px; color: #64748b; font-weight: normal;">${window.t('balance:pl_subtitle')}</span>
         </h3>
         <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
     `;
 
     // Header
-    html += '<thead><tr><th style="position: sticky; left: 0; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); padding: 14px 16px; text-align: left; font-weight: 600; color: #334155; border-bottom: 2px solid #cbd5e1;">Concepto</th>';
+    html += `<thead><tr><th style="position: sticky; left: 0; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); padding: 14px 16px; text-align: left; font-weight: 600; color: #334155; border-bottom: 2px solid #cbd5e1;">${window.t('balance:pl_concept')}</th>`;
     dias.forEach(dia => {
         const fecha = new Date(dia + 'T12:00:00');
-        const diaSemana = fecha.toLocaleDateString('es-ES', { weekday: 'short' }).charAt(0).toUpperCase();
+        const diaSemana = fecha.toLocaleDateString((window.getCurrentLanguage?.() || 'es') === 'en' ? 'en-US' : 'es-ES', { weekday: 'short' }).charAt(0).toUpperCase();
         html += `<th style="min-width: 85px; text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border-bottom: 2px solid #cbd5e1; font-weight: 600; color: #334155;">${diaSemana} ${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
     });
-    html += '<th style="background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: white; padding: 14px 16px; font-weight: 700;">TOTAL MES</th></tr></thead>';
+    html += `<th style="background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: white; padding: 14px 16px; font-weight: 700;">${window.t('balance:pl_total_month')}</th></tr></thead>`;
 
     // Body
     html += '<tbody>';
@@ -1678,7 +1678,7 @@ async function renderizarTablaPLDiario() {
     let totalIngresos = 0, totalCostes = 0;
 
     // ── FILA: INGRESOS ──
-    html += '<tr style="background: #f0fdf4;"><td style="position: sticky; left: 0; background: #f0fdf4; padding: 16px; font-weight: 600; color: #166534; border-bottom: 1px solid #bbf7d0;">📈 INGRESOS</td>';
+    html += `<tr style="background: #f0fdf4;"><td style="position: sticky; left: 0; background: #f0fdf4; padding: 16px; font-weight: 600; color: #166534; border-bottom: 1px solid #bbf7d0;">${window.t('balance:pl_revenue')}</td>`;
     dias.forEach(dia => {
         const val = totalesPorDia[dia].ingresos;
         totalIngresos += val;
@@ -1687,7 +1687,7 @@ async function renderizarTablaPLDiario() {
     html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalIngresos.toFixed(2)}€</td></tr>`;
 
     // ── FILA: COSTES DE PRODUCCIÓN ──
-    html += '<tr style="background: #fef2f2;"><td style="position: sticky; left: 0; background: #fef2f2; padding: 16px; font-weight: 600; color: #991b1b; border-bottom: 1px solid #fecaca;">📉 COSTES PROD.</td>';
+    html += `<tr style="background: #fef2f2;"><td style="position: sticky; left: 0; background: #fef2f2; padding: 16px; font-weight: 600; color: #991b1b; border-bottom: 1px solid #fecaca;">${window.t('balance:pl_cogs')}</td>`;
     dias.forEach(dia => {
         const val = totalesPorDia[dia].costes;
         totalCostes += val;
@@ -1696,11 +1696,11 @@ async function renderizarTablaPLDiario() {
     html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalCostes.toFixed(2)}€</td></tr>`;
 
     // ── SEPARADOR ──
-    html += '<tr><td colspan="' + (dias.length + 2) + '" style="height: 3px; background: linear-gradient(90deg, #e2e8f0 0%, #94a3b8 50%, #e2e8f0 100%); padding: 0;"></td></tr>';
+    html += `<tr><td colspan="${dias.length + 2}" style="height: 3px; background: linear-gradient(90deg, #e2e8f0 0%, #94a3b8 50%, #e2e8f0 100%); padding: 0;"></td></tr>`;
 
     // ── FILA: MARGEN BRUTO (INGRESOS - COSTES PROD) ──
     const totalMargenBruto = totalIngresos - totalCostes;
-    html += '<tr style="background: #fef3c7;"><td style="position: sticky; left: 0; background: #fef3c7; padding: 16px; font-weight: 700; color: #92400e; border-bottom: 1px solid #fcd34d;">💰 MARGEN BRUTO</td>';
+    html += `<tr style="background: #fef3c7;"><td style="position: sticky; left: 0; background: #fef3c7; padding: 16px; font-weight: 700; color: #92400e; border-bottom: 1px solid #fcd34d;">${window.t('balance:pl_gross_margin')}</td>`;
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
         const color = margenDia >= 0 ? '#d97706' : '#dc2626';
@@ -1710,18 +1710,18 @@ async function renderizarTablaPLDiario() {
 
     // ── FILA: GASTOS FIJOS / DÍA ──
     const totalGastosFijosMostrados = gastosFijosDia * dias.length;
-    html += '<tr style="background: #fce7f3;"><td style="position: sticky; left: 0; background: #fce7f3; padding: 16px; font-weight: 600; color: #9d174d; border-bottom: 1px solid #f9a8d4;">🏢 GASTOS FIJOS/DÍA</td>';
+    html += `<tr style="background: #fce7f3;"><td style="position: sticky; left: 0; background: #fce7f3; padding: 16px; font-weight: 600; color: #9d174d; border-bottom: 1px solid #f9a8d4;">${window.t('balance:pl_fixed_expenses')}</td>`;
     dias.forEach(() => {
         html += `<td style="text-align: center; padding: 16px 8px; color: #be185d; border-bottom: 1px solid #f9a8d4;">${gastosFijosDia.toFixed(2)}€</td>`;
     });
     html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalGastosFijosMostrados.toFixed(2)}€</td></tr>`;
 
     // ── SEPARADOR GRUESO ──
-    html += '<tr><td colspan="' + (dias.length + 2) + '" style="height: 4px; background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #1e40af 100%); padding: 0;"></td></tr>';
+    html += `<tr><td colspan="${dias.length + 2}" style="height: 4px; background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #1e40af 100%); padding: 0;"></td></tr>`;
 
     // ── FILA: BENEFICIO NETO (MARGEN BRUTO - GASTOS FIJOS) ──
     let totalBeneficioNeto = 0;
-    html += '<tr style="background: #dbeafe;"><td style="position: sticky; left: 0; background: #dbeafe; padding: 18px 16px; font-weight: 700; font-size: 15px; color: #1e40af; border-bottom: 2px solid #93c5fd;">✅ BENEFICIO NETO</td>';
+    html += `<tr style="background: #dbeafe;"><td style="position: sticky; left: 0; background: #dbeafe; padding: 18px 16px; font-weight: 700; font-size: 15px; color: #1e40af; border-bottom: 2px solid #93c5fd;">${window.t('balance:pl_net_profit')}</td>`;
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
         const beneficioNeto = margenDia - gastosFijosDia;
@@ -1744,16 +1744,16 @@ async function renderizarTablaPLDiario() {
     html += `
     <div style="margin-top: 24px; padding: 20px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-radius: 12px; border: 1px solid #fcd34d;">
         <h4 style="margin: 0 0 16px 0; color: #92400e; font-size: 15px; display: flex; align-items: center; gap: 8px;">
-            💳 Flujo de Caja - Compras a Proveedores
-            <span style="font-size: 11px; color: #a16207; font-weight: normal; background: #fef9c3; padding: 2px 8px; border-radius: 4px;">⚠️ No afecta al P&L, va al inventario</span>
+            ${window.t('balance:cashflow_title')}
+            <span style="font-size: 11px; color: #a16207; font-weight: normal; background: #fef9c3; padding: 2px 8px; border-radius: 4px;">${window.t('balance:cashflow_warning')}</span>
         </h4>
         <div style="display: flex; gap: 24px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 200px;">
-                <div style="font-size: 12px; color: #92400e; margin-bottom: 4px;">Total Compras del Período</div>
+                <div style="font-size: 12px; color: #92400e; margin-bottom: 4px;">${window.t('balance:cashflow_total')}</div>
                 <div style="font-size: 28px; font-weight: 700; color: #d97706;">${totalCompras.toFixed(2)}€</div>
             </div>
             <div style="flex: 2; min-width: 300px;">
-                <div style="font-size: 12px; color: #92400e; margin-bottom: 8px;">Desglose por día:</div>
+                <div style="font-size: 12px; color: #92400e; margin-bottom: 8px;">${window.t('balance:cashflow_breakdown')}</div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
     `;
 
@@ -1770,7 +1770,7 @@ async function renderizarTablaPLDiario() {
             </div>
         </div>
         <div style="margin-top: 16px; padding-top: 12px; border-top: 1px dashed #fcd34d; font-size: 12px; color: #92400e;">
-            💡 <strong>Nota:</strong> Las compras aumentan tu inventario (activo). El coste de producción refleja lo que realmente consumiste al vender.
+            ${window.t('balance:cashflow_note')}
         </div>
     </div>
     `;

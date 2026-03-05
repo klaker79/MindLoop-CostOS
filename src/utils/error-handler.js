@@ -199,6 +199,7 @@ export function initGlobalErrorHandlers() {
         event.preventDefault();
     });
 
+    // eslint-disable-next-line no-console
     console.log('✅ Global error handlers initialized');
 }
 

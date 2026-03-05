@@ -1205,7 +1205,7 @@
                     .map(d => d.nombre)
                     .slice(0, 3);
                 recs.push(
-                    `🚨 <strong>Retira o reforma ${counts.perro} plato(s):</strong> ${perros.join(', ')}${counts.perro > 3 ? '...' : ''} - No generan beneficio ni se venden.`
+                    window.t('balance:rec_remove_dishes', { count: counts.perro, dishes: perros.join(', ') + (counts.perro > 3 ? '...' : '') })
                 );
             }
 
@@ -1216,7 +1216,7 @@
                     .map(d => d.nombre)
                     .slice(0, 2);
                 recs.push(
-                    `💰 <strong>Sube el precio de:</strong> ${caballos.join(', ')} - Se venden bien pero tu margen es bajo.`
+                    window.t('balance:rec_raise_price', { dishes: caballos.join(', ') })
                 );
             }
 
@@ -1227,20 +1227,20 @@
                     .map(d => d.nombre)
                     .slice(0, 2);
                 recs.push(
-                    `📢 <strong>Promociona más:</strong> ${puzzles.join(', ')} - Tienen buen margen pero poca visibilidad.`
+                    window.t('balance:rec_promote', { dishes: puzzles.join(', ') })
                 );
             }
 
             // Recomendación positiva si hay estrellas
             if (counts.estrella > 0) {
                 recs.push(
-                    `✨ <strong>¡Excelente!</strong> Tienes ${counts.estrella} plato(s) estrella. Manténlos destacados en la carta.`
+                    window.t('balance:rec_stars', { count: counts.estrella })
                 );
             }
 
             // Si no hay datos significativos
             if (recs.length === 0) {
-                recs.push('📊 Registra más ventas para obtener recomendaciones personalizadas.');
+                recs.push(window.t('balance:rec_more_data'));
             }
 
             recsEl.innerHTML = recs

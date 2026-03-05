@@ -124,7 +124,7 @@ export const authStore = createStore((set, get) => ({
                 get().logout();
                 return false;
             }
-        } catch (error) {
+        } catch (_error) {
             get().logout();
             return false;
         } finally {
