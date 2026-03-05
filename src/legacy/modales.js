@@ -567,25 +567,25 @@ async function renderizarBeneficioNetoDiario() {
         puntoEquilibrioHTML = `
           <div style="background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 16px; border-radius: 12px; margin-bottom: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="color: white; font-weight: 600; font-size: 13px;">🎯 Punto de Equilibrio Mensual</span>
+              <span style="color: white; font-weight: 600; font-size: 13px;">${window.t('balance:breakeven_title')}</span>
               <span style="color: ${progresoColor}; font-weight: 700; font-size: 14px;">${progresoIcon} ${progreso.toFixed(0)}%</span>
             </div>
             <div style="background: rgba(255,255,255,0.1); border-radius: 8px; height: 12px; overflow: hidden; margin-bottom: 12px;">
               <div style="background: linear-gradient(90deg, ${progresoColor}, ${progresoColor}99); height: 100%; width: ${progreso}%; border-radius: 8px; transition: width 0.5s;"></div>
             </div>
             <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.8); font-size: 12px;">
-              <span><strong style="color: white;">${ventasMes}</strong> / ${puntoEquilibrio} platos</span>
-              <span>Margen/plato: <strong style="color: #10b981;">${margenPromedio.toFixed(2)}€</strong></span>
+              <span><strong style="color: white;">${ventasMes}</strong> / ${puntoEquilibrio} ${window.t('balance:breakeven_dishes')}</span>
+              <span>${window.t('balance:breakeven_margin_dish')} <strong style="color: #10b981;">${margenPromedio.toFixed(2)}€</strong></span>
             </div>
             ${faltantes > 0
                 ? `
               <div style="margin-top: 10px; padding: 8px; background: rgba(239, 68, 68, 0.2); border-radius: 6px; text-align: center;">
-                <span style="color: #fca5a5; font-size: 12px;">Te faltan <strong style="color: white;">${faltantes} platos</strong> (~${ventasFaltantes.toFixed(0)}€ en ventas)</span>
+                <span style="color: #fca5a5; font-size: 12px;">${window.t('balance:breakeven_missing', { count: faltantes, amount: ventasFaltantes.toFixed(0) })}</span>
               </div>
             `
                 : `
               <div style="margin-top: 10px; padding: 8px; background: rgba(16, 185, 129, 0.2); border-radius: 6px; text-align: center;">
-                <span style="color: #6ee7b7; font-size: 12px;">✅ ¡Gastos fijos cubiertos! Todo desde aquí es beneficio</span>
+                <span style="color: #6ee7b7; font-size: 12px;">${window.t('balance:breakeven_covered')}</span>
               </div>
             `
             }
@@ -606,7 +606,7 @@ async function renderizarBeneficioNetoDiario() {
     const gastosPendientesHTML = diasSinActividad > 0 ? `
         <div style="background: #fef3c7; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #fcd34d;">
           <div style="font-size: 11px; color: #92400e; text-align: center;">
-            ⚠️ <strong>${diasSinActividad} días sin actividad</strong> → ${gastosPendientes.toFixed(2)}€ pendientes de cubrir
+            ⚠️ <strong>${window.t('balance:net_profit_inactive_days', { count: diasSinActividad })}</strong> → ${window.t('balance:net_profit_pending', { amount: gastosPendientes.toFixed(2) })}
           </div>
         </div>
     ` : '';
@@ -615,19 +615,19 @@ async function renderizarBeneficioNetoDiario() {
         ${puntoEquilibrioHTML}
         <div style="background: ${finalBg}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
           <div style="text-align: center; font-size: 13px; color: ${finalColor}; font-weight: 600; margin-bottom: 8px;">
-            ${finalIcon} Beneficio días operativos: <strong>${acumulado.toFixed(2)}€</strong>
+            ${finalIcon} ${window.t('balance:net_profit_operating')} <strong>${acumulado.toFixed(2)}€</strong>
           </div>
           ${gastosPendientesHTML}
           <div style="text-align: center; font-size: 14px; font-weight: 700; color: ${beneficioRealTotal >= 0 ? '#059669' : '#dc2626'}; padding: 8px; background: white; border-radius: 6px; margin-bottom: 8px;">
-            📊 Beneficio REAL: ${beneficioRealTotal.toFixed(2)}€
+            ${window.t('balance:net_profit_real')} ${beneficioRealTotal.toFixed(2)}€
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
             <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
-              <div style="color: #64748B;">📅 Días operativos</div>
-              <div style="color: #1e293b; font-weight: 700;">${diasConDatos} de ${ultimoDiaMostrar}</div>
+              <div style="color: #64748B;">${window.t('balance:net_profit_operating_days')}</div>
+              <div style="color: #1e293b; font-weight: 700;">${diasConDatos} ${window.t('balance:net_profit_of')} ${ultimoDiaMostrar}</div>
             </div>
             <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
-              <div style="color: #64748B;">🎯 Proyección mes</div>
+              <div style="color: #64748B;">${window.t('balance:net_profit_projection')}</div>
               <div style="color: ${proyeccionFinMes >= 0 ? '#059669' : '#dc2626'}; font-weight: 700;">${proyeccionFinMes.toFixed(2)}€</div>
             </div>
           </div>
