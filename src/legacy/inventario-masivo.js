@@ -1524,7 +1524,7 @@ function renderizarTablaProveedoresDiarios() {
     html += '<table style="min-width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden;">';
 
     // Header
-    html += `<thead><tr>';
+    html += '<thead><tr>';
     html += `<th style="position: sticky; left: 0; background: linear-gradient(135deg, #F0F4FF 0%, #E8EDFF 100%); z-index: 1; border-right: 2px solid #CBD5E1; border-bottom: 2px solid #CBD5E1; padding: 14px 16px; font-weight: 700; color: #334155; min-width: 180px;">${window.t('balance:supplier_col_name')}</th>`;
     dias.forEach(dia => {
         const fecha = new Date(dia + 'T12:00:00');
@@ -1570,7 +1570,7 @@ function renderizarTablaProveedoresDiarios() {
     });
 
     // Fila de totales
-    html += `<tr style="border-top: 2px solid #CBD5E1;">';
+    html += '<tr style="border-top: 2px solid #CBD5E1;">';
     html += `<td style="position: sticky; left: 0; background: linear-gradient(135deg, #F0F4FF 0%, #E8EDFF 100%); padding: 14px 16px; border-right: 2px solid #CBD5E1; font-weight: 700; color: #334155;">${window.t('balance:supplier_total_day')}</td>`;
     dias.forEach(dia => {
         const total = totalesPorDia[dia] || 0;
@@ -1696,11 +1696,11 @@ async function renderizarTablaPLDiario() {
     html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalCostes.toFixed(2)}€</td></tr>`;
 
     // ── SEPARADOR ──
-    html += `<tr><td colspan="' + (dias.length + 2) + '" style="height: 3px; background: linear-gradient(90deg, #e2e8f0 0%, #94a3b8 50%, #e2e8f0 100%); padding: 0;"></td></tr>';
+    html += `<tr><td colspan="${dias.length + 2}" style="height: 3px; background: linear-gradient(90deg, #e2e8f0 0%, #94a3b8 50%, #e2e8f0 100%); padding: 0;"></td></tr>`;
 
     // ── FILA: MARGEN BRUTO (INGRESOS - COSTES PROD) ──
     const totalMargenBruto = totalIngresos - totalCostes;
-    html += '<tr style="background: #fef3c7;"><td style="position: sticky; left: 0; background: #fef3c7; padding: 16px; font-weight: 700; color: #92400e; border-bottom: 1px solid #fcd34d;">${window.t('balance:pl_gross_margin')}</td>`;
+    html += `<tr style="background: #fef3c7;"><td style="position: sticky; left: 0; background: #fef3c7; padding: 16px; font-weight: 700; color: #92400e; border-bottom: 1px solid #fcd34d;">${window.t('balance:pl_gross_margin')}</td>`;
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
         const color = margenDia >= 0 ? '#d97706' : '#dc2626';
@@ -1717,11 +1717,11 @@ async function renderizarTablaPLDiario() {
     html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalGastosFijosMostrados.toFixed(2)}€</td></tr>`;
 
     // ── SEPARADOR GRUESO ──
-    html += `<tr><td colspan="' + (dias.length + 2) + '" style="height: 4px; background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #1e40af 100%); padding: 0;"></td></tr>';
+    html += `<tr><td colspan="${dias.length + 2}" style="height: 4px; background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #1e40af 100%); padding: 0;"></td></tr>`;
 
     // ── FILA: BENEFICIO NETO (MARGEN BRUTO - GASTOS FIJOS) ──
     let totalBeneficioNeto = 0;
-    html += '<tr style="background: #dbeafe;"><td style="position: sticky; left: 0; background: #dbeafe; padding: 18px 16px; font-weight: 700; font-size: 15px; color: #1e40af; border-bottom: 2px solid #93c5fd;">${window.t('balance:pl_net_profit')}</td>`;
+    html += `<tr style="background: #dbeafe;"><td style="position: sticky; left: 0; background: #dbeafe; padding: 18px 16px; font-weight: 700; font-size: 15px; color: #1e40af; border-bottom: 2px solid #93c5fd;">${window.t('balance:pl_net_profit')}</td>`;
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
         const beneficioNeto = margenDia - gastosFijosDia;
