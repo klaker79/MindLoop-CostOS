@@ -1,0 +1,12 @@
+{
+  "title": "警报",
+  "section_low_stock": "库存不足",
+  "section_pending_orders": "待处理订单",
+  "no_stock": "缺货",
+  "stock_min": "(最低: {{min}})",
+  "suggestion_first_inventory": "建议：进行首次库存盘点",
+  "suggestion_first_inventory_desc": "保持库存更新以确保准确计算",
+  "inventory_days_old": "库存：{{days}} 天未更新",
+  "inventory_update_hint": "检查库存以保持数据准确",
+  "pending_order_days": "订单 #{{id}} 已待处理 {{days}} 天"
+}

@@ -1,0 +1,11 @@
+{
+    "welcome_title": "欢迎使用 CostOS",
+    "welcome_subtitle": "您的餐厅已准备就绪。请选择开始方式。",
+    "self_title": "自行设置",
+    "self_desc": "开始添加您的食材、供应商和菜品。已加载基础模板。",
+    "self_cta": "立即开始",
+    "assisted_title": "辅助设置",
+    "assisted_desc": "我们的团队为您配置食材、菜品和成本分析。只需发送您的菜单。",
+    "assisted_cta": "申请设置",
+    "hint": "您可以关闭此窗口，随时从设置中返回。"
+}
