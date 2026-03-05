@@ -163,8 +163,15 @@ async function actualizarKPIsPorPeriodo(periodo) {
         const platoEstrellaEl = document.getElementById('plato-estrella-hoy');
         if (platoEstrellaEl) {
             const platosCount = {};
+            const recetasMap = new Map((window.recetas || []).map(r => [r.id, r]));
             ventasFiltradas.forEach(v => {
                 const nombre = v.receta_nombre || v.nombre || t('dashboard:unknown_recipe');
+                // Solo contar alimentos (excluir bebidas, base, pan)
+                const recetaId = parseInt(v.receta_id || v.recetaId);
+                const receta = recetasMap.get(recetaId);
+                const cat = (receta?.categoria || '').toLowerCase();
+                if (cat && cat !== 'alimentos') return;
+                if (nombre.toLowerCase().startsWith('pan')) return;
                 platosCount[nombre] = (platosCount[nombre] || 0) + (parseInt(v.cantidad) || 1);
             });
             const platoEstrella = Object.entries(platosCount).sort((a, b) => b[1] - a[1])[0];
