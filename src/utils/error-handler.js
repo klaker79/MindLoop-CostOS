@@ -86,6 +86,7 @@ export function handleError(error, context = '', options = {}) {
     const classified = classifyError(error);
 
     // Log para debugging
+    // eslint-disable-next-line no-console
     console.error(`❌ Error ${context ? 'en ' + context : ''}:`, {
         type: classified.type,
         message: classified.message,
@@ -164,6 +165,7 @@ export async function withRetry(fn, maxRetries = 2, delayMs = 1000) {
 
             // Si hay más reintentos, esperar
             if (attempt < maxRetries) {
+                // eslint-disable-next-line no-console
                 console.warn(`⚠️ Reintento ${attempt + 1}/${maxRetries} en ${delayMs}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delayMs));
             }
@@ -179,6 +181,7 @@ export async function withRetry(fn, maxRetries = 2, delayMs = 1000) {
 export function initGlobalErrorHandlers() {
     // Errores síncronos no capturados
     window.addEventListener('error', (event) => {
+        // eslint-disable-next-line no-console
         console.error('🔴 Error global no capturado:', event.error);
 
         // No mostrar toast para errores de scripts externos
@@ -191,6 +194,7 @@ export function initGlobalErrorHandlers() {
 
     // Promesas rechazadas no capturadas
     window.addEventListener('unhandledrejection', (event) => {
+        // eslint-disable-next-line no-console
         console.error('🔴 Promise rechazada no capturada:', event.reason);
 
         handleError(event.reason, 'promesa no manejada', { showToast: true });
@@ -199,6 +203,7 @@ export function initGlobalErrorHandlers() {
         event.preventDefault();
     });
 
+    // eslint-disable-next-line no-console
     console.log('✅ Global error handlers initialized');
 }
 

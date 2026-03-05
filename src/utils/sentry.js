@@ -18,6 +18,7 @@ export function initSentry() {
         && !window.location.hostname.includes('127.0.0.1');
 
     if (!isProduction) {
+        // eslint-disable-next-line no-console
         console.log('🔇 Sentry desactivado en desarrollo');
         return;
     }
