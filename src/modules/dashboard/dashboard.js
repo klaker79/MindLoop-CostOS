@@ -165,6 +165,8 @@ async function actualizarKPIsPorPeriodo(periodo) {
             const platosCount = {};
             ventasFiltradas.forEach(v => {
                 const nombre = v.receta_nombre || v.nombre || t('dashboard:unknown_recipe');
+                // Excluir pan (se sirve a todos, no es un plato estrella real)
+                if (nombre.toLowerCase().startsWith('pan')) return;
                 platosCount[nombre] = (platosCount[nombre] || 0) + (parseInt(v.cantidad) || 1);
             });
             const platoEstrella = Object.entries(platosCount).sort((a, b) => b[1] - a[1])[0];
