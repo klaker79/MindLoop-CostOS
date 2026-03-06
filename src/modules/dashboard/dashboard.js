@@ -66,7 +66,8 @@ export function inicializarFechaActual() {
             fechaTexto.textContent =
                 fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
         } catch (e) {
-            const fallbackLocale = getCurrentLanguage() === 'en' ? 'en-US' : 'es-ES';
+            const fl = getCurrentLanguage();
+            const fallbackLocale = fl === 'en' ? 'en-US' : fl === 'zh' ? 'zh-CN' : 'es-ES';
             fechaTexto.textContent = new Date().toLocaleDateString(fallbackLocale, {
                 weekday: 'long',
                 year: 'numeric',
@@ -81,10 +82,12 @@ export function inicializarFechaActual() {
             const periodo = getPeriodoActual();
             const mesCapitalizado =
                 periodo.mesNombre.charAt(0).toUpperCase() + periodo.mesNombre.slice(1);
-            const weekLabel = getCurrentLanguage() === 'en' ? 'Week' : 'Semana';
-            periodoInfo.textContent = `${weekLabel} ${periodo.semana} · ${mesCapitalizado} ${periodo.año}`;
+            const lang = getCurrentLanguage();
+            const weekText = lang === 'en' ? `Week ${periodo.semana}` : lang === 'zh' ? `第${periodo.semana}周` : `Semana ${periodo.semana}`;
+            periodoInfo.textContent = `${weekText} · ${mesCapitalizado} ${periodo.año}`;
         } catch (e) {
-            const fallbackLocale2 = getCurrentLanguage() === 'en' ? 'en-US' : 'es-ES';
+            const l = getCurrentLanguage();
+            const fallbackLocale2 = l === 'en' ? 'en-US' : l === 'zh' ? 'zh-CN' : 'es-ES';
             periodoInfo.textContent = new Date().toLocaleDateString(fallbackLocale2, {
                 month: 'long',
                 year: 'numeric',
@@ -284,7 +287,7 @@ async function actualizarMargenReal(periodo) {
         // Detalle: Food Cost + Margen real
         if (fcDetail) {
             const margenReal = 100 - foodCost;
-            fcDetail.textContent = `Food Cost ${Math.round(foodCost)}% · ${t('dashboard:kpi_margin')} ${Math.round(margenReal)}%`;
+            fcDetail.textContent = `${t('dashboard:kpi_food_cost')} ${Math.round(foodCost)}% · ${t('dashboard:kpi_margin')} ${Math.round(margenReal)}%`;
         }
     } catch (error) {
         console.error('Error calculando food cost:', error);

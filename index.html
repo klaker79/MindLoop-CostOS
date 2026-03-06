@@ -238,6 +238,17 @@
             <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6" />
           </svg> EN
         </button>
+        <button class="lang-btn" data-lang="zh" onclick="window.changeLanguage('zh')"
+          style="flex: 1; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <svg viewBox="0 0 30 20" width="22" height="15" style="border-radius: 2px; flex-shrink: 0;">
+            <rect width="30" height="20" fill="#DE2910" />
+            <polygon points="5,2 6.2,5.6 3,3.7 7,3.7 3.8,5.6" fill="#FFDE00" />
+            <polygon points="10,1 10.4,2.2 9.2,1.5 10.8,1.5 9.6,2.2" fill="#FFDE00" />
+            <polygon points="12,3 12.4,4.2 11.2,3.5 12.8,3.5 11.6,4.2" fill="#FFDE00" />
+            <polygon points="12,6 12.4,7.2 11.2,6.5 12.8,6.5 11.6,7.2" fill="#FFDE00" />
+            <polygon points="10,8 10.4,9.2 9.2,8.5 10.8,8.5 9.6,9.2" fill="#FFDE00" />
+          </svg> 中文
+        </button>
       </div>
 
       <div class="sidebar-footer" style="position: relative;">
@@ -403,7 +414,7 @@
             <div style="flex: 1; min-width: 0;">
               <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-margen" data-animate="true"><span
                   class="skeleton skeleton-number" data-skeleton>⠀</span></div>
-              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">Food Cost</div>
+              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;" data-i18n="dashboard:kpi_food_cost">Food Cost</div>
               <div style="margin-top: 4px; height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;">
                 <div id="kpi-fc-bar"
                   style="height: 100%; width: 0%; border-radius: 2px; transition: width 0.8s ease, background 0.3s;">
@@ -1898,7 +1909,7 @@
             <div>
               <h2 style="color: white; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
                 <span style="font-size: 32px;">👥</span>
-                MindLoop Staff Scheduler
+                <span data-i18n="horarios:staff_scheduler_title">MindLoop Staff Scheduler</span>
               </h2>
               <p style="color: rgba(255,255,255,0.9); font-size: 15px;" data-i18n="horarios:staff_scheduler_subtitle">
                 Gestión inteligente de horarios y plantilla</p>

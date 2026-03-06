@@ -179,7 +179,7 @@ function showLowMarginModal(recipes) {
                         <tr>
                             <th>Receta</th>
                             <th>Margen</th>
-                            <th>Food Cost</th>
+                            <th>${_t('dashboard:kpi_food_cost')}</th>
                             <th>Precio</th>
                         </tr>
                     </thead>
