@@ -300,7 +300,17 @@ export async function aprobarBatchPendiente(batchId) {
 export async function cambiarIngredientePendiente(id, ingredienteId) {
     try {
         if (!ingredienteId) return;
-        await editarItemPendiente(id, { ingrediente_id: parseInt(ingredienteId) });
+
+        // 🔄 Look up ingredient price from cache to auto-fill
+        const ing = ingredientesCache.find(i => i.id === parseInt(ingredienteId));
+        const updates = { ingrediente_id: parseInt(ingredienteId) };
+
+        if (ing && parseFloat(ing.precio) > 0) {
+            // Use the ingredient's configured price (precio is per format unit)
+            updates.precio = parseFloat(ing.precio);
+        }
+
+        await editarItemPendiente(id, updates);
         window.showToast?.(t('pedidos:pending_ingredient_assigned'), 'success');
         await renderizarComprasPendientes();
     } catch (err) {
