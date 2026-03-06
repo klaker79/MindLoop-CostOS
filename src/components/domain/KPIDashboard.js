@@ -4,6 +4,7 @@
  */
 
 import { formatCurrency } from '../../utils/helpers.js';
+import { t } from '../../i18n/index.js';
 
 /**
  * Renderiza el dashboard de KPIs
@@ -22,33 +23,33 @@ export function renderKPIDashboard(data, container) {
                 <h3>Hoy</h3>
                 <div class="kpi-grid">
                     <div class="kpi-card">
-                        <span class="kpi-card__label">Ingresos</span>
+                        <span class="kpi-card__label">${t('dashboard:kpi_revenue')}</span>
                         <span class="kpi-card__value">${formatCurrency(daily.revenue || 0)}</span>
                     </div>
                     <div class="kpi-card">
-                        <span class="kpi-card__label">Coste</span>
+                        <span class="kpi-card__label">${t('dashboard:kpi_food_cost')}</span>
                         <span class="kpi-card__value">${formatCurrency(daily.cost || 0)}</span>
                     </div>
                     <div class="kpi-card">
-                        <span class="kpi-card__label">Beneficio</span>
+                        <span class="kpi-card__label">${t('dashboard:kpi_margin')}</span>
                         <span class="kpi-card__value ${(daily.grossProfit || 0) >= 0 ? 'positive' : 'negative'}">
                             ${formatCurrency(daily.grossProfit || 0)}
                         </span>
                     </div>
                     <div class="kpi-card">
-                        <span class="kpi-card__label">Margen</span>
+                        <span class="kpi-card__label">${t('dashboard:kpi_margin_real')}</span>
                         <span class="kpi-card__value ${getMarginClass(daily.margin || 0)}">
                             ${(daily.margin || 0).toFixed(1)}%
                         </span>
                     </div>
                     <div class="kpi-card">
-                        <span class="kpi-card__label">Food Cost</span>
+                        <span class="kpi-card__label">${t('dashboard:kpi_food_cost')}</span>
                         <span class="kpi-card__value ${(daily.foodCost || 0) > 35 ? 'warning' : ''}">
                             ${(daily.foodCost || 0).toFixed(1)}%
                         </span>
                     </div>
                     <div class="kpi-card">
-                        <span class="kpi-card__label">Ventas</span>
+                        <span class="kpi-card__label">${t('dashboard:sales_label')}</span>
                         <span class="kpi-card__value">${daily.saleCount || 0}</span>
                     </div>
                 </div>

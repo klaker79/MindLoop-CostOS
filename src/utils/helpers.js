@@ -209,7 +209,7 @@ export function getFechaHoy() {
 export function getFechaHoyFormateada() {
     const hoy = new Date();
     const lang = getCurrentLanguage();
-    const locale = lang === 'en' ? 'en-US' : 'es-ES';
+    const locale = lang === 'en' ? 'en-US' : lang === 'zh' ? 'zh-CN' : 'es-ES';
     const opciones = {
         weekday: 'long',
         year: 'numeric',
@@ -226,7 +226,7 @@ export function getFechaHoyFormateada() {
 export function getPeriodoActual() {
     const hoy = new Date();
     const lang = getCurrentLanguage();
-    const locale = lang === 'en' ? 'en-US' : 'es-ES';
+    const locale = lang === 'en' ? 'en-US' : lang === 'zh' ? 'zh-CN' : 'es-ES';
     const inicioAño = new Date(hoy.getFullYear(), 0, 1);
     const diasDesdeInicio = Math.floor((hoy - inicioAño) / (24 * 60 * 60 * 1000));
     const semana = Math.ceil((diasDesdeInicio + inicioAño.getDay() + 1) / 7);
