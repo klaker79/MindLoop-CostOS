@@ -233,9 +233,13 @@ export function calcularCosteRecetaCompleto(receta, _depth = 0) {
         const invItem = invMap.get(item.ingredienteId);
         const ing = ingMap.get(item.ingredienteId);
 
-        // 💰 CORREGIDO: Precio unitario = precio_medio del inventario, o precio/cantidad_por_formato
+        // 💰 Precio unitario: prioridad media compras > config > fallback
         let precio = 0;
-        if (invItem?.precio_medio) {
+        if (invItem?.precio_medio_compra) {
+            // Media real de compras (precios_compra_diarios)
+            precio = parseFloat(invItem.precio_medio_compra);
+        } else if (invItem?.precio_medio) {
+            // Precio config: precio / cantidad_por_formato
             precio = parseFloat(invItem.precio_medio);
         } else if (ing?.precio) {
             const precioFormato = parseFloat(ing.precio);

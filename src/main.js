@@ -199,7 +199,7 @@ window.cerrarModalProveedoresIngrediente = IngredientesProveedores.cerrarModalPr
 // MÓDULO: RECETAS ✅ (Legacy comentado)
 // ============================================
 import * as RecetasUI from './modules/recetas/recetas-ui.js';
-import * as RecetasCRUD from './modules/recetas/recetas-crud.js';
+import * as RecetasCRUD from './modules/recetas/recetas-crud.js?v=20260308-purchase-avg';
 
 // UI
 window.renderizarRecetas = RecetasUI.renderizarRecetas;
@@ -364,7 +364,7 @@ window.eliminarVenta = VentasCRUD.eliminarVenta;
 // ============================================
 // MÓDULO: DASHBOARD ⚙️ (Híbrido - ES6 tiene prioridad)
 // ============================================
-import * as Dashboard from './modules/dashboard/dashboard.js?v=20260308-stock-fix';
+import * as Dashboard from './modules/dashboard/dashboard.js?v=20260308-purchase-avg';
 
 window.actualizarKPIs = Dashboard.actualizarKPIs;
 
