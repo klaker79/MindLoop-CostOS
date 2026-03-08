@@ -6,7 +6,7 @@
     "display": "standalone",
     "background_color": "#1e1e2e",
     "theme_color": "#667eea",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "icons": [
         {
             "src": "/images/logo-sin-circulo.png",
