@@ -2,7 +2,7 @@
 // Requerido para PWA instalable
 // FIX: Eliminado /styles/main.css que no existe en producción (Vite genera /assets/main-{hash}.css)
 
-const CACHE_NAME = 'mindloop-costos-v3';
+const CACHE_NAME = 'mindloop-costos-v4';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

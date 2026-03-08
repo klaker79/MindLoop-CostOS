@@ -364,7 +364,7 @@ window.eliminarVenta = VentasCRUD.eliminarVenta;
 // ============================================
 // MÓDULO: DASHBOARD ⚙️ (Híbrido - ES6 tiene prioridad)
 // ============================================
-import * as Dashboard from './modules/dashboard/dashboard.js';
+import * as Dashboard from './modules/dashboard/dashboard.js?v=20260308-stock-fix';
 
 window.actualizarKPIs = Dashboard.actualizarKPIs;
 
