@@ -415,72 +415,58 @@ export async function actualizarKPIs() {
         // Usa ventas_diarias_resumen via /balance/mes para margen ponderado por ventas
         await actualizarMargenReal(periodoVistaActual);
 
-        // 5. VALOR STOCK TOTAL - BLINDADO: Solo recalcula con acción explícita
+        // 5. VALOR STOCK TOTAL — usa valor_stock del API (misma fuente que tab Inventario)
         try {
             const valorStockEl = document.getElementById('kpi-valor-stock');
             const itemsStockEl = document.getElementById('kpi-items-stock');
 
-            // � BLINDADO: Usar valor cacheado si existe, NO recalcular automáticamente
-            const cachedData = JSON.parse(sessionStorage.getItem('_stock_value_cache') || 'null');
-            const forceRecalc = window._forceRecalcStock === true;
-            window._forceRecalcStock = false; // Reset flag
+            const inventario = window.inventarioCompleto || [];
 
-            if (cachedData && !forceRecalc) {
-                // Usar valor cacheado
+            if (inventario.length > 0) {
+                // Sumar valor_stock pre-calculado por el backend (consistente con tab Inventario)
+                const valorTotal = inventario.reduce((sum, item) => {
+                    return sum + (parseFloat(item.valor_stock) || 0);
+                }, 0);
+
+                const itemsConStock = inventario.filter(i =>
+                    (parseFloat(i.stock_virtual) || 0) > 0
+                ).length;
+
                 if (valorStockEl) {
-                    valorStockEl.textContent = cachedData.valor.toLocaleString('es-ES', {
+                    valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {
                         maximumFractionDigits: 0
                     }) + '€';
                 }
                 if (itemsStockEl) {
-                    itemsStockEl.textContent = cachedData.items;
+                    itemsStockEl.textContent = itemsConStock;
                 }
-                console.log('📦 Valor Stock (CACHE):', cachedData.valor.toFixed(2) + '€');
+
+                console.log('📦 Valor Stock:', valorTotal.toFixed(2) + '€', '| Items:', itemsConStock, '(desde API valor_stock)');
             } else {
-                // Calcular y cachear
-                const ingredientes = ingredientStore.getState().ingredients;
-                const inventario = window.inventarioCompleto || [];
-                const invMap = new Map(inventario.map(i => [i.id, i]));
-
-                if (ingredientes.length > 0) {
-                    const valorTotal = ingredientes.reduce((sum, ing) => {
+                // inventarioCompleto aún no cargado — fallback con ingredientes
+                const ingredientesStock = ingredientStore.getState().ingredients;
+                if (ingredientesStock.length > 0) {
+                    const valorTotal = ingredientesStock.reduce((sum, ing) => {
                         const stock = parseFloat(ing.stock_actual) || 0;
-                        const invItem = invMap.get(ing.id);
-                        let precioUnitario = 0;
-
-                        if (invItem?.precio_medio) {
-                            precioUnitario = parseFloat(invItem.precio_medio);
-                        } else if (ing.precio) {
-                            const precioFormato = parseFloat(ing.precio) || 0;
-                            const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                            precioUnitario = precioFormato / cantidadPorFormato;
-                        }
-
+                        const precioFormato = parseFloat(ing.precio) || 0;
+                        const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
+                        const precioUnitario = precioFormato / cantidadPorFormato;
                         return sum + (stock * precioUnitario);
                     }, 0);
 
-                    const itemsConStock = ingredientes.filter(i =>
+                    const itemsConStock = ingredientesStock.filter(i =>
                         (parseFloat(i.stock_actual) || 0) > 0
                     ).length;
-
-                    // Guardar en caché de sesión
-                    sessionStorage.setItem('_stock_value_cache', JSON.stringify({
-                        valor: valorTotal,
-                        items: itemsConStock,
-                        timestamp: Date.now()
-                    }));
 
                     if (valorStockEl) {
                         valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {
                             maximumFractionDigits: 0
                         }) + '€';
                     }
-
                     if (itemsStockEl) {
                         itemsStockEl.textContent = itemsConStock;
                     }
-
-                    console.log('� Valor Stock (NUEVO):', valorTotal.toFixed(2) + '€', '| Items:', itemsConStock);
+                    console.log('📦 Valor Stock:', valorTotal.toFixed(2) + '€', '| Items:', itemsConStock, '(fallback - inventario no cargado)');
                 } else {
                     if (valorStockEl) valorStockEl.textContent = '0€';
                     if (itemsStockEl) itemsStockEl.textContent = '0';
