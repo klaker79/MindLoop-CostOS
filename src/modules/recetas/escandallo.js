@@ -80,9 +80,11 @@ export async function verEscandallo(recetaId) {
         }
 
         if (ing && !esSubreceta) {
-            // 💰 Precio unitario = precio_medio, o precio/cantidad_por_formato
+            // 💰 Precio unitario: prioridad media compras > config > fallback
             let precio = 0;
-            if (inv?.precio_medio) {
+            if (inv?.precio_medio_compra) {
+                precio = parseFloat(inv.precio_medio_compra);
+            } else if (inv?.precio_medio) {
                 precio = parseFloat(inv.precio_medio);
             } else if (ing.precio) {
                 const precioFormato = parseFloat(ing.precio);
