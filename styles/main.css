@@ -3111,6 +3111,215 @@ table tbody tr:nth-child(10) {
     font-size: 14px !important;
     padding: 10px 14px !important;
   }
+
+  /* ══════════════════════════════════════════
+     BCG MATRIX / MENU ENGINEERING — MOBILE
+     ══════════════════════════════════════════ */
+
+  /* BCG header: title + legend → stack vertically */
+  #bcg-matrix-container > div[style*="justify-content: space-between"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  /* BCG legend items: wrap on mobile */
+  #bcg-matrix-container > div[style*="justify-content: space-between"] > div[style*="display: flex; gap: 8px"] {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  /* BCG scatter chart: reduce height on mobile */
+  #bcg-scatter-chart {
+    height: 250px !important;
+    max-height: 250px !important;
+  }
+
+  /* BCG chart container: reduce padding */
+  #bcg-matrix-container div[style*="border-radius: 16px; padding: 20px"] {
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+
+  /* BCG action cards: more compact on mobile */
+  .bcg-action-card {
+    padding: 10px 14px !important;
+    border-radius: 10px !important;
+  }
+  .bcg-action-icon {
+    font-size: 16px !important;
+  }
+  .bcg-action-title {
+    font-size: 13px !important;
+  }
+  .bcg-action-count {
+    font-size: 11px !important;
+    padding: 2px 8px !important;
+  }
+  .bcg-action-text {
+    font-size: 11px !important;
+  }
+  .bcg-action-detail {
+    font-size: 11px !important;
+  }
+  .bcg-action-detail ul {
+    padding-left: 14px !important;
+  }
+
+  /* BCG detailed list (2 cols → 1 col) — override inline grid */
+  #bcg-matrix-container details div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* BCG detailed list items: reduce padding */
+  #bcg-matrix-container details div[style*="padding: 15px"] {
+    padding: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  /* BCG recommendations panel */
+  #bcg-recommendations {
+    padding: 12px !important;
+    border-radius: 10px !important;
+  }
+  #bcg-recommendations-list {
+    font-size: 12px !important;
+  }
+
+  /* BCG matrix container global */
+  #bcg-matrix-container {
+    margin-top: 12px !important;
+    padding: 14px !important;
+  }
+
+  /* ══════════════════════════════════════════
+     ANALISIS TAB — CHARTS MOBILE
+     ══════════════════════════════════════════ */
+
+  /* Chart cards compact on mobile */
+  .chart-card {
+    padding: 14px !important;
+    border-radius: 10px !important;
+  }
+  .chart-card h3 {
+    font-size: 14px !important;
+    margin-bottom: 10px !important;
+  }
+  .chart-card canvas {
+    max-height: 180px !important;
+  }
+  .chart-card-compact {
+    padding: 12px !important;
+  }
+  .chart-card-compact h3 {
+    font-size: 13px !important;
+  }
+  .chart-card-compact canvas {
+    max-height: 150px !important;
+  }
+
+  /* Stats grid: 2 cols on tablet (already set) — ensure stat cards fit */
+  .stat-card {
+    padding: 14px !important;
+  }
+  .stat-card h3 {
+    font-size: 12px !important;
+  }
+  .stat-card .value {
+    font-size: 24px !important;
+  }
+
+  /* Chart container (ingresos vs gastos) */
+  .chart-container {
+    padding: 14px !important;
+    margin-bottom: 16px !important;
+  }
+  .chart-header h3 {
+    font-size: 15px !important;
+  }
+  .chart-header p {
+    font-size: 11px !important;
+  }
+
+  /* ══════════════════════════════════════════
+     RECETAS TAB — BUTTONS WRAP
+     ══════════════════════════════════════════ */
+
+  /* Recetas top bar buttons: wrap */
+  #tab-recetas .top-bar > div[style*="display: flex; gap: 10px"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  #tab-recetas .top-bar .btn {
+    font-size: 11px !important;
+    padding: 8px 12px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Recetas filter buttons container */
+  #filtros-recetas {
+    gap: 6px !important;
+    margin-bottom: 12px !important;
+  }
+  #filtros-recetas .filter-btn,
+  #filtros-recetas button {
+    font-size: 11px !important;
+    padding: 5px 10px !important;
+  }
+
+  /* Tabla rentabilidad scroll */
+  #tabla-rentabilidad {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ══════════════════════════════════════════
+     RECIPE FORM — MOBILE POLISH
+     ══════════════════════════════════════════ */
+
+  /* Coste calculado panel: compact on mobile */
+  #coste-calculado-form div[style*="display: flex; align-items: center; gap: 10px"] {
+    gap: 8px !important;
+  }
+  #coste-calculado-form div[style*="font-size: 28px"] {
+    font-size: 22px !important;
+  }
+
+  /* Pedido total section */
+  #total-pedido-form div[style*="display: flex; gap: 20px"] {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* ══════════════════════════════════════════
+     PAGINATION — MOBILE
+     ══════════════════════════════════════════ */
+  div[style*="justify-content: center"][style*="gap: 10px"] button,
+  div[style*="justify-content: center"][style*="gap: 8px"] button {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    min-width: 36px !important;
+  }
+
+  /* ══════════════════════════════════════════
+     GENERAL TAB CONTENT — MOBILE
+     ══════════════════════════════════════════ */
+
+  /* All inline grids inside tab contents → 1 col on mobile */
+  #tab-analisis div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Ventas tab grids */
+  #tab-ventas div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Proveedores tab grids */
+  #tab-proveedores div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* ════════════════════════════════════════
@@ -3151,6 +3360,56 @@ table tbody tr:nth-child(10) {
   .dashboard-card [style*="font-size: 2"],
   .dashboard-card [style*="font-size: 3"] {
     font-size: 1.2rem !important;
+  }
+
+  /* Stats grid: single column on small phones */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* BCG scatter chart even smaller on small phones */
+  #bcg-scatter-chart {
+    height: 200px !important;
+    max-height: 200px !important;
+  }
+
+  /* BCG legend items: smaller on small phones */
+  .bcg-legend-item {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* BCG action cards: even more compact */
+  .bcg-action-card {
+    padding: 8px 12px !important;
+  }
+  .bcg-action-title {
+    font-size: 12px !important;
+  }
+
+  /* Chart canvases smaller */
+  .chart-card canvas {
+    max-height: 150px !important;
+  }
+  .chart-card-compact canvas {
+    max-height: 120px !important;
+  }
+
+  /* Recetas buttons: full width stack */
+  #tab-recetas .top-bar > div[style*="display: flex; gap: 10px"] {
+    flex-direction: column !important;
+  }
+  #tab-recetas .top-bar .btn {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* Top bar title smaller */
+  .top-bar h2 {
+    font-size: 17px !important;
+  }
+  .top-bar p {
+    font-size: 11px !important;
   }
 }
 
