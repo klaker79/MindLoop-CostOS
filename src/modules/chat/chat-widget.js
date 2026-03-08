@@ -438,9 +438,16 @@ function bindChatEvents() {
                 micBtn.classList.remove('recording');
                 isRecording = false;
             } else {
-                recognition.start();
-                micBtn.classList.add('recording');
-                isRecording = true;
+                try {
+                    recognition.start();
+                    micBtn.classList.add('recording');
+                    isRecording = true;
+                } catch (e) {
+                    // InvalidStateError: recognition already started (double-click race)
+                    logger.warn('Speech recognition start failed:', e.message);
+                    micBtn.classList.remove('recording');
+                    isRecording = false;
+                }
             }
         });
 
@@ -462,7 +469,7 @@ function bindChatEvents() {
         };
 
         recognition.onerror = event => {
-            logger.error('Speech recognition error:', event.error);
+            logger.warn('Speech recognition error:', event.error);
             micBtn.classList.remove('recording');
             isRecording = false;
             if (event.error === 'not-allowed') {
