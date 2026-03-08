@@ -415,12 +415,14 @@ export async function actualizarKPIs() {
         // Usa ventas_diarias_resumen via /balance/mes para margen ponderado por ventas
         await actualizarMargenReal(periodoVistaActual);
 
-        // 5. VALOR STOCK TOTAL — usa valor_stock del API (misma fuente que tab Inventario)
+        // 5. VALOR STOCK TOTAL — suma valor_stock pre-calculado por el backend
+        // v20260308: Cache-bust fix — si ves este log, el código nuevo está activo
         try {
             const valorStockEl = document.getElementById('kpi-valor-stock');
             const itemsStockEl = document.getElementById('kpi-items-stock');
 
             const inventario = window.inventarioCompleto || [];
+            console.log('[STOCK-FIX-v3] inventarioCompleto.length =', inventario.length);
 
             if (inventario.length > 0) {
                 // Sumar valor_stock pre-calculado por el backend (consistente con tab Inventario)
@@ -435,15 +437,21 @@ export async function actualizarKPIs() {
                 if (valorStockEl) {
                     valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {
                         maximumFractionDigits: 0
-                    }) + '€';
+                    }) + '\u20AC';
                 }
                 if (itemsStockEl) {
                     itemsStockEl.textContent = itemsConStock;
                 }
 
-                console.log('📦 Valor Stock:', valorTotal.toFixed(2) + '€', '| Items:', itemsConStock, '(desde API valor_stock)');
+                console.log('[STOCK-FIX-v3] Valor Stock:', valorTotal.toFixed(2) + '\u20AC', '| Items:', itemsConStock, '| Fuente: API valor_stock');
+                // Log top 5 items para debug
+                const top5 = [...inventario]
+                    .sort((a, b) => (parseFloat(b.valor_stock) || 0) - (parseFloat(a.valor_stock) || 0))
+                    .slice(0, 5)
+                    .map(i => ({ nombre: i.nombre, valor_stock: i.valor_stock, stock: i.stock_virtual, precio_medio: i.precio_medio }));
+                console.log('[STOCK-FIX-v3] Top 5 items:', top5);
             } else {
-                // inventarioCompleto aún no cargado — fallback con ingredientes
+                // inventarioCompleto no cargado — fallback con ingredientes
                 const ingredientesStock = ingredientStore.getState().ingredients;
                 if (ingredientesStock.length > 0) {
                     const valorTotal = ingredientesStock.reduce((sum, ing) => {
@@ -461,19 +469,20 @@ export async function actualizarKPIs() {
                     if (valorStockEl) {
                         valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {
                             maximumFractionDigits: 0
-                        }) + '€';
+                        }) + '\u20AC';
                     }
                     if (itemsStockEl) {
                         itemsStockEl.textContent = itemsConStock;
                     }
-                    console.log('📦 Valor Stock:', valorTotal.toFixed(2) + '€', '| Items:', itemsConStock, '(fallback - inventario no cargado)');
+                    console.log('[STOCK-FIX-v3] FALLBACK - Valor Stock:', valorTotal.toFixed(2) + '\u20AC', '| Items:', itemsConStock);
                 } else {
-                    if (valorStockEl) valorStockEl.textContent = '0€';
+                    if (valorStockEl) valorStockEl.textContent = '0\u20AC';
                     if (itemsStockEl) itemsStockEl.textContent = '0';
+                    console.log('[STOCK-FIX-v3] Sin datos para calcular valor stock');
                 }
             }
         } catch (e) {
-            console.error('Error calculando valor stock:', e);
+            console.error('[STOCK-FIX-v3] Error calculando valor stock:', e);
             const valorStockEl = document.getElementById('kpi-valor-stock');
             const itemsStockEl = document.getElementById('kpi-items-stock');
             if (valorStockEl) valorStockEl.textContent = '-';
