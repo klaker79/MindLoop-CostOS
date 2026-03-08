@@ -367,7 +367,8 @@
         </div>
 
         <!-- KPI Dashboard Compacto con Sparklines -->
-        <div class="kpi-row" style="display: flex; align-items: center; gap: 12px; margin: 0 32px 16px 32px; flex-wrap: wrap;">
+        <div class="kpi-row"
+          style="display: flex; align-items: center; gap: 12px; margin: 0 32px 16px 32px; flex-wrap: wrap;">
           <!-- KPI Ingresos -->
           <div class="kpi-mini"
             style="flex: 1; min-width: 150px; background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 3px solid #10B981;">
@@ -414,7 +415,8 @@
             <div style="flex: 1; min-width: 0;">
               <div style="font-size: 20px; font-weight: 700; color: #1E293B;" id="kpi-margen" data-animate="true"><span
                   class="skeleton skeleton-number" data-skeleton>⠀</span></div>
-              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;" data-i18n="dashboard:kpi_food_cost">Food Cost</div>
+              <div style="font-size: 11px; color: #64748B; text-transform: uppercase;"
+                data-i18n="dashboard:kpi_food_cost">Food Cost</div>
               <div style="margin-top: 4px; height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;">
                 <div id="kpi-fc-bar"
                   style="height: 100%; width: 0%; border-radius: 2px; transition: width 0.8s ease, background 0.3s;">
@@ -2007,10 +2009,6 @@
               <p data-i18n="settings:config_description">Gestiona los accesos y datos de tu negocio</p>
             </div>
             <div style="display: flex; gap: 10px;">
-              <button class="btn btn-secondary" onclick="window.resetOnboarding(); window.startTour();"
-                style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none;">
-                <span data-i18n="settings:btn_restart_tour">🎯 Reiniciar Tour</span>
-              </button>
               <button class="btn btn-secondary" data-action="abrir-manual-formulas"
                 data-i18n="settings:btn_download_dossier">📘 Descargar/Imprimir
                 Dossier</button>
