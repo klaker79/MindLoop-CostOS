@@ -224,12 +224,12 @@ window.actualizarDetalleDescuento = RecetasCRUD.actualizarDetalleDescuento;
 window.confirmarProduccion = RecetasCRUD.confirmarProduccion;
 
 // Cost Tracker (seguimiento de costes)
-import * as CostTracker from './modules/recetas/cost-tracker.js';
+import * as CostTracker from './modules/recetas/cost-tracker.js?v=20260308-consistency';
 window.mostrarCostTracker = CostTracker.mostrarCostTracker;
 window.cerrarCostTracker = CostTracker.cerrarCostTracker;
 
 // Escandallo Visual + PDF Export
-import * as Escandallo from './modules/recetas/escandallo.js';
+import * as Escandallo from './modules/recetas/escandallo.js?v=20260308-consistency';
 window.verEscandallo = Escandallo.verEscandallo;
 window.exportarPDFEscandallo = Escandallo.exportarPDFEscandallo;
 

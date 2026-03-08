@@ -194,9 +194,11 @@ function actualizarDatosCostTracker() {
             const invItem = inventarioMap.get(ingId);
             const ing = ingredientesMap.get(ingId);
 
-            // 💰 CORREGIDO: Precio unitario = precio_medio, o precio/cantidad_por_formato
+            // 💰 Precio unitario: prioridad media compras > config > fallback
             let precio = 0;
-            if (invItem?.precio_medio) {
+            if (invItem?.precio_medio_compra) {
+                precio = parseFloat(invItem.precio_medio_compra);
+            } else if (invItem?.precio_medio) {
                 precio = parseFloat(invItem.precio_medio);
             } else if (ing?.precio) {
                 const precioFormato = parseFloat(ing.precio);
@@ -204,20 +206,32 @@ function actualizarDatosCostTracker() {
                 precio = precioFormato / cantidadPorFormato;
             }
 
-            costeActual += precio * parseFloat(item.cantidad || 0);
+            // Aplicar rendimiento (merma)
+            let rendimiento = parseFloat(item.rendimiento);
+            if (!rendimiento || rendimiento === 100) {
+                rendimiento = ing?.rendimiento ? parseFloat(ing.rendimiento) : 100;
+            }
+            const factorRendimiento = rendimiento / 100;
+            const precioConRendimiento = factorRendimiento > 0 ? (precio / factorRendimiento) : precio;
+
+            costeActual += precioConRendimiento * parseFloat(item.cantidad || 0);
         });
+
+        // Dividir por porciones para obtener coste POR PORCIÓN
+        const porciones = parseInt(receta.porciones) || 1;
+        const costePorPorcion = costeActual / porciones;
 
         // precio_venta viene como string "20.00"
         const precioVenta = parseFloat(receta.precio_venta) || 0;
-        const foodCost = precioVenta > 0 ? (costeActual / precioVenta) * 100 : 100;
-        const beneficio = precioVenta - costeActual;
+        const foodCost = precioVenta > 0 ? (costePorPorcion / precioVenta) * 100 : 100;
+        const beneficio = precioVenta - costePorPorcion;
         const numIngredientes = recetaIngredientes.length;
 
         return {
             id: receta.id,
             nombre: receta.nombre,
             categoria: receta.categoria,
-            costeActual,
+            costeActual: costePorPorcion,
             precioVenta,
             foodCost,
             beneficio,
