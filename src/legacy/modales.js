@@ -250,7 +250,14 @@ async function fetchGastosFijos() {
     }
 }
 
-window.guardarGastoFinanzas = async function (concepto, inputId) {
+const _gastoTimers = {};
+window.guardarGastoFinanzas = function (concepto, inputId) {
+    // Debounce: esperar 500ms después del último movimiento del slider
+    clearTimeout(_gastoTimers[concepto]);
+    _gastoTimers[concepto] = setTimeout(() => _guardarGastoFinanzasReal(concepto, inputId), 500);
+};
+
+async function _guardarGastoFinanzasReal(concepto, inputId) {
     const elem = document.getElementById(inputId);
     if (!elem) return;
 
@@ -264,27 +271,35 @@ window.guardarGastoFinanzas = async function (concepto, inputId) {
     }
 
     try {
-        // fix M3: buscar el ID real en la BD en vez de usar el ID hardcodeado
         const gastosActuales = await fetchGastosFijos();
         const gastoReal = gastosActuales.find(g => g.concepto === gastoInfo.concepto);
-        const gastoId = gastoReal?.id ?? gastoInfo.id; // fallback al hardcodeado si no se encuentra
 
-        const res = await fetch(getGastosApiBase() + '/gastos-fijos/' + gastoId, {
-            method: 'PUT',
-            headers: getGastosAuthHeaders(),
-            credentials: 'include',
-            body: JSON.stringify({ concepto: gastoInfo.concepto, monto_mensual: monto })
-        });
+        let res;
+        if (gastoReal) {
+            // Existe en BD — actualizar
+            res = await fetch(getGastosApiBase() + '/gastos-fijos/' + gastoReal.id, {
+                method: 'PUT',
+                headers: getGastosAuthHeaders(),
+                credentials: 'include',
+                body: JSON.stringify({ concepto: gastoInfo.concepto, monto_mensual: monto })
+            });
+        } else {
+            // No existe — crear
+            res = await fetch(getGastosApiBase() + '/gastos-fijos', {
+                method: 'POST',
+                headers: getGastosAuthHeaders(),
+                credentials: 'include',
+                body: JSON.stringify({ concepto: gastoInfo.concepto, monto_mensual: monto })
+            });
+        }
 
-        if (!res.ok) throw new Error('Error updating gasto fijo');
+        if (!res.ok) throw new Error('Error saving gasto fijo');
 
         // Invalidar cache
         gastosFijosCache = null;
 
         // Actualizar el total
         await actualizarTotalGastosFijos();
-
-        console.log('Gasto fijo guardado:', gastoInfo.concepto, monto);
     } catch (error) {
         console.error('Error guardando gasto:', error);
         if (typeof showToast === 'function') showToast('Error guardando gasto fijo', 'error');
