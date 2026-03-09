@@ -359,7 +359,9 @@ export async function renderizarRecetas() {
     }).sort((a, b) => {
         // Ordenar: con código primero, luego alfabético
         // Verificar null/undefined ANTES de convertir a string
+        // eslint-disable-next-line eqeqeq -- intentional: != null checks both null and undefined
         const aHasCodigo = a.codigo != null && String(a.codigo).trim() !== '';
+        // eslint-disable-next-line eqeqeq -- intentional: != null checks both null and undefined
         const bHasCodigo = b.codigo != null && String(b.codigo).trim() !== '';
 
         if (aHasCodigo && !bHasCodigo) return -1;

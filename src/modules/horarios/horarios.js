@@ -538,7 +538,7 @@ window.guardarEmpleado = async function () {
         await cargarEmpleados();
         renderizarEmpleados();
         renderizarGridHorarios();
-        cerrarModalEmpleado();
+        window.cerrarModalEmpleado();
 
     } catch (error) {
         console.error('Error guardando empleado:', error);

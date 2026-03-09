@@ -44,6 +44,9 @@ export default [
                 Request: 'readonly',
                 Response: 'readonly',
                 performance: 'readonly',
+                speechSynthesis: 'readonly',
+                SpeechSynthesisUtterance: 'readonly',
+                btoa: 'readonly',
                 // External libraries
                 Chart: 'readonly',
                 XLSX: 'readonly',
@@ -106,6 +109,27 @@ export default [
     // Logger needs all console methods
     {
         files: ['src/utils/logger.js', 'src/utils/performance.js'],
+        rules: {
+            'no-console': 'off'
+        }
+    },
+    // Test files use Vitest globals
+    {
+        files: ['src/__tests__/**/*.js', '**/*.test.js', '**/*.spec.js'],
+        languageOptions: {
+            globals: {
+                describe: 'readonly',
+                test: 'readonly',
+                it: 'readonly',
+                expect: 'readonly',
+                beforeEach: 'readonly',
+                afterEach: 'readonly',
+                beforeAll: 'readonly',
+                afterAll: 'readonly',
+                vi: 'readonly',
+                global: 'writable'
+            }
+        },
         rules: {
             'no-console': 'off'
         }
