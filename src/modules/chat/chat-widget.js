@@ -1415,7 +1415,7 @@ function parseMarkdown(text) {
         const line = lines[i].trim();
 
         // Detectar separador de tabla (|---|---|)
-        if (/^\|?[\s\-:]+\|[\s\-:|]+\|?$/.test(line) || /^[\-\|:\s]+$/.test(line)) {
+        if (/^\|?[\s\-:]+\|[\s\-:|]+\|?$/.test(line) || /^[-|:\s]+$/.test(line)) {
             if (tableStartIndex === -1 && i > 0) tableStartIndex = i - 1;
             hasSeparator = true;
             continue;
@@ -1493,7 +1493,8 @@ function formatTextContent(text) {
 
     // Emojis en mayúsculas como títulos (simplificado)
     html = html.replace(
-        /([📊💰📦📈🏪🎯✅❌⚠️🔴🟢🟡])\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]*:)/g,
+        // eslint-disable-next-line no-misleading-character-class -- intentional: emoji character class
+        /([📊💰📦📈🏪🎯✅❌⚠️🔴🟢🟡])\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]*:)/gu,
         '<strong>$1 $2</strong>'
     );
 
