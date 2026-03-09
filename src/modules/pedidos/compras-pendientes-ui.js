@@ -91,6 +91,7 @@ export async function renderizarComprasPendientes() {
             const fecha = items[0]?.fecha ? new Date(items[0].fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
             const totalItems = items.length;
             const sinMatch = items.filter(i => !i.ingrediente_id).length;
+            const totalAlbaran = items.reduce((sum, i) => sum + (parseFloat(i.precio) || 0) * (parseFloat(i.cantidad) || 0), 0);
 
             // 🔒 Detección de duplicado a nivel de albarán completo
             const pedidoDup = items.find(i => i.pedido_duplicado_id);
@@ -120,7 +121,7 @@ export async function renderizarComprasPendientes() {
                         <div style="width: 44px; height: 44px; background: linear-gradient(135deg, ${esBatchDuplicado ? '#ef4444, #dc2626' : '#f59e0b, #d97706'}); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;">${esBatchDuplicado ? '⚠️' : '📋'}</div>
                         <div>
                             <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">${t('pedidos:pending_delivery_note_from', { date: fecha })}</h3>
-                            <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${t('pedidos:pending_products_count', { count: totalItems })}${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${t('pedidos:pending_unassigned', { count: sinMatch })}</span>` : ''}</p>
+                            <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${t('pedidos:pending_products_count', { count: totalItems })}${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${t('pedidos:pending_unassigned', { count: sinMatch })}</span>` : ''}${totalAlbaran > 0 ? ` · <span style="font-weight: 700; color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">Total: ${totalAlbaran.toFixed(2)}\u20AC</span>` : ''}</p>
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
