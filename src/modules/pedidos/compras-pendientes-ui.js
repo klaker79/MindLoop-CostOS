@@ -325,11 +325,22 @@ export async function cambiarIngredientePendiente(id, ingredienteId) {
  */
 export async function cambiarFormatoPendiente(id, formatoOverride, selectEl) {
     try {
-        await cambiarFormato(id, parseFloat(formatoOverride));
+        const result = await cambiarFormato(id, parseFloat(formatoOverride));
         const itemEl = selectEl?.closest('.pending-item');
         if (itemEl) {
             const cantidadInput = itemEl.querySelector('input[type="number"]');
             const cantidad = parseFloat(cantidadInput?.value || 0);
+
+            // Actualizar precio si el backend lo recalculó
+            if (result && result.precio !== undefined) {
+                const precioInput = itemEl.querySelectorAll('input[type=number]')[1];
+                if (precioInput) precioInput.value = parseFloat(result.precio).toFixed(2);
+                // Actualizar total
+                const totalInput = itemEl.querySelector('[data-total]');
+                if (totalInput) totalInput.value = (cantidad * parseFloat(result.precio)).toFixed(2);
+            }
+
+            // Actualizar preview de stock
             const previewEl = selectEl.parentElement.querySelector('div:last-child');
             if (previewEl) {
                 previewEl.textContent = `Stock: +${(cantidad * parseFloat(formatoOverride)).toFixed(1)}`;
