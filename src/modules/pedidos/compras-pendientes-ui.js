@@ -121,7 +121,7 @@ export async function renderizarComprasPendientes() {
                         <div style="width: 44px; height: 44px; background: linear-gradient(135deg, ${esBatchDuplicado ? '#ef4444, #dc2626' : '#f59e0b, #d97706'}); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;">${esBatchDuplicado ? '⚠️' : '📋'}</div>
                         <div>
                             <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">${t('pedidos:pending_delivery_note_from', { date: fecha })}</h3>
-                            <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${t('pedidos:pending_products_count', { count: totalItems })}${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${t('pedidos:pending_unassigned', { count: sinMatch })}</span>` : ''}${totalAlbaran > 0 ? ` · <span style="font-weight: 700; color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">Total: ${totalAlbaran.toFixed(2)}\u20AC</span>` : ''}</p>
+                            <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${t('pedidos:pending_products_count', { count: totalItems })}${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${t('pedidos:pending_unassigned', { count: sinMatch })}</span>` : ''}${totalAlbaran > 0 ? ` · <strong data-batch-total="${batchId}" style="color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">Total: ${totalAlbaran.toFixed(2)}€</strong>` : ''}</p>
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
@@ -399,6 +399,8 @@ export async function editarCampoPendiente(id, campo, valor, inputEl) {
             const totalInput = itemDiv.querySelector('[data-total]');
             if (totalInput) totalInput.value = (cant * precio).toFixed(2);
         }
+        // ⚡ Recalcular total del batch en el header
+        recalcularTotalBatch(inputEl);
         inputEl.style.borderColor = '#22c55e';
         setTimeout(() => { if (inputEl) inputEl.style.borderColor = '#e5e7eb'; }, 1500);
     } catch (err) {
@@ -428,6 +430,8 @@ export async function editarTotalPendiente(id, totalStr, inputEl) {
         const precioInput = itemDiv?.querySelectorAll('input[type=number]')?.[1];
         if (precioInput) precioInput.value = nuevoPrecio.toFixed(2);
 
+        // ⚡ Recalcular total del batch en el header
+        recalcularTotalBatch(inputEl);
         inputEl.style.borderColor = '#22c55e';
         setTimeout(() => { if (inputEl) inputEl.style.borderColor = '#e5e7eb'; }, 1500);
     } catch (err) {
@@ -435,6 +439,24 @@ export async function editarTotalPendiente(id, totalStr, inputEl) {
         window.showToast?.(t('pedidos:pending_error_saving', { message: err.message }), 'error');
         inputEl.style.borderColor = '#ef4444';
     }
+}
+
+/**
+ * Recalcular el total del batch header sumando todos los items visibles
+ */
+function recalcularTotalBatch(elementInside) {
+    const batchDiv = elementInside?.closest('.pending-batch');
+    if (!batchDiv) return;
+    const batchId = batchDiv.dataset.batchId;
+    const totalEl = batchDiv.querySelector(`[data-batch-total="${batchId}"]`);
+    if (!totalEl) return;
+
+    let total = 0;
+    batchDiv.querySelectorAll('.pending-item').forEach(item => {
+        const totalInput = item.querySelector('[data-total]');
+        if (totalInput) total += parseFloat(totalInput.value) || 0;
+    });
+    totalEl.textContent = `Total: ${total.toFixed(2)}€`;
 }
 
 /**
