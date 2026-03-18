@@ -336,15 +336,26 @@ window.checkPendientes = ComprasPendientesUI.checkPendientes;
 //   - auth.js: checkAuth, logout, mostrarLogin, mostrarRegistro, volverALogin
 //   - dossier-v24.js: abrirDossierV24
 
+// Transferencias Inter-Restaurante
+import * as TransferenciasUI from './modules/pedidos/transferencias-ui.js';
+
+window.checkTransferenciasPendientes = TransferenciasUI.checkTransferenciasPendientes;
+window.renderizarTransferenciasEntrantes = TransferenciasUI.renderizarTransferenciasEntrantes;
+window.aprobarTransferenciaPendiente = TransferenciasUI.aprobarTransferenciaPendiente;
+window.rechazarTransferenciaPendiente = TransferenciasUI.rechazarTransferenciaPendiente;
+window.abrirModalTransferencia = TransferenciasUI.abrirModalTransferencia;
+window.enviarTransferencia = TransferenciasUI.enviarTransferencia;
+
 // 📸 Albarán Scanner (Claude Vision) — DESACTIVADO (OCR no fiable con albaranes manuscritos)
 // Para reactivar: descomentar estas líneas + el HTML en index.html (buscar "albaran-scanner-section")
 // import * as AlbaranScanner from './modules/pedidos/albaran-scanner.js';
 // window.procesarFotoAlbaran = AlbaranScanner.procesarFotoAlbaran;
 // window.procesarFotoAlbaranInput = AlbaranScanner.procesarFotoAlbaranInput;
 
-// Cargar pendientes al abrir pestaña Pedidos y al login
+// Cargar pendientes y transferencias al abrir pestaña Pedidos y al login
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => ComprasPendientesUI.checkPendientes(), 3000);
+    setTimeout(() => TransferenciasUI.checkTransferenciasPendientes(), 4000);
 });
 
 // ============================================

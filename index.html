@@ -1202,6 +1202,11 @@
               <button class="btn btn-secondary" data-action="importar-pedidos" data-i18n="pedidos:btn_import_orders">📤
                 Importar
                 Pedidos</button>
+              <button class="btn" onclick="window.abrirModalTransferencia()"
+                id="btn-transferencia"
+                style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: white; display: none;">
+                📦 Transferir Stock
+              </button>
             </div>
           </div>
 
@@ -1238,6 +1243,9 @@
 
           <!-- Panel de Compras Pendientes (revisión de albaranes importados por n8n) -->
           <div id="compras-pendientes-panel" style="display: none; margin-bottom: 20px;"></div>
+
+          <!-- Panel de Transferencias Inter-Restaurante (entrantes pendientes) -->
+          <div id="transferencias-panel" style="display: none; margin-bottom: 20px;"></div>
 
           <div id="formulario-pedido" class="form-card" style="display: none;">
             <h3>
