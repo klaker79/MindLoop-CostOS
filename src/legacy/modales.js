@@ -338,7 +338,7 @@ async function actualizarTotalGastosFijos() {
         const total = await calcularTotalGastosFijos();
         const elem = document.getElementById('diario-gastos-fijos-total');
         if (elem) {
-            elem.textContent = total.toFixed(2) + ' €';
+            elem.textContent = total.toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
         }
     } catch (error) {
         console.error('Error actualizando display:', error);
@@ -379,7 +379,7 @@ async function cargarValoresGastosFijos() {
                 const slider = document.getElementById(sliderId);
                 const valorElem = document.getElementById(valorId);
                 if (slider) slider.value = monto;
-                if (valorElem) valorElem.textContent = monto + '€';
+                if (valorElem) valorElem.textContent = monto + (window.getCurrencySymbol?.() || '€');
             }
         });
 

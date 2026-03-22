@@ -1335,11 +1335,11 @@ window.cargarResumenMensual = async function () {
 
         // Actualizar KPIs
         document.getElementById('diario-total-compras').textContent =
-            (window.datosResumenMensual.compras?.total || 0).toFixed(2) + ' €';
+            (window.datosResumenMensual.compras?.total || 0).toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
         document.getElementById('diario-total-ventas').textContent =
-            (window.datosResumenMensual.ventas?.totalIngresos || 0).toFixed(2) + ' €';
+            (window.datosResumenMensual.ventas?.totalIngresos || 0).toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
         document.getElementById('diario-beneficio').textContent =
-            (window.datosResumenMensual.ventas?.beneficioBruto || 0).toFixed(2) + ' €';
+            (window.datosResumenMensual.ventas?.beneficioBruto || 0).toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
         document.getElementById('diario-food-cost').textContent =
             (window.datosResumenMensual.resumen?.foodCost || 0) + '%';
 
