@@ -26,8 +26,7 @@ export async function renderizarVentas() {
         if (select) {
             const options = recetasOrdenadas.map(r => {
                 const precio = parseFloat(r.precio_venta) || 0;
-                const _cs = window.getCurrencySymbol?.() || '€';
-                return `<option value="${r.id}" data-search="${escapeHTML(r.nombre.toLowerCase())}">${escapeHTML(r.nombre)} - ${precio.toFixed(2)}${_cs}</option>`;
+                return `<option value="${r.id}" data-search="${escapeHTML(r.nombre.toLowerCase())}">${escapeHTML(r.nombre)} - ${precio.toFixed(2)}€</option>`;
             }).join('');
             select.innerHTML = `<option value="">${t('ventas:placeholder_select_dish')}</option>` + options;
         }
@@ -95,14 +94,14 @@ export async function renderizarVentas() {
                 const ventasDia = ventasPorFecha[fecha];
                 const totalDia = ventasDia.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
 
-                html += `<tr style="background:#F8FAFC;"><td colspan="6" style="padding:12px 16px;font-weight:600;color:#1E293B;border-bottom:1px solid #E2E8F0;">${fecha} - ${t('common:label_total')}: ${totalDia.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</td></tr>`;
+                html += `<tr style="background:#F8FAFC;"><td colspan="6" style="padding:12px 16px;font-weight:600;color:#1E293B;border-bottom:1px solid #E2E8F0;">${fecha} - ${t('common:label_total')}: ${totalDia.toFixed(2)}€</td></tr>`;
 
                 ventasDia.forEach(v => {
                     const hora = new Date(v.fecha).toLocaleTimeString('es-ES', {
                         hour: '2-digit',
                         minute: '2-digit',
                     });
-                    html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fecha}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${escapeHTML(v.receta_nombre || '')}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${parseFloat(v.total).toFixed(2)}${window.getCurrencySymbol?.() || '€'}</strong></td><td style="padding:8px 16px;text-align:center;"><button class="icon-btn delete" onclick="window.eliminarVenta(${v.id})" title="${t('common:btn_delete')}">🗑️</button></td></tr>`;
+                    html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fecha}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${escapeHTML(v.receta_nombre || '')}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${parseFloat(v.total).toFixed(2)}€</strong></td><td style="padding:8px 16px;text-align:center;"><button class="icon-btn delete" onclick="window.eliminarVenta(${v.id})" title="${t('common:btn_delete')}">🗑️</button></td></tr>`;
                 });
             });
 
@@ -205,7 +204,7 @@ export async function cargarVariantesVenta(recetaId) {
         let html = `<option value="">${t('ventas:no_variant')}</option>`;
         variantes.forEach(v => {
             html += `<option value="${v.id}" data-factor="${v.factor}" data-precio="${v.precio_venta}">
-                ${escapeHTML(v.nombre)} - ${parseFloat(v.precio_venta).toFixed(2)}${window.getCurrencySymbol?.() || '€'} (${v.factor}x)
+                ${escapeHTML(v.nombre)} - ${parseFloat(v.precio_venta).toFixed(2)}€ (${v.factor}x)
             </option>`;
         });
         select.innerHTML = html;

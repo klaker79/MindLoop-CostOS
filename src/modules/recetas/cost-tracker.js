@@ -290,13 +290,13 @@ function actualizarDatosCostTracker() {
                     </span>
                 </td>
                 <td style="width: 12%; padding: 16px; text-align: right; color: #F97316; font-weight: 700; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    ${costeActual.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}
+                    ${costeActual.toFixed(2)} €
                 </td>
                 <td style="width: 12%; padding: 16px; text-align: right; color: #3B82F6; font-weight: 700; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    ${precioVenta.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}
+                    ${precioVenta.toFixed(2)} €
                 </td>
                 <td style="width: 14%; padding: 16px; text-align: right; font-weight: 700; font-size: 15px; color: ${beneficio >= 0 ? '#10B981' : '#EF4444'}; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    ${beneficio >= 0 ? '+' : ''}${beneficio.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}
+                    ${beneficio >= 0 ? '+' : ''}${beneficio.toFixed(2)} €
                 </td>
                 <td style="width: 13%; padding: 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
@@ -361,7 +361,7 @@ function actualizarDatosCostTracker() {
                 padding: 20px;
                 text-align: center;
             ">
-                <div style="font-size: 28px; font-weight: 800; color: ${totalBeneficio >= 0 ? '#a78bfa' : '#EF4444'};">${totalBeneficio >= 0 ? '+' : ''}${totalBeneficio.toFixed(0)}${window.getCurrencySymbol?.() || '€'}</div>
+                <div style="font-size: 28px; font-weight: 800; color: ${totalBeneficio >= 0 ? '#a78bfa' : '#EF4444'};">${totalBeneficio >= 0 ? '+' : ''}${totalBeneficio.toFixed(0)}€</div>
                 <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">💰 ${t('recetas:cost_tracker_total_profit')}</div>
                 <div style="font-size: 10px; color: #64748b; margin-top: 2px;">${t('recetas:cost_tracker_margin_sum')}</div>
             </div>

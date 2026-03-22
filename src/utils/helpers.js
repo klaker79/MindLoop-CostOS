@@ -139,17 +139,13 @@ export async function exportarAExcel(datos, nombreArchivo, columnas) {
 }
 
 /**
- * Formatea número a moneda del restaurante activo
+ * Formatea número a moneda EUR
  * @param {number} value - Valor a formatear
- * @returns {string} Valor formateado (ej: "12,50€" o "12.50 RM")
+ * @returns {string} Valor formateado (ej: "12,50€")
  */
 export function formatCurrency(value) {
     const num = parseFloat(value) || 0;
-    const moneda = window.restauranteMoneda || '€';
-    if (moneda === '€') {
-        return num.toFixed(2).replace('.', ',') + '€';
-    }
-    return num.toFixed(2) + ' ' + moneda;
+    return num.toFixed(2).replace('.', ',') + '€';
 }
 
 /**
@@ -496,13 +492,6 @@ export function formatearFecha(fecha) {
     return formatDate(fecha);
 }
 
-/**
- * Returns the currency symbol for the active restaurant
- */
-export function getCurrencySymbol() {
-    return window.restauranteMoneda || '€';
-}
-
 // Exponer al scope global para compatibilidad
 if (typeof window !== 'undefined') {
     window.showToast = showToast;
@@ -510,7 +499,6 @@ if (typeof window !== 'undefined') {
     window.hideLoading = hideLoading;
     window.exportarAExcel = exportarAExcel;
     window.formatCurrency = formatCurrency;
-    window.getCurrencySymbol = getCurrencySymbol;
     window.formatDate = formatDate;
     window.formatDateTime = formatDateTime;
     window.debounce = debounce;

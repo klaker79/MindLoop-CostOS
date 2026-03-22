@@ -93,9 +93,8 @@ function actualizarTotalesGastosFijos() {
 
     const elemMensual = document.getElementById('total-mensual-gastos');
     const elemDiario = document.getElementById('total-diario-gastos');
-    const cs = window.getCurrencySymbol?.() || '€';
-    if (elemMensual) elemMensual.textContent = totalMensual.toFixed(2) + cs;
-    if (elemDiario) elemDiario.textContent = totalDiario.toFixed(2) + cs;
+    if (elemMensual) elemMensual.textContent = totalMensual.toFixed(2) + '€';
+    if (elemDiario) elemDiario.textContent = totalDiario.toFixed(2) + '€';
 }
 
 function abrirFormularioGastoFijo(id = null) {
@@ -182,17 +181,16 @@ async function actualizarBeneficioRealDiario() {
     const gastosDiario = totales.total_diario || 0;
  
     const elemGastos = document.getElementById('diario-gastos-fijos');
-    const cs2 = window.getCurrencySymbol?.() || '€';
-    if (elemGastos) elemGastos.textContent = gastosDiario.toFixed(2) + ' ' + cs2;
-
+    if (elemGastos) elemGastos.textContent = gastosDiario.toFixed(2) + ' €';
+ 
     const beneficioBrutoMensual = parseFloat(document.getElementById('diario-beneficio')?.textContent || '0');
     const beneficioBrutoDiario = beneficioBrutoMensual / 30;
     const beneficioReal = beneficioBrutoDiario - gastosDiario;
-
+ 
     const elemBeneficio = document.getElementById('diario-beneficio-real');
     const cardBeneficio = document.getElementById('card-beneficio-real');
-
-    if (elemBeneficio) elemBeneficio.textContent = beneficioReal.toFixed(2) + ' ' + cs2;
+ 
+    if (elemBeneficio) elemBeneficio.textContent = beneficioReal.toFixed(2) + ' €';
     if (cardBeneficio) {
       cardBeneficio.className = beneficioReal < 0 ? 'stat-card red' : 'stat-card green';
     }
@@ -338,7 +336,7 @@ async function actualizarTotalGastosFijos() {
         const total = await calcularTotalGastosFijos();
         const elem = document.getElementById('diario-gastos-fijos-total');
         if (elem) {
-            elem.textContent = total.toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
+            elem.textContent = total.toFixed(2) + ' €';
         }
     } catch (error) {
         console.error('Error actualizando display:', error);
@@ -379,7 +377,7 @@ async function cargarValoresGastosFijos() {
                 const slider = document.getElementById(sliderId);
                 const valorElem = document.getElementById(valorId);
                 if (slider) slider.value = monto;
-                if (valorElem) valorElem.textContent = monto + (window.getCurrencySymbol?.() || '€');
+                if (valorElem) valorElem.textContent = monto + '€';
             }
         });
 
