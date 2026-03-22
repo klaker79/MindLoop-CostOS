@@ -108,8 +108,8 @@ export async function renderizarTransferenciasEntrantes() {
                                 <div style="color: #64748b; font-size: 13px; margin-top: 4px;">
                                     De: <strong>${escapeHTML(t.origen_nombre)}</strong> &middot;
                                     Cantidad: <strong>${parseFloat(t.cantidad)}</strong> &middot;
-                                    Precio unit: <strong>${parseFloat(t.precio_unitario).toFixed(2)}€</strong> &middot;
-                                    Total: <strong>${(parseFloat(t.cantidad) * parseFloat(t.precio_unitario)).toFixed(2)}€</strong>
+                                    Precio unit: <strong>${parseFloat(t.precio_unitario).toFixed(2)}${window.getCurrencySymbol?.() || '€'}</strong> &middot;
+                                    Total: <strong>${(parseFloat(t.cantidad) * parseFloat(t.precio_unitario)).toFixed(2)}${window.getCurrencySymbol?.() || '€'}</strong>
                                 </div>
                                 ${t.notas ? `<div style="color: #94a3b8; font-size: 12px; margin-top: 4px; font-style: italic;">${escapeHTML(t.notas)}</div>` : ''}
                                 <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">Solicitado por: ${escapeHTML(t.solicitado_por_nombre || 'Desconocido')} &middot; ${new Date(t.created_at).toLocaleDateString('es-ES')}</div>

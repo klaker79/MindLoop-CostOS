@@ -416,7 +416,7 @@ export async function renderForecastChart(containerId, chartData) {
                     displayColors: true,
                     boxPadding: 4,
                     callbacks: {
-                        label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y}€`
+                        label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y}${window.getCurrencySymbol?.() || '€'}`
                     }
                 }
             },
@@ -429,7 +429,7 @@ export async function renderForecastChart(containerId, chartData) {
                     },
                     border: { display: false },
                     ticks: {
-                        callback: (value) => value + '€',
+                        callback: (value) => value + (window.getCurrencySymbol?.() || '€'),
                         color: '#94A3B8',
                         font: { size: 10, weight: '500' },
                         padding: 6

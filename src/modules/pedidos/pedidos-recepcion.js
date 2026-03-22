@@ -39,7 +39,7 @@ export function marcarPedidoRecibido(id) {
     }
 
     const totalSpan = document.getElementById('modal-rec-total-original');
-    if (totalSpan) totalSpan.textContent = parseFloat(ped.total || 0).toFixed(2) + ' €';
+    if (totalSpan) totalSpan.textContent = parseFloat(ped.total || 0).toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
 
     // Inicializar items de recepción con estado
     if (!ped.itemsRecepcion) {
@@ -107,7 +107,7 @@ function renderItemsRecepcionModal(ped) {
                     oninput="window.actualizarItemRecepcion(${idx}, 'cantidad', this.value)">`
             }
             </td>
-            <td>${precioPed.toFixed(2)}€</td>
+            <td>${precioPed.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</td>
             <td>
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
@@ -116,7 +116,7 @@ function renderItemsRecepcionModal(ped) {
                     oninput="window.actualizarItemRecepcion(${idx}, 'precio', this.value)">`
             }
             </td>
-            <td><strong id="subtotal-item-${idx}">${subtotalRecibido.toFixed(2)}€</strong></td>
+            <td><strong id="subtotal-item-${idx}">${subtotalRecibido.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</strong></td>
             <td>
               <select onchange="window.cambiarEstadoItem(${idx}, this.value)" 
                 style="padding:5px;border:1px solid #ddd;border-radius:4px;">
@@ -135,14 +135,14 @@ function renderItemsRecepcionModal(ped) {
     const varianza = totalRecibido - totalOriginal;
 
     const resumenOrig = document.getElementById('modal-rec-resumen-original');
-    if (resumenOrig) resumenOrig.textContent = totalOriginal.toFixed(2) + ' €';
+    if (resumenOrig) resumenOrig.textContent = totalOriginal.toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
 
     const resumenRec = document.getElementById('modal-rec-resumen-recibido');
-    if (resumenRec) resumenRec.textContent = totalRecibido.toFixed(2) + ' €';
+    if (resumenRec) resumenRec.textContent = totalRecibido.toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
 
     const resumenVar = document.getElementById('modal-rec-resumen-varianza');
     if (resumenVar) {
-        resumenVar.textContent = (varianza >= 0 ? '+' : '') + varianza.toFixed(2) + ' €';
+        resumenVar.textContent = (varianza >= 0 ? '+' : '') + varianza.toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
         resumenVar.style.color = varianza > 0 ? '#ef4444' : varianza < 0 ? '#10b981' : '#666';
     }
 }
@@ -198,7 +198,7 @@ function actualizarTotalesRecepcion(ped, idxActualizado) {
         if (idx === idxActualizado) {
             const subtotalEl = document.getElementById(`subtotal-item-${idx}`);
             if (subtotalEl) {
-                subtotalEl.textContent = subtotalRecibido.toFixed(2) + '€';
+                subtotalEl.textContent = subtotalRecibido.toFixed(2) + (window.getCurrencySymbol?.() || '€');
             }
         }
     });
@@ -207,14 +207,14 @@ function actualizarTotalesRecepcion(ped, idxActualizado) {
     const varianza = totalRecibido - totalOriginal;
 
     const resumenOrig = document.getElementById('modal-rec-resumen-original');
-    if (resumenOrig) resumenOrig.textContent = totalOriginal.toFixed(2) + ' €';
+    if (resumenOrig) resumenOrig.textContent = totalOriginal.toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
 
     const resumenRec = document.getElementById('modal-rec-resumen-recibido');
-    if (resumenRec) resumenRec.textContent = totalRecibido.toFixed(2) + ' €';
+    if (resumenRec) resumenRec.textContent = totalRecibido.toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
 
     const resumenVar = document.getElementById('modal-rec-resumen-varianza');
     if (resumenVar) {
-        resumenVar.textContent = (varianza >= 0 ? '+' : '') + varianza.toFixed(2) + ' €';
+        resumenVar.textContent = (varianza >= 0 ? '+' : '') + varianza.toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
         resumenVar.style.color = varianza > 0 ? '#ef4444' : varianza < 0 ? '#10b981' : '#666';
     }
 }

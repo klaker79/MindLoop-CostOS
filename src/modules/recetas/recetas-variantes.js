@@ -169,7 +169,7 @@ function renderizarVariantes(variantes) {
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 24px; font-weight: bold; color: #10B981;">
-                            ${precioVenta.toFixed(2)} €
+                            ${precioVenta.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}
                         </div>
                     </div>
                 </div>
@@ -178,11 +178,11 @@ function renderizarVariantes(variantes) {
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #E2E8F0;">
                     <div style="text-align: center; padding: 8px; background: #FEE2E2; border-radius: 8px;">
                         <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_cost')}</div>
-                        <div style="font-size: 14px; font-weight: 600; color: #EF4444;">${costeVariante.toFixed(2)}€</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #EF4444;">${costeVariante.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</div>
                     </div>
                     <div style="text-align: center; padding: 8px; background: #D1FAE5; border-radius: 8px;">
                         <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_margin')}</div>
-                        <div style="font-size: 14px; font-weight: 600; color: #10B981;">${margen.toFixed(2)}€</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #10B981;">${margen.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</div>
                     </div>
                     <div style="text-align: center; padding: 8px; background: #FEF3C7; border-radius: 8px;">
                         <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_food_cost')}</div>

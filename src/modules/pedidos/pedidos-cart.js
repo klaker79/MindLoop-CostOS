@@ -235,7 +235,7 @@ function renderizarCarrito() {
         <h3 style="margin: 0; color: #64748B;">${t('pedidos:cart_empty')}</h3>
       </div>
     `;
-        document.getElementById('carrito-total').textContent = '0.00 €';
+        document.getElementById('carrito-total').textContent = '0.00 ' + (window.getCurrencySymbol?.() || '€');
         return;
     }
 
@@ -308,8 +308,8 @@ function renderizarCarrito() {
               onchange="window.actualizarCantidadCarrito(${item.ingredienteId}, this.value)">
             <span style="color: #64748b; font-size: 12px;">${escapeHTML(item.unidad)}</span>
           </td>
-          <td style="padding: 12px; text-align: right;">${item.precio.toFixed(2)} €</td>
-          <td style="padding: 12px; text-align: right; font-weight: bold;">${subtotal.toFixed(2)} €</td>
+          <td style="padding: 12px; text-align: right;">${item.precio.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</td>
+          <td style="padding: 12px; text-align: right; font-weight: bold;">${subtotal.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</td>
           <td style="padding: 12px; text-align: center;">
             <button onclick="window.eliminarDelCarrito(${item.ingredienteId})"
               style="background: #fee2e2; border: none; color: #dc2626; padding: 6px 10px; border-radius: 6px; cursor: pointer;">
@@ -324,7 +324,7 @@ function renderizarCarrito() {
     });
 
     contenedor.innerHTML = html;
-    document.getElementById('carrito-total').textContent = total.toFixed(2) + ' €';
+    document.getElementById('carrito-total').textContent = total.toFixed(2) + ' ' + (window.getCurrencySymbol?.() || '€');
 }
 
 /**

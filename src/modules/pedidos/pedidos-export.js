@@ -71,9 +71,9 @@ export function descargarPedidoPDF() {
             <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${nombre}</td>
             <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: center;">${cantPedida.toFixed(2)} ${unidad}</td>
             ${esRecibido ? `<td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: center; color: ${cantRecibida !== cantPedida ? '#dc2626' : '#059669'};">${cantRecibida.toFixed(2)} ${unidad}</td>` : ''}
-            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right;">${precioOrig.toFixed(2)} €</td>
-            ${esRecibido ? `<td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right; color: ${precioReal !== precioOrig ? '#dc2626' : '#059669'};">${precioReal.toFixed(2)} €</td>` : ''}
-            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold;">${(esRecibido ? subtotalReal : subtotalOrig).toFixed(2)} €</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right;">${precioOrig.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</td>
+            ${esRecibido ? `<td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right; color: ${precioReal !== precioOrig ? '#dc2626' : '#059669'};">${precioReal.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</td>` : ''}
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold;">${(esRecibido ? subtotalReal : subtotalOrig).toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</td>
             ${esRecibido ? `<td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: center;">${estadoTxt}</td>` : ''}
           </tr>
         `;
@@ -165,21 +165,21 @@ export function descargarPedidoPDF() {
       ? `
         <div class="total-box original">
           <div class="total-label">${t('pedidos:detail_total_original')}</div>
-          <div class="total-value" style="color: #374151;">${totalOriginal.toFixed(2)} €</div>
+          <div class="total-value" style="color: #374151;">${totalOriginal.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</div>
         </div>
         <div class="total-box recibido">
           <div class="total-label">${t('pedidos:detail_total_received')}</div>
-          <div class="total-value" style="color: #059669;">${totalRecibido.toFixed(2)} €</div>
+          <div class="total-value" style="color: #059669;">${totalRecibido.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</div>
         </div>
         <div class="total-box varianza">
           <div class="total-label">${t('pedidos:detail_variance')}</div>
-          <div class="total-value" style="color: ${varianzaColor};">${varianza > 0 ? '+' : ''}${varianza.toFixed(2)} €</div>
+          <div class="total-value" style="color: ${varianzaColor};">${varianza > 0 ? '+' : ''}${varianza.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</div>
         </div>
         `
       : `
         <div class="total-box recibido">
           <div class="total-label">${t('pedidos:detail_total_order')}</div>
-          <div class="total-value" style="color: #059669;">${parseFloat(pedido.total || totalOriginal).toFixed(2)} €</div>
+          <div class="total-value" style="color: #059669;">${parseFloat(pedido.total || totalOriginal).toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</div>
         </div>
         `
     }

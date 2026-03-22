@@ -963,7 +963,7 @@
 
             document.getElementById('stat-total-recetas').textContent = menuAnalysis.length;
             document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
-            document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
+            document.getElementById('stat-coste-promedio').textContent = costePromedio + ' ' + (window.getCurrencySymbol?.() || '€');
             document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
 
             // Renderizar Gráficos existentes
@@ -2289,7 +2289,7 @@
                     const totalMes = provOrdenados.reduce((sum, [, v]) => sum + v, 0);
                     const maxGasto = provOrdenados[0]?.[1] || 1;
 
-                    if (provTotalEl) provTotalEl.textContent = totalMes.toFixed(0) + '€';
+                    if (provTotalEl) provTotalEl.textContent = totalMes.toFixed(0) + (window.getCurrencySymbol?.() || '€');
 
                     if (provOrdenados.length > 0) {
                         const colores = [

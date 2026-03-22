@@ -16,15 +16,15 @@ export function actualizarSimulador() {
     const labelPersonal = document.getElementById('label-personal');
     const labelSuministros = document.getElementById('label-suministros');
 
-    if (labelAlquiler) labelAlquiler.textContent = alquiler.toLocaleString('es-ES') + ' €';
-    if (labelPersonal) labelPersonal.textContent = personal.toLocaleString('es-ES') + ' €';
-    if (labelSuministros) labelSuministros.textContent = suministros.toLocaleString('es-ES') + ' €';
+    if (labelAlquiler) labelAlquiler.textContent = alquiler.toLocaleString('es-ES') + ' ' + (window.getCurrencySymbol?.() || '€');
+    if (labelPersonal) labelPersonal.textContent = personal.toLocaleString('es-ES') + ' ' + (window.getCurrencySymbol?.() || '€');
+    if (labelSuministros) labelSuministros.textContent = suministros.toLocaleString('es-ES') + ' ' + (window.getCurrencySymbol?.() || '€');
 
     // Obtener Margen Bruto
     const margenBrutoElem = document.getElementById('balance-ganancia');
     let margenBruto = 0;
     if (margenBrutoElem) {
-        const cleanText = margenBrutoElem.textContent.replace('€', '').trim();
+        const cleanText = margenBrutoElem.textContent.replace(/[€A-Z]+/gi, '').trim();
         margenBruto = parseFloat(cleanText) || 0;
     }
 
@@ -38,14 +38,14 @@ export function actualizarSimulador() {
     const progressBar = document.getElementById('sim-progreso-fill');
     const analytics = document.getElementById('sim-analytics');
 
-    if (simMargenBruto) simMargenBruto.textContent = margenBruto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
-    if (simCostosFijos) simCostosFijos.textContent = costosFijos.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+    if (simMargenBruto) simMargenBruto.textContent = margenBruto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' ' + (window.getCurrencySymbol?.() || '€');
+    if (simCostosFijos) simCostosFijos.textContent = costosFijos.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' ' + (window.getCurrencySymbol?.() || '€');
 
     let porcentajeCubierto = costosFijos > 0 ? (margenBruto / costosFijos) * 100 : 100;
     const widthPct = Math.min(Math.max(porcentajeCubierto, 0), 100);
 
     if (netoElem) {
-        netoElem.textContent = neto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+        netoElem.textContent = neto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' ' + (window.getCurrencySymbol?.() || '€');
         netoElem.style.color = neto >= 0 ? '#10b981' : '#ef4444';
     }
 
@@ -70,7 +70,7 @@ export function actualizarSimulador() {
     const ingresosElem = document.getElementById('balance-ingresos');
     let ingresos = 0;
     if (ingresosElem) {
-        ingresos = parseFloat(ingresosElem.textContent.replace('€', '').trim()) || 0;
+        ingresos = parseFloat(ingresosElem.textContent.replace(/[€A-Z]+/gi, '').trim()) || 0;
     }
 
     let breakEven = 0;
@@ -80,11 +80,11 @@ export function actualizarSimulador() {
     }
 
     const breakEvenDisplay = document.getElementById('break-even-display');
-    if (breakEvenDisplay) breakEvenDisplay.textContent = breakEven.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+    if (breakEvenDisplay) breakEvenDisplay.textContent = breakEven.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' ' + (window.getCurrencySymbol?.() || '€');
 
     // Actualizar Card de Beneficio Neto superior
     const balanceNeto = document.getElementById('balance-neto');
-    if (balanceNeto) balanceNeto.textContent = neto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+    if (balanceNeto) balanceNeto.textContent = neto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' ' + (window.getCurrencySymbol?.() || '€');
 }
 
 // Exponer globalmente
