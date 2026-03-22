@@ -153,6 +153,8 @@
   "bcg_legend_puzzles": "❓ Puzzles",
   "bcg_legend_horses": "🐎 Caballos",
   "bcg_legend_dogs": "🐶 Perros",
+  "bcg_axis_popularity": "POPULARIDAD (Unidades Vendidas)",
+  "bcg_axis_profitability": "RENTABILIDAD (Margen €)",
   "bcg_stars_detail": "<strong>Estrategia recomendada:</strong><ul><li>Mantén la calidad constante</li><li>Destácalos en el menú principal</li><li>Considera subir precio (+5-10%)</li><li>Capacita al equipo para recomendarlos</li><li>Usa fotos en redes sociales</li></ul>",
   "bcg_puzzles_detail": "<strong>Estrategia recomendada:</strong><ul><li>Mejora la visibilidad en la carta</li><li>Añade foto profesional</li><li>Forma al personal para recomendarlos</li><li>Crea combos con platos populares</li><li>Si no mejoran, evalúa retirarlos</li></ul>",
   "bcg_horses_detail": "<strong>⚠️ Atención:</strong> Trabajan mucho pero ganan poco.<ul><li>Sube el precio gradualmente (5-10%)</li><li>Renegocia con proveedores</li><li>Reduce porciones sin afectar percepción</li><li>Usa ingredientes más económicos</li><li>Candidatos a retirar si no mejoran</li></ul>",

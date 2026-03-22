@@ -1053,10 +1053,10 @@
 
                     // Cuadrantes con gradientes suaves
                     const quadrants = [
-                        { x1: midX, y1: yAxis.top, x2: xAxis.right, y2: midY, color: 'rgba(34, 197, 94, 0.08)', label: 'ESTRELLAS', emoji: '⭐', labelColor: '#15803d' },
-                        { x1: xAxis.left, y1: yAxis.top, x2: midX, y2: midY, color: 'rgba(59, 130, 246, 0.08)', label: 'PUZZLES', emoji: '❓', labelColor: '#1d4ed8' },
-                        { x1: midX, y1: midY, x2: xAxis.right, y2: yAxis.bottom, color: 'rgba(249, 115, 22, 0.08)', label: 'CABALLOS', emoji: '🐴', labelColor: '#c2410c' },
-                        { x1: xAxis.left, y1: midY, x2: midX, y2: yAxis.bottom, color: 'rgba(239, 68, 68, 0.08)', label: 'PERROS', emoji: '🐕', labelColor: '#b91c1c' }
+                        { x1: midX, y1: yAxis.top, x2: xAxis.right, y2: midY, color: 'rgba(34, 197, 94, 0.08)', label: (window.t?.('dashboard:bcg_stars') || 'STARS').toUpperCase(), emoji: '⭐', labelColor: '#15803d' },
+                        { x1: xAxis.left, y1: yAxis.top, x2: midX, y2: midY, color: 'rgba(59, 130, 246, 0.08)', label: (window.t?.('dashboard:bcg_puzzles') || 'PUZZLES').toUpperCase(), emoji: '❓', labelColor: '#1d4ed8' },
+                        { x1: midX, y1: midY, x2: xAxis.right, y2: yAxis.bottom, color: 'rgba(249, 115, 22, 0.08)', label: (window.t?.('dashboard:bcg_horses') || 'WORKHORSES').toUpperCase(), emoji: '🐴', labelColor: '#c2410c' },
+                        { x1: xAxis.left, y1: midY, x2: midX, y2: yAxis.bottom, color: 'rgba(239, 68, 68, 0.08)', label: (window.t?.('dashboard:bcg_dogs') || 'DOGS').toUpperCase(), emoji: '🐕', labelColor: '#b91c1c' }
                     ];
 
                     quadrants.forEach(q => {
@@ -1082,10 +1082,10 @@
 
                     // Etiquetas con fondo pill profesional
                     const labels = [
-                        { x: (midX + xAxis.right) / 2, y: yAxis.top + 25, text: '⭐ ESTRELLAS', bg: 'rgba(34, 197, 94, 0.15)', color: '#15803d' },
-                        { x: (xAxis.left + midX) / 2, y: yAxis.top + 25, text: '❓ PUZZLES', bg: 'rgba(59, 130, 246, 0.15)', color: '#1d4ed8' },
-                        { x: (midX + xAxis.right) / 2, y: yAxis.bottom - 15, text: '🐴 CABALLOS', bg: 'rgba(249, 115, 22, 0.15)', color: '#c2410c' },
-                        { x: (xAxis.left + midX) / 2, y: yAxis.bottom - 15, text: '🐕 PERROS', bg: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c' }
+                        { x: (midX + xAxis.right) / 2, y: yAxis.top + 25, text: window.t?.('dashboard:bcg_legend_stars') || '⭐ Stars', bg: 'rgba(34, 197, 94, 0.15)', color: '#15803d' },
+                        { x: (xAxis.left + midX) / 2, y: yAxis.top + 25, text: window.t?.('dashboard:bcg_legend_puzzles') || '❓ Puzzles', bg: 'rgba(59, 130, 246, 0.15)', color: '#1d4ed8' },
+                        { x: (midX + xAxis.right) / 2, y: yAxis.bottom - 15, text: window.t?.('dashboard:bcg_legend_horses') || '🐴 Workhorses', bg: 'rgba(249, 115, 22, 0.15)', color: '#c2410c' },
+                        { x: (xAxis.left + midX) / 2, y: yAxis.bottom - 15, text: window.t?.('dashboard:bcg_legend_dogs') || '🐶 Dogs', bg: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c' }
                     ];
 
                     labels.forEach(l => {
@@ -1168,7 +1168,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: 'POPULARIDAD (Unidades Vendidas)',
+                                text: window.t?.('dashboard:bcg_axis_popularity') || 'POPULARITY (Units Sold)',
                                 font: { size: 11, weight: '600', family: 'system-ui' },
                                 color: '#64748b',
                                 padding: { top: 10 }
@@ -1180,7 +1180,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: 'RENTABILIDAD (Margen €)',
+                                text: window.t?.('dashboard:bcg_axis_profitability') || 'PROFITABILITY (Margin €)',
                                 font: { size: 11, weight: '600', family: 'system-ui' },
                                 color: '#64748b',
                                 padding: { bottom: 10 }
