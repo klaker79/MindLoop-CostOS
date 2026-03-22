@@ -2580,14 +2580,15 @@
         datosResumenMensual = await response.json();
 
         // Actualizar KPIs
-        document.getElementById('diario-total-compras').textContent =
-          (datosResumenMensual.compras?.total || 0).toFixed(2) + ' €';
-        document.getElementById('diario-total-ventas').textContent =
-          (datosResumenMensual.ventas?.totalIngresos || 0).toFixed(2) + ' €';
-        document.getElementById('diario-beneficio').textContent =
-          (datosResumenMensual.ventas?.beneficioBruto || 0).toFixed(2) + ' €';
-        document.getElementById('diario-food-cost').textContent =
-          (datosResumenMensual.resumen?.foodCost || 0) + '%';
+        const _cs = window.getCurrencySymbol?.() || '€';
+        const elC = document.getElementById('diario-total-compras');
+        const elV = document.getElementById('diario-total-ventas');
+        const elB = document.getElementById('diario-beneficio');
+        const elF = document.getElementById('diario-food-cost');
+        if (elC) elC.textContent = (datosResumenMensual.compras?.total || 0).toFixed(2) + ' ' + _cs;
+        if (elV) elV.textContent = (datosResumenMensual.ventas?.totalIngresos || 0).toFixed(2) + ' ' + _cs;
+        if (elB) elB.textContent = (datosResumenMensual.ventas?.beneficioBruto || 0).toFixed(2) + ' ' + _cs;
+        if (elF) elF.textContent = (datosResumenMensual.resumen?.foodCost || 0) + '%';
 
         // Renderizar tablas
         renderizarTablaComprasDiarias();
