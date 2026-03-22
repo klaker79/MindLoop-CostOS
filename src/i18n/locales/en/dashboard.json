@@ -153,6 +153,8 @@
   "bcg_legend_puzzles": "❓ Puzzles",
   "bcg_legend_horses": "🐎 Workhorses",
   "bcg_legend_dogs": "🐶 Dogs",
+  "bcg_axis_popularity": "POPULARITY (Units Sold)",
+  "bcg_axis_profitability": "PROFITABILITY (Margin €)",
   "bcg_stars_detail": "<strong>Recommended strategy:</strong><ul><li>Maintain consistent quality</li><li>Highlight them on the main menu</li><li>Consider raising prices (+5-10%)</li><li>Train staff to recommend them</li><li>Use photos on social media</li></ul>",
   "bcg_puzzles_detail": "<strong>Recommended strategy:</strong><ul><li>Improve visibility on the menu</li><li>Add professional photos</li><li>Train staff to recommend them</li><li>Create combos with popular dishes</li><li>If they don't improve, consider removing</li></ul>",
   "bcg_horses_detail": "<strong>⚠️ Attention:</strong> High sales but low profit.<ul><li>Gradually raise the price (5-10%)</li><li>Renegotiate with suppliers</li><li>Reduce portions without affecting perception</li><li>Use more affordable ingredients</li><li>Candidates for removal if no improvement</li></ul>",

@@ -147,6 +147,8 @@
   "bcg_legend_puzzles": "❓ 谜题",
   "bcg_legend_horses": "🐎 主力",
   "bcg_legend_dogs": "🐶 淘汰",
+  "bcg_axis_popularity": "人气 (销售数量)",
+  "bcg_axis_profitability": "盈利能力 (利润 €)",
   "bcg_stars_detail": "<strong>建议策略：</strong><ul><li>保持稳定品质</li><li>在菜单主要位置突出展示</li><li>考虑提价（+5-10%）</li><li>培训员工推荐</li><li>在社交媒体使用照片</li></ul>",
   "bcg_puzzles_detail": "<strong>建议策略：</strong><ul><li>提高菜单上的展示度</li><li>添加专业照片</li><li>培训员工推荐</li><li>与热门菜品组合套餐</li><li>若无改善，考虑移除</li></ul>",
   "bcg_horses_detail": "<strong>⚠️ 注意：</strong>销量高但利润低。<ul><li>逐步提价（5-10%）</li><li>与供应商重新谈判</li><li>在不影响感知的情况下减少份量</li><li>使用更经济的食材</li><li>若无改善考虑移除</li></ul>",
