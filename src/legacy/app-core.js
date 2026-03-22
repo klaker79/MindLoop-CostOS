@@ -901,7 +901,7 @@
                         beginAtZero: true,
                         grid: { color: 'rgba(148, 163, 184, 0.08)', drawBorder: false },
                         border: { display: false },
-                        ticks: { callback: value => value + '€', font: { size: 11, weight: '500' }, color: '#94A3B8', padding: 6 },
+                        ticks: { callback: value => value + (window.getCurrencySymbol?.() || '€'), font: { size: 11, weight: '500' }, color: '#94A3B8', padding: 6 },
                     },
                     x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: '500' }, color: '#94A3B8' } },
                 },
