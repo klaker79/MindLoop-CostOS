@@ -93,8 +93,9 @@ function actualizarTotalesGastosFijos() {
 
     const elemMensual = document.getElementById('total-mensual-gastos');
     const elemDiario = document.getElementById('total-diario-gastos');
-    if (elemMensual) elemMensual.textContent = totalMensual.toFixed(2) + '€';
-    if (elemDiario) elemDiario.textContent = totalDiario.toFixed(2) + '€';
+    const cs = window.getCurrencySymbol?.() || '€';
+    if (elemMensual) elemMensual.textContent = totalMensual.toFixed(2) + cs;
+    if (elemDiario) elemDiario.textContent = totalDiario.toFixed(2) + cs;
 }
 
 function abrirFormularioGastoFijo(id = null) {
@@ -181,16 +182,17 @@ async function actualizarBeneficioRealDiario() {
     const gastosDiario = totales.total_diario || 0;
  
     const elemGastos = document.getElementById('diario-gastos-fijos');
-    if (elemGastos) elemGastos.textContent = gastosDiario.toFixed(2) + ' €';
- 
+    const cs2 = window.getCurrencySymbol?.() || '€';
+    if (elemGastos) elemGastos.textContent = gastosDiario.toFixed(2) + ' ' + cs2;
+
     const beneficioBrutoMensual = parseFloat(document.getElementById('diario-beneficio')?.textContent || '0');
     const beneficioBrutoDiario = beneficioBrutoMensual / 30;
     const beneficioReal = beneficioBrutoDiario - gastosDiario;
- 
+
     const elemBeneficio = document.getElementById('diario-beneficio-real');
     const cardBeneficio = document.getElementById('card-beneficio-real');
- 
-    if (elemBeneficio) elemBeneficio.textContent = beneficioReal.toFixed(2) + ' €';
+
+    if (elemBeneficio) elemBeneficio.textContent = beneficioReal.toFixed(2) + ' ' + cs2;
     if (cardBeneficio) {
       cardBeneficio.className = beneficioReal < 0 ? 'stat-card red' : 'stat-card green';
     }

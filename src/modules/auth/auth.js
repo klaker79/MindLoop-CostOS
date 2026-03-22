@@ -642,6 +642,12 @@ function enterApp() {
     if (selectorScreen) selectorScreen.style.display = 'none';
     if (appContainer) appContainer.style.display = 'block';
 
+    // Set currency symbol from restaurant config
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        window.restauranteMoneda = user.moneda || '€';
+    } catch { window.restauranteMoneda = '€'; }
+
     // Update sidebar with current restaurant name
     updateSidebarRestaurant();
 
