@@ -634,6 +634,33 @@ export async function handleCheckoutReturn() {
 
 // ========== Helpers ==========
 
+/**
+ * Replace all static € symbols in the HTML with the restaurant's currency.
+ * Only runs when currency is NOT €. Targets labels, spans, values, and slider oninput handlers.
+ */
+function replaceCurrencyInHTML(symbol) {
+    const container = document.getElementById('app-container');
+    if (!container) return;
+
+    // Replace text content in value/label elements
+    const targets = container.querySelectorAll('.value, span, label, strong, div');
+    targets.forEach(el => {
+        if (el.children.length > 0 && el.querySelector('input, select, button')) return;
+        if (el.textContent && el.textContent.includes('€') && !el.textContent.includes('getCurrencySymbol')) {
+            el.textContent = el.textContent.replace(/€/g, symbol);
+        }
+    });
+
+    // Replace oninput handlers on sliders that append '€'
+    const sliders = container.querySelectorAll('input[type="range"][oninput*="€"]');
+    sliders.forEach(slider => {
+        const handler = slider.getAttribute('oninput');
+        if (handler) {
+            slider.setAttribute('oninput', handler.replace(/€/g, symbol));
+        }
+    });
+}
+
 function enterApp() {
     const loginScreen = document.getElementById('login-screen');
     const selectorScreen = document.getElementById('restaurant-selector-screen');
@@ -647,6 +674,11 @@ function enterApp() {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         window.restauranteMoneda = user.moneda || '€';
     } catch { window.restauranteMoneda = '€'; }
+
+    // Replace static € in HTML with restaurant currency if not EUR
+    if (window.restauranteMoneda !== '€') {
+        replaceCurrencyInHTML(window.restauranteMoneda);
+    }
 
     // Update sidebar with current restaurant name
     updateSidebarRestaurant();
