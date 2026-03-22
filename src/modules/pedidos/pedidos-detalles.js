@@ -101,12 +101,12 @@ export function verDetallesPedido(pedidoId) {
                   ${esRecibido && Math.abs(varianzaCant) > 0.01 ? `<br><small style="color:${varianzaCant > 0 ? '#10B981' : '#EF4444'};">→ ${cantRecibida.toFixed(2)} (${varianzaCant > 0 ? '+' : ''}${varianzaCant.toFixed(2)})</small>` : ''}
                 </td>
                 <td style="padding: 12px; text-align: right;">
-                  ${precioOriginal.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}
-                  ${esRecibido && Math.abs(varianzaPrecio) > 0.01 ? `<br><small style="color:${varianzaPrecio > 0 ? '#EF4444' : '#10B981'};">→ ${precioReal.toFixed(2)} ${window.getCurrencySymbol?.() || '€'} (${varianzaPrecio > 0 ? '+' : ''}${varianzaPrecio.toFixed(2)})</small>` : ''}
+                  ${precioOriginal.toFixed(2)} €
+                  ${esRecibido && Math.abs(varianzaPrecio) > 0.01 ? `<br><small style="color:${varianzaPrecio > 0 ? '#EF4444' : '#10B981'};">→ ${precioReal.toFixed(2)} € (${varianzaPrecio > 0 ? '+' : ''}${varianzaPrecio.toFixed(2)})</small>` : ''}
                 </td>
                 <td style="padding: 12px; text-align: right;">
-                  ${esRecibido && subtotalReal !== subtotalOriginal ? `<small style="text-decoration:line-through;color:#999;">${subtotalOriginal.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</small><br>` : ''}
-                  <strong>${(esRecibido ? subtotalReal : subtotalOriginal).toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</strong>
+                  ${esRecibido && subtotalReal !== subtotalOriginal ? `<small style="text-decoration:line-through;color:#999;">${subtotalOriginal.toFixed(2)} €</small><br>` : ''}
+                  <strong>${(esRecibido ? subtotalReal : subtotalOriginal).toFixed(2)} €</strong>
                 </td>
                 ${esRecibido ? `<td style="padding: 12px; text-align: center;">${estadoBadge}</td>` : ''}
               </tr>
@@ -158,22 +158,22 @@ export function verDetallesPedido(pedidoId) {
       <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
         <div style="padding: 15px; background: #F8FAFC; border-radius: 12px; text-align: center;">
           <div style="color: #64748B; font-size: 12px;">${t('pedidos:detail_total_original')}</div>
-          <div style="font-size: 20px; font-weight: bold; color: #1E293B;">${totalOriginal.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</div>
+          <div style="font-size: 20px; font-weight: bold; color: #1E293B;">${totalOriginal.toFixed(2)} €</div>
         </div>
         <div style="padding: 15px; background: #F0FDF4; border: 2px solid #10B981; border-radius: 12px; text-align: center;">
           <div style="color: #64748B; font-size: 12px;">${t('pedidos:detail_total_received')}</div>
-          <div style="font-size: 20px; font-weight: bold; color: #059669;">${totalRecibido.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</div>
+          <div style="font-size: 20px; font-weight: bold; color: #059669;">${totalRecibido.toFixed(2)} €</div>
         </div>
         <div style="padding: 15px; background: ${Math.abs(varianzaTotal) > 0.01 ? '#FEF3C7' : '#F8FAFC'}; border-radius: 12px; text-align: center;">
           <div style="color: #64748B; font-size: 12px;">${t('pedidos:detail_variance')}</div>
-          <div style="font-size: 20px; font-weight: bold; color: ${varianzaColor};">${varianzaTotal > 0 ? '+' : ''}${varianzaTotal.toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</div>
+          <div style="font-size: 20px; font-weight: bold; color: ${varianzaColor};">${varianzaTotal > 0 ? '+' : ''}${varianzaTotal.toFixed(2)} €</div>
         </div>
       </div>
       `
             : `
       <div style="margin-top: 20px; padding: 20px; background: #F0FDF4; border: 2px solid #10B981; border-radius: 12px; text-align: right;">
         <strong style="color: #666;">${t('pedidos:detail_total_order')}</strong><br>
-        <span style="font-size: 28px; font-weight: bold; color: #059669;">${parseFloat(ped.total || totalOriginal || 0).toFixed(2)} ${window.getCurrencySymbol?.() || '€'}</span>
+        <span style="font-size: 28px; font-weight: bold; color: #059669;">${parseFloat(ped.total || totalOriginal || 0).toFixed(2)} €</span>
       </div>
       `
         }

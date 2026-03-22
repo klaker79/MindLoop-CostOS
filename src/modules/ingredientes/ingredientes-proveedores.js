@@ -112,23 +112,23 @@ function renderizarProveedoresAsociados(proveedoresAsociados) {
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
                     <div style="background: #DCFCE7; padding: 12px; border-radius: 8px; border: 1px solid #22C55E;">
                         <div style="font-size: 11px; color: #166534; text-transform: uppercase; font-weight: 600;">💰 ${t('ingredientes:suppliers_best_price')}</div>
-                        <div style="font-size: 20px; font-weight: bold; color: #059669;">${precioMin.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</div>
+                        <div style="font-size: 20px; font-weight: bold; color: #059669;">${precioMin.toFixed(2)}€</div>
                         <div style="font-size: 12px; color: #166534;">${escapeHTML(mejorProveedor.nombre)}</div>
                     </div>
                     <div style="background: #F1F5F9; padding: 12px; border-radius: 8px;">
                         <div style="font-size: 11px; color: #64748B; text-transform: uppercase; font-weight: 600;">📈 ${t('ingredientes:suppliers_avg_price')}</div>
-                        <div style="font-size: 20px; font-weight: bold; color: #475569;">${precioMedio.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</div>
+                        <div style="font-size: 20px; font-weight: bold; color: #475569;">${precioMedio.toFixed(2)}€</div>
                         <div style="font-size: 12px; color: #64748B;">${precios.length} proveedores</div>
                     </div>
                     <div style="background: #FEF2F2; padding: 12px; border-radius: 8px; border: 1px solid #EF4444;">
                         <div style="font-size: 11px; color: #991B1B; text-transform: uppercase; font-weight: 600;">⚠️ ${t('ingredientes:suppliers_most_expensive')}</div>
-                        <div style="font-size: 20px; font-weight: bold; color: #DC2626;">${precioMax.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</div>
+                        <div style="font-size: 20px; font-weight: bold; color: #DC2626;">${precioMax.toFixed(2)}€</div>
                         <div style="font-size: 12px; color: #991B1B;">${escapeHTML(peorProveedor.nombre)}</div>
                     </div>
                 </div>
                 <div style="margin-top: 12px; padding: 10px; background: #FEF3C7; border-radius: 8px; text-align: center;">
                     <span style="font-size: 13px; color: #92400E;">
-                        💡 <strong>Ahorro potencial:</strong> ${ahorroPotencial.toFixed(2)}${window.getCurrencySymbol?.() || '€'}/unidad comprando a ${escapeHTML(mejorProveedor.nombre)}
+                        💡 <strong>Ahorro potencial:</strong> ${ahorroPotencial.toFixed(2)}€/unidad comprando a ${escapeHTML(mejorProveedor.nombre)}
                     </span>
                 </div>
             </div>
@@ -158,7 +158,7 @@ function renderizarProveedoresAsociados(proveedoresAsociados) {
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 24px; font-weight: bold; color: ${esMejorPrecio ? '#059669' : '#1E293B'}; margin-bottom: 4px;">
-                            ${parseFloat(pa.precio).toFixed(2)} ${window.getCurrencySymbol?.() || '€'}
+                            ${parseFloat(pa.precio).toFixed(2)} €
                         </div>
                         ${badgePrincipal}
                     </div>

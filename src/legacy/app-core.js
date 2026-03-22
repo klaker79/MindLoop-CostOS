@@ -901,7 +901,7 @@
                         beginAtZero: true,
                         grid: { color: 'rgba(148, 163, 184, 0.08)', drawBorder: false },
                         border: { display: false },
-                        ticks: { callback: value => value + (window.getCurrencySymbol?.() || '€'), font: { size: 11, weight: '500' }, color: '#94A3B8', padding: 6 },
+                        ticks: { callback: value => value + '€', font: { size: 11, weight: '500' }, color: '#94A3B8', padding: 6 },
                     },
                     x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: '500' }, color: '#94A3B8' } },
                 },
@@ -963,7 +963,7 @@
 
             document.getElementById('stat-total-recetas').textContent = menuAnalysis.length;
             document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
-            document.getElementById('stat-coste-promedio').textContent = costePromedio + ' ' + (window.getCurrencySymbol?.() || '€');
+            document.getElementById('stat-coste-promedio').textContent = costePromedio + ' €';
             document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
 
             // Renderizar Gráficos existentes
@@ -2289,7 +2289,7 @@
                     const totalMes = provOrdenados.reduce((sum, [, v]) => sum + v, 0);
                     const maxGasto = provOrdenados[0]?.[1] || 1;
 
-                    if (provTotalEl) provTotalEl.textContent = totalMes.toFixed(0) + (window.getCurrencySymbol?.() || '€');
+                    if (provTotalEl) provTotalEl.textContent = totalMes.toFixed(0) + '€';
 
                     if (provOrdenados.length > 0) {
                         const colores = [

@@ -55,15 +55,15 @@ export async function verEvolucionPrecio(ingredienteId) {
     document.getElementById('evolucion-summary').innerHTML = `
         <div style="background: #ecfdf5; padding: 15px; border-radius: 10px; text-align: center;">
             <div style="font-size: 11px; color: #059669; text-transform: uppercase; font-weight: 600;">${t('ingredientes:price_evolution_min')}</div>
-            <div style="font-size: 24px; font-weight: 700; color: #047857;">${precioMin.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</div>
+            <div style="font-size: 24px; font-weight: 700; color: #047857;">${precioMin.toFixed(2)}€</div>
         </div>
         <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; text-align: center;">
             <div style="font-size: 11px; color: #0284c7; text-transform: uppercase; font-weight: 600;">${t('ingredientes:price_evolution_avg')}</div>
-            <div style="font-size: 24px; font-weight: 700; color: #0369a1;">${precioPromedio.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</div>
+            <div style="font-size: 24px; font-weight: 700; color: #0369a1;">${precioPromedio.toFixed(2)}€</div>
         </div>
         <div style="background: #fef2f2; padding: 15px; border-radius: 10px; text-align: center;">
             <div style="font-size: 11px; color: #dc2626; text-transform: uppercase; font-weight: 600;">${t('ingredientes:price_evolution_max')}</div>
-            <div style="font-size: 24px; font-weight: 700; color: #b91c1c;">${precioMax.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</div>
+            <div style="font-size: 24px; font-weight: 700; color: #b91c1c;">${precioMax.toFixed(2)}€</div>
         </div>
     `;
 
@@ -122,7 +122,7 @@ function renderTablaHistorial() {
             <td style="padding: 8px;">${formatDate(h.fecha)}</td>
             <td style="padding: 8px;">${escapeHTML(h.proveedor)}</td>
             <td style="padding: 8px; text-align: right;">${h.cantidad.toFixed(2)}</td>
-            <td style="padding: 8px; text-align: right; font-weight: 600;">${h.precio.toFixed(2)}${window.getCurrencySymbol?.() || '€'}</td>
+            <td style="padding: 8px; text-align: right; font-weight: 600;">${h.precio.toFixed(2)}€</td>
             <td style="padding: 8px; text-align: right; color: ${varColor};">${varIcon} ${Math.abs(variacionItem).toFixed(1)}%</td>
         </tr>`;
     });
@@ -307,7 +307,7 @@ async function renderChart(historial, ingrediente) {
                     cornerRadius: 10,
                     displayColors: false,
                     callbacks: {
-                        label: (ctx) => `💰 ${ctx.parsed.y.toFixed(2)}${window.getCurrencySymbol?.() || '€'} / ${ingrediente.unidad}`
+                        label: (ctx) => `💰 ${ctx.parsed.y.toFixed(2)}€ / ${ingrediente.unidad}`
                     }
                 }
             },
@@ -320,7 +320,7 @@ async function renderChart(historial, ingrediente) {
                     },
                     border: { display: false },
                     ticks: {
-                        callback: (value) => value.toFixed(2) + (window.getCurrencySymbol?.() || '€'),
+                        callback: (value) => value.toFixed(2) + '€',
                         color: '#94A3B8',
                         font: { size: 11, weight: '500' },
                         padding: 6

@@ -707,7 +707,7 @@ async function executeAction(actionData) {
                 }
             }
 
-            window.showToast?.(`${rec.nombre} actualizado: precio = ${value}${window.getCurrencySymbol?.() || '€'}`, 'success');
+            window.showToast?.(`${rec.nombre} actualizado: precio = ${value}€`, 'success');
             return true;
         } else if (action === 'update' && entity === 'receta_ingrediente') {
             // Formato: update|receta_ingrediente|RECETA|INGREDIENTE|cantidad|VALOR
@@ -791,7 +791,7 @@ async function executeAction(actionData) {
 
             await window.cargarDatos();
             window.renderizarIngredientes?.();
-            window.showToast?.(`✅ Ingrediente ${nombre} creado a ${precio}${window.getCurrencySymbol?.() || '€'}/${unidad}`, 'success');
+            window.showToast?.(`✅ Ingrediente ${nombre} creado a ${precio}€/${unidad}`, 'success');
             speakResponse(`Ingrediente ${nombre} añadido correctamente`);
             return true;
         }
@@ -902,7 +902,7 @@ async function executeAction(actionData) {
 
             await window.cargarDatos();
             window.renderizarVentas?.();
-            window.showToast?.(`💰 Venta registrada: ${cantidad}x ${rec.nombre} = ${total.toFixed(2)}${window.getCurrencySymbol?.() || '€'}`, 'success');
+            window.showToast?.(`💰 Venta registrada: ${cantidad}x ${rec.nombre} = ${total.toFixed(2)}€`, 'success');
             speakResponse(`Venta de ${cantidad} ${rec.nombre} registrada por ${total.toFixed(2)} euros`);
             return true;
         }
