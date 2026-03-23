@@ -8,6 +8,60 @@ import saleStore from '../../stores/saleStore.js';
 import { t } from '@/i18n/index.js';
 
 /**
+ * Registra una nueva venta desde el formulario
+ */
+export async function guardarVenta() {
+    const recetaId = document.getElementById('venta-receta')?.value;
+    const cantidad = parseInt(document.getElementById('venta-cantidad')?.value);
+
+    // Capturar variante seleccionada (copa/botella)
+    const varianteSelect = document.getElementById('venta-variante');
+    const varianteId = varianteSelect?.value ? parseInt(varianteSelect.value) : null;
+    const varianteData = varianteSelect?.selectedOptions?.[0];
+    const precioVariante = varianteData?.dataset?.precio ? parseFloat(varianteData.dataset.precio) : null;
+
+    if (!recetaId) {
+        window.showToast?.(t('ventas:error_select_dish', 'Selecciona un plato'), 'error');
+        return;
+    }
+    if (!cantidad || cantidad <= 0) {
+        window.showToast?.(t('ventas:error_quantity', 'La cantidad debe ser mayor que 0'), 'error');
+        return;
+    }
+
+    // Anti-doble-click
+    const form = document.getElementById('form-venta');
+    const submitBtn = form?.querySelector('button[type="submit"]');
+    if (submitBtn?.disabled) return;
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.dataset.originalText = submitBtn.textContent;
+        submitBtn.textContent = '⏳...';
+    }
+
+    try {
+        const store = saleStore.getState();
+        const result = await store.createSale({ recetaId, cantidad, varianteId, precioVariante });
+        if (!result.success) throw new Error(result.error || 'Error al registrar venta');
+
+        // Invalidar caché y refrescar UI
+        window._ventasCache = null;
+        await window.renderizarVentas?.();
+        window.actualizarKPIs?.();
+        form?.reset();
+        window.showToast?.(t('ventas:toast_registered', 'Venta registrada correctamente'), 'success');
+    } catch (error) {
+        console.error('Error registrando venta:', error);
+        window.showToast?.(t('ventas:toast_error_registering', { message: error.message }), 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = submitBtn.dataset.originalText || '✅ Registrar';
+        }
+    }
+}
+
+/**
  * Elimina una venta
  */
 export async function eliminarVenta(id) {

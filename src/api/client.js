@@ -52,15 +52,24 @@ async function handleResponse(response) {
 
         // Handle specific status codes
         if (response.status === 401) {
-            console.warn('🔒 API: Token expirado o inválido — redirigiendo a login');
-            // 🔒 SECURITY: Clean all auth state
-            window.authToken = null;
-            sessionStorage.removeItem('_at');
-            window.dispatchEvent(new CustomEvent('auth:expired'));
-            // Redirect only if not already on login (prevent loops)
-            if (!window._authRedirecting && !window.location.pathname.includes('login')) {
-                window._authRedirecting = true;
-                window.location.href = '/login.html';
+            // Only redirect on critical auth endpoints, not background checks
+            const url = response.url || '';
+            const nonCriticalPaths = ['/owner/restaurants', '/stripe/subscription-status', '/v2/alerts', '/monthly/summary', '/transfers/pending-count'];
+            const isNonCritical = nonCriticalPaths.some(p => url.includes(p));
+
+            if (isNonCritical) {
+                console.warn('🔒 API: 401 en endpoint no crítico (ignorando redirect):', url);
+            } else {
+                console.warn('🔒 API: Token expirado o inválido — redirigiendo a login');
+                // 🔒 SECURITY: Clean all auth state
+                window.authToken = null;
+                sessionStorage.removeItem('_at');
+                window.dispatchEvent(new CustomEvent('auth:expired'));
+                // Redirect only if not already on login (prevent loops)
+                if (!window._authRedirecting && !window.location.pathname.includes('login')) {
+                    window._authRedirecting = true;
+                    window.location.href = '/login.html';
+                }
             }
         }
 
