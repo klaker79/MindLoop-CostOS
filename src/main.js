@@ -371,6 +371,7 @@ window.cargarVariantesVenta = VentasUI.cargarVariantesVenta; // Selector de vari
 
 // CRUD
 window.eliminarVenta = VentasCRUD.eliminarVenta;
+window.guardarVenta = VentasCRUD.guardarVenta;
 
 // ============================================
 // MÓDULO: DASHBOARD ⚙️ (Híbrido - ES6 tiene prioridad)
