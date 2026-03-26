@@ -168,14 +168,30 @@ export async function verEscandallo(recetaId) {
         document.body.appendChild(modal);
     }
 
+    // Cálculos adicionales estilo ficha técnica de cocina
+    const MARGEN_ERROR_PCT = 8;
+    const IVA_PCT = 10;
+    const margenError = costeTotal * (MARGEN_ERROR_PCT / 100);
+    const subtotalConError = costeTotal + margenError;
+    const _precioSugerido30 = subtotalConError / 0.30;
+    const precioSugerido35 = subtotalConError / 0.35;
+    const esBebida = (receta.categoria || '').toLowerCase().includes('bebida');
+    const precioSugerido45 = subtotalConError / 0.45;
+    const beneficioBruto = precioVenta - subtotalConError;
+    const pvpConIva = precioVenta * (1 + IVA_PCT / 100);
+    const foodCostReal = precioVenta > 0 ? (subtotalConError / precioVenta) * 100 : 100;
+
     // Store data for PDF export
-    window._escandalloActual = { receta, desglose, costeTotal, precioVenta, margenEuros, margenPct, foodCost };
+    window._escandalloActual = { receta, desglose, costeTotal, precioVenta, margenEuros, margenPct, foodCost, subtotalConError, margenError, beneficioBruto, pvpConIva, precioSugerido35, foodCostReal };
 
     // Update modal content
     document.getElementById('escandallo-titulo').textContent = `📊 ${receta.nombre}`;
 
     // Summary section
     const foodCostColor = foodCost <= 33 ? '#10B981' : foodCost <= 38 ? '#F59E0B' : '#EF4444';
+    const foodCostRealColor = foodCostReal <= 33 ? '#10B981' : foodCostReal <= 38 ? '#F59E0B' : '#EF4444';
+    const precioIdeal = esBebida ? precioSugerido45 : precioSugerido35;
+    const precioIdealLabel = esBebida ? '45%' : '35%';
     document.getElementById('escandallo-resumen').innerHTML = `
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
             <div style="background: #F0FDF4; padding: 12px; border-radius: 8px; text-align: center;">
@@ -193,6 +209,39 @@ export async function verEscandallo(recetaId) {
             <div style="background: ${foodCost <= 33 ? '#F0FDF4' : foodCost <= 38 ? '#FEF3C7' : '#FEE2E2'}; padding: 12px; border-radius: 8px; text-align: center;">
                 <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_food_cost')}</div>
                 <div style="font-size: 20px; font-weight: 700; color: ${foodCostColor};">${foodCost.toFixed(1)}%</div>
+            </div>
+        </div>
+
+        <!-- Ficha Técnica de Cocina -->
+        <div style="margin-top: 16px; background: linear-gradient(135deg, #1E293B 0%, #334155 100%); border-radius: 12px; padding: 20px; color: #E2E8F0;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #475569;">
+                <span style="font-size: 16px;">📋</span>
+                <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #F8FAFC;">Ficha de Costes</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; font-size: 13px;">
+                <span style="color: #94A3B8;">Coste ingredientes</span>
+                <span style="text-align: right; font-weight: 600;">${costeTotal.toFixed(2)}€</span>
+
+                <span style="color: #94A3B8;">Margen de error (${MARGEN_ERROR_PCT}%)</span>
+                <span style="text-align: right; font-weight: 600; color: #FBBF24;">+${margenError.toFixed(2)}€</span>
+
+                <span style="color: #F8FAFC; font-weight: 700; padding-top: 6px; border-top: 1px solid #475569;">Subtotal coste / ración</span>
+                <span style="text-align: right; font-weight: 700; color: #F8FAFC; padding-top: 6px; border-top: 1px solid #475569;">${subtotalConError.toFixed(2)}€</span>
+
+                <span style="color: #94A3B8; padding-top: 8px;">Precio sugerido (${precioIdealLabel} FC)</span>
+                <span style="text-align: right; font-weight: 600; padding-top: 8px; color: #67E8F9;">${precioIdeal.toFixed(2)}€</span>
+
+                <span style="color: #94A3B8;">Beneficio bruto</span>
+                <span style="text-align: right; font-weight: 600; color: ${beneficioBruto >= 0 ? '#34D399' : '#F87171'};">${beneficioBruto.toFixed(2)}€</span>
+
+                <span style="color: #94A3B8;">IVA (${IVA_PCT}%)</span>
+                <span style="text-align: right; font-weight: 600;">${(precioVenta * IVA_PCT / 100).toFixed(2)}€</span>
+
+                <span style="color: #F8FAFC; font-weight: 700; font-size: 15px; padding-top: 8px; border-top: 1px solid #475569;">PVP (IVA incl.)</span>
+                <span style="text-align: right; font-weight: 700; font-size: 15px; color: #F97316; padding-top: 8px; border-top: 1px solid #475569;">${pvpConIva.toFixed(2)}€</span>
+
+                <span style="color: #94A3B8; padding-top: 6px;">Food Cost real (con error)</span>
+                <span style="text-align: right; font-weight: 700; padding-top: 6px; color: ${foodCostRealColor};">${foodCostReal.toFixed(1)}%</span>
             </div>
         </div>
     `;
