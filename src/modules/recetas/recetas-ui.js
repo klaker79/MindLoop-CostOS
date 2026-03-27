@@ -221,10 +221,13 @@ export function calcularCosteReceta() {
                 const invItem = inventarioMap.get(ingId);
                 const ing = ingredientesMap.get(ingId);
 
-                // Prioridad: precio_medio del inventario (WAP) > precio fijo / cantidad_por_formato
+                // Prioridad: precio_medio_compra (real) > precio_medio (config) > precio/formato
                 let precio = 0;
-                if (invItem?.precio_medio) {
-                    // ✅ PRIMARIO: Usar precio medio del inventario (media de compras)
+                if (invItem?.precio_medio_compra) {
+                    // ✅ PRIMARIO: Media real de compras (albaranes)
+                    precio = parseFloat(invItem.precio_medio_compra);
+                } else if (invItem?.precio_medio) {
+                    // SECUNDARIO: precio config / cantidad_por_formato
                     precio = parseFloat(invItem.precio_medio);
                 } else if (ing?.precio) {
                     // ⚠️ FALLBACK: precio del formato / cantidad_por_formato
