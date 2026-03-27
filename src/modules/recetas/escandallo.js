@@ -8,6 +8,7 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML } from '../../utils/helpers.js';
 import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
+import { getInvMap, getIngMap } from './recetas-crud.js';
 
 /**
  * Opens the escandallo modal for a recipe with pie chart
@@ -18,12 +19,11 @@ export async function verEscandallo(recetaId) {
     if (!receta) return;
 
     const ingredientes = window.ingredientes || [];
-    const inventario = window.inventarioCompleto || [];
     const recetas = window.recetas || [];
 
-    // ⚡ OPTIMIZACIÓN: Crear Maps O(1) una vez
-    const ingMap = new Map(ingredientes.map(i => [i.id, i]));
-    const invMap = new Map(inventario.map(i => [i.id, i]));
+    // ⚡ Usar Maps cacheados compartidos con recetas-crud (misma fuente de precios)
+    const ingMap = getIngMap();
+    const invMap = getInvMap();
     // Map para sub-recetas (preparaciones base)
     const recetaMap = new Map(recetas.filter(r => r.categoria === 'base').map(r => [r.id, r]));
 

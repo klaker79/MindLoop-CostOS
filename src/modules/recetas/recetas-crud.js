@@ -187,7 +187,7 @@ let _ingMapCache = null;
 let _lastInvRef = null;
 let _lastIngRef = null;
 
-function getInvMap() {
+export function getInvMap() {
     const inv = window.inventarioCompleto || [];
     // Invalidar cache cuando cambia la referencia del array (después de cargarDatos)
     if (!_invMapCache || inv !== _lastInvRef) {
@@ -197,7 +197,7 @@ function getInvMap() {
     return _invMapCache;
 }
 
-function getIngMap() {
+export function getIngMap() {
     const ing = window.ingredientes || [];
     // Invalidar cache cuando cambia la referencia del array (después de cargarDatos)
     if (!_ingMapCache || ing !== _lastIngRef) {
