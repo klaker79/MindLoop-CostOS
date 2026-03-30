@@ -344,6 +344,7 @@ async function actualizarTotalGastosFijos() {
 }
 
 // Cargar valores guardados en los sliders al iniciar (desde BD)
+window.cargarValoresGastosFijos = cargarValoresGastosFijos;
 async function cargarValoresGastosFijos() {
     try {
         const gastos = await fetchGastosFijos();
