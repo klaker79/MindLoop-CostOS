@@ -113,17 +113,32 @@ function renderizarVariantes(variantes) {
             // Buscar el ingrediente para obtener precio unitario
             const ingrediente = window.ingredientes?.find(i => i.id === item.ingredienteId);
             if (ingrediente) {
-                // 🔧 FIX: Priorizar precio_medio del inventario (WAP)
+                // Prioridad: precio_medio_compra > precio_medio > precio/formato (consistente con escandallo y recetas-crud)
                 const invItem = inventarioMap.get(item.ingredienteId);
                 let precioUnitario = 0;
-                if (invItem?.precio_medio) {
+                if (invItem?.precio_medio_compra) {
+                    precioUnitario = parseFloat(invItem.precio_medio_compra);
+                } else if (invItem?.precio_medio) {
                     precioUnitario = parseFloat(invItem.precio_medio);
                 } else {
                     const precioFormato = parseFloat(ingrediente.precio) || 0;
                     const cantidadFormato = parseFloat(ingrediente.cantidad_por_formato) || 1;
                     precioUnitario = precioFormato / cantidadFormato;
                 }
-                costeLote += cantidad * precioUnitario;
+
+                // Aplicar rendimiento (consistente con escandallo y recetas-crud)
+                let rendimiento = parseFloat(item.rendimiento);
+                if (!rendimiento || rendimiento === 100) {
+                    if (ingrediente?.rendimiento) {
+                        rendimiento = parseFloat(ingrediente.rendimiento);
+                    } else {
+                        rendimiento = 100;
+                    }
+                }
+                const factorRendimiento = rendimiento / 100;
+                const precioConRendimiento = factorRendimiento > 0 ? (precioUnitario / factorRendimiento) : precioUnitario;
+
+                costeLote += cantidad * precioConRendimiento;
             }
         });
     }
