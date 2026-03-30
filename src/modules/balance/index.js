@@ -20,17 +20,21 @@ export async function renderizarBalance() {
                     if (concepto.includes('alquiler')) {
                         const el = document.getElementById('pl-input-alquiler');
                         if (el) el.value = monto;
-                    } else if (concepto.includes('personal')) {
+                    } else if (concepto.includes('nómina') || concepto.includes('nomina') || concepto.includes('personal')) {
                         const el = document.getElementById('pl-input-personal');
                         if (el) el.value = monto;
-                    } else if (concepto.includes('suministro')) {
+                    } else if (concepto.includes('agua') || concepto.includes('suministro')) {
                         const el = document.getElementById('pl-input-suministros');
                         if (el) el.value = monto;
-                    } else if (concepto.includes('otros')) {
+                    } else if (concepto.includes('luz') || concepto.includes('otros')) {
                         const el = document.getElementById('pl-input-otros');
                         if (el) el.value = monto;
                     }
                 });
+                // Actualizar sliders y KPI de gastos fijos
+                if (typeof window.cargarValoresGastosFijos === 'function') {
+                    window.cargarValoresGastosFijos();
+                }
             }
         } catch (error) {
             console.warn('Using localStorage for gastos fijos:', error.message);
