@@ -1252,7 +1252,7 @@ function getCurrentTabContext() {
                 };
             });
             context.totalRecetas = window.recetas.length;
-            context.recetasFoodCostAlto = context.recetas.filter(r => r.foodCost > 33).length;
+            context.recetasFoodCostAlto = context.recetas.filter(r => r.foodCost > 38).length;
         }
 
         // Incluir proveedores

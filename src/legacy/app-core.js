@@ -911,14 +911,18 @@
 
     // ========== ANÁLISIS (resumido) ==========
     window.renderizarAnalisis = async function () {
+        const vacioEl = document.getElementById('analisis-vacio');
+        const contenidoEl = document.getElementById('analisis-contenido');
+        if (!vacioEl || !contenidoEl) return; // Tab no cargado aún
+
         if (recetas.length === 0 || ingredientes.length === 0) {
-            document.getElementById('analisis-vacio').style.display = 'block';
-            document.getElementById('analisis-contenido').style.display = 'none';
+            vacioEl.style.display = 'block';
+            contenidoEl.style.display = 'none';
             return;
         }
 
-        document.getElementById('analisis-vacio').style.display = 'none';
-        document.getElementById('analisis-contenido').style.display = 'block';
+        vacioEl.style.display = 'none';
+        contenidoEl.style.display = 'block';
 
         let totalMargen = 0;
         let totalCoste = 0;
@@ -1313,7 +1317,7 @@
                         label: 'Margen (%)',
                         data: ordenados.map(r => r.margenPct.toFixed(1)),
                         backgroundColor: ordenados.map(r =>
-                            r.margenPct > 50 ? '#10b981' : r.margenPct > 30 ? '#f59e0b' : '#ef4444'
+                            r.margenPct > 67 ? '#10b981' : r.margenPct > 62 ? '#f59e0b' : '#ef4444'
                         ),
                         borderWidth: 0,
                         borderRadius: 8,
@@ -1656,7 +1660,7 @@
                 html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} €</td>`;
                 html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} €</td>`;
                 html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} €</td>`;
-                html += `<td><span class="badge ${rec.margenPct > 50 ? 'badge-success' : rec.margenPct > 30 ? 'badge-warning' : 'badge-warning'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+                html += `<td><span class="badge ${rec.margenPct > 67 ? 'badge-success' : rec.margenPct > 62 ? 'badge-warning' : 'badge-danger'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
                 html += '</tr>';
             });
 

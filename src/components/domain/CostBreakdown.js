@@ -17,9 +17,10 @@ export function renderCostBreakdown(breakdown, container) {
     const { lines, totalCost, costPerPortion, marginPercentage, foodCostPercentage, isComplete, missingIngredients } = breakdown;
 
     // Determinar clase de margen
+    // Thresholds unificados: ≤33% food cost (≥67% margen) = OK, 34-38% (62-66%) = warn, >38% (<62%) = alert
     let marginClass = 'margin-good';
-    if (marginPercentage < 50) marginClass = 'margin-bad';
-    else if (marginPercentage < 65) marginClass = 'margin-warning';
+    if (marginPercentage < 62) marginClass = 'margin-bad';
+    else if (marginPercentage < 67) marginClass = 'margin-warning';
 
     const html = `
         <div class="cost-breakdown">
@@ -64,7 +65,7 @@ export function renderCostBreakdown(breakdown, container) {
                     <span class="kpi-label">Margen</span>
                     <span class="kpi-value">${(marginPercentage || 0).toFixed(1)}%</span>
                 </div>
-                <div class="kpi ${(foodCostPercentage || 0) > 35 ? 'margin-warning' : ''}">
+                <div class="kpi ${(foodCostPercentage || 0) > 38 ? 'margin-bad' : (foodCostPercentage || 0) > 33 ? 'margin-warning' : ''}">
                     <span class="kpi-label">Food Cost</span>
                     <span class="kpi-value">${(foodCostPercentage || 0).toFixed(1)}%</span>
                 </div>

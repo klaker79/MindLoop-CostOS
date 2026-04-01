@@ -514,18 +514,23 @@ export function exportarRecetas() {
             const ing = ingredientesMap.get(item.ingredienteId);
             if (!ing) return sum;
 
-            // 🔧 FIX: Priorizar precio_medio del inventario (WAP)
+            // Prioridad de precio: precio_medio_compra > precio_medio > precio/formato
             const invItem = inventarioMap.get(item.ingredienteId);
             let precioUnitario = 0;
-            if (invItem?.precio_medio) {
+            if (invItem?.precio_medio_compra) {
+                precioUnitario = parseFloat(invItem.precio_medio_compra);
+            } else if (invItem?.precio_medio) {
                 precioUnitario = parseFloat(invItem.precio_medio);
             } else {
                 const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
                 precioUnitario = parseFloat(ing.precio) / cantidadFormato;
             }
 
-            // 🆕 CÁLCULO CON MERMA (Rendimiento)
-            const rendimiento = parseFloat(item.rendimiento) || 100;
+            // Rendimiento: priorizar el de la receta, fallback al ingrediente base
+            let rendimiento = parseFloat(item.rendimiento);
+            if (!rendimiento || rendimiento === 100) {
+                rendimiento = ing?.rendimiento ? parseFloat(ing.rendimiento) : 100;
+            }
             const factorRendimiento = rendimiento / 100;
             const costeReal = factorRendimiento > 0 ? (precioUnitario / factorRendimiento) : precioUnitario;
 
