@@ -105,7 +105,7 @@ function renderizarVariantes(variantes) {
     let costeLote = 0;
     if (receta && receta.ingredientes && Array.isArray(receta.ingredientes)) {
         // Crear map de inventario para precio_medio
-        const inventarioMap = new Map((window.inventarioCompleto || []).map(inv => [inv.ingrediente_id, inv]));
+        const inventarioMap = new Map((window.inventarioCompleto || []).map(inv => [inv.id, inv]));
 
         receta.ingredientes.forEach(item => {
             const cantidad = parseFloat(item.cantidad) || 0;

@@ -504,7 +504,7 @@ export function exportarRecetas() {
 
     // ⚡ OPTIMIZACIÓN: Crear Maps O(1) una vez
     const ingredientesMap = new Map(ingredientes.map(i => [i.id, i]));
-    const inventarioMap = new Map((window.inventarioCompleto || []).map(inv => [inv.ingrediente_id, inv]));
+    const inventarioMap = new Map((window.inventarioCompleto || []).map(inv => [inv.id, inv]));
 
     // Pre-calcular coste de cada receta UNA SOLA VEZ
     const costesCalculados = new Map();

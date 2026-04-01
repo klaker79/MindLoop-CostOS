@@ -219,12 +219,13 @@ export function renderizarIngredientes() {
                 ? window.dataMaps.getNombreProveedor(ing.proveedor_id)
                 : 'Sin proveedor';
 
-            // 💰 ACTUALIZADO: Usar precio_medio del inventario (basado en compras)
+            // 💰 ACTUALIZADO: Usar precio_medio_compra > precio_medio del inventario (basado en compras)
             const invItem = window.inventarioCompleto?.find(i => i.id === ing.id);
+            const precioMedioCompra = invItem?.precio_medio_compra ? parseFloat(invItem.precio_medio_compra) : null;
             const precioMedio = invItem?.precio_medio ? parseFloat(invItem.precio_medio) : null;
             const precioBase = parseFloat(ing.precio) || 0;
-            const precioMostrar = precioMedio !== null ? precioMedio : precioBase;
-            const diferencia = precioMedio !== null && precioBase > 0 ? ((precioMedio - precioBase) / precioBase * 100) : 0;
+            const precioMostrar = precioMedioCompra !== null ? precioMedioCompra : (precioMedio !== null ? precioMedio : precioBase);
+            const diferencia = (precioMedioCompra !== null || precioMedio !== null) && precioBase > 0 ? ((precioMostrar - precioBase) / precioBase * 100) : 0;
 
             // Indicador visual si el precio_medio difiere del precio base
             let precioHtml = '';

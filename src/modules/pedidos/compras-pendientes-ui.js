@@ -194,11 +194,11 @@ export async function renderizarComprasPendientes() {
                                 padding: 4px 6px; border: 1px solid #a78bfa; border-radius: 6px; font-size: 11px;
                                 background: #f5f3ff; color: #5b21b6; font-weight: 600; max-width: 120px;
                             ">
-                                <option value="${item.ingrediente_cantidad_por_formato}" ${parseFloat(item.formato_override || item.ingrediente_cantidad_por_formato) > 1 ? 'selected' : ''}>${item.ingrediente_formato_compra} (×${parseFloat(item.ingrediente_cantidad_por_formato)})</option>
-                                <option value="1" ${parseFloat(item.formato_override) === 1 ? 'selected' : ''}>${item.unidad || 'ud'} suelta (×1)</option>
+                                <option value="${item.ingrediente_cantidad_por_formato}" ${parseFloat(item.formato_override) > 1 ? 'selected' : ''}>${item.ingrediente_formato_compra} (×${parseFloat(item.ingrediente_cantidad_por_formato)})</option>
+                                <option value="1" ${!item.formato_override || parseFloat(item.formato_override) <= 1 ? 'selected' : ''}>${item.unidad || 'ud'} suelta (×1)</option>
                             </select>
                             <div style="font-size: 10px; color: #7c3aed; margin-top: 2px; font-weight: 600;">
-                                Stock: +${(parseFloat(item.cantidad) * parseFloat(item.formato_override || item.ingrediente_cantidad_por_formato)).toFixed(1)} ${item.unidad || 'ud'}
+                                Stock: +${(parseFloat(item.cantidad) * parseFloat(item.formato_override || 1)).toFixed(1)} ${item.unidad || 'ud'}
                             </div>
                         </div>` : ''}
                         <div style="text-align: center;">

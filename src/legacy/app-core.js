@@ -1322,7 +1322,7 @@
                         borderWidth: 0,
                         borderRadius: 8,
                         hoverBackgroundColor: ordenados.map(r =>
-                            r.margenPct > 50 ? '#059669' : r.margenPct > 30 ? '#d97706' : '#dc2626'
+                            r.margenPct > 67 ? '#059669' : r.margenPct > 62 ? '#d97706' : '#dc2626'
                         ),
                     },
                 ],
@@ -1582,8 +1582,8 @@
 
         // Colores según margen (verde = alto, amarillo = medio, rojo = bajo)
         const getColor = (margen) => {
-            if (margen >= 60) return '#10b981';
-            if (margen >= 40) return '#f59e0b';
+            if (margen >= 67) return '#10b981';
+            if (margen >= 62) return '#f59e0b';
             return '#ef4444';
         };
 
@@ -2234,7 +2234,7 @@
                         .map((r, i) =>
                             '<div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f1f5f9;">' +
                             '<span>' + (i + 1) + '. ' + escapeHTML(r.nombre.substring(0, 12)) + '</span>' +
-                            '<span style="color: ' + (r.margen >= 60 ? '#10B981' : r.margen >= 40 ? '#F59E0B' : '#EF4444') + '; font-weight: 600;">' + r.margen.toFixed(0) + '%</span></div>'
+                            '<span style="color: ' + (r.margen >= 67 ? '#10B981' : r.margen >= 62 ? '#F59E0B' : '#EF4444') + '; font-weight: 600;">' + r.margen.toFixed(0) + '%</span></div>'
                         )
                         .join('');
                 } else {
