@@ -152,21 +152,26 @@ export function calcularPL() {
     localStorage.setItem('opex_inputs', JSON.stringify({ alquiler, personal, suministros, otros }));
 
     const opexTotal = alquiler + personal + suministros + otros;
-    document.getElementById('pl-opex-total').textContent = opexTotal.toFixed(2) + ' €';
+    const opexTotalEl = document.getElementById('pl-opex-total');
+    if (opexTotalEl) opexTotalEl.textContent = opexTotal.toFixed(2) + ' €';
 
     const beneficioNeto = margenBruto - opexTotal;
     const netoEl = document.getElementById('pl-neto');
-    netoEl.textContent = beneficioNeto.toFixed(2) + ' €';
-    netoEl.style.color = beneficioNeto >= 0 ? '#10b981' : '#ef4444';
+    if (netoEl) {
+        netoEl.textContent = beneficioNeto.toFixed(2) + ' €';
+        netoEl.style.color = beneficioNeto >= 0 ? '#10b981' : '#ef4444';
+    }
 
     const rentabilidad = ingresos > 0 ? (beneficioNeto / ingresos) * 100 : 0;
-    document.getElementById('pl-neto-pct').textContent = rentabilidad.toFixed(1) + t('balance:pct_profitability');
+    const netoPctEl = document.getElementById('pl-neto-pct');
+    if (netoPctEl) netoPctEl.textContent = rentabilidad.toFixed(1) + t('balance:pct_profitability');
 
     let margenContribucionPct = ingresos > 0 ? margenBruto / ingresos : 0.7;
     if (margenContribucionPct <= 0) margenContribucionPct = 0.1;
 
     const breakEven = opexTotal / margenContribucionPct;
-    document.getElementById('pl-breakeven').textContent = breakEven.toFixed(2) + ' €';
+    const breakEvenEl = document.getElementById('pl-breakeven');
+    if (breakEvenEl) breakEvenEl.textContent = breakEven.toFixed(2) + ' €';
 
     const estadoBadge = document.getElementById('pl-badge-estado');
     const termometroFill = document.getElementById('pl-termometro-fill');
@@ -174,20 +179,24 @@ export function calcularPL() {
 
     let porcentajeCumplimiento = breakEven > 0 ? (ingresos / breakEven) * 100 : (opexTotal === 0 ? 100 : 0);
     let alturaTermometro = Math.min(porcentajeCumplimiento / 2, 100);
-    termometroFill.style.height = `${alturaTermometro}%`;
+    if (termometroFill) termometroFill.style.height = `${alturaTermometro}%`;
 
     if (ingresos < breakEven) {
-        estadoBadge.textContent = t('balance:status_loss');
-        estadoBadge.style.background = '#fee2e2';
-        estadoBadge.style.color = '#991b1b';
+        if (estadoBadge) {
+            estadoBadge.textContent = t('balance:status_loss');
+            estadoBadge.style.background = '#fee2e2';
+            estadoBadge.style.color = '#991b1b';
+        }
         const falta = breakEven - ingresos;
-        mensajeAnalisis.innerHTML = t('balance:analysis_loss', { amount: falta.toFixed(0), pct: porcentajeCumplimiento.toFixed(0) });
+        if (mensajeAnalisis) mensajeAnalisis.innerHTML = t('balance:analysis_loss', { amount: falta.toFixed(0), pct: porcentajeCumplimiento.toFixed(0) });
     } else {
-        estadoBadge.textContent = t('balance:status_profit');
-        estadoBadge.style.background = '#d1fae5';
-        estadoBadge.style.color = '#065f46';
+        if (estadoBadge) {
+            estadoBadge.textContent = t('balance:status_profit');
+            estadoBadge.style.background = '#d1fae5';
+            estadoBadge.style.color = '#065f46';
+        }
         const sobra = ingresos - breakEven;
-        mensajeAnalisis.innerHTML = t('balance:analysis_profit', { amount: beneficioNeto.toFixed(0), surplus: sobra.toFixed(0) });
+        if (mensajeAnalisis) mensajeAnalisis.innerHTML = t('balance:analysis_profit', { amount: beneficioNeto.toFixed(0), surplus: sobra.toFixed(0) });
     }
 }
 

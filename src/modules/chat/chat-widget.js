@@ -1201,7 +1201,7 @@ function getCurrentTabContext() {
             let valorTotalStock = 0;
             context.ingredientes = window.ingredientes.map(i => {
                 const stock = parseFloat(i.stock_actual) || parseFloat(i.stock_virtual) || 0;
-                const precio = parseFloat(i.precio_medio) || parseFloat(i.precio) || 0;
+                const precio = parseFloat(i.precio_medio_compra) || parseFloat(i.precio_medio) || parseFloat(i.precio) || 0;
                 valorTotalStock += stock * precio;
                 return {
                     nombre: i.nombre,

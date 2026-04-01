@@ -285,9 +285,11 @@ export function calcularCosteRecetaMemoizado(receta) {
         const ing = dataMaps.getIngrediente(item.ingredienteId);
         const invItem = invMap.get(item.ingredienteId);
 
-        // Prioridad: precio_medio del inventario, luego fallback a precio/cantidad_por_formato
+        // Prioridad: precio_medio_compra > precio_medio > precio/cantidad_por_formato
         let precio = 0;
-        if (invItem?.precio_medio) {
+        if (invItem?.precio_medio_compra) {
+            precio = parseFloat(invItem.precio_medio_compra);
+        } else if (invItem?.precio_medio) {
             precio = parseFloat(invItem.precio_medio);
         } else if (ing?.precio) {
             const precioFormato = parseFloat(ing.precio);
