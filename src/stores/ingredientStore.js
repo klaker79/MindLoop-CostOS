@@ -37,11 +37,12 @@ export const ingredientStore = createStore((set, get) => ({
         const invMap = new Map(inventario.map(i => [i.id, i]));
         return state.ingredients.reduce((sum, ing) => {
             const stock = parseFloat(ing.stock_actual) || 0;
-            // 🔒 H3 FIX: Usar precio_medio (compras reales) con fallback a precio/cpf
-            // Idéntico a dashboard.js para que ambos muestren el mismo valor
+            // Prioridad de precio: precio_medio_compra > precio_medio > precio/formato
             const invItem = invMap.get(ing.id);
             let precioUnitario = 0;
-            if (invItem?.precio_medio) {
+            if (invItem?.precio_medio_compra) {
+                precioUnitario = parseFloat(invItem.precio_medio_compra);
+            } else if (invItem?.precio_medio) {
                 precioUnitario = parseFloat(invItem.precio_medio);
             } else if (ing.precio) {
                 const cpf = parseFloat(ing.cantidad_por_formato) || 1;

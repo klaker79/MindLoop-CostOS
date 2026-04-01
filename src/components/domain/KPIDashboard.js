@@ -44,7 +44,7 @@ export function renderKPIDashboard(data, container) {
                     </div>
                     <div class="kpi-card">
                         <span class="kpi-card__label">${t('dashboard:kpi_food_cost')}</span>
-                        <span class="kpi-card__value ${(daily.foodCost || 0) > 35 ? 'warning' : ''}">
+                        <span class="kpi-card__value ${(daily.foodCost || 0) > 38 ? 'danger' : (daily.foodCost || 0) > 33 ? 'warning' : ''}">
                             ${(daily.foodCost || 0).toFixed(1)}%
                         </span>
                     </div>

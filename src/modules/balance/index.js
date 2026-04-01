@@ -67,18 +67,28 @@ export async function renderizarBalance() {
         // Calcular COGS
         const recetasMap = new Map((window.recetas || []).map(r => [r.id, r]));
         const ingredientesMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+        const inventarioMap = new Map((window.inventarioCompleto || []).map(i => [i.id, i]));
 
         let cogs = 0;
         ventasMes.forEach(venta => {
             const receta = recetasMap.get(venta.receta_id);
             if (receta && receta.ingredientes) {
+                const porciones = Math.max(1, parseInt(receta.porciones) || 1);
                 const costeReceta = receta.ingredientes.reduce((sum, item) => {
                     const ing = ingredientesMap.get(item.ingredienteId);
                     if (!ing) return sum;
-                    const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                    const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
-                    // 🔒 H5 FIX: Priorizar rendimiento de la receta (item), fallback al ingrediente base
-                    // Idéntico a calcularCosteRecetaCompleto() en recetas-crud.js
+                    // Prioridad de precio: precio_medio_compra > precio_medio > precio/formato
+                    const invItem = inventarioMap.get(item.ingredienteId);
+                    let precioUnitario = 0;
+                    if (invItem?.precio_medio_compra) {
+                        precioUnitario = parseFloat(invItem.precio_medio_compra);
+                    } else if (invItem?.precio_medio) {
+                        precioUnitario = parseFloat(invItem.precio_medio);
+                    } else if (ing.precio) {
+                        const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
+                        precioUnitario = parseFloat(ing.precio) / cantidadFormato;
+                    }
+                    // Rendimiento: priorizar el de la receta, fallback al ingrediente base
                     let rendimientoVal = parseFloat(item.rendimiento);
                     if (!rendimientoVal || rendimientoVal === 100) {
                         if (ing?.rendimiento) {
@@ -91,7 +101,7 @@ export async function renderizarBalance() {
                     const factorRendimiento = rendimiento > 0 ? (1 / rendimiento) : 1;
                     return sum + (precioUnitario * item.cantidad * factorRendimiento);
                 }, 0);
-                cogs += costeReceta * venta.cantidad;
+                cogs += (costeReceta / porciones) * venta.cantidad;
             }
         });
 
