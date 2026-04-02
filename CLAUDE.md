@@ -1,7 +1,5 @@
 # CLAUDE.md — MindLoop CostOS Frontend
 
-> Read GEMINI.md for the full project context. This file contains rules specific to AI agents.
-
 ## Critical Rules
 
 1. **App is in PRODUCTION** — La Caleta 102 uses it daily. Do not break anything.
@@ -43,3 +41,30 @@ npm run build         # Vite build
 
 Push to `main` → GitHub Actions → GitHub Pages (`https://app.mindloop.cloud`)
 No build step in production — Vite is dev-only. Files served as static.
+
+## Critical Business Rules
+
+### Price Priority (same in ALL modules)
+1. `precio_medio_compra` from inventarioCompleto (real purchase average)
+2. `precio_medio` from inventarioCompleto (configured price / formato)
+3. `precio / cantidad_por_formato` from ingrediente (fallback)
+
+**EXCEPTION:** `performance.js` memoized calc uses only `precio_medio` (not `precio_medio_compra`) because purchase prices in DB may not be normalized to unit prices.
+
+### Food Cost Thresholds (unified)
+- Food: ≤28% excellent (green), 29-33% target (blue), 34-38% watch (orange), >38% alert (red)
+- Wine variants: target 45% — `recetas-variantes.js` uses 40/50 thresholds intentionally
+- Margin equivalents: ≥67% green, 62-66% yellow, <62% red
+
+### Stock
+- Frontend owns stock via `bulkAdjustStock` (delta-based, atomic)
+- Pedido reception: `cantidadRecibida × cantidad_por_formato`
+- Format selector in compras-pendientes: default = ×1 (matches backend)
+
+### Map Keys
+- `window.inventarioCompleto` items have `.id` (NOT `.ingrediente_id`)
+- When creating Maps from inventarioCompleto, always use `inv.id` as key
+
+### DOM Safety
+- Always null-check `document.getElementById()` before accessing `.style`, `.textContent`, etc.
+- Use optional chaining or guard: `const el = document.getElementById('x'); if (el) el.textContent = '...';`
