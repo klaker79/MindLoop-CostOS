@@ -305,6 +305,7 @@ window.cambiarFormatoPendiente = ComprasPendientesUI.cambiarFormatoPendiente;
 window.rechazarItemPendiente = ComprasPendientesUI.rechazarItemPendiente;
 window.editarCampoPendiente = ComprasPendientesUI.editarCampoPendiente;
 window.editarTotalPendiente = ComprasPendientesUI.editarTotalPendiente;
+window.cambiarProveedorBatch = ComprasPendientesUI.cambiarProveedorBatch;
 window.checkPendientes = ComprasPendientesUI.checkPendientes;
 
 // ⚡ FIX W3: Documentación de módulos con auto-registro en window.*

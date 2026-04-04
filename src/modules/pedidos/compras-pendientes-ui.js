@@ -12,6 +12,7 @@ import { t } from '@/i18n/index.js';
 import { escapeHTML } from '../../utils/helpers.js';
 
 let ingredientesCache = [];
+let proveedoresCache = [];
 
 /**
  * Cargar ingredientes para el selector de edición
@@ -22,6 +23,18 @@ async function cargarIngredientesParaSelector() {
         ingredientesCache = await apiClient.get('/ingredients');
     } catch (e) {
         console.error('Error cargando ingredientes para selector:', e);
+    }
+}
+
+/**
+ * Cargar proveedores para el selector
+ */
+async function cargarProveedoresParaSelector() {
+    if (proveedoresCache.length > 0) return;
+    try {
+        proveedoresCache = await apiClient.get('/suppliers');
+    } catch (e) {
+        console.error('Error cargando proveedores para selector:', e);
     }
 }
 
@@ -83,6 +96,7 @@ export async function renderizarComprasPendientes() {
 
         container.style.display = 'block';
         await cargarIngredientesParaSelector();
+        await cargarProveedoresParaSelector();
 
         const batches = agruparPorBatch(pendientes);
         let html = '';
@@ -122,6 +136,19 @@ export async function renderizarComprasPendientes() {
                         <div>
                             <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">${t('pedidos:pending_delivery_note_from', { date: fecha })}</h3>
                             <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${t('pedidos:pending_products_count', { count: totalItems })}${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${t('pedidos:pending_unassigned', { count: sinMatch })}</span>` : ''}${totalAlbaran > 0 ? ` · <strong data-batch-total="${batchId}" style="color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">Total: ${totalAlbaran.toFixed(2)}€</strong>` : ''}</p>
+                            <div style="margin-top: 6px; display: flex; align-items: center; gap: 6px;">
+                                <span style="font-size: 12px; color: #6b7280;">Proveedor:</span>
+                                <select onchange="window.cambiarProveedorBatch('${batchId}', this.value)" style="
+                                    padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px;
+                                    font-weight: 600; max-width: 200px; background: white;
+                                ">
+                                    <option value="">— Sin asignar —</option>
+                                    ${[...proveedoresCache].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map(p => {
+                                        const batchProv = items[0]?.proveedor || '';
+                                        return `<option value="${escapeHTML(p.nombre)}" ${p.nombre === batchProv ? 'selected' : ''}>${escapeHTML(p.nombre)}</option>`;
+                                    }).join('')}
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
@@ -457,6 +484,27 @@ function recalcularTotalBatch(elementInside) {
         if (totalInput) total += parseFloat(totalInput.value) || 0;
     });
     totalEl.textContent = `Total: ${total.toFixed(2)}€`;
+}
+
+/**
+ * Cambiar proveedor de todos los items de un batch
+ */
+export async function cambiarProveedorBatch(batchId, proveedorNombre) {
+    try {
+        const pendientes = await fetchComprasPendientes();
+        const batchItems = pendientes.filter(p => p.batch_id === batchId);
+
+        let updated = 0;
+        for (const item of batchItems) {
+            await editarItemPendiente(item.id, { proveedor: proveedorNombre });
+            updated++;
+        }
+
+        window.showToast?.(`Proveedor "${proveedorNombre}" asignado a ${updated} items`, 'success');
+    } catch (err) {
+        console.error('Error cambiando proveedor del batch:', err);
+        window.showToast?.(`Error: ${err.message}`, 'error');
+    }
 }
 
 /**
