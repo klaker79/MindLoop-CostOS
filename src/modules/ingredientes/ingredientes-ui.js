@@ -219,13 +219,15 @@ export function renderizarIngredientes() {
                 ? window.dataMaps.getNombreProveedor(ing.proveedor_id)
                 : 'Sin proveedor';
 
-            // 💰 ACTUALIZADO: Usar precio_medio_compra > precio_medio del inventario (basado en compras)
+            // 💰 Precio: precio_medio (ya normalizado a unitario) > precio/cpf
+            // NO usar precio_medio_compra: puede contener precios de formato, no unitarios
             const invItem = window.inventarioCompleto?.find(i => i.id === ing.id);
-            const precioMedioCompra = invItem?.precio_medio_compra ? parseFloat(invItem.precio_medio_compra) : null;
             const precioMedio = invItem?.precio_medio ? parseFloat(invItem.precio_medio) : null;
             const precioBase = parseFloat(ing.precio) || 0;
-            const precioMostrar = precioMedioCompra !== null ? precioMedioCompra : (precioMedio !== null ? precioMedio : precioBase);
-            const diferencia = (precioMedioCompra !== null || precioMedio !== null) && precioBase > 0 ? ((precioMostrar - precioBase) / precioBase * 100) : 0;
+            const cpfDisplay = parseFloat(ing.cantidad_por_formato) || 1;
+            const precioBaseUnitario = precioBase / cpfDisplay;
+            const precioMostrar = precioMedio !== null ? precioMedio : precioBaseUnitario;
+            const diferencia = precioMedio !== null && precioBaseUnitario > 0 ? ((precioMostrar - precioBaseUnitario) / precioBaseUnitario * 100) : 0;
 
             // Indicador visual si el precio_medio difiere del precio base
             let precioHtml = '';
