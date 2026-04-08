@@ -233,12 +233,10 @@ export function calcularCosteRecetaCompleto(receta, _depth = 0) {
         const invItem = invMap.get(item.ingredienteId);
         const ing = ingMap.get(item.ingredienteId);
 
-        // 💰 Precio unitario: prioridad media compras > config > fallback
+        // 💰 Precio unitario: precio_medio > precio/formato
+        // NO usar precio_medio_compra: puede contener precios de formato (caja/garrafa), no unitarios
         let precio = 0;
-        if (invItem?.precio_medio_compra) {
-            // Media real de compras (precios_compra_diarios)
-            precio = parseFloat(invItem.precio_medio_compra);
-        } else if (invItem?.precio_medio) {
+        if (invItem?.precio_medio) {
             // Precio config: precio / cantidad_por_formato
             precio = parseFloat(invItem.precio_medio);
         } else if (ing?.precio) {

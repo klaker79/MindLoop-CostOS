@@ -77,12 +77,11 @@ export async function renderizarBalance() {
                 const costeReceta = receta.ingredientes.reduce((sum, item) => {
                     const ing = ingredientesMap.get(item.ingredienteId);
                     if (!ing) return sum;
-                    // Prioridad de precio: precio_medio_compra > precio_medio > precio/formato
+                    // Prioridad de precio: precio_medio > precio/formato
+                    // NO usar precio_medio_compra: puede contener precios de formato (caja/garrafa), no unitarios
                     const invItem = inventarioMap.get(item.ingredienteId);
                     let precioUnitario = 0;
-                    if (invItem?.precio_medio_compra) {
-                        precioUnitario = parseFloat(invItem.precio_medio_compra);
-                    } else if (invItem?.precio_medio) {
+                    if (invItem?.precio_medio) {
                         precioUnitario = parseFloat(invItem.precio_medio);
                     } else if (ing.precio) {
                         const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;

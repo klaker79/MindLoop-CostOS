@@ -37,12 +37,11 @@ export const ingredientStore = createStore((set, get) => ({
         const invMap = new Map(inventario.map(i => [i.id, i]));
         return state.ingredients.reduce((sum, ing) => {
             const stock = parseFloat(ing.stock_actual) || 0;
-            // Prioridad de precio: precio_medio_compra > precio_medio > precio/formato
+            // Prioridad de precio: precio_medio > precio/formato
+            // NO usar precio_medio_compra: puede contener precios de formato, no unitarios
             const invItem = invMap.get(ing.id);
             let precioUnitario = 0;
-            if (invItem?.precio_medio_compra) {
-                precioUnitario = parseFloat(invItem.precio_medio_compra);
-            } else if (invItem?.precio_medio) {
+            if (invItem?.precio_medio) {
                 precioUnitario = parseFloat(invItem.precio_medio);
             } else if (ing.precio) {
                 const cpf = parseFloat(ing.cantidad_por_formato) || 1;

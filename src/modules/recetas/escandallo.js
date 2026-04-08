@@ -118,6 +118,13 @@ export async function verEscandallo(recetaId) {
         }
     });
 
+    // Divide by porciones to get cost per serving (same as calcularCosteRecetaCompleto)
+    const porciones = Math.max(1, parseInt(receta.porciones) || 1);
+    costeTotal = costeTotal / porciones;
+    desglose.forEach(item => {
+        item.coste = item.coste / porciones;
+    });
+
     // Calculate percentages
     desglose.forEach(item => {
         item.porcentaje = costeTotal > 0 ? (item.coste / costeTotal) * 100 : 0;
