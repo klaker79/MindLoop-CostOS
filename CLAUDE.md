@@ -54,6 +54,15 @@ Never inline the price logic — always call the shared function to guarantee co
 
 **EXCEPTION:** `performance.js` memoized calc uses only `precio_medio` (not `precio_medio_compra`) because it's used for stock valuation, not recipe costing.
 
+**⛔ STABILITY WARNING (baseline 2026-04-09):**
+Full audit verified ALL 10 tabs + dashboard + chat are consistent. 7 modules use `getIngredientUnitPrice()`.
+DO NOT:
+- Add inline price calculations in any module
+- Change price priority without updating ALL 7 modules + backend + chat n8n
+- Use `calcularCosteRecetaMemoizado` for food cost display (it ignores purchase prices)
+- Deploy formula changes without verifying: escandallo = cost tracker = P&L = dashboard = analysis ranking
+If numbers don't match between modules → it's a BUG. Fix before deploying.
+
 ### Food Cost Thresholds (unified)
 - Food: ≤28% excellent (green), 29-33% target (blue), 34-38% watch (orange), >38% alert (red)
 - Wine variants: target 45% — `recetas-variantes.js` uses 40/50 thresholds intentionally
