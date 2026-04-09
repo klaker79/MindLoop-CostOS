@@ -776,19 +776,16 @@
                 const ingresoDia = ventasDia.reduce((sum, v) => sum + parseFloat(v.total), 0);
                 ingresos.push(ingresoDia);
 
-                // Calcular costos de ese día (basado en ingredientes de recetas vendidas)
+                // Calcular costos de ese día usando calcularCosteRecetaCompleto (misma lógica que P&L y Ranking)
                 let costoDia = 0;
                 for (const venta of ventasDia) {
                     const receta = window.recetas.find(r => r.id === venta.receta_id);
-                    if (receta && receta.ingredientes) {
-                        for (const item of receta.ingredientes) {
-                            const ing = window.ingredientes.find(i => i.id === item.ingredienteId);
-                            if (ing) {
-                                const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                                const precioUnitario = parseFloat(ing.precio) / cantidadFormato;
-                                costoDia += precioUnitario * item.cantidad * venta.cantidad;
-                            }
-                        }
+                    if (receta) {
+                        const costePorUnidad = window.calcularCosteRecetaCompleto
+                            ? window.calcularCosteRecetaCompleto(receta)
+                            : 0;
+                        const factorVariante = parseFloat(venta.factor_variante) || 1;
+                        costoDia += costePorUnidad * parseFloat(venta.cantidad) * factorVariante;
                     }
                 }
                 costos.push(costoDia);
