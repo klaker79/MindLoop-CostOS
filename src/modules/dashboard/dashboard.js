@@ -245,9 +245,9 @@ async function actualizarMargenReal(periodo) {
         // Calcular Food Cost desde recetas
         const recetas = window.recetas || [];
         const recetasMap = new Map(recetas.map(r => [r.id, r]));
-        const calcularCoste =
-            window.Performance?.calcularCosteRecetaMemoizado ||
-            window.calcularCosteRecetaCompleto;
+        // 🔧 FIX: Usar SIEMPRE calcularCosteRecetaCompleto (usa getIngredientUnitPrice con precio_medio_compra)
+        // NO usar calcularCosteRecetaMemoizado — usa solo precio_medio (precio ficha) y da food cost incorrecto
+        const calcularCoste = window.calcularCosteRecetaCompleto;
 
         let totalIngresos = 0;
         let totalCostesReceta = 0;
