@@ -1227,17 +1227,27 @@ function getCurrentTabContext() {
                 const foodCost = precioVenta > 0 ? (coste / precioVenta) * 100 : 0;
                 const margen = precioVenta > 0 ? ((precioVenta - coste) / precioVenta) * 100 : 0;
 
-                // Incluir ingredientes detallados
+                // Incluir ingredientes detallados (precio unitario normalizado)
                 const ingredientesDetalle = (r.ingredientes || []).map(item => {
                     const ing = window.ingredientes?.find(i => i.id === item.ingredienteId);
-                    const precio = ing ? parseFloat(ing.precio) || 0 : 0;
+                    const invItem = window.inventarioCompleto?.find(i => i.id === item.ingredienteId);
+                    // Prioridad: precio_medio_compra > precio_medio > precio/cpf
+                    let precioUd = 0;
+                    if (invItem?.precio_medio_compra) {
+                        precioUd = parseFloat(invItem.precio_medio_compra);
+                    } else if (invItem?.precio_medio) {
+                        precioUd = parseFloat(invItem.precio_medio);
+                    } else if (ing?.precio) {
+                        const cpf = parseFloat(ing.cantidad_por_formato) || 1;
+                        precioUd = parseFloat(ing.precio) / cpf;
+                    }
                     const cantidad = parseFloat(item.cantidad) || 0;
                     return {
                         nombre: ing?.nombre || 'Desconocido',
                         cantidad: cantidad,
                         unidad: ing?.unidad || 'kg',
-                        precioUd: precio,
-                        coste: Math.round(precio * cantidad * 100) / 100,
+                        precioUd: precioUd,
+                        coste: Math.round(precioUd * cantidad * 100) / 100,
                     };
                 });
 
