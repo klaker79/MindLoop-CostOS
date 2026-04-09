@@ -7,6 +7,7 @@
 import recipeStore from '../../stores/recipeStore.js';
 // 🆕 Validación centralizada
 import { validateReceta, showValidationErrors } from '../../utils/validation.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
 import { escapeHTML } from '../../utils/helpers.js';
 
@@ -233,17 +234,8 @@ export function calcularCosteRecetaCompleto(receta, _depth = 0) {
         const invItem = invMap.get(item.ingredienteId);
         const ing = ingMap.get(item.ingredienteId);
 
-        // 💰 Precio unitario: precio_medio > precio/formato
-        // NO usar precio_medio_compra: puede contener precios de formato (caja/garrafa), no unitarios
-        let precio = 0;
-        if (invItem?.precio_medio) {
-            // Precio config: precio / cantidad_por_formato
-            precio = parseFloat(invItem.precio_medio);
-        } else if (ing?.precio) {
-            const precioFormato = parseFloat(ing.precio);
-            const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
-            precio = precioFormato / cantidadPorFormato;
-        }
+        // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
+        const precio = getIngredientUnitPrice(invItem, ing);
 
         // 🆕 CÁLCULO CON MERMA (Rendimiento)
         // 🔧 FIX: Fallback al rendimiento del ingrediente base si la receta no lo tiene guardado

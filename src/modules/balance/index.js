@@ -5,6 +5,7 @@
  */
 
 import { showToast } from '../../ui/toast.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
 
 // === BALANCE / P&L UNIFICADO ===
@@ -77,16 +78,9 @@ export async function renderizarBalance() {
                 const costeReceta = receta.ingredientes.reduce((sum, item) => {
                     const ing = ingredientesMap.get(item.ingredienteId);
                     if (!ing) return sum;
-                    // Prioridad de precio: precio_medio > precio/formato
-                    // NO usar precio_medio_compra: puede contener precios de formato (caja/garrafa), no unitarios
+                    // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
                     const invItem = inventarioMap.get(item.ingredienteId);
-                    let precioUnitario = 0;
-                    if (invItem?.precio_medio) {
-                        precioUnitario = parseFloat(invItem.precio_medio);
-                    } else if (ing.precio) {
-                        const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                        precioUnitario = parseFloat(ing.precio) / cantidadFormato;
-                    }
+                    const precioUnitario = getIngredientUnitPrice(invItem, ing);
                     // Rendimiento: priorizar el de la receta, fallback al ingrediente base
                     let rendimientoVal = parseFloat(item.rendimiento);
                     if (!rendimientoVal || rendimientoVal === 100) {

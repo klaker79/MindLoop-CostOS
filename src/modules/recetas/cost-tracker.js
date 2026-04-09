@@ -5,6 +5,7 @@
 
 import { t } from '@/i18n/index.js';
 import { escapeHTML } from '../../utils/helpers.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
 /**
  * Muestra el modal de seguimiento de costes
@@ -194,17 +195,8 @@ function actualizarDatosCostTracker() {
             const invItem = inventarioMap.get(ingId);
             const ing = ingredientesMap.get(ingId);
 
-            // 💰 Precio unitario: prioridad media compras > config > fallback
-            let precio = 0;
-            if (invItem?.precio_medio_compra) {
-                precio = parseFloat(invItem.precio_medio_compra);
-            } else if (invItem?.precio_medio) {
-                precio = parseFloat(invItem.precio_medio);
-            } else if (ing?.precio) {
-                const precioFormato = parseFloat(ing.precio);
-                const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                precio = precioFormato / cantidadPorFormato;
-            }
+            // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
+            const precio = getIngredientUnitPrice(invItem, ing);
 
             // Aplicar rendimiento (merma)
             let rendimiento = parseFloat(item.rendimiento);

@@ -1,5 +1,5 @@
 import { escapeHTML } from '../../utils/helpers.js';
-import { calculateIngredientCost } from '../../utils/cost-calculator.js';
+import { calculateIngredientCost, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
 /**
  * Recetas UI Module
@@ -221,20 +221,8 @@ export function calcularCosteReceta() {
                 const invItem = inventarioMap.get(ingId);
                 const ing = ingredientesMap.get(ingId);
 
-                // Prioridad: precio_medio_compra (real) > precio_medio (config) > precio/formato
-                let precio = 0;
-                if (invItem?.precio_medio_compra) {
-                    // ✅ PRIMARIO: Media real de compras (albaranes)
-                    precio = parseFloat(invItem.precio_medio_compra);
-                } else if (invItem?.precio_medio) {
-                    // SECUNDARIO: precio config / cantidad_por_formato
-                    precio = parseFloat(invItem.precio_medio);
-                } else if (ing?.precio) {
-                    // ⚠️ FALLBACK: precio del formato / cantidad_por_formato
-                    const precioFormato = parseFloat(ing.precio);
-                    const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                    precio = precioFormato / cantidadPorFormato;
-                }
+                // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
+                const precio = getIngredientUnitPrice(invItem, ing);
 
                 // 🆕 CÁLCULO CON MERMA/RENDIMIENTO (refactorizado a utilidad pura)
                 const inputRendimiento = item.querySelector('.receta-rendimiento');
@@ -514,17 +502,9 @@ export function exportarRecetas() {
             const ing = ingredientesMap.get(item.ingredienteId);
             if (!ing) return sum;
 
-            // Prioridad de precio: precio_medio_compra > precio_medio > precio/formato
+            // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
             const invItem = inventarioMap.get(item.ingredienteId);
-            let precioUnitario = 0;
-            if (invItem?.precio_medio_compra) {
-                precioUnitario = parseFloat(invItem.precio_medio_compra);
-            } else if (invItem?.precio_medio) {
-                precioUnitario = parseFloat(invItem.precio_medio);
-            } else {
-                const cantidadFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                precioUnitario = parseFloat(ing.precio) / cantidadFormato;
-            }
+            const precioUnitario = getIngredientUnitPrice(invItem, ing);
 
             // Rendimiento: priorizar el de la receta, fallback al ingrediente base
             let rendimiento = parseFloat(item.rendimiento);
