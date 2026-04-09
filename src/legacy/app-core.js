@@ -1385,10 +1385,14 @@
 
         if (!ctxAlimentos) return;
 
-        // Calcular coste por unidad = precio / cantidad_por_formato
+        // Calcular coste por unidad: precio_medio_compra > precio_medio > precio/cpf
+        const invMap = new Map((window.inventarioCompleto || []).map(i => [i.id, i]));
         const calcularCosteUnidad = (ing) => {
-            const cantidad = parseFloat(ing.cantidad_por_formato) || 1;
-            return ing.precio / cantidad;
+            const invItem = invMap.get(ing.id);
+            if (invItem?.precio_medio_compra) return parseFloat(invItem.precio_medio_compra);
+            if (invItem?.precio_medio) return parseFloat(invItem.precio_medio);
+            const cpf = parseFloat(ing.cantidad_por_formato) || 1;
+            return parseFloat(ing.precio) / cpf;
         };
 
         // Separar ingredientes por familia y ordenar por COSTE POR UNIDAD
