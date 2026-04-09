@@ -45,11 +45,14 @@ No build step in production — Vite is dev-only. Files served as static.
 ## Critical Business Rules
 
 ### Price Priority (same in ALL modules)
-1. `precio_medio_compra` from inventarioCompleto (real purchase average)
+1. `precio_medio_compra` from inventarioCompleto (real purchase average from albaranes)
 2. `precio_medio` from inventarioCompleto (configured price / formato)
 3. `precio / cantidad_por_formato` from ingrediente (fallback)
 
-**EXCEPTION:** `performance.js` memoized calc uses only `precio_medio` (not `precio_medio_compra`) because purchase prices in DB may not be normalized to unit prices.
+**IMPORTANT:** All recipe cost calculations MUST use `getIngredientUnitPrice()` from `src/utils/cost-calculator.js`.
+Never inline the price logic — always call the shared function to guarantee consistency.
+
+**EXCEPTION:** `performance.js` memoized calc uses only `precio_medio` (not `precio_medio_compra`) because it's used for stock valuation, not recipe costing.
 
 ### Food Cost Thresholds (unified)
 - Food: ≤28% excellent (green), 29-33% target (blue), 34-38% watch (orange), >38% alert (red)

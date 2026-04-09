@@ -6,6 +6,7 @@
 import { showToast } from '../../ui/toast.js';
 import { escapeHTML } from '../../utils/helpers.js';
 import { getApiUrl } from '../../config/app-config.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
@@ -113,18 +114,9 @@ function renderizarVariantes(variantes) {
             // Buscar el ingrediente para obtener precio unitario
             const ingrediente = window.ingredientes?.find(i => i.id === item.ingredienteId);
             if (ingrediente) {
-                // Prioridad: precio_medio_compra > precio_medio > precio/formato (consistente con escandallo y recetas-crud)
+                // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
                 const invItem = inventarioMap.get(item.ingredienteId);
-                let precioUnitario = 0;
-                if (invItem?.precio_medio_compra) {
-                    precioUnitario = parseFloat(invItem.precio_medio_compra);
-                } else if (invItem?.precio_medio) {
-                    precioUnitario = parseFloat(invItem.precio_medio);
-                } else {
-                    const precioFormato = parseFloat(ingrediente.precio) || 0;
-                    const cantidadFormato = parseFloat(ingrediente.cantidad_por_formato) || 1;
-                    precioUnitario = precioFormato / cantidadFormato;
-                }
+                const precioUnitario = getIngredientUnitPrice(invItem, ingrediente);
 
                 // Aplicar rendimiento (consistente con escandallo y recetas-crud)
                 let rendimiento = parseFloat(item.rendimiento);

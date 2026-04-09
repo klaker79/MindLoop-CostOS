@@ -8,6 +8,7 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML } from '../../utils/helpers.js';
 import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { getInvMap, getIngMap } from './recetas-crud.js';
 
 /**
@@ -80,17 +81,8 @@ export async function verEscandallo(recetaId) {
         }
 
         if (ing && !esSubreceta) {
-            // 💰 Precio unitario: prioridad media compras > config > fallback
-            let precio = 0;
-            if (inv?.precio_medio_compra) {
-                precio = parseFloat(inv.precio_medio_compra);
-            } else if (inv?.precio_medio) {
-                precio = parseFloat(inv.precio_medio);
-            } else if (ing.precio) {
-                const precioFormato = parseFloat(ing.precio);
-                const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                precio = precioFormato / cantidadPorFormato;
-            }
+            // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
+            const precio = getIngredientUnitPrice(inv, ing);
 
             // 🔒 H1 FIX: Aplicar rendimiento (idéntico a calcularCosteRecetaCompleto)
             let rendimiento = parseFloat(item.rendimiento);
