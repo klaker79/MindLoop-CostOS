@@ -1548,13 +1548,14 @@
             // Excluir categorías que no son platos reales
             if (CATEGORIAS_EXCLUIDAS.includes(catOriginal)) return;
 
+            // Excluir recetas sin precio de venta (no son vendibles)
+            if (!rec.precio_venta || parseFloat(rec.precio_venta) <= 0) return;
+
             // Capitalizar primera letra para display
             const familia = catOriginal.charAt(0).toUpperCase() + catOriginal.slice(1);
 
             const coste = calcularCosteRecetaCompleto(rec);
-            const margenPct = rec.precio_venta > 0
-                ? ((rec.precio_venta - coste) / rec.precio_venta) * 100
-                : 0;
+            const margenPct = ((rec.precio_venta - coste) / rec.precio_venta) * 100;
 
             if (!margenPorCategoria[familia]) {
                 margenPorCategoria[familia] = 0;
