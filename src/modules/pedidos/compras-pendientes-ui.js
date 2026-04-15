@@ -79,10 +79,25 @@ export function actualizarBadgePendientes(count) {
 
 /**
  * Cargar y renderizar el panel de compras pendientes
+ *
+ * 🔒 OCR DESACTIVADO (2026-04-15)
+ * El flujo de compras por foto (Telegram → n8n → modal naranja) ha sido
+ * desactivado. Las compras se suben manualmente desde la pestaña Pedidos.
+ * Para reactivar: cambiar OCR_ENABLED a true.
  */
+const OCR_ENABLED = false;
+
 export async function renderizarComprasPendientes() {
     const container = document.getElementById('compras-pendientes-panel');
     if (!container) return;
+
+    // ⛔ OCR desactivado — ocultar modal naranja
+    if (!OCR_ENABLED) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+        actualizarBadgePendientes(0);
+        return;
+    }
 
     try {
         const pendientes = await fetchComprasPendientes();
@@ -509,13 +524,18 @@ export async function cambiarProveedorBatch(batchId, proveedorNombre) {
 
 /**
  * Verificar si hay pendientes (para badge en dashboard/pedidos)
+ * 🔒 OCR desactivado — siempre devuelve 0 sin llamar al backend
  */
 export async function checkPendientes() {
+    if (!OCR_ENABLED) {
+        actualizarBadgePendientes(0);
+        return 0;
+    }
     try {
         const pendientes = await fetchComprasPendientes();
         actualizarBadgePendientes(pendientes?.length || 0);
         return pendientes?.length || 0;
-    } catch (e) {
+    } catch (_e) {
         return 0;
     }
 }
