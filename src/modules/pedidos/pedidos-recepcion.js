@@ -14,6 +14,11 @@
 
 import { t } from '@/i18n/index.js';
 import { escapeHTML } from '../../utils/helpers.js';
+import ingredientStore from '../../stores/ingredientStore.js';
+
+// 🔒 Guard anti-doble-click: si una recepción está en curso, el siguiente clic no hace nada.
+// Evita duplicar stock cuando el usuario pulsa "Confirmar" dos veces rápido.
+let isConfirmingReception = false;
 
 /**
  * Marca un pedido como recibido (abre modal)
@@ -248,9 +253,21 @@ export function cerrarModalRecibirPedido() {
  */
 export async function confirmarRecepcionPedido() {
     if (window.pedidoRecibiendoId === null) return;
+    if (isConfirmingReception) {
+        console.warn('⏳ Recepción ya en curso, ignorando doble-click');
+        return;
+    }
 
     const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
     if (!ped || !ped.itemsRecepcion) return;
+
+    isConfirmingReception = true;
+    const btnConfirmar = document.querySelector('#modal-recibir-pedido button[onclick*="confirmarRecepcionPedido"]');
+    if (btnConfirmar) {
+        btnConfirmar.disabled = true;
+        btnConfirmar.style.opacity = '0.6';
+        btnConfirmar.style.cursor = 'not-allowed';
+    }
 
     window.showLoading();
 
@@ -377,6 +394,7 @@ export async function confirmarRecepcionPedido() {
             );
 
             await window.cargarDatos();
+            await ingredientStore.getState().fetchIngredients();
             window.renderizarPedidos();
             window.renderizarIngredientes();
             return;
@@ -399,6 +417,8 @@ export async function confirmarRecepcionPedido() {
         // NO llamar a /daily/purchases/bulk aquí para evitar doble registro
 
         await window.cargarDatos();
+        // 🔄 FIX stock stale: refrescar Zustand store para que TODAS las pestañas vean el stock nuevo
+        await ingredientStore.getState().fetchIngredients();
         window.renderizarPedidos();
         window.renderizarIngredientes();
         window.renderizarInventario?.();
@@ -409,6 +429,14 @@ export async function confirmarRecepcionPedido() {
         window.hideLoading();
         console.error('Error:', error);
         window.showToast(t('pedidos:reception_error', { message: error.message }), 'error');
+    } finally {
+        // 🔒 Liberar siempre el guard y rehabilitar el botón, pase lo que pase
+        isConfirmingReception = false;
+        if (btnConfirmar) {
+            btnConfirmar.disabled = false;
+            btnConfirmar.style.opacity = '';
+            btnConfirmar.style.cursor = '';
+        }
     }
 }
 
