@@ -1497,19 +1497,24 @@ function renderizarTablaComprasDiarias() {
         const ing = window.ingredientes.find(i => i.nombre === nombre);
         const unidad = ing?.unidad || 'kg';
 
-        // 📊 FIX: el total debe sumar SOLO los días visibles (respeta filtro de semana)
+        // 📊 El total debe sumar SOLO los días visibles (respeta filtro de semana).
+        // UX fix: cada celda muestra el IMPORTE DEL DÍA en grande (cantidad×precio) y el
+        // desglose unitario en pequeño — así la suma cuadra visualmente con el TOTAL.
         let totalVisible = 0;
         dias.forEach(dia => {
             const diaData = data.dias[dia];
             if (diaData) {
-                totalVisible += (diaData.total ?? diaData.precio * diaData.cantidad) || 0;
                 const calculado = diaData.precio * diaData.cantidad;
-                const hayDescuento = Math.abs(calculado - diaData.total) > 0.02;
-                const totalColor = hayDescuento ? '#dc2626' : '#64748B';
-                const totalLabel = hayDescuento
-                    ? `<br><small style="color: ${totalColor}; font-weight: 700;" title="Total real difiere de precio×cantidad (posible descuento)">🏷️ ${diaData.total.toFixed(2)}€</small>`
+                const importeDia = (diaData.total ?? calculado) || 0;
+                totalVisible += importeDia;
+                const hayDescuento = Math.abs(calculado - (diaData.total ?? calculado)) > 0.02;
+                const avisoDescuento = hayDescuento
+                    ? `<span title="Total real difiere de precio×cantidad (posible descuento)" style="color:#dc2626;"> 🏷️</span>`
                     : '';
-                html += `<td style="text-align: center; background: #FFF5F2; padding: 18px; border-right: 1px solid #E2E8F0;">${diaData.precio.toFixed(2)}€<br><small style="color:#64748B; font-weight: 600;">${diaData.cantidad} ${unidad}</small>${totalLabel}</td>`;
+                html += `<td style="text-align: center; background: #FFF5F2; padding: 18px; border-right: 1px solid #E2E8F0;">
+                    <div style="font-weight: 700; color: #1E293B; font-size: 1em;">${importeDia.toFixed(2)}€${avisoDescuento}</div>
+                    <small style="color:#64748B;">${diaData.precio.toFixed(2)}€/${unidad} × ${diaData.cantidad}</small>
+                </td>`;
             } else {
                 html +=
                     '<td style="text-align: center; color: #CBD5E1; padding: 18px; border-right: 1px solid #E2E8F0;">-</td>';
