@@ -62,12 +62,28 @@ function renderizarModalEditarPedido() {
     // Mapa completo para resolver nombres de items existentes (aunque sean de otro proveedor)
     const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
 
-    // Filtrar ingredientes disponibles para añadir: solo del proveedor del pedido
-    // Si no hay proveedor asignado al pedido, mostrar todos como fallback
+    // Filtrar ingredientes disponibles: solo los que el proveedor del pedido suministra
+    // Fuentes:
+    //   1. ingredientes.proveedor_id (proveedor principal)
+    //   2. ingredientes_proveedores (relación N:M, proveedores adicionales)
     const proveedorIdPedido = state.proveedor_id;
-    const ingredientesDisponibles = (window.ingredientes || [])
-        .filter(i => !proveedorIdPedido || i.proveedor_id === proveedorIdPedido)
-        .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+    const ingredientesDisponibles = (() => {
+        if (!proveedorIdPedido) {
+            // Sin proveedor: mostrar todos como fallback
+            return [...(window.ingredientes || [])];
+        }
+        // Set de IDs de ingredientes que este proveedor suministra
+        const idsDelProveedor = new Set();
+        (window.ingredientes || []).forEach(i => {
+            if (i.proveedor_id === proveedorIdPedido) idsDelProveedor.add(i.id);
+        });
+        (window.ingredientesProveedores || []).forEach(rel => {
+            if (rel.proveedor_id === proveedorIdPedido) {
+                idsDelProveedor.add(rel.ingrediente_id || rel.ingredienteId);
+            }
+        });
+        return (window.ingredientes || []).filter(i => idsDelProveedor.has(i.id));
+    })().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
 
     const nombreProveedor = proveedorIdPedido
         ? ((window.proveedores || []).find(p => p.id === proveedorIdPedido)?.nombre || 'desconocido')
