@@ -427,9 +427,12 @@ export async function actualizarKPIs() {
                     return sum + (parseFloat(item.valor_stock) || 0);
                 }, 0);
 
-                const itemsConStock = inventario.filter(i =>
-                    (parseFloat(i.stock_virtual) || 0) > 0
-                ).length;
+                // Unificar nomenclatura: priorizar stock_actual y caer a stock_virtual
+                // (alias del backend) para que este KPI use el mismo criterio que "stock bajo".
+                const itemsConStock = inventario.filter(i => {
+                    const stock = parseFloat(i.stock_actual ?? i.stock_virtual) || 0;
+                    return stock > 0;
+                }).length;
 
                 if (valorStockEl) {
                     valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {

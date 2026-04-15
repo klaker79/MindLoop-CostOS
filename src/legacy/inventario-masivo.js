@@ -1818,7 +1818,20 @@ async function renderizarTablaPLDiario() {
     html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalMargenBruto.toFixed(2)}€</td></tr>`;
 
     // ── FILA: GASTOS FIJOS / DÍA ──
-    const totalGastosFijosMostrados = gastosFijosDia * dias.length;
+    // 🔧 FIX: antes se multiplicaba por dias.length (sólo días con movimiento), lo que
+    // infravaloraba el gasto mensual real. El alquiler y personal se pagan todos los días
+    // del mes (o de la semana), no solo los días con ventas/compras.
+    const _esSemanaActiva = window.diarioSemanaActiva && window.diarioSemanaActiva !== 'todas';
+    let diasPeriodoReales;
+    if (!_esSemanaActiva) {
+        diasPeriodoReales = diasEnMes; // mes completo: siempre 28-31 según mes
+    } else {
+        const _semNum = parseInt(window.diarioSemanaActiva);
+        const _minDia = (_semNum - 1) * 7 + 1;
+        const _maxDia = Math.min(_semNum * 7, diasEnMes);
+        diasPeriodoReales = Math.max(0, _maxDia - _minDia + 1);
+    }
+    const totalGastosFijosMostrados = gastosFijosDia * diasPeriodoReales;
     html += `<tr style="background: #fce7f3;"><td style="position: sticky; left: 0; background: #fce7f3; padding: 16px; font-weight: 600; color: #9d174d; border-bottom: 1px solid #f9a8d4;">${window.t('balance:pl_fixed_expenses')}</td>`;
     dias.forEach(() => {
         html += `<td style="text-align: center; padding: 16px 8px; color: #be185d; border-bottom: 1px solid #f9a8d4;">${gastosFijosDia.toFixed(2)}€</td>`;
@@ -1829,16 +1842,17 @@ async function renderizarTablaPLDiario() {
     html += `<tr><td colspan="${dias.length + 2}" style="height: 4px; background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #1e40af 100%); padding: 0;"></td></tr>`;
 
     // ── FILA: BENEFICIO NETO (MARGEN BRUTO - GASTOS FIJOS) ──
-    let totalBeneficioNeto = 0;
+    // Total del período coherente con la fila de gastos fijos: margen bruto total menos
+    // el gasto fijo real del período (no la suma de "gastoDia × días con movimiento").
     html += `<tr style="background: #dbeafe;"><td style="position: sticky; left: 0; background: #dbeafe; padding: 18px 16px; font-weight: 700; font-size: 15px; color: #1e40af; border-bottom: 2px solid #93c5fd;">${window.t('balance:pl_net_profit')}</td>`;
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
         const beneficioNeto = margenDia - gastosFijosDia;
-        totalBeneficioNeto += beneficioNeto;
         const color = beneficioNeto >= 0 ? '#1e40af' : '#dc2626';
         const bg = beneficioNeto >= 0 ? '#dbeafe' : '#fee2e2';
         html += `<td style="text-align: center; padding: 18px 8px; font-weight: 700; font-size: 14px; color: ${color}; background: ${bg}; border-bottom: 2px solid #93c5fd;">${beneficioNeto.toFixed(2)}€</td>`;
     });
+    const totalBeneficioNeto = totalMargenBruto - totalGastosFijosMostrados;
     const colorTotal = totalBeneficioNeto >= 0 ? '#22c55e' : '#ef4444';
     html += `<td style="text-align: center; background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: ${colorTotal}; font-weight: 800; font-size: 16px; padding: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${totalBeneficioNeto.toFixed(2)}€</td></tr>`;
 
