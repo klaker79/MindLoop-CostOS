@@ -34,7 +34,10 @@ export function verDetallesPedido(pedidoId) {
     let totalRecibido = 0;
 
     // Determinar si usar itemsRecepcion (con varianza) o ingredientes básicos
-    const items = ped.itemsRecepcion || ped.ingredientes || [];
+    const itemsRaw = ped.itemsRecepcion || ped.ingredientes || [];
+    // Separar ajustes (envases/bonificaciones) de items normales
+    const items = itemsRaw.filter(it => it.tipo !== 'ajuste');
+    const ajustes = itemsRaw.filter(it => it.tipo === 'ajuste');
 
     if (items.length > 0) {
         items.forEach(item => {
@@ -112,9 +115,25 @@ export function verDetallesPedido(pedidoId) {
               </tr>
             `;
         });
-    } else {
+    } else if (ajustes.length === 0) {
         ingredientesHtml = `<tr><td colspan="${esRecibido ? 5 : 4}" style="padding: 40px; text-align: center; color: #94A3B8;">${t('pedidos:detail_no_ingredients')}</td></tr>`;
     }
+
+    // Añadir ajustes (envases/bonificaciones) al final
+    ajustes.forEach(aj => {
+        const importe = parseFloat(aj.importe) || 0;
+        const desc = aj.descripcion ? ` (${escapeHTML(aj.descripcion)})` : '';
+        const color = importe < 0 ? '#dc2626' : '#0891b2';
+        ingredientesHtml += `
+            <tr style="background: #fffbeb;">
+                <td style="padding: 12px;"><strong>💸 Ajuste${desc}</strong></td>
+                <td colspan="${esRecibido ? 3 : 2}" style="padding: 12px; color: #94a3b8; font-style: italic;">No afecta al stock</td>
+                <td style="padding: 12px; text-align: right; color: ${color}; font-weight: 700;">${importe >= 0 ? '+' : ''}${importe.toFixed(2)}€</td>
+            </tr>
+        `;
+        totalOriginal += importe;
+        if (esRecibido) totalRecibido += importe;
+    });
 
     // Calcular varianza total
     const varianzaTotal = totalRecibido - totalOriginal;

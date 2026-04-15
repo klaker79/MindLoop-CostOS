@@ -25,24 +25,40 @@ export function abrirModalEditarPedido(id) {
     }
 
     // Parse ingredientes si vienen como string
-    let items = [];
+    let raw = [];
     try {
-        items = typeof pedido.ingredientes === 'string'
+        raw = typeof pedido.ingredientes === 'string'
             ? JSON.parse(pedido.ingredientes)
             : (pedido.ingredientes || []);
     } catch (_e) {
-        items = [];
+        raw = [];
     }
 
-    // Normalizar claves para trabajar uniformemente
-    items = items.map(it => ({
-        ingredienteId: it.ingredienteId || it.ingrediente_id,
-        cantidad: parseFloat(it.cantidad) || 0,
-        precio_unitario: parseFloat(it.precio_unitario || it.precioUnitario || it.precio || 0)
-    }));
+    // Separar items normales de ajustes (líneas con tipo='ajuste')
+    const items = [];
+    let ajusteImporte = 0;
+    let ajusteDescripcion = '';
+    raw.forEach(it => {
+        if (it.tipo === 'ajuste') {
+            ajusteImporte = parseFloat(it.importe) || 0;
+            ajusteDescripcion = it.descripcion || '';
+        } else {
+            items.push({
+                ingredienteId: it.ingredienteId || it.ingrediente_id,
+                cantidad: parseFloat(it.cantidad) || 0,
+                precio_unitario: parseFloat(it.precio_unitario || it.precioUnitario || it.precio || 0)
+            });
+        }
+    });
 
     // Estado temporal del modal
-    window._editandoPedido = { id, proveedor_id: pedido.proveedor_id, items };
+    window._editandoPedido = {
+        id,
+        proveedor_id: pedido.proveedor_id,
+        items,
+        ajusteImporte,
+        ajusteDescripcion
+    };
 
     renderizarModalEditarPedido();
 }
@@ -118,7 +134,9 @@ function renderizarModalEditarPedido() {
         `;
     }).join('');
 
-    const totalPedido = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
+    const subtotalItems = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
+    const ajuste = parseFloat(state.ajusteImporte) || 0;
+    const totalPedido = subtotalItems + ajuste;
 
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
@@ -140,6 +158,16 @@ function renderizarModalEditarPedido() {
                 <tbody>${itemsHtml || '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #94a3b8;">Sin ingredientes</td></tr>'}</tbody>
                 <tfoot>
                     <tr style="background: #f8fafc;">
+                        <td colspan="3" style="padding: 8px 10px; text-align: right; color: #64748b;">Subtotal items:</td>
+                        <td style="padding: 8px 10px; text-align: right; color: #64748b;">${subtotalItems.toFixed(2)}€</td>
+                        <td></td>
+                    </tr>
+                    ${ajuste !== 0 ? `<tr style="background: #f8fafc;">
+                        <td colspan="3" style="padding: 8px 10px; text-align: right; color: ${ajuste < 0 ? '#dc2626' : '#0891b2'};">Ajuste${state.ajusteDescripcion ? ` (${escapeHTML(state.ajusteDescripcion)})` : ''}:</td>
+                        <td style="padding: 8px 10px; text-align: right; color: ${ajuste < 0 ? '#dc2626' : '#0891b2'};">${ajuste >= 0 ? '+' : ''}${ajuste.toFixed(2)}€</td>
+                        <td></td>
+                    </tr>` : ''}
+                    <tr style="background: #f1f5f9;">
                         <td colspan="3" style="padding: 10px; text-align: right; font-weight: 700;">TOTAL:</td>
                         <td style="padding: 10px; text-align: right; font-weight: 700; color: #059669; font-size: 16px;">${totalPedido.toFixed(2)}€</td>
                         <td></td>
@@ -162,6 +190,22 @@ function renderizarModalEditarPedido() {
                     <button type="button" onclick="window.agregarItemEdicion()"
                         style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; cursor: pointer;">Añadir</button>
                 </div>
+            </div>
+
+            <div style="background: #fffbeb; padding: 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #fde68a;">
+                <h4 style="margin: 0 0 10px 0;">💸 Ajuste manual <small style="color: #92400e; font-weight: 400;">(envases ida/vuelta, bonificaciones, descuentos)</small></h4>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <input type="number" step="0.01" id="input-ajuste-importe" placeholder="0.00 (negativo para descuento)"
+                        value="${ajuste !== 0 ? ajuste.toFixed(2) : ''}"
+                        onchange="window.actualizarAjustePedido('importe', this.value)"
+                        style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+                    <span style="font-weight: 600;">€</span>
+                    <input type="text" id="input-ajuste-descripcion" placeholder="Descripción (ej: bonificaciones, envases)"
+                        value="${escapeHTML(state.ajusteDescripcion || '')}"
+                        onchange="window.actualizarAjustePedido('descripcion', this.value)"
+                        style="flex: 1; min-width: 220px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+                </div>
+                <p style="margin: 8px 0 0 0; color: #64748b; font-size: 12px;">Suma o resta del total del pedido. NO afecta al stock.</p>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
@@ -187,6 +231,17 @@ export function eliminarItemEdicion(idx) {
     const state = window._editandoPedido;
     if (!state) return;
     state.items.splice(idx, 1);
+    renderizarModalEditarPedido();
+}
+
+export function actualizarAjustePedido(campo, valor) {
+    const state = window._editandoPedido;
+    if (!state) return;
+    if (campo === 'importe') {
+        state.ajusteImporte = parseFloat(valor) || 0;
+    } else if (campo === 'descripcion') {
+        state.ajusteDescripcion = String(valor || '');
+    }
     renderizarModalEditarPedido();
 }
 
@@ -225,7 +280,9 @@ export async function guardarEdicionPedido() {
         if (!confirm('El pedido no tiene ingredientes. ¿Guardar igual?')) return;
     }
 
-    const total = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
+    const subtotalItems = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
+    const ajuste = parseFloat(state.ajusteImporte) || 0;
+    const total = subtotalItems + ajuste;
 
     const ingredientesPayload = state.items.map(it => ({
         ingredienteId: it.ingredienteId,
@@ -235,6 +292,15 @@ export async function guardarEdicionPedido() {
         precioUnitario: it.precio_unitario,
         precio: it.precio_unitario
     }));
+
+    // Si hay ajuste, añadirlo como item especial al final del array
+    if (ajuste !== 0 || state.ajusteDescripcion) {
+        ingredientesPayload.push({
+            tipo: 'ajuste',
+            importe: ajuste,
+            descripcion: state.ajusteDescripcion || ''
+        });
+    }
 
     try {
         window.showLoading?.();
@@ -263,6 +329,7 @@ if (typeof window !== 'undefined') {
     window.actualizarItemEdicion = actualizarItemEdicion;
     window.eliminarItemEdicion = eliminarItemEdicion;
     window.agregarItemEdicion = agregarItemEdicion;
+    window.actualizarAjustePedido = actualizarAjustePedido;
     window.cerrarModalEditarPedido = cerrarModalEditarPedido;
     window.guardarEdicionPedido = guardarEdicionPedido;
 }
