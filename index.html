@@ -1767,11 +1767,45 @@
           </div>
           <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
           <div style="margin-top: 30px;">
+            <!-- Estilos sticky para tablas del Diario (Excel-style: primera fila y columna fijas) -->
+            <style>
+              #tabla-compras-diarias,
+              #tabla-ventas-diarias,
+              #tabla-pl-diario,
+              #tabla-proveedores-diarios {
+                max-height: 70vh;
+                overflow: auto !important;
+              }
+              #tabla-compras-diarias table thead th,
+              #tabla-ventas-diarias table thead th,
+              #tabla-pl-diario table thead th,
+              #tabla-proveedores-diarios table thead th {
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 2 !important;
+              }
+              #tabla-compras-diarias table thead th:first-child,
+              #tabla-ventas-diarias table thead th:first-child,
+              #tabla-pl-diario table thead th:first-child,
+              #tabla-proveedores-diarios table thead th:first-child {
+                left: 0 !important;
+                z-index: 3 !important;
+              }
+              #tabla-compras-diarias table tbody td:first-child,
+              #tabla-ventas-diarias table tbody td:first-child,
+              #tabla-pl-diario table tbody td:first-child,
+              #tabla-proveedores-diarios table tbody td:first-child {
+                position: sticky !important;
+                left: 0 !important;
+                z-index: 1 !important;
+              }
+            </style>
+
             <!-- Vista Compras -->
             <div id="vista-compras" class="diario-vista" style="display: block;">
               <h3 style="margin-bottom: 15px;" data-i18n="balance:diario_purchase_title">🛒 Precio de Compra por
                 Ingrediente / Día</h3>
-              <div id="tabla-compras-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
+              <div id="tabla-compras-diarias" style="overflow: auto; width: 100%; max-width: 100%;">
                 <p class="empty-state" data-i18n="balance:diario_empty">Selecciona un mes y haz clic en "Cargar" para
                   ver los datos</p>
               </div>
@@ -1780,7 +1814,7 @@
             <!-- Vista Ventas -->
             <div id="vista-ventas" class="diario-vista" style="display: none;">
               <h3 style="margin-bottom: 15px;" data-i18n="balance:diario_sales_title">💰 Ventas por Receta / Día</h3>
-              <div id="tabla-ventas-diarias" style="overflow-x: auto; width: 100%; max-width: 100%;">
+              <div id="tabla-ventas-diarias" style="overflow: auto; width: 100%; max-width: 100%;">
                 <p class="empty-state" data-i18n="balance:diario_empty">Selecciona un mes y haz clic en "Cargar" para
                   ver los datos</p>
               </div>
@@ -1788,7 +1822,7 @@
 
             <!-- Vista Combinada (P&L) -->
             <div id="vista-combinada" class="diario-vista" style="display: none;">
-              <div id="tabla-pl-diario" style="overflow-x: auto; width: 100%; max-width: 100%;">
+              <div id="tabla-pl-diario" style="overflow: auto; width: 100%; max-width: 100%;">
                 <p class="empty-state" data-i18n="balance:diario_empty">Selecciona un mes y haz clic en "Cargar" para
                   ver los datos</p>
               </div>
@@ -1796,7 +1830,7 @@
 
             <!-- Vista Por Proveedor -->
             <div id="vista-proveedores" class="diario-vista" style="display: none;">
-              <div id="tabla-proveedores-diarios" style="overflow-x: auto; width: 100%; max-width: 100%;">
+              <div id="tabla-proveedores-diarios" style="overflow: auto; width: 100%; max-width: 100%;">
                 <p class="empty-state" data-i18n="balance:diario_empty">Selecciona un mes y haz clic en "Cargar" para
                   ver los datos</p>
               </div>
