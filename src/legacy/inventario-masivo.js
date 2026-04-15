@@ -1356,6 +1356,43 @@ window.cargarResumenMensual = async function () {
     }
 };
 
+// 📅 Filtro de días por semana del mes (1=1-7, 2=8-14, 3=15-21, 4=22-28, 5=29-31, 'todas'=mes completo)
+window.diarioSemanaActiva = 'todas';
+
+window.filtrarDiasPorSemana = function (dias, semana) {
+    if (!semana || semana === 'todas') return dias;
+    const semanaNum = parseInt(semana);
+    if (!semanaNum || semanaNum < 1 || semanaNum > 5) return dias;
+    const minDia = (semanaNum - 1) * 7 + 1;
+    const maxDia = semanaNum * 7;
+    return dias.filter(d => {
+        const dayNum = new Date(d + 'T12:00:00').getDate();
+        return dayNum >= minDia && dayNum <= maxDia;
+    });
+};
+
+// Cambiar semana visible en el Diario (1-5 o 'todas')
+window.cambiarSemanaDiario = function (semana) {
+    window.diarioSemanaActiva = semana;
+
+    // Actualizar estilo de botones
+    document.querySelectorAll('.btn-semana').forEach(btn => {
+        const esActiva = String(btn.dataset.semana) === String(semana);
+        btn.classList.toggle('active', esActiva);
+        btn.className = esActiva
+            ? 'btn-semana btn btn-primary active'
+            : 'btn-semana btn btn-secondary';
+    });
+
+    // Re-renderizar las 4 tablas con el nuevo filtro
+    if (window.datosResumenMensual) {
+        renderizarTablaComprasDiarias();
+        renderizarTablaVentasDiarias();
+        renderizarTablaProveedoresDiarios();
+        renderizarTablaPLDiario();
+    }
+};
+
 // Cambiar entre vistas (Compras, Ventas, Proveedores, P&L)
 window.cambiarVistaDiario = function (vista) {
     // Ocultar todas las vistas
@@ -1391,7 +1428,7 @@ function renderizarTablaComprasDiarias() {
         return;
     }
 
-    const dias = window.datosResumenMensual.dias;
+    const dias = window.filtrarDiasPorSemana(window.datosResumenMensual.dias, window.diarioSemanaActiva);
     const ingredientes = window.datosResumenMensual.compras?.ingredientes || {};
 
     let html =
@@ -1450,7 +1487,7 @@ function renderizarTablaVentasDiarias() {
         return;
     }
 
-    const dias = window.datosResumenMensual.dias;
+    const dias = window.filtrarDiasPorSemana(window.datosResumenMensual.dias, window.diarioSemanaActiva);
     const recetas = window.datosResumenMensual.ventas?.recetas || {};
 
     let html = '<table style="min-width: 100%; border-collapse: collapse;">';
@@ -1498,7 +1535,7 @@ function renderizarTablaProveedoresDiarios() {
         return;
     }
 
-    const dias = window.datosResumenMensual.dias;
+    const dias = window.filtrarDiasPorSemana(window.datosResumenMensual.dias, window.diarioSemanaActiva);
     const proveedores = window.datosResumenMensual.compras?.porProveedor || {};
 
     if (Object.keys(proveedores).length === 0) {
@@ -1595,7 +1632,7 @@ async function renderizarTablaPLDiario() {
         return;
     }
 
-    const dias = window.datosResumenMensual.dias;
+    const dias = window.filtrarDiasPorSemana(window.datosResumenMensual.dias, window.diarioSemanaActiva);
     const recetas = window.datosResumenMensual.ventas?.recetas || {};
 
     // Calcular totales por día

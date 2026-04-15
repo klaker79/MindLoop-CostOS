@@ -1765,57 +1765,22 @@
               data-i18n="balance:diario_view_combined">📊
               P&L Diario</button>
           </div>
+
+          <!-- Selector de Semana -->
+          <div style="display: flex; gap: 8px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;">
+            <span style="font-weight: 600; color: #475569; margin-right: 8px;">📅 Ver:</span>
+            <button class="btn-semana btn btn-primary" data-semana="todas" onclick="window.cambiarSemanaDiario('todas')">Todo el mes</button>
+            <button class="btn-semana btn btn-secondary" data-semana="1" onclick="window.cambiarSemanaDiario(1)">Semana 1 (1-7)</button>
+            <button class="btn-semana btn btn-secondary" data-semana="2" onclick="window.cambiarSemanaDiario(2)">Semana 2 (8-14)</button>
+            <button class="btn-semana btn btn-secondary" data-semana="3" onclick="window.cambiarSemanaDiario(3)">Semana 3 (15-21)</button>
+            <button class="btn-semana btn btn-secondary" data-semana="4" onclick="window.cambiarSemanaDiario(4)">Semana 4 (22-28)</button>
+            <button class="btn-semana btn btn-secondary" data-semana="5" onclick="window.cambiarSemanaDiario(5)">Semana 5 (29-31)</button>
+          </div>
           <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
           <div style="margin-top: 30px;">
-            <!-- Estilos sticky para tablas del Diario (Excel-style: primera fila y columna fijas) -->
+            <!-- Estilos botones de semana -->
             <style>
-              #tabla-compras-diarias,
-              #tabla-ventas-diarias,
-              #tabla-pl-diario,
-              #tabla-proveedores-diarios {
-                height: 65vh !important;
-                overflow: auto !important;
-                position: relative !important;
-              }
-              #tabla-compras-diarias table,
-              #tabla-ventas-diarias table,
-              #tabla-pl-diario table,
-              #tabla-proveedores-diarios table {
-                border-collapse: separate !important;
-                border-spacing: 0 !important;
-              }
-              #tabla-compras-diarias table thead th,
-              #tabla-ventas-diarias table thead th,
-              #tabla-pl-diario table thead th,
-              #tabla-proveedores-diarios table thead th {
-                position: sticky !important;
-                top: 0 !important;
-                z-index: 5 !important;
-                background: #EFF6FF !important;
-              }
-              #tabla-compras-diarias table thead th:first-child,
-              #tabla-ventas-diarias table thead th:first-child,
-              #tabla-pl-diario table thead th:first-child,
-              #tabla-proveedores-diarios table thead th:first-child {
-                left: 0 !important;
-                z-index: 10 !important;
-                background: #E8EDFF !important;
-              }
-              #tabla-compras-diarias table tbody td:first-child,
-              #tabla-ventas-diarias table tbody td:first-child,
-              #tabla-pl-diario table tbody td:first-child,
-              #tabla-proveedores-diarios table tbody td:first-child {
-                position: sticky !important;
-                left: 0 !important;
-                z-index: 3 !important;
-                background: #FFFFFF !important;
-              }
-              #tabla-compras-diarias table tbody tr:nth-child(even) td:first-child,
-              #tabla-ventas-diarias table tbody tr:nth-child(even) td:first-child,
-              #tabla-pl-diario table tbody tr:nth-child(even) td:first-child,
-              #tabla-proveedores-diarios table tbody tr:nth-child(even) td:first-child {
-                background: #FAFBFC !important;
-              }
+              .btn-semana.active { background: #7C3AED !important; color: white !important; }
             </style>
 
             <!-- Vista Compras -->
