@@ -1461,9 +1461,12 @@ function renderizarTablaComprasDiarias() {
         const ing = window.ingredientes.find(i => i.nombre === nombre);
         const unidad = ing?.unidad || 'kg';
 
+        // 📊 FIX: el total debe sumar SOLO los días visibles (respeta filtro de semana)
+        let totalVisible = 0;
         dias.forEach(dia => {
             const diaData = data.dias[dia];
             if (diaData) {
+                totalVisible += (diaData.total ?? diaData.precio * diaData.cantidad) || 0;
                 const calculado = diaData.precio * diaData.cantidad;
                 const hayDescuento = Math.abs(calculado - diaData.total) > 0.02;
                 const totalColor = hayDescuento ? '#dc2626' : '#64748B';
@@ -1476,7 +1479,7 @@ function renderizarTablaComprasDiarias() {
                     '<td style="text-align: center; color: #CBD5E1; padding: 18px; border-right: 1px solid #E2E8F0;">-</td>';
             }
         });
-        html += `<td style="text-align: center; background: #e8f5e9; font-weight: bold; padding: 18px;">${data.total.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; background: #e8f5e9; font-weight: bold; padding: 18px;">${totalVisible.toFixed(2)}€</td>`;
         html += '</tr>';
         rowIndex++;
     }
@@ -1511,9 +1514,14 @@ function renderizarTablaVentasDiarias() {
     html += '<tbody>';
     for (const [nombre, data] of Object.entries(recetas)) {
         html += `<tr><td style="position: sticky; left: 0; background: white; font-weight: 500;">${nombre}</td>`;
+        // 📊 FIX: totales solo de los días visibles
+        let ingresosVisibles = 0;
+        let vendidasVisibles = 0;
         dias.forEach(dia => {
             const diaData = data.dias[dia];
             if (diaData) {
+                ingresosVisibles += diaData.ingresos || 0;
+                vendidasVisibles += diaData.vendidas || 0;
                 html += `<td style="text-align: center;">
               <div style="color: #2e7d32; font-weight: 500;">${diaData.ingresos.toFixed(2)}€</div>
               <small style="color:#666;">${diaData.vendidas} uds</small>
@@ -1523,8 +1531,8 @@ function renderizarTablaVentasDiarias() {
             }
         });
         html += `<td style="text-align: center; background: #e8f5e9;">
-          <div style="font-weight: bold;">${data.totalIngresos.toFixed(2)}€</div>
-          <small>${data.totalVendidas} uds</small>
+          <div style="font-weight: bold;">${ingresosVisibles.toFixed(2)}€</div>
+          <small>${vendidasVisibles} uds</small>
         </td>`;
         html += '</tr>';
     }
@@ -1549,9 +1557,18 @@ function renderizarTablaProveedoresDiarios() {
         return;
     }
 
-    // Ordenar proveedores por total descendente
-    const proveedoresOrdenados = Object.entries(proveedores).sort((a, b) => b[1].total - a[1].total);
-    const maxTotal = proveedoresOrdenados[0]?.[1].total || 1;
+    // 📊 FIX: total por proveedor solo sobre días visibles (respeta filtro de semana)
+    const totalVisiblePorProveedor = new Map();
+    for (const [nombre, data] of Object.entries(proveedores)) {
+        let s = 0;
+        dias.forEach(dia => { s += data.dias[dia] || 0; });
+        totalVisiblePorProveedor.set(nombre, s);
+    }
+    // Ordenar proveedores por total visible descendente
+    const proveedoresOrdenados = Object.entries(proveedores).sort(
+        (a, b) => (totalVisiblePorProveedor.get(b[0]) || 0) - (totalVisiblePorProveedor.get(a[0]) || 0)
+    );
+    const maxTotal = totalVisiblePorProveedor.get(proveedoresOrdenados[0]?.[0]) || 1;
 
     // Calcular totales por día
     const totalesPorDia = {};
@@ -1561,7 +1578,9 @@ function renderizarTablaProveedoresDiarios() {
             totalesPorDia[dia] += data.dias[dia] || 0;
         });
     });
-    const totalGeneral = proveedoresOrdenados.reduce((sum, [, data]) => sum + data.total, 0);
+    const totalGeneral = proveedoresOrdenados.reduce(
+        (sum, [nombre]) => sum + (totalVisiblePorProveedor.get(nombre) || 0), 0
+    );
 
     let html = `<h3 style="margin-bottom: 15px;">${window.t('balance:supplier_title')}</h3>`;
     html += '<table style="min-width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden;">';
@@ -1582,8 +1601,9 @@ function renderizarTablaProveedoresDiarios() {
     html += '<tbody>';
     proveedoresOrdenados.forEach(([nombre, data], idx) => {
         const bgColor = idx % 2 === 0 ? '#FFFFFF' : '#FAFBFC';
+        const totalVisibleProv = totalVisiblePorProveedor.get(nombre) || 0;
         // Intensidad de color según proporción del total
-        const intensidad = Math.max(0.05, data.total / maxTotal);
+        const intensidad = Math.max(0.05, totalVisibleProv / maxTotal);
         const barWidth = Math.round(intensidad * 100);
 
         html += `<tr style="border-bottom: 1px solid #F1F5F9;">`;
@@ -1608,7 +1628,7 @@ function renderizarTablaProveedoresDiarios() {
             }
         });
 
-        html += `<td style="text-align: center; background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); font-weight: 700; padding: 14px 16px; color: #065F46; font-size: 1.05em;">${data.total.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); font-weight: 700; padding: 14px 16px; color: #065F46; font-size: 1.05em;">${totalVisibleProv.toFixed(2)}€</td>`;
         html += '</tr>';
     });
 
@@ -1713,7 +1733,12 @@ async function renderizarTablaPLDiario() {
         const diaSemana = fecha.toLocaleDateString((window.getCurrentLanguage?.() || 'es') === 'en' ? 'en-US' : 'es-ES', { weekday: 'short' }).charAt(0).toUpperCase();
         html += `<th style="min-width: 85px; text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border-bottom: 2px solid #cbd5e1; font-weight: 600; color: #334155;">${diaSemana} ${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
     });
-    html += `<th style="background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: white; padding: 14px 16px; font-weight: 700;">${window.t('balance:pl_total_month')}</th></tr></thead>`;
+    // 📊 FIX: si el usuario filtró por semana, el label debe decir "TOTAL SEMANA"
+    const esSemana = window.diarioSemanaActiva && window.diarioSemanaActiva !== 'todas';
+    const totalLabelHeader = esSemana
+        ? (window.t('balance:pl_total_week') || 'TOTAL SEMANA')
+        : window.t('balance:pl_total_month');
+    html += `<th style="background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: white; padding: 14px 16px; font-weight: 700;">${totalLabelHeader}</th></tr></thead>`;
 
     // Body
     html += '<tbody>';
