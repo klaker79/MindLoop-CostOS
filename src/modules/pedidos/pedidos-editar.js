@@ -59,9 +59,19 @@ function renderizarModalEditarPedido() {
         document.body.appendChild(modal);
     }
 
-    const ingredientesDisponibles = [...(window.ingredientes || [])]
+    // Mapa completo para resolver nombres de items existentes (aunque sean de otro proveedor)
+    const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+
+    // Filtrar ingredientes disponibles para añadir: solo del proveedor del pedido
+    // Si no hay proveedor asignado al pedido, mostrar todos como fallback
+    const proveedorIdPedido = state.proveedor_id;
+    const ingredientesDisponibles = (window.ingredientes || [])
+        .filter(i => !proveedorIdPedido || i.proveedor_id === proveedorIdPedido)
         .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
-    const ingMap = new Map(ingredientesDisponibles.map(i => [i.id, i]));
+
+    const nombreProveedor = proveedorIdPedido
+        ? ((window.proveedores || []).find(p => p.id === proveedorIdPedido)?.nombre || 'desconocido')
+        : null;
 
     const itemsHtml = state.items.map((it, idx) => {
         const ing = ingMap.get(it.ingredienteId);
@@ -122,7 +132,8 @@ function renderizarModalEditarPedido() {
             </table>
 
             <div style="background: #f0f9ff; padding: 14px; border-radius: 8px; margin-bottom: 16px;">
-                <h4 style="margin: 0 0 10px 0;">➕ Añadir ingrediente</h4>
+                <h4 style="margin: 0 0 10px 0;">➕ Añadir ingrediente${nombreProveedor ? ` <small style="color: #64748b; font-weight: 400;">de ${escapeHTML(nombreProveedor)}</small>` : ''}</h4>
+                ${ingredientesDisponibles.length === 0 ? '<p style="color: #dc2626; margin: 0 0 8px 0;">⚠️ Este proveedor no tiene ingredientes asociados</p>' : ''}
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <select id="select-nuevo-ing-edit" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
                         <option value="">— Selecciona ingrediente —</option>
