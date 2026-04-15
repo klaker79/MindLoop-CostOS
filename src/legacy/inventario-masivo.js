@@ -1333,15 +1333,8 @@ window.cargarResumenMensual = async function () {
 
         window.datosResumenMensual = await response.json();
 
-        // Actualizar KPIs
-        document.getElementById('diario-total-compras').textContent =
-            (window.datosResumenMensual.compras?.total || 0).toFixed(2) + ' €';
-        document.getElementById('diario-total-ventas').textContent =
-            (window.datosResumenMensual.ventas?.totalIngresos || 0).toFixed(2) + ' €';
-        document.getElementById('diario-beneficio').textContent =
-            (window.datosResumenMensual.ventas?.beneficioBruto || 0).toFixed(2) + ' €';
-        document.getElementById('diario-food-cost').textContent =
-            (window.datosResumenMensual.resumen?.foodCost || 0) + '%';
+        // Actualizar KPIs respetando el filtro de semana
+        window.actualizarKPIsDiario();
 
         // Aplicar modo compacto si estamos en "todo el mes" (default)
         document.body.classList.toggle('diario-mes-completo', window.diarioSemanaActiva === 'todas');
@@ -1361,6 +1354,48 @@ window.cargarResumenMensual = async function () {
 
 // 📅 Filtro de días por semana del mes (1=1-7, 2=8-14, 3=15-21, 4=22-28, 5=29-31, 'todas'=mes completo)
 window.diarioSemanaActiva = 'todas';
+
+// 📊 Recalcula los 4 KPIs del encabezado sumando SOLO los días visibles según filtro.
+// Antes los KPIs mostraban el total del mes aunque se filtrase la semana → incoherencia visible.
+window.actualizarKPIsDiario = function () {
+    const data = window.datosResumenMensual;
+    if (!data) return;
+    const diasVisibles = window.filtrarDiasPorSemana(data.dias || [], window.diarioSemanaActiva);
+    const diasSet = new Set(diasVisibles);
+
+    // Compras (costes de materia prima) sumados sólo en días visibles
+    let totalCompras = 0;
+    const comprasIng = data.compras?.ingredientes || {};
+    for (const ing of Object.values(comprasIng)) {
+        for (const [dia, diaData] of Object.entries(ing.dias || {})) {
+            if (diasSet.has(dia)) totalCompras += (diaData.total ?? (diaData.precio * diaData.cantidad)) || 0;
+        }
+    }
+
+    // Ventas: ingresos, costes y beneficio bruto en días visibles
+    let totalIngresos = 0;
+    let totalCostesProd = 0;
+    const recetas = data.ventas?.recetas || {};
+    for (const rec of Object.values(recetas)) {
+        for (const [dia, diaData] of Object.entries(rec.dias || {})) {
+            if (diasSet.has(dia)) {
+                totalIngresos += diaData.ingresos || 0;
+                totalCostesProd += diaData.coste || 0;
+            }
+        }
+    }
+    const beneficioBruto = totalIngresos - totalCostesProd;
+    const foodCost = totalIngresos > 0 ? (totalCostesProd / totalIngresos) * 100 : 0;
+
+    const elCompras = document.getElementById('diario-total-compras');
+    if (elCompras) elCompras.textContent = totalCompras.toFixed(2) + ' €';
+    const elVentas = document.getElementById('diario-total-ventas');
+    if (elVentas) elVentas.textContent = totalIngresos.toFixed(2) + ' €';
+    const elBeneficio = document.getElementById('diario-beneficio');
+    if (elBeneficio) elBeneficio.textContent = beneficioBruto.toFixed(2) + ' €';
+    const elFoodCost = document.getElementById('diario-food-cost');
+    if (elFoodCost) elFoodCost.textContent = foodCost.toFixed(1) + '%';
+};
 
 window.filtrarDiasPorSemana = function (dias, semana) {
     if (!semana || semana === 'todas') return dias;
@@ -1392,6 +1427,7 @@ window.cambiarSemanaDiario = function (semana) {
 
     // Re-renderizar las 4 tablas con el nuevo filtro
     if (window.datosResumenMensual) {
+        window.actualizarKPIsDiario();
         renderizarTablaComprasDiarias();
         renderizarTablaVentasDiarias();
         renderizarTablaProveedoresDiarios();
@@ -1853,43 +1889,82 @@ window.exportarDiarioExcel = function () {
         return;
     }
 
+    // 📅 El export debe respetar el filtro de semana activo: si el usuario está viendo
+    // Semana 2, el Excel NO puede incluir todo el mes con totales del mes — sería engañoso.
+    const diasExport = window.filtrarDiasPorSemana(
+        window.datosResumenMensual.dias || [],
+        window.diarioSemanaActiva
+    );
+    const diasSet = new Set(diasExport);
+
     // Crear workbook con los datos
     const wb = XLSX.utils.book_new();
 
-    // Hoja de compras
+    // Hoja de compras — totales recalculados sobre días visibles
     const comprasData = [];
-    comprasData.push(['Ingrediente', ...window.datosResumenMensual.dias, 'TOTAL']);
+    comprasData.push(['Ingrediente', ...diasExport, 'TOTAL']);
     for (const [nombre, data] of Object.entries(
         window.datosResumenMensual.compras?.ingredientes || {}
     )) {
         const fila = [nombre];
-        window.datosResumenMensual.dias.forEach(dia => {
-            fila.push(data.dias[dia]?.precio || '');
+        let totalFila = 0;
+        diasExport.forEach(dia => {
+            const d = data.dias[dia];
+            fila.push(d?.precio ?? '');
+            if (d) totalFila += (d.total ?? (d.precio * d.cantidad)) || 0;
         });
-        fila.push(data.total);
+        fila.push(Number(totalFila.toFixed(2)));
         comprasData.push(fila);
     }
     const wsCompras = XLSX.utils.aoa_to_sheet(comprasData);
     XLSX.utils.book_append_sheet(wb, wsCompras, 'Compras');
 
-    // Hoja de ventas
+    // Hoja de ventas — totales recalculados sobre días visibles
     const ventasData = [];
-    ventasData.push(['Receta', ...window.datosResumenMensual.dias, 'TOTAL']);
+    ventasData.push(['Receta', ...diasExport, 'TOTAL']);
     for (const [nombre, data] of Object.entries(window.datosResumenMensual.ventas?.recetas || {})) {
         const fila = [nombre];
-        window.datosResumenMensual.dias.forEach(dia => {
-            fila.push(data.dias[dia]?.ingresos || '');
+        let totalIngresosFila = 0;
+        diasExport.forEach(dia => {
+            const d = data.dias[dia];
+            fila.push(d?.ingresos ?? '');
+            if (d) totalIngresosFila += d.ingresos || 0;
         });
-        fila.push(data.totalIngresos);
+        fila.push(Number(totalIngresosFila.toFixed(2)));
         ventasData.push(fila);
     }
     const wsVentas = XLSX.utils.aoa_to_sheet(ventasData);
     XLSX.utils.book_append_sheet(wb, wsVentas, 'Ventas');
 
-    // Descargar
+    // Hoja de proveedores — suma por proveedor restringida a días visibles
+    const proveedores = window.datosResumenMensual.compras?.porProveedor || {};
+    if (Object.keys(proveedores).length > 0) {
+        const provData = [];
+        provData.push(['Proveedor', ...diasExport, 'TOTAL']);
+        for (const [nombre, data] of Object.entries(proveedores)) {
+            const fila = [nombre];
+            let totalProv = 0;
+            diasExport.forEach(dia => {
+                const v = data.dias?.[dia] || 0;
+                fila.push(v || '');
+                totalProv += v;
+            });
+            fila.push(Number(totalProv.toFixed(2)));
+            provData.push(fila);
+        }
+        const wsProv = XLSX.utils.aoa_to_sheet(provData);
+        XLSX.utils.book_append_sheet(wb, wsProv, 'Proveedores');
+    }
+
+    // Descargar — nombre refleja si es semana o mes completo
     const mes = document.getElementById('diario-mes').value;
     const ano = document.getElementById('diario-ano').value;
-    XLSX.writeFile(wb, `Control_Diario_${ano}-${mes.padStart(2, '0')}.xlsx`);
+    const sufijo = window.diarioSemanaActiva && window.diarioSemanaActiva !== 'todas'
+        ? `_Semana${window.diarioSemanaActiva}`
+        : '';
+    XLSX.writeFile(wb, `Control_Diario_${ano}-${mes.padStart(2, '0')}${sufijo}.xlsx`);
+    // evitar warning de variable no usada en linter
+    void diasSet;
 
     window.showToast('Excel exportado', 'success');
 };

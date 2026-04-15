@@ -12,6 +12,7 @@
 
 import { createStore } from 'zustand/vanilla';
 import { apiClient } from '../api/client.js';
+import { getIngredientUnitPrice } from '../utils/cost-calculator.js';
 
 /**
  * Ingredient Store
@@ -35,18 +36,12 @@ export const ingredientStore = createStore((set, get) => ({
         const state = ingredientStore.getState();
         const inventario = window.inventarioCompleto || [];
         const invMap = new Map(inventario.map(i => [i.id, i]));
+        // Prioridad UNIFICADA: precio_medio_compra > precio_medio > precio/cpf.
+        // Regla de negocio: los costes de receta usan precio_medio_compra; la valuación
+        // debe reflejar la misma base para que no aparezcan números distintos entre tabs.
         return state.ingredients.reduce((sum, ing) => {
             const stock = parseFloat(ing.stock_actual) || 0;
-            // Prioridad de precio: precio_medio > precio/formato
-            // NO usar precio_medio_compra: puede contener precios de formato, no unitarios
-            const invItem = invMap.get(ing.id);
-            let precioUnitario = 0;
-            if (invItem?.precio_medio) {
-                precioUnitario = parseFloat(invItem.precio_medio);
-            } else if (ing.precio) {
-                const cpf = parseFloat(ing.cantidad_por_formato) || 1;
-                precioUnitario = parseFloat(ing.precio) / cpf;
-            }
+            const precioUnitario = getIngredientUnitPrice(invMap.get(ing.id), ing);
             return sum + (precioUnitario * stock);
         }, 0);
     },
