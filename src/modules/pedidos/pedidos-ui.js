@@ -524,10 +524,24 @@ export function calcularTotalPedido() {
 export function renderizarPedidos() {
     const container = document.getElementById('tabla-pedidos');
     const filtro = document.getElementById('filtro-estado-pedido')?.value || 'todos';
+    const busqueda = (document.getElementById('busqueda-pedidos')?.value || '').trim().toLowerCase();
 
     let pedidosFiltrados = window.pedidos || [];
     if (filtro !== 'todos') {
-        pedidosFiltrados = window.pedidos.filter(p => p.estado === filtro);
+        pedidosFiltrados = pedidosFiltrados.filter(p => p.estado === filtro);
+    }
+
+    if (busqueda) {
+        const provMapBusq = new Map((window.proveedores || []).map(p => [p.id, (p.nombre || '').toLowerCase()]));
+        pedidosFiltrados = pedidosFiltrados.filter(p => {
+            const provNombre = provMapBusq.get(p.proveedorId || p.proveedor_id) || '';
+            const fechaStr = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha;
+            const fechaES = p.fecha ? new Date(fechaStr).toLocaleDateString('es-ES') : '';
+            const fechaISO = p.fecha ? (typeof p.fecha === 'string' ? p.fecha.slice(0, 10) : new Date(p.fecha).toISOString().slice(0, 10)) : '';
+            return provNombre.includes(busqueda)
+                || fechaES.includes(busqueda)
+                || fechaISO.includes(busqueda);
+        });
     }
 
     if (pedidosFiltrados.length === 0) {
