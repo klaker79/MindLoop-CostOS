@@ -187,8 +187,9 @@ export async function verEscandallo(recetaId) {
     document.getElementById('escandallo-titulo').textContent = `📊 ${receta.nombre}`;
 
     // Summary section
-    const foodCostColor = foodCost <= 33 ? '#10B981' : foodCost <= 38 ? '#F59E0B' : '#EF4444';
-    const foodCostRealColor = foodCostReal <= 33 ? '#10B981' : foodCostReal <= 38 ? '#F59E0B' : '#EF4444';
+    // Umbrales Jack Miller: ≤28 excelente, 29-33 target, 34-38 watch, >38 alert
+    const foodCostColor = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#10B981' : foodCost <= 38 ? '#F59E0B' : '#EF4444';
+    const foodCostRealColor = foodCostReal <= 28 ? '#059669' : foodCostReal <= 33 ? '#10B981' : foodCostReal <= 38 ? '#F59E0B' : '#EF4444';
     const precioIdeal = esBebida ? precioSugerido45 : precioSugerido35;
     const precioIdealLabel = esBebida ? '45%' : '35%';
     document.getElementById('escandallo-resumen').innerHTML = `

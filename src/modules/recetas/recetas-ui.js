@@ -253,8 +253,9 @@ export function calcularCosteReceta() {
             const margen = ((precioVenta - costeTotal) / precioVenta) * 100;
             const foodCost = (costeTotal / precioVenta) * 100;
 
-            // Colores visibles sobre fondo verde: blanco = bueno, amarillo = ajustado, rojo = malo
-            const getColor = fc => (fc <= 33 ? '#ffffff' : fc <= 38 ? '#fde047' : '#fca5a5');
+            // Umbrales Jack Miller: ≤28 excelente, 29-33 target, 34-38 watch, >38 alert
+            // Sobre fondo verde: verde claro = excelente, blanco = bueno, amarillo = ajustado, rojo = malo
+            const getColor = fc => (fc <= 28 ? '#bbf7d0' : fc <= 33 ? '#ffffff' : fc <= 38 ? '#fde047' : '#fca5a5');
 
             // Actualizar Margen
             if (margenSpan) {

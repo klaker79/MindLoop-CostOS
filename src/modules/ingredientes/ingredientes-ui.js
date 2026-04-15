@@ -8,6 +8,7 @@
 import { showToast } from '../../ui/toast.js';
 import { getElement, setElementHTML, hideElement, showElement } from '../../utils/dom-helpers.js';
 import { escapeHTML } from '../../utils/helpers.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
 
 
@@ -219,14 +220,17 @@ export function renderizarIngredientes() {
                 ? window.dataMaps.getNombreProveedor(ing.proveedor_id)
                 : 'Sin proveedor';
 
-            // 💰 Precio: precio_medio (ya normalizado a unitario) > precio/cpf
-            // NO usar precio_medio_compra: puede contener precios de formato, no unitarios
+            // 💰 Precio unitario UNIFICADO (precio_medio_compra > precio_medio > precio/cpf).
+            // Regla de negocio: la jefa quiere que los costes de recetas se basen en
+            // precio_medio_compra. Este listado DEBE mostrar el mismo precio que se usa en
+            // escandallos/P&L para evitar incoherencias entre pestañas.
             const invItem = window.inventarioCompleto?.find(i => i.id === ing.id);
-            const precioMedio = invItem?.precio_medio ? parseFloat(invItem.precio_medio) : null;
+            const precioMostrar = getIngredientUnitPrice(invItem, ing);
             const precioBase = parseFloat(ing.precio) || 0;
             const cpfDisplay = parseFloat(ing.cantidad_por_formato) || 1;
             const precioBaseUnitario = precioBase / cpfDisplay;
-            const precioMostrar = precioMedio !== null ? precioMedio : precioBaseUnitario;
+            // Diferencia vs precio configurado (base) para seguir mostrando el indicador ↑/↓
+            const precioMedio = precioMostrar > 0 ? precioMostrar : null;
             const diferencia = precioMedio !== null && precioBaseUnitario > 0 ? ((precioMostrar - precioBaseUnitario) / precioBaseUnitario * 100) : 0;
 
             // Indicador visual si el precio_medio difiere del precio base
