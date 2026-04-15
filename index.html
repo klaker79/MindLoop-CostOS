@@ -1778,9 +1778,41 @@
           </div>
           <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
           <div style="margin-top: 30px;">
-            <!-- Estilos botones de semana -->
+            <!-- Estilos botones de semana + modo compacto para "Todo el mes" -->
             <style>
               .btn-semana.active { background: #7C3AED !important; color: white !important; }
+
+              /* Modo compacto: cuando está "Todo el mes", apretar celdas para que quepan los 31 días */
+              body.diario-mes-completo #tabla-compras-diarias th,
+              body.diario-mes-completo #tabla-compras-diarias td,
+              body.diario-mes-completo #tabla-ventas-diarias th,
+              body.diario-mes-completo #tabla-ventas-diarias td,
+              body.diario-mes-completo #tabla-pl-diario th,
+              body.diario-mes-completo #tabla-pl-diario td,
+              body.diario-mes-completo #tabla-proveedores-diarios th,
+              body.diario-mes-completo #tabla-proveedores-diarios td {
+                padding: 4px 3px !important;
+                font-size: 10px !important;
+                min-width: 38px !important;
+              }
+              body.diario-mes-completo #tabla-compras-diarias td small,
+              body.diario-mes-completo #tabla-ventas-diarias td small,
+              body.diario-mes-completo #tabla-pl-diario td small,
+              body.diario-mes-completo #tabla-proveedores-diarios td small {
+                font-size: 8px !important;
+              }
+              body.diario-mes-completo #tabla-compras-diarias th:first-child,
+              body.diario-mes-completo #tabla-compras-diarias td:first-child,
+              body.diario-mes-completo #tabla-ventas-diarias th:first-child,
+              body.diario-mes-completo #tabla-ventas-diarias td:first-child,
+              body.diario-mes-completo #tabla-pl-diario th:first-child,
+              body.diario-mes-completo #tabla-pl-diario td:first-child,
+              body.diario-mes-completo #tabla-proveedores-diarios th:first-child,
+              body.diario-mes-completo #tabla-proveedores-diarios td:first-child {
+                min-width: 120px !important;
+                padding: 6px 8px !important;
+                font-size: 11px !important;
+              }
             </style>
 
             <!-- Vista Compras -->

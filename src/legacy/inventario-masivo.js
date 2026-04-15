@@ -1343,6 +1343,9 @@ window.cargarResumenMensual = async function () {
         document.getElementById('diario-food-cost').textContent =
             (window.datosResumenMensual.resumen?.foodCost || 0) + '%';
 
+        // Aplicar modo compacto si estamos en "todo el mes" (default)
+        document.body.classList.toggle('diario-mes-completo', window.diarioSemanaActiva === 'todas');
+
         // Renderizar tablas
         renderizarTablaComprasDiarias();
         renderizarTablaVentasDiarias();
@@ -1383,6 +1386,9 @@ window.cambiarSemanaDiario = function (semana) {
             ? 'btn-semana btn btn-primary active'
             : 'btn-semana btn btn-secondary';
     });
+
+    // Modo compacto en body cuando se ve el mes completo (31 días caben sin scroll)
+    document.body.classList.toggle('diario-mes-completo', semana === 'todas');
 
     // Re-renderizar las 4 tablas con el nuevo filtro
     if (window.datosResumenMensual) {
