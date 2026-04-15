@@ -261,10 +261,12 @@ async function renderizarInteligencia() {
 
     container.innerHTML = `<div class="intel-dashboard"><div style="text-align:center;padding:60px;"><div style="font-size:40px;">⏳</div><div style="color:#64748b;">${t('inteligencia:loading')}</div></div></div>`;
 
-    const [fresh, price, waste] = await Promise.all([
+    // El endpoint /intelligence/waste-stats no existe en el backend. Mientras no se
+    // implemente, omitimos el panel para no mostrar un hueco vacío y no gastar un round-trip
+    // que siempre falla.
+    const [fresh, price] = await Promise.all([
         fetchIntelligence('freshness'),
-        fetchIntelligence('price-check'),
-        fetchIntelligence('waste-stats')
+        fetchIntelligence('price-check')
     ]);
 
     const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -292,13 +294,6 @@ async function renderizarInteligencia() {
                         <div><div class="intel-panel-title">${t('inteligencia:panel_pricing_title')}</div><div class="intel-panel-sub">${t('inteligencia:panel_pricing_sub')}</div></div>
                     </div>
                     ${renderPricing(price)}
-                </div>
-                <div class="intel-panel panel-waste">
-                    <div class="intel-panel-header">
-                        <div class="intel-panel-icon">🗑️</div>
-                        <div><div class="intel-panel-title">${t('inteligencia:panel_waste_title')}</div><div class="intel-panel-sub">${t('inteligencia:panel_waste_sub')}</div></div>
-                    </div>
-                    ${renderWaste(waste)}
                 </div>
             </div>
         </div>

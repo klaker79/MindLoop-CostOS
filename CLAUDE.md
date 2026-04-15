@@ -70,8 +70,9 @@ If numbers don't match between modules → it's a BUG. Fix before deploying.
 
 ### Stock
 - Frontend owns stock via `bulkAdjustStock` (delta-based, atomic)
-- Pedido reception: `cantidadRecibida × cantidad_por_formato`
+- Pedido reception: `cantidadRecibida` **en unidades base** (la multiplicación por formato ya se aplicó al crear el pedido en pedidos-crud.js:75). Multiplicar otra vez = duplicación (bug 2026-04-15 ya corregido).
 - Format selector in compras-pendientes: default = ×1 (matches backend)
+- Guard anti-doble-click en recepción (pedidos-recepcion.js): `isConfirmingReception` flag + botón disabled. NO quitar.
 
 ### Map Keys
 - `window.inventarioCompleto` items have `.id` (NOT `.ingrediente_id`)
