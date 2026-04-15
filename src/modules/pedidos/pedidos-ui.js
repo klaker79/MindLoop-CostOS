@@ -585,6 +585,7 @@ export function renderizarPedidos() {
         html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="${t('pedidos:btn_view_details')}">👁️</button>`;
 
         if (ped.estado === 'pendiente') {
+            html += `<button type="button" class="icon-btn edit" onclick="window.abrirModalEditarPedido(${ped.id})" title="Editar pedido pendiente">✏️</button>`;
             html += `<button type="button" class="icon-btn success" onclick="window.marcarPedidoRecibido(${ped.id})" title="${t('pedidos:btn_receive')}">➡️</button>`;
         }
 
