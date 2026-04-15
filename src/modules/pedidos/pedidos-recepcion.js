@@ -42,18 +42,21 @@ export function marcarPedidoRecibido(id) {
     if (totalSpan) totalSpan.textContent = parseFloat(ped.total || 0).toFixed(2) + ' €';
 
     // Inicializar items de recepción con estado
+    // 🔒 Excluir items de tipo 'ajuste' (envases/bonificaciones) — solo afectan al total, no al stock
     if (!ped.itemsRecepcion) {
-        ped.itemsRecepcion = (ped.ingredientes || []).map(item => {
-            const precio = parseFloat(item.precio_unitario || item.precio || 0);
-            return {
-                ...item,
-                ingredienteId: item.ingredienteId || item.ingrediente_id,
-                precioUnitario: precio,
-                cantidadRecibida: parseFloat(item.cantidad || 0),
-                precioReal: precio,
-                estado: 'consolidado'
-            };
-        });
+        ped.itemsRecepcion = (ped.ingredientes || [])
+            .filter(item => item.tipo !== 'ajuste')
+            .map(item => {
+                const precio = parseFloat(item.precio_unitario || item.precio || 0);
+                return {
+                    ...item,
+                    ingredienteId: item.ingredienteId || item.ingrediente_id,
+                    precioUnitario: precio,
+                    cantidadRecibida: parseFloat(item.cantidad || 0),
+                    precioReal: precio,
+                    estado: 'consolidado'
+                };
+            });
     }
 
     renderItemsRecepcionModal(ped);
@@ -273,6 +276,13 @@ export async function confirmarRecepcionPedido() {
                 precio_unitario: parseFloat(item.precioUnitario || 0),
                 estado: item.estado || 'consolidado'
             };
+        });
+
+        // 🔒 Preservar items de tipo 'ajuste' (envases/bonificaciones) y sumar al total
+        const ajustesOriginales = (ped.ingredientes || []).filter(it => it.tipo === 'ajuste');
+        ajustesOriginales.forEach(aj => {
+            ingredientesActualizados.push(aj);
+            totalRecibido += parseFloat(aj.importe) || 0;
         });
 
         /**
