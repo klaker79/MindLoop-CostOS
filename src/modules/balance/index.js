@@ -101,17 +101,17 @@ export async function renderizarBalance() {
         // 3. Actualizar UI
         // 🔒 FIX F2: Helper para acceso seguro a DOM (evita crash si el HTML no está listo)
         const setEl = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-        setEl('pl-ingresos', ingresos.toFixed(2) + ' €');
-        setEl('pl-cogs', cogs.toFixed(2) + ' €');
+        setEl('pl-ingresos', ingresos.toFixed(2) + ' ' + (window.currentUser?.moneda || '€'));
+        setEl('pl-cogs', cogs.toFixed(2) + ' ' + (window.currentUser?.moneda || '€'));
         const cogsPct = ingresos > 0 ? (cogs / ingresos) * 100 : 0;
         setEl('pl-cogs-pct', cogsPct.toFixed(1) + t('balance:pct_over_sales'));
         const margenBruto = ingresos - cogs;
-        setEl('pl-margen-bruto', margenBruto.toFixed(2) + ' €');
+        setEl('pl-margen-bruto', margenBruto.toFixed(2) + ' ' + (window.currentUser?.moneda || '€'));
         const margenPct = ingresos > 0 ? (margenBruto / ingresos) * 100 : 0;
         setEl('pl-kpi-margen', margenPct.toFixed(1) + '%');
         const diaDelMes = ahora.getDate();
         const ventasDiarias = ingresos / diaDelMes;
-        setEl('pl-kpi-ventas-diarias', ventasDiarias.toFixed(2) + ' €');
+        setEl('pl-kpi-ventas-diarias', ventasDiarias.toFixed(2) + ' ' + (window.currentUser?.moneda || '€'));
 
         calcularPL();
     } catch (error) {
@@ -133,8 +133,9 @@ export function calcularPL() {
         return;
     }
 
-    const ingresos = parseFloat(ingresosEl.textContent.replace(' €', '').replace(',', '.')) || 0;
-    const cogs = parseFloat(cogsEl.textContent.replace(' €', '').replace(',', '.')) || 0;
+    const moneda = window.currentUser?.moneda || '€';
+    const ingresos = parseFloat(ingresosEl.textContent.replace(' ' + moneda, '').replace(',', '.')) || 0;
+    const cogs = parseFloat(cogsEl.textContent.replace(' ' + moneda, '').replace(',', '.')) || 0;
     const margenBruto = ingresos - cogs;
 
     const alquiler = parseFloat(alquilerEl.value) || 0;
@@ -146,12 +147,12 @@ export function calcularPL() {
 
     const opexTotal = alquiler + personal + suministros + otros;
     const opexTotalEl = document.getElementById('pl-opex-total');
-    if (opexTotalEl) opexTotalEl.textContent = opexTotal.toFixed(2) + ' €';
+    if (opexTotalEl) opexTotalEl.textContent = opexTotal.toFixed(2) + ' ' + moneda;
 
     const beneficioNeto = margenBruto - opexTotal;
     const netoEl = document.getElementById('pl-neto');
     if (netoEl) {
-        netoEl.textContent = beneficioNeto.toFixed(2) + ' €';
+        netoEl.textContent = beneficioNeto.toFixed(2) + ' ' + moneda;
         netoEl.style.color = beneficioNeto >= 0 ? '#10b981' : '#ef4444';
     }
 
@@ -164,7 +165,7 @@ export function calcularPL() {
 
     const breakEven = opexTotal / margenContribucionPct;
     const breakEvenEl = document.getElementById('pl-breakeven');
-    if (breakEvenEl) breakEvenEl.textContent = breakEven.toFixed(2) + ' €';
+    if (breakEvenEl) breakEvenEl.textContent = breakEven.toFixed(2) + ' ' + moneda;
 
     const estadoBadge = document.getElementById('pl-badge-estado');
     const termometroFill = document.getElementById('pl-termometro-fill');
