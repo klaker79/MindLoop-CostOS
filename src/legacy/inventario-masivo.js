@@ -1,7 +1,7 @@
 // ========== INVENTARIO MASIVO ==========
 
 // Función anti-XSS: Sanitiza datos de usuario antes de insertarlos en HTML
-const cm = window.formatCurrency || ((v) => (parseFloat(v)||0).toFixed(2) + (window.currentUser?.moneda || '€'));
+/* global cm -- defined via window.cm in main.js */
 function escapeHTML(str) {
     if (str === null || str === undefined) return '';
     return String(str).replace(/[&<>"']/g, char => ({

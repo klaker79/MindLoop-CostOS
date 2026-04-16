@@ -2611,7 +2611,19 @@
         </div>
       </div>
 
-      <script src="src/legacy/app-core.js?v=20260415-sprint1"></script>
+      <script>
+        // Currency formatter available to ALL legacy scripts before they load.
+        // main.js (module) upgrades this to the full version with prefix support.
+        window.cm = window.formatCurrency || function(v) {
+          var n = parseFloat(v) || 0;
+          var m = (window.currentUser && window.currentUser.moneda) || '€';
+          var prefix = ['RM','$','£'];
+          if (prefix.indexOf(m) >= 0) return m + ' ' + n.toFixed(2);
+          return n.toFixed(2).replace('.', ',') + m;
+        };
+        var cm = window.cm;
+      </script>
+      <script src="src/legacy/app-core.js?v=20260416-cm-fix"></script>
       <!-- Toast Container -->
       <div class="toast-container" id="toast-container"></div>
 

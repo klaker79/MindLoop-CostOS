@@ -1,7 +1,7 @@
 // Código JavaScript completo (por brevedad, incluyo versión funcional comprimida)
 // El código completo está disponible en el archivo descargable
 
-const cm = window.formatCurrency || ((v) => (parseFloat(v)||0).toFixed(2) + (window.currentUser?.moneda || '€'));
+/* global cm -- defined via window.cm in main.js */
 (function () {
     window.ingredientes = [];
     window.recetas = [];
