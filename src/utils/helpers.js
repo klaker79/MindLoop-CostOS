@@ -139,13 +139,14 @@ export async function exportarAExcel(datos, nombreArchivo, columnas) {
 }
 
 /**
- * Formatea número a moneda EUR
+ * Formatea número a moneda del restaurante
  * @param {number} value - Valor a formatear
- * @returns {string} Valor formateado (ej: "12,50€")
+ * @returns {string} Valor formateado (ej: "12,50€" o "12,50RM")
  */
 export function formatCurrency(value) {
     const num = parseFloat(value) || 0;
-    return num.toFixed(2).replace('.', ',') + '€';
+    const moneda = window.currentUser?.moneda || '€';
+    return num.toFixed(2).replace('.', ',') + moneda;
 }
 
 /**
