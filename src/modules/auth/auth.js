@@ -81,17 +81,70 @@ export function mostrarRegistro() {
 }
 
 /**
- * Vuelve a la pantalla de login desde registro
+ * Vuelve a la pantalla de login desde registro o forgot-password
  */
 export function volverALogin() {
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+    const forgotForm = document.getElementById('forgot-password-form');
     const loginFooter = document.querySelector('.login-footer');
     if (loginForm) loginForm.style.display = 'block';
     if (loginFooter) loginFooter.style.display = 'block';
     if (registerForm) registerForm.style.display = 'none';
+    if (forgotForm) forgotForm.style.display = 'none';
     const errorEl = document.getElementById('register-error');
     if (errorEl) { errorEl.textContent = ''; errorEl.style.color = ''; }
+}
+
+/**
+ * Muestra el formulario de recuperación de contraseña
+ */
+export function mostrarForgotPassword() {
+    const loginForm = document.getElementById('login-form');
+    const forgotForm = document.getElementById('forgot-password-form');
+    const loginFooter = document.querySelector('.login-footer');
+    if (loginForm) loginForm.style.display = 'none';
+    if (loginFooter) loginFooter.style.display = 'none';
+    if (forgotForm) forgotForm.style.display = 'block';
+}
+
+/**
+ * Inicializa el formulario forgot-password
+ */
+export function initForgotPasswordForm() {
+    const forgotForm = document.getElementById('forgot-password-form');
+    if (!forgotForm) return;
+
+    forgotForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('forgot-email')?.value?.trim();
+        const statusEl = document.getElementById('forgot-status');
+        const submitBtn = forgotForm.querySelector('button[type="submit"]');
+        if (!email) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = t('auth:btn_sending') || 'Enviando...';
+
+        try {
+            const res = await fetch(API_AUTH_URL + '/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (statusEl) {
+                statusEl.style.color = '#10b981';
+                statusEl.textContent = data.message || t('auth:forgot_success') || 'Si el email existe, recibirás un enlace de recuperación.';
+            }
+        } catch {
+            if (statusEl) {
+                statusEl.style.color = '#ef4444';
+                statusEl.textContent = t('auth:forgot_error') || 'Error enviando email. Inténtalo de nuevo.';
+            }
+        }
+        submitBtn.disabled = false;
+        submitBtn.textContent = t('auth:btn_send_reset') || 'Enviar enlace de recuperación';
+    });
 }
 
 /**

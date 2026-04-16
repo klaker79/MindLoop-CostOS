@@ -14,6 +14,8 @@ const actionHandlers = {
     // Auth
     'mostrar-registro': () => window.mostrarRegistro?.(),
     'mostrar-login': () => window.volverALogin?.(),
+    'forgot-password': () => window.mostrarForgotPassword?.(),
+    'volver-login': () => window.volverALogin?.(),
     logout: () => window.logout?.(),
 
     // Theme Toggle
