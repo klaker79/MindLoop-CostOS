@@ -31,6 +31,16 @@ export async function checkAuth() {
             return false;
         }
 
+        // 🔒 Restaurar window.currentUser desde localStorage (sobrevive recargas).
+        // Sin esto, window.currentUser?.moneda es undefined tras F5 y toda la app
+        // cae al fallback '€' aunque el restaurante sea RM.
+        if (!window.currentUser) {
+            try {
+                const saved = JSON.parse(localStorage.getItem('user') || 'null');
+                if (saved) window.currentUser = saved;
+            } catch { /* ignore */ }
+        }
+
         // ✅ Sesión válida: mostrar app y cargar datos
         const loginScreen = document.getElementById('login-screen');
         const selectorScreen = document.getElementById('restaurant-selector-screen');
