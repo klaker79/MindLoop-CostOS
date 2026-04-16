@@ -142,10 +142,10 @@ async function actualizarKPIsPorPeriodo(periodo) {
 
         const totalIngresos = ventasFiltradas.reduce((acc, v) => acc + (parseFloat(v.total) || 0), 0);
 
-        // 1. Actualizar KPI top bar (INGRESOS)
+        // 1. Actualizar KPI top bar (INGRESOS) — sin decimales para KPIs
         const kpiIngresos = document.getElementById('kpi-ingresos');
         if (kpiIngresos) {
-            kpiIngresos.textContent = cm(totalIngresos);
+            kpiIngresos.textContent = cm(totalIngresos, 0);
         }
 
         // 2. Actualizar card "Actividad" — ventas count
@@ -157,7 +157,7 @@ async function actualizarKPIsPorPeriodo(periodo) {
         // 3. Actualizar card "Actividad" — ingresos
         const ingresosHoyEl = document.getElementById('ingresos-hoy');
         if (ingresosHoyEl) {
-            ingresosHoyEl.textContent = cm(totalIngresos);
+            ingresosHoyEl.textContent = cm(totalIngresos, 0);
         }
 
         // 4. Actualizar card "Actividad" — plato estrella
@@ -433,7 +433,7 @@ export async function actualizarKPIs() {
                 }).length;
 
                 if (valorStockEl) {
-                    valorStockEl.textContent = cm(valorTotal);
+                    valorStockEl.textContent = cm(valorTotal, 0);
                 }
                 if (itemsStockEl) {
                     itemsStockEl.textContent = itemsConStock;
@@ -455,13 +455,13 @@ export async function actualizarKPIs() {
                     ).length;
 
                     if (valorStockEl) {
-                        valorStockEl.textContent = cm(valorTotal);
+                        valorStockEl.textContent = cm(valorTotal, 0);
                     }
                     if (itemsStockEl) {
                         itemsStockEl.textContent = itemsConStock;
                     }
                 } else {
-                    if (valorStockEl) valorStockEl.textContent = cm(0);
+                    if (valorStockEl) valorStockEl.textContent = cm(0, 0);
                     if (itemsStockEl) itemsStockEl.textContent = '0';
                 }
             }
@@ -680,7 +680,7 @@ export async function actualizarKPIs() {
             // Update forecast total
             const forecastTotalEl = document.getElementById('forecast-total');
             if (forecastTotalEl) {
-                forecastTotalEl.textContent = cm(forecast.totalPrediccion);
+                forecastTotalEl.textContent = cm(forecast.totalPrediccion, 0);
             }
 
             // Update confidence text
@@ -768,7 +768,7 @@ function updateForecastPeriod(dias) {
     // Update total with period label
     const forecastTotalEl = document.getElementById('forecast-total');
     if (forecastTotalEl) {
-        forecastTotalEl.textContent = cm(forecast.totalPrediccion);
+        forecastTotalEl.textContent = cm(forecast.totalPrediccion, 0);
     }
 
     // Update confidence text with period info

@@ -143,22 +143,22 @@ export async function exportarAExcel(datos, nombreArchivo, columnas) {
  * @param {number} value - Valor a formatear
  * @returns {string} Valor formateado (ej: "12,50€" o "12,50RM")
  */
-export function formatCurrency(value) {
+export function formatCurrency(value, decimals = 2) {
     const num = parseFloat(value) || 0;
     const moneda = window.currentUser?.moneda || '€';
     const prefixCurrencies = ['RM', '$', '£'];
     if (prefixCurrencies.includes(moneda)) {
-        return moneda + ' ' + num.toFixed(2);
+        return moneda + ' ' + num.toFixed(decimals);
     }
-    return num.toFixed(2).replace('.', ',') + moneda;
+    return num.toFixed(decimals).replace('.', ',') + moneda;
 }
 
 /**
  * Alias corto de formatCurrency para uso masivo en template literals.
  * Uso: `${cm(valor)}` en vez de `${valor.toFixed(2)}€`
  */
-export function cm(value) {
-    return formatCurrency(value);
+export function cm(value, decimals = 2) {
+    return formatCurrency(value, decimals);
 }
 
 /**

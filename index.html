@@ -2614,12 +2614,13 @@
       <script>
         // Currency formatter available to ALL legacy scripts before they load.
         // main.js (module) upgrades this to the full version with prefix support.
-        window.cm = window.formatCurrency || function(v) {
+        window.cm = window.formatCurrency || function(v, d) {
+          var dec = (d !== undefined) ? d : 2;
           var n = parseFloat(v) || 0;
           var m = (window.currentUser && window.currentUser.moneda) || '€';
           var prefix = ['RM','$','£'];
-          if (prefix.indexOf(m) >= 0) return m + ' ' + n.toFixed(2);
-          return n.toFixed(2).replace('.', ',') + m;
+          if (prefix.indexOf(m) >= 0) return m + ' ' + n.toFixed(dec);
+          return n.toFixed(dec).replace('.', ',') + m;
         };
         var cm = window.cm;
       </script>
