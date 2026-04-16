@@ -600,12 +600,14 @@ import * as Auth from './modules/auth/auth.js';
 window.checkAuth = Auth.checkAuth;
 window.mostrarLogin = Auth.mostrarLogin;
 window.mostrarRegistro = Auth.mostrarRegistro;
+window.mostrarForgotPassword = Auth.mostrarForgotPassword;
 window.volverALogin = Auth.volverALogin;
 window.logout = Auth.logout;
 
-// Inicializar formularios de login, registro, y switcher multi-restaurante
+// Inicializar formularios de login, registro, forgot-password, y switcher multi-restaurante
 Auth.initLoginForm();
 Auth.initRegisterForm();
+Auth.initForgotPasswordForm();
 Auth.initRestaurantSwitcher();
 Auth.handleCheckoutReturn();
 
