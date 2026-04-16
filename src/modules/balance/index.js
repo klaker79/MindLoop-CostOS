@@ -7,6 +7,7 @@
 import { showToast } from '../../ui/toast.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
+import { cm } from '../../utils/helpers.js';
 
 // === BALANCE / P&L UNIFICADO ===
 export async function renderizarBalance() {
@@ -101,17 +102,17 @@ export async function renderizarBalance() {
         // 3. Actualizar UI
         // 🔒 FIX F2: Helper para acceso seguro a DOM (evita crash si el HTML no está listo)
         const setEl = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-        setEl('pl-ingresos', ingresos.toFixed(2) + ' ' + (window.currentUser?.moneda || '€'));
-        setEl('pl-cogs', cogs.toFixed(2) + ' ' + (window.currentUser?.moneda || '€'));
+        setEl('pl-ingresos', cm(ingresos));
+        setEl('pl-cogs', cm(cogs));
         const cogsPct = ingresos > 0 ? (cogs / ingresos) * 100 : 0;
         setEl('pl-cogs-pct', cogsPct.toFixed(1) + t('balance:pct_over_sales'));
         const margenBruto = ingresos - cogs;
-        setEl('pl-margen-bruto', margenBruto.toFixed(2) + ' ' + (window.currentUser?.moneda || '€'));
+        setEl('pl-margen-bruto', cm(margenBruto));
         const margenPct = ingresos > 0 ? (margenBruto / ingresos) * 100 : 0;
         setEl('pl-kpi-margen', margenPct.toFixed(1) + '%');
         const diaDelMes = ahora.getDate();
         const ventasDiarias = ingresos / diaDelMes;
-        setEl('pl-kpi-ventas-diarias', ventasDiarias.toFixed(2) + ' ' + (window.currentUser?.moneda || '€'));
+        setEl('pl-kpi-ventas-diarias', cm(ventasDiarias));
 
         calcularPL();
     } catch (error) {
@@ -133,9 +134,8 @@ export function calcularPL() {
         return;
     }
 
-    const moneda = window.currentUser?.moneda || '€';
-    const ingresos = parseFloat(ingresosEl.textContent.replace(' ' + moneda, '').replace(',', '.')) || 0;
-    const cogs = parseFloat(cogsEl.textContent.replace(' ' + moneda, '').replace(',', '.')) || 0;
+    const ingresos = parseFloat(ingresosEl.textContent.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
+    const cogs = parseFloat(cogsEl.textContent.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
     const margenBruto = ingresos - cogs;
 
     const alquiler = parseFloat(alquilerEl.value) || 0;
@@ -147,12 +147,12 @@ export function calcularPL() {
 
     const opexTotal = alquiler + personal + suministros + otros;
     const opexTotalEl = document.getElementById('pl-opex-total');
-    if (opexTotalEl) opexTotalEl.textContent = opexTotal.toFixed(2) + ' ' + moneda;
+    if (opexTotalEl) opexTotalEl.textContent = cm(opexTotal);
 
     const beneficioNeto = margenBruto - opexTotal;
     const netoEl = document.getElementById('pl-neto');
     if (netoEl) {
-        netoEl.textContent = beneficioNeto.toFixed(2) + ' ' + moneda;
+        netoEl.textContent = cm(beneficioNeto);
         netoEl.style.color = beneficioNeto >= 0 ? '#10b981' : '#ef4444';
     }
 
@@ -165,7 +165,7 @@ export function calcularPL() {
 
     const breakEven = opexTotal / margenContribucionPct;
     const breakEvenEl = document.getElementById('pl-breakeven');
-    if (breakEvenEl) breakEvenEl.textContent = breakEven.toFixed(2) + ' ' + moneda;
+    if (breakEvenEl) breakEvenEl.textContent = cm(breakEven);
 
     const estadoBadge = document.getElementById('pl-badge-estado');
     const termometroFill = document.getElementById('pl-termometro-fill');

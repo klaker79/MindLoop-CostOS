@@ -8,6 +8,7 @@ import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
 import { loadPDF } from '../../utils/lazy-vendors.js';
 import { t } from '@/i18n/index.js';
+import { cm } from '../../utils/helpers.js';
 
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
@@ -707,7 +708,7 @@ async function executeAction(actionData) {
                 }
             }
 
-            window.showToast?.(`${rec.nombre} actualizado: precio = ${value}${window.currentUser?.moneda || '€'}`, 'success');
+            window.showToast?.(`${rec.nombre} actualizado: precio = ${cm(value)}`, 'success');
             return true;
         } else if (action === 'update' && entity === 'receta_ingrediente') {
             // Formato: update|receta_ingrediente|RECETA|INGREDIENTE|cantidad|VALOR
@@ -791,7 +792,7 @@ async function executeAction(actionData) {
 
             await window.cargarDatos();
             window.renderizarIngredientes?.();
-            window.showToast?.(`✅ Ingrediente ${nombre} creado a ${precio}${window.currentUser?.moneda || '€'}/${unidad}`, 'success');
+            window.showToast?.(`✅ Ingrediente ${nombre} creado a ${cm(precio)}/${unidad}`, 'success');
             speakResponse(`Ingrediente ${nombre} añadido correctamente`);
             return true;
         }
@@ -902,7 +903,7 @@ async function executeAction(actionData) {
 
             await window.cargarDatos();
             window.renderizarVentas?.();
-            window.showToast?.(`💰 Venta registrada: ${cantidad}x ${rec.nombre} = ${total.toFixed(2)}${window.currentUser?.moneda || '€'}`, 'success');
+            window.showToast?.(`💰 Venta registrada: ${cantidad}x ${rec.nombre} = ${cm(total)}`, 'success');
             speakResponse(`Venta de ${cantidad} ${rec.nombre} registrada por ${total.toFixed(2)} euros`);
             return true;
         }

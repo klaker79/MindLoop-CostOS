@@ -5,7 +5,7 @@
  * @module modules/inventario/merma-rapida
  */
 
-import { escapeHTML } from '../../utils/helpers.js';
+import { escapeHTML, cm } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
 
 // Array para almacenar las líneas de merma
@@ -33,7 +33,7 @@ export function mostrarModalMermaRapida() {
         const empleados = window.empleados || [];
         let html = `<option value="">${t('inventario:merma_select_responsible')}</option>`;
         empleados.forEach(emp => {
-            html += `<option value="${emp.id}">${escapeHTML(emp.nombre)}</option>`;
+            html += `<option value="${emp.id}">${emp.nombre}</option>`;
         });
         // Si no hay empleados, añadir opción manual
         if (empleados.length === 0) {
@@ -113,7 +113,7 @@ export function agregarLineaMerma() {
 
             <!-- Valor + Eliminar -->
             <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
-                <span class="merma-valor" style="font-weight: 600; color: #dc2626; font-size: 13px; width: 55px; text-align: right;">0.00${window.currentUser?.moneda || '€'}</span>
+                <span class="merma-valor" style="font-weight: 600; color: #dc2626; font-size: 13px; width: 55px; text-align: right;">${cm(0)}</span>
                 <button type="button" onclick="window.eliminarLineaMerma(${index})"
                     style="background: #fee2e2; color: #dc2626; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; flex-shrink: 0;">×</button>
             </div>
@@ -152,7 +152,7 @@ export function actualizarLineaMerma(index) {
     // 🔒 P1-2 FIX: Guard against formato=0 (division by zero → Infinity)
     const precioUnitario = formato > 0 ? (precio / formato) : precio;
     const valor = precioUnitario * cantidad;
-    valorSpan.textContent = valor.toFixed(2) + (window.currentUser?.moneda || '€');
+    valorSpan.textContent = cm(valor);
 
     actualizarResumenMermas();
 }
@@ -179,8 +179,8 @@ function actualizarResumenMermas() {
     lineas.forEach(linea => {
         const select = linea.querySelector('.merma-producto');
         const cantidad = parseFloat(linea.querySelector('.merma-cantidad')?.value) || 0;
-        const valorText = linea.querySelector('.merma-valor')?.textContent || '0.00';
-        const valor = parseFloat(valorText.replace(window.currentUser?.moneda || '€', '')) || 0;
+        const valorText = linea.querySelector('.merma-valor')?.textContent || '0';
+        const valor = parseFloat(valorText.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
 
         if (select.value && cantidad > 0) {
             totalProductos++;
@@ -195,7 +195,7 @@ function actualizarResumenMermas() {
     if (totalProductos > 0) {
         resumenDiv.style.display = 'block';
         detalleDiv.textContent = t('inventario:merma_products_affected', { count: totalProductos });
-        totalDiv.textContent = totalPerdida.toFixed(2) + (window.currentUser?.moneda || '€');
+        totalDiv.textContent = cm(totalPerdida);
     } else {
         resumenDiv.style.display = 'none';
     }
@@ -218,8 +218,8 @@ export async function confirmarMermasMultiples() {
         const motivo = linea.querySelector('.merma-motivo')?.value || 'Otros';
         const nota = linea.querySelector('.merma-nota')?.value || '';
         const medida = linea.querySelector('.merma-medida')?.value || 'tirar';
-        const valorText = linea.querySelector('.merma-valor')?.textContent || '0.00';
-        const valor = parseFloat(valorText.replace(window.currentUser?.moneda || '€', '')) || 0;
+        const valorText = linea.querySelector('.merma-valor')?.textContent || '0';
+        const valor = parseFloat(valorText.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
 
         if (ingredienteId && cantidad > 0) {
             mermasARegistrar.push({
@@ -554,7 +554,7 @@ function agregarLineaMermaConDatos(merma) {
             </select>
             
             <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
-                <span class="merma-valor" style="font-weight: 600; color: #dc2626; font-size: 13px; width: 55px; text-align: right;">0.00${window.currentUser?.moneda || '€'}</span>
+                <span class="merma-valor" style="font-weight: 600; color: #dc2626; font-size: 13px; width: 55px; text-align: right;">${cm(0)}</span>
                 <button type="button" onclick="window.eliminarLineaMerma(${index})" 
                     style="background: #fee2e2; color: #dc2626; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 14px; flex-shrink: 0;">×</button>
             </div>

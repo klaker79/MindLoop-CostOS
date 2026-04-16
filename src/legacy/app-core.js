@@ -1,6 +1,7 @@
 // Código JavaScript completo (por brevedad, incluyo versión funcional comprimida)
 // El código completo está disponible en el archivo descargable
 
+const cm = window.formatCurrency || ((v) => (parseFloat(v)||0).toFixed(2) + (window.currentUser?.moneda || '€'));
 (function () {
     window.ingredientes = [];
     window.recetas = [];
@@ -888,7 +889,7 @@
                         boxPadding: 4,
                         callbacks: {
                             label: function (context) {
-                                return ` ${context.dataset.label}: ${context.parsed.y.toFixed(2)}${window.currentUser?.moneda || '€'}`;
+                                return ` ${context.dataset.label}: ${cm(context.parsed.y)}`;
                             },
                         },
                     },
@@ -898,7 +899,7 @@
                         beginAtZero: true,
                         grid: { color: 'rgba(148, 163, 184, 0.08)', drawBorder: false },
                         border: { display: false },
-                        ticks: { callback: value => value + (window.currentUser?.moneda || '€'), font: { size: 11, weight: '500' }, color: '#94A3B8', padding: 6 },
+                        ticks: { callback: value => cm(value), font: { size: 11, weight: '500' }, color: '#94A3B8', padding: 6 },
                     },
                     x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: '500' }, color: '#94A3B8' } },
                 },
@@ -964,7 +965,7 @@
 
             document.getElementById('stat-total-recetas').textContent = menuAnalysis.length;
             document.getElementById('stat-margen-promedio').textContent = margenPromedio + '%';
-            document.getElementById('stat-coste-promedio').textContent = costePromedio + ' ' + (window.currentUser?.moneda || '€');
+            document.getElementById('stat-coste-promedio').textContent = cm(costePromedio);
             document.getElementById('stat-total-ingredientes').textContent = ingredientes.length;
 
             // Renderizar Gráficos existentes
@@ -1158,7 +1159,7 @@
                                     const emojis = { estrella: '⭐', puzzle: '❓', caballo: '🐴', perro: '🐕' };
                                     return [
                                         `${emojis[item.clasificacion] || ''} ${item.clasificacion.charAt(0).toUpperCase() + item.clasificacion.slice(1)}`,
-                                        `Margen: ${item.y.toFixed(2)}${window.currentUser?.moneda || '€'}`,
+                                        `Margen: ${cm(item.y)}`,
                                         `Ventas: ${item.x} uds`,
                                     ];
                                 },
@@ -1181,7 +1182,7 @@
                         y: {
                             title: {
                                 display: true,
-                                text: window.t?.('dashboard:bcg_axis_profitability') || ('PROFITABILITY (Margin ' + (window.currentUser?.moneda || '€') + ')'),
+                                text: window.t?.('dashboard:bcg_axis_profitability') || 'PROFITABILITY (Margin €)',
                                 font: { size: 11, weight: '600', family: 'system-ui' },
                                 color: '#64748b',
                                 padding: { bottom: 10 }
@@ -1277,7 +1278,7 @@
             const pageItems = items.slice(start, start + ITEMS_PER_PAGE);
 
             container.innerHTML = pageItems.map(item =>
-                `<div class="bcg-item"><strong>${escapeHTML(item.nombre)}</strong><br><span style="font-size:11px">Mg: ${item.margen.toFixed(2)}${window.currentUser?.moneda || '€'} | Ventas: ${item.popularidad}</span></div>`
+                `<div class="bcg-item"><strong>${escapeHTML(item.nombre)}</strong><br><span style="font-size:11px">Mg: ${cm(item.margen)} | Ventas: ${item.popularidad}</span></div>`
             ).join('');
 
             // Añadir controles de paginación si hay más de una página
@@ -1468,7 +1469,7 @@
                             callbacks: {
                                 label: function (context) {
                                     const ing = alimentos[context.dataIndex];
-                                    return `${context.label}: ${context.parsed.toFixed(2)}${window.currentUser?.moneda || '€'}/${ing.unidad || 'ud'}`;
+                                    return `${context.label}: ${cm(context.parsed)}/${ing.unidad || 'ud'}`;
                                 },
                             },
                         },
@@ -1515,7 +1516,7 @@
                             callbacks: {
                                 label: function (context) {
                                     const ing = bebidas[context.dataIndex];
-                                    return `${context.label}: ${context.parsed.toFixed(2)}${window.currentUser?.moneda || '€'}/${ing.unidad || 'ud'}`;
+                                    return `${context.label}: ${cm(context.parsed)}/${ing.unidad || 'ud'}`;
                                 },
                             },
                         },
@@ -1651,7 +1652,7 @@
             const pageItems = ordenados.slice(start, start + ITEMS_PER_PAGE);
 
             let html = '<table><thead><tr>';
-            html += `<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen ${window.currentUser?.moneda || '€'}</th><th>Margen %</th>`;
+            html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
             html += '</tr></thead><tbody>';
 
             pageItems.forEach((rec, idx) => {
@@ -1659,9 +1660,9 @@
                 html += '<tr>';
                 html += `<td><strong>#${realIdx}</strong></td>`;
                 html += `<td>${escapeHTML(rec.nombre)}</td>`;
-                html += `<td>${parseFloat(rec.coste || 0).toFixed(2)} ${window.currentUser?.moneda || '€'}</td>`;
-                html += `<td>${parseFloat(rec.precio_venta || 0).toFixed(2)} ${window.currentUser?.moneda || '€'}</td>`;
-                html += `<td>${parseFloat(rec.margen || 0).toFixed(2)} ${window.currentUser?.moneda || '€'}</td>`;
+                html += `<td>${cm(parseFloat(rec.coste || 0))}</td>`;
+                html += `<td>${cm(parseFloat(rec.precio_venta || 0))}</td>`;
+                html += `<td>${cm(parseFloat(rec.margen || 0))}</td>`;
                 html += `<td><span class="badge ${rec.margenPct > 67 ? 'badge-success' : rec.margenPct > 62 ? 'badge-warning' : 'badge-danger'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
                 html += '</tr>';
             });
@@ -1831,16 +1832,16 @@
 
                 html += `<td id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
 
-                html += `<td>${precioMedio.toFixed(2)}${window.currentUser?.moneda || '€'}/${ing.unidad}</td>`;
+                html += `<td>${cm(precioMedio)}/${ing.unidad}</td>`;
 
                 // Valor Stock: Por defecto usa Virtual. Si hay Real guardado, usa Real.
                 const cantidadParaValor =
                     stockReal !== '' && stockReal !== null
                         ? parseFloat(stockReal)
                         : parseFloat(ing.stock_virtual || 0);
-                const valorStockDisplay = (cantidadParaValor * precioMedio).toFixed(2);
+                const valorStockCalc = cantidadParaValor * precioMedio;
 
-                html += `<td id="val-cell-${ing.id}"><strong>${valorStockDisplay}${window.currentUser?.moneda || '€'}</strong></td>`;
+                html += `<td id="val-cell-${ing.id}"><strong>${cm(valorStockCalc)}</strong></td>`;
                 html += `<td>${ing.unidad}</td>`;
                 html += '</tr>';
             });
@@ -1869,7 +1870,7 @@
             cellDiff.textContent = '-';
             cellDiff.style.color = '#666';
             // Si borra, volvemos a mostrar valor VIRTUAL
-            cellVal.innerHTML = `<strong>${(virtual * precio).toFixed(2)}${window.currentUser?.moneda || '€'}</strong>`;
+            cellVal.innerHTML = `<strong>${cm((virtual * precio))}</strong>`;
             return;
         }
 
@@ -1882,7 +1883,7 @@
         else cellDiff.style.color = '#666';
 
         // Actualizar Valor Stock (REAL * Precio)
-        cellVal.innerHTML = `<strong>${(real * precio).toFixed(2)}${window.currentUser?.moneda || '€'}</strong>`;
+        cellVal.innerHTML = `<strong>${cm((real * precio))}</strong>`;
     };
 
     // Función para mostrar calculadora de conversión de formato
@@ -2295,7 +2296,7 @@
                     const totalMes = provOrdenados.reduce((sum, [, v]) => sum + v, 0);
                     const maxGasto = provOrdenados[0]?.[1] || 1;
 
-                    if (provTotalEl) provTotalEl.textContent = totalMes.toFixed(0) + (window.currentUser?.moneda || '€');
+                    if (provTotalEl) provTotalEl.textContent = cm(totalMes);
 
                     if (provOrdenados.length > 0) {
                         const colores = [
@@ -2311,7 +2312,7 @@
                                 <div style="min-width: 140px; font-size: 13px; font-weight: 600; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(nombre)}">${escapeHTML(nombre)}</div>
                                 <div style="flex: 1; height: 28px; background: #F1F5F9; border-radius: 8px; overflow: hidden; position: relative;">
                                     <div style="height: 100%; width: ${pct}%; background: linear-gradient(90deg, ${c1}, ${c2}); border-radius: 8px; transition: width 0.5s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px;">
-                                        <span style="color: white; font-size: 11px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${total.toFixed(0)}${window.currentUser?.moneda || '€'}</span>
+                                        <span style="color: white; font-size: 11px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${cm(total)}</span>
                                     </div>
                                 </div>
                             </div>`;

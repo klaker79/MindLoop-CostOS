@@ -7,7 +7,7 @@
 
 import { showToast } from '../../ui/toast.js';
 import { getElement, setElementHTML, hideElement, showElement } from '../../utils/dom-helpers.js';
-import { escapeHTML } from '../../utils/helpers.js';
+import { escapeHTML, cm } from '../../utils/helpers.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
 
@@ -238,10 +238,10 @@ export function renderizarIngredientes() {
             if (precioMedio !== null && Math.abs(diferencia) > 1) {
                 const colorDif = diferencia > 0 ? '#ef4444' : '#10B981';
                 const iconDif = diferencia > 0 ? '↑' : '↓';
-                precioHtml = `<span style="font-weight: 600;">${precioMostrar.toFixed(2)} ${window.currentUser?.moneda || '€'}/${escapeHTML(ing.unidad)}</span>
+                precioHtml = `<span style="font-weight: 600;">${cm(precioMostrar)}/${escapeHTML(ing.unidad)}</span>
                     <br><small style="color: ${colorDif};">${iconDif} ${Math.abs(diferencia).toFixed(0)}% vs base</small>`;
             } else {
-                precioHtml = precioMostrar ? `${precioMostrar.toFixed(2)} ${window.currentUser?.moneda || '€'}/${escapeHTML(ing.unidad)}` : '-';
+                precioHtml = precioMostrar ? `${cm(precioMostrar)}/${escapeHTML(ing.unidad)}` : '-';
             }
 
             // Detectar si está inactivo

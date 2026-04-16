@@ -3,13 +3,11 @@
  * Actualización de KPIs del dashboard con soporte de calendario
  */
 
-import {
-    getFechaHoyFormateada,
+import { getFechaHoyFormateada,
     getPeriodoActual,
     filtrarPorPeriodo,
     compararConSemanaAnterior,
-    escapeHTML,
-} from '../../utils/helpers.js';
+    escapeHTML, cm } from '../../utils/helpers.js';
 
 import {
     animateCounter,
@@ -147,7 +145,7 @@ async function actualizarKPIsPorPeriodo(periodo) {
         // 1. Actualizar KPI top bar (INGRESOS)
         const kpiIngresos = document.getElementById('kpi-ingresos');
         if (kpiIngresos) {
-            kpiIngresos.textContent = totalIngresos.toFixed(0) + (window.currentUser?.moneda || '€');
+            kpiIngresos.textContent = cm(totalIngresos);
         }
 
         // 2. Actualizar card "Actividad" — ventas count
@@ -159,7 +157,7 @@ async function actualizarKPIsPorPeriodo(periodo) {
         // 3. Actualizar card "Actividad" — ingresos
         const ingresosHoyEl = document.getElementById('ingresos-hoy');
         if (ingresosHoyEl) {
-            ingresosHoyEl.textContent = totalIngresos.toFixed(0) + (window.currentUser?.moneda || '€');
+            ingresosHoyEl.textContent = cm(totalIngresos);
         }
 
         // 4. Actualizar card "Actividad" — plato estrella
@@ -437,7 +435,7 @@ export async function actualizarKPIs() {
                 if (valorStockEl) {
                     valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {
                         maximumFractionDigits: 0
-                    }) + (window.currentUser?.moneda || '\u20AC');
+                    }) + '\u20AC';
                 }
                 if (itemsStockEl) {
                     itemsStockEl.textContent = itemsConStock;
@@ -461,13 +459,13 @@ export async function actualizarKPIs() {
                     if (valorStockEl) {
                         valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {
                             maximumFractionDigits: 0
-                        }) + (window.currentUser?.moneda || '\u20AC');
+                        }) + '\u20AC';
                     }
                     if (itemsStockEl) {
                         itemsStockEl.textContent = itemsConStock;
                     }
                 } else {
-                    if (valorStockEl) valorStockEl.textContent = '0' + (window.currentUser?.moneda || '\u20AC');
+                    if (valorStockEl) valorStockEl.textContent = '0\u20AC';
                     if (itemsStockEl) itemsStockEl.textContent = '0';
                 }
             }
@@ -545,7 +543,7 @@ export async function actualizarKPIs() {
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="font-weight: 600; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(c.nombre)}</div>
                                     <div style="font-size: 11px; color: #64748B;">
-                                        ${c.anteriorPrecio.toFixed(2)}${window.currentUser?.moneda || '€'} → ${c.ultimoPrecio.toFixed(2)}${window.currentUser?.moneda || '€'}/${escapeHTML(c.unidad)}
+                                        ${cm(c.anteriorPrecio)} → ${cm(c.ultimoPrecio)}/${escapeHTML(c.unidad)}
                                     </div>
                                 </div>
                                 <div style="font-weight: 700; color: ${color}; font-size: 12px; white-space: nowrap;">
@@ -686,7 +684,7 @@ export async function actualizarKPIs() {
             // Update forecast total
             const forecastTotalEl = document.getElementById('forecast-total');
             if (forecastTotalEl) {
-                forecastTotalEl.textContent = forecast.totalPrediccion.toLocaleString('es-ES') + (window.currentUser?.moneda || '€');
+                forecastTotalEl.textContent = cm(forecast.totalPrediccion);
             }
 
             // Update confidence text
@@ -774,7 +772,7 @@ function updateForecastPeriod(dias) {
     // Update total with period label
     const forecastTotalEl = document.getElementById('forecast-total');
     if (forecastTotalEl) {
-        forecastTotalEl.textContent = forecast.totalPrediccion.toLocaleString('es-ES') + (window.currentUser?.moneda || '€');
+        forecastTotalEl.textContent = cm(forecast.totalPrediccion);
     }
 
     // Update confidence text with period info
