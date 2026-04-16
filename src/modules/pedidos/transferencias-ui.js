@@ -16,7 +16,7 @@ import {
     getOwnerRestaurants
 } from './transferencias-crud.js';
 import { apiClient } from '../../api/client.js';
-import { escapeHTML } from '../../utils/helpers.js';
+import { escapeHTML, cm } from '../../utils/helpers.js';
 
 let ownerRestaurants = [];
 let ingredientesCache = [];
@@ -108,8 +108,8 @@ export async function renderizarTransferenciasEntrantes() {
                                 <div style="color: #64748b; font-size: 13px; margin-top: 4px;">
                                     De: <strong>${escapeHTML(t.origen_nombre)}</strong> &middot;
                                     Cantidad: <strong>${parseFloat(t.cantidad)}</strong> &middot;
-                                    Precio unit: <strong>${parseFloat(t.precio_unitario).toFixed(2)}€</strong> &middot;
-                                    Total: <strong>${(parseFloat(t.cantidad) * parseFloat(t.precio_unitario)).toFixed(2)}€</strong>
+                                    Precio unit: <strong>${cm(parseFloat(t.precio_unitario))}</strong> &middot;
+                                    Total: <strong>${cm((parseFloat(t.cantidad) * parseFloat(t.precio_unitario)))}</strong>
                                 </div>
                                 ${t.notas ? `<div style="color: #94a3b8; font-size: 12px; margin-top: 4px; font-style: italic;">${escapeHTML(t.notas)}</div>` : ''}
                                 <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">Solicitado por: ${escapeHTML(t.solicitado_por_nombre || 'Desconocido')} &middot; ${new Date(t.created_at).toLocaleDateString('es-ES')}</div>

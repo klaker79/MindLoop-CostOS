@@ -1,4 +1,5 @@
 // MindLoop CostOS - Modales v2.1.0 - Build 2026-01-01T20:18:00Z
+const cm = window.formatCurrency || ((v) => (parseFloat(v)||0).toFixed(2) + (window.currentUser?.moneda || '€'));
 window.confirmarEliminacion = function (config) {
     return new Promise(resolve => {
         const modal = document.getElementById('modal-confirmacion');
@@ -70,11 +71,11 @@ function renderizarGastosFijos() {
 
     tbody.innerHTML = gastosFijos
         .map(g => {
-            const costeDiario = (parseFloat(g.monto_mensual) / 30).toFixed(2);
+            const costeDiario = parseFloat(g.monto_mensual) / 30;
             return `<tr>
             <td><strong>${escapeHTML(g.concepto)}</strong></td>
-            <td>${parseFloat(g.monto_mensual).toFixed(2)}€</td>
-            <td>${costeDiario}€</td>
+            <td>${cm(parseFloat(g.monto_mensual))}</td>
+            <td>${cm(costeDiario)}</td>
             <td>
                 <button class="btn-icon" onclick="editarGastoFijo(${g.id})">✏️</button>
                 <button class="btn-icon" onclick="confirmarEliminarGastoFijo(${g.id}, '${escapeHTML(g.concepto)}')">🗑️</button>
@@ -93,8 +94,8 @@ function actualizarTotalesGastosFijos() {
 
     const elemMensual = document.getElementById('total-mensual-gastos');
     const elemDiario = document.getElementById('total-diario-gastos');
-    if (elemMensual) elemMensual.textContent = totalMensual.toFixed(2) + '€';
-    if (elemDiario) elemDiario.textContent = totalDiario.toFixed(2) + '€';
+    if (elemMensual) elemMensual.textContent = cm(totalMensual);
+    if (elemDiario) elemDiario.textContent = cm(totalDiario);
 }
 
 function abrirFormularioGastoFijo(id = null) {
@@ -181,7 +182,7 @@ async function actualizarBeneficioRealDiario() {
     const gastosDiario = totales.total_diario || 0;
  
     const elemGastos = document.getElementById('diario-gastos-fijos');
-    if (elemGastos) elemGastos.textContent = gastosDiario.toFixed(2) + ' €';
+    if (elemGastos) elemGastos.textContent = cm(gastosDiario);
  
     const beneficioBrutoMensual = parseFloat(document.getElementById('diario-beneficio')?.textContent || '0');
     const beneficioBrutoDiario = beneficioBrutoMensual / 30;
@@ -190,7 +191,7 @@ async function actualizarBeneficioRealDiario() {
     const elemBeneficio = document.getElementById('diario-beneficio-real');
     const cardBeneficio = document.getElementById('card-beneficio-real');
  
-    if (elemBeneficio) elemBeneficio.textContent = beneficioReal.toFixed(2) + ' €';
+    if (elemBeneficio) elemBeneficio.textContent = cm(beneficioReal);
     if (cardBeneficio) {
       cardBeneficio.className = beneficioReal < 0 ? 'stat-card red' : 'stat-card green';
     }
@@ -336,7 +337,7 @@ async function actualizarTotalGastosFijos() {
         const total = await calcularTotalGastosFijos();
         const elem = document.getElementById('diario-gastos-fijos-total');
         if (elem) {
-            elem.textContent = total.toFixed(2) + ' €';
+            elem.textContent = cm(total);
         }
     } catch (error) {
         console.error('Error actualizando display:', error);
@@ -378,7 +379,7 @@ async function cargarValoresGastosFijos() {
                 const slider = document.getElementById(sliderId);
                 const valorElem = document.getElementById(valorId);
                 if (slider) slider.value = monto;
-                if (valorElem) valorElem.textContent = monto + '€';
+                if (valorElem) valorElem.textContent = cm(monto);
             }
         });
 
@@ -513,15 +514,15 @@ async function renderizarBeneficioNetoDiario() {
             // Día cerrado - muestra el coste fijo que se resta
             icono = '🔘';
             estiloFecha = 'color: #9ca3af; font-size: 13px;';
-            beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">-${gastosFijosDia.toFixed(2)}€</span>`;
+            beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">-${cm(gastosFijosDia)}</span>`;
         } else if (beneficioNeto >= 0) {
             icono = '✅';
             estiloFecha = 'color: #10b981; font-size: 13px;';
-            beneficioTexto = `<span style="color: #10b981; font-size: 11px; margin-left: 8px;">+${beneficioNeto.toFixed(2)}€</span>`;
+            beneficioTexto = `<span style="color: #10b981; font-size: 11px; margin-left: 8px;">+${cm(beneficioNeto)}</span>`;
         } else {
             icono = '❌';
             estiloFecha = 'color: #ef4444; font-size: 13px;';
-            beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">${beneficioNeto.toFixed(2)}€</span>`;
+            beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">${cm(beneficioNeto)}</span>`;
         }
 
         const fechaFormateada = `${diaNum}/${mes}`;
@@ -532,7 +533,7 @@ async function renderizarBeneficioNetoDiario() {
               <span style="${estiloFecha}">${icono} ${fechaFormateada}</span>
               ${beneficioTexto}
             </div>
-            <span style="color: ${colorAcumulado}; font-weight: 700; font-size: 14px;">${beneficioRealTotal.toFixed(2)} €</span>
+            <span style="color: ${colorAcumulado}; font-weight: 700; font-size: 14px;">${cm(beneficioRealTotal)}</span>
           </div>
         `;
     }
@@ -591,7 +592,7 @@ async function renderizarBeneficioNetoDiario() {
             </div>
             <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.8); font-size: 12px;">
               <span><strong style="color: white;">${ventasMes}</strong> / ${puntoEquilibrio} ${window.t('balance:breakeven_dishes')}</span>
-              <span>${window.t('balance:breakeven_margin_dish')} <strong style="color: #10b981;">${margenPromedio.toFixed(2)}€</strong></span>
+              <span>${window.t('balance:breakeven_margin_dish')} <strong style="color: #10b981;">${cm(margenPromedio)}</strong></span>
             </div>
             ${faltantes > 0
                 ? `
@@ -631,11 +632,11 @@ async function renderizarBeneficioNetoDiario() {
         ${puntoEquilibrioHTML}
         <div style="background: ${finalBg}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
           <div style="text-align: center; font-size: 13px; color: ${finalColor}; font-weight: 600; margin-bottom: 8px;">
-            ${finalIcon} ${window.t('balance:net_profit_operating')} <strong>${acumulado.toFixed(2)}€</strong>
+            ${finalIcon} ${window.t('balance:net_profit_operating')} <strong>${cm(acumulado)}</strong>
           </div>
           ${gastosPendientesHTML}
           <div style="text-align: center; font-size: 14px; font-weight: 700; color: ${beneficioRealTotal >= 0 ? '#059669' : '#dc2626'}; padding: 8px; background: white; border-radius: 6px; margin-bottom: 8px;">
-            ${window.t('balance:net_profit_real')} ${beneficioRealTotal.toFixed(2)}€
+            ${window.t('balance:net_profit_real')} ${cm(beneficioRealTotal)}
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
             <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
@@ -644,7 +645,7 @@ async function renderizarBeneficioNetoDiario() {
             </div>
             <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
               <div style="color: #64748B;">${window.t('balance:net_profit_projection')}</div>
-              <div style="color: ${proyeccionFinMes >= 0 ? '#059669' : '#dc2626'}; font-weight: 700;">${proyeccionFinMes.toFixed(2)}€</div>
+              <div style="color: ${proyeccionFinMes >= 0 ? '#059669' : '#dc2626'}; font-weight: 700;">${cm(proyeccionFinMes)}</div>
             </div>
           </div>
         </div>

@@ -3,13 +3,11 @@
  * Actualización de KPIs del dashboard con soporte de calendario
  */
 
-import {
-    getFechaHoyFormateada,
+import { getFechaHoyFormateada,
     getPeriodoActual,
     filtrarPorPeriodo,
     compararConSemanaAnterior,
-    escapeHTML,
-} from '../../utils/helpers.js';
+    escapeHTML, cm } from '../../utils/helpers.js';
 
 import {
     animateCounter,
@@ -147,7 +145,7 @@ async function actualizarKPIsPorPeriodo(periodo) {
         // 1. Actualizar KPI top bar (INGRESOS)
         const kpiIngresos = document.getElementById('kpi-ingresos');
         if (kpiIngresos) {
-            kpiIngresos.textContent = totalIngresos.toFixed(0) + '€';
+            kpiIngresos.textContent = cm(totalIngresos);
         }
 
         // 2. Actualizar card "Actividad" — ventas count
@@ -159,7 +157,7 @@ async function actualizarKPIsPorPeriodo(periodo) {
         // 3. Actualizar card "Actividad" — ingresos
         const ingresosHoyEl = document.getElementById('ingresos-hoy');
         if (ingresosHoyEl) {
-            ingresosHoyEl.textContent = totalIngresos.toFixed(0) + '€';
+            ingresosHoyEl.textContent = cm(totalIngresos);
         }
 
         // 4. Actualizar card "Actividad" — plato estrella
@@ -545,7 +543,7 @@ export async function actualizarKPIs() {
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="font-weight: 600; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(c.nombre)}</div>
                                     <div style="font-size: 11px; color: #64748B;">
-                                        ${c.anteriorPrecio.toFixed(2)}€ → ${c.ultimoPrecio.toFixed(2)}€/${escapeHTML(c.unidad)}
+                                        ${cm(c.anteriorPrecio)} → ${cm(c.ultimoPrecio)}/${escapeHTML(c.unidad)}
                                     </div>
                                 </div>
                                 <div style="font-weight: 700; color: ${color}; font-size: 12px; white-space: nowrap;">
@@ -686,7 +684,7 @@ export async function actualizarKPIs() {
             // Update forecast total
             const forecastTotalEl = document.getElementById('forecast-total');
             if (forecastTotalEl) {
-                forecastTotalEl.textContent = forecast.totalPrediccion.toLocaleString('es-ES') + '€';
+                forecastTotalEl.textContent = cm(forecast.totalPrediccion);
             }
 
             // Update confidence text
@@ -774,7 +772,7 @@ function updateForecastPeriod(dias) {
     // Update total with period label
     const forecastTotalEl = document.getElementById('forecast-total');
     if (forecastTotalEl) {
-        forecastTotalEl.textContent = forecast.totalPrediccion.toLocaleString('es-ES') + '€';
+        forecastTotalEl.textContent = cm(forecast.totalPrediccion);
     }
 
     // Update confidence text with period info

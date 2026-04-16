@@ -9,6 +9,7 @@
  */
 
 import { t } from '@/i18n/index.js';
+import { cm } from '../../utils/helpers.js';
 
 // Re-exportar funciones de los módulos especializados
 export {
@@ -219,7 +220,7 @@ export async function guardarPedido(event) {
               precioMedioPonderado = precioNuevo;
             }
 
-            console.log(`🏪 ${ing.nombre}: Precio ${precioAnterior.toFixed(2)}€ → ${precioMedioPonderado.toFixed(2)}€`);
+            console.log(`🏪 ${ing.nombre}: Precio ${cm(precioAnterior)} → ${cm(precioMedioPonderado)}`);
 
             // Solo enviar precio, NO stock_actual (ya ajustado atómicamente)
             await window.api.updateIngrediente(item.ingredienteId, {

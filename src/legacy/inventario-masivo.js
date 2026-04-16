@@ -1,6 +1,7 @@
 // ========== INVENTARIO MASIVO ==========
 
 // Función anti-XSS: Sanitiza datos de usuario antes de insertarlos en HTML
+const cm = window.formatCurrency || ((v) => (parseFloat(v)||0).toFixed(2) + (window.currentUser?.moneda || '€'));
 function escapeHTML(str) {
     if (str === null || str === undefined) return '';
     return String(str).replace(/[&<>"']/g, char => ({
@@ -478,7 +479,7 @@ function mostrarPreviewIngredientes(datos) {
           <tr style="background: ${bgColor};">
             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
             <td style="padding: 10px;">${escapeHTML(item.nombre) || '-'}</td>
-            <td style="padding: 10px; text-align: right;">${item.precio.toFixed(2)}€</td>
+            <td style="padding: 10px; text-align: right;">${cm(item.precio)}</td>
             <td style="padding: 10px; text-align: center;">${escapeHTML(item.unidad)}</td>
             <td style="padding: 10px; text-align: right;">${item.stockActual}</td>
             <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${escapeHTML(item.error) || 'OK'}</td>
@@ -620,7 +621,7 @@ function mostrarPreviewRecetas(datos) {
             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
             <td style="padding: 10px;">${escapeHTML(item.nombre) || '-'}</td>
             <td style="padding: 10px; text-align: center;">${escapeHTML(item.categoria)}</td>
-            <td style="padding: 10px; text-align: right;">${item.precioVenta.toFixed(2)}€</td>
+            <td style="padding: 10px; text-align: right;">${cm(item.precioVenta)}</td>
             <td style="padding: 10px; text-align: center;">${item.porciones}</td>
             <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${escapeHTML(item.error) || 'OK'}</td>
           </tr>`;
@@ -927,7 +928,7 @@ function mostrarPreviewVentas(datos) {
               ${item.recetaId ? `<strong>${escapeHTML(item.recetaNombre)}</strong>` : '<span style="color:#999; font-style:italic;">No encontrado</span>'}
             </td>
             <td style="padding: 10px; text-align: right;">${item.cantidad}</td>
-            <td style="padding: 10px; text-align: right;">${item.total.toFixed(2)}€</td>
+            <td style="padding: 10px; text-align: right;">${cm(item.total)}</td>
           </tr>`;
     });
 
@@ -1151,7 +1152,7 @@ function mostrarPreviewPedidos(datos) {
               ${!item.ingredienteId ? '<br><span style="font-size:11px; color:#f59e0b;">(Se creará nuevo)</span>' : ''}
             </td>
             <td style="padding: 10px; text-align: right;">${item.cantidad} ${item.ingredienteUnidad}</td>
-            <td style="padding: 10px; text-align: right;">${item.total.toFixed(2)}€</td>
+            <td style="padding: 10px; text-align: right;">${cm(item.total)}</td>
           </tr>`;
     });
 
@@ -1388,11 +1389,11 @@ window.actualizarKPIsDiario = function () {
     const foodCost = totalIngresos > 0 ? (totalCostesProd / totalIngresos) * 100 : 0;
 
     const elCompras = document.getElementById('diario-total-compras');
-    if (elCompras) elCompras.textContent = totalCompras.toFixed(2) + ' €';
+    if (elCompras) elCompras.textContent = cm(totalCompras);
     const elVentas = document.getElementById('diario-total-ventas');
-    if (elVentas) elVentas.textContent = totalIngresos.toFixed(2) + ' €';
+    if (elVentas) elVentas.textContent = cm(totalIngresos);
     const elBeneficio = document.getElementById('diario-beneficio');
-    if (elBeneficio) elBeneficio.textContent = beneficioBruto.toFixed(2) + ' €';
+    if (elBeneficio) elBeneficio.textContent = cm(beneficioBruto);
     const elFoodCost = document.getElementById('diario-food-cost');
     if (elFoodCost) elFoodCost.textContent = foodCost.toFixed(1) + '%';
 };
@@ -1512,15 +1513,15 @@ function renderizarTablaComprasDiarias() {
                     ? `<span title="Total real difiere de precio×cantidad (posible descuento)" style="color:#dc2626;"> 🏷️</span>`
                     : '';
                 html += `<td style="text-align: center; background: #FFF5F2; padding: 18px; border-right: 1px solid #E2E8F0;">
-                    <div style="font-weight: 700; color: #1E293B; font-size: 1em;">${importeDia.toFixed(2)}€${avisoDescuento}</div>
-                    <small style="color:#64748B;">${diaData.precio.toFixed(2)}€/${unidad} × ${diaData.cantidad}</small>
+                    <div style="font-weight: 700; color: #1E293B; font-size: 1em;">${cm(importeDia)}${avisoDescuento}</div>
+                    <small style="color:#64748B;">${cm(diaData.precio)}/${unidad} × ${diaData.cantidad}</small>
                 </td>`;
             } else {
                 html +=
                     '<td style="text-align: center; color: #CBD5E1; padding: 18px; border-right: 1px solid #E2E8F0;">-</td>';
             }
         });
-        html += `<td style="text-align: center; background: #e8f5e9; font-weight: bold; padding: 18px;">${totalVisible.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; background: #e8f5e9; font-weight: bold; padding: 18px;">${cm(totalVisible)}</td>`;
         html += '</tr>';
         rowIndex++;
     }
@@ -1564,7 +1565,7 @@ function renderizarTablaVentasDiarias() {
                 ingresosVisibles += diaData.ingresos || 0;
                 vendidasVisibles += diaData.vendidas || 0;
                 html += `<td style="text-align: center;">
-              <div style="color: #2e7d32; font-weight: 500;">${diaData.ingresos.toFixed(2)}€</div>
+              <div style="color: #2e7d32; font-weight: 500;">${cm(diaData.ingresos)}</div>
               <small style="color:#666;">${diaData.vendidas} uds</small>
             </td>`;
             } else {
@@ -1572,7 +1573,7 @@ function renderizarTablaVentasDiarias() {
             }
         });
         html += `<td style="text-align: center; background: #e8f5e9;">
-          <div style="font-weight: bold;">${ingresosVisibles.toFixed(2)}€</div>
+          <div style="font-weight: bold;">${cm(ingresosVisibles)}</div>
           <small>${vendidasVisibles} uds</small>
         </td>`;
         html += '</tr>';
@@ -1662,14 +1663,14 @@ function renderizarTablaProveedoresDiarios() {
                 const ratio = valor / dayMax;
                 const alpha = Math.max(0.08, Math.min(0.35, ratio * 0.4));
                 html += `<td style="text-align: center; padding: 14px 8px; border-right: 1px solid #E2E8F0; background: rgba(99, 102, 241, ${alpha});">`;
-                html += `<div style="font-weight: 600; color: #1E293B; font-size: 0.95em;">${valor.toFixed(0)}€</div>`;
+                html += `<div style="font-weight: 600; color: #1E293B; font-size: 0.95em;">${cm(valor)}</div>`;
                 html += '</td>';
             } else {
                 html += '<td style="text-align: center; color: #CBD5E1; padding: 14px 8px; border-right: 1px solid #E2E8F0;">-</td>';
             }
         });
 
-        html += `<td style="text-align: center; background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); font-weight: 700; padding: 14px 16px; color: #065F46; font-size: 1.05em;">${totalVisibleProv.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); font-weight: 700; padding: 14px 16px; color: #065F46; font-size: 1.05em;">${cm(totalVisibleProv)}</td>`;
         html += '</tr>';
     });
 
@@ -1679,12 +1680,12 @@ function renderizarTablaProveedoresDiarios() {
     dias.forEach(dia => {
         const total = totalesPorDia[dia] || 0;
         if (total > 0) {
-            html += `<td style="text-align: center; padding: 14px 8px; border-right: 1px solid #E2E8F0; background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); font-weight: 700; color: #9A3412;">${total.toFixed(0)}€</td>`;
+            html += `<td style="text-align: center; padding: 14px 8px; border-right: 1px solid #E2E8F0; background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); font-weight: 700; color: #9A3412;">${cm(total)}</td>`;
         } else {
             html += '<td style="text-align: center; color: #CBD5E1; padding: 14px 8px; border-right: 1px solid #E2E8F0;">-</td>';
         }
     });
-    html += `<td style="text-align: center; background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%); font-weight: 700; padding: 14px 16px; color: #1E40AF; font-size: 1.1em;">${totalGeneral.toFixed(2)}€</td>`;
+    html += `<td style="text-align: center; background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%); font-weight: 700; padding: 14px 16px; color: #1E40AF; font-size: 1.1em;">${cm(totalGeneral)}</td>`;
     html += '</tr>';
 
     html += '</tbody></table>';
@@ -1791,18 +1792,18 @@ async function renderizarTablaPLDiario() {
     dias.forEach(dia => {
         const val = totalesPorDia[dia].ingresos;
         totalIngresos += val;
-        html += `<td style="text-align: center; padding: 16px 8px; font-weight: 600; color: #166534; border-bottom: 1px solid #bbf7d0;">${val.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; padding: 16px 8px; font-weight: 600; color: #166534; border-bottom: 1px solid #bbf7d0;">${cm(val)}</td>`;
     });
-    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalIngresos.toFixed(2)}€</td></tr>`;
+    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${cm(totalIngresos)}</td></tr>`;
 
     // ── FILA: COSTES DE PRODUCCIÓN ──
     html += `<tr style="background: #fef2f2;"><td style="position: sticky; left: 0; background: #fef2f2; padding: 16px; font-weight: 600; color: #991b1b; border-bottom: 1px solid #fecaca;">${window.t('balance:pl_cogs')}</td>`;
     dias.forEach(dia => {
         const val = totalesPorDia[dia].costes;
         totalCostes += val;
-        html += `<td style="text-align: center; padding: 16px 8px; color: #dc2626; border-bottom: 1px solid #fecaca;">${val.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; padding: 16px 8px; color: #dc2626; border-bottom: 1px solid #fecaca;">${cm(val)}</td>`;
     });
-    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalCostes.toFixed(2)}€</td></tr>`;
+    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${cm(totalCostes)}</td></tr>`;
 
     // ── SEPARADOR ──
     html += `<tr><td colspan="${dias.length + 2}" style="height: 3px; background: linear-gradient(90deg, #e2e8f0 0%, #94a3b8 50%, #e2e8f0 100%); padding: 0;"></td></tr>`;
@@ -1813,9 +1814,9 @@ async function renderizarTablaPLDiario() {
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
         const color = margenDia >= 0 ? '#d97706' : '#dc2626';
-        html += `<td style="text-align: center; padding: 16px 8px; font-weight: 700; color: ${color}; border-bottom: 1px solid #fcd34d;">${margenDia.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; padding: 16px 8px; font-weight: 700; color: ${color}; border-bottom: 1px solid #fcd34d;">${cm(margenDia)}</td>`;
     });
-    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalMargenBruto.toFixed(2)}€</td></tr>`;
+    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${cm(totalMargenBruto)}</td></tr>`;
 
     // ── FILA: GASTOS FIJOS / DÍA ──
     // 🔧 FIX: antes se multiplicaba por dias.length (sólo días con movimiento), lo que
@@ -1834,9 +1835,9 @@ async function renderizarTablaPLDiario() {
     const totalGastosFijosMostrados = gastosFijosDia * diasPeriodoReales;
     html += `<tr style="background: #fce7f3;"><td style="position: sticky; left: 0; background: #fce7f3; padding: 16px; font-weight: 600; color: #9d174d; border-bottom: 1px solid #f9a8d4;">${window.t('balance:pl_fixed_expenses')}</td>`;
     dias.forEach(() => {
-        html += `<td style="text-align: center; padding: 16px 8px; color: #be185d; border-bottom: 1px solid #f9a8d4;">${gastosFijosDia.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; padding: 16px 8px; color: #be185d; border-bottom: 1px solid #f9a8d4;">${cm(gastosFijosDia)}</td>`;
     });
-    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${totalGastosFijosMostrados.toFixed(2)}€</td></tr>`;
+    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${cm(totalGastosFijosMostrados)}</td></tr>`;
 
     // ── SEPARADOR GRUESO ──
     html += `<tr><td colspan="${dias.length + 2}" style="height: 4px; background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #1e40af 100%); padding: 0;"></td></tr>`;
@@ -1850,11 +1851,11 @@ async function renderizarTablaPLDiario() {
         const beneficioNeto = margenDia - gastosFijosDia;
         const color = beneficioNeto >= 0 ? '#1e40af' : '#dc2626';
         const bg = beneficioNeto >= 0 ? '#dbeafe' : '#fee2e2';
-        html += `<td style="text-align: center; padding: 18px 8px; font-weight: 700; font-size: 14px; color: ${color}; background: ${bg}; border-bottom: 2px solid #93c5fd;">${beneficioNeto.toFixed(2)}€</td>`;
+        html += `<td style="text-align: center; padding: 18px 8px; font-weight: 700; font-size: 14px; color: ${color}; background: ${bg}; border-bottom: 2px solid #93c5fd;">${cm(beneficioNeto)}</td>`;
     });
     const totalBeneficioNeto = totalMargenBruto - totalGastosFijosMostrados;
     const colorTotal = totalBeneficioNeto >= 0 ? '#22c55e' : '#ef4444';
-    html += `<td style="text-align: center; background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: ${colorTotal}; font-weight: 800; font-size: 16px; padding: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${totalBeneficioNeto.toFixed(2)}€</td></tr>`;
+    html += `<td style="text-align: center; background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: ${colorTotal}; font-weight: 800; font-size: 16px; padding: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${cm(totalBeneficioNeto)}</td></tr>`;
 
     html += '</tbody></table></div>';
 
@@ -1873,7 +1874,7 @@ async function renderizarTablaPLDiario() {
         <div style="display: flex; gap: 24px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 200px;">
                 <div style="font-size: 12px; color: #92400e; margin-bottom: 4px;">${window.t('balance:cashflow_total')}</div>
-                <div style="font-size: 28px; font-weight: 700; color: #d97706;">${totalCompras.toFixed(2)}€</div>
+                <div style="font-size: 28px; font-weight: 700; color: #d97706;">${cm(totalCompras)}</div>
             </div>
             <div style="flex: 2; min-width: 300px;">
                 <div style="font-size: 12px; color: #92400e; margin-bottom: 8px;">${window.t('balance:cashflow_breakdown')}</div>
@@ -1884,7 +1885,7 @@ async function renderizarTablaPLDiario() {
         const fecha = new Date(dia + 'T12:00:00');
         const val = comprasPorDia[dia] || 0;
         if (val > 0) {
-            html += `<span style="background: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; border: 1px solid #fcd34d;">${fecha.getDate()}/${fecha.getMonth() + 1}: <strong style="color: #d97706;">${val.toFixed(2)}€</strong></span>`;
+            html += `<span style="background: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; border: 1px solid #fcd34d;">${fecha.getDate()}/${fecha.getMonth() + 1}: <strong style="color: #d97706;">${cm(val)}</strong></span>`;
         }
     });
 

@@ -146,7 +146,19 @@ export async function exportarAExcel(datos, nombreArchivo, columnas) {
 export function formatCurrency(value) {
     const num = parseFloat(value) || 0;
     const moneda = window.currentUser?.moneda || '€';
+    const prefixCurrencies = ['RM', '$', '£'];
+    if (prefixCurrencies.includes(moneda)) {
+        return moneda + ' ' + num.toFixed(2);
+    }
     return num.toFixed(2).replace('.', ',') + moneda;
+}
+
+/**
+ * Alias corto de formatCurrency para uso masivo en template literals.
+ * Uso: `${cm(valor)}` en vez de `${valor.toFixed(2)}€`
+ */
+export function cm(value) {
+    return formatCurrency(value);
 }
 
 /**

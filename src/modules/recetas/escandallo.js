@@ -6,7 +6,7 @@
  */
 
 import { t } from '@/i18n/index.js';
-import { escapeHTML } from '../../utils/helpers.js';
+import { escapeHTML, cm } from '../../utils/helpers.js';
 import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { getInvMap, getIngMap } from './recetas-crud.js';
@@ -196,15 +196,15 @@ export async function verEscandallo(recetaId) {
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
             <div style="background: #F0FDF4; padding: 12px; border-radius: 8px; text-align: center;">
                 <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_cost')}</div>
-                <div style="font-size: 20px; font-weight: 700; color: #10B981;">${costeTotal.toFixed(2)}€</div>
+                <div style="font-size: 20px; font-weight: 700; color: #10B981;">${cm(costeTotal)}</div>
             </div>
             <div style="background: #EFF6FF; padding: 12px; border-radius: 8px; text-align: center;">
                 <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_pvp')}</div>
-                <div style="font-size: 20px; font-weight: 700; color: #3B82F6;">${precioVenta.toFixed(2)}€</div>
+                <div style="font-size: 20px; font-weight: 700; color: #3B82F6;">${cm(precioVenta)}</div>
             </div>
             <div style="background: #FEF3C7; padding: 12px; border-radius: 8px; text-align: center;">
                 <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_margin')}</div>
-                <div style="font-size: 20px; font-weight: 700; color: #F59E0B;">${margenEuros.toFixed(2)}€</div>
+                <div style="font-size: 20px; font-weight: 700; color: #F59E0B;">${cm(margenEuros)}</div>
             </div>
             <div style="background: ${foodCost <= 33 ? '#F0FDF4' : foodCost <= 38 ? '#FEF3C7' : '#FEE2E2'}; padding: 12px; border-radius: 8px; text-align: center;">
                 <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_food_cost')}</div>
@@ -220,25 +220,25 @@ export async function verEscandallo(recetaId) {
             </div>
             <div style="display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; font-size: 13px;">
                 <span style="color: #94A3B8;">Coste ingredientes</span>
-                <span style="text-align: right; font-weight: 600;">${costeTotal.toFixed(2)}€</span>
+                <span style="text-align: right; font-weight: 600;">${cm(costeTotal)}</span>
 
                 <span style="color: #94A3B8;">Margen de error (${MARGEN_ERROR_PCT}%)</span>
-                <span style="text-align: right; font-weight: 600; color: #FBBF24;">+${margenError.toFixed(2)}€</span>
+                <span style="text-align: right; font-weight: 600; color: #FBBF24;">+${cm(margenError)}</span>
 
                 <span style="color: #F8FAFC; font-weight: 700; padding-top: 6px; border-top: 1px solid #475569;">Subtotal coste / ración</span>
-                <span style="text-align: right; font-weight: 700; color: #F8FAFC; padding-top: 6px; border-top: 1px solid #475569;">${subtotalConError.toFixed(2)}€</span>
+                <span style="text-align: right; font-weight: 700; color: #F8FAFC; padding-top: 6px; border-top: 1px solid #475569;">${cm(subtotalConError)}</span>
 
                 <span style="color: #94A3B8; padding-top: 8px;">Precio sugerido (${precioIdealLabel} FC)</span>
-                <span style="text-align: right; font-weight: 600; padding-top: 8px; color: #67E8F9;">${precioIdeal.toFixed(2)}€</span>
+                <span style="text-align: right; font-weight: 600; padding-top: 8px; color: #67E8F9;">${cm(precioIdeal)}</span>
 
                 <span style="color: #94A3B8;">Beneficio bruto</span>
-                <span style="text-align: right; font-weight: 600; color: ${beneficioBruto >= 0 ? '#34D399' : '#F87171'};">${beneficioBruto.toFixed(2)}€</span>
+                <span style="text-align: right; font-weight: 600; color: ${beneficioBruto >= 0 ? '#34D399' : '#F87171'};">${cm(beneficioBruto)}</span>
 
                 <span style="color: #94A3B8;">IVA (${IVA_PCT}%)</span>
-                <span style="text-align: right; font-weight: 600;">${(precioVenta * IVA_PCT / 100).toFixed(2)}€</span>
+                <span style="text-align: right; font-weight: 600;">${cm((precioVenta * IVA_PCT / 100))}</span>
 
                 <span style="color: #F8FAFC; font-weight: 700; font-size: 15px; padding-top: 8px; border-top: 1px solid #475569;">PVP (IVA incl.)</span>
-                <span style="text-align: right; font-weight: 700; font-size: 15px; color: #F97316; padding-top: 8px; border-top: 1px solid #475569;">${pvpConIva.toFixed(2)}€</span>
+                <span style="text-align: right; font-weight: 700; font-size: 15px; color: #F97316; padding-top: 8px; border-top: 1px solid #475569;">${cm(pvpConIva)}</span>
 
                 <span style="color: #94A3B8; padding-top: 6px;">Food Cost real (con error)</span>
                 <span style="text-align: right; font-weight: 700; padding-top: 6px; color: ${foodCostRealColor};">${foodCostReal.toFixed(1)}%</span>
@@ -262,7 +262,7 @@ export async function verEscandallo(recetaId) {
         tablaHtml += `<tr style="background: ${bgColor};">`;
         tablaHtml += `<td style="padding: 5px; border-bottom: 1px solid #E2E8F0; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(item.nombre)}">${escapeHTML(nombreCorto)}</td>`;
         tablaHtml += `<td style="text-align: right; padding: 5px; border-bottom: 1px solid #E2E8F0;">${item.cantidad} ${item.unidad}</td>`;
-        tablaHtml += `<td style="text-align: right; padding: 5px; border-bottom: 1px solid #E2E8F0; font-weight: 600;">${item.coste.toFixed(2)}€</td>`;
+        tablaHtml += `<td style="text-align: right; padding: 5px; border-bottom: 1px solid #E2E8F0; font-weight: 600;">${cm(item.coste)}</td>`;
         tablaHtml += `<td style="text-align: right; padding: 5px; border-bottom: 1px solid #E2E8F0;">${item.porcentaje.toFixed(0)}%</td>`;
         tablaHtml += '</tr>';
     });
@@ -333,7 +333,7 @@ export async function verEscandallo(recetaId) {
                     callbacks: {
                         label: function (context) {
                             const item = desglose[context.dataIndex];
-                            return ` ${item.coste.toFixed(2)}€  ·  ${item.porcentaje.toFixed(1)}%`;
+                            return ` ${cm(item.coste)}  ·  ${item.porcentaje.toFixed(1)}%`;
                         }
                     }
                 }
@@ -405,9 +405,9 @@ export async function exportarPDFEscandallo() {
     const startX = (pageWidth - (boxWidth * 4 + gap * 3)) / 2;
 
     const summaryData = [
-        { label: t('recetas:escandallo_cost'), value: `${costeTotal.toFixed(2)}€`, color: [16, 185, 129] },
-        { label: t('recetas:escandallo_pvp'), value: `${precioVenta.toFixed(2)}€`, color: [59, 130, 246] },
-        { label: t('recetas:escandallo_margin'), value: `${margenEuros.toFixed(2)}€`, color: [245, 158, 11] },
+        { label: t('recetas:escandallo_cost'), value: `${cm(costeTotal)}`, color: [16, 185, 129] },
+        { label: t('recetas:escandallo_pvp'), value: `${cm(precioVenta)}`, color: [59, 130, 246] },
+        { label: t('recetas:escandallo_margin'), value: `${cm(margenEuros)}`, color: [245, 158, 11] },
         { label: t('recetas:escandallo_food_cost'), value: `${foodCost.toFixed(1)}%`, color: foodCost <= 33 ? [16, 185, 129] : foodCost <= 38 ? [245, 158, 11] : [239, 68, 68] }
     ];
 
@@ -464,9 +464,9 @@ export async function exportarPDFEscandallo() {
         doc.text((i + 1).toString(), 18, tableY + 5);
         doc.text(item.nombre.substring(0, 25), 28, tableY + 5);
         doc.text(`${item.cantidad} ${item.unidad}`, 88, tableY + 5);
-        doc.text(`${item.precioUnitario.toFixed(2)}€/${item.unidad}`, 118, tableY + 5);
+        doc.text(`${cm(item.precioUnitario)}/${item.unidad}`, 118, tableY + 5);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${item.coste.toFixed(2)}€`, 153, tableY + 5);
+        doc.text(`${cm(item.coste)}`, 153, tableY + 5);
         doc.setFont('helvetica', 'normal');
         doc.text(`${item.porcentaje.toFixed(1)}%`, 178, tableY + 5);
 
@@ -479,7 +479,7 @@ export async function exportarPDFEscandallo() {
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.text(t('recetas:escandallo_total'), 28, tableY + 5.5);
-    doc.text(`${costeTotal.toFixed(2)}€`, 153, tableY + 5.5);
+    doc.text(`${cm(costeTotal)}`, 153, tableY + 5.5);
     doc.text('100%', 178, tableY + 5.5);
 
     tableY += 15;

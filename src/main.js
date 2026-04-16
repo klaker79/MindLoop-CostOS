@@ -157,6 +157,7 @@ window.showLoading = Helpers.showLoading;
 window.hideLoading = Helpers.hideLoading;
 window.exportarAExcel = Helpers.exportarAExcel;
 window.formatCurrency = Helpers.formatCurrency;
+window.cm = Helpers.cm;
 window.formatDate = Helpers.formatDate;
 
 // Funciones de calendario
@@ -480,7 +481,7 @@ window.cargarHistorialMermas = async function () {
 
         if (mermas.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">No hay mermas registradas en este período</td></tr>';
-            document.getElementById('mermas-total-valor').textContent = '0.00€';
+            document.getElementById('mermas-total-valor').textContent = Helpers.cm(0);
             document.getElementById('mermas-total-registros').textContent = '0';
             document.getElementById('mermas-motivo-principal').textContent = '-';
             return;
@@ -499,7 +500,7 @@ window.cargarHistorialMermas = async function () {
 
             const fecha = m.fecha ? new Date(m.fecha).toLocaleDateString('es-ES') : '-';
             const cantidad = Math.abs(safeNumber(m.cantidad, 0)).toFixed(2);
-            const valor = safeNumber(m.valor_perdida, 0).toFixed(2);
+            const valor = safeNumber(m.valor_perdida, 0);
 
             // 🔒 FIX SEGURIDAD: Sanitizar datos del servidor para prevenir XSS
             const ingredienteNombre = escapeHTMLMain(m.ingrediente_nombre || m.ingrediente_actual || 'N/A');
@@ -511,7 +512,7 @@ window.cargarHistorialMermas = async function () {
                 <td style="padding: 10px;">${fecha}</td>
                 <td style="padding: 10px;"><strong>${ingredienteNombre}</strong></td>
                 <td style="padding: 10px;">${cantidad} ${unidad}</td>
-                <td style="padding: 10px; color: #ef4444; font-weight: 600;">${valor}€</td>
+                <td style="padding: 10px; color: #ef4444; font-weight: 600;">${Helpers.cm(valor)}</td>
                 <td style="padding: 10px;"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${motivoSafe}</span></td>
                 <td style="padding: 10px; color: #64748b; font-size: 12px;">${nota}</td>
                 <td style="padding: 10px; text-align: center;">
@@ -525,7 +526,7 @@ window.cargarHistorialMermas = async function () {
         tbody.innerHTML = html;
 
         // Actualizar resumen
-        document.getElementById('mermas-total-valor').textContent = totalValor.toFixed(2) + '€';
+        document.getElementById('mermas-total-valor').textContent = Helpers.cm(totalValor);
         document.getElementById('mermas-total-registros').textContent = mermas.length;
 
         // Motivo principal

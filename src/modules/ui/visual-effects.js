@@ -161,7 +161,7 @@ export function updateKPIsWithAnimation() {
     if (ingresosEl) {
         const value = parseFloat(ingresosEl.textContent) || 0;
         if (value > 0) {
-            animateCounter(ingresosEl, value, '€', 1200);
+            animateCounter(ingresosEl, value, window.currentUser?.moneda || '€', 1200);
         }
     }
 

@@ -7,7 +7,7 @@
  * Si el pedido ya está recibido, no se puede editar desde aquí.
  */
 
-import { escapeHTML } from '../../utils/helpers.js';
+import { escapeHTML, cm } from '../../utils/helpers.js';
 
 /**
  * Abre el modal de edición para un pedido pendiente.
@@ -109,7 +109,7 @@ function renderizarModalEditarPedido() {
         const ing = ingMap.get(it.ingredienteId);
         const nombre = ing ? ing.nombre : `Ingrediente #${it.ingredienteId}`;
         const unidad = ing?.unidad || 'ud';
-        const subtotal = (it.cantidad * it.precio_unitario).toFixed(2);
+        const subtotal = it.cantidad * it.precio_unitario;
         return `
             <tr data-idx="${idx}" style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 8px;"><strong>${escapeHTML(nombre)}</strong></td>
@@ -123,9 +123,8 @@ function renderizarModalEditarPedido() {
                     <input type="number" step="0.01" min="0" value="${it.precio_unitario.toFixed(2)}"
                         onchange="window.actualizarItemEdicion(${idx}, 'precio_unitario', this.value)"
                         style="width: 90px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px;" />
-                    <small style="color: #64748b;">€</small>
                 </td>
-                <td style="padding: 8px; text-align: right; font-weight: 600;">${subtotal}€</td>
+                <td style="padding: 8px; text-align: right; font-weight: 600;">${cm(subtotal)}</td>
                 <td style="padding: 8px;">
                     <button type="button" onclick="window.eliminarItemEdicion(${idx})"
                         style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer;">🗑️</button>
@@ -159,17 +158,17 @@ function renderizarModalEditarPedido() {
                 <tfoot>
                     <tr style="background: #f8fafc;">
                         <td colspan="3" style="padding: 8px 10px; text-align: right; color: #64748b;">Subtotal items:</td>
-                        <td style="padding: 8px 10px; text-align: right; color: #64748b;">${subtotalItems.toFixed(2)}€</td>
+                        <td style="padding: 8px 10px; text-align: right; color: #64748b;">${cm(subtotalItems)}</td>
                         <td></td>
                     </tr>
                     ${ajuste !== 0 ? `<tr style="background: #f8fafc;">
                         <td colspan="3" style="padding: 8px 10px; text-align: right; color: ${ajuste < 0 ? '#dc2626' : '#0891b2'};">Ajuste${state.ajusteDescripcion ? ` (${escapeHTML(state.ajusteDescripcion)})` : ''}:</td>
-                        <td style="padding: 8px 10px; text-align: right; color: ${ajuste < 0 ? '#dc2626' : '#0891b2'};">${ajuste >= 0 ? '+' : ''}${ajuste.toFixed(2)}€</td>
+                        <td style="padding: 8px 10px; text-align: right; color: ${ajuste < 0 ? '#dc2626' : '#0891b2'};">${ajuste >= 0 ? '+' : ''}${cm(ajuste)}</td>
                         <td></td>
                     </tr>` : ''}
                     <tr style="background: #f1f5f9;">
                         <td colspan="3" style="padding: 10px; text-align: right; font-weight: 700;">TOTAL:</td>
-                        <td style="padding: 10px; text-align: right; font-weight: 700; color: #059669; font-size: 16px;">${totalPedido.toFixed(2)}€</td>
+                        <td style="padding: 10px; text-align: right; font-weight: 700; color: #059669; font-size: 16px;">${cm(totalPedido)}</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -181,7 +180,7 @@ function renderizarModalEditarPedido() {
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <select id="select-nuevo-ing-edit" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
                         <option value="">— Selecciona ingrediente —</option>
-                        ${ingredientesDisponibles.map(ing => `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${parseFloat(ing.precio || 0).toFixed(2)}€/${escapeHTML(ing.unidad || 'ud')})</option>`).join('')}
+                        ${ingredientesDisponibles.map(ing => `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${cm(parseFloat(ing.precio || 0))}/${escapeHTML(ing.unidad || 'ud')})</option>`).join('')}
                     </select>
                     <input type="number" step="0.01" min="0" id="input-nueva-cant-edit" placeholder="Cantidad"
                         style="width: 100px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
@@ -199,7 +198,7 @@ function renderizarModalEditarPedido() {
                         value="${ajuste !== 0 ? ajuste.toFixed(2) : ''}"
                         onchange="window.actualizarAjustePedido('importe', this.value)"
                         style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
-                    <span style="font-weight: 600;">€</span>
+                    <span style="font-weight: 600;">${window.currentUser?.moneda || '€'}</span>
                     <input type="text" id="input-ajuste-descripcion" placeholder="Descripción (ej: bonificaciones, envases)"
                         value="${escapeHTML(state.ajusteDescripcion || '')}"
                         onchange="window.actualizarAjustePedido('descripcion', this.value)"

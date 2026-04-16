@@ -1,5 +1,5 @@
 import { t } from '@/i18n/index.js';
-import { escapeHTML } from '../../utils/helpers.js';
+import { escapeHTML, cm } from '../../utils/helpers.js';
 
 /**
  * 🧠 Inteligencia - Dashboard Predictivo
@@ -205,9 +205,9 @@ function renderPricing(data) {
         <div class="intel-item">
             <div>
                 <div class="intel-item-name">${escapeHTML(r.nombre)}</div>
-                <div class="intel-item-detail">Coste: ${r.coste.toFixed(2)}€ · Actual: ${r.precio_actual.toFixed(2)}€</div>
+                <div class="intel-item-detail">Coste: ${cm(r.coste)} · Actual: ${cm(r.precio_actual)}</div>
             </div>
-            <span class="intel-badge badge-danger">${r.food_cost}% → ${r.precio_sugerido.toFixed(2)}€</span>
+            <span class="intel-badge badge-danger">${r.food_cost}% → ${cm(r.precio_sugerido)}</span>
         </div>
     `).join('')}</div>`;
 }
@@ -226,7 +226,7 @@ function renderWaste(data) {
 
     let html = `
         <div style="text-align:center;margin-bottom:16px;">
-            <div style="font-size:2.5rem;font-weight:700;color:#ef4444;">${total.toFixed(2)}€</div>
+            <div style="font-size:2.5rem;font-weight:700;color:#ef4444;">${cm(total)}</div>
             <div style="color:#94a3b8;font-size:0.85rem;">${t('inteligencia:label_losses_this_month')}</div>
             ${variacion !== 0 ? `<div style="color:${variacion > 0 ? '#ef4444' : '#22c55e'};font-size:0.8rem;margin-top:4px;">${variacion > 0 ? '↑' : '↓'} ${Math.abs(variacion)}% ${t('inteligencia:label_vs_prev_month')}</div>` : ''}
         </div>
@@ -241,7 +241,7 @@ function renderWaste(data) {
                         <div class="intel-item-name">${escapeHTML(p.nombre)}</div>
                         <div class="intel-item-detail">${parseFloat(p.cantidad_total).toFixed(2)} ${t('inteligencia:label_discarded')} (${p.veces}x)</div>
                     </div>
-                    <span class="intel-badge badge-danger">${parseFloat(p.perdida_total).toFixed(2)}€</span>
+                    <span class="intel-badge badge-danger">${cm(parseFloat(p.perdida_total))}</span>
                 </div>
             `;
         });

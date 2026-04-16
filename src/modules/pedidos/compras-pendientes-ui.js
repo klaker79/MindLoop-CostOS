@@ -9,7 +9,7 @@
 import { fetchComprasPendientes, aprobarItem, aprobarBatch, editarItemPendiente, rechazarItem, cambiarFormato } from './compras-pendientes-crud.js';
 import { apiClient } from '../../api/client.js';
 import { t } from '@/i18n/index.js';
-import { escapeHTML } from '../../utils/helpers.js';
+import { escapeHTML, cm } from '../../utils/helpers.js';
 
 let ingredientesCache = [];
 let proveedoresCache = [];
@@ -142,7 +142,7 @@ export async function renderizarComprasPendientes() {
                     <span style="font-size: 20px;">⚠️</span>
                     <div>
                         <div style="font-size: 13px; font-weight: 700; color: #dc2626;">${t('pedidos:pending_possible_duplicate')} — ${estadoPedidoDup === 'ya aprobado' ? t('pedidos:pending_dup_already_approved') : estadoPedidoDup === 'pendiente en otro albarán' ? t('pedidos:pending_dup_pending_other') : t('pedidos:pending_dup_manual_exists')}</div>
-                        <div style="font-size: 12px; color: #b91c1c;">${fechaPedidoDup}${totalPedidoDup ? ` · ${totalPedidoDup}€` : ''} · ${t('pedidos:pending_status')}: ${estadoPedidoDup}</div>
+                        <div style="font-size: 12px; color: #b91c1c;">${fechaPedidoDup}${totalPedidoDup ? ` · ${cm(totalPedidoDup)}` : ''} · ${t('pedidos:pending_status')}: ${estadoPedidoDup}</div>
                     </div>
                 </div>` : ''}
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -150,7 +150,7 @@ export async function renderizarComprasPendientes() {
                         <div style="width: 44px; height: 44px; background: linear-gradient(135deg, ${esBatchDuplicado ? '#ef4444, #dc2626' : '#f59e0b, #d97706'}); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;">${esBatchDuplicado ? '⚠️' : '📋'}</div>
                         <div>
                             <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">${t('pedidos:pending_delivery_note_from', { date: fecha })}</h3>
-                            <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${t('pedidos:pending_products_count', { count: totalItems })}${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${t('pedidos:pending_unassigned', { count: sinMatch })}</span>` : ''}${totalAlbaran > 0 ? ` · <strong data-batch-total="${batchId}" style="color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">Total: ${totalAlbaran.toFixed(2)}€</strong>` : ''}</p>
+                            <p style="margin: 2px 0 0; font-size: 13px; color: ${esBatchDuplicado ? '#b91c1c' : '#b45309'};">${t('pedidos:pending_products_count', { count: totalItems })}${sinMatch > 0 ? ` · <span style="color: #dc2626; font-weight: 600;">${t('pedidos:pending_unassigned', { count: sinMatch })}</span>` : ''}${totalAlbaran > 0 ? ` · <strong data-batch-total="${batchId}" style="color: ${esBatchDuplicado ? '#991b1b' : '#92400e'};">Total: ${cm(totalAlbaran)}</strong>` : ''}</p>
                             <div style="margin-top: 6px; display: flex; align-items: center; gap: 6px;">
                                 <span style="font-size: 12px; color: #6b7280;">Proveedor:</span>
                                 <select onchange="window.cambiarProveedorBatch('${batchId}', this.value)" style="
@@ -249,7 +249,7 @@ export async function renderizarComprasPendientes() {
                                 <input type="number" step="0.01" min="0" value="${parseFloat(item.precio).toFixed(2)}"
                                     onchange="window.editarCampoPendiente(${item.id}, 'precio', this.value, this)"
                                     style="width: 70px; text-align: center; font-weight: 700; color: #1e293b; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; font-size: 14px; background: #f9fafb;" />
-                                <span style="font-weight: 700; color: #1e293b;">€</span>
+                                <span style="font-weight: 700; color: #1e293b;">${window.currentUser?.moneda || '€'}</span>
                             </div>
                         </div>
                         <div style="text-align: center;">
@@ -260,7 +260,7 @@ export async function renderizarComprasPendientes() {
                                     onchange="window.editarTotalPendiente(${item.id}, this.value, this)"
                                     data-total
                                     style="width: 75px; text-align: center; font-weight: 700; color: #059669; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; font-size: 14px; background: #f0fdf4;" />
-                                <span style="font-weight: 700; color: #059669;">€</span>
+                                <span style="font-weight: 700; color: #059669;">${window.currentUser?.moneda || '€'}</span>
                             </div>
                         </div>
                         <div style="display: flex; gap: 6px;">
@@ -498,7 +498,7 @@ function recalcularTotalBatch(elementInside) {
         const totalInput = item.querySelector('[data-total]');
         if (totalInput) total += parseFloat(totalInput.value) || 0;
     });
-    totalEl.textContent = `Total: ${total.toFixed(2)}€`;
+    totalEl.textContent = `Total: ${cm(total)}`;
 }
 
 /**

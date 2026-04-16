@@ -5,6 +5,7 @@
  */
 
 import { t } from '@/i18n/index.js';
+import { cm } from '../../utils/helpers.js';
 
 export function actualizarSimulador() {
     const alquiler = parseInt(document.getElementById('input-alquiler')?.value) || 0;
@@ -16,9 +17,9 @@ export function actualizarSimulador() {
     const labelPersonal = document.getElementById('label-personal');
     const labelSuministros = document.getElementById('label-suministros');
 
-    if (labelAlquiler) labelAlquiler.textContent = alquiler.toLocaleString('es-ES') + ' €';
-    if (labelPersonal) labelPersonal.textContent = personal.toLocaleString('es-ES') + ' €';
-    if (labelSuministros) labelSuministros.textContent = suministros.toLocaleString('es-ES') + ' €';
+    if (labelAlquiler) labelAlquiler.textContent = cm(alquiler);
+    if (labelPersonal) labelPersonal.textContent = cm(personal);
+    if (labelSuministros) labelSuministros.textContent = cm(suministros);
 
     // Obtener Margen Bruto
     const margenBrutoElem = document.getElementById('balance-ganancia');
@@ -38,14 +39,14 @@ export function actualizarSimulador() {
     const progressBar = document.getElementById('sim-progreso-fill');
     const analytics = document.getElementById('sim-analytics');
 
-    if (simMargenBruto) simMargenBruto.textContent = margenBruto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
-    if (simCostosFijos) simCostosFijos.textContent = costosFijos.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+    if (simMargenBruto) simMargenBruto.textContent = cm(margenBruto);
+    if (simCostosFijos) simCostosFijos.textContent = cm(costosFijos);
 
     let porcentajeCubierto = costosFijos > 0 ? (margenBruto / costosFijos) * 100 : 100;
     const widthPct = Math.min(Math.max(porcentajeCubierto, 0), 100);
 
     if (netoElem) {
-        netoElem.textContent = neto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+        netoElem.textContent = cm(neto);
         netoElem.style.color = neto >= 0 ? '#10b981' : '#ef4444';
     }
 
@@ -70,7 +71,7 @@ export function actualizarSimulador() {
     const ingresosElem = document.getElementById('balance-ingresos');
     let ingresos = 0;
     if (ingresosElem) {
-        ingresos = parseFloat(ingresosElem.textContent.replace('€', '').trim()) || 0;
+        ingresos = parseFloat(ingresosElem.textContent.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
     }
 
     let breakEven = 0;
@@ -80,11 +81,11 @@ export function actualizarSimulador() {
     }
 
     const breakEvenDisplay = document.getElementById('break-even-display');
-    if (breakEvenDisplay) breakEvenDisplay.textContent = breakEven.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+    if (breakEvenDisplay) breakEvenDisplay.textContent = cm(breakEven);
 
     // Actualizar Card de Beneficio Neto superior
     const balanceNeto = document.getElementById('balance-neto');
-    if (balanceNeto) balanceNeto.textContent = neto.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+    if (balanceNeto) balanceNeto.textContent = cm(neto);
 }
 
 // Exponer globalmente

@@ -8,6 +8,7 @@
  */
 
 import { loadChart } from '../../utils/lazy-vendors.js';
+import { cm } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
 
 /**
@@ -416,7 +417,7 @@ export async function renderForecastChart(containerId, chartData) {
                     displayColors: true,
                     boxPadding: 4,
                     callbacks: {
-                        label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y}€`
+                        label: (ctx) => ` ${ctx.dataset.label}: ${cm(ctx.parsed.y)}`
                     }
                 }
             },
@@ -429,7 +430,7 @@ export async function renderForecastChart(containerId, chartData) {
                     },
                     border: { display: false },
                     ticks: {
-                        callback: (value) => value + '€',
+                        callback: (value) => cm(value),
                         color: '#94A3B8',
                         font: { size: 10, weight: '500' },
                         padding: 6
