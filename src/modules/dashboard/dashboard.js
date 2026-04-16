@@ -433,9 +433,7 @@ export async function actualizarKPIs() {
                 }).length;
 
                 if (valorStockEl) {
-                    valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {
-                        maximumFractionDigits: 0
-                    }) + '\u20AC';
+                    valorStockEl.textContent = cm(valorTotal);
                 }
                 if (itemsStockEl) {
                     itemsStockEl.textContent = itemsConStock;
@@ -457,15 +455,13 @@ export async function actualizarKPIs() {
                     ).length;
 
                     if (valorStockEl) {
-                        valorStockEl.textContent = valorTotal.toLocaleString('es-ES', {
-                            maximumFractionDigits: 0
-                        }) + '\u20AC';
+                        valorStockEl.textContent = cm(valorTotal);
                     }
                     if (itemsStockEl) {
                         itemsStockEl.textContent = itemsConStock;
                     }
                 } else {
-                    if (valorStockEl) valorStockEl.textContent = '0\u20AC';
+                    if (valorStockEl) valorStockEl.textContent = cm(0);
                     if (itemsStockEl) itemsStockEl.textContent = '0';
                 }
             }
