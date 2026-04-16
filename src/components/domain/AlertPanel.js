@@ -3,7 +3,7 @@
  * Panel completo para gestionar alertas
  */
 
-import { formatDate } from '../../utils/helpers.js';
+import { formatDate, escapeHTML } from '../../utils/helpers.js';
 
 const ALERT_TYPES = {
     low_margin: { label: 'Margen Bajo', icon: '📉' },
@@ -85,8 +85,8 @@ function renderAlertItem(alert) {
             <div class="alert-item__icon">${typeInfo.icon}</div>
 
             <div class="alert-item__content">
-                <div class="alert-item__title">${alert.title}</div>
-                <div class="alert-item__message">${alert.message || ''}</div>
+                <div class="alert-item__title">${escapeHTML(alert.title)}</div>
+                <div class="alert-item__message">${escapeHTML(alert.message || '')}</div>
                 <div class="alert-item__meta">
                     <span class="alert-item__type">${typeInfo.label}</span>
                     <span class="alert-item__date">${formatDate ? formatDate(alert.created_at || alert.createdAt) : ''}</span>
