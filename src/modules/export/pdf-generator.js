@@ -91,8 +91,8 @@ export async function generarPDFReceta(receta, ingredientes) {
                 ingredientesData.push([
                     ing.nombre,
                     `${cantidad} ${ing.unidad || 'kg'}`,
-                    `${precio.toFixed(2)}€`,
-                    `${subtotal.toFixed(2)}€`,
+                    `${precio.toFixed(2)}${window.currentUser?.moneda || '€'}`,
+                    `${subtotal.toFixed(2)}${window.currentUser?.moneda || '€'}`,
                 ]);
             }
         });
@@ -144,19 +144,19 @@ export async function generarPDFReceta(receta, ingredientes) {
     doc.setTextColor(...colorText);
 
     doc.text(t('export:pdf_label_total_cost'), 20, yPos);
-    doc.text(`${costoTotal.toFixed(2)}€`, 100, yPos, { align: 'right' });
+    doc.text(`${costoTotal.toFixed(2)}${window.currentUser?.moneda || '€'}`, 100, yPos, { align: 'right' });
 
     yPos += 8;
     doc.text(t('export:pdf_label_sale_price'), 20, yPos);
     doc.setTextColor(16, 185, 129); // Verde
-    doc.text(`${precioVenta.toFixed(2)}€`, 100, yPos, { align: 'right' });
+    doc.text(`${precioVenta.toFixed(2)}${window.currentUser?.moneda || '€'}`, 100, yPos, { align: 'right' });
 
     yPos += 8;
     doc.setTextColor(...colorText);
     doc.text(t('export:pdf_label_profit'), 20, yPos);
     const beneficio = precioVenta - costoTotal;
     doc.setTextColor(beneficio >= 0 ? [16, 185, 129] : [239, 68, 68]);
-    doc.text(`${beneficio.toFixed(2)}€`, 100, yPos, { align: 'right' });
+    doc.text(`${beneficio.toFixed(2)}${window.currentUser?.moneda || '€'}`, 100, yPos, { align: 'right' });
 
     yPos += 8;
     doc.setTextColor(...colorText);
@@ -214,7 +214,7 @@ export async function generarPDFIngredientes(ingredientes) {
     const data = ingredientes.map(ing => [
         ing.nombre,
         ing.unidad || 'kg',
-        `${(ing.precio || 0).toFixed(2)}€`,
+        `${(ing.precio || 0).toFixed(2)}${window.currentUser?.moneda || '€'}`,
         `${(ing.stock_actual || 0).toFixed(2)}`,
         ing.proveedor?.nombre || 'N/A',
     ]);

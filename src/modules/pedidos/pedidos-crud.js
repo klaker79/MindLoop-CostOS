@@ -219,7 +219,7 @@ export async function guardarPedido(event) {
               precioMedioPonderado = precioNuevo;
             }
 
-            console.log(`🏪 ${ing.nombre}: Precio ${precioAnterior.toFixed(2)}€ → ${precioMedioPonderado.toFixed(2)}€`);
+            console.log(`🏪 ${ing.nombre}: Precio ${precioAnterior.toFixed(2)}${window.currentUser?.moneda || '€'} → ${precioMedioPonderado.toFixed(2)}${window.currentUser?.moneda || '€'}`);
 
             // Solo enviar precio, NO stock_actual (ya ajustado atómicamente)
             await window.api.updateIngrediente(item.ingredienteId, {

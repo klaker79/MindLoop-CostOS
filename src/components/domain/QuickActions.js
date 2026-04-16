@@ -189,7 +189,7 @@ function showLowMarginModal(recipes) {
                                 <td>${r.nombre}</td>
                                 <td><strong>${(r.margen_porcentaje || 0).toFixed(1)}%</strong></td>
                                 <td>${(r.food_cost || 0).toFixed(1)}%</td>
-                                <td>${(r.precio_venta || 0).toFixed(2)}€</td>
+                                <td>${(r.precio_venta || 0).toFixed(2)}${window.currentUser?.moneda || '€'}</td>
                             </tr>
                         `).join('')}
                     </tbody>

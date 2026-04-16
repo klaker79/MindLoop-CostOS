@@ -1454,7 +1454,7 @@ window.descargarHorarioMensual = async function () {
                             }
                         }
 
-                        html += `<div class="empleado" style="background: ${color};">${emp.nombre}</div>`;
+                        html += `<div class="empleado" style="background: ${color};">${escapeHTML(emp.nombre)}</div>`;
                     }
                 });
 

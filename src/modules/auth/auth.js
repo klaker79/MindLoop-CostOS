@@ -477,7 +477,7 @@ async function promptCreateRestaurant() {
                         <div style="display:flex;justify-content:space-between;align-items:baseline;">
                             <span style="color:#f1f5f9;font-weight:600;font-size:15px;">${p.name}</span>
                             <span style="color:#f1f5f9;font-weight:700;font-size:16px;">
-                                <span class="plan-price-monthly">${p.monthly}&euro;</span><span class="plan-price-annual" style="display:none">${p.annual}&euro;</span><span class="plan-period-monthly" style="color:#94a3b8;font-size:12px;font-weight:400;">/${t('auth:per_month')}</span><span class="plan-period-annual" style="display:none;color:#94a3b8;font-size:12px;font-weight:400;">/${t('auth:per_year')}</span>
+                                <span class="plan-price-monthly">${p.monthly}${window.currentUser?.moneda || '€'}</span><span class="plan-price-annual" style="display:none">${p.annual}${window.currentUser?.moneda || '€'}</span><span class="plan-period-monthly" style="color:#94a3b8;font-size:12px;font-weight:400;">/${t('auth:per_month')}</span><span class="plan-period-annual" style="display:none;color:#94a3b8;font-size:12px;font-weight:400;">/${t('auth:per_year')}</span>
                             </span>
                         </div>
                         <div style="color:#94a3b8;font-size:12px;margin-top:3px;line-height:1.4;">${t(p.featuresKey)}</div>

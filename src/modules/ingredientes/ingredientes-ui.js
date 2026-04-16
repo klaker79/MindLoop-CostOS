@@ -238,10 +238,10 @@ export function renderizarIngredientes() {
             if (precioMedio !== null && Math.abs(diferencia) > 1) {
                 const colorDif = diferencia > 0 ? '#ef4444' : '#10B981';
                 const iconDif = diferencia > 0 ? '↑' : '↓';
-                precioHtml = `<span style="font-weight: 600;">${precioMostrar.toFixed(2)} €/${escapeHTML(ing.unidad)}</span>
+                precioHtml = `<span style="font-weight: 600;">${precioMostrar.toFixed(2)} ${window.currentUser?.moneda || '€'}/${escapeHTML(ing.unidad)}</span>
                     <br><small style="color: ${colorDif};">${iconDif} ${Math.abs(diferencia).toFixed(0)}% vs base</small>`;
             } else {
-                precioHtml = precioMostrar ? `${precioMostrar.toFixed(2)} €/${escapeHTML(ing.unidad)}` : '-';
+                precioHtml = precioMostrar ? `${precioMostrar.toFixed(2)} ${window.currentUser?.moneda || '€'}/${escapeHTML(ing.unidad)}` : '-';
             }
 
             // Detectar si está inactivo

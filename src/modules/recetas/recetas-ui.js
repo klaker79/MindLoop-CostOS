@@ -97,7 +97,7 @@ export function agregarIngredienteReceta() {
     ingredientesOrdenados.forEach(ing => {
         const precio = parseFloat(ing.precio || 0).toFixed(2);
         const unidad = ing.unidad || 'ud';
-        optionsHtml += `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${precio}€/${escapeHTML(unidad)})</option>`;
+        optionsHtml += `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${precio}${window.currentUser?.moneda || '€'}/${escapeHTML(unidad)})</option>`;
     });
 
     // 🧪 Añadir recetas base como ingredientes seleccionables
@@ -112,7 +112,7 @@ export function agregarIngredienteReceta() {
             const coste = window.calcularCosteRecetaCompleto ?
                 window.calcularCosteRecetaCompleto(rec) : 0;
             // Usar ID negativo para distinguir de ingredientes normales
-            optionsHtml += `<option value="rec_${rec.id}" data-es-receta="true">🧪 ${escapeHTML(rec.nombre)} (${coste.toFixed(2)}€)</option>`;
+            optionsHtml += `<option value="rec_${rec.id}" data-es-receta="true">🧪 ${escapeHTML(rec.nombre)} (${coste.toFixed(2)}${window.currentUser?.moneda || '€'})</option>`;
         });
     }
 
@@ -243,7 +243,7 @@ export function calcularCosteReceta() {
     if (costeDiv) {
         costeDiv.style.display = costeTotal > 0 ? 'block' : 'none';
         const costeSpan = document.getElementById('coste-receta-valor');
-        if (costeSpan) costeSpan.textContent = costeTotal.toFixed(2) + '€';
+        if (costeSpan) costeSpan.textContent = costeTotal.toFixed(2) + (window.currentUser?.moneda || '€');
 
         const precioVenta = parseFloat(document.getElementById('rec-precio_venta')?.value || 0);
         const margenSpan = document.getElementById('margen-receta-valor');
@@ -430,9 +430,9 @@ export async function renderizarRecetas() {
             const esBase = categoriaLower === 'base';
             const categoriaBadge = esBase ? 'badge-purple' : esBebida ? 'badge-info' : 'badge-success';
             html += `<td><span class="badge ${categoriaBadge}">${escapeHTML(rec.categoria)}</span></td>`;
-            html += `<td>${coste.toFixed(2)} €</td>`;
-            html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} €</td>`;
-            html += `<td><span class="badge ${badgeClass}">${margen.toFixed(2)} € (${pct}%)</span></td>`;
+            html += `<td>${coste.toFixed(2)} ${window.currentUser?.moneda || '€'}</td>`;
+            html += `<td>${rec.precio_venta ? parseFloat(rec.precio_venta).toFixed(2) : '0.00'} ${window.currentUser?.moneda || '€'}</td>`;
+            html += `<td><span class="badge ${badgeClass}">${margen.toFixed(2)} ${window.currentUser?.moneda || '€'} (${pct}%)</span></td>`;
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="${t('recetas:btn_view_escandallo')}">📊</button>`;
             // Botón de variantes solo para bebidas (botella/copa)
@@ -588,7 +588,7 @@ export function actualizarPrecioSugerido() {
 
     // Read current cost from the panel (already calculated by calcularCosteReceta)
     const costeText = document.getElementById('coste-receta-valor')?.textContent || '0';
-    const coste = parseFloat(costeText.replace('€', '').replace(',', '.')) || 0;
+    const coste = parseFloat(costeText.replace(window.currentUser?.moneda || '€', '').replace(',', '.')) || 0;
 
     if (coste <= 0 || foodCostDeseado <= 0) {
         precioSpan.textContent = '—';
@@ -596,7 +596,7 @@ export function actualizarPrecioSugerido() {
     }
 
     const precioSugerido = coste / (foodCostDeseado / 100);
-    precioSpan.textContent = precioSugerido.toFixed(2) + '€';
+    precioSpan.textContent = precioSugerido.toFixed(2) + (window.currentUser?.moneda || '€');
 }
 
 /**
@@ -605,7 +605,7 @@ export function actualizarPrecioSugerido() {
  */
 export function aplicarPrecioSugerido() {
     const precioText = document.getElementById('precio-sugerido-valor')?.textContent || '';
-    const precio = parseFloat(precioText.replace('€', '').replace(',', '.'));
+    const precio = parseFloat(precioText.replace(window.currentUser?.moneda || '€', '').replace(',', '.'));
 
     if (!precio || precio <= 0) return;
 
