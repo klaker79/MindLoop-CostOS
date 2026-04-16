@@ -1,5 +1,5 @@
 // MindLoop CostOS - Modales v2.1.0 - Build 2026-01-01T20:18:00Z
-const cm = window.formatCurrency || ((v) => (parseFloat(v)||0).toFixed(2) + (window.currentUser?.moneda || '€'));
+/* global cm -- defined via window.cm in main.js */
 window.confirmarEliminacion = function (config) {
     return new Promise(resolve => {
         const modal = document.getElementById('modal-confirmacion');
