@@ -510,6 +510,14 @@ async function promptCreateRestaurant() {
             style="width:100%;padding:12px 14px;background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#f1f5f9;font-size:15px;margin-bottom:20px;box-sizing:border-box;outline:none;"
             onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'" />
 
+        <label style="display:block;color:#94a3b8;font-size:13px;margin-bottom:6px;">${t('auth:currency_label') || 'Moneda'}</label>
+        <select id="modal-moneda" style="width:100%;padding:12px 14px;background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#f1f5f9;font-size:15px;margin-bottom:20px;box-sizing:border-box;outline:none;cursor:pointer;">
+            <option value="€">€ (EUR)</option>
+            <option value="RM">RM (MYR)</option>
+            <option value="$">$ (USD)</option>
+            <option value="£">£ (GBP)</option>
+        </select>
+
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
             <span style="color:#94a3b8;font-size:13px;">${t('auth:choose_plan')}</span>
             <div style="display:flex;background:#0f172a;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">
@@ -601,13 +609,14 @@ async function promptCreateRestaurant() {
         submitBtn.style.opacity = '0.6';
         submitBtn.disabled = true;
 
-        await createAdditionalRestaurant(nombre, selectedPlan, billing, closeModal);
+        const moneda = overlay.querySelector('#modal-moneda')?.value || '€';
+        await createAdditionalRestaurant(nombre, selectedPlan, billing, closeModal, moneda);
     });
 
     overlay.querySelector('#modal-nombre').focus();
 }
 
-async function createAdditionalRestaurant(nombre, plan, billing, closeModal) {
+async function createAdditionalRestaurant(nombre, plan, billing, closeModal, moneda = '€') {
     try {
         const res = await fetch(API_AUTH_URL + '/create-restaurant', {
             method: 'POST',
@@ -616,7 +625,7 @@ async function createAdditionalRestaurant(nombre, plan, billing, closeModal) {
                 ...(window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})
             },
             credentials: 'include',
-            body: JSON.stringify({ nombre, plan, billing }),
+            body: JSON.stringify({ nombre, plan, billing, moneda }),
         });
 
         const data = await res.json();
