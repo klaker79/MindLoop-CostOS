@@ -104,7 +104,7 @@ function performSearch(query) {
                 type: 'ingrediente',
                 icon: '🥬',
                 title: ing.nombre,
-                subtitle: `${escapeHTML(ing.categoria || t('common:no_category'))} • ${parseFloat(ing.precio || 0).toFixed(2)}€/${escapeHTML(ing.unidad || 'ud')}`,
+                subtitle: `${escapeHTML(ing.categoria || t('common:no_category'))} • ${parseFloat(ing.precio || 0).toFixed(2)}${window.currentUser?.moneda || '€'}/${escapeHTML(ing.unidad || 'ud')}`,
                 action: () => {
                     window.cambiarTab?.('ingredientes');
                     document.getElementById('busqueda-ingredientes').value = ing.nombre;
@@ -121,7 +121,7 @@ function performSearch(query) {
                 type: 'receta',
                 icon: '🍽️',
                 title: rec.nombre,
-                subtitle: `${escapeHTML(rec.categoria || t('common:no_category'))} • PVP: ${parseFloat(rec.precio_venta || 0).toFixed(2)}€`,
+                subtitle: `${escapeHTML(rec.categoria || t('common:no_category'))} • PVP: ${parseFloat(rec.precio_venta || 0).toFixed(2)}${window.currentUser?.moneda || '€'}`,
                 action: () => {
                     window.cambiarTab?.('recetas');
                     document.getElementById('busqueda-recetas').value = rec.nombre;
@@ -160,7 +160,7 @@ function performSearch(query) {
                 type: 'pedido',
                 icon: '📦',
                 title: `Pedido a ${escapeHTML(provNombre)}`,
-                subtitle: `${escapeHTML(ped.estado || 'pendiente')} • ${parseFloat(ped.total || 0).toFixed(2)}€`,
+                subtitle: `${escapeHTML(ped.estado || 'pendiente')} • ${parseFloat(ped.total || 0).toFixed(2)}${window.currentUser?.moneda || '€'}`,
                 action: () => {
                     window.cambiarTab?.('pedidos');
                     window.renderizarPedidos?.();

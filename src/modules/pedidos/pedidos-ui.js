@@ -30,7 +30,7 @@ export function mostrarFormularioPedido() {
             (a.nombre || '').localeCompare(b.nombre || '')
         );
         const options = proveedoresOrdenados.map(prov =>
-            `<option value="${prov.id}">${prov.nombre}</option>`
+            `<option value="${prov.id}">${escapeHTML(prov.nombre)}</option>`
         ).join('');
         select.innerHTML = `<option value="">${t('pedidos:form_select_supplier')}</option>` + options;
 
@@ -91,17 +91,17 @@ export function cerrarFormularioPedido() {
     if (ivaInput) ivaInput.value = '0';
 
     const subtotalDiv = document.getElementById('total-pedido-subtotal');
-    if (subtotalDiv) subtotalDiv.textContent = '0.00 €';
+    if (subtotalDiv) subtotalDiv.textContent = '0.00 ' + (window.currentUser?.moneda || '€');
 
     const ivaDiv = document.getElementById('total-pedido-iva');
-    if (ivaDiv) ivaDiv.textContent = '0.00 €';
+    if (ivaDiv) ivaDiv.textContent = '0.00 ' + (window.currentUser?.moneda || '€');
 
     const totalDiv = document.getElementById('total-pedido');
-    if (totalDiv) totalDiv.textContent = '0.00€';
+    if (totalDiv) totalDiv.textContent = '0.00' + (window.currentUser?.moneda || '€');
     const totalForm = document.getElementById('total-pedido-form');
     if (totalForm) totalForm.style.display = 'none';
     const totalValue = document.getElementById('total-pedido-value');
-    if (totalValue) totalValue.textContent = '0.00 €';
+    if (totalValue) totalValue.textContent = '0.00 ' + (window.currentUser?.moneda || '€');
 
     // Limpiar búsqueda de ingrediente
     const sugerencias = document.getElementById('sugerencias-ingrediente-pedido');
@@ -214,7 +214,7 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
         proveedorSeleccionado = proveedores[0];
     } else {
         // Múltiples proveedores, preguntar al usuario
-        const opciones = proveedores.map((p, i) => `${i + 1}. ${p.nombre} (${parseFloat(p.precio || 0).toFixed(2)}€)`).join('\n');
+        const opciones = proveedores.map((p, i) => `${i + 1}. ${p.nombre} (${parseFloat(p.precio || 0).toFixed(2)}${window.currentUser?.moneda || '€'})`).join('\n');
         const respuesta = prompt(`${ing.nombre} tiene ${proveedores.length} proveedores:\n\n${opciones}\n\nEscribe el número del proveedor que quieres usar:`);
 
         if (!respuesta) return;
@@ -326,7 +326,7 @@ export function agregarIngredientePedido() {
         const formatoInfo = ing.formato_compra && ing.cantidad_por_formato
             ? `data-formato="${escapeHTML(ing.formato_compra)}" data-cantidad-formato="${escapeHTML(String(ing.cantidad_por_formato))}"`
             : '';
-        opciones += `<option value="${ing.id}" ${formatoInfo} data-unidad="${escapeHTML(ing.unidad || 'ud')}" data-precio="${parseFloat(ing.precio || 0)}">${escapeHTML(ing.nombre)} (${parseFloat(ing.precio || 0).toFixed(2)}€/${escapeHTML(ing.unidad || 'ud')})</option>`;
+        opciones += `<option value="${ing.id}" ${formatoInfo} data-unidad="${escapeHTML(ing.unidad || 'ud')}" data-precio="${parseFloat(ing.precio || 0)}">${escapeHTML(ing.nombre)} (${parseFloat(ing.precio || 0).toFixed(2)}${window.currentUser?.moneda || '€'}/${escapeHTML(ing.unidad || 'ud')})</option>`;
     });
 
     // Para compras del mercado: mostrar campo de precio editable
@@ -342,7 +342,7 @@ export function agregarIngredientePedido() {
       </div>
       <input type="number" placeholder="${t('pedidos:placeholder_quantity')}" step="0.01" min="0" class="cantidad-input" style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" oninput="window.calcularTotalPedido()">
       <input type="number" placeholder="${t('pedidos:placeholder_price_unit')}" step="0.01" min="0" class="precio-input" style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: right; ${esCompraMercado ? 'border-color: #10b981; background: #f0fdf4;' : ''}" oninput="window.calcularTotalPedido()">
-      <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">0.00€</span>
+      <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">0.00${window.currentUser?.moneda || '€'}</span>
       <span id="${rowId}-conversion" style="font-size: 10px; color: #64748b; min-width: 70px;"></span>
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
     `;
@@ -379,7 +379,7 @@ export function onIngredientePedidoChange(selectElement, rowId) {
 
         formatoSelect.innerHTML = `
             <option value="formato" data-multiplicador="${cantidadFormato}" data-formato-mult="${cantidadFormato}" data-precio-formato="${precioGeneral}">${escapeHTML(formato)} (${cantidadFormato} ${unidad})</option>
-            <option value="unidad" data-multiplicador="1" data-formato-mult="1" data-precio-unidad="${precioUnidad}">${escapeHTML(unidad)} (unidad suelta ~${precioUnidad}€)</option>
+            <option value="unidad" data-multiplicador="1" data-formato-mult="1" data-precio-unidad="${precioUnidad}">${escapeHTML(unidad)} (unidad suelta ~${precioUnidad}${window.currentUser?.moneda || '€'})</option>
         `;
         formatoSelect.value = 'formato';
 
@@ -487,7 +487,7 @@ export function calcularTotalPedido() {
 
         // Actualizar subtotal de esta línea
         if (subtotalSpan) {
-            subtotalSpan.textContent = subtotalLinea.toFixed(2) + '€';
+            subtotalSpan.textContent = subtotalLinea.toFixed(2) + (window.currentUser?.moneda || '€');
         }
     });
 
@@ -499,19 +499,19 @@ export function calcularTotalPedido() {
 
     // Actualizar displays
     const subtotalDiv = document.getElementById('total-pedido-subtotal');
-    if (subtotalDiv) subtotalDiv.textContent = subtotalBase.toFixed(2) + ' €';
+    if (subtotalDiv) subtotalDiv.textContent = subtotalBase.toFixed(2) + ' ' + (window.currentUser?.moneda || '€');
 
     const ivaDiv = document.getElementById('total-pedido-iva');
-    if (ivaDiv) ivaDiv.textContent = ivaImporte.toFixed(2) + ' €';
+    if (ivaDiv) ivaDiv.textContent = ivaImporte.toFixed(2) + ' ' + (window.currentUser?.moneda || '€');
 
     const totalDiv = document.getElementById('total-pedido');
-    if (totalDiv) totalDiv.textContent = totalConIva.toFixed(2) + '€';
+    if (totalDiv) totalDiv.textContent = totalConIva.toFixed(2) + (window.currentUser?.moneda || '€');
 
     const totalForm = document.getElementById('total-pedido-form');
     if (totalForm) {
         totalForm.style.display = subtotalBase > 0 ? 'block' : 'none';
         const valorSpan = document.getElementById('total-pedido-value');
-        if (valorSpan) valorSpan.textContent = totalConIva.toFixed(2) + ' €';
+        if (valorSpan) valorSpan.textContent = totalConIva.toFixed(2) + ' ' + (window.currentUser?.moneda || '€');
     }
 
     return totalConIva;
@@ -589,7 +589,7 @@ export function renderizarPedidos() {
 
         // 🔧 FIX: Mostrar total_recibido si el pedido está recibido, si no el total original
         const totalMostrar = ped.estado === 'recibido' && ped.total_recibido ? ped.total_recibido : ped.total;
-        html += `<td>${parseFloat(totalMostrar || 0).toFixed(2)}€</td>`;
+        html += `<td>${parseFloat(totalMostrar || 0).toFixed(2)}${window.currentUser?.moneda || '€'}</td>`;
 
         const estadoClass = ped.estado === 'recibido' ? 'badge-success' : 'badge-warning';
         const estadoTexto = ped.estado === 'recibido' ? t('pedidos:status_received') : t('pedidos:status_pending');
