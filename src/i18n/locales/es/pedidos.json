@@ -199,5 +199,22 @@
   "pending_review_title": "{{count}} compras pendientes de revisión",
   "pending_review_subtitle": "Importadas automáticamente desde albaranes escaneados",
 
-  "form_supplier_required": "Proveedor *"
+  "form_supplier_required": "Proveedor *",
+
+  "edit_title": "Editar Pedido #{{id}}",
+  "edit_subtotal_items": "Subtotal items:",
+  "edit_total": "TOTAL:",
+  "edit_subtotal": "Subtotal",
+  "edit_add_ingredient": "Añadir ingrediente",
+  "edit_add_ingredient_from": "de {{supplier}}",
+  "edit_select_ingredient": "Seleccione ingrediente...",
+  "edit_btn_add": "Añadir",
+  "edit_adjustment_title": "Ajuste manual",
+  "edit_adjustment_hint": "(envases ida/vuelta, bonificaciones, descuentos)",
+  "edit_adjustment_placeholder": "Descripción (ej: bonificaciones, envases)",
+  "edit_btn_cancel": "Cancelar",
+  "edit_btn_save": "Guardar cambios",
+  "edit_confirm_empty": "El pedido no tiene ingredientes. ¿Guardar igual?",
+  "edit_toast_saved": "Pedido actualizado",
+  "edit_toast_error": "Error actualizando pedido"
 }
