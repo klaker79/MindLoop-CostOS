@@ -80,6 +80,7 @@ const actionHandlers = {
     // Inventario
     'mostrar-modal-inventario-masivo': () => window.mostrarModalInventarioMasivo?.(),
     'guardar-cambios-stock': () => window.guardarCambiosStock?.(),
+    'exportar-inventario': () => window.exportarInventario?.(),
     'descargar-plantilla-stock': () => window.descargarPlantillaStock?.(),
     'cancelar-inventario-masivo': () => window.cancelarInventarioMasivo?.(),
     'confirmar-inventario-masivo': () => window.confirmarInventarioMasivo?.(),

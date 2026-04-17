@@ -183,6 +183,32 @@ window.mostrarFormularioIngrediente = IngredientesUI.mostrarFormularioIngredient
 window.cerrarFormularioIngrediente = IngredientesUI.cerrarFormularioIngrediente;
 window.exportarIngredientes = IngredientesUI.exportarIngredientes;
 
+// Export inventario (same structure as ingredients but from Inventory tab)
+window.exportarInventario = function () {
+    const ingredientes = window.ingredientes || [];
+    if (ingredientes.length === 0) {
+        Helpers.showToast('No ingredients to export', 'warning');
+        return;
+    }
+    const provMap = new Map((window.proveedores || []).map(p => [p.id, p.nombre]));
+    const moneda = window.currentUser?.moneda || '€';
+    const columnas = [
+        { header: 'Name', value: i => i.nombre },
+        { header: 'Family', value: i => i.familia || 'alimento' },
+        { header: 'Supplier', value: i => provMap.get(i.proveedor_id) || '-' },
+        { header: `Price (${moneda})`, value: i => parseFloat(i.precio || 0).toFixed(2) },
+        { header: 'Unit', value: i => i.unidad || 'kg' },
+        { header: 'Format', value: i => i.formato_compra || '-' },
+        { header: 'Qty per Format', value: i => i.cantidad_por_formato || 1 },
+        { header: `Unit Price (${moneda})`, value: i => { const cpf = parseFloat(i.cantidad_por_formato) || 1; return (parseFloat(i.precio || 0) / cpf).toFixed(2); } },
+        { header: 'Current Stock', value: i => parseFloat(i.stock_actual || 0).toFixed(2) },
+        { header: 'Min Stock', value: i => parseFloat(i.stock_minimo || 0).toFixed(2) },
+        { header: 'Yield %', value: i => i.rendimiento || 100 },
+        { header: `Stock Value (${moneda})`, value: i => { const cpf = parseFloat(i.cantidad_por_formato) || 1; return (parseFloat(i.stock_actual || 0) * parseFloat(i.precio || 0) / cpf).toFixed(2); } },
+    ];
+    Helpers.exportarAExcel(ingredientes, `Inventory_${Helpers.getRestaurantNameForFile()}`, columnas);
+};
+
 // CRUD
 window.guardarIngrediente = IngredientesCRUD.guardarIngrediente;
 window.editarIngrediente = IngredientesCRUD.editarIngrediente;
