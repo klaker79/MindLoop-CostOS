@@ -2209,7 +2209,7 @@
             const alertas = window.ingredientes.filter(ing => {
                 const stockActual = parseFloat(ing.stock_actual) || 0;
                 const stockMinimo = parseFloat(ing.stock_minimo) || 0;
-                return stockMinimo > 0 && stockActual <= stockMinimo;
+                return stockActual === 0 || (stockMinimo > 0 && stockActual <= stockMinimo);
             }).slice(0, 4); // Limitar a 4 para compacto
 
             if (alertas.length === 0) {
