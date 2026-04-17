@@ -231,5 +231,13 @@
   "smart_confirm": "Crear",
   "smart_pending_orders": "pedidos pendientes",
   "smart_orders_created": "pedidos creados",
-  "smart_review_and_receive": "revísalos y recíbelos cuando estén listos"
+  "smart_review_and_receive": "revísalos y recíbelos cuando estén listos",
+
+  "repeat_confirm": "¿Repetir pedido de {{supplier}}? ({{count}} artículos)\n\nSe creará un nuevo pedido pendiente con los mismos ingredientes. Puedes editar cantidades antes de confirmar.",
+  "repeat_success": "Pedido repetido de {{supplier}} — edita cantidades y confirma cuando esté listo",
+
+  "btn_update_price": "Actualizar precio del ingrediente",
+  "update_price_confirm": "¿Actualizar precio de {{name}} a {{price}}?\n\nEsto actualizará el precio base del ingrediente y afectará a los cálculos de coste futuros.",
+  "update_price_success": "Precio de {{name}} actualizado",
+  "update_price_error": "Error actualizando precio: {{message}}"
 }
