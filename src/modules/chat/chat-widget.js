@@ -1214,7 +1214,7 @@ function getCurrentTabContext() {
             context.totalIngredientes = window.ingredientes.length;
             context.valorTotalStock = Math.round(valorTotalStock * 100) / 100;
             context.stockBajo = window.ingredientes.filter(
-                i => i.stock_minimo > 0 && parseFloat(i.stock_actual) <= parseFloat(i.stock_minimo)
+                i => parseFloat(i.stock_actual) === 0 || (i.stock_minimo > 0 && parseFloat(i.stock_actual) <= parseFloat(i.stock_minimo))
             ).length;
         }
 

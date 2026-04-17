@@ -53,7 +53,7 @@ export const ingredientStore = createStore((set, get) => ({
             if (ing.stock_actual === null || ing.stock_actual === undefined) return false;
             const stock = parseFloat(ing.stock_actual) || 0;
             const minStock = parseFloat(ing.stock_minimo) || 0;
-            return stock <= minStock && minStock > 0;
+            return stock === 0 || (minStock > 0 && stock <= minStock);
         });
     },
 
