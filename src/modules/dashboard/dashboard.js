@@ -398,7 +398,7 @@ export async function actualizarKPIs() {
         const stockBajo = ingredientes.filter(ing => {
             const stock = parseFloat(ing.stock_actual) || parseFloat(ing.stockActual) || 0;
             const minimo = parseFloat(ing.stock_minimo) || parseFloat(ing.stockMinimo) || 0;
-            return minimo > 0 && stock <= minimo;
+            return stock === 0 || (minimo > 0 && stock <= minimo);
         }).length;
         const stockEl = document.getElementById('kpi-stock');
         if (stockEl) {

@@ -1204,26 +1204,21 @@
               <h2 data-i18n="pedidos:tab_title">Pedidos a Proveedores</h2>
               <p data-i18n="pedidos:description">Gestiona tus pedidos y actualiza stock automáticamente</p>
             </div>
-            <div style="display: flex; gap: 10px;">
-              <button class="btn btn-primary" data-action="mostrar-form-pedido" data-i18n="pedidos:btn_new">+ Nuevo
-                Pedido</button>
-              <button class="btn" onclick="window.abrirCarrito()"
-                style="background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; position: relative;">
-                <span data-i18n="pedidos:btn_cart">🛒 Carrito</span>
-                <span id="carrito-badge"
-                  style="display: none; background: #22c55e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; justify-content: center; align-items: center; position: absolute; top: -8px; right: -8px; font-weight: 700;"></span>
-              </button>
-              <button class="btn btn-secondary" data-action="importar-pedidos" data-i18n="pedidos:btn_import_orders">📤
-                Importar
-                Pedidos</button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn btn-primary" data-action="mostrar-form-pedido" data-i18n="pedidos:btn_new">+ New Order</button>
               <button class="btn" onclick="window.abrirSmartOrder()"
                 style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white;">
                 🧠 Smart Order</button>
-              <button class="btn" onclick="window.abrirModalTransferencia()"
-                id="btn-transferencia"
-                style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: white; display: none;">
-                📦 Transferir Stock
+              <button class="btn" onclick="window.abrirCarrito()"
+                style="background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; position: relative;">
+                <span data-i18n="pedidos:btn_cart">🛒 Cart</span>
+                <span id="carrito-badge"
+                  style="display: none; background: #22c55e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; justify-content: center; align-items: center; position: absolute; top: -8px; right: -8px; font-weight: 700;"></span>
               </button>
+              <span style="width: 1px; height: 24px; background: #e2e8f0;"></span>
+              <button class="btn btn-secondary" data-action="importar-pedidos" style="font-size: 13px; padding: 8px 12px;">📤 Import</button>
+              <button class="btn btn-secondary" onclick="window.abrirModalTransferencia()"
+                id="btn-transferencia" style="font-size: 13px; padding: 8px 12px; display: none;">📦 Transfer</button>
             </div>
           </div>
 

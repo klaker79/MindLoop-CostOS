@@ -19,7 +19,7 @@ export function abrirSmartOrder() {
         if (ing.stock_actual === null || ing.stock_actual === undefined) return false;
         const stock = parseFloat(ing.stock_actual) || 0;
         const minimo = parseFloat(ing.stock_minimo) || 0;
-        return minimo > 0 && stock <= minimo;
+        return stock === 0 || (minimo > 0 && stock <= minimo);
     });
 
     if (lowStock.length === 0) {
