@@ -281,3 +281,56 @@ export async function eliminarPedido(id) {
     window.showToast(t('pedidos:toast_error_deleting', { message: error.message }), 'error');
   }
 }
+
+/**
+ * Repite un pedido recibido: crea uno nuevo pendiente con los mismos ingredientes y proveedor.
+ * El usuario puede ajustar cantidades antes de confirmar.
+ * @param {number} id - ID del pedido a repetir
+ */
+export async function repetirPedido(id) {
+  const ped = (window.pedidos || []).find(p => p.id === id);
+  if (!ped) return;
+
+  const prov = (window.proveedores || []).find(p => p.id === (ped.proveedorId || ped.proveedor_id));
+  const provNombre = prov ? prov.nombre : 'Unknown';
+
+  if (!confirm(`Repeat order from ${provNombre}? (${(ped.ingredientes || []).filter(i => i.tipo !== 'ajuste').length} items)\n\nA new pending order will be created with the same ingredients. You can edit quantities before confirming.`)) return;
+
+  window.showLoading();
+
+  try {
+    // Copy ingredients from original order, resetting reception-specific fields
+    const ingredientesCopia = (ped.ingredientes || [])
+      .filter(item => item.tipo !== 'ajuste') // Skip manual adjustments
+      .map(item => ({
+        ingredienteId: item.ingredienteId || item.ingrediente_id,
+        ingrediente_id: item.ingredienteId || item.ingrediente_id,
+        cantidad: parseFloat(item.cantidadRecibida || item.cantidad || 0),
+        precio_unitario: parseFloat(item.precioReal || item.precioUnitario || item.precio_unitario || 0),
+        precioUnitario: parseFloat(item.precioReal || item.precioUnitario || item.precio_unitario || 0),
+      }));
+
+    const total = ingredientesCopia.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
+
+    const result = await window.api.createPedido({
+      proveedor_id: ped.proveedorId || ped.proveedor_id,
+      fecha: new Date().toISOString().split('T')[0],
+      ingredientes: ingredientesCopia,
+      total,
+      estado: 'pendiente',
+    });
+
+    if (result.id) {
+      await window.cargarDatos();
+      window.renderizarPedidos();
+      window.hideLoading();
+      window.showToast(`Order repeated from ${provNombre} — edit quantities and confirm when ready`, 'success');
+    } else {
+      throw new Error(result.error || 'Failed to create order');
+    }
+  } catch (error) {
+    window.hideLoading();
+    console.error('Error repeating order:', error);
+    window.showToast(`Error: ${error.message}`, 'error');
+  }
+}

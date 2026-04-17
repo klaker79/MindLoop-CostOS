@@ -313,6 +313,7 @@ window.calcularTotalPedido = PedidosUI.calcularTotalPedido;
 // CRUD - Todas las funciones
 window.guardarPedido = PedidosCRUD.guardarPedido;
 window.eliminarPedido = PedidosCRUD.eliminarPedido;
+window.repetirPedido = PedidosCRUD.repetirPedido;
 window.marcarPedidoRecibido = PedidosCRUD.marcarPedidoRecibido;
 window.cerrarModalRecibirPedido = PedidosCRUD.cerrarModalRecibirPedido;
 window.confirmarRecepcionPedido = PedidosCRUD.confirmarRecepcionPedido;

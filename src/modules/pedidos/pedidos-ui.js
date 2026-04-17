@@ -603,6 +603,10 @@ export function renderizarPedidos() {
             html += `<button type="button" class="icon-btn success" onclick="window.marcarPedidoRecibido(${ped.id})" title="${t('pedidos:btn_receive')}">➡️</button>`;
         }
 
+        if (ped.estado === 'recibido') {
+            html += `<button type="button" class="icon-btn" onclick="window.repetirPedido(${ped.id})" title="Repeat order" style="color: #6366f1;">🔄</button>`;
+        }
+
         html += `<button type="button" class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})">🗑️</button>`;
         html += '</div></td>';
         html += '</tr>';
