@@ -1652,7 +1652,7 @@
             const pageItems = ordenados.slice(start, start + ITEMS_PER_PAGE);
 
             let html = '<table><thead><tr>';
-            html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen €</th><th>Margen %</th>';
+            html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen ' + (window.currentUser?.moneda || '€') + '</th><th>Margen %</th>';
             html += '</tr></thead><tbody>';
 
             pageItems.forEach((rec, idx) => {
