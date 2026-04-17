@@ -199,5 +199,22 @@
   "pending_review_title": "{{count}} purchases pending review",
   "pending_review_subtitle": "Automatically imported from scanned delivery notes",
 
-  "form_supplier_required": "Supplier *"
+  "form_supplier_required": "Supplier *",
+
+  "edit_title": "Edit Order #{{id}}",
+  "edit_subtotal_items": "Subtotal items:",
+  "edit_total": "TOTAL:",
+  "edit_subtotal": "Subtotal",
+  "edit_add_ingredient": "Add ingredient",
+  "edit_add_ingredient_from": "from {{supplier}}",
+  "edit_select_ingredient": "Select ingredient...",
+  "edit_btn_add": "Add",
+  "edit_adjustment_title": "Manual adjustment",
+  "edit_adjustment_hint": "(packaging, credits, discounts)",
+  "edit_adjustment_placeholder": "Description (e.g. credits, packaging)",
+  "edit_btn_cancel": "Cancel",
+  "edit_btn_save": "Save changes",
+  "edit_confirm_empty": "The order has no ingredients. Save anyway?",
+  "edit_toast_saved": "Order updated",
+  "edit_toast_error": "Error updating order"
 }

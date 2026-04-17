@@ -8,6 +8,7 @@
  */
 
 import { escapeHTML, cm } from '../../utils/helpers.js';
+import { t } from '@/i18n/index.js';
 
 /**
  * Abre el modal de edición para un pedido pendiente.
@@ -150,14 +151,14 @@ function renderizarModalEditarPedido() {
                         <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e1;">Ingrediente</th>
                         <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e1;">Cantidad</th>
                         <th style="text-align: left; padding: 10px; border-bottom: 2px solid #cbd5e1;">Precio Unit.</th>
-                        <th style="text-align: right; padding: 10px; border-bottom: 2px solid #cbd5e1;">Subtotal</th>
+                        <th style="text-align: right; padding: 10px; border-bottom: 2px solid #cbd5e1;">${t('pedidos:edit_subtotal')}</th>
                         <th style="padding: 10px; border-bottom: 2px solid #cbd5e1;"></th>
                     </tr>
                 </thead>
                 <tbody>${itemsHtml || '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #94a3b8;">Sin ingredientes</td></tr>'}</tbody>
                 <tfoot>
                     <tr style="background: #f8fafc;">
-                        <td colspan="3" style="padding: 8px 10px; text-align: right; color: #64748b;">Subtotal items:</td>
+                        <td colspan="3" style="padding: 8px 10px; text-align: right; color: #64748b;">${t('pedidos:edit_subtotal_items')}</td>
                         <td style="padding: 8px 10px; text-align: right; color: #64748b;">${cm(subtotalItems)}</td>
                         <td></td>
                     </tr>
@@ -167,7 +168,7 @@ function renderizarModalEditarPedido() {
                         <td></td>
                     </tr>` : ''}
                     <tr style="background: #f1f5f9;">
-                        <td colspan="3" style="padding: 10px; text-align: right; font-weight: 700;">TOTAL:</td>
+                        <td colspan="3" style="padding: 10px; text-align: right; font-weight: 700;">${t('pedidos:edit_total')}</td>
                         <td style="padding: 10px; text-align: right; font-weight: 700; color: #059669; font-size: 16px;">${cm(totalPedido)}</td>
                         <td></td>
                     </tr>
@@ -175,11 +176,11 @@ function renderizarModalEditarPedido() {
             </table>
 
             <div style="background: #f0f9ff; padding: 14px; border-radius: 8px; margin-bottom: 16px;">
-                <h4 style="margin: 0 0 10px 0;">➕ Añadir ingrediente${nombreProveedor ? ` <small style="color: #64748b; font-weight: 400;">de ${escapeHTML(nombreProveedor)}</small>` : ''}</h4>
+                <h4 style="margin: 0 0 10px 0;">➕ ${t('pedidos:edit_add_ingredient')}${nombreProveedor ? ` <small style="color: #64748b; font-weight: 400;">${t('pedidos:edit_add_ingredient_from', { supplier: escapeHTML(nombreProveedor) })}</small>` : ''}</h4>
                 ${ingredientesDisponibles.length === 0 ? '<p style="color: #dc2626; margin: 0 0 8px 0;">⚠️ Este proveedor no tiene ingredientes asociados</p>' : ''}
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <select id="select-nuevo-ing-edit" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                        <option value="">— Selecciona ingrediente —</option>
+                        <option value="">— ${t('pedidos:edit_select_ingredient')} —</option>
                         ${ingredientesDisponibles.map(ing => `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${cm(parseFloat(ing.precio || 0))}/${escapeHTML(ing.unidad || 'ud')})</option>`).join('')}
                     </select>
                     <input type="number" step="0.01" min="0" id="input-nueva-cant-edit" placeholder="Cantidad"
@@ -187,19 +188,19 @@ function renderizarModalEditarPedido() {
                     <input type="number" step="0.01" min="0" id="input-nuevo-precio-edit" placeholder="Precio unit."
                         style="width: 110px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
                     <button type="button" onclick="window.agregarItemEdicion()"
-                        style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; cursor: pointer;">Añadir</button>
+                        style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; cursor: pointer;">${t('pedidos:edit_btn_add')}</button>
                 </div>
             </div>
 
             <div style="background: #fffbeb; padding: 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #fde68a;">
-                <h4 style="margin: 0 0 10px 0;">💸 Ajuste manual <small style="color: #92400e; font-weight: 400;">(envases ida/vuelta, bonificaciones, descuentos)</small></h4>
+                <h4 style="margin: 0 0 10px 0;">💸 ${t('pedidos:edit_adjustment_title')} <small style="color: #92400e; font-weight: 400;">${t('pedidos:edit_adjustment_hint')}</small></h4>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <input type="number" step="0.01" id="input-ajuste-importe" placeholder="0.00 (negativo para descuento)"
                         value="${ajuste !== 0 ? ajuste.toFixed(2) : ''}"
                         onchange="window.actualizarAjustePedido('importe', this.value)"
                         style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
                     <span style="font-weight: 600;">${window.currentUser?.moneda || '€'}</span>
-                    <input type="text" id="input-ajuste-descripcion" placeholder="Descripción (ej: bonificaciones, envases)"
+                    <input type="text" id="input-ajuste-descripcion" placeholder="${t('pedidos:edit_adjustment_placeholder')}"
                         value="${escapeHTML(state.ajusteDescripcion || '')}"
                         onchange="window.actualizarAjustePedido('descripcion', this.value)"
                         style="flex: 1; min-width: 220px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
@@ -209,9 +210,9 @@ function renderizarModalEditarPedido() {
 
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" onclick="window.cerrarModalEditarPedido()"
-                    style="background: #e5e7eb; color: #374151; border: none; border-radius: 6px; padding: 10px 20px; cursor: pointer;">Cancelar</button>
+                    style="background: #e5e7eb; color: #374151; border: none; border-radius: 6px; padding: 10px 20px; cursor: pointer;">${t('pedidos:edit_btn_cancel')}</button>
                 <button type="button" onclick="window.guardarEdicionPedido()"
-                    style="background: #2563eb; color: white; border: none; border-radius: 6px; padding: 10px 20px; font-weight: 600; cursor: pointer;">💾 Guardar cambios</button>
+                    style="background: #2563eb; color: white; border: none; border-radius: 6px; padding: 10px 20px; font-weight: 600; cursor: pointer;">💾 ${t('pedidos:edit_btn_save')}</button>
             </div>
         </div>
     `;
@@ -276,7 +277,7 @@ export async function guardarEdicionPedido() {
     if (!state) return;
 
     if (state.items.length === 0) {
-        if (!confirm('El pedido no tiene ingredientes. ¿Guardar igual?')) return;
+        if (!confirm(t('pedidos:edit_confirm_empty'))) return;
     }
 
     const subtotalItems = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
