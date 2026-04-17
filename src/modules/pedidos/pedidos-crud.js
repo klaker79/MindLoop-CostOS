@@ -294,7 +294,8 @@ export async function repetirPedido(id) {
   const prov = (window.proveedores || []).find(p => p.id === (ped.proveedorId || ped.proveedor_id));
   const provNombre = prov ? prov.nombre : 'Unknown';
 
-  if (!confirm(`Repeat order from ${provNombre}? (${(ped.ingredientes || []).filter(i => i.tipo !== 'ajuste').length} items)\n\nA new pending order will be created with the same ingredients. You can edit quantities before confirming.`)) return;
+  const itemCount = (ped.ingredientes || []).filter(i => i.tipo !== 'ajuste').length;
+  if (!confirm(t('pedidos:repeat_confirm', { supplier: provNombre, count: itemCount }))) return;
 
   window.showLoading();
 
@@ -324,7 +325,7 @@ export async function repetirPedido(id) {
       await window.cargarDatos();
       window.renderizarPedidos();
       window.hideLoading();
-      window.showToast(`Order repeated from ${provNombre} — edit quantities and confirm when ready`, 'success');
+      window.showToast(t('pedidos:repeat_success', { supplier: provNombre }), 'success');
     } else {
       throw new Error(result.error || 'Failed to create order');
     }
