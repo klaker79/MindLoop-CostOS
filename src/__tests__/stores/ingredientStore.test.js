@@ -130,11 +130,11 @@ describe('lowStockItems — B2 bug fix', () => {
         expect(ingredientStore.getState().lowStockItems()).toHaveLength(0);
     });
 
-    test('min=0 (no minimum set) → excluded', () => {
+    test('stock=0, min=0 → included (stock=0 is ALWAYS an alert)', () => {
         ingredientStore.getState().setIngredients([
             { id: 1, nombre: 'NoMin', stock_actual: 0, stock_minimo: 0 }
         ]);
-        expect(ingredientStore.getState().lowStockItems()).toHaveLength(0);
+        expect(ingredientStore.getState().lowStockItems()).toHaveLength(1);
     });
 
     test('mixed array → correct subset', () => {
