@@ -82,7 +82,7 @@
   "suppliers_avg_price": "Average Price",
   "suppliers_most_expensive": "Most Expensive",
   "suppliers_count": "{{count}} suppliers",
-  "suppliers_potential_savings": "Potential savings: {{amount}}€/unit by purchasing from {{name}}",
+  "suppliers_potential_savings": "Potential savings: {{amount}}/unit by purchasing from {{name}}",
   "suppliers_badge_main": "PRIMARY",
   "suppliers_badge_best_price": "BEST PRICE",
   "suppliers_mark_main": "Set as primary",

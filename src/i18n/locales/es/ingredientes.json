@@ -82,7 +82,7 @@
   "suppliers_avg_price": "Precio Medio",
   "suppliers_most_expensive": "Más Caro",
   "suppliers_count": "{{count}} proveedores",
-  "suppliers_potential_savings": "Ahorro potencial: {{amount}}€/unidad comprando a {{name}}",
+  "suppliers_potential_savings": "Ahorro potencial: {{amount}}/unidad comprando a {{name}}",
   "suppliers_badge_main": "PRINCIPAL",
   "suppliers_badge_best_price": "MEJOR PRECIO",
   "suppliers_mark_main": "Marcar como principal",
