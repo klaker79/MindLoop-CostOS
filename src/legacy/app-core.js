@@ -2205,18 +2205,20 @@
                 return;
             }
 
-            // Alertas Stock
+            // Alertas Stock — sin límite, con scroll
             const alertas = window.ingredientes.filter(ing => {
                 const stockActual = parseFloat(ing.stock_actual) || 0;
                 const stockMinimo = parseFloat(ing.stock_minimo) || 0;
                 return stockActual === 0 || (stockMinimo > 0 && stockActual <= stockMinimo);
-            }).slice(0, 4); // Limitar a 4 para compacto
+            });
 
             if (alertas.length === 0) {
                 alertasListaEl.innerHTML = '<p style="color: #10B981; margin: 0; font-size: 12px;">✅ Stock OK</p>';
             } else {
+                alertasListaEl.style.maxHeight = '140px';
+                alertasListaEl.style.overflowY = 'auto';
                 alertasListaEl.innerHTML = alertas
-                    .map(ing => '<div style="padding: 4px 0; border-bottom: 1px solid #fee2e2;"><strong>' + escapeHTML(ing.nombre) + '</strong>: ' + parseFloat(ing.stock_actual).toFixed(1) + ' ' + ing.unidad + '</div>')
+                    .map(ing => '<div style="padding: 4px 0; border-bottom: 1px solid #fee2e2; font-size: 12px;"><strong>' + escapeHTML(ing.nombre) + '</strong>: ' + parseFloat(ing.stock_actual).toFixed(1) + ' ' + ing.unidad + '</div>')
                     .join('');
             }
 
