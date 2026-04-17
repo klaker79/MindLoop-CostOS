@@ -216,5 +216,20 @@
   "edit_btn_save": "Guardar cambios",
   "edit_confirm_empty": "El pedido no tiene ingredientes. ¿Guardar igual?",
   "edit_toast_saved": "Pedido actualizado",
-  "edit_toast_error": "Error actualizando pedido"
+  "edit_toast_error": "Error actualizando pedido",
+
+  "smart_no_low_stock": "Todos los ingredientes por encima del stock mínimo — no hay pedidos necesarios",
+  "smart_items_low": "ingredientes bajo mínimo",
+  "smart_suppliers": "proveedores",
+  "smart_review_hint": "Revisa las cantidades antes de crear los pedidos. Puedes editar o eliminar items.",
+  "smart_create_orders": "Crear Pedidos",
+  "smart_col_stock": "Stock",
+  "smart_col_min": "Mín",
+  "smart_col_order": "Pedir",
+  "smart_col_est_cost": "Coste Est.",
+  "smart_no_items_selected": "No hay items seleccionados",
+  "smart_confirm": "Crear",
+  "smart_pending_orders": "pedidos pendientes",
+  "smart_orders_created": "pedidos creados",
+  "smart_review_and_receive": "revísalos y recíbelos cuando estén listos"
 }
