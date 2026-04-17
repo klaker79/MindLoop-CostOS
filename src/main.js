@@ -298,6 +298,7 @@ window.eliminarProveedor = ProveedoresCRUD.eliminarProveedor;
 // ============================================
 import * as PedidosUI from './modules/pedidos/pedidos-ui.js';
 import * as PedidosCRUD from './modules/pedidos/pedidos-crud.js';
+import * as SmartOrder from './modules/pedidos/smart-order.js';
 import './modules/pedidos/pedidos-cart.js'; // Carrito de pedidos - expone funciones en window
 import './modules/pedidos/pedidos-editar.js'; // Edición de pedidos pendientes - expone funciones en window
 
@@ -314,6 +315,10 @@ window.calcularTotalPedido = PedidosUI.calcularTotalPedido;
 window.guardarPedido = PedidosCRUD.guardarPedido;
 window.eliminarPedido = PedidosCRUD.eliminarPedido;
 window.repetirPedido = PedidosCRUD.repetirPedido;
+window.abrirSmartOrder = SmartOrder.abrirSmartOrder;
+window.toggleSmartItem = SmartOrder.toggleSmartItem;
+window.updateSmartQty = SmartOrder.updateSmartQty;
+window.confirmarSmartOrder = SmartOrder.confirmarSmartOrder;
 window.marcarPedidoRecibido = PedidosCRUD.marcarPedidoRecibido;
 window.cerrarModalRecibirPedido = PedidosCRUD.cerrarModalRecibirPedido;
 window.confirmarRecepcionPedido = PedidosCRUD.confirmarRecepcionPedido;

@@ -216,5 +216,20 @@
   "edit_btn_save": "Save changes",
   "edit_confirm_empty": "The order has no ingredients. Save anyway?",
   "edit_toast_saved": "Order updated",
-  "edit_toast_error": "Error updating order"
+  "edit_toast_error": "Error updating order",
+
+  "smart_no_low_stock": "All ingredients above minimum stock — no orders needed",
+  "smart_items_low": "ingredients below minimum stock",
+  "smart_suppliers": "suppliers",
+  "smart_review_hint": "Review quantities before creating orders. You can edit or remove items.",
+  "smart_create_orders": "Create Orders",
+  "smart_col_stock": "Stock",
+  "smart_col_min": "Min",
+  "smart_col_order": "Order Qty",
+  "smart_col_est_cost": "Est. Cost",
+  "smart_no_items_selected": "No items selected",
+  "smart_confirm": "Create",
+  "smart_pending_orders": "pending orders",
+  "smart_orders_created": "orders created",
+  "smart_review_and_receive": "review and receive when ready"
 }
