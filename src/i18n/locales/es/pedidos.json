@@ -147,7 +147,7 @@
   "import_file_types": "Excel (.xlsx) o CSV",
 
   "placeholder_quantity": "Cant.",
-  "placeholder_price_unit": "€/ud",
+  "placeholder_price_unit": "/ud",
   "empty_no_orders": "No hay pedidos",
   "col_date": "Fecha",
   "col_supplier": "Proveedor",
