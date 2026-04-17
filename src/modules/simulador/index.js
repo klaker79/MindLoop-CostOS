@@ -25,7 +25,7 @@ export function actualizarSimulador() {
     const margenBrutoElem = document.getElementById('balance-ganancia');
     let margenBruto = 0;
     if (margenBrutoElem) {
-        const cleanText = margenBrutoElem.textContent.replace('€', '').trim();
+        const cleanText = margenBrutoElem.textContent.replace(/[^0-9.,-]/g, '').replace(',', '.').trim();
         margenBruto = parseFloat(cleanText) || 0;
     }
 

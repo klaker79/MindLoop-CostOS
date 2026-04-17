@@ -8,6 +8,7 @@ import { getFechaHoyFormateada,
     filtrarPorPeriodo,
     compararConSemanaAnterior,
     escapeHTML, cm } from '../../utils/helpers.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
 import {
     animateCounter,
@@ -396,7 +397,9 @@ export async function actualizarKPIs() {
         // 3. STOCK BAJO
         const ingredientes = window.ingredientes || ingredientStore.getState().ingredients || [];
         const stockBajo = ingredientes.filter(ing => {
-            const stock = parseFloat(ing.stock_actual) || parseFloat(ing.stockActual) || 0;
+            // Alineado con ingredientStore.lowStockItems(): null/undefined = no registrado, no es alerta
+            if (ing.stock_actual === null || ing.stock_actual === undefined) return false;
+            const stock = parseFloat(ing.stock_actual) || 0;
             const minimo = parseFloat(ing.stock_minimo) || parseFloat(ing.stockMinimo) || 0;
             return stock === 0 || (minimo > 0 && stock <= minimo);
         }).length;
@@ -442,11 +445,10 @@ export async function actualizarKPIs() {
                 // Fallback con ingredientes si inventarioCompleto no cargado
                 const ingredientesStock = ingredientStore.getState().ingredients;
                 if (ingredientesStock.length > 0) {
+                    // Fallback: usar getIngredientUnitPrice (misma prioridad que el resto de módulos)
                     const valorTotal = ingredientesStock.reduce((sum, ing) => {
                         const stock = parseFloat(ing.stock_actual) || 0;
-                        const precioFormato = parseFloat(ing.precio) || 0;
-                        const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
-                        const precioUnitario = precioFormato / cantidadPorFormato;
+                        const precioUnitario = getIngredientUnitPrice(null, ing);
                         return sum + (stock * precioUnitario);
                     }, 0);
 
