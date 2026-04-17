@@ -587,7 +587,7 @@
                 </div>
               </div>
               <div id="kpi-valor-stock" style="font-size: 32px; font-weight: 800; color: #10B981; margin-bottom: 16px;">
-                -€
+                -
               </div>
               <div style="display: flex; gap: 8px;">
                 <button data-tab="ventas"
@@ -621,7 +621,7 @@
                   <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;" data-i18n="dashboard:forecast_subtitle">
                     Estimación de ingresos</p>
                 </div>
-                <span id="forecast-total" style="font-size: 22px; font-weight: 800; color: #8B5CF6;">0€</span>
+                <span id="forecast-total" style="font-size: 22px; font-weight: 800; color: #8B5CF6;">0</span>
               </div>
               <div id="forecast-tabs" style="display: flex; gap: 6px; margin-bottom: 12px;">
                 <button class="forecast-period-tab active" data-period="7"
@@ -1013,7 +1013,7 @@
                         </p>
                       </div>
                       <div style="text-align: right;">
-                        <strong id="coste-receta-valor" style="font-size: 28px; font-weight: 800;">0.00€</strong>
+                        <strong id="coste-receta-valor" style="font-size: 28px; font-weight: 800;">0.00</strong>
                       </div>
                     </div>
                   </div>
@@ -1344,7 +1344,7 @@
                   <div style="flex: 1; min-width: 200px; text-align: right;">
                     <div style="display: flex; justify-content: flex-end; gap: 15px; font-size: 14px; color: #059669;">
                       <span><span data-i18n="pedidos:form_subtotal">Subtotal</span>: <strong
-                          id="total-pedido-subtotal">0.00 €</strong></span>
+                          id="total-pedido-subtotal">0.00</strong></span>
                       <span><span data-i18n="pedidos:form_iva_amount">IVA</span>: <strong id="total-pedido-iva">0.00
                           €</strong></span>
                     </div>
@@ -1397,7 +1397,7 @@
               </div>
               <div class="stat-card blue">
                 <h3 data-i18n="dashboard:analysis_avg_cost">Coste Promedio</h3>
-                <div class="value" id="stat-coste-promedio">0 €</div>
+                <div class="value" id="stat-coste-promedio">0</div>
               </div>
               <div class="stat-card orange">
                 <h3 data-i18n="dashboard:analysis_total_ingredients">Total Ingredientes</h3>
@@ -1894,11 +1894,11 @@
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                   <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;"
                     data-i18n="balance:diario_rent">Alquiler Local</label>
-                  <span id="gf-alquiler-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
+                  <span id="gf-alquiler-valor" style="font-weight: 700; color: white; font-size: 16px;">0</span>
                 </div>
                 <input type="range" id="gf-alquiler" min="0" max="20000" step="100" value="0"
                   style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                  oninput="document.getElementById('gf-alquiler-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('alquiler', 'gf-alquiler');">
+                  oninput="document.getElementById('gf-alquiler-valor').textContent = cm(this.value, 0); window.guardarGastoFinanzas('alquiler', 'gf-alquiler');">
               </div>
 
               <!-- Personal -->
@@ -1907,11 +1907,11 @@
                   <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;"
                     data-i18n="balance:diario_payroll">Personal
                     (Nóminas)</label>
-                  <span id="gf-personal-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
+                  <span id="gf-personal-valor" style="font-weight: 700; color: white; font-size: 16px;">0</span>
                 </div>
                 <input type="range" id="gf-personal" min="0" max="30000" step="100" value="0"
                   style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                  oninput="document.getElementById('gf-personal-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('personal', 'gf-personal');">
+                  oninput="document.getElementById('gf-personal-valor').textContent = cm(this.value, 0); window.guardarGastoFinanzas('personal', 'gf-personal');">
               </div>
 
               <!-- Suministros -->
@@ -1919,11 +1919,11 @@
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                   <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;"
                     data-i18n="balance:diario_utilities">Suministros</label>
-                  <span id="gf-suministros-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
+                  <span id="gf-suministros-valor" style="font-weight: 700; color: white; font-size: 16px;">0</span>
                 </div>
                 <input type="range" id="gf-suministros" min="0" max="15000" step="100" value="0"
                   style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                  oninput="document.getElementById('gf-suministros-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('suministros', 'gf-suministros');">
+                  oninput="document.getElementById('gf-suministros-valor').textContent = cm(this.value, 0); window.guardarGastoFinanzas('suministros', 'gf-suministros');">
               </div>
 
               <!-- Otros -->
@@ -1931,11 +1931,11 @@
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                   <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;"
                     data-i18n="balance:diario_other_expenses">Otros Gastos</label>
-                  <span id="gf-otros-valor" style="font-weight: 700; color: white; font-size: 16px;">0€</span>
+                  <span id="gf-otros-valor" style="font-weight: 700; color: white; font-size: 16px;">0</span>
                 </div>
                 <input type="range" id="gf-otros" min="0" max="20000" step="100" value="0"
                   style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                  oninput="document.getElementById('gf-otros-valor').textContent = this.value + '€'; window.guardarGastoFinanzas('otros', 'gf-otros');">
+                  oninput="document.getElementById('gf-otros-valor').textContent = cm(this.value, 0); window.guardarGastoFinanzas('otros', 'gf-otros');">
               </div>
             </div>
             <div
@@ -1951,15 +1951,15 @@
           <div class="stats-grid" id="diario-resumen">
             <div class="stat-card">
               <h3 data-i18n="balance:diario_total_purchases">Total Compras Mes</h3>
-              <div class="value" id="diario-total-compras">0.00 €</div>
+              <div class="value" id="diario-total-compras">0.00</div>
             </div>
             <div class="stat-card green">
               <h3 data-i18n="balance:diario_total_sales">Total Ventas Mes</h3>
-              <div class="value" id="diario-total-ventas">0.00 €</div>
+              <div class="value" id="diario-total-ventas">0.00</div>
             </div>
             <div class="stat-card blue">
               <h3 data-i18n="balance:diario_gross_profit">Beneficio Bruto</h3>
-              <div class="value" id="diario-beneficio">0.00 €</div>
+              <div class="value" id="diario-beneficio">0.00</div>
             </div>
             <div class="stat-card orange">
               <h3 data-i18n="balance:diario_food_cost">Food Cost</h3>
@@ -1969,7 +1969,7 @@
               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
               <h3 style="color: rgba(255,255,255,0.9);" data-i18n="balance:diario_fixed_total">💰 Gastos Fijos Totales
               </h3>
-              <div class="value" id="diario-gastos-fijos-total" style="color: white;">0.00 €</div>
+              <div class="value" id="diario-gastos-fijos-total" style="color: white;">0.00</div>
             </div>
           </div>
         </div>
@@ -2597,7 +2597,7 @@
               </div>
               <div>
                 <strong style="color: #666;" data-i18n="pedidos:reception_variance">Varianza:</strong><br>
-                <span style="font-size: 20px; font-weight: bold;" id="modal-rec-resumen-varianza">0.00 €</span>
+                <span style="font-size: 20px; font-weight: bold;" id="modal-rec-resumen-varianza">0.00</span>
               </div>
             </div>
           </div>
@@ -2744,7 +2744,7 @@
             style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
             <div
               style="background: linear-gradient(135deg, #fee2e2, #fecaca); padding: 15px; border-radius: 12px; text-align: center;">
-              <div style="font-size: 24px; font-weight: 700; color: #b91c1c;" id="mermas-total-valor">0.00€</div>
+              <div style="font-size: 24px; font-weight: 700; color: #b91c1c;" id="mermas-total-valor">0.00</div>
               <div style="font-size: 12px; color: #7f1d1d;" data-i18n="inventario:history_total_loss">Pérdida Total
               </div>
             </div>
@@ -2875,7 +2875,7 @@
                 <div id="merma-resumen-detalle" style="color: #78350f; margin-top: 5px;"></div>
               </div>
               <div style="text-align: right;">
-                <div style="font-size: 24px; font-weight: 700; color: #dc2626;" id="merma-total-perdida">0.00€</div>
+                <div style="font-size: 24px; font-weight: 700; color: #dc2626;" id="merma-total-perdida">0.00</div>
                 <div style="font-size: 12px; color: #92400e;" data-i18n="inventario:merma_total_loss">Pérdida total
                 </div>
               </div>
