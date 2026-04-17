@@ -120,5 +120,6 @@
   "format_this_ingredient": "Este ingrediente",
   "format_invalid": "Formato inválido. Usa: nombre,cantidad (ej: bote,0.5)",
   "format_qty_invalid": "Cantidad inválida",
-  "format_how_many": "¿Cuántos {{format}}s tienes?\n\n(Cada {{format}} = {{qty}} {{unit}})"
+  "format_how_many": "¿Cuántos {{format}}s tienes?\n\n(Cada {{format}} = {{qty}} {{unit}})",
+  "massive_columns_hint": "Sube un archivo Excel (.xlsx) o CSV con las columnas: <strong>Ingrediente</strong> y <strong>Stock Real</strong>"
 }

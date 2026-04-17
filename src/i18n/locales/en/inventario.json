@@ -120,5 +120,6 @@
   "format_this_ingredient": "This ingredient",
   "format_invalid": "Invalid format. Use: name,quantity (e.g. box,0.5)",
   "format_qty_invalid": "Invalid quantity",
-  "format_how_many": "How many {{format}}s do you have?\n\n(Each {{format}} = {{qty}} {{unit}})"
+  "format_how_many": "How many {{format}}s do you have?\n\n(Each {{format}} = {{qty}} {{unit}})",
+  "massive_columns_hint": "Upload an Excel (.xlsx) or CSV file with the columns: <strong>Ingredient</strong> and <strong>Real Stock</strong>"
 }
