@@ -458,6 +458,8 @@ export async function actualizarPrecioIngrediente(btnElement) {
         btnElement.style.display = 'none';
         precioInput.style.borderColor = '#10b981';
         setTimeout(() => { precioInput.style.borderColor = '#ddd'; }, 2000);
+        // Refresh ingredients list so the price is visible in Ingredientes tab too
+        if (typeof window.renderizarIngredientes === 'function') window.renderizarIngredientes();
         window.showToast(t('pedidos:update_price_success', { name: ingName }), 'success');
     } catch (error) {
         window.showToast(t('pedidos:update_price_error', { message: error.message }), 'error');
