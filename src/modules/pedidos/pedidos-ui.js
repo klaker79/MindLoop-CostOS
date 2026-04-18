@@ -448,6 +448,12 @@ export async function actualizarPrecioIngrediente(btnElement) {
 
     try {
         await window.api.updateIngrediente(ingId, { precio: newPrice });
+        // Refresh ingredient data so the new price is visible everywhere
+        const ing = (window.ingredientes || []).find(i => i.id === ingId);
+        if (ing) ing.precio = newPrice;
+        // Also update the option's data-precio for this row
+        const selectedOpt = selectEl.options[selectEl.selectedIndex];
+        if (selectedOpt) selectedOpt.dataset.precio = newPrice;
         precioInput.dataset.originalPrice = precioInput.value;
         btnElement.style.display = 'none';
         precioInput.style.borderColor = '#10b981';
