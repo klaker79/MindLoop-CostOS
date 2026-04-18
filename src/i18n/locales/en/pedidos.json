@@ -234,5 +234,10 @@
   "smart_review_and_receive": "review and receive when ready",
 
   "repeat_confirm": "Repeat order from {{supplier}}? ({{count}} items)\n\nA new pending order will be created with the same ingredients. You can edit quantities before confirming.",
-  "repeat_success": "Order repeated from {{supplier}} — edit quantities and confirm when ready"
+  "repeat_success": "Order repeated from {{supplier}} — edit quantities and confirm when ready",
+
+  "btn_update_price": "Update ingredient price",
+  "update_price_confirm": "Update price of {{name}} to {{price}}?\n\nThis will update the ingredient's base price and affect future cost calculations.",
+  "update_price_success": "Price of {{name}} updated",
+  "update_price_error": "Error updating price: {{message}}"
 }
