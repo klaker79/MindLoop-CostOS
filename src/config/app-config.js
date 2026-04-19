@@ -26,10 +26,14 @@ export const appConfig = {
 
     /**
      * Configuración de Chat
+     *
+     * backend: "n8n" (legacy webhook) | "claude" (POST /api/chat, multi-tenant)
+     * Controlado por VITE_CHAT_BACKEND. Default "n8n" para mantener la producción
+     * intacta hasta que estemos 100% seguros de que el backend de Claude funciona.
      */
     chat: {
+        backend: import.meta.env.VITE_CHAT_BACKEND === 'claude' ? 'claude' : 'n8n',
         webhookUrl: import.meta.env.VITE_CHAT_WEBHOOK_URL || '',
-        // Requiere VITE_CHAT_WEBHOOK_URL en .env (no hardcodear UUID en el bundle)
         botName: 'Asistente CostOS',
         enabled: true,
         maxHistoryMessages: 50,
