@@ -6,6 +6,7 @@
 import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
+import { api } from '../../api/client.js';
 import { loadPDF } from '../../utils/lazy-vendors.js';
 import { t } from '@/i18n/index.js';
 import { cm } from '../../utils/helpers.js';
@@ -971,37 +972,37 @@ async function sendMessage() {
     showTyping();
 
     try {
-        const tabContext = getCurrentTabContext();
+        const lang = window.getCurrentLanguage?.() || 'es';
+        let data;
 
-        const response = await fetch(CHAT_CONFIG.webhookUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: message,
-                sessionId: chatSessionId,
-                restaurante: window.getRestaurantName ? window.getRestaurantName() : 'Restaurante',
-                timestamp: new Date().toISOString(),
-                fechaHoy: new Date().toLocaleDateString((window.getCurrentLanguage?.() || 'es') === 'en' ? 'en-GB' : 'es-ES', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
+        if (appConfig.chat.backend === 'claude') {
+            // Backend nuevo: POST /api/chat (multi-tenant vía JWT).
+            // El backend saca contexto de DB con tools, no necesita el payload grande.
+            data = await api.chat(message, lang, chatSessionId);
+        } else {
+            // Legacy: webhook n8n con payload completo.
+            const tabContext = getCurrentTabContext();
+            const response = await fetch(CHAT_CONFIG.webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message,
+                    sessionId: chatSessionId,
+                    restaurante: window.getRestaurantName ? window.getRestaurantName() : 'Restaurante',
+                    timestamp: new Date().toISOString(),
+                    fechaHoy: new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                    }),
+                    fechaISO: new Date().toISOString().split('T')[0],
+                    contexto: tabContext,
+                    lang,
                 }),
-                fechaISO: new Date().toISOString().split('T')[0],
-                contexto: tabContext,
-                lang: window.getCurrentLanguage?.() || 'es',
-            }),
-        });
-
-        hideTyping();
-
-        if (!response.ok) {
-            throw new Error('Error en la respuesta');
+            });
+            if (!response.ok) throw new Error('Error en la respuesta');
+            data = await response.text();
         }
 
-        const data = await response.text();
+        hideTyping();
 
         // Detectar si hay una acción pendiente de confirmar
         const actionMatch = data.match(/\[ACTION:([^\]]+)\]/);

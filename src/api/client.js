@@ -360,6 +360,10 @@ export const api = {
     initAuth: () => apiClient.get('/auth/check'),
     generateAPIToken: (nombre = 'n8n Integration', duracionDias = 365) =>
         apiClient.post('/auth/api-token', { nombre, duracionDias }),
+
+    // Chat (Claude API backend). Returns plain text (multi-tenant via JWT).
+    chat: (message, lang = 'es', sessionId = null) =>
+        apiClient.post('/chat', { message, lang, sessionId }),
 };
 
 // Expose globally for legacy code compatibility
