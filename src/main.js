@@ -665,11 +665,24 @@ import './modules/subscription/subscription.js';
 // ============================================
 import { initChatWidget, clearChatHistory } from './modules/chat/chat-widget.js';
 
-// Inicializar chat cuando el DOM esté listo
+// Guard temporal: chat solo disponible para La Caleta (id=3) hasta migración multi-tenant.
+// El flujo n8n tiene restaurante_id=3 hardcoded en todas las queries, así que otros
+// restaurantes verían datos de La Caleta. Fail-safe: si localStorage falla, NO inicializar.
+function initChatIfAllowed() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (Number(user.restauranteId) === 3) {
+            initChatWidget();
+        }
+    } catch (e) {
+        // no inicializar si hay cualquier error leyendo user
+    }
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initChatWidget);
+    document.addEventListener('DOMContentLoaded', initChatIfAllowed);
 } else {
-    setTimeout(initChatWidget, 1000); // Esperar a que cargue todo
+    setTimeout(initChatIfAllowed, 1000);
 }
 
 window.clearChatHistory = clearChatHistory;
