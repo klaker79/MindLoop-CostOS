@@ -274,13 +274,13 @@ async function actualizarMargenReal(periodo) {
         // Mostrar Food Cost como número principal
         margenEl.textContent = Math.round(foodCost) + '%';
         // Color según umbrales de hostelería
-        margenEl.style.color = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#0EA5E9' : foodCost <= 38 ? '#D97706' : '#DC2626';
+        margenEl.style.color = foodCost <= 30 ? '#059669' : foodCost <= 35 ? '#0EA5E9' : foodCost <= 40 ? '#D97706' : '#DC2626';
 
         // Barra de progreso (máximo visual = 50%)
         if (fcBar) {
             const barWidth = Math.min(foodCost, 50) * 2; // 50% FC = 100% barra
             fcBar.style.width = barWidth + '%';
-            fcBar.style.background = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#0EA5E9' : foodCost <= 38 ? '#D97706' : '#DC2626';
+            fcBar.style.background = foodCost <= 30 ? '#059669' : foodCost <= 35 ? '#0EA5E9' : foodCost <= 40 ? '#D97706' : '#DC2626';
         }
 
         // Detalle: Food Cost + Margen real

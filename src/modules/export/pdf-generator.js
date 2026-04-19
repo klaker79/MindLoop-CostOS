@@ -162,14 +162,14 @@ export async function generarPDFReceta(receta, ingredientes) {
     yPos += 8;
     doc.setTextColor(...colorText);
     doc.text(t('export:pdf_label_margin'), 20, yPos);
-    // Colores basados en Food Cost: ≤28% verde brillante, ≤33% verde, ≤38% amarillo, >38% rojo
+    // Colores basados en Food Cost: ≤30% verde brillante, ≤35% verde, ≤40% amarillo, >40% rojo
     const foodCost = precioVenta > 0 ? (costoTotal / precioVenta) * 100 : 100;
     doc.setTextColor(
-        foodCost <= 28
+        foodCost <= 30
             ? [5, 150, 105]
-            : foodCost <= 33
+            : foodCost <= 35
                 ? [16, 185, 129]
-                : foodCost <= 38
+                : foodCost <= 40
                     ? [245, 158, 11]
                     : [239, 68, 68]
     );

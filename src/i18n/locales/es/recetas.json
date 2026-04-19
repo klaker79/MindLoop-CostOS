@@ -105,7 +105,7 @@
   "form_analysis_subtitle": "Rentabilidad en tiempo real",
   "form_production_cost": "Coste de Producción",
   "form_production_cost_hint": "Calculado con precio medio de compra",
-  "form_food_cost_hint": "% del precio que es coste (≤33% ideal)",
+  "form_food_cost_hint": "% del precio que es coste (≤35% ideal)",
   "form_margin_label": "Margen de Beneficio",
   "form_margin_hint": "Beneficio por cada venta",
   "form_category_food": "Alimentos",

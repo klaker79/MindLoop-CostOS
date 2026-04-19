@@ -406,10 +406,10 @@ export function generarDossierHTML() {
 
 <h3>Umbrales de Rentabilidad - COMIDA</h3>
 <div class="thresholds">
-    <div class="threshold-item threshold-green">🟢 ≤28%<br><small>MUY RENTABLE</small></div>
-    <div class="threshold-item threshold-yellow">🟡 29-33%<br><small>RENTABLE</small></div>
-    <div class="threshold-item threshold-orange">🟠 34-38%<br><small>AJUSTADO</small></div>
-    <div class="threshold-item threshold-red">🔴 >38%<br><small>NO RENTABLE</small></div>
+    <div class="threshold-item threshold-green">🟢 ≤30%<br><small>MUY RENTABLE</small></div>
+    <div class="threshold-item threshold-yellow">🟡 31-35%<br><small>RENTABLE</small></div>
+    <div class="threshold-item threshold-orange">🟠 36-40%<br><small>AJUSTADO</small></div>
+    <div class="threshold-item threshold-red">🔴 >40%<br><small>NO RENTABLE</small></div>
 </div>
 
 <div class="formula">

@@ -105,7 +105,7 @@
   "form_analysis_subtitle": "实时盈利能力",
   "form_production_cost": "生产成本",
   "form_production_cost_hint": "根据平均采购价计算",
-  "form_food_cost_hint": "成本占售价的百分比（≤33%为理想）",
+  "form_food_cost_hint": "成本占售价的百分比（≤35%为理想）",
   "form_margin_label": "利润率",
   "form_margin_hint": "每次销售利润",
   "form_category_food": "食品",

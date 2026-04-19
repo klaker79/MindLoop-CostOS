@@ -65,7 +65,7 @@ export function renderCostBreakdown(breakdown, container) {
                     <span class="kpi-label">Margen</span>
                     <span class="kpi-value">${(marginPercentage || 0).toFixed(1)}%</span>
                 </div>
-                <div class="kpi ${(foodCostPercentage || 0) > 38 ? 'margin-bad' : (foodCostPercentage || 0) > 33 ? 'margin-warning' : ''}">
+                <div class="kpi ${(foodCostPercentage || 0) > 40 ? 'margin-bad' : (foodCostPercentage || 0) > 35 ? 'margin-warning' : ''}">
                     <span class="kpi-label">Food Cost</span>
                     <span class="kpi-value">${(foodCostPercentage || 0).toFixed(1)}%</span>
                 </div>

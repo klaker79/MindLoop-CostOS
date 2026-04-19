@@ -403,11 +403,11 @@ export async function renderizarRecetas() {
             const margen = rec.precio_venta - coste;
             const pct = rec.precio_venta > 0 ? ((margen / rec.precio_venta) * 100).toFixed(0) : 0;
             const foodCost = rec.precio_venta > 0 ? (coste / rec.precio_venta) * 100 : 100;
-            // Badge basado en Food Cost: ≤33% success, ≤38% warning, >38% danger
+            // Badge basado en Food Cost: ≤35% success, ≤40% warning, >40% danger
             const badgeClass =
-                foodCost <= 33
+                foodCost <= 35
                     ? 'badge-success'
-                    : foodCost <= 38
+                    : foodCost <= 40
                         ? 'badge-warning'
                         : 'badge-danger';
 
