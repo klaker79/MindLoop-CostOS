@@ -2638,7 +2638,9 @@
       let html = '<table style="min-width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden;">';
 
       // Header con días
-      html += '<thead><tr><th style="position: sticky; left: 0; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); z-index: 1; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 16px;">Ingrediente</th>';
+      const _lang = window.getCurrentLanguage?.() || 'es';
+      const _tIngredient = _lang === 'en' ? 'Ingredient' : _lang === 'zh' ? '食材' : 'Ingrediente';
+      html += `<thead><tr><th style="position: sticky; left: 0; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%); z-index: 1; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 16px;">${_tIngredient}</th>`;
       dias.forEach(dia => {
         const fecha = new Date(dia);
         html += `<th style="min-width: 80px; text-align: center; border-right: 1px solid #E2E8F0; border-bottom: 2px solid #CBD5E1; padding: 16px; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);">${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
