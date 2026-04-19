@@ -265,11 +265,11 @@ export async function renderizarComprasPendientes() {
                         </div>
                         <div style="display: flex; gap: 6px;">
                             ${item.ingrediente_id ? `
-                            <button onclick="window.aprobarItemPendiente(${item.id})" title="Aprobar" style="
+                            <button onclick="window.aprobarItemPendiente(${item.id})" title="${window.getCurrentLanguage?.() === 'en' ? 'Approve' : 'Aprobar'}" style="
                                 width: 36px; height: 36px; border: none; border-radius: 8px;
                                 background: #dcfce7; color: #16a34a; font-size: 16px; cursor: pointer;
                             ">✅</button>` : ''}
-                            <button onclick="window.rechazarItemPendiente(${item.id})" title="Rechazar" style="
+                            <button onclick="window.rechazarItemPendiente(${item.id})" title="${window.getCurrentLanguage?.() === 'en' ? 'Reject' : 'Rechazar'}" style="
                                 width: 36px; height: 36px; border: none; border-radius: 8px;
                                 background: #fee2e2; color: #dc2626; font-size: 16px; cursor: pointer;
                             ">❌</button>

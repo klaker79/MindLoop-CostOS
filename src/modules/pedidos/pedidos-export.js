@@ -19,6 +19,9 @@ export function descargarPedidoPDF() {
   const pedido = (window.pedidos || []).find(p => p.id === window.pedidoViendoId);
   if (!pedido) return;
 
+  const lang = window.getCurrentLanguage?.() || 'es';
+  const locale = lang === 'en' ? 'en-GB' : 'es-ES';
+
   const provId = pedido.proveedorId || pedido.proveedor_id;
   const prov = (window.proveedores || []).find(p => p.id === provId);
   const provNombre = prov ? prov.nombre : t('pedidos:detail_no_supplier');
@@ -124,7 +127,7 @@ export function descargarPedidoPDF() {
         <div class="doc-info">
           <div class="doc-number">${t('pedidos:pdf_order_label')} #${pedido.id}</div>
           <p style="margin: 10px 0;"><span class="badge ${esRecibido ? 'badge-recibido' : 'badge-pendiente'}">${esRecibido ? t('pedidos:detail_status_received').toUpperCase() : t('pedidos:detail_status_pending').toUpperCase()}</span></p>
-          <p style="color: #6b7280;">${new Date(typeof pedido.fecha === 'string' && pedido.fecha.length === 10 ? pedido.fecha + 'T12:00:00' : pedido.fecha).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          <p style="color: #6b7280;">${new Date(typeof pedido.fecha === 'string' && pedido.fecha.length === 10 ? pedido.fecha + 'T12:00:00' : pedido.fecha).toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         </div>
       </div>
       
@@ -138,8 +141,8 @@ export function descargarPedidoPDF() {
         </div>
         <div class="info-box">
           <h3>📋 ${t('pedidos:pdf_order_details')}</h3>
-          <p><strong>${t('pedidos:pdf_order_date')}:</strong> ${new Date(typeof pedido.fecha === 'string' && pedido.fecha.length === 10 ? pedido.fecha + 'T12:00:00' : pedido.fecha).toLocaleDateString('es-ES')}</p>
-          ${pedido.fecha_recepcion ? `<p><strong>${t('pedidos:pdf_reception_date')}:</strong> ${new Date(pedido.fecha_recepcion).toLocaleDateString('es-ES')}</p>` : ''}
+          <p><strong>${t('pedidos:pdf_order_date')}:</strong> ${new Date(typeof pedido.fecha === 'string' && pedido.fecha.length === 10 ? pedido.fecha + 'T12:00:00' : pedido.fecha).toLocaleDateString(locale)}</p>
+          ${pedido.fecha_recepcion ? `<p><strong>${t('pedidos:pdf_reception_date')}:</strong> ${new Date(pedido.fecha_recepcion).toLocaleDateString(locale)}</p>` : ''}
           <p><strong>${t('pedidos:pdf_total_items')}:</strong> ${items.length}</p>
         </div>
       </div>
@@ -187,7 +190,7 @@ export function descargarPedidoPDF() {
       </div>
       
       <div class="footer">
-        ${t('pedidos:pdf_generated_on')} ${new Date().toLocaleString('es-ES')} • ${window.getRestaurantName ? window.getRestaurantName() : 'MindLoop CostOS'}
+        ${t('pedidos:pdf_generated_on')} ${new Date().toLocaleString(locale)} • ${window.getRestaurantName ? window.getRestaurantName() : 'MindLoop CostOS'}
       </div>
     </body>
     </html>
@@ -251,23 +254,44 @@ export function enviarPedidoWhatsApp() {
 
   // Limpiar número de teléfono (quitar espacios, guiones, etc.)
   let telefono = prov.telefono.replace(/[\s\-()]/g, '');
-  // Si empieza con 0, añadir código de España
-  if (telefono.startsWith('0')) {
-    telefono = '34' + telefono.substring(1);
-  }
-  // Si no tiene código de país, añadir 34 (España)
-  if (!telefono.startsWith('+') && !telefono.startsWith('34')) {
-    telefono = '34' + telefono;
-  }
-  // Quitar el + si lo tiene
-  telefono = telefono.replace('+', '');
 
-  // Obtener nombre del restaurante
-  const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'La Nave 5';
+  // Determinar el código de país por defecto según la moneda del restaurante.
+  // Si el número ya viene con "+XX" (formato internacional) lo respetamos tal cual.
+  // Si no tiene prefijo internacional, usamos el país que toca por defecto:
+  //   € → España (+34)
+  //   RM → Malasia (+60)
+  //   otros → sin prefijo, exigimos que el usuario lo meta completo
+  function defaultCountryCode() {
+    const moneda = window.currentUser?.moneda || '€';
+    const MAP = { '€': '34', 'RM': '60', '£': '44', '$': '1', 'CHF': '41' };
+    return MAP[moneda] || '';
+  }
+
+  if (telefono.startsWith('+')) {
+    // Número ya internacional, solo quitar el +
+    telefono = telefono.substring(1);
+  } else if (telefono.startsWith('00')) {
+    // Formato internacional con 00 (común en Europa)
+    telefono = telefono.substring(2);
+  } else if (telefono.startsWith('0')) {
+    // Empieza con 0 → número local, quitar el 0 y añadir código país
+    telefono = defaultCountryCode() + telefono.substring(1);
+  } else if (!/^\d{2,3}\d{6,}$/.test(telefono)) {
+    // No tiene prefijo reconocible: añadir el del restaurante
+    telefono = defaultCountryCode() + telefono;
+  }
+
+  // Obtener nombre del restaurante — sin fallback hardcoded a "La Nave 5"
+  const restaurante =
+    (window.getRestaurantName && window.getRestaurantName()) ||
+    window.currentUser?.restaurante ||
+    t('common:my_restaurant') ||
+    'Restaurant';
 
   // Construir mensaje ELEGANTE Y PROFESIONAL
   const items = pedido.itemsRecepcion || pedido.ingredientes || [];
-  const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const lang = window.getCurrentLanguage?.() || 'es';
+  const fecha = new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   let mensaje = `━━━━━━━━━━━━━━━━━━━━━━\n`;
   mensaje += `🍽️ *${restaurante.toUpperCase()}*\n`;
