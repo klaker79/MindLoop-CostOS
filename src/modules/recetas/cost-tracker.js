@@ -239,21 +239,21 @@ function actualizarDatosCostTracker() {
 
         const { costeActual, precioVenta, foodCost, beneficio } = receta;
 
-        // Determinar estado y colores (Jack Miller: ≤28 excelente, ≤33 target, ≤38 watch, >38 alert)
+        // Determinar estado y colores (umbrales: ≤30 excelente, ≤35 target, ≤40 watch, >40 alert)
         let estado, bgColor, textColor, icon;
-        if (foodCost <= 28) {
+        if (foodCost <= 30) {
             estado = t('recetas:cost_tracker_profitable');
             bgColor = 'rgba(5, 150, 105, 0.25)';
             textColor = '#059669';
             icon = '⭐';
             recetasRentables++;
-        } else if (foodCost <= 33) {
+        } else if (foodCost <= 35) {
             estado = t('recetas:cost_tracker_profitable');
             bgColor = 'rgba(16, 185, 129, 0.2)';
             textColor = '#10B981';
             icon = '✅';
             recetasRentables++;
-        } else if (foodCost <= 38) {
+        } else if (foodCost <= 40) {
             estado = t('recetas:cost_tracker_tight');
             bgColor = 'rgba(245, 158, 11, 0.2)';
             textColor = '#F59E0B';
@@ -269,8 +269,8 @@ function actualizarDatosCostTracker() {
 
         totalBeneficio += beneficio;
 
-        // Barra de progreso para food cost (Jack Miller: ≤28 excelente, ≤33 target, ≤38 watch, >38 alert)
-        const barColor = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#10B981' : foodCost <= 38 ? '#F59E0B' : '#EF4444';
+        // Barra de progreso para food cost (umbrales: ≤30 excelente, ≤35 target, ≤40 watch, >40 alert)
+        const barColor = foodCost <= 30 ? '#059669' : foodCost <= 35 ? '#10B981' : foodCost <= 40 ? '#F59E0B' : '#EF4444';
         const barWidth = Math.min(foodCost, 100);
 
         // Build recipe name HTML - use yellow/gold color as originally designed

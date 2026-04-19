@@ -64,7 +64,7 @@ DO NOT:
 If numbers don't match between modules → it's a BUG. Fix before deploying.
 
 ### Food Cost Thresholds (unified)
-- Food: ≤28% excellent (green), 29-33% target (blue), 34-38% watch (orange), >38% alert (red)
+- Food: ≤30% excellent (green), 31-35% target (blue), 36-40% watch (orange), >40% alert (red)
 - Wine variants: target 45% — `recetas-variantes.js` uses 40/50 thresholds intentionally
 - Margin equivalents: ≥67% green, 62-66% yellow, <62% red
 

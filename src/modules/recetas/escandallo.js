@@ -187,9 +187,9 @@ export async function verEscandallo(recetaId) {
     document.getElementById('escandallo-titulo').textContent = `📊 ${receta.nombre}`;
 
     // Summary section
-    // Umbrales Jack Miller: ≤28 excelente, 29-33 target, 34-38 watch, >38 alert
-    const foodCostColor = foodCost <= 28 ? '#059669' : foodCost <= 33 ? '#10B981' : foodCost <= 38 ? '#F59E0B' : '#EF4444';
-    const foodCostRealColor = foodCostReal <= 28 ? '#059669' : foodCostReal <= 33 ? '#10B981' : foodCostReal <= 38 ? '#F59E0B' : '#EF4444';
+    // Umbrales: ≤30 excelente, 31-35 target, 36-40 watch, >40 alert
+    const foodCostColor = foodCost <= 30 ? '#059669' : foodCost <= 35 ? '#10B981' : foodCost <= 40 ? '#F59E0B' : '#EF4444';
+    const foodCostRealColor = foodCostReal <= 30 ? '#059669' : foodCostReal <= 35 ? '#10B981' : foodCostReal <= 40 ? '#F59E0B' : '#EF4444';
     const precioIdeal = esBebida ? precioSugerido45 : precioSugerido35;
     const precioIdealLabel = esBebida ? '45%' : '35%';
     document.getElementById('escandallo-resumen').innerHTML = `
@@ -206,7 +206,7 @@ export async function verEscandallo(recetaId) {
                 <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_margin')}</div>
                 <div style="font-size: 20px; font-weight: 700; color: #F59E0B;">${cm(margenEuros)}</div>
             </div>
-            <div style="background: ${foodCost <= 33 ? '#F0FDF4' : foodCost <= 38 ? '#FEF3C7' : '#FEE2E2'}; padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="background: ${foodCost <= 35 ? '#F0FDF4' : foodCost <= 40 ? '#FEF3C7' : '#FEE2E2'}; padding: 12px; border-radius: 8px; text-align: center;">
                 <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_food_cost')}</div>
                 <div style="font-size: 20px; font-weight: 700; color: ${foodCostColor};">${foodCost.toFixed(1)}%</div>
             </div>
@@ -408,7 +408,7 @@ export async function exportarPDFEscandallo() {
         { label: t('recetas:escandallo_cost'), value: `${cm(costeTotal)}`, color: [16, 185, 129] },
         { label: t('recetas:escandallo_pvp'), value: `${cm(precioVenta)}`, color: [59, 130, 246] },
         { label: t('recetas:escandallo_margin'), value: `${cm(margenEuros)}`, color: [245, 158, 11] },
-        { label: t('recetas:escandallo_food_cost'), value: `${foodCost.toFixed(1)}%`, color: foodCost <= 33 ? [16, 185, 129] : foodCost <= 38 ? [245, 158, 11] : [239, 68, 68] }
+        { label: t('recetas:escandallo_food_cost'), value: `${foodCost.toFixed(1)}%`, color: foodCost <= 35 ? [16, 185, 129] : foodCost <= 40 ? [245, 158, 11] : [239, 68, 68] }
     ];
 
     summaryData.forEach((item, i) => {

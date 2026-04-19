@@ -105,7 +105,7 @@
   "form_analysis_subtitle": "Real-time profitability",
   "form_production_cost": "Production Cost",
   "form_production_cost_hint": "Calculated with average purchase price",
-  "form_food_cost_hint": "% of price that is cost (≤33% ideal)",
+  "form_food_cost_hint": "% of price that is cost (≤35% ideal)",
   "form_margin_label": "Profit Margin",
   "form_margin_hint": "Profit per sale",
   "form_category_food": "Food",
