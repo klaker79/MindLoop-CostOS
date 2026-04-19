@@ -1781,13 +1781,13 @@
 
           <!-- Selector de Semana -->
           <div style="display: flex; gap: 8px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;">
-            <span style="font-weight: 600; color: #475569; margin-right: 8px;">📅 Ver:</span>
-            <button class="btn-semana btn btn-primary" data-semana="todas" onclick="window.cambiarSemanaDiario('todas')">Todo el mes</button>
-            <button class="btn-semana btn btn-secondary" data-semana="1" onclick="window.cambiarSemanaDiario(1)">Semana 1 (1-7)</button>
-            <button class="btn-semana btn btn-secondary" data-semana="2" onclick="window.cambiarSemanaDiario(2)">Semana 2 (8-14)</button>
-            <button class="btn-semana btn btn-secondary" data-semana="3" onclick="window.cambiarSemanaDiario(3)">Semana 3 (15-21)</button>
-            <button class="btn-semana btn btn-secondary" data-semana="4" onclick="window.cambiarSemanaDiario(4)">Semana 4 (22-28)</button>
-            <button class="btn-semana btn btn-secondary" data-semana="5" onclick="window.cambiarSemanaDiario(5)">Semana 5 (29-31)</button>
+            <span style="font-weight: 600; color: #475569; margin-right: 8px;">📅 <span data-i18n="balance:diario_view_label">Ver:</span></span>
+            <button class="btn-semana btn btn-primary" data-semana="todas" data-i18n="balance:diario_week_all" onclick="window.cambiarSemanaDiario('todas')">Todo el mes</button>
+            <button class="btn-semana btn btn-secondary" data-semana="1" data-i18n="balance:diario_week_1" onclick="window.cambiarSemanaDiario(1)">Semana 1 (1-7)</button>
+            <button class="btn-semana btn btn-secondary" data-semana="2" data-i18n="balance:diario_week_2" onclick="window.cambiarSemanaDiario(2)">Semana 2 (8-14)</button>
+            <button class="btn-semana btn btn-secondary" data-semana="3" data-i18n="balance:diario_week_3" onclick="window.cambiarSemanaDiario(3)">Semana 3 (15-21)</button>
+            <button class="btn-semana btn btn-secondary" data-semana="4" data-i18n="balance:diario_week_4" onclick="window.cambiarSemanaDiario(4)">Semana 4 (22-28)</button>
+            <button class="btn-semana btn btn-secondary" data-semana="5" data-i18n="balance:diario_week_5" onclick="window.cambiarSemanaDiario(5)">Semana 5 (29-31)</button>
           </div>
           <!-- Tablas Diarias (FUERA del grid para que ocupen 100% ancho) -->
           <div style="margin-top: 30px;">
@@ -3245,7 +3245,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260420-foodcost-30-35-40"></script>
+  <script type="module" src="./src/main.js?v=20260420-daily-i18n"></script>
 </body>
 
 </html>
