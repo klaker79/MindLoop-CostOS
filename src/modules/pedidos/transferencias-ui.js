@@ -83,6 +83,22 @@ export async function renderizarTransferenciasEntrantes() {
     const container = document.getElementById('transferencias-panel');
     if (!container) return;
 
+    const lang = window.getCurrentLanguage?.() || 'es';
+    const locale = lang === 'en' ? 'en-GB' : 'es-ES';
+    const L = lang === 'en' ? {
+        pendingHeader: (n) => `${n} pending transfer${n > 1 ? 's' : ''}`,
+        pendingSubtitle: 'Another restaurant wants to send you products',
+        from: 'From', quantity: 'Quantity', unitPrice: 'Unit price', total: 'Total',
+        requestedBy: 'Requested by', unknown: 'Unknown',
+        approve: 'Approve', reject: 'Reject'
+    } : {
+        pendingHeader: (n) => `${n} transferencia${n > 1 ? 's' : ''} pendiente${n > 1 ? 's' : ''}`,
+        pendingSubtitle: 'Otro restaurante quiere enviarte productos',
+        from: 'De', quantity: 'Cantidad', unitPrice: 'Precio unit', total: 'Total',
+        requestedBy: 'Solicitado por', unknown: 'Desconocido',
+        approve: 'Aprobar', reject: 'Rechazar'
+    };
+
     try {
         const transferencias = await getTransferenciasEntrantes();
         if (!transferencias || transferencias.length === 0) {
@@ -96,8 +112,8 @@ export async function renderizarTransferenciasEntrantes() {
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
                     <span style="font-size: 28px;">📦</span>
                     <div>
-                        <h3 style="margin: 0; color: #92400e; font-size: 18px;">${transferencias.length} transferencia${transferencias.length > 1 ? 's' : ''} pendiente${transferencias.length > 1 ? 's' : ''}</h3>
-                        <p style="margin: 0; color: #a16207; font-size: 13px;">Otro restaurante quiere enviarte productos</p>
+                        <h3 style="margin: 0; color: #92400e; font-size: 18px;">${L.pendingHeader(transferencias.length)}</h3>
+                        <p style="margin: 0; color: #a16207; font-size: 13px;">${L.pendingSubtitle}</p>
                     </div>
                 </div>
                 ${transferencias.map(t => `
@@ -106,22 +122,22 @@ export async function renderizarTransferenciasEntrantes() {
                             <div>
                                 <div style="font-weight: 700; color: #1e293b; font-size: 16px;">${escapeHTML(t.ingrediente_nombre)}</div>
                                 <div style="color: #64748b; font-size: 13px; margin-top: 4px;">
-                                    De: <strong>${escapeHTML(t.origen_nombre)}</strong> &middot;
-                                    Cantidad: <strong>${parseFloat(t.cantidad)}</strong> &middot;
-                                    Precio unit: <strong>${cm(parseFloat(t.precio_unitario))}</strong> &middot;
-                                    Total: <strong>${cm((parseFloat(t.cantidad) * parseFloat(t.precio_unitario)))}</strong>
+                                    ${L.from}: <strong>${escapeHTML(t.origen_nombre)}</strong> &middot;
+                                    ${L.quantity}: <strong>${parseFloat(t.cantidad)}</strong> &middot;
+                                    ${L.unitPrice}: <strong>${cm(parseFloat(t.precio_unitario))}</strong> &middot;
+                                    ${L.total}: <strong>${cm((parseFloat(t.cantidad) * parseFloat(t.precio_unitario)))}</strong>
                                 </div>
                                 ${t.notas ? `<div style="color: #94a3b8; font-size: 12px; margin-top: 4px; font-style: italic;">${escapeHTML(t.notas)}</div>` : ''}
-                                <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">Solicitado por: ${escapeHTML(t.solicitado_por_nombre || 'Desconocido')} &middot; ${new Date(t.created_at).toLocaleDateString('es-ES')}</div>
+                                <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">${L.requestedBy}: ${escapeHTML(t.solicitado_por_nombre || L.unknown)} &middot; ${new Date(t.created_at).toLocaleDateString(locale)}</div>
                             </div>
                             <div style="display: flex; gap: 8px;">
                                 <button onclick="window.aprobarTransferenciaPendiente(${t.id})"
                                     style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">
-                                    ✅ Aprobar
+                                    ✅ ${L.approve}
                                 </button>
                                 <button onclick="window.rechazarTransferenciaPendiente(${t.id})"
                                     style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">
-                                    ❌ Rechazar
+                                    ❌ ${L.reject}
                                 </button>
                             </div>
                         </div>
