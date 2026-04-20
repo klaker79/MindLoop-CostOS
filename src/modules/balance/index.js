@@ -75,22 +75,18 @@ export async function renderizarBalance() {
         const ventasDiarias = ingresos / diaDelMes;
         setEl('pl-kpi-ventas-diarias', cm(ventasDiarias));
 
-        calcularPL();
+        await calcularPL();
     } catch (error) {
         console.error('Error renderizando P&L:', error);
         showToast(t('balance:error_loading'), 'error');
     }
 }
 
-export function calcularPL() {
+export async function calcularPL() {
     const ingresosEl = document.getElementById('pl-ingresos');
     const cogsEl = document.getElementById('pl-cogs');
-    const alquilerEl = document.getElementById('pl-input-alquiler');
-    const personalEl = document.getElementById('pl-input-personal');
-    const suministrosEl = document.getElementById('pl-input-suministros');
-    const otrosEl = document.getElementById('pl-input-otros');
 
-    if (!ingresosEl || !cogsEl || !alquilerEl || !personalEl || !suministrosEl || !otrosEl) {
+    if (!ingresosEl || !cogsEl) {
         console.warn(t('balance:inputs_not_loaded'));
         return;
     }
@@ -99,14 +95,11 @@ export function calcularPL() {
     const cogs = parseFloat(cogsEl.textContent.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
     const margenBruto = ingresos - cogs;
 
-    const alquiler = parseFloat(alquilerEl.value) || 0;
-    const personal = parseFloat(personalEl.value) || 0;
-    const suministros = parseFloat(suministrosEl.value) || 0;
-    const otros = parseFloat(otrosEl.value) || 0;
-
-    localStorage.setItem('opex_inputs', JSON.stringify({ alquiler, personal, suministros, otros }));
-
-    const opexTotal = alquiler + personal + suministros + otros;
+    // Use the generic sum from DB so all categories (27+ dynamic) count.
+    // calcularTotalGastosFijos is exposed by legacy/modales.js and reads gastos_fijos via API.
+    const opexTotal = typeof window.calcularTotalGastosFijos === 'function'
+        ? (await window.calcularTotalGastosFijos()) || 0
+        : 0;
     const opexTotalEl = document.getElementById('pl-opex-total');
     if (opexTotalEl) opexTotalEl.textContent = cm(opexTotal);
 
