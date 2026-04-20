@@ -155,7 +155,9 @@ export function abrirModalNuevoGastoFijo() {
     if (conceptoInput) conceptoInput.value = '';
     if (montoInput) montoInput.value = '';
     if (titulo) titulo.textContent = t('balance:gasto_fijo_title') || 'Añadir Gasto Fijo';
-    if (modal) modal.style.display = 'flex';
+    // .modal has `display: none !important` in main.css — open via the `.active` class.
+    if (modal) modal.classList.add('active');
+    conceptoInput?.focus();
 }
 
 export async function editarGastoFijo(id) {
@@ -175,7 +177,8 @@ export async function editarGastoFijo(id) {
     if (conceptoInput) conceptoInput.value = gasto.concepto || '';
     if (montoInput) montoInput.value = parseFloat(gasto.monto_mensual) || 0;
     if (titulo) titulo.textContent = t('balance:gasto_fijo_edit_title') || 'Editar Gasto Fijo';
-    if (modal) modal.style.display = 'flex';
+    if (modal) modal.classList.add('active');
+    conceptoInput?.focus();
 }
 
 export async function eliminarGastoFijo(id) {
@@ -225,7 +228,7 @@ export async function guardarGastoFijo(event) {
 
 export function cerrarFormGastoFijo() {
     const modal = document.getElementById('modal-gasto-fijo');
-    if (modal) modal.style.display = 'none';
+    if (modal) modal.classList.remove('active');
 }
 
 // Expose to window so inline handlers in index.html keep working
@@ -236,4 +239,6 @@ if (typeof window !== 'undefined') {
     window.eliminarGastoFijo = eliminarGastoFijo;
     window.guardarGastoFijo = guardarGastoFijo;
     window.cerrarFormGastoFijo = cerrarFormGastoFijo;
+    // Alias expected by event-bindings.js (data-action="cerrar-form-gasto-fijo")
+    window.cerrarFormularioGastoFijo = cerrarFormGastoFijo;
 }
