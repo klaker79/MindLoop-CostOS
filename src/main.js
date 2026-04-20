@@ -650,6 +650,7 @@ window.logout = Auth.logout;
 Auth.initLoginForm();
 Auth.initRegisterForm();
 Auth.initForgotPasswordForm();
+Auth.initResetPasswordForm();
 Auth.initRestaurantSwitcher();
 Auth.handleCheckoutReturn();
 
@@ -740,6 +741,8 @@ if ('serviceWorker' in navigator) {
 // Verificar autenticación y cargar datos al iniciar
 (async () => {
     try {
+        // Si llegamos con #/reset-password?token=... pintamos ese form y no verificamos sesión.
+        if (Auth.handleResetPasswordRoute()) return;
         await Auth.checkAuth();
     } catch (e) {
         console.error('Error en inicialización:', e);
