@@ -31,14 +31,24 @@ export async function checkAuth() {
             return false;
         }
 
-        // 🔒 Restaurar window.currentUser desde localStorage (sobrevive recargas).
-        // Sin esto, window.currentUser?.moneda es undefined tras F5 y toda la app
-        // cae al fallback '€' aunque el restaurante sea RM.
-        if (!window.currentUser) {
-            try {
-                const saved = JSON.parse(localStorage.getItem('user') || 'null');
-                if (saved) window.currentUser = saved;
-            } catch { /* ignore */ }
+        // 🔒 Resolve currentUser after reload.
+        // Priority: fresh data from /verify (includes moneda+restaurante from DB)
+        // merged over localStorage (keeps fields /verify doesn't return, e.g. nombre del usuario).
+        // Critical: if localStorage is stale (pre-migration without moneda), the fresh
+        // backend response will overwrite it — so app always shows the correct currency.
+        let fresh = null;
+        try {
+            fresh = (await res.clone().json())?.user || null;
+        } catch { /* ignore */ }
+        let saved = null;
+        try {
+            saved = JSON.parse(localStorage.getItem('user') || 'null');
+        } catch { /* ignore */ }
+        const merged = { ...(saved || {}), ...(fresh || {}) };
+        if (Object.keys(merged).length > 0) {
+            window.currentUser = merged;
+            // Persist merged back to localStorage so subsequent reads are consistent
+            try { localStorage.setItem('user', JSON.stringify(merged)); } catch { /* ignore */ }
         }
 
         // ✅ Sesión válida: mostrar app y cargar datos
