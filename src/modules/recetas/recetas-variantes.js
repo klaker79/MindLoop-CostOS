@@ -120,7 +120,7 @@ function renderizarVariantes(variantes) {
 
                 // Aplicar rendimiento (consistente con escandallo y recetas-crud)
                 let rendimiento = parseFloat(item.rendimiento);
-                if (!rendimiento || rendimiento === 100) {
+                if (!rendimiento) {
                     if (ingrediente?.rendimiento) {
                         rendimiento = parseFloat(ingrediente.rendimiento);
                     } else {

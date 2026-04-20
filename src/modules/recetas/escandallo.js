@@ -86,7 +86,7 @@ export async function verEscandallo(recetaId) {
 
             // 🔒 H1 FIX: Aplicar rendimiento (idéntico a calcularCosteRecetaCompleto)
             let rendimiento = parseFloat(item.rendimiento);
-            if (!rendimiento || rendimiento === 100) {
+            if (!rendimiento) {
                 if (ing?.rendimiento) {
                     rendimiento = parseFloat(ing.rendimiento);
                 } else {

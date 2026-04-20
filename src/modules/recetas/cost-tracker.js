@@ -200,7 +200,7 @@ function actualizarDatosCostTracker() {
 
             // Aplicar rendimiento (merma)
             let rendimiento = parseFloat(item.rendimiento);
-            if (!rendimiento || rendimiento === 100) {
+            if (!rendimiento) {
                 rendimiento = ing?.rendimiento ? parseFloat(ing.rendimiento) : 100;
             }
             const factorRendimiento = rendimiento / 100;
