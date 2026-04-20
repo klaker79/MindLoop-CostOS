@@ -939,6 +939,14 @@ a[onclick*="cerrarSesion"]:hover {
 .bsq-actions .btn {
     padding: 10px 20px;
 }
+/* Replace browser default blue focus ring with a subtle orange one */
+.bsq-actions .btn:focus {
+    outline: none;
+}
+.bsq-actions .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3), 0 0 0 3px rgba(255, 107, 53, 0.25);
+}
 
 /* --- KPI cards (after search) --- */
 .bsq-kpi-grid {
