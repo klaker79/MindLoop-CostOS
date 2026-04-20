@@ -129,6 +129,97 @@ export function mostrarForgotPassword() {
 }
 
 /**
+ * Si la URL actual viene de un email de reset (#/reset-password?token=...),
+ * pinta el form de nueva contraseña en vez de la pantalla de login y devuelve
+ * true para que el caller salte `checkAuth`.
+ * El token se lee de la parte query detrás del hash (hash routing).
+ */
+export function handleResetPasswordRoute() {
+    const hash = window.location.hash || '';
+    if (!hash.startsWith('#/reset-password')) return false;
+
+    const qIdx = hash.indexOf('?');
+    if (qIdx === -1) return false;
+    const params = new URLSearchParams(hash.slice(qIdx + 1));
+    const token = params.get('token');
+    if (!token) return false;
+
+    // Ocultar app si está visible, mostrar form de reset dentro de la pantalla de login.
+    const loginScreen = document.getElementById('login-screen');
+    const appContainer = document.getElementById('app-container');
+    const selectorScreen = document.getElementById('restaurant-selector-screen');
+    const loginForm = document.getElementById('login-form');
+    const loginFooter = document.querySelector('.login-footer');
+    const resetForm = document.getElementById('reset-password-form');
+    if (loginScreen) loginScreen.style.display = 'flex';
+    if (appContainer) appContainer.style.display = 'none';
+    if (selectorScreen) selectorScreen.style.display = 'none';
+    if (loginForm) loginForm.style.display = 'none';
+    if (loginFooter) loginFooter.style.display = 'none';
+    if (resetForm) {
+        resetForm.dataset.token = token;
+        resetForm.style.display = 'block';
+    }
+    return true;
+}
+
+/**
+ * Engancha el submit del form de reset-password: valida que las dos contraseñas
+ * coincidan, llama a POST /auth/reset-password con el token del dataset, y
+ * redirige a login al terminar.
+ */
+export function initResetPasswordForm() {
+    const form = document.getElementById('reset-password-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pass1 = document.getElementById('reset-new-password')?.value;
+        const pass2 = document.getElementById('reset-new-password2')?.value;
+        const statusEl = document.getElementById('reset-status');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const token = form.dataset.token;
+
+        if (!token) {
+            if (statusEl) { statusEl.style.color = '#ef4444'; statusEl.textContent = 'Token no encontrado en la URL.'; }
+            return;
+        }
+        if (!pass1 || pass1.length < 8) {
+            if (statusEl) { statusEl.style.color = '#ef4444'; statusEl.textContent = 'Mínimo 8 caracteres.'; }
+            return;
+        }
+        if (pass1 !== pass2) {
+            if (statusEl) { statusEl.style.color = '#ef4444'; statusEl.textContent = 'Las contraseñas no coinciden.'; }
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Actualizando...';
+
+        try {
+            const res = await fetch(API_AUTH_URL + '/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, newPassword: pass1 })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Error actualizando contraseña');
+
+            if (statusEl) { statusEl.style.color = '#10b981'; statusEl.textContent = data.message || 'Contraseña actualizada.'; }
+            // Redirigir a login después de 2s. Borramos el hash para que no vuelva a caer en el form al recargar.
+            setTimeout(() => {
+                window.location.hash = '';
+                volverALogin();
+            }, 2000);
+        } catch (err) {
+            if (statusEl) { statusEl.style.color = '#ef4444'; statusEl.textContent = err.message; }
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Actualizar contraseña';
+        }
+    });
+}
+
+/**
  * Inicializa el formulario forgot-password
  */
 export function initForgotPasswordForm() {
