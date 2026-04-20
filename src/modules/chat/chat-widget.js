@@ -1,476 +1,72 @@
 /**
- * MindLoop CostOS - Chat Widget con IA
- * Integración con n8n para asistente contable inteligente
+ * MindLoop CostOS — Chat Widget (entry / orchestrator).
+ *
+ * Este módulo arma la UI (FAB + ventana + header) y engancha eventos. Toda la
+ * lógica (estado, mensajes, acciones, contexto, markdown, PDF) vive en los
+ * submódulos bajo `src/modules/chat/`.
+ *
+ * Exporta:
+ *   - initChatWidget (también expuesta en window para compatibilidad).
+ *   - clearChatHistory (también en window; resetea historial y regenera sesión).
+ * Expone window.toggleChat para el FAB/onclicks legacy.
  */
 
 import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
-import { appConfig } from '../../config/app-config.js';
-import { api } from '../../api/client.js';
-import { loadPDF } from '../../utils/lazy-vendors.js';
 import { t } from '@/i18n/index.js';
-import { cm } from '../../utils/helpers.js';
-
-const CHAT_CONFIG = {
-    // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
-    webhookUrl: appConfig.chat.webhookUrl,
-    get botName() { return t('chat:bot_name') || appConfig.chat.botName || 'CostOS Assistant'; },
-    get welcomeMessage() {
-        return `${t('chat:welcome')}\n\n• 📊 ${t('chat:welcome_food_cost')}\n• 💰 ${t('chat:welcome_costs')}\n• 📦 ${t('chat:welcome_stock')}\n• 📈 ${t('chat:welcome_margins')}\n• 🏪 ${t('chat:welcome_suppliers')}\n\n${t('chat:welcome_cta')}`;
-    },
-    get placeholderText() { return t('chat:placeholder'); },
-    get errorMessage() { return t('chat:error_generic'); },
-};
-
-// Generar sessionId único
-function generateSessionId() {
-    return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-// 🔒 TENANT ISOLATION: chat history and session are scoped per restaurant
-// so that switching between tenants in the same browser never shows one
-// restaurant's conversations inside another. The keys become:
-//   chatHistory_<restauranteId>
-//   chatSessionId_<restauranteId>
-// If there is no logged-in restaurant we fall back to "anon" (login screen).
-function getCurrentRestauranteId() {
-    try {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        return user.restauranteId ? String(user.restauranteId) : 'anon';
-    } catch {
-        return 'anon';
-    }
-}
-function chatHistoryKey() { return 'chatHistory_' + getCurrentRestauranteId(); }
-function chatSessionKey() { return 'chatSessionId_' + getCurrentRestauranteId(); }
-
-// One-time cleanup: legacy un-prefixed keys would otherwise leak cross-tenant.
-// They existed before this fix. Delete them unconditionally on load.
-try {
-    localStorage.removeItem('chatHistory');
-    localStorage.removeItem('chatSessionId');
-} catch { /* ignore */ }
-
-let chatSessionId = localStorage.getItem(chatSessionKey()) || generateSessionId();
-localStorage.setItem(chatSessionKey(), chatSessionId);
-
-// 🔒 FIX: Proteger JSON.parse con try/catch para evitar crash si localStorage está corrupto
-let chatMessages = [];
-try {
-    const storedHistory = localStorage.getItem(chatHistoryKey());
-    if (storedHistory) {
-        chatMessages = JSON.parse(storedHistory);
-        // Validar que es un array
-        if (!Array.isArray(chatMessages)) {
-            console.warn('⚠️ chatHistory corrupto, reseteando...');
-            chatMessages = [];
-            localStorage.removeItem(chatHistoryKey());
-        }
-    }
-} catch (parseError) {
-    console.error('❌ Error parseando chatHistory, reseteando:', parseError);
-    chatMessages = [];
-    localStorage.removeItem(chatHistoryKey());
-}
+import './chat-pdf.js';
+import { CHAT_CONFIG, getMessages, resetHistory } from './chat-state.js';
+import { isTtsEnabled, toggleTts, speakResponse } from './chat-actions.js';
+import {
+    addMessage,
+    sendMessage,
+    renderChatHistory,
+    updateQuickButtons,
+    clearChat
+} from './chat-messages.js';
 
 let isChatOpen = false;
-let isWaitingResponse = false;
-let ttsEnabled = localStorage.getItem('ttsEnabled') === 'true'; // Text-to-Speech toggle
 
-/**
- * Text-to-Speech: Lee respuestas en voz alta
- */
-function speakResponse(text) {
-    if (!ttsEnabled || !('speechSynthesis' in window)) return;
-
-    // Cancelar cualquier audio previo
-    speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    const currentLang = window.getCurrentLanguage?.() || 'es';
-    utterance.lang = currentLang === 'en' ? 'en-US' : 'es-ES';
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-
-    // Buscar voz en el idioma actual
-    const voices = speechSynthesis.getVoices();
-    const matchedVoice = voices.find(v => v.lang.startsWith(currentLang));
-    if (matchedVoice) utterance.voice = matchedVoice;
-
-    speechSynthesis.speak(utterance);
-}
-
-/**
- * Exporta un mensaje del chat a PDF profesional.
- * Diseño elegante apto para enviar a clientes.
- * Renderiza tablas markdown, headers, bullets, numbered lists, blockquotes
- * y separadores horizontales sin dependencia de autoTable.
- * @param {string} rawText - Texto raw del mensaje (markdown)
- */
-async function exportMessageToPDF(rawText) {
-    try {
-        window.showToast?.(t('chat:pdf_generating'), 'info');
-
-        await loadPDF();
-        const { jsPDF } = window.jspdf;
-
-        const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'Mi Restaurante';
-        const lang = window.getCurrentLanguage?.() || 'es';
-        const fecha = new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-
-        // Brand palette
-        const C = {
-            primary: [102, 126, 234],
-            primaryDark: [79, 70, 229],
-            accent: [139, 92, 246],
-            text: [30, 41, 59],
-            textMuted: [100, 116, 139],
-            textLight: [148, 163, 184],
-            border: [226, 232, 240],
-            zebra: [248, 250, 252],
-            white: [255, 255, 255]
-        };
-
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 18;
-        const contentTop = 50;
-        const contentBottom = pageHeight - 18;
-        const usableWidth = pageWidth - margin * 2;
-
-        // Strip every non-ASCII char except Latin-1 supplement (keeps Spanish accents).
-        // jsPDF's helvetica can't render emoji so we drop them entirely rather than
-        // showing a "þ" placeholder.
-        function cleanText(text) {
-            if (!text) return '';
-            return text
-                .replace(/\*\*(.+?)\*\*/g, '$1')
-                .replace(/\*(.+?)\*/g, '$1')
-                .replace(/__(.+?)__/g, '$1')
-                .replace(/_(.+?)_/g, '$1')
-                .replace(/`([^`]+)`/g, '$1')
-                .replace(/^\s*[-*]\s+/, '')
-                .replace(/^\s*>\s*/, '')
-                .replace(/^#{1,6}\s*/, '')
-                // Keep printable ASCII + Latin-1 Supplement (€, áéíóúñ, etc.)
-                .replace(/[^\x20-\x7E\xA0-\xFF]+/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-        }
-
-        function drawHeader() {
-            // Top bar
-            doc.setFillColor(...C.primary);
-            doc.rect(0, 0, pageWidth, 28, 'F');
-            // Accent thin bar below
-            doc.setFillColor(...C.accent);
-            doc.rect(0, 28, pageWidth, 2, 'F');
-
-            doc.setTextColor(...C.white);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(20);
-            doc.text(restaurante, margin, 14);
-
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            doc.text(t('chat:pdf_subtitle') || 'Business Intelligence Report', margin, 22);
-
-            doc.setFontSize(9);
-            doc.text(fecha, pageWidth - margin, 22, { align: 'right' });
-        }
-
-        function drawFooter(pageNum, totalPages) {
-            doc.setDrawColor(...C.border);
-            doc.setLineWidth(0.3);
-            doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
-
-            doc.setFontSize(8);
-            doc.setTextColor(...C.textLight);
-            doc.setFont('helvetica', 'normal');
-            doc.text(restaurante, margin, pageHeight - 8);
-            doc.text('MindLoop CostOS', pageWidth / 2, pageHeight - 8, { align: 'center' });
-            doc.text(`${pageNum} / ${totalPages}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
-        }
-
-        let y = contentTop;
-
-        function ensureSpace(needed) {
-            if (y + needed > contentBottom) {
-                doc.addPage();
-                drawHeader();
-                y = contentTop;
-            }
-        }
-
-        drawHeader();
-
-        function renderHorizontalRule() {
-            ensureSpace(8);
-            doc.setDrawColor(...C.border);
-            doc.setLineWidth(0.4);
-            doc.line(margin, y + 2, pageWidth - margin, y + 2);
-            y += 6;
-        }
-
-        // Measure how tall a row will be given wrapped cell contents
-        function measureRowHeight(cells, colWidths, fontSize) {
-            doc.setFontSize(fontSize);
-            let maxLines = 1;
-            cells.forEach((cell, idx) => {
-                const w = colWidths[idx] - 4;
-                const wrapped = doc.splitTextToSize(cleanText(cell) || '', w);
-                if (wrapped.length > maxLines) maxLines = wrapped.length;
-            });
-            return Math.max(8, maxLines * 4.5 + 3);
-        }
-
-        function renderTable(headers, rows) {
-            const colCount = headers.length;
-            if (colCount === 0) return;
-            // Equal column widths; works well for 2-5 column tables the chat produces.
-            const colWidths = new Array(colCount).fill(usableWidth / colCount);
-
-            // Header row
-            const headerHeight = measureRowHeight(headers, colWidths, 9);
-            ensureSpace(headerHeight + 10);
-            doc.setFillColor(...C.primary);
-            doc.rect(margin, y, usableWidth, headerHeight, 'F');
-            doc.setTextColor(...C.white);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(9);
-            headers.forEach((h, idx) => {
-                const x = margin + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
-                const text = cleanText(h);
-                const wrapped = doc.splitTextToSize(text, colWidths[idx] - 4);
-                doc.text(wrapped, x + 2, y + 5.5);
-            });
-            y += headerHeight;
-
-            // Data rows
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(...C.text);
-            rows.forEach((row, rowIdx) => {
-                const rowHeight = measureRowHeight(row, colWidths, 9);
-                ensureSpace(rowHeight + 2);
-                if (rowIdx % 2 === 0) {
-                    doc.setFillColor(...C.zebra);
-                    doc.rect(margin, y, usableWidth, rowHeight, 'F');
-                }
-                doc.setDrawColor(...C.border);
-                doc.setLineWidth(0.15);
-                doc.line(margin, y + rowHeight, margin + usableWidth, y + rowHeight);
-                row.forEach((cell, idx) => {
-                    const x = margin + colWidths.slice(0, idx).reduce((s, w) => s + w, 0);
-                    const text = cleanText(cell);
-                    const wrapped = doc.splitTextToSize(text, colWidths[idx] - 4);
-                    doc.text(wrapped, x + 2, y + 5);
-                });
-                y += rowHeight;
-            });
-            y += 4;
-        }
-
-        const lines = rawText.split('\n');
-        let i = 0;
-        while (i < lines.length) {
-            const raw = lines[i];
-            const line = raw.trim();
-
-            // Horizontal separator (--- or ***)
-            if (/^[-*_]{3,}$/.test(line)) {
-                renderHorizontalRule();
-                i++;
-                continue;
-            }
-
-            // Markdown table: pipe row followed by separator
-            if (i + 1 < lines.length && raw.includes('|') &&
-                /^[\s\-:|]+$/.test(lines[i + 1].trim()) && lines[i + 1].includes('|')) {
-                const tableLines = [];
-                let j = i;
-                while (j < lines.length) {
-                    const t = lines[j];
-                    if (!t.includes('|') && tableLines.length > 0) break;
-                    if (!/^[\s\-:|]+$/.test(t.trim())) tableLines.push(t);
-                    j++;
-                }
-                if (tableLines.length >= 2) {
-                    const parseCells = l => l.split('|').map(c => c.trim()).filter((c, idx, arr) => {
-                        // drop empty leading/trailing cells produced by surrounding pipes
-                        if (idx === 0 && c === '') return false;
-                        if (idx === arr.length - 1 && c === '') return false;
-                        return true;
-                    });
-                    const headers = parseCells(tableLines[0]);
-                    const rows = tableLines.slice(1).map(parseCells);
-                    if (headers.length > 0 && rows.length > 0) {
-                        renderTable(headers, rows);
-                    }
-                }
-                i = j;
-                continue;
-            }
-
-            if (!line) {
-                y += 3;
-                i++;
-                continue;
-            }
-
-            const cleaned = cleanText(line);
-            if (!cleaned) { i++; continue; }
-
-            // Headers
-            const headerLvl = (line.match(/^(#{1,6})\s/) || [null, ''])[1].length;
-            if (headerLvl > 0) {
-                const size = headerLvl === 1 ? 15 : headerLvl === 2 ? 13 : 11;
-                ensureSpace(size + 4);
-                // Sidebar accent (only h1/h2)
-                if (headerLvl <= 2) {
-                    doc.setFillColor(...C.primary);
-                    doc.rect(margin, y - size * 0.55, 1.2, size * 0.85, 'F');
-                }
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(size);
-                doc.setTextColor(...C.primary);
-                const wrapped = doc.splitTextToSize(cleaned, usableWidth - 4);
-                doc.text(wrapped, margin + (headerLvl <= 2 ? 4 : 0), y);
-                y += wrapped.length * (size * 0.42) + 3;
-                doc.setTextColor(...C.text);
-                i++;
-                continue;
-            }
-
-            // Blockquote
-            if (line.startsWith('>')) {
-                const text = cleanText(line.replace(/^>+\s*/, ''));
-                if (text) {
-                    doc.setFont('helvetica', 'italic');
-                    doc.setFontSize(9.5);
-                    doc.setTextColor(...C.textMuted);
-                    const wrapped = doc.splitTextToSize(text, usableWidth - 6);
-                    const blockHeight = wrapped.length * 5 + 2;
-                    ensureSpace(blockHeight);
-                    // Left accent bar
-                    doc.setFillColor(...C.accent);
-                    doc.rect(margin, y - 3, 1.5, blockHeight, 'F');
-                    doc.text(wrapped, margin + 4, y + 1);
-                    y += blockHeight + 1;
-                    doc.setTextColor(...C.text);
-                    doc.setFont('helvetica', 'normal');
-                }
-                i++;
-                continue;
-            }
-
-            // Bullet list
-            if (/^[-*•]\s+/.test(line)) {
-                const text = cleanText(line);
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(10);
-                doc.setTextColor(...C.text);
-                const wrapped = doc.splitTextToSize(text, usableWidth - 6);
-                ensureSpace(wrapped.length * 5 + 1);
-                doc.setFillColor(...C.primary);
-                doc.circle(margin + 1.5, y - 1.2, 0.8, 'F');
-                doc.text(wrapped, margin + 5, y);
-                y += wrapped.length * 5 + 1;
-                i++;
-                continue;
-            }
-
-            // Numbered list
-            const numMatch = line.match(/^(\d+)\.\s+(.*)$/);
-            if (numMatch) {
-                const num = numMatch[1];
-                const text = cleanText(numMatch[2]);
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(10);
-                doc.setTextColor(...C.primaryDark);
-                doc.text(`${num}.`, margin, y);
-                doc.setTextColor(...C.text);
-                const wrapped = doc.splitTextToSize(text, usableWidth - 8);
-                ensureSpace(wrapped.length * 5 + 1);
-                doc.text(wrapped, margin + 7, y);
-                y += wrapped.length * 5 + 1;
-                i++;
-                continue;
-            }
-
-            // Regular paragraph
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            doc.setTextColor(...C.text);
-            const wrapped = doc.splitTextToSize(cleaned, usableWidth);
-            ensureSpace(wrapped.length * 5 + 1);
-            doc.text(wrapped, margin, y);
-            y += wrapped.length * 5 + 1;
-            i++;
-        }
-
-        const totalPages = doc.internal.getNumberOfPages();
-        for (let p = 1; p <= totalPages; p++) {
-            doc.setPage(p);
-            drawFooter(p, totalPages);
-        }
-
-        const fechaFile = new Date().toISOString().split('T')[0];
-        const nombreFile = restaurante.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-        doc.save(`Report_${nombreFile}_${fechaFile}.pdf`);
-        window.showToast?.(t('chat:pdf_downloaded'), 'success');
-    } catch (error) {
-        console.error('Error generando PDF:', error);
-        window.showToast?.(t('chat:pdf_error') + ': ' + error.message, 'error');
-    }
-}
-
-// Exponer para uso desde botones
-window.exportMessageToPDF = exportMessageToPDF;
-
-/**
- * Inicializa el widget de chat
- */
 export function initChatWidget() {
     createChatStyles();
     createChatHTML();
     bindChatEvents();
 
-    // Mostrar mensaje de bienvenida si no hay historial
-    if (chatMessages.length === 0) {
+    if (getMessages().length === 0) {
         addMessage('bot', CHAT_CONFIG.welcomeMessage);
     } else {
         renderChatHistory();
     }
 
-    // Chat Widget inicializado
-
-    // When language changes, update all chat UI text
+    // Al cambiar idioma: refresca header/placeholder/botones, y resetea para
+    // que el mensaje de bienvenida aparezca en el nuevo idioma.
     window.addEventListener('languageChanged', () => {
-        // Update header text
         const headerInfo = document.querySelector('.chat-header-info');
         if (headerInfo) {
             headerInfo.querySelector('h3').textContent = CHAT_CONFIG.botName;
             headerInfo.querySelector('p').textContent = t('chat:subtitle');
         }
-        // Update placeholder
         const input = document.getElementById('chat-input');
         if (input) input.placeholder = CHAT_CONFIG.placeholderText;
-        // Update quick buttons
         updateQuickButtons();
-        // Reset chat so welcome message appears in new language
         clearChatHistory();
     });
 }
 
-
 /**
- * Crea el HTML del chat
+ * Limpia el historial, regenera sesión y muestra el mensaje de bienvenida.
+ * Expuesto en window para uso desde el botón del header (legacy) y desde
+ * el listener de languageChanged arriba.
  */
+export function clearChatHistory() {
+    resetHistory();
+    const messagesContainer = document.getElementById('chat-messages');
+    if (messagesContainer) {
+        messagesContainer.innerHTML = '';
+        addMessage('bot', CHAT_CONFIG.welcomeMessage);
+    }
+}
+
 function createChatHTML() {
     const chatContainer = document.createElement('div');
     chatContainer.id = 'chat-widget-container';
@@ -482,10 +78,9 @@ function createChatHTML() {
             </svg>
             <span class="notification-dot"></span>
         </button>
-        
+
         <!-- Chat Window -->
         <div class="chat-window" id="chat-window">
-            <!-- Header -->
             <div class="chat-header">
                 <div class="chat-header-avatar">🤖</div>
                 <div class="chat-header-info">
@@ -498,7 +93,7 @@ function createChatHTML() {
                         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                     </svg>
                 </button>
-                <button class="chat-tts-btn" id="chat-tts" title="${t('chat:toggle_voice_title')}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;opacity:${ttsEnabled ? '1' : '0.5'}">
+                <button class="chat-tts-btn" id="chat-tts" title="${t('chat:toggle_voice_title')}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;opacity:${isTtsEnabled() ? '1' : '0.5'}">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
                         <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                     </svg>
@@ -509,20 +104,15 @@ function createChatHTML() {
                     </svg>
                 </button>
             </div>
-            
-            <!-- Messages -->
+
             <div class="chat-messages" id="chat-messages"></div>
-            
-            <!-- Quick Actions (contextual) -->
-            <div class="chat-quick-actions" id="chat-quick-actions">
-                <!-- Se actualizan dinámicamente según la pestaña -->
-            </div>
-            
-            <!-- Input -->
+
+            <div class="chat-quick-actions" id="chat-quick-actions"></div>
+
             <div class="chat-input-container">
-                <textarea 
-                    class="chat-input" 
-                    id="chat-input" 
+                <textarea
+                    class="chat-input"
+                    id="chat-input"
                     placeholder="${CHAT_CONFIG.placeholderText}"
                     rows="1"
                 ></textarea>
@@ -542,40 +132,28 @@ function createChatHTML() {
     document.body.appendChild(chatContainer);
 }
 
-/**
- * Vincula eventos del chat
- */
 function bindChatEvents() {
     const fab = document.getElementById('chat-fab');
-    const chatWindow = document.getElementById('chat-window');
     const closeBtn = document.getElementById('chat-close');
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send');
-    const quickBtns = document.querySelectorAll('.chat-quick-btn');
 
-    // Toggle chat
     fab.addEventListener('click', () => toggleChat());
     closeBtn.addEventListener('click', () => toggleChat(false));
 
-    // Clear chat
-    const clearBtn = document.getElementById('chat-clear');
-    clearBtn.addEventListener('click', () => clearChat());
+    document.getElementById('chat-clear').addEventListener('click', () => clearChat());
 
-    // TTS Toggle
     const ttsBtn = document.getElementById('chat-tts');
     ttsBtn.addEventListener('click', () => {
-        ttsEnabled = !ttsEnabled;
-        localStorage.setItem('ttsEnabled', ttsEnabled);
-        ttsBtn.style.opacity = ttsEnabled ? '1' : '0.5';
-        ttsBtn.title = ttsEnabled ? t('chat:tts_toggle_on') : t('chat:tts_toggle_off');
-        window.showToast?.(ttsEnabled ? t('chat:tts_enabled') : t('chat:tts_disabled'), 'info');
-        if (ttsEnabled) speakResponse(t('chat:tts_speak_activated'));
+        const enabled = toggleTts();
+        ttsBtn.style.opacity = enabled ? '1' : '0.5';
+        ttsBtn.title = enabled ? t('chat:tts_toggle_on') : t('chat:tts_toggle_off');
+        window.showToast?.(enabled ? t('chat:tts_enabled') : t('chat:tts_disabled'), 'info');
+        if (enabled) speakResponse(t('chat:tts_speak_activated'));
     });
 
-    // Send message
     sendBtn.addEventListener('click', () => sendMessage());
 
-    // Enter to send
     input.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -583,13 +161,11 @@ function bindChatEvents() {
         }
     });
 
-    // Auto resize textarea
     input.addEventListener('input', () => {
         input.style.height = 'auto';
         input.style.height = Math.min(input.scrollHeight, 100) + 'px';
     });
 
-    // Quick actions (delegated event)
     document.getElementById('chat-quick-actions').addEventListener('click', e => {
         if (e.target.classList.contains('chat-quick-btn')) {
             input.value = e.target.dataset.msg;
@@ -597,7 +173,7 @@ function bindChatEvents() {
         }
     });
 
-    // Speech recognition (voice input)
+    // Speech recognition (voice input).
     const micBtn = document.getElementById('chat-mic');
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -619,7 +195,7 @@ function bindChatEvents() {
                     micBtn.classList.add('recording');
                     isRecording = true;
                 } catch (e) {
-                    // InvalidStateError: recognition already started (double-click race)
+                    // InvalidStateError: recognition already started (double-click race).
                     logger.warn('Speech recognition start failed:', e.message);
                     micBtn.classList.remove('recording');
                     isRecording = false;
@@ -628,7 +204,6 @@ function bindChatEvents() {
         });
 
         recognition.onresult = event => {
-            // 🔒 FIX: Verificar que existen los índices antes de acceder
             const transcript = event.results?.[0]?.[0]?.transcript || '';
             if (!transcript) {
                 logger.warn('Speech recognition: transcripción vacía');
@@ -640,8 +215,6 @@ function bindChatEvents() {
             input.focus();
             micBtn.classList.remove('recording');
             isRecording = false;
-            // Optional: auto-send after recognition
-            // sendMessage();
         };
 
         recognition.onerror = event => {
@@ -658,17 +231,12 @@ function bindChatEvents() {
             isRecording = false;
         };
     } else {
-        // Browser doesn't support speech recognition
         micBtn.style.display = 'none';
     }
 
-    // Update quick buttons on tab change
     updateQuickButtons();
 }
 
-/**
- * Toggle ventana de chat
- */
 function toggleChat(forceState) {
     const chatWindow = document.getElementById('chat-window');
     const fab = document.getElementById('chat-fab');
@@ -678,1011 +246,13 @@ function toggleChat(forceState) {
     chatWindow.classList.toggle('open', isChatOpen);
     fab.classList.toggle('active', isChatOpen);
 
-    // Hide notification dot when opened
     if (isChatOpen) {
         fab.querySelector('.notification-dot').style.display = 'none';
         document.getElementById('chat-input').focus();
     }
 }
 
-/**
- * Añade un mensaje al chat
- */
-function addMessage(type, text, save = true) {
-    const messagesContainer = document.getElementById('chat-messages');
-    const lang = window.getCurrentLanguage?.() || 'es';
-    const time = new Date().toLocaleTimeString(lang === 'en' ? 'en-US' : 'es-ES', { hour: '2-digit', minute: '2-digit' });
-
-    // Verificar si es mensaje de bienvenida (no mostrar botón PDF)
-    const isWelcome = text === CHAT_CONFIG.welcomeMessage;
-
-    // Botón PDF para mensajes del bot
-    let pdfButton = '';
-    if (type === 'bot' && !isWelcome) {
-        try {
-            const encodedText = btoa(unescape(encodeURIComponent(text)));
-            pdfButton = `<button class="chat-pdf-btn" 
-                 data-pdf-text="${encodedText}"
-                 title="${t('chat:export_pdf_title')}"
-                 style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-                 onmouseover="this.style.opacity='1'" 
-                 onmouseout="this.style.opacity='0.6'"
-                 onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
-        } catch (e) {
-            console.warn('Error encoding text for PDF:', e);
-        }
-    }
-
-    const messageEl = document.createElement('div');
-    messageEl.className = `chat-message ${type}`;
-    messageEl.innerHTML = `
-        <div class="chat-message-avatar">${type === 'bot' ? '🤖' : '👤'}</div>
-        <div>
-            <div class="chat-message-content">${parseMarkdown(text)}</div>
-            <div class="chat-message-time">${time} ${pdfButton}</div>
-        </div>
-    `;
-
-    messagesContainer.appendChild(messageEl);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-    // Guardar en historial
-    if (save) {
-        chatMessages.push({ type, text, time: Date.now() });
-        // Mantener solo los últimos 50 mensajes
-        if (chatMessages.length > 50) chatMessages = chatMessages.slice(-50);
-        localStorage.setItem(chatHistoryKey(), JSON.stringify(chatMessages));
-    }
-}
-
-/**
- * Añade mensaje con botones de acción
- */
-function addMessageWithAction(type, text, actionData) {
-    const messagesContainer = document.getElementById('chat-messages');
-    const lang = window.getCurrentLanguage?.() || 'es';
-    const time = new Date().toLocaleTimeString(lang === 'en' ? 'en-US' : 'es-ES', { hour: '2-digit', minute: '2-digit' });
-    const actionId = 'action_' + Date.now();
-
-    const messageEl = document.createElement('div');
-    messageEl.className = `chat-message ${type}`;
-    messageEl.innerHTML = `
-        <div class="chat-message-avatar">🤖</div>
-        <div>
-            <div class="chat-message-content">${parseMarkdown(text)}</div>
-            <div class="chat-action-buttons" id="${actionId}" style="margin-top: 12px; display: flex; gap: 8px;">
-                <button class="chat-action-confirm" data-action="${encodeURIComponent(actionData)}" 
-                    style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    ✅ ${t('chat:action_confirm')}
-                </button>
-                <button class="chat-action-cancel"
-                    style="background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                    ❌ ${t('chat:action_cancel')}
-                </button>
-            </div>
-            <div class="chat-message-time">${time}</div>
-        </div>
-    `;
-
-    messagesContainer.appendChild(messageEl);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-    // Eventos de los botones
-    const confirmBtn = messageEl.querySelector('.chat-action-confirm');
-    const cancelBtn = messageEl.querySelector('.chat-action-cancel');
-    const buttonsContainer = document.getElementById(actionId);
-
-    confirmBtn.addEventListener('click', async () => {
-        buttonsContainer.innerHTML = `<span style="color: #f59e0b;">⏳ ${t('chat:action_executing')}</span>`;
-        const success = await executeAction(actionData);
-        if (success) {
-            buttonsContainer.innerHTML =
-                `<span style="color: #10b981;">✅ ${t('chat:action_done')}</span>`;
-            addMessage('bot', `✅ ${t('chat:action_completed')}`, false);
-        } else {
-            buttonsContainer.innerHTML =
-                `<span style="color: #ef4444;">❌ ${t('chat:action_error')}</span>`;
-        }
-    });
-
-    cancelBtn.addEventListener('click', () => {
-        buttonsContainer.innerHTML = `<span style="color: #64748b;">🚫 ${t('chat:action_cancelled')}</span>`;
-    });
-
-    // Guardar mensaje (sin la acción)
-    chatMessages.push({ type, text, time: Date.now() });
-    if (chatMessages.length > 50) chatMessages = chatMessages.slice(-50);
-    localStorage.setItem(chatHistoryKey(), JSON.stringify(chatMessages));
-}
-
-/**
- * Ejecuta una acción del chat
- * Formato: tipo|entidad|campo|valor (ej: "update|ingrediente|PULPO|precio|25")
- */
-async function executeAction(actionData) {
-    try {
-        const parts = actionData.split('|');
-        const action = parts[0]; // update, add, etc.
-        const entity = parts[1]; // ingrediente, receta
-        const name = parts[2]; // nombre del item
-        const field = parts[3]; // campo a modificar
-        const value = parts[4]; // nuevo valor
-
-        // Ejecutando acción
-
-        if (action === 'update' && entity === 'ingrediente') {
-            // Buscar ingrediente por nombre
-            const ing = window.ingredientes?.find(i =>
-                i.nombre.toLowerCase().includes(name.toLowerCase())
-            );
-            if (!ing) {
-                logger.error('Ingrediente no encontrado:', name);
-                return false;
-            }
-
-            // 🔒 FIX v2: Para stock usar ajuste atómico, para precio usar updateIngrediente
-            if (field === 'stock') {
-                // Calcular delta: nuevo_valor - valor_actual
-                const stockActual = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
-                const nuevoValor = parseFloat(value);
-                const delta = nuevoValor - stockActual;
-                await window.api.adjustStock(ing.id, delta, 'chat_voice');
-            } else if (field === 'precio') {
-                await window.api.updateIngrediente(ing.id, { precio: parseFloat(value) });
-            }
-
-            await window.cargarDatos();
-            window.renderizarIngredientes?.();
-
-            // 🔥 FIX: Si el formulario de edición está abierto para este ingrediente, actualizarlo
-            if (window.editandoIngredienteId === ing.id) {
-                const ingredienteActualizado = window.ingredientes?.find(i => i.id === ing.id);
-                if (ingredienteActualizado) {
-                    if (field === 'precio') {
-                        document.getElementById('ing-precio').value = ingredienteActualizado.precio;
-                    }
-                    if (field === 'stock') {
-                        document.getElementById('ing-stock').value =
-                            ingredienteActualizado.stock_actual;
-                    }
-                }
-            }
-
-            window.showToast?.(`${ing.nombre} actualizado: ${field} = ${value}`, 'success');
-            return true;
-        } else if (action === 'update' && entity === 'receta') {
-            // Buscar receta por nombre
-            const rec = window.recetas?.find(r =>
-                r.nombre.toLowerCase().includes(name.toLowerCase())
-            );
-            if (!rec) {
-                logger.error('Receta no encontrada:', name);
-                return false;
-            }
-
-            // Preparar actualización
-            const updates = { ...rec };
-            if (field === 'precio' || field === 'precio_venta')
-                updates.precio_venta = parseFloat(value);
-
-            // Llamar API
-            await window.api.updateReceta(rec.id, updates);
-            await window.cargarDatos();
-            window.renderizarRecetas?.();
-
-            // 🔥 FIX: Si el formulario de edición está abierto para esta receta, actualizarlo
-            if (window.editandoRecetaId === rec.id) {
-                const recetaActualizada = window.recetas?.find(r => r.id === rec.id);
-                if (recetaActualizada) {
-                    if (field === 'precio' || field === 'precio_venta') {
-                        document.getElementById('rec-precio_venta').value =
-                            recetaActualizada.precio_venta;
-                    }
-                    // Recalcular coste y márgenes
-                    window.calcularCosteReceta?.();
-                }
-            }
-
-            window.showToast?.(`${rec.nombre} actualizado: precio = ${cm(value)}`, 'success');
-            return true;
-        } else if (action === 'update' && entity === 'receta_ingrediente') {
-            // Formato: update|receta_ingrediente|RECETA|INGREDIENTE|cantidad|VALOR
-            // parts[0]=update, parts[1]=receta_ingrediente, parts[2]=RECETA, parts[3]=INGREDIENTE, parts[4]=cantidad, parts[5]=VALOR
-            const recetaNombre = parts[2];
-            const ingredienteNombre = parts[3];
-            const nuevaCantidad = parseFloat(parts[5]); // El valor está en parts[5]
-
-            // Actualizando receta_ingrediente
-
-            if (isNaN(nuevaCantidad)) {
-                logger.error('Cantidad inválida:', parts[5]);
-                return false;
-            }
-
-            // Buscar receta
-            const rec = window.recetas?.find(r =>
-                r.nombre.toLowerCase().includes(recetaNombre.toLowerCase())
-            );
-            if (!rec) {
-                logger.error('Receta no encontrada:', recetaNombre);
-                return false;
-            }
-
-            // Buscar ingrediente
-            const ing = window.ingredientes?.find(i =>
-                i.nombre.toLowerCase().includes(ingredienteNombre.toLowerCase())
-            );
-            if (!ing) {
-                logger.error('Ingrediente no encontrado:', ingredienteNombre);
-                return false;
-            }
-
-            // Buscar el ingrediente en la receta
-            const ingredienteIdx = rec.ingredientes?.findIndex(
-                item => item.ingredienteId === ing.id
-            );
-            if (ingredienteIdx === -1 || ingredienteIdx === undefined) {
-                logger.error('El ingrediente no está en la receta');
-                return false;
-            }
-
-            // Actualizar cantidad (crear nuevo array para asegurar inmutabilidad)
-            const nuevosIngredientes = [...rec.ingredientes];
-            nuevosIngredientes[ingredienteIdx] = {
-                ...nuevosIngredientes[ingredienteIdx],
-                cantidad: nuevaCantidad,
-            };
-
-            // Crear objeto actualizado
-            const recetaActualizada = {
-                ...rec,
-                ingredientes: nuevosIngredientes,
-            };
-
-            // Llamar API para actualizar receta
-            await window.api.updateReceta(rec.id, recetaActualizada);
-            await window.cargarDatos();
-            window.renderizarRecetas?.();
-            window.calcularCosteReceta?.();
-            window.showToast?.(`${rec.nombre}: ${ing.nombre} ahora = ${nuevaCantidad}`, 'success');
-            return true;
-        }
-
-        // ========== NUEVAS ACCIONES DE VOZ ==========
-
-        // ADD INGREDIENTE: add|ingrediente|NOMBRE|precio|VALOR|unidad|UNIDAD
-        if (action === 'add' && entity === 'ingrediente') {
-            const nombre = parts[2];
-            const precio = parseFloat(parts[4]) || 0;
-            const unidad = parts[6] || 'kg';
-
-            const nuevoIng = await window.api.createIngrediente({
-                nombre: nombre.toUpperCase(),
-                precio: precio,
-                unidad: unidad,
-                stock_actual: 0,
-                stock_minimo: 0,
-                proveedor_id: null
-            });
-
-            await window.cargarDatos();
-            window.renderizarIngredientes?.();
-            window.showToast?.(`✅ Ingrediente ${nombre} creado a ${cm(precio)}/${unidad}`, 'success');
-            speakResponse(`Ingrediente ${nombre} añadido correctamente`);
-            return true;
-        }
-
-        // REGISTRAR MERMA: merma|ingrediente|NOMBRE|cantidad|VALOR
-        if (action === 'merma' && entity === 'ingrediente') {
-            const nombre = parts[2];
-            const cantidad = parseFloat(parts[4]) || 0;
-
-            const ing = window.ingredientes?.find(i =>
-                i.nombre.toLowerCase().includes(nombre.toLowerCase())
-            );
-            if (!ing) {
-                logger.error('Ingrediente no encontrado:', nombre);
-                window.showToast?.(`Ingrediente ${nombre} no encontrado`, 'error');
-                return false;
-            }
-
-            // Backend handles stock deduction in POST /api/mermas (symmetric with DELETE restore)
-            if (window.API?.fetch) {
-                await window.API.fetch('/api/mermas', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        mermas: [{
-                            ingredienteId: ing.id,
-                            ingredienteNombre: ing.nombre,
-                            cantidad: cantidad,
-                            unidad: ing.unidad || 'ud',
-                            valorPerdida: 0,
-                            motivo: 'Chat/Voz',
-                            nota: t('chat:note_registered_via_chat'),
-                            responsableId: null
-                        }]
-                    })
-                });
-            }
-
-            await window.cargarDatos();
-            window.renderizarIngredientes?.();
-            window.showToast?.(`📉 Merma registrada: -${cantidad} ${ing.unidad} de ${ing.nombre}`, 'success');
-            speakResponse(`Merma de ${cantidad} ${ing.unidad} de ${ing.nombre} registrada`);
-            return true;
-        }
-
-        // ADD PEDIDO: add|pedido|PROVEEDOR|ingrediente|NOMBRE|cantidad|VALOR|precio|PRECIO
-        if (action === 'add' && entity === 'pedido') {
-            const proveedorNombre = parts[2];
-            const ingredienteNombre = parts[4];
-            const cantidad = parseFloat(parts[6]) || 0;
-            const precio = parseFloat(parts[8]) || 0;
-
-            // Buscar proveedor
-            const proveedor = window.proveedores?.find(p =>
-                p.nombre.toLowerCase().includes(proveedorNombre.toLowerCase())
-            );
-
-            // Buscar ingrediente
-            const ing = window.ingredientes?.find(i =>
-                i.nombre.toLowerCase().includes(ingredienteNombre.toLowerCase())
-            );
-            if (!ing) {
-                window.showToast?.(`Ingrediente ${ingredienteNombre} no encontrado`, 'error');
-                return false;
-            }
-
-            await window.api.createPedido({
-                proveedor_id: proveedor?.id || null,
-                fecha: new Date().toISOString().split('T')[0],
-                estado: 'pendiente',
-                items: [{
-                    ingrediente_id: ing.id,
-                    cantidad: cantidad,
-                    precio_unitario: precio || ing.precio
-                }],
-                total: cantidad * (precio || ing.precio)
-            });
-
-            await window.cargarDatos();
-            window.renderizarPedidos?.();
-            window.showToast?.(`📦 Pedido creado: ${cantidad} ${ing.unidad} de ${ing.nombre}`, 'success');
-            speakResponse(`Pedido de ${cantidad} ${ing.unidad} de ${ing.nombre} creado`);
-            return true;
-        }
-
-        // ADD VENTA: add|venta|RECETA|cantidad|VALOR
-        if (action === 'add' && entity === 'venta') {
-            const recetaNombre = parts[2];
-            const cantidad = parseInt(parts[4]) || 1;
-
-            const rec = window.recetas?.find(r =>
-                r.nombre.toLowerCase().includes(recetaNombre.toLowerCase())
-            );
-            if (!rec) {
-                window.showToast?.(`Receta ${recetaNombre} no encontrada`, 'error');
-                return false;
-            }
-
-            const precioVenta = parseFloat(rec.precio_venta) || 0;
-            const total = cantidad * precioVenta;
-
-            await window.api.createSale({
-                receta_id: rec.id,
-                fecha: new Date().toISOString().split('T')[0],
-                cantidad: cantidad,
-                precio_unitario: precioVenta,
-                total: total
-            });
-
-            await window.cargarDatos();
-            window.renderizarVentas?.();
-            window.showToast?.(`💰 Venta registrada: ${cantidad}x ${rec.nombre} = ${cm(total)}`, 'success');
-            speakResponse(`Venta de ${cantidad} ${rec.nombre} registrada por ${total.toFixed(2)} euros`);
-            return true;
-        }
-
-        // ========== FIN NUEVAS ACCIONES ==========
-
-        logger.warn('Acción no reconocida:', actionData);
-        return false;
-    } catch (error) {
-        logger.error('Error ejecutando acción:', error);
-        window.showToast?.('Error: ' + error.message, 'error');
-        return false;
-    }
-}
-
-/**
- * Muestra indicador de typing
- */
-function showTyping() {
-    const messagesContainer = document.getElementById('chat-messages');
-
-    const typingEl = document.createElement('div');
-    typingEl.id = 'chat-typing';
-    typingEl.className = 'chat-typing';
-    typingEl.innerHTML = `
-        <div class="chat-message-avatar" style="width:28px;height:28px;font-size:12px;">🤖</div>
-        <div class="chat-typing-dots">
-            <div class="chat-typing-dot"></div>
-            <div class="chat-typing-dot"></div>
-            <div class="chat-typing-dot"></div>
-        </div>
-    `;
-
-    messagesContainer.appendChild(typingEl);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-/**
- * Oculta indicador de typing
- */
-function hideTyping() {
-    const typingEl = document.getElementById('chat-typing');
-    if (typingEl) typingEl.remove();
-}
-
-/**
- * Envía mensaje al webhook
- */
-async function sendMessage() {
-    const input = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('chat-send');
-    const message = input.value.trim();
-
-    if (!message || isWaitingResponse) return;
-
-    // Add user message
-    addMessage('user', message);
-    input.value = '';
-    input.style.height = 'auto';
-
-    // Disable input
-    isWaitingResponse = true;
-    sendBtn.disabled = true;
-    input.disabled = true;
-    showTyping();
-
-    try {
-        const lang = window.getCurrentLanguage?.() || 'es';
-        let data;
-
-        if (appConfig.chat.backend === 'claude') {
-            // Backend nuevo: POST /api/chat (multi-tenant vía JWT).
-            // El backend saca contexto de DB con tools, no necesita el payload grande.
-            data = await api.chat(message, lang, chatSessionId);
-        } else {
-            // Legacy: webhook n8n con payload completo.
-            const tabContext = getCurrentTabContext();
-            const response = await fetch(CHAT_CONFIG.webhookUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message,
-                    sessionId: chatSessionId,
-                    restaurante: window.getRestaurantName ? window.getRestaurantName() : 'Restaurante',
-                    timestamp: new Date().toISOString(),
-                    fechaHoy: new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
-                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                    }),
-                    fechaISO: new Date().toISOString().split('T')[0],
-                    contexto: tabContext,
-                    lang,
-                }),
-            });
-            if (!response.ok) throw new Error('Error en la respuesta');
-            data = await response.text();
-        }
-
-        hideTyping();
-
-        // Detectar si hay una acción pendiente de confirmar
-        const actionMatch = data.match(/\[ACTION:([^\]]+)\]/);
-        if (actionMatch) {
-            const actionData = actionMatch[1];
-            const cleanMessage = data.replace(/\[ACTION:[^\]]+\]/, '').trim();
-            addMessageWithAction('bot', cleanMessage, actionData);
-        } else {
-            addMessage('bot', data || t('chat:no_response'));
-        }
-    } catch (error) {
-        hideTyping();
-        logger.error('Chat error:', error);
-        addMessage('bot', CHAT_CONFIG.errorMessage);
-    } finally {
-        isWaitingResponse = false;
-        sendBtn.disabled = false;
-        input.disabled = false;
-        input.focus();
-    }
-}
-
-/**
- * Renderiza el historial
- * ⚡ Optimizado: Usa DocumentFragment para evitar múltiples reflows
- */
-function renderChatHistory() {
-    const messagesContainer = document.getElementById('chat-messages');
-    messagesContainer.innerHTML = '';
-
-    // ⚡ OPTIMIZACIÓN: Crear fragmento para batch DOM operations
-    const fragment = document.createDocumentFragment();
-
-    chatMessages.forEach(msg => {
-        const time = new Date(msg.time).toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-        const messageEl = document.createElement('div');
-        messageEl.className = `chat-message ${msg.type}`;
-        // Botón PDF para mensajes del bot (no para bienvenida)
-        let pdfButton = '';
-        if (msg.type === 'bot' && msg.text !== CHAT_CONFIG.welcomeMessage) {
-            try {
-                const encodedText = btoa(unescape(encodeURIComponent(msg.text)));
-                pdfButton = `<button class="chat-pdf-btn" 
-                     data-pdf-text="${encodedText}"
-                     title="${t('chat:export_pdf_title')}"
-                     style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-                     onmouseover="this.style.opacity='1'" 
-                     onmouseout="this.style.opacity='0.6'"
-                     onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
-            } catch (e) {
-                console.warn('Error encoding text for PDF:', e);
-            }
-        }
-
-        messageEl.innerHTML = `
-            <div class="chat-message-avatar">${msg.type === 'bot' ? '🤖' : '👤'}</div>
-            <div>
-                <div class="chat-message-content">${parseMarkdown(msg.text)}</div>
-                <div class="chat-message-time">${time} ${pdfButton}</div>
-            </div>
-        `;
-        fragment.appendChild(messageEl);
-    });
-
-    // Una sola operación DOM en lugar de N operaciones
-    messagesContainer.appendChild(fragment);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-/**
- * Limpia el historial
- */
-export function clearChatHistory() {
-    chatMessages = [];
-    localStorage.removeItem(chatHistoryKey());
-    chatSessionId = generateSessionId();
-    localStorage.setItem(chatSessionKey(), chatSessionId);
-
-    const messagesContainer = document.getElementById('chat-messages');
-    if (messagesContainer) {
-        messagesContainer.innerHTML = '';
-        addMessage('bot', CHAT_CONFIG.welcomeMessage);
-    }
-}
-
-/**
- * Limpia el chat (wrapper para el botón)
- * Usa doble clic como confirmación para evitar borrado accidental
- */
-let clearClickCount = 0;
-let clearClickTimer = null;
-
-function clearChat() {
-    clearClickCount++;
-
-    if (clearClickCount === 1) {
-        // Primer clic - mostrar aviso
-        window.showToast?.(t('chat:clear_confirm_hint'), 'warning');
-        clearClickTimer = setTimeout(() => {
-            clearClickCount = 0; // Reset después de 2 segundos
-        }, 2000);
-    } else if (clearClickCount >= 2) {
-        // Segundo clic - borrar
-        clearTimeout(clearClickTimer);
-        clearClickCount = 0;
-        clearChatHistory();
-        window.showToast?.(t('chat:history_cleared'), 'success');
-    }
-}
-
-/**
- * Actualiza botones rápidos según la pestaña actual
- */
-function updateQuickButtons() {
-    const container = document.getElementById('chat-quick-actions');
-    if (!container) return;
-
-    const currentTab = getCurrentTab();
-
-    const buttonsByTab = {
-        ingredientes: [
-            { msg: t('chat:suggestion_price_increase'), label: `📈 ${t('chat:suggestion_price_increase_short')}` },
-            { msg: t('chat:suggestion_low_stock'), label: `⚠️ ${t('chat:suggestion_low_stock_short')}` },
-            { msg: t('chat:suggestion_most_expensive'), label: `💰 ${t('chat:suggestion_most_expensive_short')}` },
-        ],
-        recetas: [
-            { msg: t('chat:suggestion_most_profitable'), label: `⭐ ${t('chat:suggestion_most_profitable_short')}` },
-            { msg: t('chat:suggestion_high_food_cost'), label: `🔴 ${t('chat:suggestion_high_food_cost_short')}` },
-            { msg: t('chat:suggestion_price_suggestion'), label: `💵 ${t('chat:suggestion_price_suggestion_short')}` },
-        ],
-        proveedores: [
-            { msg: t('chat:suggestion_compare_suppliers'), label: `🏪 ${t('chat:suggestion_compare_suppliers_short')}` },
-            { msg: t('chat:suggestion_spending'), label: `💳 ${t('chat:suggestion_spending_short')}` },
-        ],
-        dashboard: [
-            { msg: t('chat:suggestion_summary'), label: `📊 ${t('chat:suggestion_summary_short')}` },
-            { msg: t('chat:suggestion_food_cost'), label: `🎯 ${t('chat:suggestion_food_cost_short')}` },
-            { msg: t('chat:suggestion_portions'), label: `🍽️ ${t('chat:suggestion_portions_short')}` },
-        ],
-        default: [
-            { msg: t('chat:suggestion_food_cost'), label: `📊 ${t('chat:suggestion_food_cost_short')}` },
-            { msg: t('chat:suggestion_portions'), label: `🍽️ ${t('chat:suggestion_portions_short')}` },
-            { msg: t('chat:suggestion_suppliers'), label: `🏪 ${t('chat:suggestion_suppliers_short')}` },
-            { msg: t('chat:suggestion_margins'), label: `📈 ${t('chat:suggestion_margins_short')}` },
-        ],
-    };
-
-    const buttons = buttonsByTab[currentTab] || buttonsByTab['default'];
-
-    container.innerHTML = buttons
-        .map(btn => `<button class="chat-quick-btn" data-msg="${btn.msg}">${btn.label}</button>`)
-        .join('');
-}
-
-/**
- * Obtiene la pestaña actual
- */
-function getCurrentTab() {
-    const activeTab = document.querySelector('.tab-btn.active');
-    if (activeTab) {
-        return activeTab.textContent
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .trim();
-    }
-    return 'dashboard';
-}
-
-/**
- * Obtiene contexto de la pestaña actual para enviar al agente
- */
-function getCurrentTabContext() {
-    const tab = getCurrentTab();
-    const context = { tab };
-
-    try {
-        // Gastos fijos: just pass the total from DB (Claude backend has its own
-        // obtener_gastos/resumen_pyg tools with the full per-category breakdown,
-        // so sending granular snapshots here is redundant and risked showing
-        // only the legacy 4 hardcoded categories).
-        context.gastosFijos = { total: 0 };
-
-        // Siempre incluir TODOS los ingredientes con datos compactos
-        if (window.ingredientes && Array.isArray(window.ingredientes)) {
-            // Calcular valor total del inventario
-            let valorTotalStock = 0;
-            context.ingredientes = window.ingredientes.map(i => {
-                const stock = parseFloat(i.stock_actual) || parseFloat(i.stock_virtual) || 0;
-                const precio = parseFloat(i.precio_medio_compra) || parseFloat(i.precio_medio) || parseFloat(i.precio) || 0;
-                valorTotalStock += stock * precio;
-                return {
-                    nombre: i.nombre,
-                    precio: precio,
-                    unidad: i.unidad || 'kg',
-                    stock: stock,
-                };
-            });
-            context.totalIngredientes = window.ingredientes.length;
-            context.valorTotalStock = Math.round(valorTotalStock * 100) / 100;
-            context.stockBajo = window.ingredientes.filter(
-                i => parseFloat(i.stock_actual) === 0 || (i.stock_minimo > 0 && parseFloat(i.stock_actual) <= parseFloat(i.stock_minimo))
-            ).length;
-        }
-
-        // Siempre incluir resumen de recetas con ingredientes detallados
-        if (window.recetas && Array.isArray(window.recetas)) {
-            context.recetas = window.recetas.slice(0, 15).map(r => {
-                const coste = window.calcularCosteRecetaCompleto
-                    ? window.calcularCosteRecetaCompleto(r)
-                    : 0;
-                const precioVenta = parseFloat(r.precio_venta) || 0;
-                const foodCost = precioVenta > 0 ? (coste / precioVenta) * 100 : 0;
-                const margen = precioVenta > 0 ? ((precioVenta - coste) / precioVenta) * 100 : 0;
-
-                // Incluir ingredientes detallados (precio unitario normalizado)
-                const ingredientesDetalle = (r.ingredientes || []).map(item => {
-                    const ing = window.ingredientes?.find(i => i.id === item.ingredienteId);
-                    const invItem = window.inventarioCompleto?.find(i => i.id === item.ingredienteId);
-                    // Prioridad: precio_medio_compra > precio_medio > precio/cpf
-                    let precioUd = 0;
-                    if (invItem?.precio_medio_compra) {
-                        precioUd = parseFloat(invItem.precio_medio_compra);
-                    } else if (invItem?.precio_medio) {
-                        precioUd = parseFloat(invItem.precio_medio);
-                    } else if (ing?.precio) {
-                        const cpf = parseFloat(ing.cantidad_por_formato) || 1;
-                        precioUd = parseFloat(ing.precio) / cpf;
-                    }
-                    const cantidad = parseFloat(item.cantidad) || 0;
-                    return {
-                        nombre: ing?.nombre || 'Desconocido',
-                        cantidad: cantidad,
-                        unidad: ing?.unidad || 'kg',
-                        precioUd: precioUd,
-                        coste: Math.round(precioUd * cantidad * 100) / 100,
-                    };
-                });
-
-                return {
-                    nombre: r.nombre,
-                    categoria: r.categoria,
-                    coste: Math.round(coste * 100) / 100,
-                    precioVenta: precioVenta,
-                    foodCost: Math.round(foodCost * 10) / 10,
-                    margen: Math.round(margen * 10) / 10,
-                    ingredientes: ingredientesDetalle,
-                };
-            });
-            context.totalRecetas = window.recetas.length;
-            context.recetasFoodCostAlto = context.recetas.filter(r => r.foodCost > 40).length;
-        }
-
-        // Incluir proveedores
-        if (window.proveedores && Array.isArray(window.proveedores)) {
-            context.proveedores = window.proveedores.map(p => ({
-                id: p.id,
-                nombre: p.nombre,
-                telefono: p.telefono || '',
-                email: p.email || '',
-            }));
-            context.totalProveedores = window.proveedores.length;
-        }
-
-        // 🆕 Incluir relación ingrediente → proveedores (para preguntas de múltiples proveedores)
-        if (window.ingredientes && window.proveedores) {
-            // Calcular ingredientes con múltiples proveedores
-            const ingredientesConProveedores = window.ingredientes
-                .filter(ing => ing.proveedores && Array.isArray(ing.proveedores) && ing.proveedores.length > 0)
-                .map(ing => {
-                    const proveedoresNombres = ing.proveedores.map(p => {
-                        const prov = window.proveedores.find(pr => pr.id === p.proveedor_id);
-                        return prov ? prov.nombre : 'Desconocido';
-                    });
-                    return {
-                        ingrediente: ing.nombre,
-                        numProveedores: ing.proveedores.length,
-                        proveedores: proveedoresNombres.join(', '),
-                    };
-                });
-
-            context.ingredientesMultiplesProveedores = ingredientesConProveedores.filter(i => i.numProveedores >= 2);
-            context.totalIngredientesConMultiplesProveedores = context.ingredientesMultiplesProveedores.length;
-
-            // Ingredientes sin proveedor asignado
-            context.ingredientesSinProveedor = window.ingredientes
-                .filter(ing => !ing.proveedores || ing.proveedores.length === 0)
-                .filter(ing => !ing.proveedor_id && !ing.proveedorId)
-                .map(ing => ing.nombre)
-                .slice(0, 20); // Limitar para no saturar el contexto
-        }
-
-        // Incluir ventas si existen
-        if (window.ventas && Array.isArray(window.ventas)) {
-            const hoy = new Date().toISOString().split('T')[0];
-            const ventasHoy = window.ventas.filter(v => v.fecha === hoy);
-            const totalVentasHoy = ventasHoy.reduce(
-                (sum, v) => sum + (parseFloat(v.total) || 0),
-                0
-            );
-            context.ventas = {
-                hoy: Math.round(totalVentasHoy * 100) / 100,
-                totalRegistros: window.ventas.length,
-            };
-        }
-
-        // Incluir empleados
-        if (window.empleados && Array.isArray(window.empleados)) {
-            context.empleados = window.empleados.map(e => ({
-                id: e.id,
-                nombre: e.nombre,
-                puesto: e.puesto || '',
-            }));
-            context.totalEmpleados = window.empleados.length;
-        }
-
-        // Incluir horarios de hoy
-        if (window.horarios && Array.isArray(window.horarios)) {
-            const hoyISO = new Date().toISOString().split('T')[0];
-            const horariosHoy = window.horarios.filter(h => {
-                const fechaH = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
-                return fechaH === hoyISO;
-            });
-            context.horariosHoy = horariosHoy.map(h => {
-                const emp = window.empleados?.find(e => e.id === h.empleado_id);
-                return {
-                    empleado: emp?.nombre || 'Desconocido',
-                    turno: h.turno,
-                    horaInicio: h.hora_inicio,
-                    horaFin: h.hora_fin,
-                };
-            });
-            // Calcular quién trabaja y quién libra
-            const idsTrabajan = new Set(horariosHoy.map(h => h.empleado_id));
-            context.trabajanHoy = (window.empleados || [])
-                .filter(e => idsTrabajan.has(e.id))
-                .map(e => e.nombre);
-            context.libranHoy = (window.empleados || [])
-                .filter(e => !idsTrabajan.has(e.id))
-                .map(e => e.nombre);
-        }
-
-        // 🆕 Incluir datos del P&L/Diario (datosResumenMensual)
-        if (window.datosResumenMensual) {
-            const resumen = window.datosResumenMensual;
-            context.diario = {
-                dias: resumen.dias || [],
-                totalCompras: resumen.compras?.total || 0,
-                totalIngresos: resumen.ventas?.totalIngresos || 0,
-                totalCostes: resumen.ventas?.totalCostes || 0,
-                beneficioBruto: resumen.ventas?.beneficioBruto || 0,
-                foodCost: resumen.resumen?.foodCost || 0,
-                margenPromedio: resumen.resumen?.margenPromedio || 0,
-            };
-
-            // Incluir datos por día (últimos 7 días para no saturar)
-            if (resumen.ventas?.recetas) {
-                const datosPorDia = {};
-                for (const [nombre, recetaData] of Object.entries(resumen.ventas.recetas)) {
-                    for (const [fecha, diaData] of Object.entries(recetaData.dias || {})) {
-                        if (!datosPorDia[fecha]) {
-                            datosPorDia[fecha] = { ingresos: 0, costes: 0, vendidas: 0 };
-                        }
-                        datosPorDia[fecha].ingresos += diaData.ingresos || 0;
-                        datosPorDia[fecha].costes += diaData.coste || 0;
-                        datosPorDia[fecha].vendidas += diaData.vendidas || 0;
-                    }
-                }
-                // Convertir a array ordenado por fecha (últimos 7)
-                context.diario.porDia = Object.entries(datosPorDia)
-                    .sort((a, b) => new Date(b[0]) - new Date(a[0]))
-                    .slice(0, 7)
-                    .map(([fecha, data]) => ({
-                        fecha,
-                        ingresos: Math.round(data.ingresos * 100) / 100,
-                        costes: Math.round(data.costes * 100) / 100,
-                        margenBruto: Math.round((data.ingresos - data.costes) * 100) / 100,
-                        foodCost: data.ingresos > 0 ? Math.round((data.costes / data.ingresos) * 1000) / 10 : 0,
-                        vendidas: data.vendidas
-                    }));
-            }
-        }
-    } catch (e) {
-        logger.warn('Error obteniendo contexto:', e);
-    }
-
-    return context;
-}
-
-// Escuchar cambios de pestaña para actualizar botones
-document.addEventListener('click', e => {
-    if (e.target.classList.contains('tab-btn')) {
-        setTimeout(updateQuickButtons, 100);
-    }
-});
-
-/**
- * Parse Markdown to HTML (tablas, negritas, listas, código)
- */
-function parseMarkdown(text) {
-    if (!text) return '';
-
-    // Detectar si hay una tabla markdown (líneas con | y separador con ---)
-    const lines = text.split('\n');
-    let tableStartIndex = -1;
-    let tableEndIndex = -1;
-    let hasSeparator = false;
-
-    // Buscar tabla markdown estándar
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-
-        // Detectar separador de tabla (|---|---|)
-        if (/^\|?[\s\-:]+\|[\s\-:|]+\|?$/.test(line) || /^[-|:\s]+$/.test(line)) {
-            if (tableStartIndex === -1 && i > 0) tableStartIndex = i - 1;
-            hasSeparator = true;
-            continue;
-        }
-
-        // Línea con pipes (posible fila de tabla)
-        if (line.includes('|') && hasSeparator) {
-            tableEndIndex = i;
-        } else if (line.includes('|') && tableStartIndex === -1) {
-            tableStartIndex = i;
-        } else if (!line.includes('|') && tableEndIndex > tableStartIndex) {
-            // Fin de la tabla
-            break;
-        }
-    }
-
-    // Si encontramos una tabla, convertirla
-    if (hasSeparator && tableStartIndex >= 0 && tableEndIndex > tableStartIndex) {
-        const beforeTable = lines.slice(0, tableStartIndex).join('\n');
-        const tableLines = lines.slice(tableStartIndex, tableEndIndex + 1);
-        const afterTable = lines.slice(tableEndIndex + 1).join('\n');
-
-        let tableHtml = '<div class="chat-table-wrapper"><table class="chat-table"><tbody>';
-        let isHeader = true;
-
-        for (const line of tableLines) {
-            // Ignorar separadores
-            if (/^[\s\-:|]+$/.test(line.trim())) continue;
-            if (/^\|?[\s\-:]+\|/.test(line.trim())) continue;
-
-            // Extraer celdas
-            const cells = line
-                .split('|')
-                .map(c => c.trim())
-                .filter(c => c !== '');
-
-            if (cells.length > 0) {
-                const tag = isHeader ? 'th' : 'td';
-                // SEGURIDAD: Escapar HTML en celdas de tabla
-                tableHtml += '<tr>' + cells.map(c => {
-                    const safeCell = c.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    return `<${tag}>${safeCell}</${tag}>`;
-                }).join('') + '</tr>';
-                isHeader = false;
-            }
-        }
-
-        tableHtml += '</tbody></table></div>';
-
-        return formatTextContent(beforeTable) + tableHtml + formatTextContent(afterTable);
-    }
-
-    // Fallback: formateo normal sin tabla
-    return formatTextContent(text);
-}
-
-/**
- * Formatea contenido de texto (negritas, listas, etc.)
- */
-function formatTextContent(text) {
-    if (!text) return '';
-
-    let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-    // Negritas **texto** o __texto__
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
-
-    // Código inline `código`
-    html = html.replace(/`([^`]+)`/g, '<code class="chat-inline-code">$1</code>');
-
-    // Listas con •
-    html = html.replace(/•\s+([^\n]+)/g, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>)+/g, '<ul class="chat-list">$&</ul>');
-
-    // Emojis en mayúsculas como títulos (simplificado)
-    html = html.replace(
-        // eslint-disable-next-line no-misleading-character-class -- intentional: emoji character class
-        /([📊💰📦📈🏪🎯✅❌⚠️🔴🟢🟡])\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]*:)/gu,
-        '<strong>$1 $2</strong>'
-    );
-
-    // Saltos de línea
-    html = html.replace(/\n/g, '<br>');
-
-    return html;
-}
-
-// Exportar para uso global
+// Exportar para uso global (onclick inline y compat legacy)
 window.initChatWidget = initChatWidget;
 window.clearChatHistory = clearChatHistory;
 window.toggleChat = toggleChat;
