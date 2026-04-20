@@ -2,6 +2,8 @@
   "title": "仪表盘",
   "kpi_total_sales": "总销售额",
   "kpi_food_cost": "食材成本",
+  "kpi_food_cost_food": "食品",
+  "kpi_food_cost_beverage": "饮料",
   "kpi_margin": "毛利率",
   "kpi_margin_recipe": "菜品",
   "kpi_margin_real": "实际",

@@ -2,6 +2,8 @@
   "title": "Dashboard",
   "kpi_total_sales": "Total sales",
   "kpi_food_cost": "Food Cost",
+  "kpi_food_cost_food": "Food",
+  "kpi_food_cost_beverage": "Beverage",
   "kpi_margin": "Margin",
   "kpi_margin_recipe": "Recipes",
   "kpi_margin_real": "Real",
