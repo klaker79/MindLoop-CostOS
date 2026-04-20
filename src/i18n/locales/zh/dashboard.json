@@ -78,6 +78,7 @@
   "day_full_sat": "星期六",
   "kpi_revenue": "收入",
   "kpi_orders": "订单",
+  "kpi_orders_pending": "待处理",
   "kpi_low_stock": "库存不足",
   "sales_label": "销售",
   "expenses_label": "支出",
