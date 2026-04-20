@@ -27,26 +27,50 @@ function generateSessionId() {
     return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-let chatSessionId = localStorage.getItem('chatSessionId') || generateSessionId();
-localStorage.setItem('chatSessionId', chatSessionId);
+// 🔒 TENANT ISOLATION: chat history and session are scoped per restaurant
+// so that switching between tenants in the same browser never shows one
+// restaurant's conversations inside another. The keys become:
+//   chatHistory_<restauranteId>
+//   chatSessionId_<restauranteId>
+// If there is no logged-in restaurant we fall back to "anon" (login screen).
+function getCurrentRestauranteId() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        return user.restauranteId ? String(user.restauranteId) : 'anon';
+    } catch {
+        return 'anon';
+    }
+}
+function chatHistoryKey() { return 'chatHistory_' + getCurrentRestauranteId(); }
+function chatSessionKey() { return 'chatSessionId_' + getCurrentRestauranteId(); }
+
+// One-time cleanup: legacy un-prefixed keys would otherwise leak cross-tenant.
+// They existed before this fix. Delete them unconditionally on load.
+try {
+    localStorage.removeItem('chatHistory');
+    localStorage.removeItem('chatSessionId');
+} catch { /* ignore */ }
+
+let chatSessionId = localStorage.getItem(chatSessionKey()) || generateSessionId();
+localStorage.setItem(chatSessionKey(), chatSessionId);
 
 // 🔒 FIX: Proteger JSON.parse con try/catch para evitar crash si localStorage está corrupto
 let chatMessages = [];
 try {
-    const storedHistory = localStorage.getItem('chatHistory');
+    const storedHistory = localStorage.getItem(chatHistoryKey());
     if (storedHistory) {
         chatMessages = JSON.parse(storedHistory);
         // Validar que es un array
         if (!Array.isArray(chatMessages)) {
             console.warn('⚠️ chatHistory corrupto, reseteando...');
             chatMessages = [];
-            localStorage.removeItem('chatHistory');
+            localStorage.removeItem(chatHistoryKey());
         }
     }
 } catch (parseError) {
     console.error('❌ Error parseando chatHistory, reseteando:', parseError);
     chatMessages = [];
-    localStorage.removeItem('chatHistory');
+    localStorage.removeItem(chatHistoryKey());
 }
 
 let isChatOpen = false;
@@ -707,7 +731,7 @@ function addMessage(type, text, save = true) {
         chatMessages.push({ type, text, time: Date.now() });
         // Mantener solo los últimos 50 mensajes
         if (chatMessages.length > 50) chatMessages = chatMessages.slice(-50);
-        localStorage.setItem('chatHistory', JSON.stringify(chatMessages));
+        localStorage.setItem(chatHistoryKey(), JSON.stringify(chatMessages));
     }
 }
 
@@ -768,7 +792,7 @@ function addMessageWithAction(type, text, actionData) {
     // Guardar mensaje (sin la acción)
     chatMessages.push({ type, text, time: Date.now() });
     if (chatMessages.length > 50) chatMessages = chatMessages.slice(-50);
-    localStorage.setItem('chatHistory', JSON.stringify(chatMessages));
+    localStorage.setItem(chatHistoryKey(), JSON.stringify(chatMessages));
 }
 
 /**
@@ -1230,9 +1254,9 @@ function renderChatHistory() {
  */
 export function clearChatHistory() {
     chatMessages = [];
-    localStorage.removeItem('chatHistory');
+    localStorage.removeItem(chatHistoryKey());
     chatSessionId = generateSessionId();
-    localStorage.setItem('chatSessionId', chatSessionId);
+    localStorage.setItem(chatSessionKey(), chatSessionId);
 
     const messagesContainer = document.getElementById('chat-messages');
     if (messagesContainer) {
