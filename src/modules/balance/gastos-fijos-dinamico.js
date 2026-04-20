@@ -127,26 +127,45 @@ function renderGrouped(gastos) {
     Object.keys(buckets).forEach(cat => {
         buckets[cat].sort((a, b) => (a.concepto || '').localeCompare(b.concepto || ''));
     });
+    // Open state persisted in localStorage so user expansion survives reloads.
+    let openSet = new Set();
+    try {
+        openSet = new Set(JSON.parse(localStorage.getItem('gf_open_cats') || '[]'));
+    } catch { /* ignore */ }
+
     const sections = CATEGORY_ORDER
         .filter(cat => buckets[cat] && buckets[cat].length > 0)
         .map(cat => {
             const subtotal = buckets[cat].reduce((s, g) => s + (parseFloat(g.monto_mensual) || 0), 0);
             const icon = CATEGORY_ICONS[cat] || '•';
+            const count = buckets[cat].length;
+            const isOpen = openSet.has(cat);
             return `
-                <section class="gf-group" style="margin-bottom: 22px;">
-                    <header style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 4px 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 10px;">
-                        <h4 style="margin: 0; color: white; font-size: 13px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 15px;">${icon}</span>${escapeHTML(cat)}
-                        </h4>
-                        <span style="color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 600;">${cm(subtotal, 0)}</span>
-                    </header>
-                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                <details class="gf-group" data-cat="${escapeHTML(cat)}"${isOpen ? ' open' : ''}
+                    style="margin-bottom: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; overflow: hidden;">
+                    <summary style="list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; user-select: none;">
+                        <span style="display: flex; align-items: center; gap: 10px;">
+                            <span class="gf-chevron" style="display: inline-block; transition: transform 0.2s; color: rgba(255,255,255,0.8); font-size: 11px;">▶</span>
+                            <span style="font-size: 15px;">${icon}</span>
+                            <span style="color: white; font-size: 13px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;">${escapeHTML(cat)}</span>
+                            <span style="color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500;">${count}</span>
+                        </span>
+                        <span style="color: rgba(255,255,255,0.95); font-size: 14px; font-weight: 700;">${cm(subtotal, 0)}</span>
+                    </summary>
+                    <div style="display: flex; flex-direction: column; gap: 6px; padding: 4px 12px 12px 12px;">
                         ${buckets[cat].map(rowHtml).join('')}
                     </div>
-                </section>
+                </details>
             `;
         });
     return sections.join('');
+}
+
+function persistOpenCats(container) {
+    const open = Array.from(container.querySelectorAll('details.gf-group[open]'))
+        .map(el => el.dataset.cat)
+        .filter(Boolean);
+    try { localStorage.setItem('gf_open_cats', JSON.stringify(open)); } catch { /* ignore */ }
 }
 
 // --------------------------------------------------------------------------
@@ -177,6 +196,18 @@ export async function renderizarGastosFijosDinamicos() {
 }
 
 function wireRowEvents(container) {
+    // Persist open/closed state per category and animate chevron.
+    container.querySelectorAll('details.gf-group').forEach(det => {
+        det.addEventListener('toggle', () => {
+            const chev = det.querySelector('.gf-chevron');
+            if (chev) chev.style.transform = det.open ? 'rotate(90deg)' : 'rotate(0deg)';
+            persistOpenCats(container);
+        });
+        // Initial chevron orientation (matches the [open] attribute at render time)
+        const chev0 = det.querySelector('.gf-chevron');
+        if (chev0 && det.open) chev0.style.transform = 'rotate(90deg)';
+    });
+
     container.querySelectorAll('.gf-input').forEach(input => {
         const id = parseInt(input.dataset.gastoId, 10);
         if (!id) return;
@@ -225,7 +256,8 @@ function refreshSectionSubtotal(input) {
     if (!section) return;
     const total = Array.from(section.querySelectorAll('.gf-input'))
         .reduce((s, el) => s + (parseFloat(el.value) || 0), 0);
-    const span = section.querySelector('header span:last-child');
+    // New structure: <summary><span>…</span><span>subtotal</span></summary>
+    const span = section.querySelector('summary > span:last-child');
     if (span) span.textContent = cm(total, 0);
 }
 
