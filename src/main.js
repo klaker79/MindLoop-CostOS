@@ -683,6 +683,13 @@ if (document.readyState === 'loading') {
 window.clearChatHistory = clearChatHistory;
 
 // ============================================
+// MÓDULO: BÚSQUEDA 🔍 (sales/purchases search by date range)
+// ============================================
+// Side-effect import: the module attaches window.renderizarBusqueda itself
+// so core.js cambiarTab('busqueda') can invoke it without further glue.
+import './modules/busqueda/busqueda.js';
+
+// ============================================
 // MÓDULO: INTEGRACIONES 🔗
 // ============================================
 import { checkAllIntegrations, initIntegrations } from './modules/integrations/integrations-status.js';

@@ -37,6 +37,7 @@ import es_settings from './locales/es/settings.json';
 import es_inteligencia from './locales/es/inteligencia.json';
 import es_simulador from './locales/es/simulador.json';
 import es_onboarding from './locales/es/onboarding.json';
+import es_busqueda from './locales/es/busqueda.json';
 
 import en_common from './locales/en/common.json';
 import en_ingredientes from './locales/en/ingredientes.json';
@@ -57,6 +58,7 @@ import en_settings from './locales/en/settings.json';
 import en_inteligencia from './locales/en/inteligencia.json';
 import en_simulador from './locales/en/simulador.json';
 import en_onboarding from './locales/en/onboarding.json';
+import en_busqueda from './locales/en/busqueda.json';
 
 import zh_common from './locales/zh/common.json';
 import zh_ingredientes from './locales/zh/ingredientes.json';
@@ -77,6 +79,7 @@ import zh_settings from './locales/zh/settings.json';
 import zh_inteligencia from './locales/zh/inteligencia.json';
 import zh_simulador from './locales/zh/simulador.json';
 import zh_onboarding from './locales/zh/onboarding.json';
+import zh_busqueda from './locales/zh/busqueda.json';
 
 const SUPPORTED_LANGS = ['es', 'en', 'zh'];
 const DEFAULT_LANG = 'es';
@@ -84,7 +87,7 @@ const NAMESPACES = [
     'common', 'ingredientes', 'recetas', 'proveedores',
     'pedidos', 'ventas', 'inventario', 'dashboard',
     'auth', 'chat', 'equipo', 'horarios',
-    'balance', 'alertas', 'export', 'settings', 'inteligencia', 'simulador', 'onboarding'
+    'balance', 'alertas', 'export', 'settings', 'inteligencia', 'simulador', 'onboarding', 'busqueda'
 ];
 
 i18next
@@ -118,6 +121,7 @@ i18next
                 inteligencia: es_inteligencia,
                 simulador: es_simulador,
                 onboarding: es_onboarding,
+                busqueda: es_busqueda,
             },
             en: {
                 common: en_common,
@@ -139,6 +143,7 @@ i18next
                 inteligencia: en_inteligencia,
                 simulador: en_simulador,
                 onboarding: en_onboarding,
+                busqueda: en_busqueda,
             },
             zh: {
                 common: zh_common,
@@ -160,6 +165,7 @@ i18next
                 inteligencia: zh_inteligencia,
                 simulador: zh_simulador,
                 onboarding: zh_onboarding,
+                busqueda: zh_busqueda,
             },
         },
 
