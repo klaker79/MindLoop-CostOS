@@ -110,6 +110,8 @@
   "col_unit": "Unidad",
   "stock_low": "Stock bajo",
   "stock_critical": "Stock crítico",
+  "stock_value": "Valor stock",
+  "items_in_stock": "Items con stock",
   "empty_title": "No hay ingredientes",
   "empty_hint": "Añade ingredientes para gestionar el inventario",
 

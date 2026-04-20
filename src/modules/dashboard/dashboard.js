@@ -253,12 +253,16 @@ async function actualizarMargenReal(periodo) {
     if (!margenEl) return;
 
     try {
-        // Source of truth: ventas_diarias_resumen (the COGS stored at the moment of each sale).
-        // See /api/analytics/food-cost on the backend. This keeps dashboard consistent with
-        // Diario / Análisis / exports which all read the same table.
+        // Source of truth: ventas_diarias_resumen joined with recetas.categoria
+        // via /analytics/pnl-breakdown. Food and beverage have very different
+        // margin profiles (food ≤30-35%, beverage varies 25-45%) so mixing them
+        // into a single Food Cost number misleads the user. We show food cost
+        // only (the industry-standard KPI); beverage is visible in the subtitle.
         const { desde, hasta } = rangoPeriodo(periodo);
-        const resp = await apiClient.get(`/analytics/food-cost?desde=${desde}&hasta=${hasta}`);
-        const totalIngresos = parseFloat(resp?.ingresos) || 0;
+        const resp = await apiClient.get(`/analytics/pnl-breakdown?desde=${desde}&hasta=${hasta}`);
+        const foodData = resp?.food || { ingresos: 0, food_cost_pct: 0 };
+        const bevData = resp?.beverage || { ingresos: 0, food_cost_pct: 0 };
+        const totalIngresos = parseFloat(foodData.ingresos) + parseFloat(bevData.ingresos);
 
         if (totalIngresos === 0) {
             margenEl.textContent = '—';
@@ -267,7 +271,9 @@ async function actualizarMargenReal(periodo) {
             return;
         }
 
-        const foodCost = parseFloat(resp?.food_cost_pct) || 0;
+        // Primary KPI = food cost of FOOD only (industry standard)
+        const foodCost = parseFloat(foodData.food_cost_pct) || 0;
+        const bevCost = parseFloat(bevData.food_cost_pct) || 0;
 
         // Mostrar Food Cost como número principal
         margenEl.textContent = Math.round(foodCost) + '%';
@@ -281,10 +287,12 @@ async function actualizarMargenReal(periodo) {
             fcBar.style.background = foodCost <= 30 ? '#059669' : foodCost <= 35 ? '#0EA5E9' : foodCost <= 40 ? '#D97706' : '#DC2626';
         }
 
-        // Detalle: Food Cost + Margen real
+        // Detalle: food cost (comida) + beverage cost (bebidas) por separado
         if (fcDetail) {
-            const margenReal = 100 - foodCost;
-            fcDetail.textContent = `${t('dashboard:kpi_food_cost')} ${Math.round(foodCost)}% · ${t('dashboard:kpi_margin')} ${Math.round(margenReal)}%`;
+            const foodLabel = t('dashboard:kpi_food_cost_food') || 'Comida';
+            const bevLabel = t('dashboard:kpi_food_cost_beverage') || 'Bebida';
+            const bevText = bevData.ingresos > 0 ? ` · ${bevLabel} ${Math.round(bevCost)}%` : '';
+            fcDetail.textContent = `${foodLabel} ${Math.round(foodCost)}%${bevText}`;
         }
     } catch (error) {
         console.error('Error calculando food cost:', error);

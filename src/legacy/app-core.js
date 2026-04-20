@@ -1710,18 +1710,33 @@
 
             const container = document.getElementById('tabla-inventario');
 
-            // Calcular alertas
+            // Calcular alertas + KPIs agregados (valor stock + items con stock)
             let stockBajo = 0;
             let stockCritico = 0;
+            let itemsConStock = 0;
+            let valorStockTotal = 0;
 
-            window.ingredientes.forEach(ing => {
-                const stockActual = parseFloat(ing.stock_actual) || 0;
+            const inventarioFuente = Array.isArray(window.inventarioCompleto) && window.inventarioCompleto.length > 0
+                ? window.inventarioCompleto
+                : window.ingredientes;
+
+            inventarioFuente.forEach(ing => {
+                const stockActual = parseFloat(ing.stock_actual ?? ing.stock_virtual) || 0;
                 const stockMinimo = parseFloat(ing.stock_minimo) || 0;
-                // Solo contar si tiene mínimo configurado
                 if (stockActual <= 0) {
                     stockCritico++;
-                } else if (stockMinimo > 0 && stockActual <= stockMinimo) {
-                    stockBajo++;
+                } else {
+                    if (stockMinimo > 0 && stockActual <= stockMinimo) stockBajo++;
+                    itemsConStock++;
+                    // Mismo criterio que el KPI del dashboard (suma valor_stock precalculado por backend,
+                    // con fallback a precio/cpf si no viene).
+                    let valor = parseFloat(ing.valor_stock);
+                    if (!Number.isFinite(valor)) {
+                        const precio = parseFloat(ing.precio) || 0;
+                        const cpf = parseFloat(ing.cantidad_por_formato) || 1;
+                        valor = stockActual * (cpf > 0 ? precio / cpf : precio);
+                    }
+                    valorStockTotal += valor;
                 }
             });
 
@@ -1735,17 +1750,19 @@
                 badge.style.display = 'none';
             }
 
-            // Actualizar resumen
+            // Actualizar resumen (KPIs arriba: valor + items + bajo + crítico)
             const resumen = document.getElementById('resumen-inventario');
-            if (stockBajo > 0 || stockCritico > 0) {
+            if (resumen) {
                 const _t = window.t || (k => k);
+                const cmFn = typeof window.cm === 'function' ? window.cm : (v) => (parseFloat(v) || 0).toFixed(0);
                 resumen.innerHTML = `
-            <div style="color: #f59e0b;">⚠️ ${_t('inventario:stock_low')}: <strong>${stockBajo}</strong></div>
-            <div style="color: #ef4444;">🔴 ${_t('inventario:stock_critical')}: <strong>${stockCritico}</strong></div>
-          `;
+                    <div style="color: #059669;">💰 ${_t('inventario:stock_value') || 'Valor stock'}: <strong>${cmFn(valorStockTotal, 0)}</strong></div>
+                    <div style="color: #2563eb;">📦 ${_t('inventario:items_in_stock') || 'Items con stock'}: <strong>${itemsConStock}</strong></div>
+                    ${stockBajo > 0 ? `<div style="color: #f59e0b;">⚠️ ${_t('inventario:stock_low')}: <strong>${stockBajo}</strong></div>` : ''}
+                    ${stockCritico > 0 ? `<div style="color: #ef4444;">🔴 ${_t('inventario:stock_critical')}: <strong>${stockCritico}</strong></div>` : ''}
+                `;
                 resumen.style.display = 'flex';
-            } else {
-                resumen.style.display = 'none';
+                resumen.style.flexWrap = 'wrap';
             }
 
             if (filtrados.length === 0) {
