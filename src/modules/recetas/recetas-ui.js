@@ -509,7 +509,7 @@ export function exportarRecetas() {
 
             // Rendimiento: priorizar el de la receta, fallback al ingrediente base
             let rendimiento = parseFloat(item.rendimiento);
-            if (!rendimiento || rendimiento === 100) {
+            if (!rendimiento) {
                 rendimiento = ing?.rendimiento ? parseFloat(ing.rendimiento) : 100;
             }
             const factorRendimiento = rendimiento / 100;

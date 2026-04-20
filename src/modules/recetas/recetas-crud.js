@@ -128,7 +128,7 @@ export function editarReceta(id) {
 
             // Si no tiene rendimiento guardado, o es 100 (por defecto),
             // intentar buscar el rendimiento actual del ingrediente base.
-            if (!rendimiento || rendimiento === 100) {
+            if (!rendimiento) {
                 const ingBase = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
                 if (ingBase && ingBase.rendimiento) {
                     rendimiento = ingBase.rendimiento;
@@ -240,7 +240,7 @@ export function calcularCosteRecetaCompleto(receta, _depth = 0) {
         // 🆕 CÁLCULO CON MERMA (Rendimiento)
         // 🔧 FIX: Fallback al rendimiento del ingrediente base si la receta no lo tiene guardado
         let rendimiento = parseFloat(item.rendimiento);
-        if (!rendimiento || rendimiento === 100) {
+        if (!rendimiento) {
             if (ing?.rendimiento) {
                 rendimiento = parseFloat(ing.rendimiento);
             } else {

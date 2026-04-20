@@ -298,7 +298,7 @@ export function calcularCosteRecetaMemoizado(receta) {
 
         // Aplicar rendimiento (merma) — misma lógica que calcularCosteRecetaCompleto
         let rendimiento = parseFloat(item.rendimiento);
-        if (!rendimiento || rendimiento === 100) {
+        if (!rendimiento) {
             if (ing?.rendimiento) {
                 rendimiento = parseFloat(ing.rendimiento);
             } else {
