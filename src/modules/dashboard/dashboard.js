@@ -29,27 +29,10 @@ import { loadKPIDashboard } from '../../components/domain/KPIDashboard.js';
 import { renderQuickActions } from '../../components/domain/QuickActions.js';
 import { renderOnboardingBanner } from '../../components/domain/OnboardingBanner.js';
 
+import { showSkeletonIn, isDataLoaded, rangoPeriodo } from './_shared.js';
+
 // Variable para recordar el período actual (default: semana)
 let periodoVistaActual = 'semana';
-
-// 💀 Skeleton helpers
-const SKELETON_SPAN = '<span class="skeleton skeleton-number" data-skeleton>⠀</span>';
-const SKELETON_ROW = '<div class="skeleton skeleton-row" data-skeleton></div>';
-
-function showSkeletonIn(el, type = 'number') {
-    if (!el) return;
-    if (type === 'number') {
-        el.innerHTML = SKELETON_SPAN;
-    } else if (type === 'rows') {
-        el.innerHTML = (SKELETON_ROW + SKELETON_ROW + SKELETON_ROW);
-    }
-}
-
-function isDataLoaded() {
-    const ings = window.ingredientes || [];
-    const recs = window.recetas || [];
-    return ings.length > 0 || recs.length > 0;
-}
 
 /**
  * Inicializa el banner de fecha actual en el dashboard
@@ -218,33 +201,9 @@ async function actualizarKPIsPorPeriodo(periodo) {
 }
 
 /**
- * Resuelve {desde, hasta} ISO para el endpoint /analytics/food-cost según el
- * período del dashboard (hoy / semana / mes). `hasta` es exclusive.
- */
-function rangoPeriodo(periodo) {
-    const today = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-    const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-    const add = (d, days) => { const c = new Date(d); c.setDate(c.getDate() + days); return c; };
-    if (periodo === 'hoy') {
-        return { desde: iso(today), hasta: iso(add(today, 1)) };
-    }
-    if (periodo === 'semana') {
-        // Monday-based week
-        const dow = today.getDay(); // 0=Sun..6=Sat
-        const diffToMonday = (dow + 6) % 7;
-        const monday = add(today, -diffToMonday);
-        return { desde: iso(monday), hasta: iso(add(monday, 7)) };
-    }
-    // default: mes actual
-    const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const firstOfNext = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    return { desde: iso(firstOfMonth), hasta: iso(firstOfNext) };
-}
-
-/**
  * Calcula margen REAL ponderado por ventas del período
  * Lee desde ventas_diarias_resumen (fuente de verdad única).
+ * `rangoPeriodo` ahora vive en ./_shared.js.
  */
 async function actualizarMargenReal(periodo) {
     const margenEl = document.getElementById('kpi-margen');
