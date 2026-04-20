@@ -199,6 +199,10 @@
             <span class="nav-item-text" data-i18n="common:nav_inventario">Inventario</span>
             <span class="nav-item-badge" id="badge-inventario-sidebar" style="display:none;">0</span>
           </button>
+          <button class="nav-item" data-tab="busqueda">
+            <span class="nav-item-icon">🔍</span>
+            <span class="nav-item-text" data-i18n="busqueda:nav_title">Búsqueda</span>
+          </button>
         </div>
 
         <!-- Análisis -->
@@ -1727,6 +1731,19 @@
           </div>
         </div>
 
+        <!-- TAB: BÚSQUEDA (Search sales/purchases by date range + filters) -->
+        <div id="tab-busqueda" class="tab-content">
+          <div class="top-bar">
+            <div>
+              <h2 data-i18n="busqueda:title">🔍 Búsqueda</h2>
+              <p data-i18n="busqueda:description" style="color:#64748b;margin:4px 0 0;">Encuentra compras y ventas por rango de fechas, plato, ingrediente o proveedor</p>
+            </div>
+          </div>
+          <div id="busqueda-container" class="main-card" style="padding:20px;">
+            <!-- Populated by src/modules/busqueda/busqueda.js -->
+          </div>
+        </div>
+
         <!-- TAB: DIARIO (Tracking de Costes/Ventas por Día) -->
         <div id="tab-diario" class="tab-content">
           <div class="top-bar">
@@ -3245,7 +3262,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260420-chat-tenant-isolation"></script>
+  <script type="module" src="./src/main.js?v=20260420-busqueda-tab"></script>
 </body>
 
 </html>

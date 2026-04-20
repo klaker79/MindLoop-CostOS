@@ -364,6 +364,16 @@ export const api = {
     // Chat (Claude API backend). Returns plain text (multi-tenant via JWT).
     chat: (message, lang = 'es', sessionId = null) =>
         apiClient.post('/chat', { message, lang, sessionId }),
+
+    // Búsqueda: sales/purchases with date range + optional filters
+    // Returns: { tipo, periodo, total_registros, total_importe, resultados, truncado, ... }
+    search: (params) => {
+        const qs = new URLSearchParams();
+        Object.entries(params || {}).forEach(([k, v]) => {
+            if (v !== undefined && v !== null && v !== '') qs.append(k, v);
+        });
+        return apiClient.get(`/search?${qs.toString()}`);
+    },
 };
 
 // Expose globally for legacy code compatibility

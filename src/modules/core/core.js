@@ -210,6 +210,9 @@ export function cambiarTab(tab) {
         case 'inventario':
             window.renderizarInventario?.();
             break;
+        case 'busqueda':
+            window.renderizarBusqueda?.();
+            break;
         case 'diario':
             window.cargarValoresGastosFijos?.();
             break;
