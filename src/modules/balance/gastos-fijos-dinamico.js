@@ -286,20 +286,24 @@ export async function abrirModalNuevoGastoFijo() {
     if (montoInput) montoInput.value = '';
     if (conceptoInput) conceptoInput.value = '';
 
-    // Build the grouped select, filtering preset already in use.
+    // Build the grouped select with ALL presets. Those already in DB are
+    // rendered as disabled options with a ✓ so the user sees the full catalog
+    // as reference but can't create duplicates accidentally.
     if (select) {
         const byCat = {};
         PRESET_EXPENSES.forEach(p => {
-            if (existingLower.has(p.concepto.toLowerCase())) return;
             if (!byCat[p.cat]) byCat[p.cat] = [];
-            byCat[p.cat].push(p.concepto);
+            byCat[p.cat].push(p);
         });
         let html = `<option value="">— ${escapeHTML(t('balance:choose_expense') || 'Selecciona un gasto')} —</option>`;
         CATEGORY_ORDER.forEach(cat => {
             if (!byCat[cat] || byCat[cat].length === 0) return;
             html += `<optgroup label="${escapeHTML((CATEGORY_ICONS[cat] || '') + ' ' + cat)}">`;
-            byCat[cat].forEach(c => {
-                html += `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`;
+            byCat[cat].forEach(p => {
+                const used = existingLower.has(p.concepto.toLowerCase());
+                const label = used ? `${p.concepto}  ✓` : p.concepto;
+                const disabledAttr = used ? ' disabled' : '';
+                html += `<option value="${escapeHTML(p.concepto)}"${disabledAttr}>${escapeHTML(label)}</option>`;
             });
             html += `</optgroup>`;
         });
