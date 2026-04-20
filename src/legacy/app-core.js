@@ -36,7 +36,15 @@
     window.escapeHTML = escapeHTML;
 
     // === EXPORT A EXCEL ===
-    function exportarAExcel(datos, nombreArchivo, columnas) {
+    async function exportarAExcel(datos, nombreArchivo, columnas) {
+        // XLSX is lazy-loaded — make sure it's ready before we use it.
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        if (typeof XLSX === 'undefined') {
+            showToast('No se pudo cargar el motor de Excel. Recarga e inténtalo de nuevo.', 'error');
+            return;
+        }
         // Preparar datos para Excel
         const datosExcel = datos.map(item => {
             const fila = {};

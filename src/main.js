@@ -56,6 +56,14 @@ document.addEventListener('DOMContentLoaded', () => translateHTML());
 // ============================================
 import './vendors.js';
 
+// Expose lazy loaders to window so legacy (non-ES6) scripts can await them
+// before using XLSX / Chart / jsPDF. Without this, legacy code hits
+// "ReferenceError: XLSX is not defined" (Sentry 2026-04-20).
+import { loadXLSX, loadChart, loadPDF } from './utils/lazy-vendors.js';
+window.loadXLSX = loadXLSX;
+window.loadChart = loadChart;
+window.loadPDF = loadPDF;
+
 // ============================================
 // CSS DE COMPONENTES - Estilos para componentes Clean Architecture
 // ============================================

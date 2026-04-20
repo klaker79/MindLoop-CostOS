@@ -38,6 +38,9 @@ window.procesarArchivoInventario = async function (input) {
 };
 
 async function leerArchivoInventario(file) {
+    if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+        await window.loadXLSX();
+    }
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
@@ -112,7 +115,11 @@ async function validarDatosInventario(data) {
 }
 
 // Función auxiliar para descargar Excel
-function descargarExcel(datos, filename, sheetName) {
+async function descargarExcel(datos, filename, sheetName) {
+    // XLSX es lazy — cargarlo si aún no está
+    if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+        await window.loadXLSX();
+    }
     if (typeof XLSX !== 'undefined' && XLSX.utils && XLSX.write) {
         const ws = XLSX.utils.json_to_sheet(datos);
         const wb = XLSX.utils.book_new();
@@ -142,7 +149,7 @@ function descargarExcel(datos, filename, sheetName) {
 }
 
 // Descargar plantilla COMPLETA (todos los ingredientes)
-window.descargarPlantillaStock = function () {
+window.descargarPlantillaStock = async function () {
     try {
         if (!window.ingredientes || window.ingredientes.length === 0) {
             showToast('No hay ingredientes para descargar', 'warning');
@@ -155,7 +162,7 @@ window.descargarPlantillaStock = function () {
         }));
 
         const filename = `Plantilla_Inventario_COMPLETO_${new Date().toISOString().split('T')[0]}.xlsx`;
-        if (!descargarExcel(datos, filename, 'Todos')) {
+        if (!(await descargarExcel(datos, filename, 'Todos'))) {
             showToast('Error: XLSX no disponible', 'error');
         }
     } catch (error) {
@@ -165,7 +172,7 @@ window.descargarPlantillaStock = function () {
 };
 
 // Descargar plantilla solo ALIMENTOS
-window.descargarPlantillaAlimentos = function () {
+window.descargarPlantillaAlimentos = async function () {
     try {
         if (!window.ingredientes || window.ingredientes.length === 0) {
             showToast('No hay ingredientes', 'warning');
@@ -187,7 +194,7 @@ window.descargarPlantillaAlimentos = function () {
         }));
 
         const filename = `Plantilla_ALIMENTOS_${new Date().toISOString().split('T')[0]}.xlsx`;
-        if (!descargarExcel(datos, filename, 'Alimentos')) {
+        if (!(await descargarExcel(datos, filename, 'Alimentos'))) {
             showToast('Error: XLSX no disponible', 'error');
         }
     } catch (error) {
@@ -197,7 +204,7 @@ window.descargarPlantillaAlimentos = function () {
 };
 
 // Descargar plantilla solo BEBIDAS
-window.descargarPlantillaBebidas = function () {
+window.descargarPlantillaBebidas = async function () {
     try {
         if (!window.ingredientes || window.ingredientes.length === 0) {
             showToast('No hay ingredientes', 'warning');
@@ -219,7 +226,7 @@ window.descargarPlantillaBebidas = function () {
         }));
 
         const filename = `Plantilla_BEBIDAS_${new Date().toISOString().split('T')[0]}.xlsx`;
-        if (!descargarExcel(datos, filename, 'Bebidas')) {
+        if (!(await descargarExcel(datos, filename, 'Bebidas'))) {
             showToast('Error: XLSX no disponible', 'error');
         }
     } catch (error) {
@@ -402,6 +409,9 @@ window.procesarArchivoIngredientes = async function (input) {
 };
 
 async function leerArchivoGenerico(file) {
+    if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+        await window.loadXLSX();
+    }
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
@@ -1903,9 +1913,19 @@ async function renderizarTablaPLDiario() {
 }
 
 // Exportar a Excel
-window.exportarDiarioExcel = function () {
+window.exportarDiarioExcel = async function () {
     if (!window.datosResumenMensual) {
         window.showToast('Primero carga los datos', 'warning');
+        return;
+    }
+
+    // XLSX is lazy-loaded from vendors; legacy scripts can't ES6-import so
+    // window.loadXLSX is exposed in main.js for this very purpose.
+    if (typeof window.loadXLSX === 'function') {
+        await window.loadXLSX();
+    }
+    if (typeof XLSX === 'undefined') {
+        window.showToast('No se pudo cargar el motor de Excel. Recarga la página e inténtalo de nuevo.', 'error');
         return;
     }
 
