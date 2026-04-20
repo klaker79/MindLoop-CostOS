@@ -427,6 +427,8 @@ window.actualizarKPIs = Dashboard.actualizarKPIs;
 // MÓDULO: BALANCE / P&L 💰
 // ============================================
 import * as Balance from './modules/balance/index.js';
+// Dynamic fixed-expenses widget — self-registers on window for inline handlers
+import './modules/balance/gastos-fijos-dinamico.js';
 
 window.renderizarBalance = Balance.renderizarBalance;
 window.calcularPL = Balance.calcularPL;
