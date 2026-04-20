@@ -1357,19 +1357,11 @@ function getCurrentTabContext() {
     const context = { tab };
 
     try {
-        // Siempre incluir gastos fijos reales
-        const opex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
-        context.gastosFijos = {
-            alquiler: parseFloat(opex.alquiler) || 0,
-            personal: parseFloat(opex.personal) || 0,
-            suministros: parseFloat(opex.suministros) || 0,
-            otros: parseFloat(opex.otros) || 0,
-            total:
-                (parseFloat(opex.alquiler) || 0) +
-                (parseFloat(opex.personal) || 0) +
-                (parseFloat(opex.suministros) || 0) +
-                (parseFloat(opex.otros) || 0),
-        };
+        // Gastos fijos: just pass the total from DB (Claude backend has its own
+        // obtener_gastos/resumen_pyg tools with the full per-category breakdown,
+        // so sending granular snapshots here is redundant and risked showing
+        // only the legacy 4 hardcoded categories).
+        context.gastosFijos = { total: 0 };
 
         // Siempre incluir TODOS los ingredientes con datos compactos
         if (window.ingredientes && Array.isArray(window.ingredientes)) {
