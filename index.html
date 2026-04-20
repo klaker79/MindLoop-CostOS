@@ -49,7 +49,7 @@
   <!-- Esto mejora seguridad y control de versiones -->
 
   <link rel="stylesheet" href="styles/main.css?v=20260415-sprint1">
-  <link rel="stylesheet" href="styles/polish.css?v=20260420-gastos-dinamicos">
+  <link rel="stylesheet" href="styles/polish.css?v=20260420-gastos-agrupados">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -1911,9 +1911,9 @@
                 <span data-i18n="balance:add_fixed_expense">Añadir</span>
               </button>
             </div>
-            <div id="gastos-fijos-dinamico-list"
-              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+            <div id="gastos-fijos-dinamico-list">
               <!-- Rellenado dinámicamente por src/modules/balance/gastos-fijos-dinamico.js -->
+              <!-- Estructura: secciones por categoría (Personal, Impuestos, Local...) con su grid interno -->
             </div>
             <div
               style="margin-top: 18px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 10px; text-align: center;">

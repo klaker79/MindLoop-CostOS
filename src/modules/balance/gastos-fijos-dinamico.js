@@ -17,6 +17,50 @@ import { t } from '@/i18n/index.js';
 const DEBOUNCE_MS = 500;
 const _saveTimers = {};
 
+// --------------------------------------------------------------------------
+// Category mapping — concepto (lowercased) → categoría display name.
+// Keeps rendering grouped without adding a DB column. Unknown conceptos
+// fall into "Otros" so the grouping always renders something sensible.
+// --------------------------------------------------------------------------
+const CATEGORY_MAP = {
+    // Personal
+    'sueldos': 'Personal', 'nóminas': 'Personal', 'nominas': 'Personal',
+    'seguridad social': 'Personal', 'finiquitos': 'Personal',
+    // Impuestos
+    'irpf': 'Impuestos', 'iva': 'Impuestos', 'sociedades': 'Impuestos', 'iae': 'Impuestos',
+    // Local
+    'alquiler': 'Local', 'comunidad': 'Local', 'seguro local': 'Local',
+    // Suministros
+    'luz': 'Suministros', 'agua': 'Suministros', 'gas': 'Suministros',
+    'teléfono/internet': 'Suministros', 'telefono/internet': 'Suministros',
+    'teléfono': 'Suministros', 'telefono': 'Suministros', 'internet': 'Suministros',
+    // Bancos
+    'comisión tpv': 'Bancos', 'comision tpv': 'Bancos',
+    'cuota préstamo': 'Bancos', 'cuota prestamo': 'Bancos',
+    'comisiones cuenta': 'Bancos',
+    // Servicios
+    'gestoría': 'Servicios', 'gestoria': 'Servicios',
+    'seguro rc': 'Servicios', 'sgae': 'Servicios', 'basura': 'Servicios',
+    // Marketing
+    'publicidad': 'Marketing', 'web/dominio': 'Marketing', 'redes sociales': 'Marketing',
+    // Mantenimiento
+    'reparaciones': 'Mantenimiento', 'extractores': 'Mantenimiento',
+    'fumigación': 'Mantenimiento', 'fumigacion': 'Mantenimiento'
+};
+
+// Stable render order for the groups
+const CATEGORY_ORDER = ['Personal', 'Impuestos', 'Local', 'Suministros', 'Bancos', 'Servicios', 'Marketing', 'Mantenimiento', 'Otros'];
+
+const CATEGORY_ICONS = {
+    'Personal': '👥', 'Impuestos': '🏛️', 'Local': '🏪', 'Suministros': '⚡',
+    'Bancos': '🏦', 'Servicios': '🧾', 'Marketing': '📣', 'Mantenimiento': '🔧', 'Otros': '📌'
+};
+
+function categoriaFor(concepto) {
+    if (!concepto) return 'Otros';
+    return CATEGORY_MAP[String(concepto).toLowerCase().trim()] || 'Otros';
+}
+
 // Range ceiling grows with value so the slider is usable even for big expenses.
 function dynamicMax(monto) {
     const base = Math.max(monto || 0, 1000);
@@ -53,9 +97,44 @@ function sliderCardHtml(gasto) {
     `;
 }
 
+function renderGrouped(gastos) {
+    // Bucket by category
+    const buckets = {};
+    for (const g of gastos) {
+        const cat = categoriaFor(g.concepto);
+        if (!buckets[cat]) buckets[cat] = [];
+        buckets[cat].push(g);
+    }
+    // Sort each bucket alphabetically
+    Object.keys(buckets).forEach(cat => {
+        buckets[cat].sort((a, b) => (a.concepto || '').localeCompare(b.concepto || ''));
+    });
+    // Render in fixed order, skipping empty categories
+    const sections = CATEGORY_ORDER
+        .filter(cat => buckets[cat] && buckets[cat].length > 0)
+        .map(cat => {
+            const subtotal = buckets[cat].reduce((s, g) => s + (parseFloat(g.monto_mensual) || 0), 0);
+            const icon = CATEGORY_ICONS[cat] || '•';
+            return `
+                <section class="gf-group" style="margin-bottom: 22px;">
+                    <header style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 6px 4px 10px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px;">
+                        <h4 style="margin: 0; color: white; font-size: 14px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">${icon}</span>${escapeHTML(cat)}
+                        </h4>
+                        <span style="color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 600;">${cm(subtotal, 0)}</span>
+                    </header>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                        ${buckets[cat].map(sliderCardHtml).join('')}
+                    </div>
+                </section>
+            `;
+        });
+    return sections.join('');
+}
+
 function emptyStateHtml() {
     return `
-        <div style="grid-column: 1/-1; text-align: center; padding: 30px 20px; color: rgba(255,255,255,0.85);">
+        <div style="text-align: center; padding: 30px 20px; color: rgba(255,255,255,0.85);">
             <div style="font-size: 36px; margin-bottom: 8px; opacity: 0.7;">💸</div>
             <p style="margin: 0 0 8px; font-size: 15px; font-weight: 600;">${escapeHTML(t('balance:no_fixed_expenses_title') || 'Aún no hay gastos fijos')}</p>
             <p style="margin: 0; font-size: 13px; opacity: 0.8;">${escapeHTML(t('balance:no_fixed_expenses_hint') || 'Pulsa «+ Añadir» para empezar a configurarlos.')}</p>
@@ -82,9 +161,7 @@ export async function renderizarGastosFijosDinamicos() {
     if (!Array.isArray(gastos) || gastos.length === 0) {
         container.innerHTML = emptyStateHtml();
     } else {
-        // Sort alphabetically so the order is stable across renders.
-        gastos.sort((a, b) => (a.concepto || '').localeCompare(b.concepto || ''));
-        container.innerHTML = gastos.map(sliderCardHtml).join('');
+        container.innerHTML = renderGrouped(gastos);
         wireSliderEvents(container);
     }
 
