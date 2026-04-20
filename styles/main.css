@@ -1883,86 +1883,12 @@ table tbody td:first-child {
   }
 }
 
-/* Header animation */
-.header {
-  animation: fadeIn 0.6s ease-out;
-}
-
-/* KPI cards staggered animation */
-.kpi-card {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.kpi-card:nth-child(1) {
-  animation-delay: 0.1s;
-}
-
-.kpi-card:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.kpi-card:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-.kpi-card:nth-child(4) {
-  animation-delay: 0.4s;
-}
-
-/* Tabs animation */
-.tabs {
-  animation: fadeIn 0.6s ease-out 0.5s backwards;
-}
-
-/* Main card animation */
-.main-card {
-  animation: fadeInUp 0.6s ease-out 0.6s backwards;
-}
-
-/* Table rows animation */
-table tbody tr {
-  animation: fadeIn 0.4s ease-out backwards;
-}
-
-table tbody tr:nth-child(1) {
-  animation-delay: 0.05s;
-}
-
-table tbody tr:nth-child(2) {
-  animation-delay: 0.1s;
-}
-
-table tbody tr:nth-child(3) {
-  animation-delay: 0.15s;
-}
-
-table tbody tr:nth-child(4) {
-  animation-delay: 0.2s;
-}
-
-table tbody tr:nth-child(5) {
-  animation-delay: 0.25s;
-}
-
-table tbody tr:nth-child(6) {
-  animation-delay: 0.3s;
-}
-
-table tbody tr:nth-child(7) {
-  animation-delay: 0.35s;
-}
-
-table tbody tr:nth-child(8) {
-  animation-delay: 0.4s;
-}
-
-table tbody tr:nth-child(9) {
-  animation-delay: 0.45s;
-}
-
-table tbody tr:nth-child(10) {
-  animation-delay: 0.5s;
-}
+/* Entrance animations removed 2026-04-20 — they re-triggered on every tab
+ * change and re-render, making the app feel like it was loading top-to-bottom
+ * every time. Iker reported it as annoying. The .fade-in / .slide-in utility
+ * classes are still available in case some component wants the effect
+ * explicitly, and toasts/modals keep their own animations.
+ */
 
 /* Buttons animation */
 .btn-primary {
