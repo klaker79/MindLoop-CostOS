@@ -391,13 +391,27 @@ export async function actualizarKPIs() {
         // 1. INGRESOS TOTALES (usa período actual)
         await actualizarKPIsPorPeriodo(periodoVistaActual);
 
-        // 2. PEDIDOS ACTIVOS
+        // 2. PEDIDOS del periodo seleccionado (consistente con INGRESOS)
+        //    + subtítulo "N pendientes" si hay alguno sin recibir.
         const pedidos = window.pedidos || [];
-        const pedidosActivos = pedidos.filter(p => p.estado === 'pendiente').length;
+        const pedidosDelPeriodo = typeof filtrarPorPeriodo === 'function'
+            ? filtrarPorPeriodo(pedidos, 'fecha', periodoVistaActual)
+            : pedidos;
+        const totalPedidosPeriodo = pedidosDelPeriodo.length;
+        const pedidosPendientes = pedidos.filter(p => p.estado === 'pendiente').length;
         const pedidosEl = document.getElementById('kpi-pedidos');
         if (pedidosEl) {
-            pedidosEl.textContent = pedidosActivos;
-            if (pedidosActivos > 0) animateCounter(pedidosEl, pedidosActivos, '', 800);
+            pedidosEl.textContent = totalPedidosPeriodo;
+            if (totalPedidosPeriodo > 0) animateCounter(pedidosEl, totalPedidosPeriodo, '', 800);
+        }
+        const pendientesEl = document.getElementById('kpi-pedidos-pendientes');
+        if (pendientesEl) {
+            if (pedidosPendientes > 0) {
+                pendientesEl.textContent = `⚠️ ${pedidosPendientes} ${t('dashboard:kpi_orders_pending') || 'pendientes'}`;
+                pendientesEl.style.display = 'block';
+            } else {
+                pendientesEl.style.display = 'none';
+            }
         }
 
         // 3. STOCK BAJO

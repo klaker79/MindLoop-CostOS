@@ -79,6 +79,7 @@
 
   "kpi_revenue": "Revenue",
   "kpi_orders": "Orders",
+  "kpi_orders_pending": "pending",
   "kpi_low_stock": "Low Stock",
   "sales_label": "Sales",
   "expenses_label": "Expenses",

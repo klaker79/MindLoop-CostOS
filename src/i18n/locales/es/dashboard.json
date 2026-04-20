@@ -79,6 +79,7 @@
 
   "kpi_revenue": "Ingresos",
   "kpi_orders": "Pedidos",
+  "kpi_orders_pending": "pendientes",
   "kpi_low_stock": "Stock Bajo",
   "sales_label": "Ventas",
   "expenses_label": "Gastos",
