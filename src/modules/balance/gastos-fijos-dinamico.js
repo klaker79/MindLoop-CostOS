@@ -1,56 +1,80 @@
 /**
  * Gastos Fijos Dinámicos
  * ---------------------
- * Reemplaza las 4 barras hardcoded (alquiler/personal/suministros/otros) por
- * una lista dinámica basada en los gastos_fijos configurados en la BD por
- * cada restaurante. Cada restaurante decide sus propias categorías (BANCOS,
- * IRPF, SUELDOS, SEG.SOCIAL, IMPUESTOS, etc.) desde el modal existente
- * `#modal-gasto-fijo`.
+ * UI compacta: lista por categoría con [concepto] [input €] [🗑]. Sin sliders.
+ * Botón "+ Añadir" abre un selector con los 27 gastos más comunes agrupados
+ * por categoría; los que el restaurante ya tiene se filtran automáticamente
+ * de la lista. Opción "Otro…" para nombres libres (útil en restaurantes con
+ * categorías locales no previstas).
  *
- * El total sigue calculándose con `calcularTotalGastosFijos()` (genérico,
- * suma todas las filas de DB). El P&L y el chat no se tocan.
+ * El P&L, el beneficio neto y el chat son agnósticos del nombre del concepto
+ * (suman todas las filas), así que cualquier cosa que añadas aquí cuenta.
  */
 
 import { cm, escapeHTML } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
 
-const DEBOUNCE_MS = 500;
+const SAVE_DEBOUNCE_MS = 400;
 const _saveTimers = {};
 
 // --------------------------------------------------------------------------
-// Category mapping — concepto (lowercased) → categoría display name.
-// Keeps rendering grouped without adding a DB column. Unknown conceptos
-// fall into "Otros" so the grouping always renders something sensible.
+// Preset catalog — 27 common restaurant fixed expenses, grouped by category.
 // --------------------------------------------------------------------------
-const CATEGORY_MAP = {
+const PRESET_EXPENSES = [
     // Personal
-    'sueldos': 'Personal', 'nóminas': 'Personal', 'nominas': 'Personal',
-    'seguridad social': 'Personal', 'finiquitos': 'Personal',
+    { concepto: 'Sueldos', cat: 'Personal' },
+    { concepto: 'Nóminas', cat: 'Personal' },
+    { concepto: 'Seguridad Social', cat: 'Personal' },
+    { concepto: 'Finiquitos', cat: 'Personal' },
     // Impuestos
-    'irpf': 'Impuestos', 'iva': 'Impuestos', 'sociedades': 'Impuestos', 'iae': 'Impuestos',
+    { concepto: 'IRPF', cat: 'Impuestos' },
+    { concepto: 'IVA', cat: 'Impuestos' },
+    { concepto: 'Sociedades', cat: 'Impuestos' },
+    { concepto: 'IAE', cat: 'Impuestos' },
     // Local
-    'alquiler': 'Local', 'comunidad': 'Local', 'seguro local': 'Local',
+    { concepto: 'Alquiler', cat: 'Local' },
+    { concepto: 'Comunidad', cat: 'Local' },
+    { concepto: 'Seguro local', cat: 'Local' },
     // Suministros
-    'luz': 'Suministros', 'agua': 'Suministros', 'gas': 'Suministros',
-    'teléfono/internet': 'Suministros', 'telefono/internet': 'Suministros',
-    'teléfono': 'Suministros', 'telefono': 'Suministros', 'internet': 'Suministros',
+    { concepto: 'Luz', cat: 'Suministros' },
+    { concepto: 'Agua', cat: 'Suministros' },
+    { concepto: 'Gas', cat: 'Suministros' },
+    { concepto: 'Teléfono/Internet', cat: 'Suministros' },
     // Bancos
-    'comisión tpv': 'Bancos', 'comision tpv': 'Bancos',
-    'cuota préstamo': 'Bancos', 'cuota prestamo': 'Bancos',
-    'comisiones cuenta': 'Bancos',
+    { concepto: 'Comisión TPV', cat: 'Bancos' },
+    { concepto: 'Cuota préstamo', cat: 'Bancos' },
+    { concepto: 'Comisiones cuenta', cat: 'Bancos' },
     // Servicios
-    'gestoría': 'Servicios', 'gestoria': 'Servicios',
-    'seguro rc': 'Servicios', 'sgae': 'Servicios', 'basura': 'Servicios',
+    { concepto: 'Gestoría', cat: 'Servicios' },
+    { concepto: 'Seguro RC', cat: 'Servicios' },
+    { concepto: 'SGAE', cat: 'Servicios' },
+    { concepto: 'Basura', cat: 'Servicios' },
     // Marketing
-    'publicidad': 'Marketing', 'web/dominio': 'Marketing', 'redes sociales': 'Marketing',
+    { concepto: 'Publicidad', cat: 'Marketing' },
+    { concepto: 'Web/dominio', cat: 'Marketing' },
+    { concepto: 'Redes sociales', cat: 'Marketing' },
     // Mantenimiento
-    'reparaciones': 'Mantenimiento', 'extractores': 'Mantenimiento',
-    'fumigación': 'Mantenimiento', 'fumigacion': 'Mantenimiento'
-};
+    { concepto: 'Reparaciones', cat: 'Mantenimiento' },
+    { concepto: 'Extractores', cat: 'Mantenimiento' },
+    { concepto: 'Fumigación', cat: 'Mantenimiento' }
+];
 
-// Stable render order for the groups
+// Map concepto lowercased → category (used to bucket existing DB rows that
+// might have been typed by the user).
+const CATEGORY_MAP = (() => {
+    const m = {};
+    PRESET_EXPENSES.forEach(p => { m[p.concepto.toLowerCase()] = p.cat; });
+    // Legacy names some users already had:
+    m['nomina'] = 'Personal';
+    m['telefono/internet'] = 'Suministros';
+    m['comision tpv'] = 'Bancos';
+    m['cuota prestamo'] = 'Bancos';
+    m['gestoria'] = 'Servicios';
+    m['fumigacion'] = 'Mantenimiento';
+    return m;
+})();
+
 const CATEGORY_ORDER = ['Personal', 'Impuestos', 'Local', 'Suministros', 'Bancos', 'Servicios', 'Marketing', 'Mantenimiento', 'Otros'];
-
 const CATEGORY_ICONS = {
     'Personal': '👥', 'Impuestos': '🏛️', 'Local': '🏪', 'Suministros': '⚡',
     'Bancos': '🏦', 'Servicios': '🧾', 'Marketing': '📣', 'Mantenimiento': '🔧', 'Otros': '📌'
@@ -61,75 +85,26 @@ function categoriaFor(concepto) {
     return CATEGORY_MAP[String(concepto).toLowerCase().trim()] || 'Otros';
 }
 
-// Range ceiling grows with value so the slider is usable even for big expenses.
-function dynamicMax(monto) {
-    const base = Math.max(monto || 0, 1000);
-    // Round up to a "nice" ceiling (x2 with a minimum of 5000)
-    const candidate = Math.max(base * 2, 5000);
-    return Math.ceil(candidate / 500) * 500;
-}
-
-function sliderCardHtml(gasto) {
+// --------------------------------------------------------------------------
+// Row + section rendering
+// --------------------------------------------------------------------------
+function rowHtml(gasto) {
     const monto = parseFloat(gasto.monto_mensual) || 0;
-    const max = dynamicMax(monto);
-    const label = escapeHTML(gasto.concepto || '—');
     const id = gasto.id;
     return `
-        <div class="gf-card" data-gasto-id="${id}"
-             style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 14px; transition: background 0.2s;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px;">
-                <label style="font-weight: 600; color: rgba(255,255,255,0.95); font-size: 14px; word-break: break-word; flex: 1;">
-                    ${label}
-                </label>
-                <div style="display: flex; gap: 2px; flex-shrink: 0;">
-                    <button type="button" class="gf-edit-btn" data-gasto-id="${id}" title="${escapeHTML(t('common:btn_edit') || 'Editar')}"
-                        style="background: none; border: none; color: rgba(255,255,255,0.75); cursor: pointer; padding: 4px 6px; font-size: 13px; line-height: 1; border-radius: 6px;">✎</button>
-                    <button type="button" class="gf-delete-btn" data-gasto-id="${id}" title="${escapeHTML(t('common:btn_delete') || 'Eliminar')}"
-                        style="background: none; border: none; color: rgba(255,255,255,0.75); cursor: pointer; padding: 4px 6px; font-size: 13px; line-height: 1; border-radius: 6px;">🗑</button>
-                </div>
+        <div class="gf-row" data-gasto-id="${id}"
+             style="display: grid; grid-template-columns: 1fr 140px 32px; gap: 12px; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; transition: background 0.2s;">
+            <span style="color: white; font-size: 14px; font-weight: 500; word-break: break-word;">${escapeHTML(gasto.concepto || '—')}</span>
+            <div style="position: relative;">
+                <input type="number" inputmode="decimal" step="0.01" min="0" value="${monto}"
+                    class="gf-input" data-gasto-id="${id}"
+                    style="width: 100%; padding: 7px 28px 7px 10px; text-align: right; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 7px; color: white; font-weight: 600; font-size: 14px; outline: none;">
+                <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.65); font-size: 13px; pointer-events: none;">€</span>
             </div>
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">
-                <span id="gf-dyn-${id}-valor" style="font-weight: 700; color: white; font-size: 17px;">${cm(monto, 0)}</span>
-            </div>
-            <input type="range" id="gf-dyn-${id}" min="0" max="${max}" step="50" value="${monto}" data-gasto-id="${id}"
-                style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;">
+            <button type="button" class="gf-delete-btn" data-gasto-id="${id}" title="${escapeHTML(t('common:btn_delete') || 'Eliminar')}"
+                style="background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; padding: 4px; font-size: 14px; line-height: 1; border-radius: 6px;">🗑</button>
         </div>
     `;
-}
-
-function renderGrouped(gastos) {
-    // Bucket by category
-    const buckets = {};
-    for (const g of gastos) {
-        const cat = categoriaFor(g.concepto);
-        if (!buckets[cat]) buckets[cat] = [];
-        buckets[cat].push(g);
-    }
-    // Sort each bucket alphabetically
-    Object.keys(buckets).forEach(cat => {
-        buckets[cat].sort((a, b) => (a.concepto || '').localeCompare(b.concepto || ''));
-    });
-    // Render in fixed order, skipping empty categories
-    const sections = CATEGORY_ORDER
-        .filter(cat => buckets[cat] && buckets[cat].length > 0)
-        .map(cat => {
-            const subtotal = buckets[cat].reduce((s, g) => s + (parseFloat(g.monto_mensual) || 0), 0);
-            const icon = CATEGORY_ICONS[cat] || '•';
-            return `
-                <section class="gf-group" style="margin-bottom: 22px;">
-                    <header style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 6px 4px 10px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 12px;">
-                        <h4 style="margin: 0; color: white; font-size: 14px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 16px;">${icon}</span>${escapeHTML(cat)}
-                        </h4>
-                        <span style="color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 600;">${cm(subtotal, 0)}</span>
-                    </header>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
-                        ${buckets[cat].map(sliderCardHtml).join('')}
-                    </div>
-                </section>
-            `;
-        });
-    return sections.join('');
 }
 
 function emptyStateHtml() {
@@ -142,9 +117,41 @@ function emptyStateHtml() {
     `;
 }
 
-/**
- * Main render — called on tab switch and after every CRUD operation.
- */
+function renderGrouped(gastos) {
+    const buckets = {};
+    for (const g of gastos) {
+        const cat = categoriaFor(g.concepto);
+        if (!buckets[cat]) buckets[cat] = [];
+        buckets[cat].push(g);
+    }
+    Object.keys(buckets).forEach(cat => {
+        buckets[cat].sort((a, b) => (a.concepto || '').localeCompare(b.concepto || ''));
+    });
+    const sections = CATEGORY_ORDER
+        .filter(cat => buckets[cat] && buckets[cat].length > 0)
+        .map(cat => {
+            const subtotal = buckets[cat].reduce((s, g) => s + (parseFloat(g.monto_mensual) || 0), 0);
+            const icon = CATEGORY_ICONS[cat] || '•';
+            return `
+                <section class="gf-group" style="margin-bottom: 22px;">
+                    <header style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 4px 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 10px;">
+                        <h4 style="margin: 0; color: white; font-size: 13px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 15px;">${icon}</span>${escapeHTML(cat)}
+                        </h4>
+                        <span style="color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 600;">${cm(subtotal, 0)}</span>
+                    </header>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        ${buckets[cat].map(rowHtml).join('')}
+                    </div>
+                </section>
+            `;
+        });
+    return sections.join('');
+}
+
+// --------------------------------------------------------------------------
+// Main render
+// --------------------------------------------------------------------------
 export async function renderizarGastosFijosDinamicos() {
     const container = document.getElementById('gastos-fijos-dinamico-list');
     if (!container) return;
@@ -153,7 +160,6 @@ export async function renderizarGastosFijosDinamicos() {
     try {
         gastos = await window.API.getGastosFijos();
     } catch (_e) {
-        // If the API fails (offline, 401, etc.) show empty state and let the total fall back.
         container.innerHTML = emptyStateHtml();
         return;
     }
@@ -162,34 +168,25 @@ export async function renderizarGastosFijosDinamicos() {
         container.innerHTML = emptyStateHtml();
     } else {
         container.innerHTML = renderGrouped(gastos);
-        wireSliderEvents(container);
+        wireRowEvents(container);
     }
 
-    // Keep the visible total in sync (centralized function already sums all rows from DB)
     if (typeof window.actualizarTotalGastosFijos === 'function') {
         await window.actualizarTotalGastosFijos();
     }
 }
 
-function wireSliderEvents(container) {
-    container.querySelectorAll('input[type="range"][data-gasto-id]').forEach(slider => {
-        const id = parseInt(slider.dataset.gastoId, 10);
+function wireRowEvents(container) {
+    container.querySelectorAll('.gf-input').forEach(input => {
+        const id = parseInt(input.dataset.gastoId, 10);
         if (!id) return;
-        const valorSpan = document.getElementById(`gf-dyn-${id}-valor`);
-        slider.addEventListener('input', () => {
-            // Live update of the label so the user sees the value as they drag.
-            if (valorSpan) valorSpan.textContent = cm(slider.value, 0);
-            scheduleSave(id, slider);
+        // Save while typing (debounced) AND on blur/enter.
+        input.addEventListener('input', () => scheduleSave(id, input));
+        input.addEventListener('blur', () => { flushSave(id, input); });
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
         });
     });
-
-    container.querySelectorAll('.gf-edit-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = parseInt(btn.dataset.gastoId, 10);
-            if (id) editarGastoFijo(id);
-        });
-    });
-
     container.querySelectorAll('.gf-delete-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const id = parseInt(btn.dataset.gastoId, 10);
@@ -198,46 +195,109 @@ function wireSliderEvents(container) {
     });
 }
 
-function scheduleSave(id, slider) {
+function scheduleSave(id, input) {
     clearTimeout(_saveTimers[id]);
-    _saveTimers[id] = setTimeout(() => saveSliderValue(id, slider), DEBOUNCE_MS);
+    _saveTimers[id] = setTimeout(() => saveInputValue(id, input), SAVE_DEBOUNCE_MS);
+}
+function flushSave(id, input) {
+    clearTimeout(_saveTimers[id]);
+    saveInputValue(id, input);
 }
 
-async function saveSliderValue(id, slider) {
-    const monto = parseFloat(slider.value) || 0;
-    // We need the current concepto (backend PUT requires both fields).
-    const card = slider.closest('.gf-card');
-    const label = card?.querySelector('label')?.textContent?.trim() || '';
+async function saveInputValue(id, input) {
+    const monto = parseFloat(input.value) || 0;
+    const row = input.closest('.gf-row');
+    const label = row?.querySelector('span')?.textContent?.trim() || '';
     try {
         await window.API.updateGastoFijo(id, label, monto);
         if (typeof window.actualizarTotalGastosFijos === 'function') {
             await window.actualizarTotalGastosFijos();
         }
+        // Update the section subtotal live without re-rendering the whole list.
+        refreshSectionSubtotal(input);
     } catch (_e) {
         window.showToast?.(t('balance:error_saving_expense') || 'Error guardando gasto fijo', 'error');
     }
 }
 
-// ---------------------------------------------------------------------------
-// Modal wiring — reuse #modal-gasto-fijo already present in index.html.
-// ---------------------------------------------------------------------------
+function refreshSectionSubtotal(input) {
+    const section = input.closest('.gf-group');
+    if (!section) return;
+    const total = Array.from(section.querySelectorAll('.gf-input'))
+        .reduce((s, el) => s + (parseFloat(el.value) || 0), 0);
+    const span = section.querySelector('header span:last-child');
+    if (span) span.textContent = cm(total, 0);
+}
 
-export function abrirModalNuevoGastoFijo() {
-    const modal = document.getElementById('modal-gasto-fijo');
-    const idInput = document.getElementById('gasto-id');
+// --------------------------------------------------------------------------
+// Modal "+ Añadir" — dropdown with presets + "Otro" fallback
+// --------------------------------------------------------------------------
+
+export async function abrirModalNuevoGastoFijo() {
+    // Load what we already have so we can filter the preset list.
+    let existing = [];
+    try {
+        existing = await window.API.getGastosFijos();
+    } catch { /* ignore */ }
+    const existingLower = new Set((existing || []).map(g => (g.concepto || '').toLowerCase().trim()));
+
+    const titulo = document.getElementById('titulo-modal-gasto');
+    if (titulo) titulo.textContent = t('balance:gasto_fijo_title') || 'Añadir Gasto Fijo';
+
+    const select = document.getElementById('gasto-preset-select');
     const conceptoInput = document.getElementById('gasto-concepto');
     const montoInput = document.getElementById('gasto-monto');
-    const titulo = document.getElementById('titulo-modal-gasto');
+    const customWrap = document.getElementById('gasto-custom-wrap');
+    const idInput = document.getElementById('gasto-id');
+
     if (idInput) idInput.value = '';
-    if (conceptoInput) conceptoInput.value = '';
     if (montoInput) montoInput.value = '';
-    if (titulo) titulo.textContent = t('balance:gasto_fijo_title') || 'Añadir Gasto Fijo';
-    // .modal has `display: none !important` in main.css — open via the `.active` class.
+    if (conceptoInput) conceptoInput.value = '';
+
+    // Build the grouped select, filtering preset already in use.
+    if (select) {
+        const byCat = {};
+        PRESET_EXPENSES.forEach(p => {
+            if (existingLower.has(p.concepto.toLowerCase())) return;
+            if (!byCat[p.cat]) byCat[p.cat] = [];
+            byCat[p.cat].push(p.concepto);
+        });
+        let html = `<option value="">— ${escapeHTML(t('balance:choose_expense') || 'Selecciona un gasto')} —</option>`;
+        CATEGORY_ORDER.forEach(cat => {
+            if (!byCat[cat] || byCat[cat].length === 0) return;
+            html += `<optgroup label="${escapeHTML((CATEGORY_ICONS[cat] || '') + ' ' + cat)}">`;
+            byCat[cat].forEach(c => {
+                html += `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`;
+            });
+            html += `</optgroup>`;
+        });
+        html += `<optgroup label="${escapeHTML(t('balance:preset_other_group') || 'Otro')}">`;
+        html += `<option value="__custom__">${escapeHTML(t('balance:preset_other') || 'Otro (nombre libre)…')}</option>`;
+        html += `</optgroup>`;
+        select.innerHTML = html;
+        select.value = '';
+        // Hide custom input until the user picks "Otro"
+        if (customWrap) customWrap.style.display = 'none';
+        select.onchange = () => {
+            if (select.value === '__custom__') {
+                if (customWrap) customWrap.style.display = 'block';
+                conceptoInput?.focus();
+            } else {
+                if (customWrap) customWrap.style.display = 'none';
+                if (conceptoInput) conceptoInput.value = select.value || '';
+                montoInput?.focus();
+            }
+        };
+    }
+
+    const modal = document.getElementById('modal-gasto-fijo');
     if (modal) modal.classList.add('active');
-    conceptoInput?.focus();
+    // Default focus: the preset select
+    select?.focus();
 }
 
 export async function editarGastoFijo(id) {
+    // Same modal, pre-filled.
     let gasto = null;
     try {
         const gastos = await window.API.getGastosFijos();
@@ -245,17 +305,23 @@ export async function editarGastoFijo(id) {
     } catch { /* ignore */ }
     if (!gasto) return;
 
-    const modal = document.getElementById('modal-gasto-fijo');
     const idInput = document.getElementById('gasto-id');
+    const select = document.getElementById('gasto-preset-select');
+    const customWrap = document.getElementById('gasto-custom-wrap');
     const conceptoInput = document.getElementById('gasto-concepto');
     const montoInput = document.getElementById('gasto-monto');
     const titulo = document.getElementById('titulo-modal-gasto');
+
     if (idInput) idInput.value = String(id);
+    if (titulo) titulo.textContent = t('balance:gasto_fijo_edit_title') || 'Editar Gasto Fijo';
+    // When editing, skip the preset picker entirely and show the text input with the name.
+    if (select) { select.innerHTML = ''; select.style.display = 'none'; }
+    if (customWrap) customWrap.style.display = 'block';
     if (conceptoInput) conceptoInput.value = gasto.concepto || '';
     if (montoInput) montoInput.value = parseFloat(gasto.monto_mensual) || 0;
-    if (titulo) titulo.textContent = t('balance:gasto_fijo_edit_title') || 'Editar Gasto Fijo';
+
+    const modal = document.getElementById('modal-gasto-fijo');
     if (modal) modal.classList.add('active');
-    conceptoInput?.focus();
 }
 
 export async function eliminarGastoFijo(id) {
@@ -270,14 +336,15 @@ export async function eliminarGastoFijo(id) {
     }
 }
 
-/**
- * Called from the form submit in index.html (`onsubmit="guardarGastoFijo(event)"`).
- * Creates a new gasto fijo OR updates an existing one depending on #gasto-id.
- */
 export async function guardarGastoFijo(event) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
     const id = document.getElementById('gasto-id')?.value;
-    const concepto = (document.getElementById('gasto-concepto')?.value || '').trim();
+    let concepto = (document.getElementById('gasto-concepto')?.value || '').trim();
+    // If a preset is selected and the text input wasn't populated (first time), take the preset value.
+    if (!concepto) {
+        const sel = document.getElementById('gasto-preset-select')?.value || '';
+        if (sel && sel !== '__custom__') concepto = sel;
+    }
     const monto = parseFloat(document.getElementById('gasto-monto')?.value) || 0;
 
     if (!concepto) {
@@ -306,9 +373,11 @@ export async function guardarGastoFijo(event) {
 export function cerrarFormGastoFijo() {
     const modal = document.getElementById('modal-gasto-fijo');
     if (modal) modal.classList.remove('active');
+    // Restore the select for next add (edit flow hides it)
+    const select = document.getElementById('gasto-preset-select');
+    if (select) select.style.display = '';
 }
 
-// Expose to window so inline handlers in index.html keep working
 if (typeof window !== 'undefined') {
     window.renderizarGastosFijosDinamicos = renderizarGastosFijosDinamicos;
     window.abrirModalNuevoGastoFijo = abrirModalNuevoGastoFijo;
@@ -316,6 +385,5 @@ if (typeof window !== 'undefined') {
     window.eliminarGastoFijo = eliminarGastoFijo;
     window.guardarGastoFijo = guardarGastoFijo;
     window.cerrarFormGastoFijo = cerrarFormGastoFijo;
-    // Alias expected by event-bindings.js (data-action="cerrar-form-gasto-fijo")
     window.cerrarFormularioGastoFijo = cerrarFormGastoFijo;
 }

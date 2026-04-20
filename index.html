@@ -49,7 +49,7 @@
   <!-- Esto mejora seguridad y control de versiones -->
 
   <link rel="stylesheet" href="styles/main.css?v=20260415-sprint1">
-  <link rel="stylesheet" href="styles/polish.css?v=20260420-gastos-agrupados">
+  <link rel="stylesheet" href="styles/polish.css?v=20260420-gastos-compactos">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -3195,9 +3195,18 @@
       <form id="form-gasto-fijo" onsubmit="guardarGastoFijo(event)">
         <input type="hidden" id="gasto-id">
 
+        <!-- Select predefinido (27 gastos típicos agrupados por categoría + "Otro...") -->
         <div class="form-group">
-          <label for="gasto-concepto" data-i18n="balance:gasto_fijo_concept">Concepto *</label>
-          <input type="text" id="gasto-concepto" required placeholder="ej: Alquiler, Nóminas, Luz..."
+          <label for="gasto-preset-select" data-i18n="balance:gasto_fijo_concept">Concepto *</label>
+          <select id="gasto-preset-select" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
+            <!-- Poblado dinámicamente por gastos-fijos-dinamico.js -->
+          </select>
+        </div>
+
+        <!-- Input libre (se muestra al elegir "Otro" o al editar) -->
+        <div class="form-group" id="gasto-custom-wrap" style="display:none;">
+          <label for="gasto-concepto" data-i18n="balance:gasto_fijo_custom_name">Nombre del gasto</label>
+          <input type="text" id="gasto-concepto" placeholder="ej: Zakat, Licencia terraza..."
             data-i18n-placeholder="balance:gasto_fijo_concept_placeholder">
         </div>
 
