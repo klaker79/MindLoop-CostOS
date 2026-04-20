@@ -218,8 +218,33 @@ async function actualizarKPIsPorPeriodo(periodo) {
 }
 
 /**
+ * Resuelve {desde, hasta} ISO para el endpoint /analytics/food-cost según el
+ * período del dashboard (hoy / semana / mes). `hasta` es exclusive.
+ */
+function rangoPeriodo(periodo) {
+    const today = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const add = (d, days) => { const c = new Date(d); c.setDate(c.getDate() + days); return c; };
+    if (periodo === 'hoy') {
+        return { desde: iso(today), hasta: iso(add(today, 1)) };
+    }
+    if (periodo === 'semana') {
+        // Monday-based week
+        const dow = today.getDay(); // 0=Sun..6=Sat
+        const diffToMonday = (dow + 6) % 7;
+        const monday = add(today, -diffToMonday);
+        return { desde: iso(monday), hasta: iso(add(monday, 7)) };
+    }
+    // default: mes actual
+    const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const firstOfNext = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    return { desde: iso(firstOfMonth), hasta: iso(firstOfNext) };
+}
+
+/**
  * Calcula margen REAL ponderado por ventas del período
- * Usa ventas reales × coste de ingredientes (no media teórica)
+ * Lee desde ventas_diarias_resumen (fuente de verdad única).
  */
 async function actualizarMargenReal(periodo) {
     const margenEl = document.getElementById('kpi-margen');
@@ -228,48 +253,21 @@ async function actualizarMargenReal(periodo) {
     if (!margenEl) return;
 
     try {
-        // Obtener ventas del período
-        let ventas = saleStore.getState().sales || [];
-        if (typeof filtrarPorPeriodo === 'function') {
-            ventas = filtrarPorPeriodo(ventas, 'fecha', periodo);
-        }
+        // Source of truth: ventas_diarias_resumen (the COGS stored at the moment of each sale).
+        // See /api/analytics/food-cost on the backend. This keeps dashboard consistent with
+        // Diario / Análisis / exports which all read the same table.
+        const { desde, hasta } = rangoPeriodo(periodo);
+        const resp = await apiClient.get(`/analytics/food-cost?desde=${desde}&hasta=${hasta}`);
+        const totalIngresos = parseFloat(resp?.ingresos) || 0;
 
-        if (ventas.length === 0) {
+        if (totalIngresos === 0) {
             margenEl.textContent = '—';
             if (fcBar) { fcBar.style.width = '0%'; fcBar.style.background = '#E2E8F0'; }
             if (fcDetail) fcDetail.textContent = '';
             return;
         }
 
-        // Calcular Food Cost desde recetas
-        const recetas = window.recetas || [];
-        const recetasMap = new Map(recetas.map(r => [r.id, r]));
-        // 🔧 FIX: Usar SIEMPRE calcularCosteRecetaCompleto (usa getIngredientUnitPrice con precio_medio_compra)
-        // NO usar calcularCosteRecetaMemoizado — usa solo precio_medio (precio ficha) y da food cost incorrecto
-        const calcularCoste = window.calcularCosteRecetaCompleto;
-
-        let totalIngresos = 0;
-        let totalCostesReceta = 0;
-
-        for (const venta of ventas) {
-            const ingreso = parseFloat(venta.total) || 0;
-            const cantidad = parseInt(venta.cantidad) || 1;
-            const recetaId = parseInt(venta.receta_id || venta.recetaId);
-            const receta = recetasMap.get(recetaId);
-
-            totalIngresos += ingreso;
-
-            if (receta && typeof calcularCoste === 'function') {
-                const costePorcion = calcularCoste(receta) || 0;
-                const factor = parseFloat(venta.factor_variante || venta.factorVariante) || 1;
-                totalCostesReceta += costePorcion * cantidad * factor;
-            }
-        }
-
-        // Food Cost % = costes / ingresos × 100
-        const foodCost = totalIngresos > 0
-            ? (totalCostesReceta / totalIngresos) * 100
-            : 0;
+        const foodCost = parseFloat(resp?.food_cost_pct) || 0;
 
         // Mostrar Food Cost como número principal
         margenEl.textContent = Math.round(foodCost) + '%';
