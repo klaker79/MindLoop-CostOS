@@ -12,48 +12,9 @@ import { cm } from '../../utils/helpers.js';
 // === BALANCE / P&L UNIFICADO ===
 export async function renderizarBalance() {
     try {
-        // 1. Cargar gastos fijos desde la BD (fuente de verdad)
-        try {
-            const gastosFijos = await window.API.getGastosFijos();
-            if (gastosFijos && gastosFijos.length > 0) {
-                gastosFijos.forEach(gasto => {
-                    const concepto = gasto.concepto.toLowerCase();
-                    const monto = parseFloat(gasto.monto_mensual) || 0;
-                    if (concepto.includes('alquiler')) {
-                        const el = document.getElementById('pl-input-alquiler');
-                        if (el) el.value = monto;
-                    } else if (concepto.includes('nómina') || concepto.includes('nomina') || concepto.includes('personal')) {
-                        const el = document.getElementById('pl-input-personal');
-                        if (el) el.value = monto;
-                    } else if (concepto.includes('agua') || concepto.includes('suministro')) {
-                        const el = document.getElementById('pl-input-suministros');
-                        if (el) el.value = monto;
-                    } else if (concepto.includes('luz') || concepto.includes('otros')) {
-                        const el = document.getElementById('pl-input-otros');
-                        if (el) el.value = monto;
-                    }
-                });
-                // Actualizar sliders y KPI de gastos fijos
-                if (typeof window.cargarValoresGastosFijos === 'function') {
-                    window.cargarValoresGastosFijos();
-                }
-            }
-        } catch (error) {
-            console.warn('Using localStorage for gastos fijos:', error.message);
-            let savedOpex = {};
-            try {
-                savedOpex = JSON.parse(localStorage.getItem('opex_inputs') || '{}');
-            } catch (parseError) {
-                console.warn('opex_inputs corrupto:', parseError.message);
-            }
-            const alquilerEl = document.getElementById('pl-input-alquiler');
-            const personalEl = document.getElementById('pl-input-personal');
-            const suministrosEl = document.getElementById('pl-input-suministros');
-            const otrosEl = document.getElementById('pl-input-otros');
-            if (alquilerEl && savedOpex.alquiler) alquilerEl.value = savedOpex.alquiler;
-            if (personalEl && savedOpex.personal) personalEl.value = savedOpex.personal;
-            if (suministrosEl && savedOpex.suministros) suministrosEl.value = savedOpex.suministros;
-            if (otrosEl && savedOpex.otros) otrosEl.value = savedOpex.otros;
+        // 1. Render dynamic fixed-expenses widget (each restaurant has its own categories)
+        if (typeof window.renderizarGastosFijosDinamicos === 'function') {
+            await window.renderizarGastosFijosDinamicos();
         }
 
         // 2. Obtener Datos Reales

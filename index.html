@@ -49,7 +49,7 @@
   <!-- Esto mejora seguridad y control de versiones -->
 
   <link rel="stylesheet" href="styles/main.css?v=20260415-sprint1">
-  <link rel="stylesheet" href="styles/polish.css?v=20260420-busqueda2">
+  <link rel="stylesheet" href="styles/polish.css?v=20260420-gastos-dinamicos">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -1898,68 +1898,27 @@
 
 
 
-          <!-- 💰 GASTOS FIJOS MENSUALES -->
+          <!-- 💰 GASTOS FIJOS MENSUALES (dinámicos — cada restaurante configura sus categorías) -->
           <div
             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);">
-            <h3 style="margin: 0 0 20px 0; color: white; font-size: 20px; font-weight: 700;"
-              data-i18n="balance:diario_fixed_expenses">💰 Gastos Fijos Mensuales
-            </h3>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-              <!-- Alquiler -->
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;"
-                    data-i18n="balance:diario_rent">Alquiler Local</label>
-                  <span id="gf-alquiler-valor" style="font-weight: 700; color: white; font-size: 16px;">0</span>
-                </div>
-                <input type="range" id="gf-alquiler" min="0" max="20000" step="100" value="0"
-                  style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                  oninput="document.getElementById('gf-alquiler-valor').textContent = cm(this.value, 0); window.guardarGastoFinanzas('alquiler', 'gf-alquiler');">
-              </div>
-
-              <!-- Personal -->
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;"
-                    data-i18n="balance:diario_payroll">Personal
-                    (Nóminas)</label>
-                  <span id="gf-personal-valor" style="font-weight: 700; color: white; font-size: 16px;">0</span>
-                </div>
-                <input type="range" id="gf-personal" min="0" max="30000" step="100" value="0"
-                  style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                  oninput="document.getElementById('gf-personal-valor').textContent = cm(this.value, 0); window.guardarGastoFinanzas('personal', 'gf-personal');">
-              </div>
-
-              <!-- Suministros -->
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;"
-                    data-i18n="balance:diario_utilities">Suministros</label>
-                  <span id="gf-suministros-valor" style="font-weight: 700; color: white; font-size: 16px;">0</span>
-                </div>
-                <input type="range" id="gf-suministros" min="0" max="15000" step="100" value="0"
-                  style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                  oninput="document.getElementById('gf-suministros-valor').textContent = cm(this.value, 0); window.guardarGastoFinanzas('suministros', 'gf-suministros');">
-              </div>
-
-              <!-- Otros -->
-              <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <label style="font-weight: 600; color: rgba(255,255,255,0.9); font-size: 14px;"
-                    data-i18n="balance:diario_other_expenses">Otros Gastos</label>
-                  <span id="gf-otros-valor" style="font-weight: 700; color: white; font-size: 16px;">0</span>
-                </div>
-                <input type="range" id="gf-otros" min="0" max="20000" step="100" value="0"
-                  style="width: 100%; height: 8px; border-radius: 10px; background: rgba(255,255,255,0.3); outline: none; cursor: pointer;"
-                  oninput="document.getElementById('gf-otros-valor').textContent = cm(this.value, 0); window.guardarGastoFinanzas('otros', 'gf-otros');">
-              </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px;">
+              <h3 style="margin: 0; color: white; font-size: 20px; font-weight: 700;"
+                data-i18n="balance:diario_fixed_expenses">💰 Gastos Fijos Mensuales
+              </h3>
+              <button type="button" onclick="window.abrirModalNuevoGastoFijo && window.abrirModalNuevoGastoFijo()"
+                style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.35); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                <span style="font-size: 16px; line-height: 1;">+</span>
+                <span data-i18n="balance:add_fixed_expense">Añadir</span>
+              </button>
+            </div>
+            <div id="gastos-fijos-dinamico-list"
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+              <!-- Rellenado dinámicamente por src/modules/balance/gastos-fijos-dinamico.js -->
             </div>
             <div
-              style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 10px; text-align: center;">
+              style="margin-top: 18px; padding: 12px; background: rgba(255,255,255,0.2); border-radius: 10px; text-align: center;">
               <span style="color: white; font-size: 13px; font-weight: 500;" data-i18n="balance:diario_autosave_hint">✓
-                Se guardan automáticamente y aparecen en
-                el
-                P&L Diario</span>
+                Se guardan automáticamente y aparecen en el P&L Diario</span>
             </div>
           </div>
 

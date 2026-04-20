@@ -203,14 +203,11 @@ async function actualizarBeneficioRealDiario() {
 setInterval(actualizarBeneficioRealDiario, 2000);
 */
 
-// ============ FINANZAS: Guardar/Cargar Gastos Fijos desde BD ============
-// Mapeo de conceptos de sliders a IDs de la base de datos
-const GASTOS_FIJOS_MAP = {
-    'alquiler': { id: 1, concepto: 'Alquiler' },
-    'personal': { id: 2, concepto: 'Nóminas' },
-    'suministros': { id: 3, concepto: 'Agua' },
-    'otros': { id: 4, concepto: 'Luz' }
-};
+// ============ FINANZAS: Gastos Fijos desde BD ============
+// Nota: los sliders ya NO son hardcoded (alquiler/personal/suministros/otros).
+// Las barras se generan dinámicamente desde src/modules/balance/gastos-fijos-dinamico.js
+// leyendo `gastos_fijos` de BD. El cache y el cálculo del total (genérico) se
+// mantienen aquí porque son usados por otros módulos legacy (renderizarBeneficioNetoDiario, etc.).
 
 // Cache para evitar llamadas repetidas a la API
 let gastosFijosCache = null;
@@ -251,61 +248,9 @@ async function fetchGastosFijos() {
     }
 }
 
-const _gastoTimers = {};
-window.guardarGastoFinanzas = function (concepto, inputId) {
-    // Debounce: esperar 500ms después del último movimiento del slider
-    clearTimeout(_gastoTimers[concepto]);
-    _gastoTimers[concepto] = setTimeout(() => _guardarGastoFinanzasReal(concepto, inputId), 500);
-};
-
-async function _guardarGastoFinanzasReal(concepto, inputId) {
-    const elem = document.getElementById(inputId);
-    if (!elem) return;
-
-    const monto = parseFloat(elem.value) || 0;
-    const conceptoKey = concepto.toLowerCase();
-    const gastoInfo = GASTOS_FIJOS_MAP[conceptoKey];
-
-    if (!gastoInfo) {
-        console.warn('Concepto no mapeado:', concepto);
-        return;
-    }
-
-    try {
-        const gastosActuales = await fetchGastosFijos();
-        const gastoReal = gastosActuales.find(g => g.concepto === gastoInfo.concepto);
-
-        let res;
-        if (gastoReal) {
-            // Existe en BD — actualizar
-            res = await fetch(getGastosApiBase() + '/gastos-fijos/' + gastoReal.id, {
-                method: 'PUT',
-                headers: getGastosAuthHeaders(),
-                credentials: 'include',
-                body: JSON.stringify({ concepto: gastoInfo.concepto, monto_mensual: monto })
-            });
-        } else {
-            // No existe — crear
-            res = await fetch(getGastosApiBase() + '/gastos-fijos', {
-                method: 'POST',
-                headers: getGastosAuthHeaders(),
-                credentials: 'include',
-                body: JSON.stringify({ concepto: gastoInfo.concepto, monto_mensual: monto })
-            });
-        }
-
-        if (!res.ok) throw new Error('Error saving gasto fijo');
-
-        // Invalidar cache
-        gastosFijosCache = null;
-
-        // Actualizar el total
-        await actualizarTotalGastosFijos();
-    } catch (error) {
-        console.error('Error guardando gasto:', error);
-        if (typeof showToast === 'function') showToast('Error guardando gasto fijo', 'error');
-    }
-};
+// window.guardarGastoFinanzas ya no se usa (las barras hardcoded se eliminaron).
+// Dejamos un no-op por seguridad por si queda algún handler inline en cache.
+window.guardarGastoFinanzas = function () { /* deprecated, kept for safety */ };
 
 // ✅ Función centralizada única para calcular gastos fijos (desde BD)
 async function calcularTotalGastosFijos() {
@@ -344,56 +289,21 @@ async function actualizarTotalGastosFijos() {
     }
 }
 
-// Cargar valores guardados en los sliders al iniciar (desde BD)
-window.cargarValoresGastosFijos = cargarValoresGastosFijos;
-async function cargarValoresGastosFijos() {
-    try {
-        const gastos = await fetchGastosFijos();
-
-        if (!gastos || !Array.isArray(gastos)) {
-            console.warn('No se encontraron gastos fijos en la BD');
-            return;
-        }
-
-        // Mapear gastos de la BD a los sliders
-        gastos.forEach(gasto => {
-            const monto = parseFloat(gasto.monto_mensual) || 0;
-            let sliderId, valorId;
-
-            // Mapear por concepto
-            if (gasto.concepto === 'Alquiler') {
-                sliderId = 'gf-alquiler';
-                valorId = 'gf-alquiler-valor';
-            } else if (gasto.concepto === 'Nóminas') {
-                sliderId = 'gf-personal';
-                valorId = 'gf-personal-valor';
-            } else if (gasto.concepto === 'Agua') {
-                sliderId = 'gf-suministros';
-                valorId = 'gf-suministros-valor';
-            } else if (gasto.concepto === 'Luz') {
-                sliderId = 'gf-otros';
-                valorId = 'gf-otros-valor';
-            }
-
-            if (sliderId) {
-                const slider = document.getElementById(sliderId);
-                const valorElem = document.getElementById(valorId);
-                if (slider) slider.value = monto;
-                if (valorElem) valorElem.textContent = cm(monto);
-            }
-        });
-
+// Backwards-compat shim: callers still use `window.cargarValoresGastosFijos()` (core.js tab switch,
+// balance/index.js, etc.). Now it re-renders the dynamic widget + updates the total.
+window.cargarValoresGastosFijos = async function () {
+    if (typeof window.renderizarGastosFijosDinamicos === 'function') {
+        await window.renderizarGastosFijosDinamicos();
+    } else {
+        // Fallback: at least refresh the total if the dynamic module hasn't loaded yet.
         await actualizarTotalGastosFijos();
-    } catch (error) {
-        console.error('Error cargando gastos fijos:', error);
     }
-}
+};
 
 // Llamar al cargar la página SOLO si hay sesión activa
 setTimeout(function () {
-    // fix M4: usar authToken/sessionStorage en vez de localStorage para coherencia con el resto de la app
     if (window.authToken || sessionStorage.getItem('_at')) {
-        cargarValoresGastosFijos();
+        window.cargarValoresGastosFijos();
     }
 }, 1000);
 
