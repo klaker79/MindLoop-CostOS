@@ -8,10 +8,10 @@ import { createChatStyles } from './chat-styles.js';
 import { appConfig } from '../../config/app-config.js';
 import { api } from '../../api/client.js';
 import { t } from '@/i18n/index.js';
-import { cm } from '../../utils/helpers.js';
 import { parseMarkdown } from './chat-markdown.js';
 import './chat-pdf.js';
 import { getCurrentTab, getCurrentTabContext } from './chat-context.js';
+import { executeAction, speakResponse, isTtsEnabled, toggleTts } from './chat-actions.js';
 
 const CHAT_CONFIG = {
     // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
@@ -77,32 +77,6 @@ try {
 
 let isChatOpen = false;
 let isWaitingResponse = false;
-let ttsEnabled = localStorage.getItem('ttsEnabled') === 'true'; // Text-to-Speech toggle
-
-/**
- * Text-to-Speech: Lee respuestas en voz alta
- */
-function speakResponse(text) {
-    if (!ttsEnabled || !('speechSynthesis' in window)) return;
-
-    // Cancelar cualquier audio previo
-    speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    const currentLang = window.getCurrentLanguage?.() || 'es';
-    utterance.lang = currentLang === 'en' ? 'en-US' : 'es-ES';
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-
-    // Buscar voz en el idioma actual
-    const voices = speechSynthesis.getVoices();
-    const matchedVoice = voices.find(v => v.lang.startsWith(currentLang));
-    if (matchedVoice) utterance.voice = matchedVoice;
-
-    speechSynthesis.speak(utterance);
-}
-
 /**
  * Inicializa el widget de chat
  */
@@ -169,7 +143,7 @@ function createChatHTML() {
                         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                     </svg>
                 </button>
-                <button class="chat-tts-btn" id="chat-tts" title="${t('chat:toggle_voice_title')}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;opacity:${ttsEnabled ? '1' : '0.5'}">
+                <button class="chat-tts-btn" id="chat-tts" title="${t('chat:toggle_voice_title')}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;opacity:${isTtsEnabled() ? '1' : '0.5'}">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
                         <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                     </svg>
@@ -235,12 +209,11 @@ function bindChatEvents() {
     // TTS Toggle
     const ttsBtn = document.getElementById('chat-tts');
     ttsBtn.addEventListener('click', () => {
-        ttsEnabled = !ttsEnabled;
-        localStorage.setItem('ttsEnabled', ttsEnabled);
-        ttsBtn.style.opacity = ttsEnabled ? '1' : '0.5';
-        ttsBtn.title = ttsEnabled ? t('chat:tts_toggle_on') : t('chat:tts_toggle_off');
-        window.showToast?.(ttsEnabled ? t('chat:tts_enabled') : t('chat:tts_disabled'), 'info');
-        if (ttsEnabled) speakResponse(t('chat:tts_speak_activated'));
+        const enabled = toggleTts();
+        ttsBtn.style.opacity = enabled ? '1' : '0.5';
+        ttsBtn.title = enabled ? t('chat:tts_toggle_on') : t('chat:tts_toggle_off');
+        window.showToast?.(enabled ? t('chat:tts_enabled') : t('chat:tts_disabled'), 'info');
+        if (enabled) speakResponse(t('chat:tts_speak_activated'));
     });
 
     // Send message
@@ -464,305 +437,6 @@ function addMessageWithAction(type, text, actionData) {
     chatMessages.push({ type, text, time: Date.now() });
     if (chatMessages.length > 50) chatMessages = chatMessages.slice(-50);
     localStorage.setItem(chatHistoryKey(), JSON.stringify(chatMessages));
-}
-
-/**
- * Ejecuta una acción del chat
- * Formato: tipo|entidad|campo|valor (ej: "update|ingrediente|PULPO|precio|25")
- */
-async function executeAction(actionData) {
-    try {
-        const parts = actionData.split('|');
-        const action = parts[0]; // update, add, etc.
-        const entity = parts[1]; // ingrediente, receta
-        const name = parts[2]; // nombre del item
-        const field = parts[3]; // campo a modificar
-        const value = parts[4]; // nuevo valor
-
-        // Ejecutando acción
-
-        if (action === 'update' && entity === 'ingrediente') {
-            // Buscar ingrediente por nombre
-            const ing = window.ingredientes?.find(i =>
-                i.nombre.toLowerCase().includes(name.toLowerCase())
-            );
-            if (!ing) {
-                logger.error('Ingrediente no encontrado:', name);
-                return false;
-            }
-
-            // 🔒 FIX v2: Para stock usar ajuste atómico, para precio usar updateIngrediente
-            if (field === 'stock') {
-                // Calcular delta: nuevo_valor - valor_actual
-                const stockActual = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0);
-                const nuevoValor = parseFloat(value);
-                const delta = nuevoValor - stockActual;
-                await window.api.adjustStock(ing.id, delta, 'chat_voice');
-            } else if (field === 'precio') {
-                await window.api.updateIngrediente(ing.id, { precio: parseFloat(value) });
-            }
-
-            await window.cargarDatos();
-            window.renderizarIngredientes?.();
-
-            // 🔥 FIX: Si el formulario de edición está abierto para este ingrediente, actualizarlo
-            if (window.editandoIngredienteId === ing.id) {
-                const ingredienteActualizado = window.ingredientes?.find(i => i.id === ing.id);
-                if (ingredienteActualizado) {
-                    if (field === 'precio') {
-                        document.getElementById('ing-precio').value = ingredienteActualizado.precio;
-                    }
-                    if (field === 'stock') {
-                        document.getElementById('ing-stock').value =
-                            ingredienteActualizado.stock_actual;
-                    }
-                }
-            }
-
-            window.showToast?.(`${ing.nombre} actualizado: ${field} = ${value}`, 'success');
-            return true;
-        } else if (action === 'update' && entity === 'receta') {
-            // Buscar receta por nombre
-            const rec = window.recetas?.find(r =>
-                r.nombre.toLowerCase().includes(name.toLowerCase())
-            );
-            if (!rec) {
-                logger.error('Receta no encontrada:', name);
-                return false;
-            }
-
-            // Preparar actualización
-            const updates = { ...rec };
-            if (field === 'precio' || field === 'precio_venta')
-                updates.precio_venta = parseFloat(value);
-
-            // Llamar API
-            await window.api.updateReceta(rec.id, updates);
-            await window.cargarDatos();
-            window.renderizarRecetas?.();
-
-            // 🔥 FIX: Si el formulario de edición está abierto para esta receta, actualizarlo
-            if (window.editandoRecetaId === rec.id) {
-                const recetaActualizada = window.recetas?.find(r => r.id === rec.id);
-                if (recetaActualizada) {
-                    if (field === 'precio' || field === 'precio_venta') {
-                        document.getElementById('rec-precio_venta').value =
-                            recetaActualizada.precio_venta;
-                    }
-                    // Recalcular coste y márgenes
-                    window.calcularCosteReceta?.();
-                }
-            }
-
-            window.showToast?.(`${rec.nombre} actualizado: precio = ${cm(value)}`, 'success');
-            return true;
-        } else if (action === 'update' && entity === 'receta_ingrediente') {
-            // Formato: update|receta_ingrediente|RECETA|INGREDIENTE|cantidad|VALOR
-            // parts[0]=update, parts[1]=receta_ingrediente, parts[2]=RECETA, parts[3]=INGREDIENTE, parts[4]=cantidad, parts[5]=VALOR
-            const recetaNombre = parts[2];
-            const ingredienteNombre = parts[3];
-            const nuevaCantidad = parseFloat(parts[5]); // El valor está en parts[5]
-
-            // Actualizando receta_ingrediente
-
-            if (isNaN(nuevaCantidad)) {
-                logger.error('Cantidad inválida:', parts[5]);
-                return false;
-            }
-
-            // Buscar receta
-            const rec = window.recetas?.find(r =>
-                r.nombre.toLowerCase().includes(recetaNombre.toLowerCase())
-            );
-            if (!rec) {
-                logger.error('Receta no encontrada:', recetaNombre);
-                return false;
-            }
-
-            // Buscar ingrediente
-            const ing = window.ingredientes?.find(i =>
-                i.nombre.toLowerCase().includes(ingredienteNombre.toLowerCase())
-            );
-            if (!ing) {
-                logger.error('Ingrediente no encontrado:', ingredienteNombre);
-                return false;
-            }
-
-            // Buscar el ingrediente en la receta
-            const ingredienteIdx = rec.ingredientes?.findIndex(
-                item => item.ingredienteId === ing.id
-            );
-            if (ingredienteIdx === -1 || ingredienteIdx === undefined) {
-                logger.error('El ingrediente no está en la receta');
-                return false;
-            }
-
-            // Actualizar cantidad (crear nuevo array para asegurar inmutabilidad)
-            const nuevosIngredientes = [...rec.ingredientes];
-            nuevosIngredientes[ingredienteIdx] = {
-                ...nuevosIngredientes[ingredienteIdx],
-                cantidad: nuevaCantidad,
-            };
-
-            // Crear objeto actualizado
-            const recetaActualizada = {
-                ...rec,
-                ingredientes: nuevosIngredientes,
-            };
-
-            // Llamar API para actualizar receta
-            await window.api.updateReceta(rec.id, recetaActualizada);
-            await window.cargarDatos();
-            window.renderizarRecetas?.();
-            window.calcularCosteReceta?.();
-            window.showToast?.(`${rec.nombre}: ${ing.nombre} ahora = ${nuevaCantidad}`, 'success');
-            return true;
-        }
-
-        // ========== NUEVAS ACCIONES DE VOZ ==========
-
-        // ADD INGREDIENTE: add|ingrediente|NOMBRE|precio|VALOR|unidad|UNIDAD
-        if (action === 'add' && entity === 'ingrediente') {
-            const nombre = parts[2];
-            const precio = parseFloat(parts[4]) || 0;
-            const unidad = parts[6] || 'kg';
-
-            const nuevoIng = await window.api.createIngrediente({
-                nombre: nombre.toUpperCase(),
-                precio: precio,
-                unidad: unidad,
-                stock_actual: 0,
-                stock_minimo: 0,
-                proveedor_id: null
-            });
-
-            await window.cargarDatos();
-            window.renderizarIngredientes?.();
-            window.showToast?.(`✅ Ingrediente ${nombre} creado a ${cm(precio)}/${unidad}`, 'success');
-            speakResponse(`Ingrediente ${nombre} añadido correctamente`);
-            return true;
-        }
-
-        // REGISTRAR MERMA: merma|ingrediente|NOMBRE|cantidad|VALOR
-        if (action === 'merma' && entity === 'ingrediente') {
-            const nombre = parts[2];
-            const cantidad = parseFloat(parts[4]) || 0;
-
-            const ing = window.ingredientes?.find(i =>
-                i.nombre.toLowerCase().includes(nombre.toLowerCase())
-            );
-            if (!ing) {
-                logger.error('Ingrediente no encontrado:', nombre);
-                window.showToast?.(`Ingrediente ${nombre} no encontrado`, 'error');
-                return false;
-            }
-
-            // Backend handles stock deduction in POST /api/mermas (symmetric with DELETE restore)
-            if (window.API?.fetch) {
-                await window.API.fetch('/api/mermas', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        mermas: [{
-                            ingredienteId: ing.id,
-                            ingredienteNombre: ing.nombre,
-                            cantidad: cantidad,
-                            unidad: ing.unidad || 'ud',
-                            valorPerdida: 0,
-                            motivo: 'Chat/Voz',
-                            nota: t('chat:note_registered_via_chat'),
-                            responsableId: null
-                        }]
-                    })
-                });
-            }
-
-            await window.cargarDatos();
-            window.renderizarIngredientes?.();
-            window.showToast?.(`📉 Merma registrada: -${cantidad} ${ing.unidad} de ${ing.nombre}`, 'success');
-            speakResponse(`Merma de ${cantidad} ${ing.unidad} de ${ing.nombre} registrada`);
-            return true;
-        }
-
-        // ADD PEDIDO: add|pedido|PROVEEDOR|ingrediente|NOMBRE|cantidad|VALOR|precio|PRECIO
-        if (action === 'add' && entity === 'pedido') {
-            const proveedorNombre = parts[2];
-            const ingredienteNombre = parts[4];
-            const cantidad = parseFloat(parts[6]) || 0;
-            const precio = parseFloat(parts[8]) || 0;
-
-            // Buscar proveedor
-            const proveedor = window.proveedores?.find(p =>
-                p.nombre.toLowerCase().includes(proveedorNombre.toLowerCase())
-            );
-
-            // Buscar ingrediente
-            const ing = window.ingredientes?.find(i =>
-                i.nombre.toLowerCase().includes(ingredienteNombre.toLowerCase())
-            );
-            if (!ing) {
-                window.showToast?.(`Ingrediente ${ingredienteNombre} no encontrado`, 'error');
-                return false;
-            }
-
-            await window.api.createPedido({
-                proveedor_id: proveedor?.id || null,
-                fecha: new Date().toISOString().split('T')[0],
-                estado: 'pendiente',
-                items: [{
-                    ingrediente_id: ing.id,
-                    cantidad: cantidad,
-                    precio_unitario: precio || ing.precio
-                }],
-                total: cantidad * (precio || ing.precio)
-            });
-
-            await window.cargarDatos();
-            window.renderizarPedidos?.();
-            window.showToast?.(`📦 Pedido creado: ${cantidad} ${ing.unidad} de ${ing.nombre}`, 'success');
-            speakResponse(`Pedido de ${cantidad} ${ing.unidad} de ${ing.nombre} creado`);
-            return true;
-        }
-
-        // ADD VENTA: add|venta|RECETA|cantidad|VALOR
-        if (action === 'add' && entity === 'venta') {
-            const recetaNombre = parts[2];
-            const cantidad = parseInt(parts[4]) || 1;
-
-            const rec = window.recetas?.find(r =>
-                r.nombre.toLowerCase().includes(recetaNombre.toLowerCase())
-            );
-            if (!rec) {
-                window.showToast?.(`Receta ${recetaNombre} no encontrada`, 'error');
-                return false;
-            }
-
-            const precioVenta = parseFloat(rec.precio_venta) || 0;
-            const total = cantidad * precioVenta;
-
-            await window.api.createSale({
-                receta_id: rec.id,
-                fecha: new Date().toISOString().split('T')[0],
-                cantidad: cantidad,
-                precio_unitario: precioVenta,
-                total: total
-            });
-
-            await window.cargarDatos();
-            window.renderizarVentas?.();
-            window.showToast?.(`💰 Venta registrada: ${cantidad}x ${rec.nombre} = ${cm(total)}`, 'success');
-            speakResponse(`Venta de ${cantidad} ${rec.nombre} registrada por ${total.toFixed(2)} euros`);
-            return true;
-        }
-
-        // ========== FIN NUEVAS ACCIONES ==========
-
-        logger.warn('Acción no reconocida:', actionData);
-        return false;
-    } catch (error) {
-        logger.error('Error ejecutando acción:', error);
-        window.showToast?.('Error: ' + error.message, 'error');
-        return false;
-    }
 }
 
 /**
