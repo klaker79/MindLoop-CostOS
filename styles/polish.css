@@ -1193,3 +1193,17 @@ a[onclick*="cerrarSesion"]:hover {
 [data-theme="dark"] .bsq-empty {
     color: var(--dm-text-muted);
 }
+
+/* --- Gastos fijos: collapsible categories --- */
+.gf-group > summary {
+    list-style: none;
+}
+.gf-group > summary::-webkit-details-marker {
+    display: none;
+}
+.gf-group > summary::marker {
+    content: '';
+}
+.gf-group > summary:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
