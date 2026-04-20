@@ -43,6 +43,8 @@
   "col_subtotal": "小计",
   "col_status": "状态",
   "col_order_id": "订单",
+  "results_lines": "行",
+  "kpi_orders": "订单",
   "excel_sheet_sales": "销售",
   "excel_sheet_purchases": "采购",
   "excel_filename_sales": "销售",

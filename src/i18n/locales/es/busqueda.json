@@ -43,6 +43,8 @@
   "col_subtotal": "Subtotal",
   "col_status": "Estado",
   "col_order_id": "Pedido",
+  "results_lines": "Líneas",
+  "kpi_orders": "Pedidos",
   "excel_sheet_sales": "Ventas",
   "excel_sheet_purchases": "Compras",
   "excel_filename_sales": "Ventas",

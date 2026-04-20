@@ -126,7 +126,6 @@ export async function renderizarBusqueda() {
 }
 
 function renderHTML() {
-    const typeLabel = t('busqueda:type_label');
     const salesLabel = t('busqueda:type_sales');
     const purchasesLabel = t('busqueda:type_purchases');
     const presets = [
@@ -140,10 +139,9 @@ function renderHTML() {
         ['last_30', 'preset_last_30_days']
     ];
     const presetButtons = presets.map(
-        ([key, i18nKey]) => `<button class="btn btn-secondary btn-sm bsq-preset" data-preset="${key}" style="padding:6px 12px;font-size:13px;">${escapeHTML(t('busqueda:' + i18nKey))}</button>`
+        ([key, i18nKey]) => `<button class="bsq-chip bsq-preset" data-preset="${key}">${escapeHTML(t('busqueda:' + i18nKey))}</button>`
     ).join('');
 
-    // Supplier dropdown: only for purchases
     const proveedores = Array.isArray(window.proveedores) ? window.proveedores : [];
     const proveedorOptions = [
         `<option value="">${escapeHTML(t('busqueda:all_suppliers'))}</option>`,
@@ -153,46 +151,58 @@ function renderHTML() {
     const showSupplier = state.tipo === 'compras';
 
     return `
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-            <button class="btn ${state.tipo === 'ventas' ? 'btn-primary' : 'btn-secondary'} bsq-type" data-type="ventas" style="padding:10px 18px;">${escapeHTML(salesLabel)}</button>
-            <button class="btn ${state.tipo === 'compras' ? 'btn-primary' : 'btn-secondary'} bsq-type" data-type="compras" style="padding:10px 18px;">${escapeHTML(purchasesLabel)}</button>
+        <div class="bsq-toggle" role="tablist">
+            <button class="bsq-toggle-btn ${state.tipo === 'ventas' ? 'active' : ''} bsq-type" data-type="ventas" role="tab" aria-selected="${state.tipo === 'ventas'}">
+                <span class="bsq-toggle-icon">💰</span>${escapeHTML(salesLabel)}
+            </button>
+            <button class="bsq-toggle-btn ${state.tipo === 'compras' ? 'active' : ''} bsq-type" data-type="compras" role="tab" aria-selected="${state.tipo === 'compras'}">
+                <span class="bsq-toggle-icon">📦</span>${escapeHTML(purchasesLabel)}
+            </button>
         </div>
 
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-                ${presetButtons}
-            </div>
-
-            <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
-                <div>
-                    <label style="display:block;font-size:12px;color:#64748b;margin-bottom:4px;">${escapeHTML(t('busqueda:label_from'))}</label>
-                    <input type="date" id="bsq-desde" value="${escapeHTML(state.desde)}" style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
-                </div>
-                <div>
-                    <label style="display:block;font-size:12px;color:#64748b;margin-bottom:4px;">${escapeHTML(t('busqueda:label_to'))}</label>
-                    <input type="date" id="bsq-hasta" value="${escapeHTML(getDisplayHasta(state.hasta))}" style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
-                </div>
-                <div style="flex:1;min-width:220px;">
-                    <label style="display:block;font-size:12px;color:#64748b;margin-bottom:4px;">${escapeHTML(t('busqueda:label_search'))}</label>
-                    <input type="text" id="bsq-q" value="${escapeHTML(state.q)}" placeholder="${escapeHTML(t('busqueda:placeholder_search'))}" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
-                </div>
-                <div id="bsq-supplier-wrap" style="min-width:220px;${showSupplier ? '' : 'display:none;'}">
-                    <label style="display:block;font-size:12px;color:#64748b;margin-bottom:4px;">${escapeHTML(t('busqueda:label_supplier'))}</label>
-                    <select id="bsq-supplier" style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;width:100%;">
-                        ${proveedorOptions}
-                    </select>
+        <div class="bsq-filter-card">
+            <div class="bsq-filter-section">
+                <div class="bsq-section-title">📅 ${escapeHTML(t('busqueda:label_from'))} / ${escapeHTML(t('busqueda:label_to'))}</div>
+                <div class="bsq-chips">
+                    ${presetButtons}
                 </div>
             </div>
 
-            <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
-                <button id="bsq-search" class="btn btn-primary" style="padding:10px 20px;font-weight:600;">${escapeHTML(t('busqueda:btn_search'))}</button>
-                <button id="bsq-reset" class="btn btn-secondary" style="padding:10px 16px;">${escapeHTML(t('busqueda:btn_reset'))}</button>
-                <button id="bsq-export" class="btn btn-secondary" style="padding:10px 16px;" disabled>${escapeHTML(t('busqueda:btn_export'))}</button>
+            <div class="bsq-filter-section">
+                <div class="bsq-grid">
+                    <div class="bsq-field">
+                        <label class="bsq-label">${escapeHTML(t('busqueda:label_from'))}</label>
+                        <input type="date" id="bsq-desde" class="bsq-input" value="${escapeHTML(state.desde)}">
+                    </div>
+                    <div class="bsq-field">
+                        <label class="bsq-label">${escapeHTML(t('busqueda:label_to'))}</label>
+                        <input type="date" id="bsq-hasta" class="bsq-input" value="${escapeHTML(getDisplayHasta(state.hasta))}">
+                    </div>
+                    <div class="bsq-field bsq-field-grow">
+                        <label class="bsq-label">${escapeHTML(t('busqueda:label_search'))}</label>
+                        <input type="text" id="bsq-q" class="bsq-input" value="${escapeHTML(state.q)}" placeholder="${escapeHTML(t('busqueda:placeholder_search'))}">
+                    </div>
+                    <div id="bsq-supplier-wrap" class="bsq-field bsq-field-grow" style="${showSupplier ? '' : 'display:none;'}">
+                        <label class="bsq-label">${escapeHTML(t('busqueda:label_supplier'))}</label>
+                        <select id="bsq-supplier" class="bsq-input">
+                            ${proveedorOptions}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bsq-actions">
+                <button id="bsq-search" class="btn btn-primary">🔍 ${escapeHTML(t('busqueda:btn_search'))}</button>
+                <button id="bsq-reset" class="btn btn-secondary">${escapeHTML(t('busqueda:btn_reset'))}</button>
+                <button id="bsq-export" class="btn btn-secondary" disabled>📥 ${escapeHTML(t('busqueda:btn_export'))}</button>
             </div>
         </div>
 
-        <div id="bsq-results" style="min-height:120px;">
-            <p style="color:#94a3b8;text-align:center;padding:30px;">${escapeHTML(t('busqueda:empty_initial'))}</p>
+        <div id="bsq-results" class="bsq-results">
+            <div class="bsq-empty">
+                <div class="bsq-empty-icon">🔎</div>
+                <p>${escapeHTML(t('busqueda:empty_initial'))}</p>
+            </div>
         </div>
     `;
 }
@@ -318,53 +328,82 @@ function renderResults(data) {
     if (!resultsEl) return;
 
     if (!data.resultados || data.resultados.length === 0) {
-        resultsEl.innerHTML = `<p style="color:#94a3b8;text-align:center;padding:30px;">${escapeHTML(t('busqueda:empty_no_results'))}</p>`;
+        resultsEl.innerHTML = `
+            <div class="bsq-empty">
+                <div class="bsq-empty-icon">🙁</div>
+                <p>${escapeHTML(t('busqueda:empty_no_results'))}</p>
+            </div>
+        `;
         return;
     }
 
     const isVentas = data.tipo === 'ventas';
-    let summary;
+
+    // Build KPI cards
+    let kpiCards;
     if (isVentas) {
-        summary = t('busqueda:summary_sales', {
-            count: data.total_registros,
-            amount: cm(data.total_importe || 0),
-            quantity: Math.round(data.total_cantidad || 0)
-        });
+        kpiCards = `
+            <div class="bsq-kpi-grid">
+                <div class="bsq-kpi bsq-kpi-primary">
+                    <div class="bsq-kpi-label">${escapeHTML(t('busqueda:col_total'))}</div>
+                    <div class="bsq-kpi-value">${cm(data.total_importe || 0)}</div>
+                </div>
+                <div class="bsq-kpi">
+                    <div class="bsq-kpi-label">${escapeHTML(t('busqueda:col_quantity'))}</div>
+                    <div class="bsq-kpi-value">${Math.round(data.total_cantidad || 0)}</div>
+                </div>
+                <div class="bsq-kpi">
+                    <div class="bsq-kpi-label">${escapeHTML(t('busqueda:results_lines') || 'Líneas')}</div>
+                    <div class="bsq-kpi-value">${data.total_registros}</div>
+                </div>
+            </div>
+        `;
     } else {
-        summary = t('busqueda:summary_purchases', {
-            count: data.total_registros,
-            orders: data.num_pedidos || 0,
-            amount: cm(data.total_importe || 0)
-        });
+        kpiCards = `
+            <div class="bsq-kpi-grid">
+                <div class="bsq-kpi bsq-kpi-primary">
+                    <div class="bsq-kpi-label">${escapeHTML(t('busqueda:col_total'))}</div>
+                    <div class="bsq-kpi-value">${cm(data.total_importe || 0)}</div>
+                </div>
+                <div class="bsq-kpi">
+                    <div class="bsq-kpi-label">${escapeHTML(t('busqueda:kpi_orders') || 'Pedidos')}</div>
+                    <div class="bsq-kpi-value">${data.num_pedidos || 0}</div>
+                </div>
+                <div class="bsq-kpi">
+                    <div class="bsq-kpi-label">${escapeHTML(t('busqueda:results_lines') || 'Líneas')}</div>
+                    <div class="bsq-kpi-value">${data.total_registros}</div>
+                </div>
+            </div>
+        `;
     }
 
     const truncatedWarning = data.truncado
-        ? `<div style="background:#fef3c7;border:1px solid #fbbf24;padding:10px 14px;border-radius:8px;margin:10px 0;color:#92400e;font-size:13px;">${escapeHTML(t('busqueda:truncated_warning', { shown: data.resultados.length, total: data.total_registros }))}</div>`
+        ? `<div class="bsq-warning">⚠️ ${escapeHTML(t('busqueda:truncated_warning', { shown: data.resultados.length, total: data.total_registros }))}</div>`
         : '';
 
     let tableHtml;
     if (isVentas) {
         tableHtml = `
-            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <table class="bsq-table">
                 <thead>
-                    <tr style="background:#667eea;color:white;text-align:left;">
-                        <th style="padding:10px;">${escapeHTML(t('busqueda:col_date'))}</th>
-                        <th style="padding:10px;">${escapeHTML(t('busqueda:col_recipe'))}</th>
-                        <th style="padding:10px;">${escapeHTML(t('busqueda:col_category'))}</th>
-                        <th style="padding:10px;text-align:right;">${escapeHTML(t('busqueda:col_quantity'))}</th>
-                        <th style="padding:10px;text-align:right;">${escapeHTML(t('busqueda:col_unit_price'))}</th>
-                        <th style="padding:10px;text-align:right;">${escapeHTML(t('busqueda:col_total'))}</th>
+                    <tr>
+                        <th>${escapeHTML(t('busqueda:col_date'))}</th>
+                        <th>${escapeHTML(t('busqueda:col_recipe'))}</th>
+                        <th>${escapeHTML(t('busqueda:col_category'))}</th>
+                        <th class="bsq-td-right">${escapeHTML(t('busqueda:col_quantity'))}</th>
+                        <th class="bsq-td-right">${escapeHTML(t('busqueda:col_unit_price'))}</th>
+                        <th class="bsq-td-right">${escapeHTML(t('busqueda:col_total'))}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.resultados.map((r, i) => `
-                        <tr style="background:${i % 2 === 0 ? '#f8fafc' : 'white'};border-bottom:1px solid #e2e8f0;">
-                            <td style="padding:8px 10px;">${escapeHTML(formatDisplayDate(r.fecha))}</td>
-                            <td style="padding:8px 10px;">${escapeHTML(r.receta_nombre || '—')}</td>
-                            <td style="padding:8px 10px;color:#64748b;">${escapeHTML(r.categoria || '')}</td>
-                            <td style="padding:8px 10px;text-align:right;">${Number(r.cantidad || 0)}</td>
-                            <td style="padding:8px 10px;text-align:right;">${cm(parseFloat(r.precio_unitario) || 0)}</td>
-                            <td style="padding:8px 10px;text-align:right;font-weight:600;">${cm(parseFloat(r.total) || 0)}</td>
+                    ${data.resultados.map(r => `
+                        <tr>
+                            <td class="bsq-td-muted">${escapeHTML(formatDisplayDate(r.fecha))}</td>
+                            <td class="bsq-td-strong">${escapeHTML(r.receta_nombre || '—')}</td>
+                            <td class="bsq-td-muted">${escapeHTML(r.categoria || '')}</td>
+                            <td class="bsq-td-right">${Number(r.cantidad || 0)}</td>
+                            <td class="bsq-td-right bsq-td-muted">${cm(parseFloat(r.precio_unitario) || 0)}</td>
+                            <td class="bsq-td-right bsq-td-total">${cm(parseFloat(r.total) || 0)}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -372,32 +411,32 @@ function renderResults(data) {
         `;
     } else {
         tableHtml = `
-            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <table class="bsq-table">
                 <thead>
-                    <tr style="background:#667eea;color:white;text-align:left;">
-                        <th style="padding:10px;">${escapeHTML(t('busqueda:col_date'))}</th>
-                        <th style="padding:10px;">${escapeHTML(t('busqueda:col_order_id'))}</th>
-                        <th style="padding:10px;">${escapeHTML(t('busqueda:col_supplier'))}</th>
-                        <th style="padding:10px;">${escapeHTML(t('busqueda:col_ingredient'))}</th>
-                        <th style="padding:10px;">${escapeHTML(t('busqueda:col_unit'))}</th>
-                        <th style="padding:10px;text-align:right;">${escapeHTML(t('busqueda:col_quantity'))}</th>
-                        <th style="padding:10px;text-align:right;">${escapeHTML(t('busqueda:col_unit_price'))}</th>
-                        <th style="padding:10px;text-align:right;">${escapeHTML(t('busqueda:col_subtotal'))}</th>
-                        <th style="padding:10px;">${escapeHTML(t('busqueda:col_status'))}</th>
+                    <tr>
+                        <th>${escapeHTML(t('busqueda:col_date'))}</th>
+                        <th>${escapeHTML(t('busqueda:col_order_id'))}</th>
+                        <th>${escapeHTML(t('busqueda:col_supplier'))}</th>
+                        <th>${escapeHTML(t('busqueda:col_ingredient'))}</th>
+                        <th>${escapeHTML(t('busqueda:col_unit'))}</th>
+                        <th class="bsq-td-right">${escapeHTML(t('busqueda:col_quantity'))}</th>
+                        <th class="bsq-td-right">${escapeHTML(t('busqueda:col_unit_price'))}</th>
+                        <th class="bsq-td-right">${escapeHTML(t('busqueda:col_subtotal'))}</th>
+                        <th>${escapeHTML(t('busqueda:col_status'))}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.resultados.map((r, i) => `
-                        <tr style="background:${i % 2 === 0 ? '#f8fafc' : 'white'};border-bottom:1px solid #e2e8f0;">
-                            <td style="padding:8px 10px;">${escapeHTML(formatDisplayDate(r.fecha))}</td>
-                            <td style="padding:8px 10px;color:#64748b;">#${escapeHTML(String(r.pedido_id || ''))}</td>
-                            <td style="padding:8px 10px;">${escapeHTML(r.proveedor_nombre || '—')}</td>
-                            <td style="padding:8px 10px;">${escapeHTML(r.ingrediente_nombre || '—')}</td>
-                            <td style="padding:8px 10px;color:#64748b;">${escapeHTML(r.unidad || '')}</td>
-                            <td style="padding:8px 10px;text-align:right;">${Number(r.cantidad || 0)}</td>
-                            <td style="padding:8px 10px;text-align:right;">${cm(parseFloat(r.precio_unitario) || 0)}</td>
-                            <td style="padding:8px 10px;text-align:right;font-weight:600;">${cm(parseFloat(r.subtotal) || 0)}</td>
-                            <td style="padding:8px 10px;color:#64748b;">${escapeHTML(r.estado || '')}</td>
+                    ${data.resultados.map(r => `
+                        <tr>
+                            <td class="bsq-td-muted">${escapeHTML(formatDisplayDate(r.fecha))}</td>
+                            <td class="bsq-td-muted">#${escapeHTML(String(r.pedido_id || ''))}</td>
+                            <td>${escapeHTML(r.proveedor_nombre || '—')}</td>
+                            <td class="bsq-td-strong">${escapeHTML(r.ingrediente_nombre || '—')}</td>
+                            <td class="bsq-td-muted">${escapeHTML(r.unidad || '')}</td>
+                            <td class="bsq-td-right">${Number(r.cantidad || 0)}</td>
+                            <td class="bsq-td-right bsq-td-muted">${cm(parseFloat(r.precio_unitario) || 0)}</td>
+                            <td class="bsq-td-right bsq-td-total">${cm(parseFloat(r.subtotal) || 0)}</td>
+                            <td>${renderStatusBadge(r.estado)}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -406,14 +445,23 @@ function renderResults(data) {
     }
 
     resultsEl.innerHTML = `
-        <div style="padding:14px 0;margin-bottom:10px;border-bottom:2px solid #e2e8f0;">
-            <strong style="font-size:15px;color:#1e293b;">${escapeHTML(summary)}</strong>
-        </div>
+        ${kpiCards}
         ${truncatedWarning}
-        <div style="overflow-x:auto;border:1px solid #e2e8f0;border-radius:10px;">
+        <div class="bsq-table-wrap">
             ${tableHtml}
         </div>
     `;
+}
+
+function renderStatusBadge(estado) {
+    if (!estado) return '';
+    const e = String(estado).toLowerCase();
+    let cls = 'bsq-badge';
+    if (e === 'recibido' || e === 'received') cls += ' bsq-badge-success';
+    else if (e === 'pendiente' || e === 'pending') cls += ' bsq-badge-warning';
+    else if (e === 'cancelado' || e === 'canceled' || e === 'cancelled') cls += ' bsq-badge-danger';
+    else cls += ' bsq-badge-muted';
+    return `<span class="${cls}">${escapeHTML(estado)}</span>`;
 }
 
 async function doExport() {
