@@ -1,121 +1,72 @@
 /**
- * MindLoop CostOS - Chat Widget con IA
- * Integración con n8n para asistente contable inteligente
+ * MindLoop CostOS — Chat Widget (entry / orchestrator).
+ *
+ * Este módulo arma la UI (FAB + ventana + header) y engancha eventos. Toda la
+ * lógica (estado, mensajes, acciones, contexto, markdown, PDF) vive en los
+ * submódulos bajo `src/modules/chat/`.
+ *
+ * Exporta:
+ *   - initChatWidget (también expuesta en window para compatibilidad).
+ *   - clearChatHistory (también en window; resetea historial y regenera sesión).
+ * Expone window.toggleChat para el FAB/onclicks legacy.
  */
 
 import { logger } from '../../utils/logger.js';
 import { createChatStyles } from './chat-styles.js';
-import { appConfig } from '../../config/app-config.js';
-import { api } from '../../api/client.js';
 import { t } from '@/i18n/index.js';
-import { parseMarkdown } from './chat-markdown.js';
 import './chat-pdf.js';
-import { getCurrentTab, getCurrentTabContext } from './chat-context.js';
-import { executeAction, speakResponse, isTtsEnabled, toggleTts } from './chat-actions.js';
-
-const CHAT_CONFIG = {
-    // Webhook URL desde configuración centralizada (requiere VITE_CHAT_WEBHOOK_URL en .env)
-    webhookUrl: appConfig.chat.webhookUrl,
-    get botName() { return t('chat:bot_name') || appConfig.chat.botName || 'CostOS Assistant'; },
-    get welcomeMessage() {
-        return `${t('chat:welcome')}\n\n• 📊 ${t('chat:welcome_food_cost')}\n• 💰 ${t('chat:welcome_costs')}\n• 📦 ${t('chat:welcome_stock')}\n• 📈 ${t('chat:welcome_margins')}\n• 🏪 ${t('chat:welcome_suppliers')}\n\n${t('chat:welcome_cta')}`;
-    },
-    get placeholderText() { return t('chat:placeholder'); },
-    get errorMessage() { return t('chat:error_generic'); },
-};
-
-// Generar sessionId único
-function generateSessionId() {
-    return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-// 🔒 TENANT ISOLATION: chat history and session are scoped per restaurant
-// so that switching between tenants in the same browser never shows one
-// restaurant's conversations inside another. The keys become:
-//   chatHistory_<restauranteId>
-//   chatSessionId_<restauranteId>
-// If there is no logged-in restaurant we fall back to "anon" (login screen).
-function getCurrentRestauranteId() {
-    try {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        return user.restauranteId ? String(user.restauranteId) : 'anon';
-    } catch {
-        return 'anon';
-    }
-}
-function chatHistoryKey() { return 'chatHistory_' + getCurrentRestauranteId(); }
-function chatSessionKey() { return 'chatSessionId_' + getCurrentRestauranteId(); }
-
-// One-time cleanup: legacy un-prefixed keys would otherwise leak cross-tenant.
-// They existed before this fix. Delete them unconditionally on load.
-try {
-    localStorage.removeItem('chatHistory');
-    localStorage.removeItem('chatSessionId');
-} catch { /* ignore */ }
-
-let chatSessionId = localStorage.getItem(chatSessionKey()) || generateSessionId();
-localStorage.setItem(chatSessionKey(), chatSessionId);
-
-// 🔒 FIX: Proteger JSON.parse con try/catch para evitar crash si localStorage está corrupto
-let chatMessages = [];
-try {
-    const storedHistory = localStorage.getItem(chatHistoryKey());
-    if (storedHistory) {
-        chatMessages = JSON.parse(storedHistory);
-        // Validar que es un array
-        if (!Array.isArray(chatMessages)) {
-            console.warn('⚠️ chatHistory corrupto, reseteando...');
-            chatMessages = [];
-            localStorage.removeItem(chatHistoryKey());
-        }
-    }
-} catch (parseError) {
-    console.error('❌ Error parseando chatHistory, reseteando:', parseError);
-    chatMessages = [];
-    localStorage.removeItem(chatHistoryKey());
-}
+import { CHAT_CONFIG, getMessages, resetHistory } from './chat-state.js';
+import { isTtsEnabled, toggleTts, speakResponse } from './chat-actions.js';
+import {
+    addMessage,
+    sendMessage,
+    renderChatHistory,
+    updateQuickButtons,
+    clearChat
+} from './chat-messages.js';
 
 let isChatOpen = false;
-let isWaitingResponse = false;
-/**
- * Inicializa el widget de chat
- */
+
 export function initChatWidget() {
     createChatStyles();
     createChatHTML();
     bindChatEvents();
 
-    // Mostrar mensaje de bienvenida si no hay historial
-    if (chatMessages.length === 0) {
+    if (getMessages().length === 0) {
         addMessage('bot', CHAT_CONFIG.welcomeMessage);
     } else {
         renderChatHistory();
     }
 
-    // Chat Widget inicializado
-
-    // When language changes, update all chat UI text
+    // Al cambiar idioma: refresca header/placeholder/botones, y resetea para
+    // que el mensaje de bienvenida aparezca en el nuevo idioma.
     window.addEventListener('languageChanged', () => {
-        // Update header text
         const headerInfo = document.querySelector('.chat-header-info');
         if (headerInfo) {
             headerInfo.querySelector('h3').textContent = CHAT_CONFIG.botName;
             headerInfo.querySelector('p').textContent = t('chat:subtitle');
         }
-        // Update placeholder
         const input = document.getElementById('chat-input');
         if (input) input.placeholder = CHAT_CONFIG.placeholderText;
-        // Update quick buttons
         updateQuickButtons();
-        // Reset chat so welcome message appears in new language
         clearChatHistory();
     });
 }
 
-
 /**
- * Crea el HTML del chat
+ * Limpia el historial, regenera sesión y muestra el mensaje de bienvenida.
+ * Expuesto en window para uso desde el botón del header (legacy) y desde
+ * el listener de languageChanged arriba.
  */
+export function clearChatHistory() {
+    resetHistory();
+    const messagesContainer = document.getElementById('chat-messages');
+    if (messagesContainer) {
+        messagesContainer.innerHTML = '';
+        addMessage('bot', CHAT_CONFIG.welcomeMessage);
+    }
+}
+
 function createChatHTML() {
     const chatContainer = document.createElement('div');
     chatContainer.id = 'chat-widget-container';
@@ -127,10 +78,9 @@ function createChatHTML() {
             </svg>
             <span class="notification-dot"></span>
         </button>
-        
+
         <!-- Chat Window -->
         <div class="chat-window" id="chat-window">
-            <!-- Header -->
             <div class="chat-header">
                 <div class="chat-header-avatar">🤖</div>
                 <div class="chat-header-info">
@@ -154,20 +104,15 @@ function createChatHTML() {
                     </svg>
                 </button>
             </div>
-            
-            <!-- Messages -->
+
             <div class="chat-messages" id="chat-messages"></div>
-            
-            <!-- Quick Actions (contextual) -->
-            <div class="chat-quick-actions" id="chat-quick-actions">
-                <!-- Se actualizan dinámicamente según la pestaña -->
-            </div>
-            
-            <!-- Input -->
+
+            <div class="chat-quick-actions" id="chat-quick-actions"></div>
+
             <div class="chat-input-container">
-                <textarea 
-                    class="chat-input" 
-                    id="chat-input" 
+                <textarea
+                    class="chat-input"
+                    id="chat-input"
                     placeholder="${CHAT_CONFIG.placeholderText}"
                     rows="1"
                 ></textarea>
@@ -187,26 +132,17 @@ function createChatHTML() {
     document.body.appendChild(chatContainer);
 }
 
-/**
- * Vincula eventos del chat
- */
 function bindChatEvents() {
     const fab = document.getElementById('chat-fab');
-    const chatWindow = document.getElementById('chat-window');
     const closeBtn = document.getElementById('chat-close');
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send');
-    const quickBtns = document.querySelectorAll('.chat-quick-btn');
 
-    // Toggle chat
     fab.addEventListener('click', () => toggleChat());
     closeBtn.addEventListener('click', () => toggleChat(false));
 
-    // Clear chat
-    const clearBtn = document.getElementById('chat-clear');
-    clearBtn.addEventListener('click', () => clearChat());
+    document.getElementById('chat-clear').addEventListener('click', () => clearChat());
 
-    // TTS Toggle
     const ttsBtn = document.getElementById('chat-tts');
     ttsBtn.addEventListener('click', () => {
         const enabled = toggleTts();
@@ -216,10 +152,8 @@ function bindChatEvents() {
         if (enabled) speakResponse(t('chat:tts_speak_activated'));
     });
 
-    // Send message
     sendBtn.addEventListener('click', () => sendMessage());
 
-    // Enter to send
     input.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -227,13 +161,11 @@ function bindChatEvents() {
         }
     });
 
-    // Auto resize textarea
     input.addEventListener('input', () => {
         input.style.height = 'auto';
         input.style.height = Math.min(input.scrollHeight, 100) + 'px';
     });
 
-    // Quick actions (delegated event)
     document.getElementById('chat-quick-actions').addEventListener('click', e => {
         if (e.target.classList.contains('chat-quick-btn')) {
             input.value = e.target.dataset.msg;
@@ -241,7 +173,7 @@ function bindChatEvents() {
         }
     });
 
-    // Speech recognition (voice input)
+    // Speech recognition (voice input).
     const micBtn = document.getElementById('chat-mic');
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -263,7 +195,7 @@ function bindChatEvents() {
                     micBtn.classList.add('recording');
                     isRecording = true;
                 } catch (e) {
-                    // InvalidStateError: recognition already started (double-click race)
+                    // InvalidStateError: recognition already started (double-click race).
                     logger.warn('Speech recognition start failed:', e.message);
                     micBtn.classList.remove('recording');
                     isRecording = false;
@@ -272,7 +204,6 @@ function bindChatEvents() {
         });
 
         recognition.onresult = event => {
-            // 🔒 FIX: Verificar que existen los índices antes de acceder
             const transcript = event.results?.[0]?.[0]?.transcript || '';
             if (!transcript) {
                 logger.warn('Speech recognition: transcripción vacía');
@@ -284,8 +215,6 @@ function bindChatEvents() {
             input.focus();
             micBtn.classList.remove('recording');
             isRecording = false;
-            // Optional: auto-send after recognition
-            // sendMessage();
         };
 
         recognition.onerror = event => {
@@ -302,17 +231,12 @@ function bindChatEvents() {
             isRecording = false;
         };
     } else {
-        // Browser doesn't support speech recognition
         micBtn.style.display = 'none';
     }
 
-    // Update quick buttons on tab change
     updateQuickButtons();
 }
 
-/**
- * Toggle ventana de chat
- */
 function toggleChat(forceState) {
     const chatWindow = document.getElementById('chat-window');
     const fab = document.getElementById('chat-fab');
@@ -322,371 +246,13 @@ function toggleChat(forceState) {
     chatWindow.classList.toggle('open', isChatOpen);
     fab.classList.toggle('active', isChatOpen);
 
-    // Hide notification dot when opened
     if (isChatOpen) {
         fab.querySelector('.notification-dot').style.display = 'none';
         document.getElementById('chat-input').focus();
     }
 }
 
-/**
- * Añade un mensaje al chat
- */
-function addMessage(type, text, save = true) {
-    const messagesContainer = document.getElementById('chat-messages');
-    const lang = window.getCurrentLanguage?.() || 'es';
-    const time = new Date().toLocaleTimeString(lang === 'en' ? 'en-US' : 'es-ES', { hour: '2-digit', minute: '2-digit' });
-
-    // Verificar si es mensaje de bienvenida (no mostrar botón PDF)
-    const isWelcome = text === CHAT_CONFIG.welcomeMessage;
-
-    // Botón PDF para mensajes del bot
-    let pdfButton = '';
-    if (type === 'bot' && !isWelcome) {
-        try {
-            const encodedText = btoa(unescape(encodeURIComponent(text)));
-            pdfButton = `<button class="chat-pdf-btn" 
-                 data-pdf-text="${encodedText}"
-                 title="${t('chat:export_pdf_title')}"
-                 style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-                 onmouseover="this.style.opacity='1'" 
-                 onmouseout="this.style.opacity='0.6'"
-                 onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
-        } catch (e) {
-            console.warn('Error encoding text for PDF:', e);
-        }
-    }
-
-    const messageEl = document.createElement('div');
-    messageEl.className = `chat-message ${type}`;
-    messageEl.innerHTML = `
-        <div class="chat-message-avatar">${type === 'bot' ? '🤖' : '👤'}</div>
-        <div>
-            <div class="chat-message-content">${parseMarkdown(text)}</div>
-            <div class="chat-message-time">${time} ${pdfButton}</div>
-        </div>
-    `;
-
-    messagesContainer.appendChild(messageEl);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-    // Guardar en historial
-    if (save) {
-        chatMessages.push({ type, text, time: Date.now() });
-        // Mantener solo los últimos 50 mensajes
-        if (chatMessages.length > 50) chatMessages = chatMessages.slice(-50);
-        localStorage.setItem(chatHistoryKey(), JSON.stringify(chatMessages));
-    }
-}
-
-/**
- * Añade mensaje con botones de acción
- */
-function addMessageWithAction(type, text, actionData) {
-    const messagesContainer = document.getElementById('chat-messages');
-    const lang = window.getCurrentLanguage?.() || 'es';
-    const time = new Date().toLocaleTimeString(lang === 'en' ? 'en-US' : 'es-ES', { hour: '2-digit', minute: '2-digit' });
-    const actionId = 'action_' + Date.now();
-
-    const messageEl = document.createElement('div');
-    messageEl.className = `chat-message ${type}`;
-    messageEl.innerHTML = `
-        <div class="chat-message-avatar">🤖</div>
-        <div>
-            <div class="chat-message-content">${parseMarkdown(text)}</div>
-            <div class="chat-action-buttons" id="${actionId}" style="margin-top: 12px; display: flex; gap: 8px;">
-                <button class="chat-action-confirm" data-action="${encodeURIComponent(actionData)}" 
-                    style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    ✅ ${t('chat:action_confirm')}
-                </button>
-                <button class="chat-action-cancel"
-                    style="background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                    ❌ ${t('chat:action_cancel')}
-                </button>
-            </div>
-            <div class="chat-message-time">${time}</div>
-        </div>
-    `;
-
-    messagesContainer.appendChild(messageEl);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-    // Eventos de los botones
-    const confirmBtn = messageEl.querySelector('.chat-action-confirm');
-    const cancelBtn = messageEl.querySelector('.chat-action-cancel');
-    const buttonsContainer = document.getElementById(actionId);
-
-    confirmBtn.addEventListener('click', async () => {
-        buttonsContainer.innerHTML = `<span style="color: #f59e0b;">⏳ ${t('chat:action_executing')}</span>`;
-        const success = await executeAction(actionData);
-        if (success) {
-            buttonsContainer.innerHTML =
-                `<span style="color: #10b981;">✅ ${t('chat:action_done')}</span>`;
-            addMessage('bot', `✅ ${t('chat:action_completed')}`, false);
-        } else {
-            buttonsContainer.innerHTML =
-                `<span style="color: #ef4444;">❌ ${t('chat:action_error')}</span>`;
-        }
-    });
-
-    cancelBtn.addEventListener('click', () => {
-        buttonsContainer.innerHTML = `<span style="color: #64748b;">🚫 ${t('chat:action_cancelled')}</span>`;
-    });
-
-    // Guardar mensaje (sin la acción)
-    chatMessages.push({ type, text, time: Date.now() });
-    if (chatMessages.length > 50) chatMessages = chatMessages.slice(-50);
-    localStorage.setItem(chatHistoryKey(), JSON.stringify(chatMessages));
-}
-
-/**
- * Muestra indicador de typing
- */
-function showTyping() {
-    const messagesContainer = document.getElementById('chat-messages');
-
-    const typingEl = document.createElement('div');
-    typingEl.id = 'chat-typing';
-    typingEl.className = 'chat-typing';
-    typingEl.innerHTML = `
-        <div class="chat-message-avatar" style="width:28px;height:28px;font-size:12px;">🤖</div>
-        <div class="chat-typing-dots">
-            <div class="chat-typing-dot"></div>
-            <div class="chat-typing-dot"></div>
-            <div class="chat-typing-dot"></div>
-        </div>
-    `;
-
-    messagesContainer.appendChild(typingEl);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-/**
- * Oculta indicador de typing
- */
-function hideTyping() {
-    const typingEl = document.getElementById('chat-typing');
-    if (typingEl) typingEl.remove();
-}
-
-/**
- * Envía mensaje al webhook
- */
-async function sendMessage() {
-    const input = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('chat-send');
-    const message = input.value.trim();
-
-    if (!message || isWaitingResponse) return;
-
-    // Add user message
-    addMessage('user', message);
-    input.value = '';
-    input.style.height = 'auto';
-
-    // Disable input
-    isWaitingResponse = true;
-    sendBtn.disabled = true;
-    input.disabled = true;
-    showTyping();
-
-    try {
-        const lang = window.getCurrentLanguage?.() || 'es';
-        let data;
-
-        if (appConfig.chat.backend === 'claude') {
-            // Backend nuevo: POST /api/chat (multi-tenant vía JWT).
-            // El backend saca contexto de DB con tools, no necesita el payload grande.
-            data = await api.chat(message, lang, chatSessionId);
-        } else {
-            // Legacy: webhook n8n con payload completo.
-            const tabContext = getCurrentTabContext();
-            const response = await fetch(CHAT_CONFIG.webhookUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message,
-                    sessionId: chatSessionId,
-                    restaurante: window.getRestaurantName ? window.getRestaurantName() : 'Restaurante',
-                    timestamp: new Date().toISOString(),
-                    fechaHoy: new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
-                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                    }),
-                    fechaISO: new Date().toISOString().split('T')[0],
-                    contexto: tabContext,
-                    lang,
-                }),
-            });
-            if (!response.ok) throw new Error('Error en la respuesta');
-            data = await response.text();
-        }
-
-        hideTyping();
-
-        // Detectar si hay una acción pendiente de confirmar
-        const actionMatch = data.match(/\[ACTION:([^\]]+)\]/);
-        if (actionMatch) {
-            const actionData = actionMatch[1];
-            const cleanMessage = data.replace(/\[ACTION:[^\]]+\]/, '').trim();
-            addMessageWithAction('bot', cleanMessage, actionData);
-        } else {
-            addMessage('bot', data || t('chat:no_response'));
-        }
-    } catch (error) {
-        hideTyping();
-        logger.error('Chat error:', error);
-        addMessage('bot', CHAT_CONFIG.errorMessage);
-    } finally {
-        isWaitingResponse = false;
-        sendBtn.disabled = false;
-        input.disabled = false;
-        input.focus();
-    }
-}
-
-/**
- * Renderiza el historial
- * ⚡ Optimizado: Usa DocumentFragment para evitar múltiples reflows
- */
-function renderChatHistory() {
-    const messagesContainer = document.getElementById('chat-messages');
-    messagesContainer.innerHTML = '';
-
-    // ⚡ OPTIMIZACIÓN: Crear fragmento para batch DOM operations
-    const fragment = document.createDocumentFragment();
-
-    chatMessages.forEach(msg => {
-        const time = new Date(msg.time).toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-        const messageEl = document.createElement('div');
-        messageEl.className = `chat-message ${msg.type}`;
-        // Botón PDF para mensajes del bot (no para bienvenida)
-        let pdfButton = '';
-        if (msg.type === 'bot' && msg.text !== CHAT_CONFIG.welcomeMessage) {
-            try {
-                const encodedText = btoa(unescape(encodeURIComponent(msg.text)));
-                pdfButton = `<button class="chat-pdf-btn" 
-                     data-pdf-text="${encodedText}"
-                     title="${t('chat:export_pdf_title')}"
-                     style="background:none;border:none;cursor:pointer;padding:2px 6px;font-size:12px;opacity:0.6;transition:opacity 0.2s;"
-                     onmouseover="this.style.opacity='1'" 
-                     onmouseout="this.style.opacity='0.6'"
-                     onclick="window.exportMessageToPDF(decodeURIComponent(escape(atob(this.dataset.pdfText))))">📄</button>`;
-            } catch (e) {
-                console.warn('Error encoding text for PDF:', e);
-            }
-        }
-
-        messageEl.innerHTML = `
-            <div class="chat-message-avatar">${msg.type === 'bot' ? '🤖' : '👤'}</div>
-            <div>
-                <div class="chat-message-content">${parseMarkdown(msg.text)}</div>
-                <div class="chat-message-time">${time} ${pdfButton}</div>
-            </div>
-        `;
-        fragment.appendChild(messageEl);
-    });
-
-    // Una sola operación DOM en lugar de N operaciones
-    messagesContainer.appendChild(fragment);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-/**
- * Limpia el historial
- */
-export function clearChatHistory() {
-    chatMessages = [];
-    localStorage.removeItem(chatHistoryKey());
-    chatSessionId = generateSessionId();
-    localStorage.setItem(chatSessionKey(), chatSessionId);
-
-    const messagesContainer = document.getElementById('chat-messages');
-    if (messagesContainer) {
-        messagesContainer.innerHTML = '';
-        addMessage('bot', CHAT_CONFIG.welcomeMessage);
-    }
-}
-
-/**
- * Limpia el chat (wrapper para el botón)
- * Usa doble clic como confirmación para evitar borrado accidental
- */
-let clearClickCount = 0;
-let clearClickTimer = null;
-
-function clearChat() {
-    clearClickCount++;
-
-    if (clearClickCount === 1) {
-        // Primer clic - mostrar aviso
-        window.showToast?.(t('chat:clear_confirm_hint'), 'warning');
-        clearClickTimer = setTimeout(() => {
-            clearClickCount = 0; // Reset después de 2 segundos
-        }, 2000);
-    } else if (clearClickCount >= 2) {
-        // Segundo clic - borrar
-        clearTimeout(clearClickTimer);
-        clearClickCount = 0;
-        clearChatHistory();
-        window.showToast?.(t('chat:history_cleared'), 'success');
-    }
-}
-
-/**
- * Actualiza botones rápidos según la pestaña actual
- */
-function updateQuickButtons() {
-    const container = document.getElementById('chat-quick-actions');
-    if (!container) return;
-
-    const currentTab = getCurrentTab();
-
-    const buttonsByTab = {
-        ingredientes: [
-            { msg: t('chat:suggestion_price_increase'), label: `📈 ${t('chat:suggestion_price_increase_short')}` },
-            { msg: t('chat:suggestion_low_stock'), label: `⚠️ ${t('chat:suggestion_low_stock_short')}` },
-            { msg: t('chat:suggestion_most_expensive'), label: `💰 ${t('chat:suggestion_most_expensive_short')}` },
-        ],
-        recetas: [
-            { msg: t('chat:suggestion_most_profitable'), label: `⭐ ${t('chat:suggestion_most_profitable_short')}` },
-            { msg: t('chat:suggestion_high_food_cost'), label: `🔴 ${t('chat:suggestion_high_food_cost_short')}` },
-            { msg: t('chat:suggestion_price_suggestion'), label: `💵 ${t('chat:suggestion_price_suggestion_short')}` },
-        ],
-        proveedores: [
-            { msg: t('chat:suggestion_compare_suppliers'), label: `🏪 ${t('chat:suggestion_compare_suppliers_short')}` },
-            { msg: t('chat:suggestion_spending'), label: `💳 ${t('chat:suggestion_spending_short')}` },
-        ],
-        dashboard: [
-            { msg: t('chat:suggestion_summary'), label: `📊 ${t('chat:suggestion_summary_short')}` },
-            { msg: t('chat:suggestion_food_cost'), label: `🎯 ${t('chat:suggestion_food_cost_short')}` },
-            { msg: t('chat:suggestion_portions'), label: `🍽️ ${t('chat:suggestion_portions_short')}` },
-        ],
-        default: [
-            { msg: t('chat:suggestion_food_cost'), label: `📊 ${t('chat:suggestion_food_cost_short')}` },
-            { msg: t('chat:suggestion_portions'), label: `🍽️ ${t('chat:suggestion_portions_short')}` },
-            { msg: t('chat:suggestion_suppliers'), label: `🏪 ${t('chat:suggestion_suppliers_short')}` },
-            { msg: t('chat:suggestion_margins'), label: `📈 ${t('chat:suggestion_margins_short')}` },
-        ],
-    };
-
-    const buttons = buttonsByTab[currentTab] || buttonsByTab['default'];
-
-    container.innerHTML = buttons
-        .map(btn => `<button class="chat-quick-btn" data-msg="${btn.msg}">${btn.label}</button>`)
-        .join('');
-}
-
-// Escuchar cambios de pestaña para actualizar botones
-document.addEventListener('click', e => {
-    if (e.target.classList.contains('tab-btn')) {
-        setTimeout(updateQuickButtons, 100);
-    }
-});
-
-// Exportar para uso global
+// Exportar para uso global (onclick inline y compat legacy)
 window.initChatWidget = initChatWidget;
 window.clearChatHistory = clearChatHistory;
 window.toggleChat = toggleChat;
