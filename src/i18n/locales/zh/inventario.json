@@ -105,6 +105,8 @@
   "col_unit": "单位",
   "stock_low": "库存偏低",
   "stock_critical": "库存紧急",
+  "stock_value": "库存价值",
+  "items_in_stock": "有库存项目",
   "empty_title": "暂无食材",
   "empty_hint": "添加食材以管理库存",
   "no_data_placeholder": "暂无数据",
