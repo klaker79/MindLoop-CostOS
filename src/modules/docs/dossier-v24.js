@@ -1,5 +1,5 @@
 /**
- * MindLoop CostOS - Dossier Técnico v2.4
+ * MindLoop CostOS - Dossier Técnico v2.5
  * Documentación completa integrada en la aplicación
  */
 
@@ -13,7 +13,7 @@ export function generarDossierHTML() {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dossier Técnico - MindLoop CostOS v2.4</title>
+    <title>Dossier Técnico - MindLoop CostOS v2.5</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
@@ -280,7 +280,7 @@ export function generarDossierHTML() {
 <div class="cover">
     <h1>📘 Dossier Técnico</h1>
     <p class="subtitle">Guía Completa de Fórmulas, Cálculos y Uso del Sistema</p>
-    <span class="version">MindLoop CostOS v2.4 Premium | ${fechaActual}</span>
+    <span class="version">MindLoop CostOS v2.5 Premium | ${fechaActual}</span>
 </div>
 
 <!-- TOC -->
@@ -362,6 +362,52 @@ export function generarDossierHTML() {
     <p>Precio Unitario = 85 ÷ 10 = <strong>8.50 €/kg</strong></p>
 </div>
 
+<h3>Precio Nominal vs Precio Medio de Compra</h3>
+<div class="section-intro">
+    <p>Cada ingrediente convive con <strong>dos precios distintos</strong> que la app calcula y usa en contextos diferentes. Entender la diferencia es clave para leer bien tus costes.</p>
+</div>
+
+<table>
+    <tr><th>Concepto</th><th>De dónde sale</th><th>Cuándo cambia</th></tr>
+    <tr>
+        <td><strong>Precio Nominal</strong></td>
+        <td>Lo que escribiste al crear el ingrediente (Precio Formato ÷ Cantidad por Formato)</td>
+        <td>Solo cuando <strong>tú lo editas</strong></td>
+    </tr>
+    <tr>
+        <td><strong>Precio Medio de Compra</strong></td>
+        <td>Promedio de los albaranes recibidos los últimos <strong>90 días</strong></td>
+        <td>Cada vez que <strong>registras un pedido</strong></td>
+    </tr>
+</table>
+
+<div class="formula">
+    <span class="formula-name">Cascada de Prioridad del Precio Unitario</span>
+    1º Precio Medio de Compra (si hay albaranes)<br>
+    2º Precio Medio configurado en inventario<br>
+    3º Precio Nominal (Precio Formato ÷ Cantidad por Formato) — fallback
+</div>
+
+<div class="example">
+    <div class="example-title">📌 Analogía para entenderlo</div>
+    <p>Imagina que al abrir el bar calculaste "el café me debe costar 0.30 € por taza". Ese es tu <strong>precio nominal</strong> — tu plan.</p>
+    <p>Operas unos meses y la realidad dice que has pagado <strong>0.33 €/taza</strong> de media. Ese es el <strong>precio medio de compra</strong> — lo que está pasando de verdad.</p>
+    <p>La diferencia entre ambos es una <strong>alarma valiosa</strong>: o tus proveedores subieron, o tu plan estaba mal. El sistema te deja verlos separados para decidir qué hacer.</p>
+</div>
+
+<h3>Cuándo se usa cada uno</h3>
+<ul>
+    <li><strong>Dashboard, P&L mensual, Food Cost operativo, Análisis, Chat IA, registro de Ventas</strong> → usan siempre el <strong>precio real</strong> (cascada completa). Queremos que reflejen la realidad económica.</li>
+    <li><strong>Modal del Escandallo</strong> → puedes elegir con el toggle entre <strong>Real</strong> (default) y <strong>Nominal</strong>. Solo afecta a lo que ves en ese modal — nada de lo anterior cambia.</li>
+    <li><strong>Valoración de Stock</strong> → siempre usa precio configurado, no el medio de compra.</li>
+</ul>
+
+<div class="example" style="border-color:#f59e0b;background:#fef3c7;">
+    <div class="example-title">⚠️ Por qué importa tener ambos</div>
+    <p>Si el sistema <strong>solo usara precio real</strong>, un único albarán metido con error (OCR, typo) contaminaría la media de 90 días y rompería el food cost de ese ingrediente en todas las recetas.</p>
+    <p>Con ambos precios visibles, una desviación enorme entre nominal y real es un <strong>chivato inmediato</strong> de que hay que revisar las compras de ese ingrediente.</p>
+</div>
+
 <!-- 3. RECETAS -->
 <h2 id="recetas">3. 🍽️ Recetas y Costing</h2>
 <div class="section-intro">
@@ -372,6 +418,13 @@ export function generarDossierHTML() {
     <span class="formula-name">Coste de Receta</span>
     Coste Total = Σ (Cantidad Ingrediente × Precio Unitario)
 </div>
+
+<p style="font-size:0.92em;color:#475569;margin:10px 0 15px 0;">
+    El <strong>Precio Unitario</strong> sigue la cascada descrita en la sección 2: primero el
+    precio medio real de las compras de los últimos 90 días y, si no hay histórico, cae al precio
+    nominal configurado. Por eso si tus proveedores suben precios, el coste de tus recetas se
+    actualiza automáticamente sin que tengas que tocar nada.
+</p>
 
 <div class="example">
     <div class="example-title">📌 Ejemplo: Mejillones al Vapor</div>
@@ -600,8 +653,71 @@ export function generarDossierHTML() {
     <li>📊 <strong>Gráfico Circular:</strong> Proporción visual de cada ingrediente</li>
     <li>📋 <strong>Tabla Desglose:</strong> Ordenado de mayor a menor coste</li>
     <li>📈 <strong>KPIs:</strong> Coste total, PVP, Margen, Food Cost</li>
-    <li>📄 <strong>Exportar PDF:</strong> Ficha técnica profesional</li>
+    <li>📄 <strong>Exportar PDF:</strong> Ficha técnica profesional (incluye el modo de precio activo)</li>
 </ul>
+
+<h3>Modo de Precio: Real vs Nominal <span style="font-size:0.7em;color:#7c3aed;">(v2.5)</span></h3>
+<div class="section-intro">
+    <p>Arriba del modal hay un toggle <strong>Real (compras) / Nominal (configurado)</strong> que
+    cambia qué precio se usa para calcular el coste visible. Es <strong>puramente informativo</strong>:
+    ni ventas ni P&L ni dashboard se ven afectados.</p>
+</div>
+
+<table>
+    <tr><th>Modo</th><th>Precio usado</th><th>Para qué sirve</th></tr>
+    <tr>
+        <td><strong>Real (compras)</strong> <em>[default]</em></td>
+        <td>Cascada completa: media real de compras &gt; precio medio &gt; nominal</td>
+        <td>Ver el coste que <strong>está pasando ahora</strong> según tus albaranes</td>
+    </tr>
+    <tr>
+        <td><strong>Nominal (configurado)</strong></td>
+        <td>Solo el precio que declaraste al crear el ingrediente</td>
+        <td>Ver el coste <strong>teórico</strong> que planeaste — útil al diseñar el plato</td>
+    </tr>
+</table>
+
+<h3>Banner de Desviación</h3>
+<div class="section-intro">
+    <p>Justo debajo del toggle aparece un <strong>banner</strong> que compara ambos costes de ración:
+    <code>Nominal · Real · Δ%</code>. Es el termómetro de salud del plato.</p>
+</div>
+
+<ul>
+    <li>🔵 <strong>Banner azul</strong> (desviación &lt; 15%): precios coherentes, todo bajo control.</li>
+    <li>🟡 <strong>Banner amarillo</strong> (desviación ≥ 15%): algo a revisar — puede ser subida real
+    de proveedor o, en los casos peligrosos, un albarán envenenado (OCR con precio mal leído).</li>
+</ul>
+
+<div class="example" style="border-color:#f59e0b;background:#fef3c7;">
+    <div class="example-title">⚠️ Caso real: "PAN POR PERSONA" (La Nave 5, abril 2026)</div>
+    <p>Una fila huérfana en la tabla de compras tenía el pan a <strong>12.95 €/kg</strong> (cuando
+    el pan real cuesta 2.20 €/kg). Al ser la única compra registrada de pan en 90 días, monopolizó
+    el precio medio y el escandallo mostraba:</p>
+    <ul style="margin:8px 0 8px 20px;">
+        <li>Coste ración: 0.72 € (lo real era 0.12 €)</li>
+        <li>Food Cost: 143.9% (lo real era 24.4%)</li>
+        <li>Margen: -43.9%</li>
+    </ul>
+    <p>Con el toggle activo, <strong>el modo Nominal habría mostrado 0.12 €</strong> y el banner
+    amarillo habría delatado una desviación de <strong>+489%</strong> al instante. Por eso el toggle
+    existe: convertir un diagnóstico que antes requería SQL en un vistazo al modal.</p>
+</div>
+
+<h3>Regla práctica de interpretación</h3>
+<table>
+    <tr><th>Desviación Real vs Nominal</th><th>Qué hacer</th></tr>
+    <tr><td>±5% o menos</td><td>✅ Todo en orden, no tocar nada</td></tr>
+    <tr><td>±5-15%</td><td>🔵 Banner informativo: fluctuación normal de precios</td></tr>
+    <tr><td>>15%</td><td>🟡 Banner alerta: revisar compras del ingrediente principal, puede ser OCR mal leído o subida real de proveedor</td></tr>
+</table>
+
+<div class="example">
+    <div class="example-title">📌 Ejemplo saludable: AMEIXAS</div>
+    <p>Nominal 22 €/kg · Real 23.17 €/kg · <strong>+5.3%</strong> · 29 compras registradas en 90 días.</p>
+    <p>Diagnóstico: el marisco fresco fluctúa, los proveedores están cobrando un pelín más que el
+    nominal configurado. Si quieres alinear, editar el ingrediente y poner precio 23 €/kg. No urgente.</p>
+</div>
 
 <!-- 11. MERMAS -->
 <h2 id="mermas">11. 🗑️ Control de Mermas</h2>

@@ -268,7 +268,7 @@ import * as Escandallo from './modules/recetas/escandallo.js?v=20260308-consiste
 window.verEscandallo = Escandallo.verEscandallo;
 window.exportarPDFEscandallo = Escandallo.exportarPDFEscandallo;
 
-// Dossier Técnico v2.4 (documentación profesional)
+// Dossier Técnico v2.5 (documentación profesional)
 import { abrirDossier } from './modules/docs/dossier-v24.js';
 window.abrirDossierV24 = abrirDossier;
 window.abrirManualFormulas = abrirDossier; // Alias para compatibilidad
