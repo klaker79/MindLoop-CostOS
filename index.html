@@ -1291,11 +1291,12 @@
                 style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-radius: 12px; border: 2px solid #818cf8;">
                 <label
                   style="color: #4338ca; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                  🔍 Buscar por ingrediente <small style="font-weight: 400; color: #6366f1;"
+                  🔍 <span data-i18n="pedidos:form_search_ingredient">Buscar por ingrediente</span>
+                  <small style="font-weight: 400; color: #6366f1;"
                     data-i18n="pedidos:form_search_ingredient_hint">(opcional - auto-selecciona
                     proveedor)</small>
                 </label>
-                <input type="text" id="ped-buscar-ingrediente" placeholder="Escribe nombre del ingrediente..."
+                <input type="text" id="ped-buscar-ingrediente"
                   data-i18n-placeholder="pedidos:form_search_ingredient_placeholder" autocomplete="off"
                   oninput="window.buscarIngredienteParaPedido(this.value)"
                   style="width: 100%; padding: 12px; border: 2px solid #a5b4fc; border-radius: 8px; background: white; font-size: 14px;">

@@ -136,5 +136,7 @@
   "label_processing": "Procesando...",
   "label_recalculating": "Recalculando costes...",
   "label_completed": "¡Completado!",
-  "label_recalculate_costs": "Recalcular Costes"
+  "label_recalculate_costs": "Recalcular Costes",
+  "unit_botella": "Botella",
+  "unit_pza": "Ud."
 }

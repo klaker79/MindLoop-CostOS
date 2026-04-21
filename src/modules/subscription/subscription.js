@@ -5,6 +5,7 @@
 
 import { getApiUrl } from '../../config/app-config.js';
 import { authStore } from '../../stores/authStore.js';
+import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
 
@@ -137,7 +138,7 @@ function renderPlanCard(container, data) {
                 ${showUpgrade ? `
                     <button onclick="window.promptUpgradePlan()"
                         style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border:none;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;">
-                        Elegir plan
+                        ${t('settings:plan_choose')}
                     </button>
                 ` : ''}
                 ${showBilling ? `
@@ -185,21 +186,21 @@ function renderTrialBanner(data) {
         banner.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
         banner.innerHTML = `
             <span style="flex:1;">Tu periodo de prueba ha terminado. Elige un plan para continuar usando todas las funciones.</span>
-            <button onclick="window.promptUpgradePlan()" style="background:white;color:#dc2626;border:none;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;font-size:13px;">Elegir plan</button>
+            <button onclick="window.promptUpgradePlan()" style="background:white;color:#dc2626;border:none;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;font-size:13px;">${t('settings:plan_choose')}</button>
         `;
     } else if (days <= 1) {
         // Last day: red, urgent
         banner.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
         banner.innerHTML = `
             <span style="flex:1;">Ultimo dia de prueba gratuita. Elige tu plan para no perder acceso.</span>
-            <button onclick="window.promptUpgradePlan()" style="background:white;color:#dc2626;border:none;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;font-size:13px;">Elegir plan ahora</button>
+            <button onclick="window.promptUpgradePlan()" style="background:white;color:#dc2626;border:none;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;font-size:13px;">${t('settings:plan_choose_now')}</button>
         `;
     } else if (days <= 3) {
         // Last 3 days: amber, visible
         banner.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
         banner.innerHTML = `
             <span style="flex:1;">Tu prueba termina en <strong>${days}</strong> dias. Elige un plan para seguir con acceso completo.</span>
-            <button onclick="window.promptUpgradePlan()" style="background:rgba(255,255,255,0.9);color:#92400e;border:none;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;font-size:13px;">Elegir plan</button>
+            <button onclick="window.promptUpgradePlan()" style="background:rgba(255,255,255,0.9);color:#92400e;border:none;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;font-size:13px;">${t('settings:plan_choose')}</button>
         `;
     } else {
         // Normal trial: indigo, subtle
@@ -250,7 +251,7 @@ function showTrialExpiredModal() {
         </div>
 
         <button id="trial-expired-upgrade" style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:12px;color:white;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;transition:opacity 0.2s;">
-            Elegir plan
+            ${t('settings:plan_choose')}
         </button>
         <button id="trial-expired-starter" style="width:100%;padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:#94a3b8;font-size:13px;cursor:pointer;transition:all 0.2s;">
             Continuar con plan gratuito

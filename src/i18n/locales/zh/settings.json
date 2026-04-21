@@ -23,6 +23,8 @@
   "plan_expires": "到期: {{date}}",
   "plan_active": "活跃",
   "plan_trial_days_left": "剩余 {{days}} 天试用",
+  "plan_choose": "选择套餐",
+  "plan_choose_now": "立即选择套餐",
   "notification_low_stock": "库存不足警报",
   "notification_orders": "订单通知",
   "notification_email": "邮件通知",

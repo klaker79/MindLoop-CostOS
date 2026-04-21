@@ -1718,6 +1718,16 @@
     // Cache para persistir valores de stock introducidos por el usuario
     window.stockRealCache = window.stockRealCache || {};
 
+    // Traduce unidades canónicas (botella, pza) al idioma activo; kg/L/g/ml quedan igual.
+    const translateUnit = (u) => {
+        const slug = String(u || '').toLowerCase().trim();
+        if (slug !== 'botella' && slug !== 'pza') return u || '';
+        const T = window.t || ((k) => k);
+        const key = 'common:unit_' + slug;
+        const out = T(key);
+        return (out && out !== key) ? out : u;
+    };
+
     window.renderizarInventario = function () {
         try {
             // ⚡ Usar datos en caché (ya cargados por cargarDatos()) para render instantáneo
@@ -1827,7 +1837,7 @@
                 html += '<tr>';
                 html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
                 html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
-                html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${ing.unidad || ''}</small></span></td>`;
+                html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${translateUnit(ing.unidad)}</small></span></td>`;
 
                 // Input con evento ONINPUT para cálculo dinámico y guardar en cache
                 // Mostrar siempre el botón de conversión 📦
@@ -1874,7 +1884,7 @@
 
                 html += `<td id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
 
-                html += `<td>${cm(precioMedio)}/${ing.unidad}</td>`;
+                html += `<td>${cm(precioMedio)}/${translateUnit(ing.unidad)}</td>`;
 
                 // Valor Stock: Por defecto usa Virtual. Si hay Real guardado, usa Real.
                 const cantidadParaValor =
@@ -1884,7 +1894,7 @@
                 const valorStockCalc = cantidadParaValor * precioMedio;
 
                 html += `<td id="val-cell-${ing.id}"><strong>${cm(valorStockCalc)}</strong></td>`;
-                html += `<td>${ing.unidad}</td>`;
+                html += `<td>${translateUnit(ing.unidad)}</td>`;
                 html += '</tr>';
             });
 

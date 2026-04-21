@@ -205,7 +205,7 @@ function renderizarModalEditarPedido() {
                         onchange="window.actualizarAjustePedido('descripcion', this.value)"
                         style="flex: 1; min-width: 220px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
                 </div>
-                <p style="margin: 8px 0 0 0; color: #64748b; font-size: 12px;">Suma o resta del total del pedido. NO afecta al stock.</p>
+                <p style="margin: 8px 0 0 0; color: #64748b; font-size: 12px;">${t('pedidos:edit_adjustment_warning')}</p>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 10px;">

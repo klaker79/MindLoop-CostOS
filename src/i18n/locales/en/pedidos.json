@@ -212,6 +212,7 @@
   "edit_adjustment_title": "Manual adjustment",
   "edit_adjustment_hint": "(packaging, credits, discounts)",
   "edit_adjustment_placeholder": "Description (e.g. credits, packaging)",
+  "edit_adjustment_warning": "Adds or subtracts from the order total. Does NOT affect stock.",
   "edit_btn_cancel": "Cancel",
   "edit_btn_save": "Save changes",
   "edit_confirm_empty": "The order has no ingredients. Save anyway?",

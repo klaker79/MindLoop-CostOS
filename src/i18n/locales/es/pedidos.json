@@ -212,6 +212,7 @@
   "edit_adjustment_title": "Ajuste manual",
   "edit_adjustment_hint": "(envases ida/vuelta, bonificaciones, descuentos)",
   "edit_adjustment_placeholder": "Descripción (ej: bonificaciones, envases)",
+  "edit_adjustment_warning": "Suma o resta del total del pedido. NO afecta al stock.",
   "edit_btn_cancel": "Cancelar",
   "edit_btn_save": "Guardar cambios",
   "edit_confirm_empty": "El pedido no tiene ingredientes. ¿Guardar igual?",

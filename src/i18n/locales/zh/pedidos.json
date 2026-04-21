@@ -185,5 +185,6 @@
   "pending_col_price": "价格",
   "pending_review_title": "{{count}} 笔采购待审核",
   "pending_review_subtitle": "从扫描送货单自动导入",
-  "form_supplier_required": "供应商 *"
+  "form_supplier_required": "供应商 *",
+  "edit_adjustment_warning": "增减订单总额。不影响库存。"
 }
