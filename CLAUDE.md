@@ -46,6 +46,27 @@ npm run lint          # ESLint (0 errors required)
 npm run build         # Vite build
 ```
 
+### E2E (Playwright) — against staging
+
+End-to-end suite that drives a real Chromium against `https://staging.mindloop.cloud`. Never runs against production — see `tests/e2e/README.md` for the full rationale.
+
+```bash
+npm run e2e:install   # first time only (~200 MB Chromium download)
+npm run e2e           # headless run
+npm run e2e:ui        # interactive UI mode
+npm run e2e:report    # open the last HTML report
+```
+
+Requires `STAGING_URL`, `STAGING_API_URL`, `STAGING_TEST_EMAIL`, `STAGING_TEST_PASSWORD` env vars (in CI they come from GitHub Secrets).
+
+**CI**: `.github/workflows/e2e-nightly.yml` runs the suite every day at 03:00 UTC against staging and emails on failure. Can also be triggered manually from the Actions tab.
+
+**Rules when adding new tests**:
+- Prefer stable IDs and `data-tab` attributes over class selectors.
+- Anchor login selectors to `#login-form` (`#login-email`, `#login-password`) — the SPA has three forms with overlapping placeholders.
+- Use `.first()` on sidebar/tab locators (`[data-tab="..."]`) because two buttons match each nav item (sidebar + horizontal tabs).
+- New test data lives in the staging seed (`infrastructure_staging.md`), never hard-coded inside a test.
+
 ## Deploy
 
 Push to `main` → GitHub Actions → GitHub Pages (`https://app.mindloop.cloud`)
