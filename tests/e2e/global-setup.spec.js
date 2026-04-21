@@ -24,10 +24,12 @@ setup('authenticate as Demo Trattoria KL', async ({ page }) => {
 
     await page.goto('/');
 
-    // Rellena el formulario de login
-    await page.getByPlaceholder(/your@email\.com|email/i).fill(email);
-    await page.getByPlaceholder(/password|contraseña|密码/i).fill(password);
-    await page.getByRole('button', { name: /sign in|iniciar sesi[oó]n|登录/i }).click();
+    // Rellena el formulario de login anclado al #login-form para evitar colisiones
+    // con los forms de forgot-password y registro (todos usan el mismo placeholder).
+    const loginForm = page.locator('#login-form');
+    await loginForm.locator('#login-email').fill(email);
+    await loginForm.locator('#login-password').fill(password);
+    await loginForm.locator('button[type="submit"]').click();
 
     // Espera a que el dashboard esté cargado (alguna señal post-login)
     await expect(page.locator('[data-tab="ingredientes"]').first()).toBeVisible({ timeout: 15_000 });
