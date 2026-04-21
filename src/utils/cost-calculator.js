@@ -37,6 +37,27 @@ export function getIngredientUnitPrice(invItem, ing) {
 }
 
 /**
+ * Returns the NOMINAL unit price for an ingredient, ignoring purchase averages.
+ * Uses only the value configured by the user in the ingredient (precio / cpf).
+ *
+ * This is the "standard cost" of classic menu engineering: what the owner
+ * declared as the expected price. It is stable and only changes when the
+ * user edits the ingredient itself.
+ *
+ * Use it as a reference to compare against `getIngredientUnitPrice()` and
+ * detect poisoned purchase data (OCR errors, orphan rows, outliers).
+ *
+ * @param {Object|null} ing - Ingredient object from ingredientes
+ * @returns {number} Nominal unit price (always >= 0)
+ */
+export function getIngredientNominalPrice(ing) {
+    if (!ing?.precio) return 0;
+    const precioFormato = parseFloat(ing.precio);
+    const cpf = parseFloat(ing.cantidad_por_formato) || 1;
+    return precioFormato / cpf;
+}
+
+/**
  * Calculates the real cost of an ingredient usage based on price, quantity and yield.
  * Formula: (Price / (Yield / 100)) * Quantity
  *
