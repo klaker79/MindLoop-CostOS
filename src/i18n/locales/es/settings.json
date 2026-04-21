@@ -23,6 +23,8 @@
   "plan_expires": "Expira: {{date}}",
   "plan_active": "Activo",
   "plan_trial_days_left": "{{days}} días de prueba restantes",
+  "plan_choose": "Elegir plan",
+  "plan_choose_now": "Elegir plan ahora",
   "notification_low_stock": "Alertas de stock bajo",
   "notification_orders": "Notificaciones de pedidos",
   "notification_email": "Notificaciones por email",

@@ -136,5 +136,7 @@
   "label_processing": "Processing...",
   "label_recalculating": "Recalculating costs...",
   "label_completed": "Completed!",
-  "label_recalculate_costs": "Recalculate Costs"
+  "label_recalculate_costs": "Recalculate Costs",
+  "unit_botella": "Bottle",
+  "unit_pza": "Unit"
 }
