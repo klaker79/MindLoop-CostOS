@@ -11,12 +11,13 @@ test.describe('Auth (anónimo)', () => {
 
         await page.goto('/');
 
-        await page.getByPlaceholder(/your@email\.com|email/i).fill(email);
-        await page.getByPlaceholder(/password|contraseña|密码/i).fill('this-password-is-definitely-wrong-12345');
-        await page.getByRole('button', { name: /sign in|iniciar sesi[oó]n|登录/i }).click();
+        const loginForm = page.locator('#login-form');
+        await loginForm.locator('#login-email').fill(email);
+        await loginForm.locator('#login-password').fill('this-password-is-definitely-wrong-12345');
+        await loginForm.locator('button[type="submit"]').click();
 
-        // Algún indicio de error: mensaje en pantalla, banner, alerta, etc.
-        // Evitamos depender de un texto exacto — solo exigimos que NO entre al dashboard.
+        // No entrar al dashboard es la señal clave. Además, el formulario sigue visible.
         await expect(page.locator('[data-tab="ingredientes"]')).not.toBeVisible({ timeout: 5_000 });
+        await expect(loginForm).toBeVisible();
     });
 });

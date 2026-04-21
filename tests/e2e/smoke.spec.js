@@ -10,9 +10,13 @@ test.describe('Smoke — home y backend', () => {
 
         await expect(page).toHaveTitle(/MindLoop|CostOS/i);
 
-        // Email y password input presentes
-        await expect(page.getByPlaceholder(/your@email\.com|email/i)).toBeVisible();
-        await expect(page.getByRole('button', { name: /sign in|iniciar sesi[oó]n|登录/i })).toBeVisible();
+        // Anclar al form del login (#login-form) para evitar el strict mode violation
+        // que provoca el que forgot-password y registro tienen inputs con placeholders idénticos.
+        const loginForm = page.locator('#login-form');
+        await expect(loginForm).toBeVisible();
+        await expect(loginForm.locator('#login-email')).toBeVisible();
+        await expect(loginForm.locator('#login-password')).toBeVisible();
+        await expect(loginForm.locator('button[type="submit"]')).toBeVisible();
     });
 
     test('el backend staging responde con JSON en /', async ({ request }) => {
