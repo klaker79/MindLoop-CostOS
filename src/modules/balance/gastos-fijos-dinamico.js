@@ -60,19 +60,55 @@ const PRESET_EXPENSES = [
 ];
 
 // Map concepto lowercased → category (used to bucket existing DB rows that
-// might have been typed by the user).
+// might have been typed by the user). Keys are normalized (lowercase, no
+// accents, no special chars) so "Nóminas", "NOMINAS" and "nóminas" all match.
 const CATEGORY_MAP = (() => {
     const m = {};
-    PRESET_EXPENSES.forEach(p => { m[p.concepto.toLowerCase()] = p.cat; });
-    // Legacy names some users already had:
-    m['nomina'] = 'Personal';
-    m['telefono/internet'] = 'Suministros';
-    m['comision tpv'] = 'Bancos';
-    m['cuota prestamo'] = 'Bancos';
-    m['gestoria'] = 'Servicios';
-    m['fumigacion'] = 'Mantenimiento';
+    PRESET_EXPENSES.forEach(p => { m[normalizeKey(p.concepto)] = p.cat; });
+    // Aliases: common names in ES/EN/ZH that users type freely. If you see a
+    // gasto landing in "Otros" incorrectly, add its alias here.
+    const aliases = {
+        // Personal
+        'salary': 'Personal', 'salaries': 'Personal', 'sueldo': 'Personal',
+        'staff': 'Personal', 'personal cost': 'Personal', 'nomina': 'Personal',
+        'payroll': 'Personal', 'wages': 'Personal', 'empleados': 'Personal',
+        'gastos personal': 'Personal', 'seguros sociales': 'Personal',
+        // Impuestos
+        'taxes': 'Impuestos', 'impuesto': 'Impuestos', 'tax': 'Impuestos',
+        'income tax': 'Impuestos', 'vat': 'Impuestos', 'corporate tax': 'Impuestos',
+        // Local / Premises
+        'rent': 'Local', 'premises': 'Local', 'local comercial': 'Local',
+        'hoa': 'Local',
+        // Suministros / Utilities
+        'utilities': 'Suministros', 'electricity': 'Suministros', 'water': 'Suministros',
+        'gas bill': 'Suministros', 'internet': 'Suministros', 'phone': 'Suministros',
+        'telefono': 'Suministros',
+        // Bancos / Banking
+        'bank fees': 'Bancos', 'loan': 'Bancos', 'credit card': 'Bancos',
+        'comisiones': 'Bancos', 'tpv': 'Bancos', 'prestamo': 'Bancos',
+        // Servicios
+        'accounting': 'Servicios', 'insurance': 'Servicios', 'waste': 'Servicios',
+        'gestor': 'Servicios',
+        // Marketing
+        'advertising': 'Marketing', 'marketing digital': 'Marketing', 'ads': 'Marketing',
+        'social media': 'Marketing', 'website': 'Marketing', 'redes': 'Marketing',
+        // Mantenimiento
+        'maintenance': 'Mantenimiento', 'repairs': 'Mantenimiento', 'pest control': 'Mantenimiento',
+        'reparacion': 'Mantenimiento',
+    };
+    Object.entries(aliases).forEach(([k, v]) => { m[normalizeKey(k)] = v; });
     return m;
 })();
+
+/** Normaliza un string a ASCII lowercase sin acentos ni caracteres especiales. */
+function normalizeKey(s) {
+    return String(s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')   // strip accents
+        .replace(/[^a-z0-9]+/g, '_')       // collapse non-alnum to _
+        .replace(/^_+|_+$/g, '');          // trim leading/trailing _
+}
 
 const CATEGORY_ORDER = ['Personal', 'Impuestos', 'Local', 'Suministros', 'Bancos', 'Servicios', 'Marketing', 'Mantenimiento', 'Otros'];
 const CATEGORY_ICONS = {
@@ -82,21 +118,24 @@ const CATEGORY_ICONS = {
 
 function categoriaFor(concepto) {
     if (!concepto) return 'Otros';
-    return CATEGORY_MAP[String(concepto).toLowerCase().trim()] || 'Otros';
+    return CATEGORY_MAP[normalizeKey(concepto)] || 'Otros';
 }
 
 /**
- * Devuelve el nombre localizado de una categoría o de un preset. Si el `key`
- * no tiene traducción (gasto custom que el usuario escribió libremente),
- * devuelve el literal tal cual.
- *   tLabel('cat_', 'Personal')   → "Personnel" en EN
+ * Devuelve el nombre localizado de una categoría o de un preset. La key se
+ * normaliza (ASCII lowercase) antes de buscar en i18n para que no dependa
+ * de tildes, barras o mayúsculas — `preset_Nóminas`, `preset_nominas` y
+ * `preset_nomina` acaban en la misma key slug `preset_nominas`.
+ *   tLabel('cat_', 'Personal')   → "Personnel" en EN, "Personal" en ES
  *   tLabel('preset_', 'Nóminas') → "Payroll" en EN, "Nóminas" en ES
+ * Si no hay traducción, devuelve el literal recibido (gasto custom del user).
  */
-function tLabel(prefix, key) {
-    if (!key) return '';
-    const translated = t('balance:' + prefix + key);
-    // i18next devuelve la key con namespace si no encuentra traducción.
-    if (!translated || translated === 'balance:' + prefix + key) return key;
+function tLabel(prefix, rawKey) {
+    if (!rawKey) return '';
+    const slug = normalizeKey(rawKey);
+    const fullKey = 'balance:' + prefix + slug;
+    const translated = t(fullKey);
+    if (!translated || translated === fullKey) return rawKey;
     return translated;
 }
 
