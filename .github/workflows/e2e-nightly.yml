@@ -1,0 +1,61 @@
+name: E2E Nightly (staging)
+
+# Corre la suite Playwright completa contra staging cada noche.
+# Si algo falla, GitHub manda email al owner del repo automáticamente
+# (configuración estándar de GitHub Actions — no hace falta setup extra).
+#
+# Dispara también manualmente desde la pestaña Actions → "Run workflow".
+
+on:
+  schedule:
+    # 03:00 UTC todos los días (05:00 Madrid / 11:00 Kuala Lumpur)
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: Playwright E2E against staging.mindloop.cloud
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      CI: 'true'
+      STAGING_URL: ${{ secrets.STAGING_URL }}
+      STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+      STAGING_TEST_EMAIL: ${{ secrets.STAGING_TEST_EMAIL }}
+      STAGING_TEST_PASSWORD: ${{ secrets.STAGING_TEST_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npm run e2e
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload traces (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-${{ github.run_number }}
+          path: test-results/
+          retention-days: 14
