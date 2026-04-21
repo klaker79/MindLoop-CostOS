@@ -39,10 +39,30 @@ export default defineConfig({
     },
 
     projects: [
+        // 1) Setup project: hace login una vez y guarda la sesión en disco.
+        {
+            name: 'setup',
+            testMatch: /global-setup\.spec\.js/
+        },
+
+        // 2) Tests autenticados: reutilizan la sesión del setup.
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] }
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: 'playwright/.auth/user.json'
+            },
+            dependencies: ['setup'],
+            testIgnore: [/global-setup\.spec\.js/, /auth-anon\.spec\.js/, /smoke\.spec\.js/]
+        },
+
+        // 3) Tests anónimos (login KO, página de login): sin storageState.
+        {
+            name: 'chromium-anon',
+            use: { ...devices['Desktop Chrome'] },
+            testMatch: /auth-anon\.spec\.js|smoke\.spec\.js/
         }
+
         // Firefox/WebKit se añadirán cuando la suite sea estable.
     ]
 });
