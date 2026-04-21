@@ -1534,7 +1534,7 @@
             });
         } else if (ctxBebidas) {
             // Si no hay bebidas, mostrar mensaje
-            ctxBebidas.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">Sin bebidas registradas</div>';
+            ctxBebidas.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">' + (window.t ? window.t('dashboard:analysis_no_beverages') : 'Sin bebidas registradas') + '</div>';
         }
     }
 
@@ -1587,7 +1587,8 @@
         if (window.chartMargenCategoria) window.chartMargenCategoria.destroy();
 
         if (datos.length === 0) {
-            ctx.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">Sin recetas</div>';
+            const T0 = window.t || ((k) => k);
+            ctx.parentElement.innerHTML = '<div style="text-align:center; color:#64748b; padding:40px;">' + T0('dashboard:analysis_no_recipes') + '</div>';
             return;
         }
 
@@ -1598,12 +1599,21 @@
             return '#ef4444';
         };
 
+        const T = window.t || ((k) => k);
+        // Mapea la categoría canónica (en español minúsculas: alimentos, bebidas, base, ...)
+        // a su clave i18n. Si no hay traducción, cae al literal original.
+        const translateCat = (cat) => {
+            const slug = String(cat || '').toLowerCase().trim();
+            const key = 'dashboard:analysis_category_' + slug;
+            const translated = T(key);
+            return (translated && translated !== key) ? translated : cat;
+        };
         window.chartMargenCategoria = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: datos.map(d => d.categoria + ' (' + d.count + ')'),
+                labels: datos.map(d => translateCat(d.categoria) + ' (' + d.count + ')'),
                 datasets: [{
-                    label: 'Margen %',
+                    label: T('dashboard:analysis_table_margin_pct'),
                     data: datos.map(d => d.margen.toFixed(1)),
                     backgroundColor: datos.map(d => getColor(d.margen)),
                     borderWidth: 0,
@@ -1659,8 +1669,15 @@
             const start = (page - 1) * ITEMS_PER_PAGE;
             const pageItems = ordenados.slice(start, start + ITEMS_PER_PAGE);
 
+            const T = window.t || ((k) => k);
+            const currency = window.currentUser?.moneda || '€';
             let html = '<table><thead><tr>';
-            html += '<th>#</th><th>Plato</th><th>Coste</th><th>Precio</th><th>Margen ' + (window.currentUser?.moneda || '€') + '</th><th>Margen %</th>';
+            html += '<th>#</th>'
+                + '<th>' + T('dashboard:analysis_table_dish') + '</th>'
+                + '<th>' + T('dashboard:analysis_table_cost') + '</th>'
+                + '<th>' + T('dashboard:analysis_table_price') + '</th>'
+                + '<th>' + T('dashboard:analysis_table_margin_currency', { currency }) + '</th>'
+                + '<th>' + T('dashboard:analysis_table_margin_pct') + '</th>';
             html += '</tr></thead><tbody>';
 
             pageItems.forEach((rec, idx) => {
@@ -1682,12 +1699,12 @@
                 html += `
                     <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:16px; padding:12px; background:#f8fafc; border-radius:8px;">
                         <button onclick="window.renderRentabilidadPage(1)" ${page <= 1 ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">⏮️</button>
-                        <button onclick="window.renderRentabilidadPage(${page - 1})" ${page <= 1 ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">← Anterior</button>
-                        <span style="padding:6px 12px; font-weight:600;">Página ${page} de ${totalPages}</span>
-                        <button onclick="window.renderRentabilidadPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">Siguiente →</button>
+                        <button onclick="window.renderRentabilidadPage(${page - 1})" ${page <= 1 ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">${T('dashboard:analysis_pagination_previous')}</button>
+                        <span style="padding:6px 12px; font-weight:600;">${T('dashboard:analysis_pagination_page_of', { page, total: totalPages })}</span>
+                        <button onclick="window.renderRentabilidadPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">${T('dashboard:analysis_pagination_next')}</button>
                         <button onclick="window.renderRentabilidadPage(${totalPages})" ${page >= totalPages ? 'disabled' : ''} style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; cursor:pointer; background:white;">⏭️</button>
                     </div>
-                    <div style="text-align:center; margin-top:8px; color:#64748b; font-size:12px;">Mostrando ${start + 1}-${Math.min(start + ITEMS_PER_PAGE, ordenados.length)} de ${ordenados.length} recetas</div>`;
+                    <div style="text-align:center; margin-top:8px; color:#64748b; font-size:12px;">${T('dashboard:analysis_pagination_showing', { start: start + 1, end: Math.min(start + ITEMS_PER_PAGE, ordenados.length), total: ordenados.length })}</div>`;
             }
 
             document.getElementById('tabla-rentabilidad').innerHTML = html;
