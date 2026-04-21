@@ -16,8 +16,10 @@ test.describe('Auth (anónimo)', () => {
         await loginForm.locator('#login-password').fill('this-password-is-definitely-wrong-12345');
         await loginForm.locator('button[type="submit"]').click();
 
-        // No entrar al dashboard es la señal clave. Además, el formulario sigue visible.
-        await expect(page.locator('[data-tab="ingredientes"]')).not.toBeVisible({ timeout: 5_000 });
+        // No entrar al dashboard es la señal clave. Hay DOS elementos con data-tab="ingredientes"
+        // (uno en el nav lateral y otro en las tabs horizontales) — .first() evita la strict
+        // mode violation que tendría lugar antes incluso del check de visibilidad.
+        await expect(page.locator('[data-tab="ingredientes"]').first()).not.toBeVisible({ timeout: 5_000 });
         await expect(loginForm).toBeVisible();
     });
 });
