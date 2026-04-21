@@ -85,21 +85,47 @@ function categoriaFor(concepto) {
     return CATEGORY_MAP[String(concepto).toLowerCase().trim()] || 'Otros';
 }
 
+/**
+ * Devuelve el nombre localizado de una categoría o de un preset. Si el `key`
+ * no tiene traducción (gasto custom que el usuario escribió libremente),
+ * devuelve el literal tal cual.
+ *   tLabel('cat_', 'Personal')   → "Personnel" en EN
+ *   tLabel('preset_', 'Nóminas') → "Payroll" en EN, "Nóminas" en ES
+ */
+function tLabel(prefix, key) {
+    if (!key) return '';
+    const translated = t('balance:' + prefix + key);
+    // i18next devuelve la key con namespace si no encuentra traducción.
+    if (!translated || translated === 'balance:' + prefix + key) return key;
+    return translated;
+}
+
+/**
+ * Símbolo de moneda activo. `window.currentUser.moneda` viene de `/auth/verify`
+ * y se actualiza al cambiar de restaurante (multi-tenant). Fallback: €.
+ */
+function currencySymbol() {
+    return window.currentUser?.moneda || '€';
+}
+
 // --------------------------------------------------------------------------
 // Row + section rendering
 // --------------------------------------------------------------------------
 function rowHtml(gasto) {
     const monto = parseFloat(gasto.monto_mensual) || 0;
     const id = gasto.id;
+    // Nombre localizado: los presets conocidos se traducen; los custom del usuario se muestran literal.
+    const label = tLabel('preset_', gasto.concepto) || '—';
+    const currency = currencySymbol();
     return `
         <div class="gf-row" data-gasto-id="${id}"
              style="display: grid; grid-template-columns: 1fr 140px 32px; gap: 12px; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; transition: background 0.2s;">
-            <span style="color: white; font-size: 14px; font-weight: 500; word-break: break-word;">${escapeHTML(gasto.concepto || '—')}</span>
+            <span style="color: white; font-size: 14px; font-weight: 500; word-break: break-word;">${escapeHTML(label)}</span>
             <div style="position: relative;">
                 <input type="number" inputmode="decimal" step="0.01" min="0" value="${monto}"
                     class="gf-input" data-gasto-id="${id}"
                     style="width: 100%; padding: 7px 28px 7px 10px; text-align: right; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 7px; color: white; font-weight: 600; font-size: 14px; outline: none;">
-                <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.65); font-size: 13px; pointer-events: none;">€</span>
+                <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.65); font-size: 13px; pointer-events: none;">${escapeHTML(currency)}</span>
             </div>
             <button type="button" class="gf-delete-btn" data-gasto-id="${id}" title="${escapeHTML(t('common:btn_delete') || 'Eliminar')}"
                 style="background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; padding: 4px; font-size: 14px; line-height: 1; border-radius: 6px;">🗑</button>
@@ -147,7 +173,7 @@ function renderGrouped(gastos) {
                         <span style="display: flex; align-items: center; gap: 10px;">
                             <span class="gf-chevron" style="display: inline-block; transition: transform 0.2s; color: rgba(255,255,255,0.8); font-size: 11px;">▶</span>
                             <span style="font-size: 15px;">${icon}</span>
-                            <span style="color: white; font-size: 13px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;">${escapeHTML(cat)}</span>
+                            <span style="color: white; font-size: 13px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;">${escapeHTML(tLabel('cat_', cat))}</span>
                             <span style="color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500;">${count}</span>
                         </span>
                         <span style="color: rgba(255,255,255,0.95); font-size: 14px; font-weight: 700;">${cm(subtotal, 0)}</span>
@@ -237,10 +263,15 @@ function flushSave(id, input) {
 
 async function saveInputValue(id, input) {
     const monto = parseFloat(input.value) || 0;
-    const row = input.closest('.gf-row');
-    const label = row?.querySelector('span')?.textContent?.trim() || '';
+    // Evitar corromper el concepto canonical: pedimos el original a la API
+    // en vez de leer el texto mostrado (que puede estar traducido).
+    let concepto = '';
     try {
-        await window.API.updateGastoFijo(id, label, monto);
+        const gastos = await window.API.getGastosFijos();
+        concepto = (gastos || []).find(g => g.id === id)?.concepto || '';
+    } catch { /* ignore */ }
+    try {
+        await window.API.updateGastoFijo(id, concepto, monto);
         if (typeof window.actualizarTotalGastosFijos === 'function') {
             await window.actualizarTotalGastosFijos();
         }
@@ -298,11 +329,16 @@ export async function abrirModalNuevoGastoFijo() {
         let html = `<option value="">— ${escapeHTML(t('balance:choose_expense') || 'Selecciona un gasto')} —</option>`;
         CATEGORY_ORDER.forEach(cat => {
             if (!byCat[cat] || byCat[cat].length === 0) return;
-            html += `<optgroup label="${escapeHTML((CATEGORY_ICONS[cat] || '') + ' ' + cat)}">`;
+            const catLabel = tLabel('cat_', cat);
+            html += `<optgroup label="${escapeHTML((CATEGORY_ICONS[cat] || '') + ' ' + catLabel)}">`;
             byCat[cat].forEach(p => {
                 const used = existingLower.has(p.concepto.toLowerCase());
-                const label = used ? `${p.concepto}  ✓` : p.concepto;
+                const localized = tLabel('preset_', p.concepto);
+                const label = used ? `${localized}  ✓` : localized;
                 const disabledAttr = used ? ' disabled' : '';
+                // El `value` permanece en el literal canonical (español) para que
+                // el backend siga recibiendo el mismo `concepto` y los maps
+                // (CATEGORY_MAP, etc.) funcionen igual entre idiomas.
                 html += `<option value="${escapeHTML(p.concepto)}"${disabledAttr}>${escapeHTML(label)}</option>`;
             });
             html += `</optgroup>`;
