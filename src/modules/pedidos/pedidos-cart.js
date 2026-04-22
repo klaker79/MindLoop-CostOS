@@ -11,6 +11,10 @@ let carrito = [];
 let carritoProveedorId = null;
 let carritoFecha = null;
 
+// Guard anti-doble-click: evita que confirmarCarrito se ejecute dos veces seguidas
+// y cree pedidos duplicados si el usuario hace doble click en el botón de confirmar.
+let isConfirmingCart = false;
+
 /**
  * Clave de localStorage aislada por restaurante (multi-tenant).
  * Evita que el carrito de un restaurante aparezca en otro al cambiar de cuenta.
@@ -331,6 +335,12 @@ function renderizarCarrito() {
  * Confirma el carrito y crea los pedidos
  */
 window.confirmarCarrito = async function () {
+    // Bloqueo anti-doble-click: si ya hay una confirmación en curso, ignorar.
+    if (isConfirmingCart) {
+        console.warn('Confirmación de carrito ya en curso, ignorando doble click');
+        return;
+    }
+
     if (carrito.length === 0) {
         window.showToast(t('pedidos:cart_empty'), 'warning');
         return;
@@ -338,6 +348,7 @@ window.confirmarCarrito = async function () {
 
     if (!confirm(t('pedidos:cart_confirm_order', { count: carrito.length }))) return;
 
+    isConfirmingCart = true;
     window.showLoading();
 
     try {
@@ -426,6 +437,8 @@ window.confirmarCarrito = async function () {
         window.hideLoading();
         console.error('Error creando pedidos:', error);
         window.showToast(t('pedidos:cart_error_creating', { message: error.message }), 'error');
+    } finally {
+        isConfirmingCart = false;
     }
 };
 
