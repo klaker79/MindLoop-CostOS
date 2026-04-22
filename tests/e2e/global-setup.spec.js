@@ -31,7 +31,12 @@ setup('authenticate as Demo Trattoria KL', async ({ page }) => {
     await loginForm.locator('#login-password').fill(password);
     await loginForm.locator('button[type="submit"]').click();
 
-    // Espera a que el dashboard esté cargado (alguna señal post-login)
+    // Primer check: el login se completó y el form desaparece. Si el backend es lento
+    // o rechaza las credenciales, este assertion lo detecta antes que el siguiente —
+    // con un mensaje de error más claro en los logs.
+    await expect(loginForm).not.toBeVisible({ timeout: 20_000 });
+
+    // Segundo check: el dashboard ya tiene su sidebar navegable.
     await expect(page.locator('[data-tab="ingredientes"]').first()).toBeVisible({ timeout: 15_000 });
 
     // Asegura que el directorio existe y persiste la sesión
