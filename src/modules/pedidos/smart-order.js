@@ -7,6 +7,10 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 
+// Guard anti-doble-click: evita que confirmarSmartOrder cree pedidos duplicados
+// si el usuario pulsa dos veces seguidas el botón de Smart Order.
+let isConfirmingSmartOrder = false;
+
 /**
  * Opens the Smart Order modal with suggested orders based on low stock.
  */
@@ -207,6 +211,12 @@ export function updateSmartQty(provId, idx, value) {
  * Create actual pending orders from Smart Order selections
  */
 export async function confirmarSmartOrder() {
+    // Bloqueo anti-doble-click: si ya hay una confirmación en curso, ignorar.
+    if (isConfirmingSmartOrder) {
+        console.warn('Smart Order ya en curso, ignorando doble click');
+        return;
+    }
+
     const groups = window._smartOrderGroups;
     if (!groups) return;
 
@@ -245,6 +255,7 @@ export async function confirmarSmartOrder() {
         return;
     }
 
+    isConfirmingSmartOrder = true;
     window.showLoading();
     let created = 0;
 
@@ -265,5 +276,7 @@ export async function confirmarSmartOrder() {
         window.hideLoading();
         console.error('Smart Order error:', error);
         window.showToast(`Error: ${error.message}`, 'error');
+    } finally {
+        isConfirmingSmartOrder = false;
     }
 }

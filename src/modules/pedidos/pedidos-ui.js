@@ -344,7 +344,7 @@ export function agregarIngredientePedido() {
       <input type="number" placeholder="${t('pedidos:placeholder_price_unit')}" step="0.01" min="0" class="precio-input" style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: right; ${esCompraMercado ? 'border-color: #10b981; background: #f0fdf4;' : ''}" oninput="window.calcularTotalPedido()">
       <button type="button" class="btn-update-price" onclick="window.actualizarPrecioIngrediente(this)" title="${t('pedidos:btn_update_price') || 'Update ingredient price'}" style="background: none; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 6px; cursor: pointer; font-size: 11px; color: #6366f1; display: none;" >💾</button>
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">${cm(0)}</span>
-      <span id="${rowId}-conversion" style="font-size: 10px; color: #64748b; min-width: 70px;"></span>
+      <span id="${rowId}-conversion" style="font-size: 12px; color: #64748b; min-width: 110px; text-align: center;"></span>
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
     `;
 
@@ -500,13 +500,33 @@ export function calcularTotalPedido() {
                 // Cantidad real en unidad base (para stock)
                 const cantidadReal = usandoFormato ? cantidadInput * formatoMult : cantidadInput;
 
-                // Mostrar conversión si hay multiplicador > 1
+                // 🆕 Preview inequivoco de lo que se guardara en el stock.
+                // Fix B1 (incidente 2026-04-22): antes del cambio, el span era 10px
+                // gris y pasaba desapercibido. Ahora se muestra destacado, y si la
+                // cantidad final es absurda (>100 unidades base) se pinta de rojo
+                // con ⚠️ para que el usuario pare antes de guardar.
                 if (conversionSpan && usandoFormato) {
-                    conversionSpan.textContent = `= ${cantidadReal.toFixed(0)} ${ing.unidad || 'ud'}`;
-                    conversionSpan.style.color = '#10b981';
-                    conversionSpan.style.fontWeight = '600';
+                    const unidadTxt = ing.unidad || 'ud';
+                    const esAbsurdo = cantidadReal > 100;
+                    conversionSpan.textContent = esAbsurdo
+                        ? `⚠️ ${cantidadReal.toFixed(0)} ${unidadTxt}`
+                        : `➜ ${cantidadReal.toFixed(0)} ${unidadTxt}`;
+                    conversionSpan.style.color = esAbsurdo ? '#dc2626' : '#10b981';
+                    conversionSpan.style.fontWeight = '700';
+                    conversionSpan.style.fontSize = '12px';
+                    conversionSpan.style.background = esAbsurdo ? '#fee2e2' : '#ecfdf5';
+                    conversionSpan.style.padding = '2px 6px';
+                    conversionSpan.style.borderRadius = '4px';
+                    conversionSpan.style.whiteSpace = 'nowrap';
+                    conversionSpan.title = esAbsurdo
+                        ? `Cantidad inusualmente alta: se añadirán ${cantidadReal.toFixed(0)} ${unidadTxt} al stock. Revisa cantidad y formato antes de guardar.`
+                        : `Se añadirán ${cantidadReal.toFixed(0)} ${unidadTxt} al stock`;
                 } else if (conversionSpan) {
                     conversionSpan.textContent = '';
+                    conversionSpan.style.background = '';
+                    conversionSpan.style.padding = '';
+                    conversionSpan.style.color = '';
+                    conversionSpan.title = '';
                 }
 
                 // Usar el precio del campo de texto
