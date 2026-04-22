@@ -1,0 +1,73 @@
+name: E2E on PR (staging)
+
+# Corre la suite Playwright en cada Pull Request a main, contra staging.
+#
+# Durante las primeras semanas este check NO es required — aparece en el PR
+# pero no bloquea el merge. Así aprendemos si hay flakes sin sufrir bloqueos
+# de hotfix. Cuando tengamos 2 semanas de nightlies + PR-runs verdes, lo
+# promovemos a required en Settings → Branches → main → Require status checks.
+#
+# Para ahorrar minutos de CI, ignoramos PRs que solo tocan docs o memoria
+# (los de Claude). Los cambios de código sí disparan el workflow.
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**/*.md'
+  workflow_dispatch:
+
+concurrency:
+  # Un único run activo por rama/PR — si haces otro push, el anterior se cancela.
+  group: e2e-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright E2E against staging.mindloop.cloud
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      CI: 'true'
+      STAGING_URL: ${{ secrets.STAGING_URL }}
+      STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+      STAGING_TEST_EMAIL: ${{ secrets.STAGING_TEST_EMAIL }}
+      STAGING_TEST_PASSWORD: ${{ secrets.STAGING_TEST_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npm run e2e
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-pr-${{ github.event.pull_request.number || github.run_number }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload traces (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-pr-${{ github.event.pull_request.number || github.run_number }}
+          path: test-results/
+          retention-days: 7
