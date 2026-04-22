@@ -93,15 +93,26 @@ test.describe('i18n', () => {
     test('cambio de idioma a español traduce la navegación', async ({ page }) => {
         await page.goto('/');
 
-        // Botón de idioma ES (sidebar inferior izquierdo — hay varios selectores posibles)
-        const esBtn = page.locator('[data-lang="es"], button:has-text("ES")').first();
+        // Los botones de idioma viven dentro de #language-switcher en el sidebar inferior.
+        // Pueden estar fuera del viewport al arrancar (el sidebar es largo) — scrollIntoView
+        // antes de interactuar para evitar flakes de visibilidad.
+        const esBtn = page.locator('#language-switcher [data-lang="es"]');
+        await esBtn.waitFor({ state: 'attached', timeout: 10_000 });
+        await esBtn.scrollIntoViewIfNeeded();
+        await esBtn.click();
 
-        if (await esBtn.isVisible().catch(() => false)) {
-            await esBtn.click();
-            // Tras cambiar a ES, "Recetas" aparece (en EN sería "Recipes")
-            await expect(page.getByText('Recetas').first()).toBeVisible({ timeout: 5_000 });
-        } else {
-            test.skip(true, 'Selector de idioma ES no encontrado — ajustar cuando se estabilice');
-        }
+        // Tras cambiar a ES, el texto del span nav-item-text se traduce. Usamos el atributo
+        // data-i18n como ancla porque es estable en todos los idiomas (el que cambia es el
+        // textContent). `.first()` porque hay dos elementos con esa clave: el nav lateral
+        // y la tab horizontal.
+        await expect(
+            page.locator('[data-i18n="common:nav_recetas"]').first()
+        ).toHaveText('Recetas', { timeout: 5_000 });
+
+        // Dejamos el idioma otra vez en EN para no contaminar la sesión guardada
+        // (storageState) que usan los demás tests.
+        const enBtn = page.locator('#language-switcher [data-lang="en"]');
+        await enBtn.scrollIntoViewIfNeeded();
+        await enBtn.click();
     });
 });
