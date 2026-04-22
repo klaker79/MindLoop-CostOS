@@ -11,6 +11,10 @@
 import { t } from '@/i18n/index.js';
 import { cm } from '../../utils/helpers.js';
 
+// Guard anti-doble-click: evita que guardarPedido se ejecute dos veces seguidas.
+// Se resetea siempre en el finally para no dejar bloqueado el botón.
+let isCreatingOrder = false;
+
 // Re-exportar funciones de los módulos especializados
 export {
   marcarPedidoRecibido,
@@ -36,6 +40,12 @@ export {
  */
 export async function guardarPedido(event) {
   event.preventDefault();
+
+  // Bloqueo anti-doble-click: si ya hay una creación en curso, ignorar.
+  if (isCreatingOrder) {
+    console.warn('Creación de pedido ya en curso, ignorando doble click');
+    return;
+  }
 
   // Recoger ingredientes de las filas select+input
   const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
@@ -155,6 +165,7 @@ export async function guardarPedido(event) {
     return; // No continuar con la creación directa
   }
 
+  isCreatingOrder = true;
   window.showLoading();
 
   try {
@@ -250,6 +261,8 @@ export async function guardarPedido(event) {
     window.hideLoading();
     console.error('Error:', error);
     window.showToast(t('pedidos:toast_error_saving', { message: error.message }), 'error');
+  } finally {
+    isCreatingOrder = false;
   }
 }
 
