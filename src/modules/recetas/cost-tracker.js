@@ -6,6 +6,7 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
+import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 
 /**
  * Muestra el modal de seguimiento de costes
@@ -328,7 +329,7 @@ function actualizarDatosCostTracker() {
             ">
                 <div style="font-size: 36px; font-weight: 800; color: #10B981;">${recetasRentables}</div>
                 <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">✅ ${t('recetas:cost_tracker_profitable_count')}</div>
-                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Food Cost &lt; 33%</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Food Cost ≤ ${FOOD_COST_THRESHOLDS.TARGET_MAX}%</div>
             </div>
             <div style="
                 background: linear-gradient(145deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
@@ -339,7 +340,7 @@ function actualizarDatosCostTracker() {
             ">
                 <div style="font-size: 36px; font-weight: 800; color: #F59E0B;">${recetasAjustadas}</div>
                 <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">⚠️ ${t('recetas:cost_tracker_tight_count')}</div>
-                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Food Cost 33-38%</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Food Cost ${FOOD_COST_THRESHOLDS.TARGET_MAX + 1}-${FOOD_COST_THRESHOLDS.WATCH_MAX}%</div>
             </div>
             <div style="
                 background: linear-gradient(145deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
@@ -350,7 +351,7 @@ function actualizarDatosCostTracker() {
             ">
                 <div style="font-size: 36px; font-weight: 800; color: #EF4444;">${recetasAlerta}</div>
                 <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">🚨 ${t('recetas:cost_tracker_alert_count')}</div>
-                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Food Cost &gt; 38%</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Food Cost &gt; ${FOOD_COST_THRESHOLDS.WATCH_MAX}%</div>
             </div>
             <div style="
                 background: linear-gradient(145deg, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);

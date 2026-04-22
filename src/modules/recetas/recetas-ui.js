@@ -1,5 +1,6 @@
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { calculateIngredientCost, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
+import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 import { t } from '@/i18n/index.js';
 /**
  * Recetas UI Module
@@ -276,9 +277,10 @@ export function calcularCosteReceta() {
             const margen = ((precioVenta - costeTotal) / precioVenta) * 100;
             const foodCost = (costeTotal / precioVenta) * 100;
 
-            // Umbrales Jack Miller: ≤28 excelente, 29-33 target, 34-38 watch, >38 alert
-            // Sobre fondo verde: verde claro = excelente, blanco = bueno, amarillo = ajustado, rojo = malo
-            const getColor = fc => (fc <= 28 ? '#bbf7d0' : fc <= 33 ? '#ffffff' : fc <= 38 ? '#fde047' : '#fca5a5');
+            // Umbrales unificados 30/35/40 (ver utils/food-cost-thresholds.js y CLAUDE.md).
+            // Sobre fondo verde: verde claro = excelente, blanco = target, amarillo = watch, rojo = alert.
+            const { EXCELLENT_MAX, TARGET_MAX, WATCH_MAX } = FOOD_COST_THRESHOLDS;
+            const getColor = fc => (fc <= EXCELLENT_MAX ? '#bbf7d0' : fc <= TARGET_MAX ? '#ffffff' : fc <= WATCH_MAX ? '#fde047' : '#fca5a5');
 
             // Actualizar Margen
             if (margenSpan) {

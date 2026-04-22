@@ -5,6 +5,7 @@
 
 import { formatCurrency } from '../../utils/helpers.js';
 import { escapeHTML } from '../../utils/sanitize.js';
+import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 
 /**
  * Renderiza el breakdown de costes
@@ -16,11 +17,11 @@ export function renderCostBreakdown(breakdown, container) {
 
     const { lines, totalCost, costPerPortion, marginPercentage, foodCostPercentage, isComplete, missingIngredients } = breakdown;
 
-    // Determinar clase de margen
-    // Thresholds unificados: ≤33% food cost (≥67% margen) = OK, 34-38% (62-66%) = warn, >38% (<62%) = alert
+    // Determinar clase de margen (equivalencia de los food-cost thresholds unificados
+    // 30/35/40, ver utils/food-cost-thresholds.js): margen ≥ 65% = OK, 60-64% warn, <60% alert.
     let marginClass = 'margin-good';
-    if (marginPercentage < 62) marginClass = 'margin-bad';
-    else if (marginPercentage < 67) marginClass = 'margin-warning';
+    if (marginPercentage < 60) marginClass = 'margin-bad';
+    else if (marginPercentage < 65) marginClass = 'margin-warning';
 
     const html = `
         <div class="cost-breakdown">
@@ -65,7 +66,7 @@ export function renderCostBreakdown(breakdown, container) {
                     <span class="kpi-label">Margen</span>
                     <span class="kpi-value">${(marginPercentage || 0).toFixed(1)}%</span>
                 </div>
-                <div class="kpi ${(foodCostPercentage || 0) > 40 ? 'margin-bad' : (foodCostPercentage || 0) > 35 ? 'margin-warning' : ''}">
+                <div class="kpi ${(foodCostPercentage || 0) > FOOD_COST_THRESHOLDS.WATCH_MAX ? 'margin-bad' : (foodCostPercentage || 0) > FOOD_COST_THRESHOLDS.TARGET_MAX ? 'margin-warning' : ''}">
                     <span class="kpi-label">Food Cost</span>
                     <span class="kpi-value">${(foodCostPercentage || 0).toFixed(1)}%</span>
                 </div>
