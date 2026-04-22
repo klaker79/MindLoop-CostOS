@@ -1176,7 +1176,12 @@ window.descargarHorarioMensual = async function () {
         }
 
         // Generar HTML del documento - DISEÑO PREMIUM
-        const restaurantName = localStorage.getItem('restaurant_name') || 'LA NAVE 5';
+        // Nombre del restaurante del tenant actual (derivado del user logueado,
+        // no de localStorage global — evita que tenant B imprima horarios de A).
+        const restaurantName =
+            window.currentUser?.restaurante?.nombre ||
+            window.currentUser?.restaurante_nombre ||
+            'MindLoop';
         const restaurantLogo = 'https://em-content.zobj.net/source/apple/391/anchor_2693.png'; // Emoji ancla
 
         let html = `

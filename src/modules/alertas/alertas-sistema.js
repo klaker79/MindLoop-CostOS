@@ -1,4 +1,5 @@
 import { escapeHTML } from '../../utils/helpers.js';
+import { tenantStorage } from '../../utils/tenant-storage.js';
 import { t } from '@/i18n/index.js';
 /**
  * Sistema de Alertas Inteligentes
@@ -100,7 +101,7 @@ export function detectarPedidosPendientes(diasLimite = 3) {
  * @returns {Object|null} Alerta de sugerencia o null
  */
 export function sugerirInventario(diasSugerencia = 7) {
-    const ultimoInventario = localStorage.getItem('ultimoInventario');
+    const ultimoInventario = tenantStorage.getItem('ultimoInventario');
 
     if (!ultimoInventario) {
         return {
@@ -268,7 +269,7 @@ export function renderizarAlertas() {
     }
 
     // Sugerencia inventario
-    if (alertas.inventario && !localStorage.getItem(alertas.inventario.dismissKey)) {
+    if (alertas.inventario && !tenantStorage.getItem(alertas.inventario.dismissKey)) {
         html += `
             <div class="alertas-section inventario">
                 <div class="alerta-item info" onclick="window.cambiarTab('ingredientes')">
@@ -305,7 +306,7 @@ export function toggleAlertasExpanded() {
  * @param {string} dismissKey - Clave para recordar que se descartó
  */
 export function dismissAlerta(dismissKey) {
-    localStorage.setItem(dismissKey, Date.now().toString());
+    tenantStorage.setItem(dismissKey, Date.now().toString());
     renderizarAlertas();
 }
 
@@ -313,8 +314,8 @@ export function dismissAlerta(dismissKey) {
  * Marcar que se hizo inventario
  */
 export function marcarInventarioRealizado() {
-    localStorage.setItem('ultimoInventario', new Date().toISOString());
-    localStorage.removeItem('inventario_sugerido_dismissed');
+    tenantStorage.setItem('ultimoInventario', new Date().toISOString());
+    tenantStorage.removeItem('inventario_sugerido_dismissed');
     renderizarAlertas();
 }
 
