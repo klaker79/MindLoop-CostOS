@@ -17,7 +17,7 @@
   "toast_error_saving": "Error guardando receta: {{message}}",
   "toast_error_deleting": "Error eliminando receta: {{message}}",
   "toast_error_updating_stock": "Error actualizando stock: {{message}}",
-  "confirm_delete": "¿Eliminar la receta \"{{name}}\"?",
+  "confirm_delete": "⚠️ ¿Seguro que quieres borrar la receta \"{{name}}\"?\n\nSe eliminará de la base de datos y dejará de aparecer en la app. Esta acción no se puede deshacer desde la interfaz.",
   "production_success": "Producidas {{quantity}} unidades de {{name}}",
   "stock_insufficient": "Stock insuficiente:",
   "export_col_code": "Código",

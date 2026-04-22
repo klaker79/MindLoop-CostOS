@@ -17,7 +17,7 @@
   "toast_error_saving": "Error saving recipe: {{message}}",
   "toast_error_deleting": "Error deleting recipe: {{message}}",
   "toast_error_updating_stock": "Error updating stock: {{message}}",
-  "confirm_delete": "Delete recipe \"{{name}}\"?",
+  "confirm_delete": "⚠️ Are you sure you want to delete the recipe \"{{name}}\"?\n\nIt will be removed from the database and will no longer appear in the app. This action cannot be undone from the interface.",
   "production_success": "Produced {{quantity}} units of {{name}}",
   "stock_insufficient": "Insufficient stock:",
   "export_col_code": "Code",

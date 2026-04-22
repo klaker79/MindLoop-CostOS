@@ -17,7 +17,7 @@
   "toast_error_saving": "保存菜品失败: {{message}}",
   "toast_error_deleting": "删除菜品失败: {{message}}",
   "toast_error_updating_stock": "更新库存失败: {{message}}",
-  "confirm_delete": "删除菜品 \"{{name}}\"？",
+  "confirm_delete": "⚠️ 确定要删除菜品 \"{{name}}\" 吗？\n\n此菜品将从数据库中删除，并且不再显示在应用中。此操作无法通过界面撤销。",
   "production_success": "已生产 {{quantity}} 份 {{name}}",
   "stock_insufficient": "库存不足：",
   "export_col_code": "编码",
