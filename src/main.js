@@ -43,6 +43,14 @@ window.addEventListener('auth:expired', () => {
 });
 
 // ============================================
+// 🧹 MULTI-TENANT CLEANUP — run ONCE on every boot
+// Borra las keys flat legacy que existían antes del fix de scope por tenant.
+// Idempotente: no hace nada si ya fueron purgadas en un arranque anterior.
+// ============================================
+import { purgeLegacyUnscopedKeys } from './utils/tenant-storage.js';
+purgeLegacyUnscopedKeys();
+
+// ============================================
 // 🌍 i18n - Internationalization (must load early)
 // ============================================
 import './i18n/index.js';

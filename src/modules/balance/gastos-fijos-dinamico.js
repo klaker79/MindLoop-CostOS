@@ -12,6 +12,7 @@
  */
 
 import { cm, escapeHTML } from '../../utils/helpers.js';
+import { tenantStorage } from '../../utils/tenant-storage.js';
 import { t } from '@/i18n/index.js';
 
 const SAVE_DEBOUNCE_MS = 400;
@@ -193,9 +194,10 @@ function renderGrouped(gastos) {
         buckets[cat].sort((a, b) => (a.concepto || '').localeCompare(b.concepto || ''));
     });
     // Open state persisted in localStorage so user expansion survives reloads.
+    // Scopeada por tenant: la UI de balance de La Nave 5 no debe sobrevivir al cambio a Stefania KL.
     let openSet = new Set();
     try {
-        openSet = new Set(JSON.parse(localStorage.getItem('gf_open_cats') || '[]'));
+        openSet = new Set(JSON.parse(tenantStorage.getItem('gf_open_cats') || '[]'));
     } catch { /* ignore */ }
 
     const sections = CATEGORY_ORDER
@@ -230,7 +232,7 @@ function persistOpenCats(container) {
     const open = Array.from(container.querySelectorAll('details.gf-group[open]'))
         .map(el => el.dataset.cat)
         .filter(Boolean);
-    try { localStorage.setItem('gf_open_cats', JSON.stringify(open)); } catch { /* ignore */ }
+    try { tenantStorage.setItem('gf_open_cats', JSON.stringify(open)); } catch { /* ignore */ }
 }
 
 // --------------------------------------------------------------------------

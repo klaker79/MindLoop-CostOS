@@ -5,6 +5,7 @@
 
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
+import { tenantKey } from '../../utils/tenant-storage.js';
 
 // Estado del carrito (persistido en localStorage)
 let carrito = [];
@@ -17,10 +18,12 @@ let isConfirmingCart = false;
 
 /**
  * Clave de localStorage aislada por restaurante (multi-tenant).
- * Evita que el carrito de un restaurante aparezca en otro al cambiar de cuenta.
+ * Usa el tenantId del usuario logueado — `window.restauranteId` no existía
+ * en ningún sitio del código (bug preexistente: todas las cuentas compartían
+ * la key `pedidoCarrito_undefined` en el mismo navegador).
  */
 function getCartKey() {
-    return `pedidoCarrito_${window.restauranteId || 'default'}`;
+    return tenantKey('pedidoCarrito');
 }
 
 /**

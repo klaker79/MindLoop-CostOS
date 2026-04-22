@@ -1737,8 +1737,11 @@ async function renderizarTablaPLDiario() {
         }
     } catch (error) {
         console.warn('Fallback a localStorage para gastos fijos:', error.message);
+        // Scopear por tenant: datos de gastos fijos son específicos por restaurante
+        // y nunca deben mezclarse entre tenants del mismo navegador.
+        const raw = window.tenantStorage?.getItem('opex_inputs') || null;
         const opexData = JSON.parse(
-            localStorage.getItem('opex_inputs') ||
+            raw ||
             '{"alquiler":0,"personal":0,"suministros":0,"otros":0}'
         );
         gastosFijosMes =
