@@ -163,7 +163,19 @@ export function agregarIngredienteReceta() {
                 style="width: 100%; padding: 12px 8px 12px 25px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fffbeb;" 
                 onchange="window.calcularCosteReceta()">
         </div>
-        <button type="button" onclick="this.parentElement.remove(); window.calcularCosteReceta();" 
+        <span class="receta-coste-linea" title="Coste de este ingrediente (cantidad × precio / rendimiento)" style="
+            min-width: 72px;
+            text-align: right;
+            font-weight: 700;
+            font-size: 13px;
+            color: #059669;
+            background: #ecfdf5;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #a7f3d0;
+            white-space: nowrap;
+        ">—</span>
+        <button type="button" onclick="this.parentElement.remove(); window.calcularCosteReceta();"
             style="
                 background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
                 color: white;
@@ -202,6 +214,11 @@ export function calcularCosteReceta() {
     items.forEach(item => {
         const select = item.querySelector('select');
         const input = item.querySelector('input');
+        // 🆕 Span para mostrar el coste de esta línea (cantidad × precio / rendimiento).
+        // Se actualiza siempre, incluso cuando la fila no tiene datos válidos (pone "—").
+        const costeLineaSpan = item.querySelector('.receta-coste-linea');
+        let costeLinea = 0;
+
         if (select.value && input.value) {
             const cantidad = parseFloat(input.value || 0);
 
@@ -212,7 +229,8 @@ export function calcularCosteReceta() {
                 if (recetaBase && window.calcularCosteRecetaCompleto) {
                     // Calcular coste de la receta base
                     const costeRecetaBase = window.calcularCosteRecetaCompleto(recetaBase);
-                    costeTotalLote += costeRecetaBase * cantidad;
+                    costeLinea = costeRecetaBase * cantidad;
+                    costeTotalLote += costeLinea;
                 }
             } else {
                 // Ingrediente normal
@@ -229,9 +247,14 @@ export function calcularCosteReceta() {
                 const rendimiento = inputRendimiento ? parseFloat(inputRendimiento.value) || 100 : 100;
 
                 // Usar la función "anclada" para el cálculo
-                const costeReal = calculateIngredientCost(precio, cantidad, rendimiento);
-                costeTotalLote += costeReal;
+                costeLinea = calculateIngredientCost(precio, cantidad, rendimiento);
+                costeTotalLote += costeLinea;
             }
+        }
+
+        // Actualizar el span de coste de la linea (vacio si no hay datos)
+        if (costeLineaSpan) {
+            costeLineaSpan.textContent = costeLinea > 0 ? cm(costeLinea) : '—';
         }
     });
 
