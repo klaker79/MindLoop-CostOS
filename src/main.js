@@ -344,20 +344,6 @@ window.descargarPedidoPDF = PedidosCRUD.descargarPedidoPDF;
 window.actualizarItemRecepcion = PedidosCRUD.actualizarItemRecepcion;
 window.cambiarEstadoItem = PedidosCRUD.cambiarEstadoItem;
 
-// Compras Pendientes (cola de revisión de albaranes importados)
-import * as ComprasPendientesUI from './modules/pedidos/compras-pendientes-ui.js';
-
-window.renderizarComprasPendientes = ComprasPendientesUI.renderizarComprasPendientes;
-window.aprobarItemPendiente = ComprasPendientesUI.aprobarItemPendiente;
-window.aprobarBatchPendiente = ComprasPendientesUI.aprobarBatchPendiente;
-window.cambiarIngredientePendiente = ComprasPendientesUI.cambiarIngredientePendiente;
-window.cambiarFormatoPendiente = ComprasPendientesUI.cambiarFormatoPendiente;
-window.rechazarItemPendiente = ComprasPendientesUI.rechazarItemPendiente;
-window.editarCampoPendiente = ComprasPendientesUI.editarCampoPendiente;
-window.editarTotalPendiente = ComprasPendientesUI.editarTotalPendiente;
-window.cambiarProveedorBatch = ComprasPendientesUI.cambiarProveedorBatch;
-window.checkPendientes = ComprasPendientesUI.checkPendientes;
-
 // ⚡ FIX W3: Documentación de módulos con auto-registro en window.*
 // Estos módulos registran sus funciones directamente (window.fn = ...) en vez de exportar+mapear aquí.
 // Funciona correctamente, pero es un patrón distinto al resto de main.js.
@@ -397,15 +383,8 @@ window.rechazarTransferenciaPendiente = TransferenciasUI.rechazarTransferenciaPe
 window.abrirModalTransferencia = TransferenciasUI.abrirModalTransferencia;
 window.enviarTransferencia = TransferenciasUI.enviarTransferencia;
 
-// 📸 Albarán Scanner (Claude Vision) — DESACTIVADO (OCR no fiable con albaranes manuscritos)
-// Para reactivar: descomentar estas líneas + el HTML en index.html (buscar "albaran-scanner-section")
-// import * as AlbaranScanner from './modules/pedidos/albaran-scanner.js';
-// window.procesarFotoAlbaran = AlbaranScanner.procesarFotoAlbaran;
-// window.procesarFotoAlbaranInput = AlbaranScanner.procesarFotoAlbaranInput;
-
-// Cargar pendientes y transferencias al abrir pestaña Pedidos y al login
+// Cargar transferencias al abrir pestaña Pedidos y al login
 document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => ComprasPendientesUI.checkPendientes(), 3000);
     setTimeout(() => TransferenciasUI.checkTransferenciasPendientes(), 4000);
 });
 
