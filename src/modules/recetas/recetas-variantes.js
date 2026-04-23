@@ -71,6 +71,7 @@ async function cargarVariantesReceta(recetaId) {
         const variantes = Array.isArray(response) ? response : [];
 
         renderizarVariantes(variantes);
+        prellenarFormPrimeraVariante(recetaId, variantes);
 
         window.hideLoading?.();
     } catch (error) {
@@ -78,6 +79,32 @@ async function cargarVariantesReceta(recetaId) {
         console.error('Error cargando variantes:', error);
         showToast(t('recetas:variants_error_loading'), 'error');
     }
+}
+
+/**
+ * Cuando la receta NO tiene variantes aun, pre-llenar el form "Anadir variante"
+ * con los datos de la receta padre (BOTELLA, factor 1, mismo codigo TPV, mismo
+ * precio). El usuario solo tiene que clickar "Anadir Variante" para crear la
+ * botella, y luego cambia los campos para la copa.
+ *
+ * Flujo de Iker: receta padre = botella factor 1 -> evitar teclear la botella
+ * dos veces al crear variantes.
+ */
+function prellenarFormPrimeraVariante(recetaId, variantes) {
+    if (variantes.length > 0) return; // Ya hay variantes, no tocamos el form
+
+    const receta = window.recetas?.find(r => r.id === recetaId);
+    if (!receta) return;
+
+    const inputNombre = document.getElementById('input-variante-nombre');
+    const inputPrecio = document.getElementById('input-variante-precio');
+    const inputFactor = document.getElementById('input-variante-factor');
+    const inputCodigo = document.getElementById('input-variante-codigo');
+
+    if (inputNombre) inputNombre.value = 'BOTELLA';
+    if (inputPrecio) inputPrecio.value = receta.precio_venta ?? '';
+    if (inputFactor) inputFactor.value = '1';
+    if (inputCodigo) inputCodigo.value = receta.codigo || '';
 }
 
 /**
