@@ -198,16 +198,27 @@ export async function cargarVariantesVenta(recetaId) {
             return;
         }
 
-        // Mostrar selector y poblar opciones
+        // Mostrar selector y poblar opciones.
+        // 🔒 Si la receta TIENE variantes, NO ofrecemos la opción vacía "Sin variante":
+        // durante 90 días (enero-abril 2026) 274 ventas de vinos se guardaron con
+        // factor=1 (botella entera) porque el personal dejaba el dropdown en la
+        // opción vacía por defecto. Forzar seleccionar una variante real elimina
+        // esa fuga. Auto-seleccionamos la de MENOR factor (ej: copa 0.2) como
+        // default conservador: descontar menos stock por error > descontar más.
         console.log('🍷 Mostrando selector con', variantes.length, 'variantes');
         container.style.display = 'block';
-        let html = `<option value="">${t('ventas:no_variant')}</option>`;
-        variantes.forEach(v => {
+        const variantesOrdenadas = [...variantes].sort(
+            (a, b) => (parseFloat(a.factor) || 1) - (parseFloat(b.factor) || 1)
+        );
+        let html = '';
+        variantesOrdenadas.forEach(v => {
             html += `<option value="${v.id}" data-factor="${v.factor}" data-precio="${v.precio_venta}">
                 ${escapeHTML(v.nombre)} - ${cm(parseFloat(v.precio_venta))} (${v.factor}x)
             </option>`;
         });
         select.innerHTML = html;
+        // Auto-selección: primera (menor factor). Si el usuario quiere otra, clickea.
+        if (variantesOrdenadas[0]) select.value = String(variantesOrdenadas[0].id);
     } catch (error) {
         console.error('🍷 Error cargando variantes:', error);
         container.style.display = 'none';
