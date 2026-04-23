@@ -105,20 +105,31 @@ Define cada plato, bebida o ítem vendible:
 
 > ⚠️ **El código TPV tiene que coincidir exactamente con el del TPV.** Un dígito mal y las ventas de ese plato se registran en otra receta. Ver [Sección 6.2](#62-códigos-tpv--coincidencia-exacta-con-el-tpv).
 
+#### Merma/rendimiento por receta
+
+Al añadir un ingrediente a una receta, la app aplica automáticamente el **rendimiento** configurado en la ficha del ingrediente (ej. si el ingrediente "pulpo" tiene rendimiento 50% por limpieza, cada receta que lo use asume ese 50% al calcular el coste).
+
+Pero ese valor es **editable por receta**: si una receta concreta aprovecha más el producto (por técnica de cocción, por usar también la cabeza, por hacer caldo con los recortes, etc.), puedes ajustar el rendimiento específicamente para esa receta sin modificar el del ingrediente base. Esto permite que recetas "generosas" con el producto no calculen un coste inflado.
+
+Regla general: si la receta aprovecha **igual** que el rendimiento del ingrediente → dejar tal cual. Si aprovecha **más** → subir el rendimiento en la línea de esa receta (reduce el coste). Si aprovecha **menos** → bajarlo.
+
 ### 3.4 Variantes (opcional)
 
-Si un producto se vende en varios formatos (botella + copa, ración + media), cada variante se crea desde la receta padre → botón **"Variantes"**:
+Una **"receta padre"** es la ficha principal del producto (ej. una receta creada como "Vino de la casa"). Cuando ese mismo producto se vende en **varios formatos** al cliente (botella entera, copa; ración entera, media ración; menú de mediodía, menú de fin de semana…), **cada formato es una variante** de esa receta padre. Todas las variantes comparten los ingredientes y la fórmula de coste, pero tienen su propio precio de venta, su propio código TPV y un "factor" que indica qué porción de la receta base consumen.
+
+Las variantes se crean desde la receta padre → botón **"Variantes"**. Ejemplo con el vino "Rías Altas 2020":
 
 | Variante | Factor | Precio venta | Código TPV |
 |---|---|---|---|
-| BOTELLA | 1,000 | 40€ | 01143 |
-| COPA | 0,200 | 8€ | 01553 |
+| Rías Altas 2020 — BOTELLA | 1,000 | 40 € | 01143 |
+| Rías Altas 2020 — COPA | 0,200 | 8 € | 01553 |
 
-**Factor** = qué fracción de la unidad base consume esa variante:
-- Copa = 0,2 → 5 copas por botella
-- Copa = 0,17 → 6 copas por botella
-- Media ración = 0,5
-- Ración entera / Botella = 1
+**Factor** = qué fracción de la unidad base (la botella, la ración entera) consume esa variante:
+- Copa = 0,2 → salen 5 copas por botella
+- Copa = 0,17 → salen 6 copas por botella
+- Media ración = 0,5 → una media consume medio emplatado
+- Ración entera / Botella = 1 (la variante "base")
+- Café doble = 2 → consume el doble de producto que un café normal
 
 > ⚠️ **Factor mal = cálculos rotos.** Ver [Sección 6.5](#65-variantes--factor-correcto).
 
@@ -138,10 +149,42 @@ Introduce alquiler, sueldos, seguros, impuestos… agrupados por categoría. Se 
 
 1. Elige proveedor.
 2. Añade ingredientes con cantidad y precio **confirmados por la factura**.
-3. Selecciona formato (unidad base vs caja).
-4. Guarda como "pendiente" o, si ya llegó, marca como "recibido".
+3. Selecciona formato de compra.
+4. Guarda como "pendiente" (aún no ha llegado) o "recibido" (ya en la casa).
 
-Cuando llegue la mercancía, entra al pedido → **"Recibir"** → ajusta cantidades/precios reales si cambiaron y confirma. Esto actualiza stock y precio medio de compra.
+#### Formato de compra — ejemplo práctico
+
+Al añadir una línea de pedido, aparece un selector de **formato** para decidir si la cantidad la estás pidiendo en unidad base (kg, L, botella) o en formato agrupado (caja, garrafa, saco):
+
+| Ejemplo | Selector formato | Cantidad | Precio unitario |
+|---|---|---|---|
+| 10 kg de pulpo | "Unidad base (kg)" | 10 | 17,50 €/kg |
+| 2 cajas de cerveza (24 botellas/caja) | "Caja" | 2 | 25,44 €/caja |
+| Media garrafa de aceite (5 L/garrafa) | "Unidad base (L)" | 2,5 | 7,60 €/L |
+
+La app entiende la equivalencia: si eliges "Caja (24)" y pones cantidad 2, al recibir el pedido sumará 48 botellas al stock.
+
+> ⚠️ **Pon mucha atención al formato** al añadir la línea. Si eliges "unidad (botella)" y pones cantidad 48, o eliges "caja" y pones cantidad 2, el resultado debe ser el mismo: 48 botellas. Si mezclas los conceptos (eliges "caja" pero pones cantidad 48), tu stock se multiplica por 24.
+
+#### Recibir un pedido y marcar varianzas
+
+Cuando llegue la mercancía, entra al pedido → **"Recibir"**. Por cada ingrediente la app te muestra:
+
+- Lo que **pediste** (cantidad pedida + precio pedido)
+- Lo que **recibiste** (editable: cantidad real recibida + precio real de la factura)
+
+Si lo recibido coincide con lo pedido, pulsa **Confirmar**. El stock se suma y el precio medio de compra se actualiza.
+
+Si hay **varianza** (el proveedor trajo menos/más, o el precio cambió):
+
+1. Edita la cantidad o precio en la línea afectada.
+2. Marca el estado de la línea como **"Con varianza"**.
+3. El subtotal de la línea se recalcula automáticamente y el total del pedido refleja la diferencia respecto al original.
+4. Confirma.
+
+Esto deja rastro: el pedido queda marcado como recibido con varianza y los reportes pueden agrupar luego "pedidos con varianzas" para auditoría (ej. detectar un proveedor que sube precios sin avisar).
+
+Si una línea **no llegó** (el proveedor no la trajo): márcala como "No entregado" y la app pondrá cantidad = 0 y no afectará a stock.
 
 ### 4.2 Ventas
 
@@ -153,11 +196,15 @@ Las ventas pueden llegar de 2 maneras:
 
 ### 4.3 Inventario y mermas
 
-**Tab "Inventario"** → ver stock valorizado en tiempo real.
+**Tab "Inventario"** → ver stock valorizado en tiempo real. Muestra, por cada ingrediente, stock virtual (lo que la app cree que tienes), stock real (lo que tú introduces tras recuento), diferencia, precio medio y valor total del stock.
 
-**Marcar inventario realizado** → confirma que has hecho recuento físico y el stock en la app coincide con el real. Actualiza la alerta "hay que hacer inventario".
+**Botón "Guardar Stock"** → si acabas de hacer recuento físico y hay diferencia entre virtual y real, introduces el real, pulsas guardar y queda ajustado. La alerta "hay que hacer inventario" se resetea.
 
-**Tab "Pedidos" → botón Mermas** → registra producto que se tiró (roto, caducado). Descuenta stock y refleja en P&L.
+**Botón "Merma Rápida"** → registra producto que se tiró (roto, caducado, quemado). Descuenta stock y refleja en el P&L como pérdida.
+
+**Botón "Ver Historial Mermas"** → listado histórico de mermas registradas.
+
+**Botón "Actualizar Inventario Masivo"** → subir un archivo Excel/CSV con recuento físico de muchos ingredientes a la vez, útil tras inventario general de fin de mes.
 
 ### 4.4 Cambio de precio de un ingrediente
 
@@ -178,11 +225,55 @@ Si el proveedor te sube/baja el precio, **no crees un ingrediente nuevo**. Edita
 
 ### Tab "Análisis"
 
-Desglose detallado por categoría, ranking BCG de recetas, evolución histórica.
+Desglose detallado del negocio por categorías. Dos herramientas clave:
+
+**Ranking BCG (Boston Consulting Group aplicado a recetas)**
+Clasifica tus platos en 4 categorías según dos ejes: **popularidad** (cuánto se vende) y **rentabilidad** (cuánto margen deja). Los 4 cuadrantes:
+
+- **Estrellas** ⭐ — populares y rentables. El motor del negocio. Cuidarlos, destacarlos en la carta.
+- **Vacas lecheras** 🐄 — populares pero de margen más ajustado. Entradas seguras, pero revisar si se puede mejorar el coste.
+- **Interrogantes** ❓ — poco populares pero rentables. Hay potencial, valdría la pena promocionar o reformular la presentación.
+- **Perros** 🐕 — poco populares y poco rentables. Candidatos a retirar de la carta, reformular o subir precio.
+
+**Ingeniería de menú (menu engineering)**
+Metodología que usa el ranking BCG + otros datos (tiempo de preparación, estacionalidad, stock necesario) para decidir **qué platos promocionar, reformular o retirar**. La app te sugiere acciones concretas por cada plato. Úsala antes de rediseñar la carta o para decidir cambios puntuales: sube un plato estrella al inicio del menú, reformula un perro para mejorar su margen, retira los que no aportan.
 
 ### Tab "Diario"
 
-P&L día por día, con desglose de ingresos, costes, gastos fijos y beneficio neto.
+**La pestaña más importante para la gestión diaria del restaurante.** Aquí aparece, día por día del mes seleccionado, toda la actividad financiera. Consúltala cada mañana para saber cómo fue el día anterior en 30 segundos.
+
+Contiene 5 bloques:
+
+**1. Compras diarias por ingrediente**
+Qué ingredientes compraste cada día, con cantidad y coste. Útil para detectar picos de gasto concretos (ej. un día compraste mucho pulpo porque subió el precio, o un proveedor trajo algo no pedido).
+
+**2. Compras diarias por proveedor**
+Total gastado cada día con cada proveedor. Permite ver la concentración de gasto: si el 60% del gasto del mes es con un solo proveedor, conviene negociar.
+
+**3. Ventas diarias por receta**
+Qué platos se vendieron cada día, cantidad, ingresos. Es el detalle fino del TPV importado: ves platos estrella (los de cada día) y platos muertos (sin ventas en varios días seguidos).
+
+**4. P&L diario (Pérdidas y Ganancias)**
+El **estado de resultados contable** aplicado al día. Muestra:
+- **Ingresos** del día (lo que facturaste, IVA aparte).
+- **Coste de ingredientes** (COGS) — lo que te costó producir lo vendido.
+- **Gastos fijos prorrateados** (el total mensual dividido por días del mes).
+- **Beneficio neto del día** = Ingresos − Costes ingredientes − Gastos fijos del día.
+
+Un P&L diario en positivo significa que ese día el restaurante ganó dinero. En negativo, perdió. Sumando todos los días del mes tienes el resultado del mes completo (sin tener que esperar al contable).
+
+**5. Punto de equilibrio (break-even point)**
+El nivel de ventas diarias a partir del cual el restaurante deja de perder dinero y empieza a ganar. Fórmula: **punto de equilibrio = gastos fijos del día + coste variable por euro vendido**. Si tu punto de equilibrio es 800 €/día y un día vendes 900 €, ese día ganaste 100 € netos. Si vendes 700 €, perdiste 100 €.
+
+La app muestra el punto de equilibrio de cada día y compara con tus ventas reales. Sirve para:
+- Saber el mínimo que tienes que vender para cubrir costes.
+- Detectar días del mes especialmente malos o especialmente buenos.
+- Tomar decisiones como abrir o no determinados días, ajustar personal, hacer promociones.
+
+**6. Gastos fijos**
+Todos tus costes fijos mensuales (alquiler, sueldos, seguros, suministros...) agrupados por categoría. Aquí los editas si cambian. Se prorratean automáticamente en el P&L diario.
+
+> 💡 **Rutina recomendada**: cada mañana, abrir Diario → mirar el beneficio neto del día anterior y compararlo con el punto de equilibrio. 30 segundos y sabes cómo va el mes.
 
 ### Umbrales food cost (referencia)
 
@@ -205,12 +296,12 @@ Para vinos el target es más alto (≤ 45% es normal).
 
 Cada producto del TPV tiene un código único. Cuando configures recetas y variantes:
 
-- **La receta padre** (ej. "VINO ALMA DE MAR") y **cada variante** (botella, copa) **son productos distintos** en el TPV. Cada uno debe tener **su propio código**.
+- **La receta padre** (ej. "Vino de la casa") y **cada variante** (botella, copa) **son productos distintos** en el TPV. Cada uno debe tener **su propio código**.
 - **Jamás compartas el mismo código entre una receta y una de sus variantes**, ni entre dos recetas distintas.
 
-#### Caso real (abril 2026)
+#### Ejemplo práctico
 
-La receta **VINO ALMA DE MAR** se creó con `código TPV = 01553`. La variante **COPA** también tenía `código TPV = 01553` (el mismo). Resultado: cuando el TPV enviaba ventas de copas, la app las asignaba a la receta padre **con factor 1.0** (botella entera). Cada copa vendida **descontaba una botella del stock** en vez de 1/5 de botella. Un día tranquilo con 33 copas servidas apareció en el sistema como un día catastrófico con 33 botellas consumidas y food cost del 190%.
+Supón que creas la receta **"Vino de la casa"** con `código TPV = 01553`. Y en esa misma receta, añades una variante **"Copa"** también con `código TPV = 01553` (el mismo). Resultado: cuando el TPV envía ventas de copas, la app las asigna a la receta padre **con factor 1.0** (botella entera). Cada copa vendida **descuenta una botella del stock** en vez de 1/5 de botella. Un día tranquilo con 33 copas servidas aparece en el sistema como un día catastrófico: 33 botellas consumidas y food cost del 190%.
 
 **Regla**: al configurar variantes, asegúrate de que el código TPV de la receta padre (BOTELLA) es distinto al de la variante (COPA). Borra el código de la receta padre si tu variante "principal" ya lo tiene.
 
@@ -218,13 +309,13 @@ La receta **VINO ALMA DE MAR** se creó con `código TPV = 01553`. La variante *
 
 El código que pones en la app debe ser **letra por letra y número por número** el mismo que aparece en tu TPV. No traduzcas, no reordenes, no quites ceros a la izquierda.
 
-#### Caso real (abril 2026)
+#### Ejemplo práctico
 
-La receta **NAVAJAS** en la app tenía `código TPV = 01162`. Pero en el TPV real el código `01162` era el de **BERBERECHOS**, y NAVAJAS tenía código `01467`.
+Supón que tu receta **"Mejillones al vapor"** está registrada en la app con `código TPV = 01162`. Pero en el TPV real el código `01162` corresponde a **"Ensalada mixta"**, y los mejillones tienen código `01467`.
 
 Durante semanas:
-- Cada venta de berberechos en el TPV entraba en la app como "NAVAJAS vendidas". El histórico de NAVAJAS estaba inflado con datos de BERBERECHOS.
-- Las ventas reales de NAVAJAS se rechazaban silenciosamente con "Receta no encontrada". Aparecían como "cero ventas" en las estadísticas de navajas.
+- Cada venta de ensalada mixta en el TPV entra en la app como "Mejillones vendidos". El histórico de mejillones está inflado con datos que no son suyos.
+- Las ventas reales de mejillones se rechazan silenciosamente con "Receta no encontrada". Aparecen como "cero ventas" en las estadísticas.
 
 **Regla**: antes de guardar un código TPV, abre el ticket/informe del TPV y copia el dígito exacto. Si no estás seguro, pide el catálogo al responsable del TPV.
 
@@ -305,8 +396,8 @@ Estas son cosas que si ves, debes **avisar al responsable o a soporte MindLoop e
 |---|---|---|
 | Food cost > 60% de golpe | Datos mal importados o receta mal configurada | Revisar Sección 6 y reportar |
 | Stock **negativo** en un ingrediente | Venta registrada sin compra previa, o cpf/factor mal | Reportar al soporte |
-| Una receta vende **1000 unidades** en un día cuando lo normal son 10 | Parser IA del flujo n8n confundió columnas | Reportar urgente |
-| Receta que **aparece o desaparece** del catálogo | Alguien borró en vez de desactivar | Reportar, puede recuperarse desde `deleted_at` |
+| Una receta vende **1000 unidades** en un día cuando lo normal son 10 | Informe del TPV con formato distinto al habitual que se interpretó mal al importarlo | Reportar urgente |
+| Receta que **aparece o desaparece** del catálogo | Alguien la borró en lugar de desactivarla | Reportar al soporte |
 | Ingrediente con **2 entradas casi idénticas** | Alguien creó duplicado en vez de editar | Reportar para fusionar |
 | "Valor stock" cambia bruscamente sin compras del día | Precio medio alterado por factura mal introducida | Revisar últimos pedidos |
 
@@ -342,9 +433,9 @@ Sí, se puede restaurar desde la base de datos. Contacta con soporte.
 
 ## 9. Soporte
 
-- **Email**: iker@mindloop.cloud
-- **Urgencias** (números raros en producción): contactar directamente a Iker.
-- **Sugerencias y mejoras**: email o WhatsApp al equipo MindLoop.
+- **Email**: mindloopia@gmail.com
+- **Urgencias** (números raros en producción): escribe al email indicando "URGENTE" en el asunto.
+- **Sugerencias y mejoras**: mismo email.
 
 > 💡 **Regla de oro**: cuanto antes avises, más rápido lo arreglamos. Un número raro avisado el mismo día tarda minutos en localizarse. Un mes después, horas.
 
