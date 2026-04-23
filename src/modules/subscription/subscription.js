@@ -29,14 +29,12 @@ const PLAN_FEATURES = {
         { text: 'Dashboard basico', included: true },
         { text: 'Hasta 2 usuarios', included: true },
         { text: 'Escandallos y variantes', included: false },
-        { text: 'OCR albaranes', included: false },
         { text: 'Analitica avanzada e IA', included: false },
         { text: 'Gestion de horarios', included: false }
     ],
     profesional: [
         { text: 'Todo lo de Starter', included: true },
         { text: 'Escandallos y variantes', included: true },
-        { text: 'OCR albaranes automatico', included: true },
         { text: 'Analitica avanzada (BCG, P&L)', included: true },
         { text: 'Inteligencia IA', included: true },
         { text: 'Gestion de horarios', included: true },
@@ -244,7 +242,6 @@ function showTrialExpiredModal() {
             <p style="color:#64748b;font-size:12px;margin:12px 0 0;text-transform:uppercase;font-weight:600;letter-spacing:0.5px;">Perderas acceso a:</p>
             <div style="color:#ef4444;font-size:13px;line-height:2;opacity:0.8;">
                 <div>Escandallos y variantes</div>
-                <div>OCR albaranes</div>
                 <div>Analitica avanzada e IA</div>
                 <div>Gestion de horarios</div>
             </div>
