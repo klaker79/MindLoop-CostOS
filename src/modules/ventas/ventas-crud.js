@@ -29,6 +29,18 @@ export async function guardarVenta() {
         return;
     }
 
+    // 🔒 Si la receta tiene variantes (container visible), exigir selección.
+    // Guard-rail redundante con el auto-seleccionado en ventas-ui.js — si el
+    // usuario borra la selección manualmente, aquí lo atrapamos antes del POST.
+    const varianteContainer = document.getElementById('venta-variante-container');
+    if (varianteContainer && varianteContainer.style.display !== 'none' && !varianteId) {
+        window.showToast?.(
+            t('ventas:error_select_variant', 'Esta receta tiene variantes. Selecciona una (ej: copa / botella).'),
+            'error'
+        );
+        return;
+    }
+
     // Anti-doble-click
     const form = document.getElementById('form-venta');
     const submitBtn = form?.querySelector('button[type="submit"]');
