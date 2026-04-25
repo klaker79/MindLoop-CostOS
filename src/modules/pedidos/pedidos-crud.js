@@ -107,7 +107,11 @@ export async function guardarPedido(event) {
 
   const proveedorId = parseInt(document.getElementById('ped-proveedor').value);
   const proveedor = (window.proveedores || []).find(p => p.id === proveedorId);
-  const esCompraMercado = proveedor && proveedor.nombre.toLowerCase().includes('mercado');
+  // Detectar "compra mercado" (mercadillo / plaza de abastos / mercado central)
+  // por palabra completa, NO por subcadena. El .includes('mercado') daba falsos
+  // positivos con "Mercadona", "Supermercado", "Hipermercado" — todos esos son
+  // distribuidores formales, no compras de mercado físico.
+  const esCompraMercado = proveedor && /\bmercado\b/i.test(proveedor.nombre);
 
   let pedido;
 
