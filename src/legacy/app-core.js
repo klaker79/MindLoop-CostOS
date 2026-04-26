@@ -1548,7 +1548,7 @@
         const countPorCategoria = {};
 
         // 🔧 Categorías excluidas del gráfico de margen (no son platos reales)
-        const CATEGORIAS_EXCLUIDAS = ['suministros', 'suministro', 'preparaciones base', 'preparacion base'];
+        const CATEGORIAS_EXCLUIDAS = ['suministros', 'suministro', 'preparaciones base', 'preparacion base', 'base'];
 
         recetas.forEach(rec => {
             // Usar la categoría REAL de la receta (normalizada a minúsculas)
@@ -1592,8 +1592,18 @@
             return;
         }
 
-        // Colores según margen (verde = alto, amarillo = medio, rojo = bajo)
-        const getColor = (margen) => {
+        // Colores según margen, con thresholds DISTINTOS por tipo:
+        // - Bebidas (vinos): target food cost 45% -> margen >=55 verde, 50-54 amarillo, <50 rojo.
+        // - Resto (comida): target food cost 33% -> margen >=67 verde, 62-66 amarillo, <62 rojo.
+        // Antes se aplicaba el umbral de comida a todo, lo que pintaba en rojo
+        // bebidas con margen sano (~58%) y daba falsa alarma.
+        const getColor = (margen, categoria) => {
+            const esBebida = typeof categoria === 'string' && categoria.toLowerCase().includes('bebida');
+            if (esBebida) {
+                if (margen >= 55) return '#10b981';
+                if (margen >= 50) return '#f59e0b';
+                return '#ef4444';
+            }
             if (margen >= 67) return '#10b981';
             if (margen >= 62) return '#f59e0b';
             return '#ef4444';
@@ -1615,7 +1625,7 @@
                 datasets: [{
                     label: T('dashboard:analysis_table_margin_pct'),
                     data: datos.map(d => d.margen.toFixed(1)),
-                    backgroundColor: datos.map(d => getColor(d.margen)),
+                    backgroundColor: datos.map(d => getColor(d.margen, d.categoria)),
                     borderWidth: 0,
                     borderRadius: 6,
                 }],
