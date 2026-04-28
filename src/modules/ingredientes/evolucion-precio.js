@@ -8,6 +8,7 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { loadChart } from '../../utils/lazy-vendors.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
 let chartEvolucionPrecio = null;
 let currentHistorial = [];
@@ -32,9 +33,9 @@ export async function verEvolucionPrecio(ingredienteId) {
     currentHistorial = obtenerHistorialPrecios(ingredienteId);
 
     // Update modal content
-    // 💰 FIX: Calcular precio UNITARIO (precio formato / cantidad_por_formato)
-    const cpf = parseFloat(ingrediente.cantidad_por_formato) || 1;
-    const precioActual = (parseFloat(ingrediente.precio) || 0) / cpf;
+    // 💰 Precio unitario canónico (precio_medio_compra > precio_medio > precio/cpf)
+    const invItem = (window.inventarioCompleto || []).find(i => i.id === ingredienteId);
+    const precioActual = getIngredientUnitPrice(invItem, ingrediente);
 
     document.getElementById('evolucion-ingrediente-nombre').innerHTML =
         `<strong>${escapeHTML(ingrediente.nombre)}</strong> - ${t('ingredientes:price_evolution_current_price', { price: precioActual.toFixed(2), unit: escapeHTML(ingrediente.unidad) })}`;
@@ -236,9 +237,9 @@ async function renderChart(historial, ingrediente) {
     // Prepare data
     let labels, data;
 
-    // 💰 FIX: Usar precio UNITARIO (precio formato / cantidad_por_formato)
-    const cpf = parseFloat(ingrediente.cantidad_por_formato) || 1;
-    const precioUnitarioActual = (parseFloat(ingrediente.precio) || 0) / cpf;
+    // 💰 Precio unitario canónico (precio_medio_compra > precio_medio > precio/cpf)
+    const invItemChart = (window.inventarioCompleto || []).find(i => i.id === ingrediente.id);
+    const precioUnitarioActual = getIngredientUnitPrice(invItemChart, ingrediente);
 
     if (historial.length === 0) {
         labels = [t('ingredientes:price_evolution_current_label')];

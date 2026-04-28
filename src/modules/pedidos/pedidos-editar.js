@@ -9,6 +9,7 @@
 
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { validarDesvioPrecio } from '../../utils/precio-validator.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
 
 /**
@@ -187,11 +188,14 @@ function renderizarModalEditarPedido() {
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <select id="select-nuevo-ing-edit" onchange="window.autocompletarPrecioEdicion(this)" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
                         <option value="">— ${t('pedidos:edit_select_ingredient')} —</option>
-                        ${ingredientesDisponibles.map(ing => {
-                            const cpfOpt = parseFloat(ing.cantidad_por_formato) || 1;
-                            const precioUnitOpt = (parseFloat(ing.precio) || 0) / (cpfOpt || 1);
-                            return `<option value="${ing.id}" data-precio="${precioUnitOpt.toFixed(4)}">${escapeHTML(ing.nombre)} (${cm(precioUnitOpt)}/${escapeHTML(ing.unidad || 'ud')})</option>`;
-                        }).join('')}
+                        ${(() => {
+                            const invMap = new Map((window.inventarioCompleto || []).map(i => [i.id, i]));
+                            return ingredientesDisponibles.map(ing => {
+                                // Precio unitario canónico (precio_medio_compra > precio_medio > precio/cpf)
+                                const precioUnitOpt = getIngredientUnitPrice(invMap.get(ing.id), ing);
+                                return `<option value="${ing.id}" data-precio="${precioUnitOpt.toFixed(4)}">${escapeHTML(ing.nombre)} (${cm(precioUnitOpt)}/${escapeHTML(ing.unidad || 'ud')})</option>`;
+                            }).join('');
+                        })()}
                     </select>
                     <input type="number" step="0.01" min="0" id="input-nueva-cant-edit" placeholder="Cantidad"
                         style="width: 100px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
@@ -285,12 +289,13 @@ export function agregarItemEdicion() {
         return;
     }
 
-    // Fallback: si el usuario no rellenó el precio, usar precio/cpf del ingrediente.
+    // Fallback: si el usuario no rellenó el precio, usar el precio unitario canónico
+    // (precio_medio_compra > precio_medio > precio/cpf) del ingrediente.
     if (!precio || precio <= 0) {
         const ing = (window.ingredientes || []).find(i => i.id === ingId);
         if (ing) {
-            const cpf = parseFloat(ing.cantidad_por_formato) || 1;
-            precio = (parseFloat(ing.precio) || 0) / (cpf || 1);
+            const invItem = (window.inventarioCompleto || []).find(i => i.id === ingId);
+            precio = getIngredientUnitPrice(invItem, ing);
         }
     }
 
