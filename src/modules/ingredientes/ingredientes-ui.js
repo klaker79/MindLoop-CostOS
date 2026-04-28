@@ -229,9 +229,27 @@ export function renderizarIngredientes() {
             const precioBase = parseFloat(ing.precio) || 0;
             const cpfDisplay = parseFloat(ing.cantidad_por_formato) || 1;
             const precioBaseUnitario = precioBase / cpfDisplay;
+            const formatoCompra = ing.formato_compra || ing.unidad || 'unidad';
             // Diferencia vs precio configurado (base) para seguir mostrando el indicador ↑/↓
             const precioMedio = precioMostrar > 0 ? precioMostrar : null;
             const diferencia = precioMedio !== null && precioBaseUnitario > 0 ? ((precioMostrar - precioBaseUnitario) / precioBaseUnitario * 100) : 0;
+
+            // Tooltip con precio configurado + precio medio real + diferencia
+            // Para que el barman vea POR QUÉ el coste de barra puede no cuadrar con el albarán
+            const tooltipLines = [];
+            tooltipLines.push(`📦 Precio configurado: ${cm(precioBase)}/${formatoCompra}`);
+            if (cpfDisplay > 1) {
+                tooltipLines.push(`   (${cm(precioBaseUnitario)}/${ing.unidad || 'unidad'})`);
+            }
+            if (precioMedio !== null) {
+                tooltipLines.push(`💰 Precio medio real: ${cm(precioMostrar)}/${ing.unidad || 'unidad'}`);
+                if (Math.abs(diferencia) > 1) {
+                    const flecha = diferencia > 0 ? '📈' : '📉';
+                    const signo = diferencia > 0 ? '+' : '';
+                    tooltipLines.push(`${flecha} ${signo}${diferencia.toFixed(0)}% vs configurado`);
+                }
+            }
+            const tooltipText = escapeHTML(tooltipLines.join('\n'));
 
             // Indicador visual si el precio_medio difiere del precio base
             let precioHtml = '';
@@ -239,7 +257,8 @@ export function renderizarIngredientes() {
                 const colorDif = diferencia > 0 ? '#ef4444' : '#10B981';
                 const iconDif = diferencia > 0 ? '↑' : '↓';
                 precioHtml = `<span style="font-weight: 600;">${cm(precioMostrar)}/${escapeHTML(ing.unidad)}</span>
-                    <br><small style="color: ${colorDif};">${iconDif} ${Math.abs(diferencia).toFixed(0)}% vs base</small>`;
+                    <br><small style="color: ${colorDif};">${iconDif} ${Math.abs(diferencia).toFixed(0)}% vs base</small>
+                    <br><small style="color: #64748b;">Base: ${cm(precioBaseUnitario)}/${escapeHTML(ing.unidad)}</small>`;
             } else {
                 precioHtml = precioMostrar ? `${cm(precioMostrar)}/${escapeHTML(ing.unidad)}` : '-';
             }
@@ -255,7 +274,7 @@ export function renderizarIngredientes() {
                 <td><strong>${escapeHTML(ing.nombre)}</strong>${esInactivo ? `<br><small style="color:#ef4444;">⚠️ ${t('ingredientes:badge_inactive')}</small>` : ''}</td>
                 <td><span class="badge ${familiaBadge}">${familiaLabel}</span></td>
                 <td>${escapeHTML(nombreProv)}</td>
-                <td>${precioHtml}</td>
+                <td title="${tooltipText}" style="cursor: help;">${precioHtml}</td>
                 <td>${ing.stock_actual
                     ? `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${escapeHTML(ing.unidad)}</span>${stockBajo && ing.stock_minimo ? ' ⚠️' : ''}`
                     : '-'
