@@ -112,8 +112,7 @@ function renderizarModalEditarPedido() {
         const nombre = ing ? ing.nombre : `Ingrediente #${it.ingredienteId}`;
         const unidad = ing?.unidad || 'ud';
         const subtotal = it.cantidad * it.precio_unitario;
-        // En el modal de edición el precio se almacena ya en €/unidad base, no en €/formato
-        const aviso = validarDesvioPrecio(ing, it.precio_unitario, false);
+        const aviso = validarDesvioPrecio(ing, it.cantidad, subtotal);
         const avisoRow = aviso
             ? `<tr><td colspan="5" style="padding: 6px 8px;"><div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:6px 10px;color:#92400e;font-size:12px;font-weight:600;">${escapeHTML(aviso.mensaje)}</div></td></tr>`
             : '';

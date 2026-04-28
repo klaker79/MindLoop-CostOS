@@ -1,60 +1,57 @@
 /**
  * Helper de validación de desvío de precio en pedidos.
  *
- * Detecta cuando el precio_unitario que el usuario está metiendo en un pedido
- * difiere mucho del precio configurado del ingrediente (precio / cpf), como
- * pista de que se ha confundido la unidad o el formato.
+ * Compara el subtotal calculado del item (cantidad × precio metido) con el
+ * subtotal esperado según la config del ingrediente (cantidad × precio_unit_config).
+ * Si la diferencia supera el umbral, devuelve un aviso descriptivo.
  *
- * No bloquea — devuelve un objeto descriptivo que la UI muestra como aviso.
+ * Pensado para pillar errores como:
+ *  - Camarero mete 60 huevos a 0,25 € (subtotal 15 €) cuando la unidad es
+ *    "Docena" y el precio config es 3 €/Doc → esperado 180 €. Diff -91% → avisa.
+ *  - Cambio de proveedor con precio muy distinto (Lotus 14,90 → 28,90 €) → avisa
+ *    para que el usuario confirme la subida.
+ *  - Cantidad metida en orden de magnitud incorrecto (3 cuando son 30) → avisa.
  *
- * Casos cubiertos:
- *  - Camarero mete 60 huevos a 0,25 € cuando la unidad es "Docena" (debería
- *    haber metido 5 docenas a 3 €). El total cuadra (15 €) pero el precio
- *    unitario está 12× por debajo del configurado.
- *  - Subida de proveedor casi al doble (Lotus 14,90 → 28,90) — también dispara
- *    aviso, lo cual es lo deseado: que el usuario lo confirme.
+ * No salta cuando el usuario usa el precio autocompletado (porque entonces
+ * subtotal_metido == subtotal_esperado).
  */
 
 const UMBRAL_DESVIO = 0.5; // ±50%
 
 /**
  * @param {object} ing - Ingrediente: {precio, cantidad_por_formato, unidad, nombre}
- * @param {number} precioMetidoPorFormato - Precio que el usuario está metiendo
- *   en el formulario. Ya viene "por formato" cuando el formato está activo
- *   (es decir, lo que el usuario teclea en "Precio unit." del modal: si elige
- *   "CAJA", es €/CAJA; si elige "unidad suelta", es €/unidad).
- * @param {boolean} usandoFormato - Si true, precioMetidoPorFormato está en
- *   €/FORMATO y hay que dividir por cpf antes de comparar con precio_unit_config.
- *   Si false, precioMetidoPorFormato ya está en €/unidad base.
- * @returns {{warn:boolean, mensaje:string, precioConfig:number, precioMetido:number, diffPct:number}|null}
- *   null si no hay desvío significativo o no hay datos suficientes.
+ * @param {number} cantidad - Cantidad real en unidades base (ya multiplicada
+ *   por formato si aplica; misma escala que la unidad del ingrediente).
+ * @param {number} subtotalMetido - Lo que el usuario está pagando por la línea
+ *   (cantidad × precio que ha tecleado, en su escala).
+ * @returns {{warn:boolean, mensaje:string, subtotalEsperado:number, subtotalMetido:number, diffPct:number}|null}
  */
-export function validarDesvioPrecio(ing, precioMetidoPorFormato, usandoFormato) {
+export function validarDesvioPrecio(ing, cantidad, subtotalMetido) {
     if (!ing) return null;
     const precioConfig = parseFloat(ing.precio) || 0;
     const cpf = parseFloat(ing.cantidad_por_formato) || 1;
-    if (precioConfig <= 0) return null;
+    const cant = parseFloat(cantidad) || 0;
+    const subM = parseFloat(subtotalMetido) || 0;
+
+    if (precioConfig <= 0 || cant <= 0 || subM <= 0) return null;
 
     const precioConfigUnit = precioConfig / (cpf || 1);
-    const precioMetidoUnit = usandoFormato
-        ? (precioMetidoPorFormato || 0) / (cpf || 1)
-        : (precioMetidoPorFormato || 0);
+    const subtotalEsperado = cant * precioConfigUnit;
+    if (subtotalEsperado <= 0) return null;
 
-    if (precioMetidoUnit <= 0) return null;
-
-    const diff = (precioMetidoUnit - precioConfigUnit) / precioConfigUnit;
+    const diff = (subM - subtotalEsperado) / subtotalEsperado;
     if (Math.abs(diff) <= UMBRAL_DESVIO) return null;
 
     const diffPct = Math.round(diff * 100);
     const flecha = diff > 0 ? '↑' : '↓';
-    const unidad = ing.unidad || 'ud';
-    const mensaje = `⚠️ Precio fuera de rango: ${precioMetidoUnit.toFixed(2)} €/${unidad} vs ${precioConfigUnit.toFixed(2)} €/${unidad} configurado (${flecha}${Math.abs(diffPct)}%). ¿Has confundido la unidad o el formato?`;
+    const sentido = diff > 0 ? 'MÁS' : 'MENOS';
+    const mensaje = `⚠️ Estás pagando ${sentido} de lo esperado: ${subM.toFixed(2)} € vs ${subtotalEsperado.toFixed(2)} € (${flecha}${Math.abs(diffPct)}%). Revisa cantidad y precio — ¿unidad correcta?`;
 
     return {
         warn: true,
         mensaje,
-        precioConfig: precioConfigUnit,
-        precioMetido: precioMetidoUnit,
+        subtotalEsperado,
+        subtotalMetido: subM,
         diffPct
     };
 }
