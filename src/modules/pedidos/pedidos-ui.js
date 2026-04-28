@@ -547,13 +547,14 @@ export function calcularTotalPedido() {
 
                 subtotalBase += subtotalLinea;
 
-                // ⚠️ Validación de desvío de precio: avisa al usuario si el precio
-                // metido difiere mucho del configurado del ingrediente. Sirve para
-                // pillar errores de unidad (60 huevos a 0,25 € cuando la unidad
-                // es Docena → debería ser 5 doc a 3 €).
+                // ⚠️ Validación de desvío de subtotal: avisa al usuario si el
+                // subtotal del item difiere mucho del esperado según la config del
+                // ingrediente. Sirve para pillar errores de unidad (60 huevos a
+                // 0,25 € → subtotal 15 € cuando esperado 180 €) o cambios bruscos
+                // de precio (subida del proveedor).
                 const warningDiv = document.getElementById(`${item.id}-precio-warning`);
                 if (warningDiv) {
-                    const aviso = validarDesvioPrecio(ing, precioIngrediente, usandoFormato);
+                    const aviso = validarDesvioPrecio(ing, cantidadReal, subtotalLinea);
                     if (aviso) {
                         warningDiv.textContent = aviso.mensaje;
                         warningDiv.style.display = 'block';
