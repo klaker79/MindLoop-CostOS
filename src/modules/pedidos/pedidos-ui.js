@@ -1,4 +1,5 @@
 import { escapeHTML, cm } from '../../utils/helpers.js';
+import { validarDesvioPrecio } from '../../utils/precio-validator.js';
 import { t } from '@/i18n/index.js';
 /**
  * Pedidos UI Module
@@ -346,6 +347,7 @@ export function agregarIngredientePedido() {
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">${cm(0)}</span>
       <span id="${rowId}-conversion" style="font-size: 12px; color: #64748b; min-width: 110px; text-align: center;"></span>
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
+      <div id="${rowId}-precio-warning" style="display: none; flex-basis: 100%; margin-top: 6px; padding: 8px 12px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; color: #92400e; font-size: 12px; font-weight: 600;"></div>
     `;
 
     container.appendChild(div);
@@ -544,6 +546,22 @@ export function calcularTotalPedido() {
                 }
 
                 subtotalBase += subtotalLinea;
+
+                // ⚠️ Validación de desvío de precio: avisa al usuario si el precio
+                // metido difiere mucho del configurado del ingrediente. Sirve para
+                // pillar errores de unidad (60 huevos a 0,25 € cuando la unidad
+                // es Docena → debería ser 5 doc a 3 €).
+                const warningDiv = document.getElementById(`${item.id}-precio-warning`);
+                if (warningDiv) {
+                    const aviso = validarDesvioPrecio(ing, precioIngrediente, usandoFormato);
+                    if (aviso) {
+                        warningDiv.textContent = aviso.mensaje;
+                        warningDiv.style.display = 'block';
+                    } else {
+                        warningDiv.textContent = '';
+                        warningDiv.style.display = 'none';
+                    }
+                }
             }
         }
 
