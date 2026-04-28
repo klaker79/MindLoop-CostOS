@@ -8,6 +8,7 @@
  */
 
 import { escapeHTML, cm } from '../../utils/helpers.js';
+import { validarDesvioPrecio } from '../../utils/precio-validator.js';
 import { t } from '@/i18n/index.js';
 
 /**
@@ -111,6 +112,11 @@ function renderizarModalEditarPedido() {
         const nombre = ing ? ing.nombre : `Ingrediente #${it.ingredienteId}`;
         const unidad = ing?.unidad || 'ud';
         const subtotal = it.cantidad * it.precio_unitario;
+        // En el modal de edición el precio se almacena ya en €/unidad base, no en €/formato
+        const aviso = validarDesvioPrecio(ing, it.precio_unitario, false);
+        const avisoRow = aviso
+            ? `<tr><td colspan="5" style="padding: 6px 8px;"><div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:6px 10px;color:#92400e;font-size:12px;font-weight:600;">${escapeHTML(aviso.mensaje)}</div></td></tr>`
+            : '';
         return `
             <tr data-idx="${idx}" style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 8px;"><strong>${escapeHTML(nombre)}</strong></td>
@@ -131,6 +137,7 @@ function renderizarModalEditarPedido() {
                         style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer;">🗑️</button>
                 </td>
             </tr>
+            ${avisoRow}
         `;
     }).join('');
 
