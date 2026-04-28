@@ -7,6 +7,7 @@
 
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
 // Array para almacenar las líneas de merma
 let lineasMerma = [];
@@ -66,11 +67,14 @@ function getIngredientesOptionsHtml() {
     const ingredientes = (window.ingredientes || []).sort((a, b) =>
         a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
     );
+    const invMap = new Map((window.inventarioCompleto || []).map(i => [i.id, i]));
 
     let html = `<option value="">${t('inventario:merma_select_product')}</option>`;
     ingredientes.forEach(ing => {
         const stock = parseFloat(ing.stock_actual ?? ing.stockActual ?? 0).toFixed(2);
-        html += `<option value="${ing.id}" data-unidad="${escapeHTML(ing.unidad || 'ud')}" data-stock="${stock}" data-precio="${ing.precio || 0}" data-formato="${ing.cantidad_por_formato || 1}">${escapeHTML(ing.nombre)} (${stock} ${escapeHTML(ing.unidad || 'ud')})</option>`;
+        // Precio unitario canónico (precio_medio_compra > precio_medio > precio/cpf)
+        const precioUnitario = getIngredientUnitPrice(invMap.get(ing.id), ing);
+        html += `<option value="${ing.id}" data-unidad="${escapeHTML(ing.unidad || 'ud')}" data-stock="${stock}" data-precio-unitario="${precioUnitario}">${escapeHTML(ing.nombre)} (${stock} ${escapeHTML(ing.unidad || 'ud')})</option>`;
     });
     return html;
 }
@@ -142,15 +146,13 @@ export function actualizarLineaMerma(index) {
 
     const selectedOption = select.options[select.selectedIndex];
     const unidad = selectedOption?.dataset?.unidad || 'ud';
-    const precio = parseFloat(selectedOption?.dataset?.precio || 0);
-    const formato = parseFloat(selectedOption?.dataset?.formato || 1);
+    // Precio unitario ya canónico (precalculado vía getIngredientUnitPrice en getIngredientesOptionsHtml)
+    const precioUnitario = parseFloat(selectedOption?.dataset?.precioUnitario || 0);
     const cantidad = parseFloat(cantidadInput.value) || 0;
 
     // Actualizar unidad
     unidadSpan.textContent = unidad;
 
-    // 🔒 P1-2 FIX: Guard against formato=0 (division by zero → Infinity)
-    const precioUnitario = formato > 0 ? (precio / formato) : precio;
     const valor = precioUnitario * cantidad;
     valorSpan.textContent = cm(valor);
 
