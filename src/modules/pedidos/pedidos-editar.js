@@ -179,13 +179,17 @@ function renderizarModalEditarPedido() {
                 <h4 style="margin: 0 0 10px 0;">➕ ${t('pedidos:edit_add_ingredient')}${nombreProveedor ? ` <small style="color: #64748b; font-weight: 400;">${t('pedidos:edit_add_ingredient_from', { supplier: escapeHTML(nombreProveedor) })}</small>` : ''}</h4>
                 ${ingredientesDisponibles.length === 0 ? '<p style="color: #dc2626; margin: 0 0 8px 0;">⚠️ Este proveedor no tiene ingredientes asociados</p>' : ''}
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <select id="select-nuevo-ing-edit" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                    <select id="select-nuevo-ing-edit" onchange="window.autocompletarPrecioEdicion(this)" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
                         <option value="">— ${t('pedidos:edit_select_ingredient')} —</option>
-                        ${ingredientesDisponibles.map(ing => `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${cm(parseFloat(ing.precio || 0))}/${escapeHTML(ing.unidad || 'ud')})</option>`).join('')}
+                        ${ingredientesDisponibles.map(ing => {
+                            const cpfOpt = parseFloat(ing.cantidad_por_formato) || 1;
+                            const precioUnitOpt = (parseFloat(ing.precio) || 0) / (cpfOpt || 1);
+                            return `<option value="${ing.id}" data-precio="${precioUnitOpt.toFixed(4)}">${escapeHTML(ing.nombre)} (${cm(precioUnitOpt)}/${escapeHTML(ing.unidad || 'ud')})</option>`;
+                        }).join('')}
                     </select>
                     <input type="number" step="0.01" min="0" id="input-nueva-cant-edit" placeholder="Cantidad"
                         style="width: 100px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
-                    <input type="number" step="0.01" min="0" id="input-nuevo-precio-edit" placeholder="Precio unit."
+                    <input type="number" step="0.0001" min="0" id="input-nuevo-precio-edit" placeholder="Precio unit."
                         style="width: 110px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
                     <button type="button" onclick="window.agregarItemEdicion()"
                         style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; cursor: pointer;">${t('pedidos:edit_btn_add')}</button>
@@ -245,17 +249,43 @@ export function actualizarAjustePedido(campo, valor) {
     renderizarModalEditarPedido();
 }
 
+/**
+ * Autocompleta el campo "Precio unit." del formulario "Añadir ingrediente"
+ * cuando el usuario elige un ingrediente del select. Lee el precio unitario
+ * desde el data-precio del <option> (ya calculado como precio/cpf en el render).
+ * Si el usuario ya había escrito un precio manualmente, NO lo sobreescribe.
+ */
+export function autocompletarPrecioEdicion(select) {
+    const opt = select?.selectedOptions?.[0];
+    const precio = parseFloat(opt?.dataset?.precio);
+    const input = document.getElementById('input-nuevo-precio-edit');
+    if (!input || !(precio > 0)) return;
+    const valorActual = parseFloat(input.value);
+    if (!valorActual || valorActual <= 0) {
+        input.value = precio.toFixed(4).replace(/\.?0+$/, '');
+    }
+}
+
 export function agregarItemEdicion() {
     const state = window._editandoPedido;
     if (!state) return;
 
     const ingId = parseInt(document.getElementById('select-nuevo-ing-edit')?.value);
     const cantidad = parseFloat(document.getElementById('input-nueva-cant-edit')?.value);
-    const precio = parseFloat(document.getElementById('input-nuevo-precio-edit')?.value);
+    let precio = parseFloat(document.getElementById('input-nuevo-precio-edit')?.value);
 
     if (!ingId || !cantidad || cantidad <= 0) {
         window.showToast?.('Selecciona ingrediente y cantidad válida', 'warning');
         return;
+    }
+
+    // Fallback: si el usuario no rellenó el precio, usar precio/cpf del ingrediente.
+    if (!precio || precio <= 0) {
+        const ing = (window.ingredientes || []).find(i => i.id === ingId);
+        if (ing) {
+            const cpf = parseFloat(ing.cantidad_por_formato) || 1;
+            precio = (parseFloat(ing.precio) || 0) / (cpf || 1);
+        }
     }
 
     state.items.push({
@@ -329,6 +359,7 @@ if (typeof window !== 'undefined') {
     window.actualizarItemEdicion = actualizarItemEdicion;
     window.eliminarItemEdicion = eliminarItemEdicion;
     window.agregarItemEdicion = agregarItemEdicion;
+    window.autocompletarPrecioEdicion = autocompletarPrecioEdicion;
     window.actualizarAjustePedido = actualizarAjustePedido;
     window.cerrarModalEditarPedido = cerrarModalEditarPedido;
     window.guardarEdicionPedido = guardarEdicionPedido;
