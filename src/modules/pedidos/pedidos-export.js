@@ -242,12 +242,12 @@ export function enviarPedidoWhatsApp() {
     // Abrir edición del proveedor
     if (prov && typeof window.editarProveedor === 'function') {
       setTimeout(() => {
-        window.showTab('proveedores');
+        window.cambiarTab?.('proveedores');
         setTimeout(() => window.editarProveedor(prov.id), 300);
       }, 200);
     } else {
       // Ir a la pestaña de proveedores
-      window.showTab('proveedores');
+      window.cambiarTab?.('proveedores');
     }
     return;
   }
