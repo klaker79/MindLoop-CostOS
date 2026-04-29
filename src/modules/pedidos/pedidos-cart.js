@@ -432,9 +432,7 @@ window.confirmarCarrito = async function () {
         window.showToast(t('pedidos:cart_orders_created', { count: pedidosCreados }), 'success');
 
         // Navegar a pedidos
-        if (typeof window.showTab === 'function') {
-            window.showTab('pedidos');
-        }
+        window.cambiarTab?.('pedidos');
 
     } catch (error) {
         window.hideLoading();
