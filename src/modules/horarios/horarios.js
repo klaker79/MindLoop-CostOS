@@ -6,6 +6,7 @@
 import { showToast } from '../../ui/toast.js';
 import { getApiUrl } from '../../config/app-config.js';
 import { escapeHTML } from '../../utils/sanitize.js';
+import { getDateLocale } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
 
 /**
@@ -311,7 +312,8 @@ function renderizarGridHorarios() {
     html += `<th style="padding: 16px; text-align: left; font-weight: 700; color: #1e293b; border-bottom: 2px solid #e2e8f0; position: sticky; left: 0; background: #f8fafc; z-index: 2; min-width: 180px;">${t('horarios:grid_header_employee')}</th>`;
 
     dias.forEach(dia => {
-        const nombreDia = dia.toLocaleDateString('es-ES', { weekday: 'short' }).toUpperCase();
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico
+        const nombreDia = dia.toLocaleDateString(getDateLocale(), { weekday: 'short' }).toUpperCase();
         const numeroDia = dia.getDate();
         const esHoy = esHoyFecha(dia);
 

@@ -7,7 +7,7 @@
  * - cerrarModalVerPedido: Cierra el modal
  */
 import { t } from '@/i18n/index.js';
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 
 /**
  * Muestra detalles de un pedido en modal
@@ -22,9 +22,8 @@ export function verDetallesPedido(pedidoId) {
         p => p.id === ped.proveedorId || p.id === ped.proveedor_id
     );
     const provNombre = prov ? prov.nombre : t('pedidos:detail_no_supplier');
-    const lang = localStorage.getItem('mindloop_lang') || 'es';
-    const locale = lang === 'en' ? 'en-GB' : 'es-ES';
-    const fechaFormateada = new Date(ped.fecha).toLocaleDateString(locale);
+    // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh')
+    const fechaFormateada = new Date(ped.fecha).toLocaleDateString(getDateLocale());
     const estadoClass = ped.estado === 'recibido' ? '#10B981' : '#F59E0B';
     const estadoText = ped.estado === 'recibido' ? t('pedidos:detail_status_received') : t('pedidos:detail_status_pending');
     const esRecibido = ped.estado === 'recibido';

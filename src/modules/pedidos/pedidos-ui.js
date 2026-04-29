@@ -1,4 +1,4 @@
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 import { validarDesvioPrecio } from '../../utils/precio-validator.js';
 import { t } from '@/i18n/index.js';
 /**
@@ -617,10 +617,11 @@ export function renderizarPedidos() {
         pedidosFiltrados = pedidosFiltrados.filter(p => {
             const provNombre = provMapBusq.get(p.proveedorId || p.proveedor_id) || '';
             const fechaStr = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha;
-            const fechaES = p.fecha ? new Date(fechaStr).toLocaleDateString('es-ES') : '';
+            // 🔒 Auditoría Capa 7 (S9): búsqueda usa locale del usuario (era 'es-ES' fijo)
+            const fechaLocal = p.fecha ? new Date(fechaStr).toLocaleDateString(getDateLocale()) : '';
             const fechaISO = p.fecha ? (typeof p.fecha === 'string' ? p.fecha.slice(0, 10) : new Date(p.fecha).toISOString().slice(0, 10)) : '';
             return provNombre.includes(busqueda)
-                || fechaES.includes(busqueda)
+                || fechaLocal.includes(busqueda)
                 || fechaISO.includes(busqueda);
         });
     }
@@ -647,7 +648,8 @@ export function renderizarPedidos() {
         const provId = ped.proveedorId || ped.proveedor_id;
         const prov = provMap.get(provId);
         const fechaStr = typeof ped.fecha === 'string' && ped.fecha.length === 10 ? ped.fecha + 'T12:00:00' : ped.fecha;
-        const fecha = new Date(fechaStr).toLocaleDateString('es-ES');
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico
+        const fecha = new Date(fechaStr).toLocaleDateString(getDateLocale());
         const esCompraMercado = ped.es_compra_mercado;
 
         html += '<tr>';
@@ -707,7 +709,8 @@ export function exportarPedidos() {
 
     const columnas = [
         { header: 'ID', key: 'id' },
-        { header: t('pedidos:export_col_order_date'), value: p => { const f = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha; return new Date(f).toLocaleDateString('es-ES'); } },
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico también en export Excel
+        { header: t('pedidos:export_col_order_date'), value: p => { const f = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha; return new Date(f).toLocaleDateString(getDateLocale()); } },
         {
             header: t('pedidos:col_supplier'),
             value: p => {
@@ -722,7 +725,7 @@ export function exportarPedidos() {
         {
             header: t('pedidos:export_col_reception_date'),
             value: p =>
-                p.fecha_recepcion ? new Date(p.fecha_recepcion).toLocaleDateString('es-ES') : '-',
+                p.fecha_recepcion ? new Date(p.fecha_recepcion).toLocaleDateString(getDateLocale()) : '-',
         },
     ];
 

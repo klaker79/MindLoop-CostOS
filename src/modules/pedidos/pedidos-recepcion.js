@@ -13,7 +13,7 @@
  */
 
 import { t } from '@/i18n/index.js';
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 
 // 🔒 Guard anti-doble-click: si una recepción está en curso, el siguiente clic no hace nada.
@@ -40,7 +40,8 @@ export function marcarPedidoRecibido(id) {
     const fechaSpan = document.getElementById('modal-rec-fecha');
     if (fechaSpan) {
         const fechaStr = typeof ped.fecha === 'string' && ped.fecha.length === 10 ? ped.fecha + 'T12:00:00' : ped.fecha;
-        fechaSpan.textContent = new Date(fechaStr).toLocaleDateString('es-ES');
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico (era 'es-ES' hardcodeado)
+        fechaSpan.textContent = new Date(fechaStr).toLocaleDateString(getDateLocale());
     }
 
     const totalSpan = document.getElementById('modal-rec-total-original');

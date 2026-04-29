@@ -6,7 +6,7 @@
  */
 
 import { t } from '@/i18n/index.js';
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 import { loadChart } from '../../utils/lazy-vendors.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
@@ -347,9 +347,8 @@ async function renderChart(historial, ingrediente) {
 function formatDate(dateStr) {
     try {
         const date = new Date(dateStr);
-        const lang = localStorage.getItem('mindloop_lang') || 'es';
-        const locale = lang === 'en' ? 'en-GB' : 'es-ES';
-        return date.toLocaleDateString(locale, { day: '2-digit', month: 'short' });
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh')
+        return date.toLocaleDateString(getDateLocale(), { day: '2-digit', month: 'short' });
     } catch {
         return dateStr;
     }

@@ -1,5 +1,5 @@
 import { t } from '@/i18n/index.js';
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 
 /**
  * 🧠 Inteligencia - Dashboard Predictivo
@@ -269,7 +269,8 @@ async function renderizarInteligencia() {
         fetchIntelligence('price-check')
     ]);
 
-    const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    // 🔒 Auditoría Capa 7 (S9): locale dinámico
+    const time = new Date().toLocaleTimeString(getDateLocale(), { hour: '2-digit', minute: '2-digit' });
 
     container.innerHTML = `
         <div class="intel-dashboard">

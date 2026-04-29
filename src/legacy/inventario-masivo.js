@@ -1785,7 +1785,9 @@ async function renderizarTablaPLDiario() {
     html += `<thead><tr><th style="position: sticky; left: 0; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); padding: 14px 16px; text-align: left; font-weight: 600; color: #334155; border-bottom: 2px solid #cbd5e1;">${window.t('balance:pl_concept')}</th>`;
     dias.forEach(dia => {
         const fecha = new Date(dia + 'T12:00:00');
-        const diaSemana = fecha.toLocaleDateString((window.getCurrentLanguage?.() || 'es') === 'en' ? 'en-US' : 'es-ES', { weekday: 'short' }).charAt(0).toUpperCase();
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh') via window.getDateLocale
+        const _locale1788 = (typeof window !== 'undefined' && typeof window.getDateLocale === 'function') ? window.getDateLocale() : 'es-ES';
+        const diaSemana = fecha.toLocaleDateString(_locale1788, { weekday: 'short' }).charAt(0).toUpperCase();
         html += `<th style="min-width: 85px; text-align: center; padding: 14px 8px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border-bottom: 2px solid #cbd5e1; font-weight: 600; color: #334155;">${diaSemana} ${fecha.getDate()}/${fecha.getMonth() + 1}</th>`;
     });
     // 📊 FIX: si el usuario filtró por semana, el label debe decir "TOTAL SEMANA"

@@ -1,4 +1,4 @@
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
 /**
  * Ventas UI Module
@@ -72,17 +72,21 @@ export async function renderizarVentas() {
             return;
         }
 
-        // Agrupar por fecha (usando locale string como clave visual)
+        // 🔒 Auditoría Capa 7 (S9 / A5-M6): la KEY de agrupamiento usa ISO YYYY-MM-DD
+        // (estable entre tenants/locales). Antes usaba `toLocaleDateString('es-ES')` que
+        // colapsaba mal cuando dos sesiones distintas pintaban el mismo día con locale
+        // distinto. El display sigue formateado al locale del usuario.
+        const dateLocale = getDateLocale();
         const ventasPorFecha = {};
-        const fechaISO = {}; // Mapa: locale string → ISO string para sort correcto
+        const fechaISO = {}; // Mapa: ISO date → ISO timestamp (para sort y display)
         ventas.forEach(v => {
             const dateObj = new Date(v.fecha);
-            const fecha = dateObj.toLocaleDateString('es-ES');
-            if (!ventasPorFecha[fecha]) {
-                ventasPorFecha[fecha] = [];
-                fechaISO[fecha] = v.fecha; // Guardar ISO original para sorting
+            const isoKey = dateObj.toISOString().slice(0, 10); // YYYY-MM-DD estable
+            if (!ventasPorFecha[isoKey]) {
+                ventasPorFecha[isoKey] = [];
+                fechaISO[isoKey] = v.fecha;
             }
-            ventasPorFecha[fecha].push(v);
+            ventasPorFecha[isoKey].push(v);
         });
 
         let html = '<table style="width:100%;border-collapse:collapse;"><tbody>';
@@ -90,18 +94,19 @@ export async function renderizarVentas() {
         // 🔒 P0-4 FIX: Ordenar por fecha ISO original, no por DD/MM/YYYY string
         Object.keys(ventasPorFecha)
             .sort((a, b) => new Date(fechaISO[b]) - new Date(fechaISO[a]))
-            .forEach(fecha => {
-                const ventasDia = ventasPorFecha[fecha];
+            .forEach(isoKey => {
+                const ventasDia = ventasPorFecha[isoKey];
                 const totalDia = ventasDia.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
+                const fechaDisplay = new Date(fechaISO[isoKey]).toLocaleDateString(dateLocale);
 
-                html += `<tr style="background:#F8FAFC;"><td colspan="6" style="padding:12px 16px;font-weight:600;color:#1E293B;border-bottom:1px solid #E2E8F0;">${fecha} - ${t('common:label_total')}: ${cm(totalDia)}</td></tr>`;
+                html += `<tr style="background:#F8FAFC;"><td colspan="6" style="padding:12px 16px;font-weight:600;color:#1E293B;border-bottom:1px solid #E2E8F0;">${fechaDisplay} - ${t('common:label_total')}: ${cm(totalDia)}</td></tr>`;
 
                 ventasDia.forEach(v => {
-                    const hora = new Date(v.fecha).toLocaleTimeString('es-ES', {
+                    const hora = new Date(v.fecha).toLocaleTimeString(dateLocale, {
                         hour: '2-digit',
                         minute: '2-digit',
                     });
-                    html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fecha}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${escapeHTML(v.receta_nombre || '')}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${cm(parseFloat(v.total))}</strong></td><td style="padding:8px 16px;text-align:center;"><button class="icon-btn delete" onclick="window.eliminarVenta(${v.id})" title="${t('common:btn_delete')}">🗑️</button></td></tr>`;
+                    html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fechaDisplay}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${escapeHTML(v.receta_nombre || '')}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${cm(parseFloat(v.total))}</strong></td><td style="padding:8px 16px;text-align:center;"><button class="icon-btn delete" onclick="window.eliminarVenta(${v.id})" title="${t('common:btn_delete')}">🗑️</button></td></tr>`;
                 });
             });
 
@@ -120,11 +125,12 @@ export function exportarVentas() {
     window.api.getSales().then(ventas => {
         const columnas = [
             { header: 'ID', key: 'id' },
-            { header: t('ventas:col_date'), value: v => new Date(v.fecha).toLocaleDateString('es-ES') },
+            // 🔒 Auditoría Capa 7 (S9): locale dinámico también en exports
+            { header: t('ventas:col_date'), value: v => new Date(v.fecha).toLocaleDateString(getDateLocale()) },
             {
                 header: t('ventas:col_time'),
                 value: v =>
-                    new Date(v.fecha).toLocaleTimeString('es-ES', {
+                    new Date(v.fecha).toLocaleTimeString(getDateLocale(), {
                         hour: '2-digit',
                         minute: '2-digit',
                     }),
