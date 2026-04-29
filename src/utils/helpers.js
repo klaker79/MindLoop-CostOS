@@ -162,6 +162,28 @@ export function cm(value, decimals = 2) {
 }
 
 /**
+ * Devuelve el BCP-47 locale apropiado para FORMATEO de fecha/hora en UI según
+ * el idioma activo del usuario. Centralizado para Capa 7 (auditoría 2026-04-28)
+ * — antes había ~17 sitios con `'es-ES'` hardcodeado que rompían tenants Malasia.
+ *
+ * Variantes:
+ *   - 'en' → 'en-GB' (formato europeo dd/mm/yyyy, evita el am/pm yanqui)
+ *   - 'zh' → 'zh-CN'
+ *   - resto → 'es-ES'
+ *
+ * NOTA: Este helper es SOLO para formateo de display. NO usarlo para construir
+ * keys de agrupamiento ni para enviar fechas al backend (usa ISO en esos casos).
+ *
+ * @returns {string} BCP-47 locale tag
+ */
+export function getDateLocale() {
+    const lang = getCurrentLanguage();
+    if (lang === 'en') return 'en-GB';
+    if (lang === 'zh') return 'zh-CN';
+    return 'es-ES';
+}
+
+/**
  * Formatea fecha a formato español
  * @param {string|Date} date - Fecha a formatear
  * @returns {string} Fecha formateada (ej: "21/12/2025")
@@ -169,8 +191,7 @@ export function cm(value, decimals = 2) {
 export function formatDate(date) {
     if (!date) return '-';
     const d = new Date(date);
-    const locale = getCurrentLanguage() === 'en' ? 'en-GB' : 'es-ES';
-    return d.toLocaleDateString(locale);
+    return d.toLocaleDateString(getDateLocale());
 }
 
 /**
@@ -181,8 +202,7 @@ export function formatDate(date) {
 export function formatDateTime(date) {
     if (!date) return '-';
     const d = new Date(date);
-    const locale = getCurrentLanguage() === 'en' ? 'en-GB' : 'es-ES';
-    return d.toLocaleString(locale);
+    return d.toLocaleString(getDateLocale());
 }
 
 /**
@@ -221,15 +241,13 @@ export function getFechaHoy() {
  */
 export function getFechaHoyFormateada() {
     const hoy = new Date();
-    const lang = getCurrentLanguage();
-    const locale = lang === 'en' ? 'en-US' : lang === 'zh' ? 'zh-CN' : 'es-ES';
     const opciones = {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
     };
-    return hoy.toLocaleDateString(locale, opciones);
+    return hoy.toLocaleDateString(getDateLocale(), opciones);
 }
 
 /**
@@ -238,8 +256,7 @@ export function getFechaHoyFormateada() {
  */
 export function getPeriodoActual() {
     const hoy = new Date();
-    const lang = getCurrentLanguage();
-    const locale = lang === 'en' ? 'en-US' : lang === 'zh' ? 'zh-CN' : 'es-ES';
+    const locale = getDateLocale();
     const inicioAño = new Date(hoy.getFullYear(), 0, 1);
     const diasDesdeInicio = Math.floor((hoy - inicioAño) / (24 * 60 * 60 * 1000));
     const semana = Math.ceil((diasDesdeInicio + inicioAño.getDay() + 1) / 7);
@@ -381,9 +398,10 @@ export function calcularDiasDeStock(
                 ing => ing.ingredienteId === ingredienteId || ing.ingrediente_id === ingredienteId
             );
             if (ingredienteEnReceta) {
+                // 🔒 Auditoría Capa 7 (A1-M13): parseFloat preserva medias porciones (0.5)
                 consumoTotal +=
                     (parseFloat(ingredienteEnReceta.cantidad) || 0) *
-                    (parseInt(venta.cantidad) || 0);
+                    (parseFloat(venta.cantidad) || 0);
             }
         }
     });
@@ -426,7 +444,8 @@ export function proyeccionConsumo(ingredientes, ventas, recetas, diasProyeccion 
     ventasRecientes.forEach(venta => {
         const receta = recetasMap.get(venta.receta_id);
         if (receta && receta.ingredientes) {
-            const cantidadVenta = parseInt(venta.cantidad) || 0;
+            // 🔒 Auditoría Capa 7 (A1-M13): parseFloat preserva medias porciones (0.5)
+            const cantidadVenta = parseFloat(venta.cantidad) || 0;
             receta.ingredientes.forEach(item => {
                 const ingId = item.ingredienteId || item.ingrediente_id;
                 const cantidadConsumida = (parseFloat(item.cantidad) || 0) * cantidadVenta;
@@ -514,6 +533,7 @@ if (typeof window !== 'undefined') {
     window.formatCurrency = formatCurrency;
     window.formatDate = formatDate;
     window.formatDateTime = formatDateTime;
+    window.getDateLocale = getDateLocale;
     window.debounce = debounce;
     window.getRestaurantName = getRestaurantName;
     window.getRestaurantNameForFile = getRestaurantNameForFile;

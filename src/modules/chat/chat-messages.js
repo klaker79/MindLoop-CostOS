@@ -17,6 +17,7 @@
 import { logger } from '../../utils/logger.js';
 import { appConfig } from '../../config/app-config.js';
 import { api } from '../../api/client.js';
+import { getDateLocale } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
 import { parseMarkdown } from './chat-markdown.js';
 import { getCurrentTab, getCurrentTabContext } from './chat-context.js';
@@ -33,8 +34,8 @@ let clearClickTimer = null;
  */
 export function addMessage(type, text, save = true) {
     const messagesContainer = document.getElementById('chat-messages');
-    const lang = window.getCurrentLanguage?.() || 'es';
-    const time = new Date().toLocaleTimeString(lang === 'en' ? 'en-US' : 'es-ES', { hour: '2-digit', minute: '2-digit' });
+    // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh')
+    const time = new Date().toLocaleTimeString(getDateLocale(), { hour: '2-digit', minute: '2-digit' });
 
     const isWelcome = text === CHAT_CONFIG.welcomeMessage;
 
@@ -78,8 +79,8 @@ export function addMessage(type, text, save = true) {
  */
 function addMessageWithAction(type, text, actionData) {
     const messagesContainer = document.getElementById('chat-messages');
-    const lang = window.getCurrentLanguage?.() || 'es';
-    const time = new Date().toLocaleTimeString(lang === 'en' ? 'en-US' : 'es-ES', { hour: '2-digit', minute: '2-digit' });
+    // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh')
+    const time = new Date().toLocaleTimeString(getDateLocale(), { hour: '2-digit', minute: '2-digit' });
     const actionId = 'action_' + Date.now();
 
     const messageEl = document.createElement('div');
@@ -191,7 +192,8 @@ export async function sendMessage() {
                     sessionId: getSessionId(),
                     restaurante: window.getRestaurantName ? window.getRestaurantName() : 'Restaurante',
                     timestamp: new Date().toISOString(),
-                    fechaHoy: new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
+                    // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh')
+                    fechaHoy: new Date().toLocaleDateString(getDateLocale(), {
                         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
                     }),
                     fechaISO: new Date().toISOString().split('T')[0],
@@ -235,7 +237,8 @@ export function renderChatHistory() {
     const fragment = document.createDocumentFragment();
 
     getMessages().forEach(msg => {
-        const time = new Date(msg.time).toLocaleTimeString('es-ES', {
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico
+        const time = new Date(msg.time).toLocaleTimeString(getDateLocale(), {
             hour: '2-digit',
             minute: '2-digit',
         });

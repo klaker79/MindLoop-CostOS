@@ -3,8 +3,11 @@
  * Documentación completa integrada en la aplicación
  */
 
+import { getDateLocale } from '../../utils/helpers.js';
+
 export function generarDossierHTML() {
-    const fechaActual = new Date().toLocaleDateString('es-ES', {
+    // 🔒 Auditoría Capa 7 (S9): locale dinámico (era 'es-ES' fijo)
+    const fechaActual = new Date().toLocaleDateString(getDateLocale(), {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
 

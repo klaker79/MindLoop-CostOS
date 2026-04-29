@@ -129,6 +129,7 @@ import { initEventBindings } from './ui/event-bindings.js';
 import * as DOM from './utils/dom-helpers.js';
 import * as Helpers from './utils/helpers.js';
 import * as Performance from './utils/performance.js';
+import { getIngredientUnitPrice } from './utils/cost-calculator.js';
 import { initSearchOptimizations } from './utils/search-optimization.js';
 // 🆕 Error handler global
 import './utils/error-handler.js';
@@ -174,6 +175,10 @@ window.hideLoading = Helpers.hideLoading;
 window.exportarAExcel = Helpers.exportarAExcel;
 window.formatCurrency = Helpers.formatCurrency;
 window.cm = Helpers.cm;
+
+// Canonical price helper (precio_medio_compra > precio_medio > precio/cpf).
+// Exposed for legacy IIFE code (src/legacy/app-core.js) and any inline handler.
+window.getIngredientUnitPrice = getIngredientUnitPrice;
 window.formatDate = Helpers.formatDate;
 
 // Funciones de calendario
@@ -527,7 +532,8 @@ window.cargarHistorialMermas = async function () {
             const motivo = m.motivo || 'Otros';
             motivosCont[motivo] = (motivosCont[motivo] || 0) + 1;
 
-            const fecha = m.fecha ? new Date(m.fecha).toLocaleDateString('es-ES') : '-';
+            // 🔒 Auditoría Capa 7 (S9): locale dinámico
+            const fecha = m.fecha ? new Date(m.fecha).toLocaleDateString(Helpers.getDateLocale()) : '-';
             const cantidad = Math.abs(safeNumber(m.cantidad, 0)).toFixed(2);
             const valor = safeNumber(m.valor_perdida, 0);
 

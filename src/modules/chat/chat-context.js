@@ -13,6 +13,7 @@
  */
 
 import { logger } from '../../utils/logger.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
 export function getCurrentTab() {
     const activeTab = document.querySelector('.tab-btn.active');
@@ -40,7 +41,16 @@ export function getCurrentTabContext() {
             let valorTotalStock = 0;
             context.ingredientes = window.ingredientes.map(i => {
                 const stock = parseFloat(i.stock_actual) || parseFloat(i.stock_virtual) || 0;
-                const precio = parseFloat(i.precio_medio_compra) || parseFloat(i.precio_medio) || parseFloat(i.precio) || 0;
+                // EXCEPCIÓN: la valoración de stock NO usa precio_medio_compra
+                // (regla negocio feedback_no_precio_medio_compra.md): se usa
+                // precio_medio o, si falta, precio/cpf normalizado. Se evita el
+                // fallback bug que multiplicaba "precio formato" × stock unidades.
+                let precio = parseFloat(i.precio_medio);
+                if (!(precio > 0)) {
+                    const precioFormato = parseFloat(i.precio) || 0;
+                    const cpf = parseFloat(i.cantidad_por_formato) || 1;
+                    precio = cpf > 0 ? precioFormato / cpf : precioFormato;
+                }
                 valorTotalStock += stock * precio;
                 return {
                     nombre: i.nombre,
@@ -68,23 +78,21 @@ export function getCurrentTabContext() {
                 const ingredientesDetalle = (r.ingredientes || []).map(item => {
                     const ing = window.ingredientes?.find(i => i.id === item.ingredienteId);
                     const invItem = window.inventarioCompleto?.find(i => i.id === item.ingredienteId);
-                    // Prioridad: precio_medio_compra > precio_medio > precio/cpf
-                    let precioUd = 0;
-                    if (invItem?.precio_medio_compra) {
-                        precioUd = parseFloat(invItem.precio_medio_compra);
-                    } else if (invItem?.precio_medio) {
-                        precioUd = parseFloat(invItem.precio_medio);
-                    } else if (ing?.precio) {
-                        const cpf = parseFloat(ing.cantidad_por_formato) || 1;
-                        precioUd = parseFloat(ing.precio) / cpf;
-                    }
+                    // Prioridad canónica: precio_medio_compra > precio_medio > precio/cpf
+                    const precioUd = getIngredientUnitPrice(invItem, ing);
                     const cantidad = parseFloat(item.cantidad) || 0;
+                    // Aplicar rendimiento (% del ingrediente que se aprovecha)
+                    // para que la suma de ingredientes[].coste cuadre con r.coste.
+                    let rendimiento = parseFloat(item.rendimiento);
+                    if (!(rendimiento > 0)) rendimiento = parseFloat(ing?.rendimiento) || 100;
+                    const factor = rendimiento / 100;
+                    const costeReal = factor > 0 ? (precioUd / factor) : precioUd;
                     return {
                         nombre: ing?.nombre || 'Desconocido',
                         cantidad: cantidad,
                         unidad: ing?.unidad || 'kg',
                         precioUd: precioUd,
-                        coste: Math.round(precioUd * cantidad * 100) / 100,
+                        coste: Math.round(costeReal * cantidad * 100) / 100,
                     };
                 });
 

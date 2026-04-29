@@ -1,4 +1,5 @@
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
+import { validarDesvioPrecio } from '../../utils/precio-validator.js';
 import { t } from '@/i18n/index.js';
 /**
  * Pedidos UI Module
@@ -346,6 +347,7 @@ export function agregarIngredientePedido() {
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">${cm(0)}</span>
       <span id="${rowId}-conversion" style="font-size: 12px; color: #64748b; min-width: 110px; text-align: center;"></span>
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
+      <div id="${rowId}-precio-warning" style="display: none; flex-basis: 100%; margin-top: 6px; padding: 8px 12px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; color: #92400e; font-size: 12px; font-weight: 600;"></div>
     `;
 
     container.appendChild(div);
@@ -544,6 +546,23 @@ export function calcularTotalPedido() {
                 }
 
                 subtotalBase += subtotalLinea;
+
+                // ⚠️ Validación de desvío de subtotal: avisa al usuario si el
+                // subtotal del item difiere mucho del esperado según la config del
+                // ingrediente. Sirve para pillar errores de unidad (60 huevos a
+                // 0,25 € → subtotal 15 € cuando esperado 180 €) o cambios bruscos
+                // de precio (subida del proveedor).
+                const warningDiv = document.getElementById(`${item.id}-precio-warning`);
+                if (warningDiv) {
+                    const aviso = validarDesvioPrecio(ing, cantidadReal, subtotalLinea);
+                    if (aviso) {
+                        warningDiv.textContent = aviso.mensaje;
+                        warningDiv.style.display = 'block';
+                    } else {
+                        warningDiv.textContent = '';
+                        warningDiv.style.display = 'none';
+                    }
+                }
             }
         }
 
@@ -598,10 +617,11 @@ export function renderizarPedidos() {
         pedidosFiltrados = pedidosFiltrados.filter(p => {
             const provNombre = provMapBusq.get(p.proveedorId || p.proveedor_id) || '';
             const fechaStr = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha;
-            const fechaES = p.fecha ? new Date(fechaStr).toLocaleDateString('es-ES') : '';
+            // 🔒 Auditoría Capa 7 (S9): búsqueda usa locale del usuario (era 'es-ES' fijo)
+            const fechaLocal = p.fecha ? new Date(fechaStr).toLocaleDateString(getDateLocale()) : '';
             const fechaISO = p.fecha ? (typeof p.fecha === 'string' ? p.fecha.slice(0, 10) : new Date(p.fecha).toISOString().slice(0, 10)) : '';
             return provNombre.includes(busqueda)
-                || fechaES.includes(busqueda)
+                || fechaLocal.includes(busqueda)
                 || fechaISO.includes(busqueda);
         });
     }
@@ -628,7 +648,8 @@ export function renderizarPedidos() {
         const provId = ped.proveedorId || ped.proveedor_id;
         const prov = provMap.get(provId);
         const fechaStr = typeof ped.fecha === 'string' && ped.fecha.length === 10 ? ped.fecha + 'T12:00:00' : ped.fecha;
-        const fecha = new Date(fechaStr).toLocaleDateString('es-ES');
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico
+        const fecha = new Date(fechaStr).toLocaleDateString(getDateLocale());
         const esCompraMercado = ped.es_compra_mercado;
 
         html += '<tr>';
@@ -688,7 +709,8 @@ export function exportarPedidos() {
 
     const columnas = [
         { header: 'ID', key: 'id' },
-        { header: t('pedidos:export_col_order_date'), value: p => { const f = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha; return new Date(f).toLocaleDateString('es-ES'); } },
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico también en export Excel
+        { header: t('pedidos:export_col_order_date'), value: p => { const f = typeof p.fecha === 'string' && p.fecha.length === 10 ? p.fecha + 'T12:00:00' : p.fecha; return new Date(f).toLocaleDateString(getDateLocale()); } },
         {
             header: t('pedidos:col_supplier'),
             value: p => {
@@ -703,7 +725,7 @@ export function exportarPedidos() {
         {
             header: t('pedidos:export_col_reception_date'),
             value: p =>
-                p.fecha_recepcion ? new Date(p.fecha_recepcion).toLocaleDateString('es-ES') : '-',
+                p.fecha_recepcion ? new Date(p.fecha_recepcion).toLocaleDateString(getDateLocale()) : '-',
         },
     ];
 

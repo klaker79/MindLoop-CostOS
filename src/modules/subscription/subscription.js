@@ -5,6 +5,7 @@
 
 import { getApiUrl } from '../../config/app-config.js';
 import { authStore } from '../../stores/authStore.js';
+import { getDateLocale } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
@@ -128,7 +129,7 @@ function renderPlanCard(container, data) {
                     <div style="font-size:18px;font-weight:700;color:var(--text-primary, #1e293b);">Plan ${planName}</div>
                     <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
                         ${statusBadge}
-                        ${data.trial_ends_at && isTrialing ? `<span style="color:#64748b;font-size:12px;">Hasta ${new Date(data.trial_ends_at).toLocaleDateString('es-ES')}</span>` : ''}
+                        ${data.trial_ends_at && isTrialing ? `<span style="color:#64748b;font-size:12px;">Hasta ${new Date(data.trial_ends_at).toLocaleDateString(getDateLocale())}</span>` : ''}
                     </div>
                 </div>
             </div>

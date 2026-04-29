@@ -12,9 +12,9 @@
  * cargarDatos() al arrancar.
  */
 
-import { filtrarPorPeriodo, compararConSemanaAnterior, cm } from '../../../utils/helpers.js';
+import { filtrarPorPeriodo, compararConSemanaAnterior, cm, getDateLocale } from '../../../utils/helpers.js';
 import { saleStore } from '../../../stores/saleStore.js';
-import { t, getCurrentLanguage } from '@/i18n/index.js';
+import { t } from '@/i18n/index.js';
 
 export async function actualizarKPIsPorPeriodo(periodo) {
     try {
@@ -75,7 +75,8 @@ export async function actualizarKPIsPorPeriodo(periodo) {
                 'hoy': { titulo: t('dashboard:period_today'), subtitulo: t('dashboard:period_today_subtitle') },
                 'semana': { titulo: t('dashboard:period_week'), subtitulo: t('dashboard:period_week_subtitle') },
                 'mes': {
-                    titulo: new Date().toLocaleString(getCurrentLanguage() === 'en' ? 'en-US' : 'es-ES', { month: 'long' }).replace(/^./, c => c.toUpperCase()),
+                    // 🔒 Auditoría Capa 7 (S9 / A4): locale dinámico (incluye 'zh', antes caía a 'es-ES')
+                    titulo: new Date().toLocaleString(getDateLocale(), { month: 'long' }).replace(/^./, c => c.toUpperCase()),
                     subtitulo: t('dashboard:period_month_subtitle')
                 }
             };

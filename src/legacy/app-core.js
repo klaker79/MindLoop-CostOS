@@ -776,7 +776,9 @@
             const fecha = new Date();
             fecha.setDate(fecha.getDate() - i);
             const fechaStr = fecha.toISOString().split('T')[0];
-            const diaSemana = fecha.toLocaleDateString('es-ES', { weekday: 'short' });
+            // 🔒 Auditoría Capa 7 (S9): locale dinámico via window global
+            const _locale779 = (typeof window !== 'undefined' && typeof window.getDateLocale === 'function') ? window.getDateLocale() : 'es-ES';
+            const diaSemana = fecha.toLocaleDateString(_locale779, { weekday: 'short' });
             labels.push(diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1));
 
             // Filtrar ventas de ese día (usa _ventasChart pre-cargado antes del loop)
@@ -1322,13 +1324,15 @@
                     {
                         label: 'Margen (%)',
                         data: ordenados.map(r => r.margenPct.toFixed(1)),
+                        // 🔒 Auditoría Capa 7 (S7 / A5-C1): margen ≥67% verde, 62-66% amarillo, <62% rojo
+                        // (consistente con app-core.js:1602-1604, 2299 y CLAUDE.md). Antes usaba > estricto.
                         backgroundColor: ordenados.map(r =>
-                            r.margenPct > 67 ? '#10b981' : r.margenPct > 62 ? '#f59e0b' : '#ef4444'
+                            r.margenPct >= 67 ? '#10b981' : r.margenPct >= 62 ? '#f59e0b' : '#ef4444'
                         ),
                         borderWidth: 0,
                         borderRadius: 8,
                         hoverBackgroundColor: ordenados.map(r =>
-                            r.margenPct > 67 ? '#059669' : r.margenPct > 62 ? '#d97706' : '#dc2626'
+                            r.margenPct >= 67 ? '#059669' : r.margenPct >= 62 ? '#d97706' : '#dc2626'
                         ),
                     },
                 ],
@@ -1394,15 +1398,10 @@
 
         if (!ctxAlimentos) return;
 
-        // Calcular coste por unidad: precio_medio_compra > precio_medio > precio/cpf
+        // Coste por unidad canónico: usa window.getIngredientUnitPrice
+        // (precio_medio_compra > precio_medio > precio/cpf — fuente única de verdad)
         const invMap = new Map((window.inventarioCompleto || []).map(i => [i.id, i]));
-        const calcularCosteUnidad = (ing) => {
-            const invItem = invMap.get(ing.id);
-            if (invItem?.precio_medio_compra) return parseFloat(invItem.precio_medio_compra);
-            if (invItem?.precio_medio) return parseFloat(invItem.precio_medio);
-            const cpf = parseFloat(ing.cantidad_por_formato) || 1;
-            return parseFloat(ing.precio) / cpf;
-        };
+        const calcularCosteUnidad = (ing) => window.getIngredientUnitPrice(invMap.get(ing.id), ing);
 
         // Separar ingredientes por familia y ordenar por COSTE POR UNIDAD
         const alimentos = [...ingredientes]
@@ -1698,7 +1697,8 @@
                 html += `<td>${cm(parseFloat(rec.coste || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.precio_venta || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.margen || 0))}</td>`;
-                html += `<td><span class="badge ${rec.margenPct > 67 ? 'badge-success' : rec.margenPct > 62 ? 'badge-warning' : 'badge-danger'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+                // 🔒 Auditoría Capa 7 (S7 / A5-C1): margen ≥67% verde, 62-66% amarillo, <62% rojo (>= en vez de >)
+                html += `<td><span class="badge ${rec.margenPct >= 67 ? 'badge-success' : rec.margenPct >= 62 ? 'badge-warning' : 'badge-danger'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
                 html += '</tr>';
             });
 
