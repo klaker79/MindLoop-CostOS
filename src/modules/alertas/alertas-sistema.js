@@ -1,4 +1,4 @@
-import { escapeHTML } from '../../utils/helpers.js';
+import { escapeHTML, getDateLocale } from '../../utils/helpers.js';
 import { tenantStorage } from '../../utils/tenant-storage.js';
 import { t } from '@/i18n/index.js';
 /**
@@ -80,7 +80,8 @@ export function detectarPedidosPendientes(diasLimite = 3) {
                     pedidoId: ped.id,
                     proveedorNombre: proveedor?.nombre || 'Sin proveedor',
                     diasPendiente,
-                    fecha: fechaPedido.toLocaleDateString('es-ES'),
+                    // 🔒 Auditoría Capa 7 (S9): locale dinámico
+                    fecha: fechaPedido.toLocaleDateString(getDateLocale()),
                     total: parseFloat(ped.total) || 0,
                     mensaje: t('alertas:pending_order_days', { id: ped.id, days: diasPendiente }),
                     accion: () => {

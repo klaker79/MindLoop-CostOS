@@ -428,11 +428,14 @@ export async function renderizarRecetas() {
             const margen = rec.precio_venta - coste;
             const pct = rec.precio_venta > 0 ? ((margen / rec.precio_venta) * 100).toFixed(0) : 0;
             const foodCost = rec.precio_venta > 0 ? (coste / rec.precio_venta) * 100 : 100;
-            // Badge basado en Food Cost: ≤35% success, ≤40% warning, >40% danger
+            // 🔒 Auditoría Capa 7 (S7 / A5-C1): umbrales unificados con CLAUDE.md
+            // ≤35% success (excellent + target), 36-40% warning (watch), >40% danger (alert).
+            // Antes esta tabla usaba 35/40 inline mientras el formulario calcular usaba 30/35/40.
+            const { TARGET_MAX, WATCH_MAX } = FOOD_COST_THRESHOLDS;
             const badgeClass =
-                foodCost <= 35
+                foodCost <= TARGET_MAX
                     ? 'badge-success'
-                    : foodCost <= 40
+                    : foodCost <= WATCH_MAX
                         ? 'badge-warning'
                         : 'badge-danger';
 

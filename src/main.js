@@ -532,7 +532,8 @@ window.cargarHistorialMermas = async function () {
             const motivo = m.motivo || 'Otros';
             motivosCont[motivo] = (motivosCont[motivo] || 0) + 1;
 
-            const fecha = m.fecha ? new Date(m.fecha).toLocaleDateString('es-ES') : '-';
+            // 🔒 Auditoría Capa 7 (S9): locale dinámico
+            const fecha = m.fecha ? new Date(m.fecha).toLocaleDateString(Helpers.getDateLocale()) : '-';
             const cantidad = Math.abs(safeNumber(m.cantidad, 0)).toFixed(2);
             const valor = safeNumber(m.valor_perdida, 0);
 

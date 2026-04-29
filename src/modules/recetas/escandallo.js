@@ -10,7 +10,7 @@
  */
 
 import { t } from '@/i18n/index.js';
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
 import { getIngredientUnitPrice, getIngredientNominalPrice } from '../../utils/cost-calculator.js';
 import { getInvMap, getIngMap } from './recetas-crud.js';
@@ -571,8 +571,8 @@ export async function exportarPDFEscandallo() {
 
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    const lang = localStorage.getItem('mindloop_lang') || 'es';
-    const locale = lang === 'en' ? 'en-GB' : 'es-ES';
+    // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh')
+    const locale = getDateLocale();
     doc.text(`Generado: ${new Date().toLocaleDateString(locale)} ${new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}`, 14, tableY);
     doc.text('Powered by MindLoop CostOS', pageWidth - 14, tableY, { align: 'right' });
 

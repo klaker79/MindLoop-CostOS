@@ -5,7 +5,7 @@
 
 import { loadPDF } from '../../utils/lazy-vendors.js';
 import { t } from '@/i18n/index.js';
-import { cm } from '../../utils/helpers.js';
+import { cm, getDateLocale } from '../../utils/helpers.js';
 
 /**
  * Genera PDF profesional de una receta con logo y formato premium
@@ -176,7 +176,8 @@ export async function generarPDFReceta(receta, ingredientes) {
     doc.text(`${margen.toFixed(1)}%`, 100, yPos, { align: 'right' });
 
     // === FOOTER ===
-    const fechaActual = new Date().toLocaleDateString('es-ES');
+    // 🔒 Auditoría Capa 7 (S9): locale dinámico
+    const fechaActual = new Date().toLocaleDateString(getDateLocale());
     doc.setFontSize(8);
     doc.setTextColor(...colorSecondary);
     doc.setFont('helvetica', 'normal');
@@ -245,7 +246,8 @@ export async function generarPDFIngredientes(ingredientes) {
     });
 
     // Footer
-    const fechaActual = new Date().toLocaleDateString('es-ES');
+    // 🔒 Auditoría Capa 7 (S9): locale dinámico
+    const fechaActual = new Date().toLocaleDateString(getDateLocale());
     doc.setFontSize(8);
     doc.setTextColor(...colorSecondary);
     doc.text(t('export:pdf_footer', { date: fechaActual }), 105, 280, { align: 'center' });

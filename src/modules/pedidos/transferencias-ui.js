@@ -16,7 +16,7 @@ import {
     getOwnerRestaurants
 } from './transferencias-crud.js';
 import { apiClient } from '../../api/client.js';
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 
 let ownerRestaurants = [];
 let ingredientesCache = [];
@@ -84,7 +84,8 @@ export async function renderizarTransferenciasEntrantes() {
     if (!container) return;
 
     const lang = window.getCurrentLanguage?.() || 'es';
-    const locale = lang === 'en' ? 'en-GB' : 'es-ES';
+    // 🔒 Auditoría Capa 7 (S9): locale dinámico para fechas (incluye 'zh')
+    const locale = getDateLocale();
     const L = lang === 'en' ? {
         pendingHeader: (n) => `${n} pending transfer${n > 1 ? 's' : ''}`,
         pendingSubtitle: 'Another restaurant wants to send you products',

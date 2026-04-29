@@ -11,6 +11,7 @@
  */
 
 import { loadPDF } from '../../utils/lazy-vendors.js';
+import { getDateLocale } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
 
 /**
@@ -25,8 +26,8 @@ export async function exportMessageToPDF(rawText) {
         const { jsPDF } = window.jspdf;
 
         const restaurante = window.getRestaurantName ? window.getRestaurantName() : 'Mi Restaurante';
-        const lang = window.getCurrentLanguage?.() || 'es';
-        const fecha = new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', {
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh')
+        const fecha = new Date().toLocaleDateString(getDateLocale(), {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
 

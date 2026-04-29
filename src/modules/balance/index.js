@@ -75,14 +75,26 @@ export async function renderizarBalance() {
         const ventasDiarias = ingresos / diaDelMes;
         setEl('pl-kpi-ventas-diarias', cm(ventasDiarias));
 
-        await calcularPL();
+        await calcularPL({ ingresos, cogs });
     } catch (error) {
         console.error('Error renderizando P&L:', error);
         showToast(t('balance:error_loading'), 'error');
     }
 }
 
-export async function calcularPL() {
+/**
+ * Calcula breakeven, beneficio neto y termómetro a partir de ingresos+cogs ya
+ * calculados por `renderizarBalance`.
+ *
+ * 🔒 Auditoría Capa 7 (A5-C5): antes leía los valores re-parseando el texto
+ * formateado por `cm()` desde el DOM, lo cual rompía con separadores de miles
+ * y/o cuando el tenant usaba RM (Stefania KL). Ahora se aceptan ingresos/cogs
+ * como argumentos. Mantenemos un fallback que lee del DOM (sin parsear formato)
+ * para retrocompatibilidad cuando se llama externamente sin args.
+ *
+ * @param {{ingresos?: number, cogs?: number}} [opts]
+ */
+export async function calcularPL(opts = {}) {
     const ingresosEl = document.getElementById('pl-ingresos');
     const cogsEl = document.getElementById('pl-cogs');
 
@@ -91,8 +103,12 @@ export async function calcularPL() {
         return;
     }
 
-    const ingresos = parseFloat(ingresosEl.textContent.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
-    const cogs = parseFloat(cogsEl.textContent.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
+    // Preferir los valores numéricos pasados por renderizarBalance.
+    // Fallback: parsear el texto del DOM (legado, frágil con separadores de miles).
+    const parseFromDom = (el) =>
+        parseFloat(el.textContent.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
+    const ingresos = Number.isFinite(opts.ingresos) ? opts.ingresos : parseFromDom(ingresosEl);
+    const cogs = Number.isFinite(opts.cogs) ? opts.cogs : parseFromDom(cogsEl);
     const margenBruto = ingresos - cogs;
 
     // Use the generic sum from DB so all categories (27+ dynamic) count.

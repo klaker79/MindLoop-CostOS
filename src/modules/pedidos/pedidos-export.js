@@ -8,7 +8,7 @@
  */
 
 import { t } from '@/i18n/index.js';
-import { cm } from '../../utils/helpers.js';
+import { cm, getDateLocale } from '../../utils/helpers.js';
 
 /**
  * Descarga PDF del pedido actual
@@ -19,8 +19,8 @@ export function descargarPedidoPDF() {
   const pedido = (window.pedidos || []).find(p => p.id === window.pedidoViendoId);
   if (!pedido) return;
 
-  const lang = window.getCurrentLanguage?.() || 'es';
-  const locale = lang === 'en' ? 'en-GB' : 'es-ES';
+  // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh')
+  const locale = getDateLocale();
 
   const provId = pedido.proveedorId || pedido.proveedor_id;
   const prov = (window.proveedores || []).find(p => p.id === provId);
@@ -290,8 +290,8 @@ export function enviarPedidoWhatsApp() {
 
   // Construir mensaje ELEGANTE Y PROFESIONAL
   const items = pedido.itemsRecepcion || pedido.ingredientes || [];
-  const lang = window.getCurrentLanguage?.() || 'es';
-  const fecha = new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  // 🔒 Auditoría Capa 7 (S9): locale dinámico (incluye 'zh')
+  const fecha = new Date().toLocaleDateString(getDateLocale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   let mensaje = `━━━━━━━━━━━━━━━━━━━━━━\n`;
   mensaje += `🍽️ *${restaurante.toUpperCase()}*\n`;

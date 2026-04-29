@@ -5,7 +5,7 @@
  * @module modules/inventario/merma-rapida
  */
 
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
@@ -25,7 +25,9 @@ export function mostrarModalMermaRapida() {
     const fechaDiv = document.getElementById('merma-fecha-actual');
     if (fechaDiv) {
         const hoy = new Date();
-        fechaDiv.innerHTML = `${t('inventario:merma_week_of', { date: hoy.toLocaleDateString('es-ES') })}<br>📅 ${hoy.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+        // 🔒 Auditoría Capa 7 (S9): locale dinámico
+        const dateLocale = getDateLocale();
+        fechaDiv.innerHTML = `${t('inventario:merma_week_of', { date: hoy.toLocaleDateString(dateLocale) })}<br>📅 ${hoy.toLocaleDateString(dateLocale, { weekday: 'long', day: 'numeric', month: 'long' })}`;
     }
 
     // Poblar selector de responsables (empleados)
