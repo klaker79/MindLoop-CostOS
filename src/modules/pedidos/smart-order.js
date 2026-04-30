@@ -31,12 +31,26 @@ export function abrirSmartOrder() {
         return;
     }
 
-    // Group by supplier
-    const provMap = new Map(proveedores.map(p => [p.id, p]));
+    // Group by supplier. Convertimos ids a Number para evitar mismatches
+    // string/number entre `ingredientes` y `proveedores` que devolvían "Sin proveedor".
+    const provMap = new Map(proveedores.map(p => [Number(p.id), p]));
     const groups = new Map(); // provId → { proveedor, items: [...] }
 
+    // Fallback: si el ingrediente no tiene proveedor_id directo, usar el principal
+    // (o el primero) de la tabla relacional ingredientes_proveedores. Evita pedidos
+    // huérfanos cuando solo se ha registrado proveedor desde el modal de relación.
+    const ingProvBy = new Map(); // ingrediente_id → proveedor_id
+    for (const ip of (window.ingredientesProveedores || [])) {
+        const existing = ingProvBy.get(Number(ip.ingrediente_id));
+        if (!existing || ip.es_proveedor_principal) {
+            ingProvBy.set(Number(ip.ingrediente_id), Number(ip.proveedor_id));
+        }
+    }
+
     for (const ing of lowStock) {
-        const provId = ing.proveedor_id || 0;
+        const directProv = ing.proveedor_id ? Number(ing.proveedor_id) : 0;
+        const fallbackProv = ingProvBy.get(Number(ing.id)) || 0;
+        const provId = directProv || fallbackProv || 0;
         const prov = provMap.get(provId);
 
         if (!groups.has(provId)) {
@@ -237,7 +251,8 @@ export async function confirmarSmartOrder() {
         const total = ingredientes.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
 
         ordersToCreate.push({
-            proveedor_id: group.proveedor.id,
+            proveedorId: group.proveedor.id, // backend espera camelCase
+            proveedor_id: group.proveedor.id, // mantenemos snake_case por compatibilidad
             proveedorNombre: group.proveedor.nombre,
             fecha: new Date().toISOString().split('T')[0],
             ingredientes,
