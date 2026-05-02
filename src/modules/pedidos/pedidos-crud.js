@@ -208,44 +208,14 @@ export async function guardarPedido(event) {
         }
       }
 
-      // Actualizar precios (media ponderada) - esto sí necesita leer datos actuales
-      // Recargar ingredientes frescos DESPUÉS del ajuste de stock
-      window.ingredientes = await window.api.getIngredientes();
+      // El precio del ingrediente lo recalcula el backend (recalcularPrecioPonderado
+      // en businessHelpers.js) usando la media ponderada de TODO el histórico de
+      // precios_compra_diarios. El cálculo aproximado que hacíamos aquí (basado solo
+      // en stock_actual × precio_anterior + nueva compra) sobrescribía al backend con
+      // un valor menos preciso. Ver bug 2026-05-02 (AMEIXAS: precio quedaba en 22€
+      // cuando la ponderada real era 23,13€).
 
-      for (const item of ingredientesPedido) {
-        const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
-        if (ing) {
-          const stockActual = parseFloat(ing.stock_actual || 0);
-          const precioAnterior = parseFloat(ing.precio || 0);
-          const cantidadRecibida = parseFloat(item.cantidad || 0);
-          const precioNuevo = parseFloat(item.precio_unitario || item.precio || 0);
-
-          // Solo actualizar precio si cambió
-          if (precioNuevo > 0 && Math.abs(precioNuevo - precioAnterior) > 0.001) {
-            // cantidadRecibida (item.cantidad) ya está en unidades BASE
-            // (fue convertida en línea 75: cantidadReal = cantidadValue * formatoMult)
-            // NO multiplicar otra vez por cantidad_por_formato
-            const cantidadEnBaseUnits = cantidadRecibida;
-            // Media ponderada: (stockViejo * precioViejo + cantNueva * precioNuevo) / stockTotal
-            const stockSinCompra = stockActual - cantidadEnBaseUnits; // stockActual ya incluye la compra
-            let precioMedioPonderado;
-            if (stockActual > 0) {
-              precioMedioPonderado = (stockSinCompra * precioAnterior + cantidadEnBaseUnits * precioNuevo) / stockActual;
-            } else {
-              precioMedioPonderado = precioNuevo;
-            }
-
-            console.log(`🏪 ${ing.nombre}: Precio ${cm(precioAnterior)} → ${cm(precioMedioPonderado)}`);
-
-            // Solo enviar precio, NO stock_actual (ya ajustado atómicamente)
-            await window.api.updateIngrediente(item.ingredienteId, {
-              precio: precioMedioPonderado
-            });
-          }
-        }
-      }
-
-      // Recargar para reflejar cambios
+      // Recargar para reflejar cambios (precio actualizado por el backend, stock por bulkAdjustStock)
       window.ingredientes = await window.api.getIngredientes();
       window.renderizarIngredientes?.();
       window.renderizarInventario?.();
