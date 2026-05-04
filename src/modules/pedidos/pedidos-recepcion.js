@@ -199,6 +199,10 @@ export function actualizarItemRecepcion(idx, tipo, valor) {
 /**
  * Actualiza el precio del ingrediente en la pestaña Ingredientes desde
  * la pantalla de Recibir Pedido (mismo flujo que el botón 💾 de Nuevo Pedido).
+ *
+ * El input muestra €/unidad-base (ej: €/botella). El campo `ingrediente.precio`
+ * se guarda en €/formato_compra (ej: €/CAJA). Multiplicamos por
+ * cantidad_por_formato antes de mandar al backend para no corromper precio_medio.
  */
 export async function actualizarPrecioIngredienteRecepcion(ingId, idx, ingName) {
     const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
@@ -208,6 +212,10 @@ export async function actualizarPrecioIngredienteRecepcion(ingId, idx, ingName) 
     const newPrice = parseFloat(item.precioReal);
     if (!ingId || isNaN(newPrice) || newPrice <= 0) return;
 
+    const ing = (window.ingredientes || []).find(i => i.id === ingId);
+    const cpf = parseFloat(ing?.cantidad_por_formato) || 1;
+    const precioFormato = newPrice * cpf;
+
     const confirmMsg = (window.t || (k => k))('pedidos:update_price_confirm', {
         name: ingName,
         price: (window.cm || (v => `${v}€`))(newPrice)
@@ -215,7 +223,7 @@ export async function actualizarPrecioIngredienteRecepcion(ingId, idx, ingName) 
     if (!confirm(confirmMsg)) return;
 
     try {
-        await window.api.updateIngrediente(ingId, { precio: newPrice });
+        await window.api.updateIngrediente(ingId, { precio: precioFormato });
         const btn = document.getElementById(`rec-save-price-${idx}`);
         if (btn) btn.style.display = 'none';
         window.showToast?.((window.t || (k => k))('pedidos:update_price_success', { name: ingName }), 'success');
