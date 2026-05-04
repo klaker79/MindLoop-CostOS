@@ -355,6 +355,14 @@ export function agregarIngredientePedido() {
     `;
 
     container.appendChild(div);
+
+    // Búsqueda incremental por substring en el desplegable de ingredientes
+    // (el select nativo solo salta a primera letra). Falla a select nativo si
+    // TomSelect no se cargó.
+    import('../../utils/searchable-select.js').then(({ enhanceSearchableSelect }) => {
+        const ingSelect = div.querySelector('select');
+        if (ingSelect) enhanceSearchableSelect(ingSelect);
+    }).catch(() => {});
 }
 
 /**
