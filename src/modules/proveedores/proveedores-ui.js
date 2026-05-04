@@ -194,11 +194,31 @@ export function verProveedorDetalles(id) {
     if (prov.direccion) html += `<p>📍 ${escapeHTML(prov.direccion)}</p>`;
     html += '</div>';
 
+    // Combina 3 fuentes para no depender solo de prov.ingredientes (legacy):
+    //   1. ingredientes con proveedor_id = id (relación 1:N)
+    //   2. ingredientes_proveedores con proveedor_id = id (relación N:N)
+    //   3. prov.ingredientes legacy (compat)
+    // Así el modal refleja siempre el estado actual de la BD aunque la columna
+    // legacy esté desincronizada (refactor 2026-05-04).
+    const idsByPrincipal = (window.ingredientes || [])
+        .filter(i => Number(i.proveedor_id) === Number(id))
+        .map(i => i.id);
+    const idsByRelation = (window.ingredientesProveedores || [])
+        .filter(ip => Number(ip.proveedor_id) === Number(id))
+        .map(ip => Number(ip.ingrediente_id));
+    const allIds = new Set([
+        ...idsByPrincipal,
+        ...idsByRelation,
+        ...((prov.ingredientes || []).map(Number)),
+    ]);
+
     html += `<h4 style="margin-bottom: 8px;">${t('proveedores:detail_ingredients')}</h4><ul>`;
-    if (prov.ingredientes && prov.ingredientes.length > 0) {
-        prov.ingredientes.forEach(ingId => {
-            const ing = (window.ingredientes || []).find(i => i.id === ingId);
-            if (ing) html += `<li>${escapeHTML(ing.nombre)}</li>`;
+    if (allIds.size > 0) {
+        const items = (window.ingredientes || [])
+            .filter(i => allIds.has(Number(i.id)))
+            .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        items.forEach(ing => {
+            html += `<li>${escapeHTML(ing.nombre)}</li>`;
         });
     } else {
         html += `<li style="color:#999;">${t('proveedores:no_ingredients_assigned')}</li>`;
