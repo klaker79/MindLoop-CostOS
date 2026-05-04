@@ -458,10 +458,17 @@ export async function actualizarPrecioIngrediente(btnElement) {
 
     if (!ingId || isNaN(newPrice) || newPrice <= 0) return;
 
+    // El input está en €/unidad-base (€/botella). `ingrediente.precio` se guarda
+    // en €/formato_compra (€/CAJA). Multiplicamos por cantidad_por_formato para
+    // no corromper precio_medio cuando cpf > 1.
+    const ing = (window.ingredientes || []).find(i => i.id === ingId);
+    const cpf = parseFloat(ing?.cantidad_por_formato) || 1;
+    const precioFormato = newPrice * cpf;
+
     if (!confirm(t('pedidos:update_price_confirm', { name: ingName, price: cm(newPrice) }))) return;
 
     try {
-        await window.api.updateIngrediente(ingId, { precio: newPrice });
+        await window.api.updateIngrediente(ingId, { precio: precioFormato });
         precioInput.dataset.originalPrice = precioInput.value;
         btnElement.style.display = 'none';
         precioInput.style.borderColor = '#10b981';
