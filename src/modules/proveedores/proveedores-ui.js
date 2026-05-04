@@ -150,7 +150,21 @@ export function renderizarProveedores() {
     html += '</tr></thead><tbody>';
 
     filtrados.forEach(prov => {
-        const ingredientesCount = prov.ingredientes?.length || 0;
+        // Conteo coherente con modal/editor: combina 3 fuentes para no depender
+        // solo de prov.ingredientes (legacy, frecuentemente desincronizado tras
+        // fusiones o ediciones desde la pestaña Ingredientes).
+        const idsByPrincipal = (window.ingredientes || [])
+            .filter(i => Number(i.proveedor_id) === Number(prov.id))
+            .map(i => i.id);
+        const idsByRelation = (window.ingredientesProveedores || [])
+            .filter(ip => Number(ip.proveedor_id) === Number(prov.id))
+            .map(ip => Number(ip.ingrediente_id));
+        const allIds = new Set([
+            ...idsByPrincipal,
+            ...idsByRelation,
+            ...((prov.ingredientes || []).map(Number)),
+        ]);
+        const ingredientesCount = allIds.size;
 
         html += '<tr>';
         html += `<td><strong>${escapeHTML(prov.nombre)}</strong></td>`;
