@@ -37,18 +37,39 @@ export function cerrarFormularioProveedor() {
  * La fuente de verdad de la relación ingrediente↔proveedor es la pestaña
  * Ingredientes — desde aquí solo se VEN los vinculados, y al click se navega
  * al ingrediente para editar.
+ *
+ * Combina 3 fuentes para no depender de prov.ingredientes (legacy, puede
+ * estar desincronizada):
+ *   1. window.ingredientes con proveedor_id = providerId (principal)
+ *   2. window.ingredientesProveedores con proveedor_id = providerId (N:N)
+ *   3. prov.ingredientes legacy (compatibilidad)
  */
-export function cargarIngredientesProveedor(seleccionados = []) {
+export function cargarIngredientesProveedor(seleccionados = [], providerId = null) {
     const container = document.getElementById('lista-ingredientes-proveedor');
     if (!container) return;
 
-    if (!seleccionados || seleccionados.length === 0) {
+    const provId = providerId ?? window.editandoProveedorId;
+    const idsByPrincipal = (window.ingredientes || [])
+        .filter(ing => provId && Number(ing.proveedor_id) === Number(provId))
+        .map(ing => ing.id);
+    const idsByRelation = (window.ingredientesProveedores || [])
+        .filter(ip => provId && Number(ip.proveedor_id) === Number(provId))
+        .map(ip => Number(ip.ingrediente_id));
+    const allIds = new Set([
+        ...idsByPrincipal,
+        ...idsByRelation,
+        ...(seleccionados || []).map(Number),
+    ]);
+
+    if (allIds.size === 0) {
         container.innerHTML =
             `<p style="color:#999;text-align:center;padding:20px;">${t('proveedores:no_ingredients_assigned')}</p>`;
         return;
     }
 
-    const items = (window.ingredientes || []).filter(ing => seleccionados.includes(ing.id));
+    const items = (window.ingredientes || [])
+        .filter(ing => allIds.has(Number(ing.id)))
+        .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
 
     if (items.length === 0) {
         container.innerHTML =
