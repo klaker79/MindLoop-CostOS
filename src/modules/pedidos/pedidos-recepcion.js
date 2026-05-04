@@ -120,9 +120,15 @@ function renderItemsRecepcionModal(ped) {
             <td>
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
-                : `<input type="number" step="0.01" min="0" value="${precioReal}" 
-                    style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;"
-                    oninput="window.actualizarItemRecepcion(${idx}, 'precio', this.value)">`
+                : `<div style="display:flex;align-items:center;gap:4px;">
+                    <input type="number" step="0.01" min="0" value="${precioReal}"
+                      style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;"
+                      oninput="window.actualizarItemRecepcion(${idx}, 'precio', this.value)">
+                    <button type="button" id="rec-save-price-${idx}"
+                      onclick="window.actualizarPrecioIngredienteRecepcion(${ingId || 0}, ${idx}, '${escapeHTML(nombre).replace(/'/g, "\\'")}')"
+                      title="${t('pedidos:btn_update_price') || 'Update ingredient price'}"
+                      style="display:${Math.abs(precioReal - precioPed) > 0.01 ? 'inline-block' : 'none'};background:none;border:1px solid #cbd5e1;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:11px;color:#6366f1;">💾</button>
+                  </div>`
             }
             </td>
             <td><strong id="subtotal-item-${idx}">${cm(subtotalRecibido)}</strong></td>
@@ -178,10 +184,44 @@ export function actualizarItemRecepcion(idx, tipo, valor) {
         if (Math.abs(item.precioReal - item.precioUnitario) > 0.01) {
             item.estado = 'varianza';
         }
+        // Mostrar/ocultar botón 💾 para actualizar precio del ingrediente
+        const saveBtn = document.getElementById(`rec-save-price-${idx}`);
+        if (saveBtn) {
+            const changed = Math.abs(item.precioReal - item.precioUnitario) > 0.01 && item.precioReal > 0;
+            saveBtn.style.display = changed ? 'inline-block' : 'none';
+        }
     }
 
     // Solo actualizar los totales, NO re-renderizar toda la tabla
     actualizarTotalesRecepcion(ped, idx);
+}
+
+/**
+ * Actualiza el precio del ingrediente en la pestaña Ingredientes desde
+ * la pantalla de Recibir Pedido (mismo flujo que el botón 💾 de Nuevo Pedido).
+ */
+export async function actualizarPrecioIngredienteRecepcion(ingId, idx, ingName) {
+    const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
+    if (!ped || !ped.itemsRecepcion) return;
+    const item = ped.itemsRecepcion[idx];
+    if (!item) return;
+    const newPrice = parseFloat(item.precioReal);
+    if (!ingId || isNaN(newPrice) || newPrice <= 0) return;
+
+    const confirmMsg = (window.t || (k => k))('pedidos:update_price_confirm', {
+        name: ingName,
+        price: (window.cm || (v => `${v}€`))(newPrice)
+    });
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        await window.api.updateIngrediente(ingId, { precio: newPrice });
+        const btn = document.getElementById(`rec-save-price-${idx}`);
+        if (btn) btn.style.display = 'none';
+        window.showToast?.((window.t || (k => k))('pedidos:update_price_success', { name: ingName }), 'success');
+    } catch (error) {
+        window.showToast?.(`Error: ${error.message}`, 'error');
+    }
 }
 
 /**
