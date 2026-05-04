@@ -322,7 +322,11 @@ export function agregarIngredientePedido() {
         'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; flex-wrap: wrap;';
 
     let opciones = `<option value="">${t('pedidos:form_select_supplier')}</option>`;
-    ingredientesDisponibles.forEach(ing => {
+    // Orden alfabético en el desplegable para que sea más fácil encontrar el ingrediente
+    const ingredientesOrdenados = [...ingredientesDisponibles].sort((a, b) =>
+        (a.nombre || '').localeCompare(b.nombre || '', undefined, { sensitivity: 'base' })
+    );
+    ingredientesOrdenados.forEach(ing => {
         // Guardar datos del formato en data attributes
         const formatoInfo = ing.formato_compra && ing.cantidad_por_formato
             ? `data-formato="${escapeHTML(ing.formato_compra)}" data-cantidad-formato="${escapeHTML(String(ing.cantidad_por_formato))}"`
