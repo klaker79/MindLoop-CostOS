@@ -22,7 +22,8 @@
   "search_ingredient_placeholder": "Buscar ingrediente...",
   "add_ingredients_first": "Primero añade ingredientes",
   "detail_ingredients": "Ingredientes:",
-  "no_ingredients_assigned": "Sin ingredientes asignados",
+  "no_ingredients_assigned": "Aún no hay ingredientes vinculados. Vincúlalos desde la pestaña Ingredientes (editar ingrediente → proveedor).",
+  "linked_readonly_hint": "Estos son los ingredientes que tienen este proveedor asignado. Para vincular o desvincular, edita el ingrediente directamente.",
 
   "description": "Gestiona tus proveedores",
   "btn_new": "+ Añadir Proveedor",
@@ -30,5 +31,5 @@
   "form_label_phone": "Teléfono",
   "form_label_address": "Dirección",
   "form_label_notes": "Notas",
-  "form_supplies_title": "Ingredientes que suministra"
+  "form_supplies_title": "Ingredientes vinculados"
 }
