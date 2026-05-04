@@ -80,9 +80,10 @@ export function editarProveedor(id) {
     document.getElementById('prov-direccion').value = prov.direccion || '';
     document.getElementById('prov-notas').value = prov.notas || '';
 
-    window.cargarIngredientesProveedor(prov.ingredientes || []);
-
     window.editandoProveedorId = id;
+    window.cargarIngredientesProveedor(prov.ingredientes || [], id);
+
+
     document.getElementById('form-title-proveedor').textContent = t('proveedores:form_title_edit');
     document.getElementById('btn-text-proveedor').textContent = t('proveedores:btn_save');
     window.mostrarFormularioProveedor();
