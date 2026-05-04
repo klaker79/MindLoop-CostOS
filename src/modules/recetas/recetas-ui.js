@@ -193,6 +193,14 @@ export function agregarIngredienteReceta() {
     `;
 
     lista.appendChild(item);
+
+    // Búsqueda incremental por substring en el desplegable de ingredientes
+    // (con 400+ ingredientes, el select nativo era inservible). Falla a nativo
+    // si TomSelect no se cargó.
+    import('../../utils/searchable-select.js').then(({ enhanceSearchableSelect }) => {
+        const ingSelect = item.querySelector('select');
+        if (ingSelect) enhanceSearchableSelect(ingSelect);
+    }).catch(() => {});
 }
 
 /**
