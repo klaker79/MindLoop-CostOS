@@ -306,6 +306,7 @@ window.mostrarFormularioProveedor = ProveedoresUI.mostrarFormularioProveedor;
 window.cerrarFormularioProveedor = ProveedoresUI.cerrarFormularioProveedor;
 window.cargarIngredientesProveedor = ProveedoresUI.cargarIngredientesProveedor;
 window.filtrarIngredientesProveedor = ProveedoresUI.filtrarIngredientesProveedor;
+window.irAIngredienteDesdeProveedor = ProveedoresUI.irAIngredienteDesdeProveedor;
 window.verProveedorDetalles = ProveedoresUI.verProveedorDetalles;
 window.cerrarModalVerProveedor = ProveedoresUI.cerrarModalVerProveedor;
 
