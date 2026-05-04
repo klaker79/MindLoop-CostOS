@@ -15,11 +15,8 @@ import { validateProveedor, showValidationErrors } from '../../utils/validation.
 export async function guardarProveedor(event) {
     event.preventDefault();
 
-    const checks = document.querySelectorAll(
-        '#lista-ingredientes-proveedor input[type="checkbox"]:checked'
-    );
-    const ingredientesIds = Array.from(checks).map(cb => parseInt(cb.value));
-
+    // La relación ingrediente↔proveedor se gestiona desde la pestaña Ingredientes
+    // (refactor 2026-05-04). Aquí solo guardamos los datos básicos del proveedor.
     const proveedor = {
         nombre: document.getElementById('prov-nombre').value,
         contacto: document.getElementById('prov-contacto').value || '',
@@ -27,7 +24,6 @@ export async function guardarProveedor(event) {
         email: document.getElementById('prov-email').value || '',
         direccion: document.getElementById('prov-direccion').value || '',
         notas: document.getElementById('prov-notas').value || '',
-        ingredientes: ingredientesIds,
     };
 
     // 🆕 Validación centralizada
@@ -52,39 +48,6 @@ export async function guardarProveedor(event) {
             const result = await store.createSupplier(proveedor);
             if (!result.success) throw new Error(result.error || t('proveedores:toast_error_saving', { message: 'create failed' }));
             proveedorId = result.data.id;
-        }
-
-        // Sync bidireccional: Actualizar proveedor_id en cada ingrediente
-        // 1. Para ingredientes marcados: asignar este proveedor
-        // 2. Para ingredientes desmarcados que antes tenían este proveedor: quitar
-
-        const proveedorAnterior = window.editandoProveedorId
-            ? (window.proveedores || []).find(p => p.id === window.editandoProveedorId)
-            : null;
-        const ingredientesAnteriores = proveedorAnterior?.ingredientes || [];
-
-        // Ingredientes que se añadieron (marcar con este proveedor)
-        const ingredientesNuevos = ingredientesIds.filter(id => !ingredientesAnteriores.includes(id));
-        for (const ingId of ingredientesNuevos) {
-            const ing = (window.ingredientes || []).find(i => i.id === ingId);
-            if (ing) {
-                // 🔒 FIX v2: Solo enviar proveedor_id, NO tocar stock_actual
-                await window.api.updateIngrediente(ingId, {
-                    proveedor_id: proveedorId
-                });
-            }
-        }
-
-        // Ingredientes que se quitaron (limpiar proveedor_id)
-        const ingredientesQuitados = ingredientesAnteriores.filter(id => !ingredientesIds.includes(id));
-        for (const ingId of ingredientesQuitados) {
-            const ing = (window.ingredientes || []).find(i => i.id === ingId);
-            if (ing && (ing.proveedor_id === proveedorId || ing.proveedorId === proveedorId)) {
-                // 🔒 FIX v2: Solo limpiar proveedor_id, NO tocar stock_actual
-                await window.api.updateIngrediente(ingId, {
-                    proveedor_id: null
-                });
-            }
         }
 
         await window.cargarDatos();

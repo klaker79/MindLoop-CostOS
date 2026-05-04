@@ -33,27 +33,46 @@ export function cerrarFormularioProveedor() {
 }
 
 /**
- * Carga lista de ingredientes con checkboxes
+ * Muestra los ingredientes vinculados al proveedor en modo read-only.
+ * La fuente de verdad de la relación ingrediente↔proveedor es la pestaña
+ * Ingredientes — desde aquí solo se VEN los vinculados, y al click se navega
+ * al ingrediente para editar.
  */
 export function cargarIngredientesProveedor(seleccionados = []) {
     const container = document.getElementById('lista-ingredientes-proveedor');
-    if (!window.ingredientes || window.ingredientes.length === 0) {
+    if (!container) return;
+
+    if (!seleccionados || seleccionados.length === 0) {
         container.innerHTML =
-            `<p style="color:#999;text-align:center;padding:20px;">${t('proveedores:add_ingredients_first')}</p>`;
+            `<p style="color:#999;text-align:center;padding:20px;">${t('proveedores:no_ingredients_assigned')}</p>`;
         return;
     }
 
-    let html =
-        `<div class="search-box-small"><input type="text" id="buscar-ing-prov" placeholder="${t('proveedores:search_ingredient_placeholder')}" oninput="window.filtrarIngredientesProveedor()"></div>`;
-    html += '<div id="lista-ing-checks">';
+    const items = (window.ingredientes || []).filter(ing => seleccionados.includes(ing.id));
 
-    (window.ingredientes || []).forEach(ing => {
-        const checked = seleccionados.includes(ing.id) ? 'checked' : '';
+    if (items.length === 0) {
+        container.innerHTML =
+            `<p style="color:#999;text-align:center;padding:20px;">${t('proveedores:no_ingredients_assigned')}</p>`;
+        return;
+    }
+
+    let html = `
+      <p style="color:#64748b;font-size:13px;margin-bottom:12px;">
+        ${t('proveedores:linked_readonly_hint')}
+      </p>
+      <div id="lista-ing-vinculados" style="display:flex;flex-direction:column;gap:6px;">
+    `;
+
+    items.forEach(ing => {
         html += `
-      <div class="ing-check-item">
-        <input type="checkbox" id="prov-ing-${ing.id}" value="${ing.id}" ${checked}>
-        <label for="prov-ing-${ing.id}">${escapeHTML(ing.nombre)}</label>
-      </div>
+      <button type="button" class="ing-link-item"
+        onclick="window.irAIngredienteDesdeProveedor(${ing.id})"
+        style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;text-align:left;transition:background 0.15s;"
+        onmouseover="this.style.background='#eef2ff'"
+        onmouseout="this.style.background='#f8fafc'">
+        <span>${escapeHTML(ing.nombre)}</span>
+        <span style="color:#6366f1;font-size:13px;">→</span>
+      </button>
     `;
     });
 
@@ -62,16 +81,23 @@ export function cargarIngredientesProveedor(seleccionados = []) {
 }
 
 /**
- * Filtra ingredientes en el formulario de proveedor
+ * Navega a la pestaña Ingredientes y abre el editor del ingrediente.
+ * Permite editar el proveedor vinculado desde la fuente de verdad.
+ */
+export function irAIngredienteDesdeProveedor(ingredienteId) {
+    if (window.cerrarFormularioProveedor) window.cerrarFormularioProveedor();
+    if (window.cambiarTab) window.cambiarTab('ingredientes');
+    setTimeout(() => {
+        if (window.editarIngrediente) window.editarIngrediente(ingredienteId);
+    }, 200);
+}
+
+/**
+ * Stub mantenido por compatibilidad con `oninput` del HTML existente. El
+ * filtrado original (checkboxes) ya no se usa en la vista read-only.
  */
 export function filtrarIngredientesProveedor() {
-    const busqueda = document.getElementById('buscar-ing-prov')?.value.toLowerCase() || '';
-    const items = document.querySelectorAll('.ing-check-item');
-
-    items.forEach(item => {
-        const label = item.querySelector('label').textContent.toLowerCase();
-        item.style.display = label.includes(busqueda) ? 'flex' : 'none';
-    });
+    /* no-op tras refactor 2026-05-04 */
 }
 
 /**
