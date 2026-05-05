@@ -2523,7 +2523,7 @@
 
       <!-- Modal recibir pedido -->
       <div id="modal-recibir-pedido" class="modal">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content" style="max-width: 1100px; width: 95vw;">
           <h3 data-i18n="pedidos:reception_title">Recibir Pedido</h3>
           <p style="margin-bottom: 20px; color: #666;" data-i18n="pedidos:reception_description">
             Verifica las cantidades y precios recibidos. Puedes ajustar los valores si hay diferencias.
@@ -2537,10 +2537,10 @@
               id="modal-rec-total-original"></span>
           </div>
 
-          <div style="margin-bottom: 20px;">
+          <div style="margin-bottom: 20px; overflow-x: auto;">
             <h4 style="margin-bottom: 10px;" data-i18n="pedidos:reception_ingredients_title">Ingredientes del pedido:
             </h4>
-            <table style="font-size: 13px;">
+            <table style="font-size: 13px; min-width: 780px;">
               <thead>
                 <tr>
                   <th data-i18n="pedidos:reception_col_ingredient">Ingrediente</th>
@@ -2549,7 +2549,7 @@
                   <th data-i18n="pedidos:reception_col_price_ordered">Precio Ped.</th>
                   <th data-i18n="pedidos:reception_col_price_real">Precio Real</th>
                   <th data-i18n="pedidos:reception_col_subtotal">Subtotal</th>
-                  <th data-i18n="pedidos:reception_col_status">Estado</th>
+                  <th style="min-width: 130px;" data-i18n="pedidos:reception_col_status">Estado</th>
                 </tr>
               </thead>
               <tbody id="modal-rec-items"></tbody>
