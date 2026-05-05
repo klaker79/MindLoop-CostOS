@@ -84,7 +84,7 @@ function actualizarBadgeCarrito() {
  * @param {number} precioProveedor - Precio específico del proveedor (opcional)
  * @param {boolean} esUnidadSuelta - Si es compra por unidad (botella) en lugar de formato (caja)
  */
-window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = null, precioProveedor = null, esUnidadSuelta = false) {
+window.agregarAlCarrito = async function (ingredienteId, cantidad = 1, proveedorId = null, precioProveedor = null, esUnidadSuelta = false) {
     const ing = (window.ingredientes || []).find(i => i.id === ingredienteId);
     if (!ing) {
         window.showToast(t('pedidos:cart_ingredient_not_found'), 'error');
@@ -94,24 +94,42 @@ window.agregarAlCarrito = function (ingredienteId, cantidad = 1, proveedorId = n
     // Determinar proveedor
     const provId = proveedorId || ing.proveedor_id || ing.proveedorId;
 
-    // ⚠️ CRÍTICO: Obtener el precio correcto del proveedor
-    let precioFormato = precioProveedor; // Primero usar precio pasado como parámetro
-    // 🆕 Si es compra por unidad suelta (botella), marcar como unitario
-    let precioYaEsUnitario = esUnidadSuelta; // Flag para indicar si el precio ya está por unidad
+    // ⚠️ CRÍTICO: Obtener el precio correcto siguiendo el modelo B unificado.
+    // Prioridad:
+    //   1. precioProveedor pasado como parámetro (caller ya lo eligió)
+    //   2. Última compra al proveedor (precios_compra_diarios) — refleja realidad
+    //   3. ingredientes_proveedores.precio (acuerdo configurado)
+    //   4. ing.precio (fallback global)
+    let precioFormato = precioProveedor;
+    let precioYaEsUnitario = esUnidadSuelta;
 
+    // Prioridad 2: última compra a este proveedor
+    if (!precioFormato && provId && window.apiClient) {
+        try {
+            const last = await window.apiClient.get(
+                `/daily/purchases/last?ingredienteId=${ingredienteId}&proveedorId=${provId}`
+            );
+            if (last && parseFloat(last.precio_unitario) > 0) {
+                precioFormato = parseFloat(last.precio_unitario);
+                precioYaEsUnitario = true; // pcd guarda precio_unitario en €/unidad-base
+            }
+        } catch {
+            // Silencioso: si falla la API, caemos a la siguiente prioridad
+        }
+    }
+
+    // Prioridad 3: precio configurado en ingredientes_proveedores
     if (!precioFormato && provId && window.ingredientesProveedores) {
-        // Buscar precio del proveedor en ingredientes_proveedores (datos en memoria)
         const rel = window.ingredientesProveedores.find(
             ip => ip.ingrediente_id === ingredienteId && ip.proveedor_id === provId
         );
         if (rel && rel.precio) {
             precioFormato = parseFloat(rel.precio);
-            precioYaEsUnitario = true; // El precio de ingredientes_proveedores YA está por unidad
-            console.log(`💰 Precio de proveedor ${provId} para ${ing.nombre}: ${cm(precioFormato)}/unidad`);
+            precioYaEsUnitario = true;
         }
     }
 
-    // Fallback: usar precio del ingrediente
+    // Prioridad 4: precio del ingrediente
     if (!precioFormato) {
         precioFormato = parseFloat(ing.precio || 0);
     }
