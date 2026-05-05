@@ -404,18 +404,32 @@ export function onIngredientePedidoChange(selectElement, rowId) {
         // Inicializar label: por defecto formato seleccionado = formato (CAJA)
         if (precioUnidadLabel) precioUnidadLabel.textContent = `€/${formato}`;
 
-        // Listener para cambiar precio automáticamente según formato seleccionado
+        // Listener para cambiar precio automáticamente según formato seleccionado.
+        // Si tenemos guardada la "última compra al proveedor" (modelo B) la usamos
+        // como base, así no perdemos el autollenado del backend al cambiar formato.
+        // Sin última compra, fallback a la lógica antigua basada en ing.precio.
         formatoSelect.onchange = function () {
             const selectedOpt = this.options[this.selectedIndex];
-            const precioInputEl = this.closest('.ingrediente-item')?.querySelector('.precio-input');
-            const labelEl = this.closest('.ingrediente-item')?.querySelector('.precio-unidad-label');
+            const item = this.closest('.ingrediente-item');
+            const precioInputEl = item?.querySelector('.precio-input');
+            const labelEl = item?.querySelector('.precio-unidad-label');
+            const ultimaCompraBtl = parseFloat(item?.dataset.ultimaCompraBtl) || 0;
+            const cpf = parseFloat(cantidadFormato) || 1;
             if (precioInputEl) {
                 if (this.value === 'unidad') {
-                    precioInputEl.value = selectedOpt.dataset.precioUnidad || '';
+                    // Input en €/unidad-base: usar última compra si existe; si no, precioUnidad fallback
+                    const valor = ultimaCompraBtl > 0
+                        ? ultimaCompraBtl
+                        : parseFloat(selectedOpt.dataset.precioUnidad || 0);
+                    precioInputEl.value = valor > 0 ? valor.toFixed(2) : '';
                     precioInputEl.style.borderColor = '#f59e0b';
                     precioInputEl.style.background = '#fffbeb';
                 } else {
-                    precioInputEl.value = selectedOpt.dataset.precioFormato || '';
+                    // Input en €/formato (CAJA): última compra × cpf, o precioFormato fallback
+                    const valor = ultimaCompraBtl > 0
+                        ? ultimaCompraBtl * cpf
+                        : parseFloat(selectedOpt.dataset.precioFormato || 0);
+                    precioInputEl.value = valor > 0 ? valor.toFixed(2) : '';
                     precioInputEl.style.borderColor = '#ddd';
                     precioInputEl.style.background = 'white';
                 }
@@ -464,13 +478,37 @@ export function onIngredientePedidoChange(selectElement, rowId) {
                 _setHintLastPurchase(selectElement, null, 'configurado');
             }
 
-            // Prioridad 1: última compra a ese proveedor (asíncrono — gana sobre configurado)
+            // Prioridad 1: última compra a ese proveedor (asíncrono — gana sobre configurado).
+            // El backend almacena precio_unitario en €/unidad-base (€/btl, €/kg).
+            // Lo guardamos en dataset.ultimaCompraBtl para que el handler de cambio
+            // de formato lo respete (multiplicando × cpf si formato=CAJA, o tal cual
+            // si formato=unidad).
             _fetchLastPurchase(ingId, proveedorId).then(last => {
-                // Si el usuario cambió de fila/ingrediente mientras tanto, no pisar
                 const stillSelected = parseInt(selectElement.value) === ingId;
                 if (!stillSelected) return;
                 if (last && last.precio_unitario > 0) {
-                    precioInput.value = parseFloat(last.precio_unitario).toFixed(2);
+                    const item = selectElement.closest('.ingrediente-item');
+                    // Calcular precio_unitario sin pérdida de redondeo: el backend
+                    // guarda precio_unitario redondeado a 4 decimales, pero `total`
+                    // y `cantidad_comprada` son los valores REALES del pedido. Si
+                    // están disponibles, recalcular total/cantidad evita el redondeo
+                    // (ej: pedido 50€/6 botellas → precio_unitario guardado 8.33 →
+                    // 8.33×6 = 49,98 ❌. Usando total/cantidad: 50/6 = 8,3333... × 6
+                    // = 50,00 ✓).
+                    const totalReal = parseFloat(last.total) || 0;
+                    const cantidadReal = parseFloat(last.cantidad) || 0;
+                    const precioBtl = (totalReal > 0 && cantidadReal > 0)
+                        ? totalReal / cantidadReal
+                        : parseFloat(last.precio_unitario);
+                    if (item) item.dataset.ultimaCompraBtl = String(precioBtl);
+                    // Aplicar al input según el formato actualmente seleccionado.
+                    const formatoActual = formatoSelect?.value;
+                    const cpf = parseFloat(cantidadFormato) || 1;
+                    let valor = precioBtl;
+                    if (formatoActual === 'formato' && cpf > 1) {
+                        valor = precioBtl * cpf;
+                    }
+                    precioInput.value = valor.toFixed(2);
                     _setHintLastPurchase(selectElement, last.fecha, 'ultima');
                 }
                 // Si no hay última compra y tampoco hay configurado, dejamos el

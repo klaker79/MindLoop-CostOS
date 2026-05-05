@@ -110,7 +110,13 @@ window.agregarAlCarrito = async function (ingredienteId, cantidad = 1, proveedor
                 `/daily/purchases/last?ingredienteId=${ingredienteId}&proveedorId=${provId}`
             );
             if (last && parseFloat(last.precio_unitario) > 0) {
-                precioFormato = parseFloat(last.precio_unitario);
+                // Recalcular total/cantidad para evitar pérdida de redondeo
+                // (ver comentario en pedidos-ui.js).
+                const totalReal = parseFloat(last.total) || 0;
+                const cantidadReal = parseFloat(last.cantidad) || 0;
+                precioFormato = (totalReal > 0 && cantidadReal > 0)
+                    ? totalReal / cantidadReal
+                    : parseFloat(last.precio_unitario);
                 precioYaEsUnitario = true; // pcd guarda precio_unitario en €/unidad-base
             }
         } catch {
