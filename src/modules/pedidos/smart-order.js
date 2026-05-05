@@ -68,14 +68,17 @@ export function abrirSmartOrder() {
         // Round up to full format units if buying by format
         const suggestedQty = cpf > 1 ? Math.ceil(deficit / cpf) : parseFloat(deficit.toFixed(2));
 
-        // Prioridad de precio para Smart Order (consistente con modal Nuevo Pedido):
+        // Prioridad de precio para Smart Order:
         //   1. ingredientes_proveedores.precio (precio fijo configurado)
-        //   2. ing.precio (fallback)
-        // Nota: la "última compra" se ignora aquí — Smart Order trabaja con
-        // muchos ingredientes a la vez y disparar N llamadas API encarecería
-        // el render. Si el ingrediente tiene precio fijo por proveedor, ése
-        // es el que se usa; si no, el global. El usuario puede ajustar al
-        // confirmar el pedido sugerido.
+        //   2. ing.precio (fallback global)
+        //
+        // Nota: la "última compra al proveedor" — que es la prioridad #1 en el
+        // modal Nuevo Pedido (modelo B) — se ignora aquí intencionadamente.
+        // Smart Order procesa N ingredientes en bulk al abrir el modal; hacer
+        // N llamadas API "última compra" encarecería el render varios segundos.
+        // El usuario puede ajustar precios al pasar la sugerencia a Nuevo
+        // Pedido (donde sí se aplica el modelo B completo) o al confirmar la
+        // recepción del pedido.
         let precioInicial = parseFloat(ing.precio) || 0;
         const relProv = (window.ingredientesProveedores || []).find(
             ip => ip.ingrediente_id === ing.id && ip.proveedor_id === provId
