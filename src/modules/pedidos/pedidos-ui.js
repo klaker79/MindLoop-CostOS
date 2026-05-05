@@ -488,7 +488,18 @@ export function onIngredientePedidoChange(selectElement, rowId) {
                 if (!stillSelected) return;
                 if (last && last.precio_unitario > 0) {
                     const item = selectElement.closest('.ingrediente-item');
-                    const precioBtl = parseFloat(last.precio_unitario);
+                    // Calcular precio_unitario sin pérdida de redondeo: el backend
+                    // guarda precio_unitario redondeado a 4 decimales, pero `total`
+                    // y `cantidad_comprada` son los valores REALES del pedido. Si
+                    // están disponibles, recalcular total/cantidad evita el redondeo
+                    // (ej: pedido 50€/6 botellas → precio_unitario guardado 8.33 →
+                    // 8.33×6 = 49,98 ❌. Usando total/cantidad: 50/6 = 8,3333... × 6
+                    // = 50,00 ✓).
+                    const totalReal = parseFloat(last.total) || 0;
+                    const cantidadReal = parseFloat(last.cantidad) || 0;
+                    const precioBtl = (totalReal > 0 && cantidadReal > 0)
+                        ? totalReal / cantidadReal
+                        : parseFloat(last.precio_unitario);
                     if (item) item.dataset.ultimaCompraBtl = String(precioBtl);
                     // Aplicar al input según el formato actualmente seleccionado.
                     const formatoActual = formatoSelect?.value;

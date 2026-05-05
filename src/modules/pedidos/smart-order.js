@@ -115,7 +115,14 @@ export async function abrirSmartOrder() {
             const ultimas = await window.apiClient.post('/daily/purchases/last/batch', { pares });
             const lookup = new Map();
             for (const u of (ultimas || [])) {
-                lookup.set(`${u.ingredienteId}-${u.proveedorId}`, parseFloat(u.precio_unitario) || 0);
+                // Recalcular total/cantidad para evitar pérdida de redondeo
+                // (ver comentario en pedidos-ui.js).
+                const totalReal = parseFloat(u.total) || 0;
+                const cantidadReal = parseFloat(u.cantidad) || 0;
+                const precio = (totalReal > 0 && cantidadReal > 0)
+                    ? totalReal / cantidadReal
+                    : parseFloat(u.precio_unitario) || 0;
+                lookup.set(`${u.ingredienteId}-${u.proveedorId}`, precio);
             }
             for (const [, group] of groups) {
                 for (const item of group.items) {
