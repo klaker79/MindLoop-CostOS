@@ -433,12 +433,95 @@ export function onIngredientePedidoChange(selectElement, rowId) {
         conversionSpan.textContent = '';
     }
 
-    // Pre-rellenar precio del ingrediente (sin llamada API que falla con 401)
+    // 🆕 Pre-rellenar precio con prioridad "última compra primero" (modelo B):
+    //   1. Última compra a ese proveedor en precios_compra_diarios (refleja realidad)
+    //   2. ingredientes_proveedores.precio (acuerdo configurado, fallback)
+    //   3. ing.precio (fallback final, equivalente al comportamiento anterior)
+    //
+    // Razón: la realidad reciente es mejor predictor que un acuerdo teórico.
+    // Si el proveedor cambia precios (descuentos, promociones), la última
+    // compra refleja lo que está pasando ahora. El precio configurado queda
+    // como red de seguridad para ingredientes que aún no se han comprado.
+    //
+    // Importante: el frontend mantiene la cadena `getIngredientUnitPrice` para
+    // CÁLCULOS (food cost, P&L, etc.). Esto solo afecta al VALOR INICIAL del
+    // input visible — el usuario puede editarlo manualmente.
     if (precioInput && ingId) {
+        // Fallback inmediato (ing.precio) para no dejar el campo vacío
         precioInput.value = precioGeneral > 0 ? precioGeneral.toFixed(2) : '';
+
+        const proveedorId = parseInt(document.getElementById('ped-proveedor')?.value);
+        if (proveedorId) {
+            // Aplicar precio configurado como mejora intermedia (sincrónico,
+            // mientras esperamos la última compra). Si no hay última compra,
+            // este queda como definitivo.
+            const rel = (window.ingredientesProveedores || []).find(
+                ip => ip.ingrediente_id === ingId && ip.proveedor_id === proveedorId
+            );
+            const tieneConfigurado = rel && parseFloat(rel.precio) > 0;
+            if (tieneConfigurado) {
+                precioInput.value = parseFloat(rel.precio).toFixed(2);
+                _setHintLastPurchase(selectElement, null, 'configurado');
+            }
+
+            // Prioridad 1: última compra a ese proveedor (asíncrono — gana sobre configurado)
+            _fetchLastPurchase(ingId, proveedorId).then(last => {
+                // Si el usuario cambió de fila/ingrediente mientras tanto, no pisar
+                const stillSelected = parseInt(selectElement.value) === ingId;
+                if (!stillSelected) return;
+                if (last && last.precio_unitario > 0) {
+                    precioInput.value = parseFloat(last.precio_unitario).toFixed(2);
+                    _setHintLastPurchase(selectElement, last.fecha, 'ultima');
+                }
+                // Si no hay última compra y tampoco hay configurado, dejamos el
+                // fallback ing.precio que ya se aplicó arriba.
+            }).catch(() => { /* fallback(s) ya aplicado(s) */ });
+        }
     }
 
     window.calcularTotalPedido();
+}
+
+/**
+ * Llama al endpoint backend que devuelve la última compra de un ingrediente
+ * a un proveedor concreto. Devuelve {precio_unitario, fecha, ...} o null.
+ */
+async function _fetchLastPurchase(ingredienteId, proveedorId) {
+    if (!window.apiClient) return null;
+    try {
+        return await window.apiClient.get(
+            `/daily/purchases/last?ingredienteId=${ingredienteId}&proveedorId=${proveedorId}`
+        );
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Muestra un hint debajo del input precio indicando de dónde viene el valor:
+ *   - 'configurado': precio fijo configurado en ingredientes_proveedores
+ *   - 'ultima': última compra real (con fecha)
+ *   - null: limpia el hint
+ */
+function _setHintLastPurchase(selectElement, fecha, tipo) {
+    const item = selectElement.closest('.ingrediente-item');
+    if (!item) return;
+    let hint = item.querySelector('.precio-fuente-hint');
+    if (!hint) {
+        hint = document.createElement('small');
+        hint.className = 'precio-fuente-hint';
+        hint.style.cssText = 'flex-basis: 100%; color: #64748b; font-size: 11px; margin-top: 2px;';
+        item.appendChild(hint);
+    }
+    if (tipo === 'configurado') {
+        hint.textContent = (window.t || (k => k))('pedidos:price_source_configured') || 'Precio configurado para este proveedor';
+    } else if (tipo === 'ultima' && fecha) {
+        const f = String(fecha).slice(0, 10);
+        const tpl = (window.t || (k => k))('pedidos:price_source_last_purchase') || 'Última compra a este proveedor ({{date}})';
+        hint.textContent = tpl.replace('{{date}}', f);
+    } else {
+        hint.textContent = '';
+    }
 }
 
 // Exponer al window

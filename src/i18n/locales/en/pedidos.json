@@ -235,5 +235,8 @@
   "smart_review_and_receive": "review and receive when ready",
 
   "repeat_confirm": "Repeat order from {{supplier}}? ({{count}} items)\n\nA new pending order will be created with the same ingredients. You can edit quantities before confirming.",
-  "repeat_success": "Order repeated from {{supplier}} — edit quantities and confirm when ready"
+  "repeat_success": "Order repeated from {{supplier}} — edit quantities and confirm when ready",
+
+  "price_source_configured": "Configured price for this supplier",
+  "price_source_last_purchase": "Last purchase from this supplier ({{date}})"
 }
