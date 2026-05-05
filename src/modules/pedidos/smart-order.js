@@ -145,7 +145,7 @@ export async function abrirSmartOrder() {
     modal.id = 'modal-smart-order';
     modal.className = 'modal';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-content" style="max-width: 1100px; width: 95vw; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div>
                     <h3 style="margin: 0;">🧠 Smart Order</h3>
@@ -197,7 +197,8 @@ function renderSmartOrderGroups(groups) {
                     <span style="color: #64748b; font-size: 12px; margin-left: 8px;">${itemCount} items</span>
                 </div>
             </div>
-            <table style="width: 100%; border-collapse: collapse;">
+            <div style="overflow-x: auto;">
+            <table style="width: 100%; min-width: 720px; border-collapse: collapse;">
                 <thead>
                     <tr style="background: #f8fafc; font-size: 12px; color: #64748b; text-transform: uppercase;">
                         <th style="padding: 8px; text-align: center; width: 40px;">✓</th>
@@ -205,7 +206,7 @@ function renderSmartOrderGroups(groups) {
                         <th style="padding: 8px; text-align: center;">${t('pedidos:smart_col_stock') || 'Stock'}</th>
                         <th style="padding: 8px; text-align: center;">${t('pedidos:smart_col_min') || 'Min'}</th>
                         <th style="padding: 8px; text-align: center;">${t('pedidos:smart_col_order') || 'Order Qty'}</th>
-                        <th style="padding: 8px; text-align: right;">${t('pedidos:smart_col_est_cost') || 'Est. Cost'}</th>
+                        <th style="padding: 8px; text-align: right; min-width: 110px;">${t('pedidos:smart_col_est_cost') || 'Est. Cost'}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -242,6 +243,7 @@ function renderSmartOrderGroups(groups) {
                     }).join('')}
                 </tbody>
             </table>
+            </div>
         </div>`;
     }
     return html;
