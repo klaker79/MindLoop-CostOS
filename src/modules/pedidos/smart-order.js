@@ -68,6 +68,22 @@ export function abrirSmartOrder() {
         // Round up to full format units if buying by format
         const suggestedQty = cpf > 1 ? Math.ceil(deficit / cpf) : parseFloat(deficit.toFixed(2));
 
+        // Prioridad de precio para Smart Order (consistente con modal Nuevo Pedido):
+        //   1. ingredientes_proveedores.precio (precio fijo configurado)
+        //   2. ing.precio (fallback)
+        // Nota: la "última compra" se ignora aquí — Smart Order trabaja con
+        // muchos ingredientes a la vez y disparar N llamadas API encarecería
+        // el render. Si el ingrediente tiene precio fijo por proveedor, ése
+        // es el que se usa; si no, el global. El usuario puede ajustar al
+        // confirmar el pedido sugerido.
+        let precioInicial = parseFloat(ing.precio) || 0;
+        const relProv = (window.ingredientesProveedores || []).find(
+            ip => ip.ingrediente_id === ing.id && ip.proveedor_id === provId
+        );
+        if (relProv && parseFloat(relProv.precio) > 0) {
+            precioInicial = parseFloat(relProv.precio);
+        }
+
         groups.get(provId).items.push({
             id: ing.id,
             nombre: ing.nombre,
@@ -78,7 +94,7 @@ export function abrirSmartOrder() {
             suggestedQty,
             cpf,
             formato: ing.formato_compra || '',
-            precio: parseFloat(ing.precio) || 0,
+            precio: precioInicial,
             checked: true
         });
     }
