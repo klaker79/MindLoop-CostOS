@@ -348,7 +348,6 @@ window.verDetallesPedido = PedidosCRUD.verDetallesPedido;
 window.cerrarModalVerPedido = PedidosCRUD.cerrarModalVerPedido;
 window.descargarPedidoPDF = PedidosCRUD.descargarPedidoPDF;
 window.actualizarItemRecepcion = PedidosCRUD.actualizarItemRecepcion;
-window.actualizarPrecioIngredienteRecepcion = PedidosCRUD.actualizarPrecioIngredienteRecepcion;
 window.cambiarEstadoItem = PedidosCRUD.cambiarEstadoItem;
 
 // ⚡ FIX W3: Documentación de módulos con auto-registro en window.*
