@@ -347,6 +347,7 @@ export function agregarIngredientePedido() {
       </div>
       <input type="number" placeholder="${t('pedidos:placeholder_quantity')}" step="0.01" min="0" class="cantidad-input" style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" oninput="window.calcularTotalPedido()">
       <input type="number" placeholder="${t('pedidos:placeholder_price_unit')}" step="0.01" min="0" class="precio-input" style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: right; ${esCompraMercado ? 'border-color: #10b981; background: #f0fdf4;' : ''}" oninput="window.calcularTotalPedido()">
+      <span class="precio-unidad-label" style="font-size: 11px; color: #64748b; align-self: center; min-width: 55px;"></span>
       <button type="button" class="btn-update-price" onclick="window.actualizarPrecioIngrediente(this)" title="${t('pedidos:btn_update_price') || 'Update ingredient price'}" style="background: none; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 6px; cursor: pointer; font-size: 11px; color: #6366f1; display: none;" >💾</button>
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">${cm(0)}</span>
       <span id="${rowId}-conversion" style="font-size: 12px; color: #64748b; min-width: 110px; text-align: center;"></span>
@@ -383,6 +384,9 @@ export function onIngredientePedidoChange(selectElement, rowId) {
     const ingId = parseInt(selectedOption?.value);
     const precioGeneral = parseFloat(selectedOption?.dataset?.precio || 0);
 
+    // Label dinámico de unidad del input precio (€/CAJA vs €/botella)
+    const precioUnidadLabel = selectElement.parentElement?.querySelector('.precio-unidad-label');
+
     if (formato && cantidadFormato && formatoContainer && formatoSelect) {
         // Mostrar selector de formato - CAJA + UNIDAD suelta
         formatoContainer.style.display = 'block';
@@ -398,10 +402,14 @@ export function onIngredientePedidoChange(selectElement, rowId) {
         `;
         formatoSelect.value = 'formato';
 
+        // Inicializar label: por defecto formato seleccionado = formato (CAJA)
+        if (precioUnidadLabel) precioUnidadLabel.textContent = `€/${formato}`;
+
         // Listener para cambiar precio automáticamente según formato seleccionado
         formatoSelect.onchange = function () {
             const selectedOpt = this.options[this.selectedIndex];
             const precioInputEl = this.closest('.ingrediente-item')?.querySelector('.precio-input');
+            const labelEl = this.closest('.ingrediente-item')?.querySelector('.precio-unidad-label');
             if (precioInputEl) {
                 if (this.value === 'unidad') {
                     precioInputEl.value = selectedOpt.dataset.precioUnidad || '';
@@ -413,10 +421,13 @@ export function onIngredientePedidoChange(selectElement, rowId) {
                     precioInputEl.style.background = 'white';
                 }
             }
+            if (labelEl) labelEl.textContent = this.value === 'unidad' ? `€/${unidad}` : `€/${formato}`;
             window.calcularTotalPedido();
         };
     } else if (formatoContainer) {
         formatoContainer.style.display = 'none';
+        // Sin formato → precio del input está siempre en €/unidad
+        if (precioUnidadLabel) precioUnidadLabel.textContent = `€/${unidad}`;
     }
 
     if (conversionSpan) {
