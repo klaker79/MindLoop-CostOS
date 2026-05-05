@@ -348,7 +348,6 @@ export function agregarIngredientePedido() {
       <input type="number" placeholder="${t('pedidos:placeholder_quantity')}" step="0.01" min="0" class="cantidad-input" style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" oninput="window.calcularTotalPedido()">
       <input type="number" placeholder="${t('pedidos:placeholder_price_unit')}" step="0.01" min="0" class="precio-input" style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: right; ${esCompraMercado ? 'border-color: #10b981; background: #f0fdf4;' : ''}" oninput="window.calcularTotalPedido()">
       <span class="precio-unidad-label" style="font-size: 11px; color: #64748b; align-self: center; min-width: 55px;"></span>
-      <button type="button" class="btn-update-price" onclick="window.actualizarPrecioIngrediente(this)" title="${t('pedidos:btn_update_price') || 'Update ingredient price'}" style="background: none; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 6px; cursor: pointer; font-size: 11px; color: #6366f1; display: none;" >💾</button>
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">${cm(0)}</span>
       <span id="${rowId}-conversion" style="font-size: 12px; color: #64748b; min-width: 110px; text-align: center;"></span>
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
@@ -437,65 +436,13 @@ export function onIngredientePedidoChange(selectElement, rowId) {
     // Pre-rellenar precio del ingrediente (sin llamada API que falla con 401)
     if (precioInput && ingId) {
         precioInput.value = precioGeneral > 0 ? precioGeneral.toFixed(2) : '';
-        // Store original price to detect changes
-        precioInput.dataset.originalPrice = precioInput.value;
-        precioInput.dataset.ingId = ingId;
-        // Show update button when price differs from original
-        precioInput.addEventListener('input', function () {
-            const btn = this.closest('.ingrediente-item')?.querySelector('.btn-update-price');
-            if (btn) {
-                const changed = this.value && this.dataset.originalPrice && this.value !== this.dataset.originalPrice;
-                btn.style.display = changed ? 'inline-block' : 'none';
-            }
-        });
     }
 
     window.calcularTotalPedido();
 }
 
-/**
- * Updates the ingredient's price in the database when the user clicks 💾
- */
-export async function actualizarPrecioIngrediente(btnElement) {
-    const row = btnElement.closest('.ingrediente-item');
-    if (!row) return;
-    const precioInput = row.querySelector('.precio-input');
-    const selectEl = row.querySelector('select');
-    if (!precioInput || !selectEl) return;
-
-    const ingId = parseInt(precioInput.dataset.ingId);
-    const newPrice = parseFloat(precioInput.value);
-    const ingName = selectEl.options[selectEl.selectedIndex]?.text?.split(' (')[0] || 'Ingredient';
-
-    if (!ingId || isNaN(newPrice) || newPrice <= 0) return;
-
-    // `ingrediente.precio` se guarda en €/formato_compra (€/CAJA).
-    // Si el formato seleccionado es 'unidad' (botella suelta), el input está en
-    // €/btl → multiplicamos × cpf. Si es 'formato' (CAJA), el input ya está en
-    // €/CAJA → guardamos tal cual. Sin formato (cpf=1) tampoco multiplicamos.
-    const ing = (window.ingredientes || []).find(i => i.id === ingId);
-    const cpf = parseFloat(ing?.cantidad_por_formato) || 1;
-    const formatoSelect = row.querySelector('select[id$="-formato-select"]');
-    const inputEsUnidadSuelta = formatoSelect?.value === 'unidad';
-    const precioFormato = (inputEsUnidadSuelta && cpf > 1) ? newPrice * cpf : newPrice;
-
-    if (!confirm(t('pedidos:update_price_confirm', { name: ingName, price: cm(newPrice) }))) return;
-
-    try {
-        await window.api.updateIngrediente(ingId, { precio: precioFormato });
-        precioInput.dataset.originalPrice = precioInput.value;
-        btnElement.style.display = 'none';
-        precioInput.style.borderColor = '#10b981';
-        setTimeout(() => { precioInput.style.borderColor = '#ddd'; }, 2000);
-        window.showToast(t('pedidos:update_price_success', { name: ingName }), 'success');
-    } catch (error) {
-        window.showToast(t('pedidos:update_price_error', { message: error.message }), 'error');
-    }
-}
-
 // Exponer al window
 window.onIngredientePedidoChange = onIngredientePedidoChange;
-window.actualizarPrecioIngrediente = actualizarPrecioIngrediente;
 
 /**
  * Calcula el total del pedido
