@@ -13,8 +13,11 @@ let isConfirmingSmartOrder = false;
 
 /**
  * Opens the Smart Order modal with suggested orders based on low stock.
+ * Async porque consulta al backend la última compra de cada par
+ * (ingrediente, proveedor) en una sola llamada batch — modelo B unificado
+ * con el modal Nuevo Pedido.
  */
-export function abrirSmartOrder() {
+export async function abrirSmartOrder() {
     const ingredientes = window.ingredientes || [];
     const proveedores = window.proveedores || [];
 
@@ -68,17 +71,10 @@ export function abrirSmartOrder() {
         // Round up to full format units if buying by format
         const suggestedQty = cpf > 1 ? Math.ceil(deficit / cpf) : parseFloat(deficit.toFixed(2));
 
-        // Prioridad de precio para Smart Order:
-        //   1. ingredientes_proveedores.precio (precio fijo configurado)
+        // Precio inicial sincrónico — se sobreescribe abajo con la última compra
+        // si existe (modelo B):
+        //   1. ingredientes_proveedores.precio (acuerdo configurado)
         //   2. ing.precio (fallback global)
-        //
-        // Nota: la "última compra al proveedor" — que es la prioridad #1 en el
-        // modal Nuevo Pedido (modelo B) — se ignora aquí intencionadamente.
-        // Smart Order procesa N ingredientes en bulk al abrir el modal; hacer
-        // N llamadas API "última compra" encarecería el render varios segundos.
-        // El usuario puede ajustar precios al pasar la sugerencia a Nuevo
-        // Pedido (donde sí se aplica el modelo B completo) o al confirmar la
-        // recepción del pedido.
         let precioInicial = parseFloat(ing.precio) || 0;
         const relProv = (window.ingredientesProveedores || []).find(
             ip => ip.ingrediente_id === ing.id && ip.proveedor_id === provId
@@ -98,8 +94,40 @@ export function abrirSmartOrder() {
             cpf,
             formato: ing.formato_compra || '',
             precio: precioInicial,
+            proveedorId: provId,  // necesario para el lookup batch posterior
             checked: true
         });
+    }
+
+    // 🆕 Modelo B: sobreescribir `precio` con la última compra real al
+    // proveedor cuando exista. Una sola llamada batch para no penalizar
+    // el render — los pares sin historial conservan el precio inicial.
+    try {
+        const pares = [];
+        for (const [, group] of groups) {
+            for (const item of group.items) {
+                if (item.id && item.proveedorId) {
+                    pares.push({ ingredienteId: item.id, proveedorId: item.proveedorId });
+                }
+            }
+        }
+        if (pares.length > 0 && window.apiClient) {
+            const ultimas = await window.apiClient.post('/daily/purchases/last/batch', { pares });
+            const lookup = new Map();
+            for (const u of (ultimas || [])) {
+                lookup.set(`${u.ingredienteId}-${u.proveedorId}`, parseFloat(u.precio_unitario) || 0);
+            }
+            for (const [, group] of groups) {
+                for (const item of group.items) {
+                    const ult = lookup.get(`${item.id}-${item.proveedorId}`);
+                    if (ult > 0) item.precio = ult;
+                }
+            }
+        }
+    } catch {
+        // Silencioso: si el batch falla, dejamos el precio inicial.
+        // No queremos bloquear Smart Order por un fallo de red en el
+        // autollenado, que es solo una sugerencia.
     }
 
     // Build modal
