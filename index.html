@@ -2109,7 +2109,15 @@
               </div>
             </div>
 
-            <!-- Tarjeta: Integraciones -->
+            <!--
+              Tarjeta: Integraciones — OCULTA AL CLIENTE (2026-05-05)
+              Las integraciones (n8n, Google Sheets, Cuiner) son trabajo de soporte/setup,
+              no del usuario diario. Si un cliente las desactivara por error, se rompería el
+              flujo automático silenciosamente. Gestión real desde admin.mindloop.cloud.
+              Bloque dejado comentado por si se necesita reactivar puntualmente para algún
+              tenant. Ver chore/hide-integrations-from-client.
+            -->
+            <!--
             <div class="card"
               style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -2124,8 +2132,6 @@
                 </button>
               </div>
               <div style="display:flex; flex-direction:column; gap:12px;">
-
-                <!-- n8n Webhooks -->
                 <div id="integration-n8n"
                   style="display:flex; justify-content:space-between; align-items:center; padding:14px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius:12px; border:1px solid #86efac;">
                   <div style="display:flex; align-items:center; gap:12px;">
@@ -2142,8 +2148,6 @@
                     data-i18n="settings:integration_connected">✓
                     Conectado</span>
                 </div>
-
-                <!-- Google Sheets - Pedidos/Albaranes -->
                 <div id="integration-sheets"
                   style="display:flex; justify-content:space-between; align-items:center; padding:14px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius:12px; border:1px solid #86efac;">
                   <div style="display:flex; align-items:center; gap:12px;">
@@ -2160,8 +2164,6 @@
                     data-i18n="settings:integration_connected">✓
                     Conectado</span>
                 </div>
-
-                <!-- Email Ventas Cuiner -->
                 <div id="integration-cuiner"
                   style="display:flex; justify-content:space-between; align-items:center; padding:14px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius:12px; border:1px solid #86efac;">
                   <div style="display:flex; align-items:center; gap:12px;">
@@ -2180,8 +2182,6 @@
                     data-i18n="settings:integration_connected">✓
                     Conectado</span>
                 </div>
-
-                <!-- Info -->
                 <div
                   style="margin-top:8px; padding:12px 14px; background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius:10px; border:1px solid #93c5fd;">
                   <p style="font-size:0.8rem; color:#1e40af; margin:0;">
@@ -2191,9 +2191,10 @@
                       Cuiner llegan automáticamente cada día por email.</span>
                   </p>
                 </div>
-
               </div>
             </div>
+            -->
+            <!-- /Tarjeta: Integraciones -->
 
           </div>
         </div>
