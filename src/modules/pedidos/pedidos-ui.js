@@ -469,12 +469,15 @@ export async function actualizarPrecioIngrediente(btnElement) {
 
     if (!ingId || isNaN(newPrice) || newPrice <= 0) return;
 
-    // El input está en €/unidad-base (€/botella). `ingrediente.precio` se guarda
-    // en €/formato_compra (€/CAJA). Multiplicamos por cantidad_por_formato para
-    // no corromper precio_medio cuando cpf > 1.
+    // `ingrediente.precio` se guarda en €/formato_compra (€/CAJA).
+    // Si el formato seleccionado es 'unidad' (botella suelta), el input está en
+    // €/btl → multiplicamos × cpf. Si es 'formato' (CAJA), el input ya está en
+    // €/CAJA → guardamos tal cual. Sin formato (cpf=1) tampoco multiplicamos.
     const ing = (window.ingredientes || []).find(i => i.id === ingId);
     const cpf = parseFloat(ing?.cantidad_por_formato) || 1;
-    const precioFormato = newPrice * cpf;
+    const formatoSelect = row.querySelector('select[id$="-formato-select"]');
+    const inputEsUnidadSuelta = formatoSelect?.value === 'unidad';
+    const precioFormato = (inputEsUnidadSuelta && cpf > 1) ? newPrice * cpf : newPrice;
 
     if (!confirm(t('pedidos:update_price_confirm', { name: ingName, price: cm(newPrice) }))) return;
 
