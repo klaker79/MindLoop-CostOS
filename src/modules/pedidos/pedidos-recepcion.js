@@ -120,7 +120,7 @@ function renderItemsRecepcionModal(ped) {
             <td>
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
-                : `<input type="number" step="0.01" min="0" value="${precioReal}" 
+                : `<input type="number" step="0.01" min="0" value="${precioReal}"
                     style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;"
                     oninput="window.actualizarItemRecepcion(${idx}, 'precio', this.value)">`
             }

@@ -347,7 +347,7 @@ export function agregarIngredientePedido() {
       </div>
       <input type="number" placeholder="${t('pedidos:placeholder_quantity')}" step="0.01" min="0" class="cantidad-input" style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" oninput="window.calcularTotalPedido()">
       <input type="number" placeholder="${t('pedidos:placeholder_price_unit')}" step="0.01" min="0" class="precio-input" style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: right; ${esCompraMercado ? 'border-color: #10b981; background: #f0fdf4;' : ''}" oninput="window.calcularTotalPedido()">
-      <button type="button" class="btn-update-price" onclick="window.actualizarPrecioIngrediente(this)" title="${t('pedidos:btn_update_price') || 'Update ingredient price'}" style="background: none; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 6px; cursor: pointer; font-size: 11px; color: #6366f1; display: none;" >💾</button>
+      <span class="precio-unidad-label" style="font-size: 11px; color: #64748b; align-self: center; min-width: 55px;"></span>
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">${cm(0)}</span>
       <span id="${rowId}-conversion" style="font-size: 12px; color: #64748b; min-width: 110px; text-align: center;"></span>
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
@@ -383,6 +383,9 @@ export function onIngredientePedidoChange(selectElement, rowId) {
     const ingId = parseInt(selectedOption?.value);
     const precioGeneral = parseFloat(selectedOption?.dataset?.precio || 0);
 
+    // Label dinámico de unidad del input precio (€/CAJA vs €/botella)
+    const precioUnidadLabel = selectElement.parentElement?.querySelector('.precio-unidad-label');
+
     if (formato && cantidadFormato && formatoContainer && formatoSelect) {
         // Mostrar selector de formato - CAJA + UNIDAD suelta
         formatoContainer.style.display = 'block';
@@ -398,10 +401,14 @@ export function onIngredientePedidoChange(selectElement, rowId) {
         `;
         formatoSelect.value = 'formato';
 
+        // Inicializar label: por defecto formato seleccionado = formato (CAJA)
+        if (precioUnidadLabel) precioUnidadLabel.textContent = `€/${formato}`;
+
         // Listener para cambiar precio automáticamente según formato seleccionado
         formatoSelect.onchange = function () {
             const selectedOpt = this.options[this.selectedIndex];
             const precioInputEl = this.closest('.ingrediente-item')?.querySelector('.precio-input');
+            const labelEl = this.closest('.ingrediente-item')?.querySelector('.precio-unidad-label');
             if (precioInputEl) {
                 if (this.value === 'unidad') {
                     precioInputEl.value = selectedOpt.dataset.precioUnidad || '';
@@ -413,10 +420,13 @@ export function onIngredientePedidoChange(selectElement, rowId) {
                     precioInputEl.style.background = 'white';
                 }
             }
+            if (labelEl) labelEl.textContent = this.value === 'unidad' ? `€/${unidad}` : `€/${formato}`;
             window.calcularTotalPedido();
         };
     } else if (formatoContainer) {
         formatoContainer.style.display = 'none';
+        // Sin formato → precio del input está siempre en €/unidad
+        if (precioUnidadLabel) precioUnidadLabel.textContent = `€/${unidad}`;
     }
 
     if (conversionSpan) {
@@ -426,55 +436,13 @@ export function onIngredientePedidoChange(selectElement, rowId) {
     // Pre-rellenar precio del ingrediente (sin llamada API que falla con 401)
     if (precioInput && ingId) {
         precioInput.value = precioGeneral > 0 ? precioGeneral.toFixed(2) : '';
-        // Store original price to detect changes
-        precioInput.dataset.originalPrice = precioInput.value;
-        precioInput.dataset.ingId = ingId;
-        // Show update button when price differs from original
-        precioInput.addEventListener('input', function () {
-            const btn = this.closest('.ingrediente-item')?.querySelector('.btn-update-price');
-            if (btn) {
-                const changed = this.value && this.dataset.originalPrice && this.value !== this.dataset.originalPrice;
-                btn.style.display = changed ? 'inline-block' : 'none';
-            }
-        });
     }
 
     window.calcularTotalPedido();
 }
 
-/**
- * Updates the ingredient's price in the database when the user clicks 💾
- */
-export async function actualizarPrecioIngrediente(btnElement) {
-    const row = btnElement.closest('.ingrediente-item');
-    if (!row) return;
-    const precioInput = row.querySelector('.precio-input');
-    const selectEl = row.querySelector('select');
-    if (!precioInput || !selectEl) return;
-
-    const ingId = parseInt(precioInput.dataset.ingId);
-    const newPrice = parseFloat(precioInput.value);
-    const ingName = selectEl.options[selectEl.selectedIndex]?.text?.split(' (')[0] || 'Ingredient';
-
-    if (!ingId || isNaN(newPrice) || newPrice <= 0) return;
-
-    if (!confirm(t('pedidos:update_price_confirm', { name: ingName, price: cm(newPrice) }))) return;
-
-    try {
-        await window.api.updateIngrediente(ingId, { precio: newPrice });
-        precioInput.dataset.originalPrice = precioInput.value;
-        btnElement.style.display = 'none';
-        precioInput.style.borderColor = '#10b981';
-        setTimeout(() => { precioInput.style.borderColor = '#ddd'; }, 2000);
-        window.showToast(t('pedidos:update_price_success', { name: ingName }), 'success');
-    } catch (error) {
-        window.showToast(t('pedidos:update_price_error', { message: error.message }), 'error');
-    }
-}
-
 // Exponer al window
 window.onIngredientePedidoChange = onIngredientePedidoChange;
-window.actualizarPrecioIngrediente = actualizarPrecioIngrediente;
 
 /**
  * Calcula el total del pedido
