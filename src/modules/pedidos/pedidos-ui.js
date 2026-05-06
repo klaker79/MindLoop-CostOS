@@ -26,6 +26,9 @@ export function mostrarFormularioPedido() {
     // Cargar select de proveedores (ordenados alfabéticamente)
     const select = document.getElementById('ped-proveedor');
     if (select) {
+        // Destruir TomSelect previo si lo hay (al reabrir modal con diff proveedores)
+        if (select.tomselect) select.tomselect.destroy();
+
         // ⚡ OPTIMIZACIÓN: Una sola operación DOM con map+join + ordenación A-Z
         const proveedoresOrdenados = [...(window.proveedores || [])].sort((a, b) =>
             (a.nombre || '').localeCompare(b.nombre || '')
@@ -40,6 +43,12 @@ export function mostrarFormularioPedido() {
             select.addEventListener('change', mostrarCampoDetalleMercado);
             select._hasCampoDetalleListener = true;
         }
+
+        // Búsqueda incremental por substring en el desplegable de proveedores
+        // (mismo patrón que el select de ingredientes en pedidos/recetas).
+        import('../../utils/searchable-select.js').then(({ enhanceSearchableSelect }) => {
+            enhanceSearchableSelect(select);
+        }).catch(() => {});
     }
 
     // Ocultar campo detalle mercado al inicio
@@ -48,7 +57,9 @@ export function mostrarFormularioPedido() {
 
     document.getElementById('formulario-pedido').style.display = 'block';
     window.cargarIngredientesPedido();
-    document.getElementById('ped-proveedor').focus();
+    const selProv = document.getElementById('ped-proveedor');
+    if (selProv?.tomselect) selProv.tomselect.focus();
+    else selProv?.focus();
 }
 
 /**
