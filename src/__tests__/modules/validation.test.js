@@ -282,10 +282,23 @@ describe('validation.js — validateReceta (real import)', () => {
         expect(result.valid).toBe(false);
     });
 
-    test('zero price fails', () => {
+    test('zero price passes (Base recipes — preparaciones intermedias)', () => {
+        // Las recetas marcadas como Base no se venden al cliente, su coste se
+        // traslada a la receta vendible que las usa como subreceta. Permitir 0
+        // explícitamente. Una vendible que se quede con 0 saldrá como food cost
+        // 100% en el escandallo, alerta visible para el usuario.
+        const result = validateReceta({
+            nombre: 'Salsa de tomate',
+            precio_venta: 0,
+            ingredientes: [{ ingredienteId: 1, cantidad: 0.5 }]
+        });
+        expect(result.valid).toBe(true);
+    });
+
+    test('negative price fails', () => {
         const result = validateReceta({
             nombre: 'Paella',
-            precio_venta: 0,
+            precio_venta: -1,
             ingredientes: [{ ingredienteId: 1, cantidad: 0.5 }]
         });
         expect(result.valid).toBe(false);
