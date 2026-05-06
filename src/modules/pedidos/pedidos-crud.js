@@ -300,8 +300,10 @@ export async function repetirPedido(id) {
 
     const total = ingredientesCopia.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
 
+    const provIdRepeat = ped.proveedorId || ped.proveedor_id;
     const result = await window.api.createPedido({
-      proveedor_id: ped.proveedorId || ped.proveedor_id,
+      proveedorId: provIdRepeat,    // backend lee camelCase
+      proveedor_id: provIdRepeat,   // compatibilidad legacy
       fecha: new Date().toISOString().split('T')[0],
       ingredientes: ingredientesCopia,
       total,
