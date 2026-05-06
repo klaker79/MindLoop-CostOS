@@ -207,9 +207,13 @@ export function validateReceta(data) {
         else sanitized.nombre = data.nombre.trim();
     }
 
-    // Precio venta (> 0)
+    // Precio venta (>= 0). Las recetas marcadas como Base (salsas, fondos,
+    // masas) no se venden al cliente y legítimamente tienen precio 0 — su
+    // coste se traslada a la receta vendible que las usa como subreceta.
+    // Una receta vendible que se quede con 0 saldrá visualmente como food
+    // cost 100% en escandallo, alerta útil para el usuario.
     if (data.precio_venta !== undefined && data.precio_venta !== '') {
-        const precio = isPositive(data.precio_venta, 'Precio de venta');
+        const precio = isNonNegative(data.precio_venta, 'Precio de venta');
         if (!precio.valid) errors.push(precio.error);
         else sanitized.precio_venta = precio.value;
     }
