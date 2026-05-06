@@ -347,6 +347,11 @@ export function mostrarFormularioIngrediente() {
         const input = getElement('ing-nombre');
         if (input) input.focus();
     }
+    // Engancha el listener del slider de rendimiento. Sin esto, mover la barra
+    // no actualiza el hidden #ing-rendimiento y al guardar siempre se manda 100%
+    // (el listener solo estaba enganchado en cerrarFormularioIngrediente, que
+    // no corre la primera vez que se abre el form).
+    setupYieldSlider();
 }
 
 /**
