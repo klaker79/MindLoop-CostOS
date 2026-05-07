@@ -162,6 +162,12 @@ import { setupYieldSlider } from './modules/ingredientes/ingredientes-ui.js';
 window.verEvolucionPrecio = verEvolucionPrecio;
 window.setupYieldSlider = setupYieldSlider;
 
+// Help Modal — videos tutoriales de YouTube por pestaña.
+// Inserta un botón "?" en el header de cada pestaña que tenga entrada
+// en src/modules/help/help-config.js. Sin entrada → sin botón.
+import { mountHelpModal } from './modules/help/help-modal.js';
+document.addEventListener('DOMContentLoaded', mountHelpModal);
+
 // Sales Forecast (predicción)
 import { calcularForecast, renderForecastChart } from './modules/analytics/forecast.js';
 window.calcularForecast = calcularForecast;
