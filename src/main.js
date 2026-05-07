@@ -844,3 +844,19 @@ window._alertBadgeInterval = setInterval(() => {
 window.updateAlertBadge = updateAlertBadge;
 window.showAlertModal = showAlertModal;
 window.closeAlertModal = closeAlertModal;
+
+// Bloquear cambio por rueda del ratón en inputs numéricos enfocados.
+// Sin esto, el camarero/operario que hace scroll para bajar la pantalla
+// dentro de un modal (Recetas, Pedidos, Recepción, etc.) cambia
+// accidentalmente cantidades/precios sin enterarse — incidente reportado
+// por Iker 2026-05-07. Solo previene cuando el input está enfocado, no
+// rompe el scroll global ni el scroll cuando el cursor pasa sobre un
+// input sin clicar antes.
+document.addEventListener('wheel', (e) => {
+    const t = e.target;
+    if (t && t.tagName === 'INPUT'
+        && t.type === 'number'
+        && t === document.activeElement) {
+        e.preventDefault();
+    }
+}, { passive: false });
