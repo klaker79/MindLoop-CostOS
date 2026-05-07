@@ -116,19 +116,32 @@ function injectButtonInTab(tabKey) {
     btn.innerHTML = '🎬 Ver tutorial';
     btn.addEventListener('click', () => openTabHelp(tabKey));
 
-    // Localizar el contenedor de acciones del top-bar. En la mayoría de
-    // pestañas es un <div> con flex-gap que aloja "Añadir", "Importar",
-    // etc. En Proveedores el botón "Añadir Proveedor" está suelto sin
-    // wrapper. Cubrimos ambos casos:
-    //   1) Si existe un div NO-primero (típicamente con los botones), allí.
-    //   2) Si no, al final del propio top-bar (queda al lado del botón
-    //      principal "Añadir X").
-    const allDivs = topBar.querySelectorAll(':scope > div');
-    const actionsContainer = allDivs.length > 1 ? allDivs[allDivs.length - 1] : null;
+    // Localizar el contenedor de acciones del top-bar. Tres casos:
+    //   1) Pestañas tipo Ingredientes/Recetas: ya hay un <div> con flex-gap
+    //      que aloja "Añadir", "Importar", "Exportar". Añadimos al final.
+    //   2) Pestañas tipo Proveedores: el botón principal "+ Añadir X" está
+    //      SUELTO directamente bajo .top-bar (sin wrapper). Si añadimos
+    //      otro botón al lado, .top-bar (justify-content: space-between)
+    //      los separa visualmente. Para evitarlo, envolvemos el botón
+    //      principal y el nuevo "Ver tutorial" en un <div> compartido,
+    //      así .top-bar solo ve 2 elementos (título + grupo de botones)
+    //      y los 2 botones quedan pegados.
+    //   3) Pestañas sin botones de acción: append al final del top-bar.
+    const directDivs = Array.from(topBar.children).filter(c => c.tagName === 'DIV');
+    const directButtons = Array.from(topBar.children).filter(c => c.tagName === 'BUTTON');
 
-    if (actionsContainer) {
-        actionsContainer.appendChild(btn);
+    if (directButtons.length > 0) {
+        // Caso 2: agrupar botón(es) suelto(s) + el nuevo en un wrapper.
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display: flex; gap: 10px; align-items: center;';
+        directButtons.forEach(b => wrapper.appendChild(b));
+        wrapper.appendChild(btn);
+        topBar.appendChild(wrapper);
+    } else if (directDivs.length > 1) {
+        // Caso 1: usar el wrapper de acciones existente.
+        directDivs[directDivs.length - 1].appendChild(btn);
     } else {
+        // Caso 3: append simple.
         topBar.appendChild(btn);
     }
 }
