@@ -14,12 +14,14 @@ const MODAL_ID = 'help-modal-overlay';
 const BTN_CLASS = 'help-modal-btn';
 
 function buildEmbedUrl(entry) {
+    // Usamos youtube-nocookie.com — versión privacy-enhanced que no setea
+    // cookies de tracking salvo que el usuario interactúe con el video.
+    // Mismas funcionalidades de embed que youtube.com.
     if (entry.playlistId) {
-        // Playlist completa: muestra la lista lateral en el iframe.
-        return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(entry.playlistId)}&rel=0`;
+        return `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(entry.playlistId)}&rel=0`;
     }
     if (entry.videoId) {
-        return `https://www.youtube.com/embed/${encodeURIComponent(entry.videoId)}?rel=0`;
+        return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(entry.videoId)}?rel=0`;
     }
     return null;
 }
@@ -106,20 +108,25 @@ function injectButtonInTab(tabKey) {
     // Evitar duplicados al re-montar.
     if (topBar.querySelector(`.${BTN_CLASS}`)) return;
 
-    // El segundo div del top-bar suele contener los botones de acción
-    // (Añadir, Importar, Exportar). Si existe, metemos el "?" ahí.
-    // Si no, lo añadimos al final del top-bar.
-    const actionsContainer = topBar.querySelector('div:last-child');
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `btn btn-secondary ${BTN_CLASS}`;
     btn.setAttribute('aria-label', 'Ver tutorial de esta pestaña');
     btn.title = 'Ver tutorial en video';
-    btn.innerHTML = '❓';
-    btn.style.minWidth = '44px';
+    btn.innerHTML = '🎬 Ver tutorial';
     btn.addEventListener('click', () => openTabHelp(tabKey));
 
-    if (actionsContainer && actionsContainer !== topBar.firstElementChild) {
+    // Localizar el contenedor de acciones del top-bar. En la mayoría de
+    // pestañas es un <div> con flex-gap que aloja "Añadir", "Importar",
+    // etc. En Proveedores el botón "Añadir Proveedor" está suelto sin
+    // wrapper. Cubrimos ambos casos:
+    //   1) Si existe un div NO-primero (típicamente con los botones), allí.
+    //   2) Si no, al final del propio top-bar (queda al lado del botón
+    //      principal "Añadir X").
+    const allDivs = topBar.querySelectorAll(':scope > div');
+    const actionsContainer = allDivs.length > 1 ? allDivs[allDivs.length - 1] : null;
+
+    if (actionsContainer) {
         actionsContainer.appendChild(btn);
     } else {
         topBar.appendChild(btn);
