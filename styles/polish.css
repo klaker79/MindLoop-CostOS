@@ -1221,3 +1221,27 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
     -moz-appearance: textfield;
 }
+
+/* --- Inteligencia: revisión de precios — contraste del badge ---
+   El badge de %food cost + precio sugerido heredaba .badge-danger
+   (#fee2e2 / #dc2626) que en modo dark sobre fondo oscuro renderiza
+   con muy poco contraste — los valores quedaban casi invisibles
+   (reportado por Iker 2026-05-07).
+   Aplicamos colores propios y fuertes solo dentro del panel intel,
+   sin afectar al uso de .badge-danger en otras pantallas. */
+.intel-badge.badge-danger {
+    background: #dc2626;
+    color: #ffffff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+.intel-item-detail {
+    color: #cbd5e1;
+}
+[data-theme="dark"] .intel-item-name {
+    color: #f8fafc;
+}

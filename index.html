@@ -848,13 +848,41 @@
                     <option value="suministro" data-i18n="ingredientes:form_family_supply">Suministro</option>
                   </select>
                 </div>
+
+                <!-- Formato de compra (opcional) — pegado a Unidad/Precio porque la
+                     información de "cómo compras este producto" está conceptualmente
+                     ligada al precio y a la unidad, no al inventario. Va antes de
+                     Stock para que el flujo natural sea: identifico → cómo lo compro
+                     → cuánto tengo en stock. -->
+                <div class="form-group"
+                  style="grid-column: span 2; margin-top: 10px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+                  <label style="font-weight: 600; color: #7c3aed;" data-i18n="ingredientes:form_format_title">📦 Formato
+                    de compra (opcional)</label>
+                  <p style="font-size: 12px; color: #64748b; margin: 5px 0 10px;"
+                    data-i18n="ingredientes:form_format_hint">Facilita los pedidos indicando cómo
+                    compras este producto</p>
+                </div>
+                <div class="form-group">
+                  <label data-i18n="ingredientes:form_format_label">Formato</label>
+                  <input type="text" id="ing-formato-compra" placeholder="ej: bote, garrafa, caja..."
+                    data-i18n-placeholder="ingredientes:form_format_placeholder">
+                </div>
+                <div class="form-group">
+                  <label data-i18n="ingredientes:form_format_quantity">Cantidad por formato</label>
+                  <input type="number" id="ing-cantidad-formato" step="0.01" min="0"
+                    placeholder="ej: 0.65 (kg), 10 (L)..."
+                    data-i18n-placeholder="ingredientes:form_format_qty_placeholder">
+                </div>
+
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_label_stock">Stock actual</label>
                   <input type="number" id="ing-stockActual" step="0.01" min="0">
                 </div>
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_label_stock_min">Stock mínimo</label>
-                  <input type="number" id="ing-stockMinimo" step="0.01" min="0">
+                  <!-- min=1: stock_minimo=0 hacía que Smart Order multiplicara su
+                       cálculo por 0 y nunca propusiera reposición. Ver fix 2026-05-07. -->
+                  <input type="number" id="ing-stockMinimo" step="0.01" min="1">
                 </div>
 
                 <!-- RENDIMIENTO / MERMA (Moved to bottom with Slider) -->
@@ -882,27 +910,6 @@
                     ℹ️ Define qué porcentaje del producto realmente usas. <br>
                     Ej: Si compras 1kg de carne y limpias 200g de grasa, el rendimiento es <strong>80%</strong>.
                   </p>
-                </div>
-
-                <!-- Formato de compra (opcional) -->
-                <div class="form-group"
-                  style="grid-column: span 2; margin-top: 10px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
-                  <label style="font-weight: 600; color: #7c3aed;" data-i18n="ingredientes:form_format_title">📦 Formato
-                    de compra (opcional)</label>
-                  <p style="font-size: 12px; color: #64748b; margin: 5px 0 10px;"
-                    data-i18n="ingredientes:form_format_hint">Facilita los pedidos indicando cómo
-                    compras este producto</p>
-                </div>
-                <div class="form-group">
-                  <label data-i18n="ingredientes:form_format_label">Formato</label>
-                  <input type="text" id="ing-formato-compra" placeholder="ej: bote, garrafa, caja..."
-                    data-i18n-placeholder="ingredientes:form_format_placeholder">
-                </div>
-                <div class="form-group">
-                  <label data-i18n="ingredientes:form_format_quantity">Cantidad por formato</label>
-                  <input type="number" id="ing-cantidad-formato" step="0.01" min="0"
-                    placeholder="ej: 0.65 (kg), 10 (L)..."
-                    data-i18n-placeholder="ingredientes:form_format_qty_placeholder">
                 </div>
               </div>
               <div class="form-actions">
