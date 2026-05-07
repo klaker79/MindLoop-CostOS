@@ -1207,3 +1207,17 @@ a[onclick*="cerrarSesion"]:hover {
 .gf-group > summary:hover {
     background: rgba(255, 255, 255, 0.04);
 }
+
+/* --- Inputs numéricos: ocultar spinners ---
+   Las flechitas nativas de <input type="number"> son fuente de ruido visual
+   y, sobre todo, están asociadas al cambio por rueda del ratón cuando el
+   input está enfocado. El listener wheel en main.js bloquea ese cambio;
+   esto solo limpia el aspecto. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}

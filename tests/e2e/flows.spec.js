@@ -3,9 +3,14 @@
  * La sesión se inicia en global-setup.spec.js y se reutiliza vía storageState
  * declarado en playwright.config.js (project "chromium" depends on "setup").
  *
- * Estos tests asumen que el tenant tiene el seed aplicado (ver
- * infrastructure_staging.md o el bloque SQL de seed). Como mínimo:
- *   3 proveedores, 12 ingredientes, 6 recetas — entre ellas "Pasta Bolonesa".
+ * Tras el reset de Demo Trattoria del 2026-05-06, el seed antiguo
+ * (Pasta Bolonesa, Bruschetta, etc.) ya no existe. Los tests asertan
+ * ahora contra data real introducida por Iker simulando un cliente
+ * nuevo. Como mínimo el tenant debe tener:
+ *   - Ingredientes: Tomate, Cebolla, Vino Albariño
+ *   - Recetas: Pulpo a Grella (con escandallo completo), Spaghetti con Tomate
+ *
+ * Si reseedeas o renombras estas recetas, actualiza los selectores aquí.
  */
 import { test, expect } from '@playwright/test';
 
@@ -22,37 +27,43 @@ test.describe('Dashboard', () => {
 });
 
 test.describe('Ingredientes', () => {
-    test('la lista muestra los 12 del seed', async ({ page }) => {
+    test('la lista muestra ingredientes clave del tenant', async ({ page }) => {
         await page.goto('/');
 
         await page.locator('[data-tab="ingredientes"]').first().click();
 
-        // Algunos ingredientes clave del seed deben estar presentes
-        await expect(page.getByText('Tomate').first()).toBeVisible({ timeout: 10_000 });
-        await expect(page.getByText('Cebolla').first()).toBeVisible();
-        await expect(page.getByText('Vino tinto').first()).toBeVisible();
+        // Match case-insensitive para tolerar mayúsculas/tildes según introducción del cliente.
+        await expect(page.getByText(/tomate/i).first()).toBeVisible({ timeout: 10_000 });
+        await expect(page.getByText(/cebolla/i).first()).toBeVisible();
+        await expect(page.getByText(/vino albari/i).first()).toBeVisible();
     });
 });
 
 test.describe('Recetas + escandallo', () => {
-    test('la lista de recetas muestra las del seed', async ({ page }) => {
+    // Receta canónica del tenant para los tests: tiene 4 ingredientes con
+    // rendimientos variados (Pulpo 70%, Patatas 85%, Ajada 100%, Sal 100%),
+    // categoría Alimentos, precio venta 22€ — buen estresado del escandallo.
+    const RECETA_PRINCIPAL = /pulpo a grella/i;
+    const RECETA_SECUNDARIA = /spaghetti con tomate/i;
+
+    test('la lista de recetas muestra recetas del tenant', async ({ page }) => {
         await page.goto('/');
 
         await page.locator('[data-tab="recetas"]').first().click();
 
-        await expect(page.getByText('Pasta Bolonesa').first()).toBeVisible({ timeout: 10_000 });
-        await expect(page.getByText('Bruschetta').first()).toBeVisible();
+        await expect(page.getByText(RECETA_PRINCIPAL).first()).toBeVisible({ timeout: 10_000 });
+        await expect(page.getByText(RECETA_SECUNDARIA).first()).toBeVisible();
     });
 
-    test('abrir escandallo de Pasta Bolonesa muestra coste y food cost', async ({ page }) => {
+    test('abrir escandallo de la receta principal muestra coste y food cost', async ({ page }) => {
         await page.goto('/');
 
         await page.locator('[data-tab="recetas"]').first().click();
-        await expect(page.getByText('Pasta Bolonesa').first()).toBeVisible({ timeout: 10_000 });
+        await expect(page.getByText(RECETA_PRINCIPAL).first()).toBeVisible({ timeout: 10_000 });
 
         // Fila que contiene el nombre, y dentro el botón .icon-btn.view (📊)
-        const pastaRow = page.locator('tr').filter({ hasText: 'Pasta Bolonesa' }).first();
-        await pastaRow.locator('button.icon-btn.view').click();
+        const recetaRow = page.locator('tr').filter({ hasText: RECETA_PRINCIPAL }).first();
+        await recetaRow.locator('button.icon-btn.view').click();
 
         // Modal de escandallo abre
         const modal = page.locator('#modal-escandallo');
@@ -66,9 +77,9 @@ test.describe('Recetas + escandallo', () => {
         await page.goto('/');
 
         await page.locator('[data-tab="recetas"]').first().click();
-        await expect(page.getByText('Pasta Bolonesa').first()).toBeVisible({ timeout: 10_000 });
+        await expect(page.getByText(RECETA_PRINCIPAL).first()).toBeVisible({ timeout: 10_000 });
 
-        await page.locator('tr').filter({ hasText: 'Pasta Bolonesa' }).first()
+        await page.locator('tr').filter({ hasText: RECETA_PRINCIPAL }).first()
             .locator('button.icon-btn.view').click();
 
         const modal = page.locator('#modal-escandallo');

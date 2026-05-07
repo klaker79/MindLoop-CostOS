@@ -1,14 +1,16 @@
 /**
  * Tests E2E del flujo Nuevo Pedido en staging.
  *
- * Versión inicial mínima: cubre que el formulario se abre y los elementos
- * críticos del modelo B (selector proveedor, lista ingredientes) están
- * presentes. Tests más finos del autollenado (cambio de formato, redondeo)
- * se añadirán en siguientes sesiones tras validarlos manualmente — los
- * primeros intentos fallaron por desajustes de selectores.
+ * Cubre que el formulario se abre y los elementos críticos (select de
+ * proveedor con sus options, fecha) están presentes en el DOM.
  *
- * Asume el seed staging documentado en infrastructure_staging.md
- * (Demo Trattoria KL: 3 proveedores, 12 ingredientes).
+ * NOTA sobre TomSelect: tras el PR #291 (feat buscador-proveedor) el
+ * `<select id="ped-proveedor">` se enriquece con TomSelect, que oculta
+ * el select nativo (display:none) y renderiza un wrapper `.ts-wrapper`
+ * encima. Por eso aquí usamos `toBeAttached()` en lugar de
+ * `toBeVisible()` — el select existe en DOM y sus options se pueblan
+ * normalmente, solo no es "visible" en el sentido CSS estricto. La UI
+ * que ve el usuario es el wrapper.
  */
 import { test, expect } from '@playwright/test';
 
@@ -23,7 +25,9 @@ test.describe('Pedidos — formulario Nuevo Pedido', () => {
         await page.locator('[data-action="mostrar-form-pedido"]').first().click();
 
         await expect(form).toBeVisible({ timeout: 10_000 });
-        await expect(form.locator('#ped-proveedor')).toBeVisible();
+        // El select original queda oculto bajo TomSelect — basta con verificar
+        // que está montado en DOM y que la UI visible (wrapper) está renderizada.
+        await expect(form.locator('#ped-proveedor')).toBeAttached();
         await expect(form.locator('#ped-fecha')).toBeVisible();
     });
 
@@ -33,7 +37,7 @@ test.describe('Pedidos — formulario Nuevo Pedido', () => {
         await page.locator('[data-action="mostrar-form-pedido"]').first().click();
 
         const proveedorSelect = page.locator('#formulario-pedido #ped-proveedor');
-        await expect(proveedorSelect).toBeVisible({ timeout: 10_000 });
+        await expect(proveedorSelect).toBeAttached({ timeout: 10_000 });
 
         // El select se popula async tras cargar /proveedores. Esperar a que haya
         // al menos una opción con value distinto de "" (es decir, no solo el placeholder).

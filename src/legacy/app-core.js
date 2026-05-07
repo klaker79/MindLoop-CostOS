@@ -1950,26 +1950,24 @@
 
     // Función para mostrar calculadora de conversión de formato
     window.mostrarCalculadoraFormato = function (ingredienteId, formato, cantidadPorFormato, unidad, nombreIngrediente) {
-        // Si no tiene formato configurado, permitir introducción manual
+        // Si no tiene formato configurado: en lugar de pedir el formato vía
+        // prompt() (UX confusa, parser frágil con coma, no persiste en BD —
+        // se perdía al refrescar), redirigimos al user al form de edición
+        // del ingrediente para que configure el formato y la cantidad por
+        // formato como dios manda. Próxima visita al inventario, el botón
+        // ya funciona sin más.
         if (!formato || !cantidadPorFormato) {
             const _tf = window.t || (k => k);
-            const respuesta = prompt(_tf('inventario:format_no_config', { name: nombreIngrediente || _tf('inventario:format_this_ingredient'), unit: unidad }));
+            const nombre = nombreIngrediente || _tf('inventario:format_this_ingredient');
+            const msg = _tf('inventario:format_no_config_confirm', { name: nombre, unit: unidad });
+            if (!confirm(msg)) return;
 
-            if (!respuesta) return;
-
-            const partes = respuesta.split(',');
-            if (partes.length !== 2) {
-                showToast((window.t || (k=>k))('inventario:format_invalid'), 'error');
-                return;
+            if (window.cambiarTab) window.cambiarTab('ingredientes');
+            if (window.editarIngrediente) window.editarIngrediente(ingredienteId);
+            if (window.showToast) {
+                window.showToast(_tf('inventario:format_redirect_hint'), 'info', 6000);
             }
-
-            formato = partes[0].trim();
-            cantidadPorFormato = parseFloat(partes[1].trim());
-
-            if (isNaN(cantidadPorFormato) || cantidadPorFormato <= 0) {
-                showToast((window.t || (k=>k))('inventario:format_qty_invalid'), 'error');
-                return;
-            }
+            return;
         }
 
         const cantidad = prompt((window.t || (k=>k))('inventario:format_how_many', { format: formato, qty: cantidadPorFormato, unit: unidad }));
