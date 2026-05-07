@@ -119,6 +119,8 @@
   "format_calc_from": "Calculate from {{format}}s",
   "format_configure_hint": "Configure purchase format to use conversion",
   "format_no_config": "{{name}} has no purchase format configured.\n\nEnter manually:\n1. Format name (e.g. box, bottle, crate)\n2. Quantity per format in {{unit}}\n\nExample: \"box,0.5\" means 1 box = 0.5 {{unit}}\n\nType format,quantity:",
+  "format_no_config_confirm": "{{name}} has no purchase format configured.\n\nTo use the calculator, you must first set:\n• Purchase format (e.g. bottle, box, jug)\n• Quantity per format (in {{unit}})\n\nEdit the ingredient now?",
+  "format_redirect_hint": "Fill in \"Purchase format\" and \"Quantity per format\" at the bottom of the form and save.",
   "format_this_ingredient": "This ingredient",
   "format_invalid": "Invalid format. Use: name,quantity (e.g. box,0.5)",
   "format_qty_invalid": "Invalid quantity",

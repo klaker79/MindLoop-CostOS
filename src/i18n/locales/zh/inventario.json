@@ -113,6 +113,8 @@
   "format_calc_from": "从{{format}}计算",
   "format_configure_hint": "配置采购规格以使用换算",
   "format_no_config": "{{name}} 未配置采购规格。\n\n请手动输入：\n1. 规格名称（如：箱、瓶、桶）\n2. 每规格数量（{{unit}}）\n\n示例：\"箱,0.5\" 表示1箱 = 0.5 {{unit}}\n\n请输入 规格,数量：",
+  "format_no_config_confirm": "{{name}} 未配置采购规格。\n\n要使用计算器，请先设置：\n• 采购规格（如：瓶、箱、桶）\n• 每规格数量（{{unit}}）\n\n现在去编辑食材吗？",
+  "format_redirect_hint": "请在表单底部填写「采购规格」和「每规格数量」，然后保存。",
   "format_this_ingredient": "此食材",
   "format_invalid": "无效规格。格式：名称,数量（如：箱,0.5）",
   "format_qty_invalid": "无效数量",

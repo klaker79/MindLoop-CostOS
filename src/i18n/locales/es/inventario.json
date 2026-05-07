@@ -119,6 +119,8 @@
   "format_calc_from": "Calcular desde {{format}}s",
   "format_configure_hint": "Configura formato de compra para usar conversión",
   "format_no_config": "{{name}} no tiene formato de compra configurado.\n\nIntroduce manualmente:\n1. Nombre del formato (ej: bote, caja, garrafa)\n2. Cantidad por formato en {{unit}}\n\nEjemplo: \"bote,0.5\" significa 1 bote = 0.5 {{unit}}\n\nEscribe formato,cantidad:",
+  "format_no_config_confirm": "{{name}} no tiene formato de compra configurado.\n\nPara usar la calculadora, primero hay que configurar:\n• Formato de compra (ej: bote, caja, garrafa)\n• Cantidad por formato (en {{unit}})\n\n¿Editar el ingrediente ahora?",
+  "format_redirect_hint": "Rellena los campos «Formato de compra» y «Cantidad por formato» al final del formulario y guarda.",
   "format_this_ingredient": "Este ingrediente",
   "format_invalid": "Formato inválido. Usa: nombre,cantidad (ej: bote,0.5)",
   "format_qty_invalid": "Cantidad inválida",
