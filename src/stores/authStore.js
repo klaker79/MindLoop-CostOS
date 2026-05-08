@@ -11,6 +11,7 @@
  */
 
 import { createStore } from 'zustand/vanilla';
+import { getApiUrl } from '../config/app-config.js';
 
 /**
  * Auth Store - Estado de autenticación
@@ -138,7 +139,17 @@ export const authStore = createStore((set, get) => ({
             const token = typeof window !== 'undefined' ? window.authToken : null;
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
-            const res = await fetch('/api/stripe/subscription-status', {
+            // Bug histórico: usaba URL relativa /api/stripe/subscription-status,
+            // que en staging y prod resolvía contra el dominio del frontend
+            // (staging.mindloop.cloud / app.mindloop.cloud) en lugar del backend
+            // (staging-api / lacaleta-api). El fetch fallaba con 404 y este método
+            // hacía return silencioso, dejando window._planData = undefined para
+            // siempre. Eso rompía:
+            //   - Tarjeta "Plan & Facturación" en Configuración (no cargaba).
+            //   - Banner de trial en cabecera (no aparecía).
+            //   - Cualquier feature gating basado en authStore.plan.
+            // Fix: prefijar con getApiUrl() (mismo helper que usa subscription.js).
+            const res = await fetch(getApiUrl() + '/stripe/subscription-status', {
                 headers,
                 credentials: 'include'
             });
