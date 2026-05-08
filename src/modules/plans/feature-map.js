@@ -24,11 +24,14 @@
  */
 
 export const FEATURE_REQUIREMENTS = {
+    // === Pedidos === (activadas 2026-05-08, sesión Anais)
     smart_order: 'pro',
-    // Pendientes — se irán activando pestaña a pestaña a medida que
-    // confirmemos el patrón en staging:
-    // repetir_pedido: 'pro',
-    // importar_excel: 'pro',
+    carrito_inteligente: 'pro',
+    importar_pedidos: 'pro',
+    transferencias: 'pro',
+    repetir_pedido: 'pro',
+
+    // === Pendientes — pestaña a pestaña ===
     // exportar_excel: 'pro',
     // grafica_evolucion_precio: 'pro',
     // multi_proveedor_ingrediente: 'pro',
