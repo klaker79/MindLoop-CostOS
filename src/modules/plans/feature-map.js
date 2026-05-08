@@ -47,6 +47,11 @@ export const FEATURE_REQUIREMENTS = {
     multi_proveedor_ingrediente: 'pro',
     // (carrito_inteligente reuso desde Pedidos para el botón 🛒 de fila)
 
+    // === Análisis === (activadas 2026-05-08, sesión Anais)
+    tab_analisis: 'pro',                    // tab entera (sidebar + horizontal nav)
+    ingenieria_menu_bcg: 'premium',         // matriz BCG, sección dentro de la tab
+    recomendaciones_inteligentes: 'premium',// panel de recomendaciones IA bajo BCG
+
     // === Pendientes — pestaña a pestaña ===
     // exportar_excel: 'pro',
     // grafica_evolucion_precio: 'pro',

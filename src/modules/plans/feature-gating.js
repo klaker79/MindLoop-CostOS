@@ -122,8 +122,70 @@ export function unlockButton(btn) {
 }
 
 /**
+ * Bloquea una sección entera (no un botón) con un overlay grande:
+ * corona + mensaje + CTA de upgrade. Pensado para paneles de Análisis
+ * (matriz BCG, recomendaciones) donde no hay un botón único.
+ *
+ * Idempotente. Preserva los IDs internos (canvas Chart.js, etc.) — solo
+ * añade el overlay encima sin tocar el contenido.
+ *
+ * @param {HTMLElement} el
+ * @param {string} requiredPlan
+ */
+export function lockSection(el, requiredPlan) {
+    if (!el || el._sectionLocked) return;
+    el._sectionLocked = true;
+    el.setAttribute(LOCK_ATTR, requiredPlan);
+
+    const cs = (typeof window !== 'undefined' && window.getComputedStyle)
+        ? window.getComputedStyle(el)
+        : { position: 'static' };
+    if (cs.position === 'static') {
+        el.style.position = 'relative';
+        el._sectionLockedAddedPos = true;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'locked-section-overlay';
+    overlay.innerHTML = `
+        <div class="locked-section-card">
+            <div class="locked-section-crown">👑</div>
+            <div class="locked-section-title">Disponible en plan ${requiredPlan.toUpperCase()}</div>
+            <button type="button" class="locked-section-cta">Mejorar plan</button>
+        </div>
+    `;
+    overlay.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.promptUpgradePlan === 'function') {
+            window.promptUpgradePlan();
+        } else {
+            window.showToast?.(`Esta función requiere plan ${requiredPlan.toUpperCase()}`, 'info');
+        }
+    });
+    el.appendChild(overlay);
+}
+
+/**
+ * Quita el overlay de una sección previamente bloqueada.
+ */
+export function unlockSection(el) {
+    if (!el || !el._sectionLocked) return;
+    el._sectionLocked = false;
+    el.removeAttribute(LOCK_ATTR);
+    el.querySelector('.locked-section-overlay')?.remove();
+    if (el._sectionLockedAddedPos) {
+        el.style.position = '';
+        el._sectionLockedAddedPos = false;
+    }
+}
+
+/**
  * Escanea el DOM y aplica lock/unlock según el plan actual.
  * Idempotente.
+ *
+ * `data-feature-mode="section"` → overlay grande encima del contenedor.
+ * Por defecto → modo botón (corona + click handler que abre paywall).
  */
 export function applyFeatureLocks(root = document) {
     const elements = root.querySelectorAll('[data-feature]');
@@ -131,14 +193,15 @@ export function applyFeatureLocks(root = document) {
         const feature = el.dataset.feature;
         if (!feature) return;
         const required = getRequiredPlan(feature);
+        const isSection = el.dataset.featureMode === 'section';
         if (!required) {
-            unlockButton(el);
+            if (isSection) unlockSection(el); else unlockButton(el);
             return;
         }
         if (canUse(feature)) {
-            unlockButton(el);
+            if (isSection) unlockSection(el); else unlockButton(el);
         } else {
-            lockButton(el, required);
+            if (isSection) lockSection(el, required); else lockButton(el, required);
         }
     });
 }
