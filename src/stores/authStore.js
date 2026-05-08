@@ -13,6 +13,24 @@
 import { createStore } from 'zustand/vanilla';
 
 /**
+ * Helper inline para resolver la base URL del backend.
+ *
+ * Replica la lógica de `config/app-config.js#getApiUrl()` pero sin importar
+ * desde ahí, porque app-config arrastra `config/constants.js` que lee
+ * `import.meta.env.VITE_STOCK_WARNING_THRESHOLD` y revienta en Jest+ESM
+ * (cada módulo tiene su propio `import.meta` y el polyfill del setup-esm
+ * no llega allí). Mantener authStore auto-contenido evita que el simple
+ * acto de importarlo en un test rompa la suite entera.
+ *
+ * En runtime (Vite) el resultado es idéntico al de getApiUrl original.
+ */
+function getApiBaseInline() {
+    const env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+    if (env.VITE_API_BASE_URL) return env.VITE_API_BASE_URL;
+    return env.DEV ? '' : 'https://lacaleta-api.mindloop.cloud';
+}
+
+/**
  * Auth Store - Estado de autenticación
  */
 const PLAN_LEVELS = { starter: 1, trial: 2, profesional: 2, premium: 3 };
@@ -138,7 +156,17 @@ export const authStore = createStore((set, get) => ({
             const token = typeof window !== 'undefined' ? window.authToken : null;
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
-            const res = await fetch('/api/stripe/subscription-status', {
+            // Bug histórico: usaba URL relativa /api/stripe/subscription-status,
+            // que en staging y prod resolvía contra el dominio del frontend
+            // (staging.mindloop.cloud / app.mindloop.cloud) en lugar del backend
+            // (staging-api / lacaleta-api). El fetch fallaba con 404 y este método
+            // hacía return silencioso, dejando window._planData = undefined para
+            // siempre. Eso rompía:
+            //   - Tarjeta "Plan & Facturación" en Configuración (no cargaba).
+            //   - Banner de trial en cabecera (no aparecía).
+            //   - Cualquier feature gating basado en authStore.plan.
+            // Fix: prefijar con getApiUrl() (mismo helper que usa subscription.js).
+            const res = await fetch(getApiBaseInline() + '/stripe/subscription-status', {
                 headers,
                 credentials: 'include'
             });
