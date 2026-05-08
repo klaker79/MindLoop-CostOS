@@ -33,6 +33,13 @@ export const FEATURE_REQUIREMENTS = {
     pedido_pdf: 'pro',
     pedido_whatsapp: 'pro',
 
+    // === Recetas === (activadas 2026-05-08, sesión Anais)
+    importar_recetas: 'pro',
+    exportar_recetas: 'pro',
+    cost_tracker: 'pro',
+    variantes_botella_copa: 'pro',
+    escandallo_toggle_real: 'pro',
+
     // === Pendientes — pestaña a pestaña ===
     // exportar_excel: 'pro',
     // grafica_evolucion_precio: 'pro',
