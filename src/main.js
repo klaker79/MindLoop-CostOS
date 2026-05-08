@@ -168,6 +168,14 @@ window.setupYieldSlider = setupYieldSlider;
 import { mountHelpModal } from './modules/help/help-modal.js';
 document.addEventListener('DOMContentLoaded', mountHelpModal);
 
+// Plan feature gating — capa visual con corona dorada en botones de
+// planes superiores. fail-OPEN: si el plan no se ha cargado todavía,
+// los botones se ven normales. Solo bloquea cuando window._planData.plan
+// está cargado y es inferior al requerido. El backend ya tiene su gate
+// independiente con requirePlan() en lacaleta-api/planGate.js.
+import { mountFeatureLocks } from './modules/plans/feature-gating.js';
+document.addEventListener('DOMContentLoaded', mountFeatureLocks);
+
 // Sales Forecast (predicción)
 import { calcularForecast, renderForecastChart } from './modules/analytics/forecast.js';
 window.calcularForecast = calcularForecast;
