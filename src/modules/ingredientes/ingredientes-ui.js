@@ -282,9 +282,9 @@ export function renderizarIngredientes() {
                 </td>
                 <td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + escapeHTML(ing.unidad) : '-'}</td>
                 <td>
-                    <button class="icon-btn" onclick="window.agregarAlCarrito(${ing.id}, 1)" title="${t('ingredientes:btn_add_to_cart_title')}" style="color: #f97316;">🛒</button>
-                    <button class="icon-btn" onclick="window.verEvolucionPrecio(${ing.id})" title="${t('ingredientes:btn_price_evolution_title')}" style="color: #3b82f6;">📈</button>
-                    <button class="icon-btn" onclick="window.gestionarProveedoresIngrediente(${ing.id})" title="${t('ingredientes:btn_manage_suppliers_title')}" style="color: #8b5cf6;">🏢</button>
+                    <button class="icon-btn" data-feature="carrito_inteligente" onclick="window.agregarAlCarrito(${ing.id}, 1)" title="${t('ingredientes:btn_add_to_cart_title')}" style="color: #f97316;">🛒</button>
+                    <button class="icon-btn" data-feature="grafica_evolucion_precio" onclick="window.verEvolucionPrecio(${ing.id})" title="${t('ingredientes:btn_price_evolution_title')}" style="color: #3b82f6;">📈</button>
+                    <button class="icon-btn" data-feature="multi_proveedor_ingrediente" onclick="window.gestionarProveedoresIngrediente(${ing.id})" title="${t('ingredientes:btn_manage_suppliers_title')}" style="color: #8b5cf6;">🏢</button>
                     <button class="icon-btn edit" onclick="window.editarIngrediente(${ing.id})" title="${t('ingredientes:btn_edit_title')}">✏️</button>
                     ${toggleBtn}
                     <button class="icon-btn delete" onclick="window.eliminarIngrediente(${ing.id})" title="${t('ingredientes:btn_delete_title')}">🗑️</button>
@@ -333,6 +333,9 @@ export function renderizarIngredientes() {
           `;
             resumen.style.display = 'flex';
         }
+
+        // Reaplicar locks tras render dinámico (botones 🛒 carrito, 📈 evolución, 🏢 multi-proveedor).
+        window.applyFeatureLocks?.();
     }
 }
 

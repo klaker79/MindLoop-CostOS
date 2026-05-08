@@ -40,6 +40,13 @@ export const FEATURE_REQUIREMENTS = {
     variantes_botella_copa: 'pro',
     escandallo_toggle_real: 'pro',
 
+    // === Ingredientes === (activadas 2026-05-08, sesión Anais)
+    importar_ingredientes: 'pro',
+    exportar_ingredientes: 'pro',
+    grafica_evolucion_precio: 'pro',
+    multi_proveedor_ingrediente: 'pro',
+    // (carrito_inteligente reuso desde Pedidos para el botón 🛒 de fila)
+
     // === Pendientes — pestaña a pestaña ===
     // exportar_excel: 'pro',
     // grafica_evolucion_precio: 'pro',
