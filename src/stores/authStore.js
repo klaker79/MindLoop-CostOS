@@ -11,7 +11,24 @@
  */
 
 import { createStore } from 'zustand/vanilla';
-import { getApiUrl } from '../config/app-config.js';
+
+/**
+ * Helper inline para resolver la base URL del backend.
+ *
+ * Replica la lógica de `config/app-config.js#getApiUrl()` pero sin importar
+ * desde ahí, porque app-config arrastra `config/constants.js` que lee
+ * `import.meta.env.VITE_STOCK_WARNING_THRESHOLD` y revienta en Jest+ESM
+ * (cada módulo tiene su propio `import.meta` y el polyfill del setup-esm
+ * no llega allí). Mantener authStore auto-contenido evita que el simple
+ * acto de importarlo en un test rompa la suite entera.
+ *
+ * En runtime (Vite) el resultado es idéntico al de getApiUrl original.
+ */
+function getApiBaseInline() {
+    const env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+    if (env.VITE_API_BASE_URL) return env.VITE_API_BASE_URL;
+    return env.DEV ? '' : 'https://lacaleta-api.mindloop.cloud';
+}
 
 /**
  * Auth Store - Estado de autenticación
@@ -149,7 +166,7 @@ export const authStore = createStore((set, get) => ({
             //   - Banner de trial en cabecera (no aparecía).
             //   - Cualquier feature gating basado en authStore.plan.
             // Fix: prefijar con getApiUrl() (mismo helper que usa subscription.js).
-            const res = await fetch(getApiUrl() + '/stripe/subscription-status', {
+            const res = await fetch(getApiBaseInline() + '/stripe/subscription-status', {
                 headers,
                 credentials: 'include'
             });
