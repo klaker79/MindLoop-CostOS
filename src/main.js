@@ -671,6 +671,26 @@ window.eliminarUsuarioEquipo = Equipo.eliminarUsuarioEquipo;
 // Self-registering: sets window.loadSubscriptionStatus, promptUpgradePlan, openBillingPortal
 import './modules/subscription/subscription.js';
 
+// Cargar el plan del usuario al arrancar la app (post-login). subscription.js
+// se llama también al abrir la pestaña Configuración, pero queremos que
+// window._planData esté disponible globalmente desde el primer momento, no
+// solo cuando el usuario navega a Configuración. Cualquier código que necesite
+// el plan (banner trial, feature gating, KPIs condicionados, etc.) puede
+// escuchar el evento `plan:loaded` o leer window._planData tras este bootstrap.
+function bootstrapPlanData() {
+    if (typeof window === 'undefined') return;
+    // Solo intentar si hay sesión (token activo). Si el usuario no está
+    // logueado, no tiene sentido pedir /stripe/subscription-status (devolvería
+    // 401 silencioso).
+    if (!window.authToken && !sessionStorage.getItem('_at')) return;
+    window.loadSubscriptionStatus?.();
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(bootstrapPlanData, 500));
+} else {
+    setTimeout(bootstrapPlanData, 500);
+}
+
 // ============================================
 // MÓDULO: CHAT IA 🤖
 // ============================================

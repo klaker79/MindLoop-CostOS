@@ -80,6 +80,19 @@ export async function loadSubscriptionStatus() {
             trial_ends_at: data.trial_ends_at
         });
 
+        // Sincronización global: window._planData + evento plan:loaded.
+        // Este handler ya lo hace authStore.loadPlanData, pero esa función
+        // depende de checkAuth() que en el bootstrap actual no siempre se
+        // ejecuta a tiempo. Replicamos aquí para garantizar que cualquier
+        // consumidor del plan (window._planData o window.addEventListener
+        // 'plan:loaded') reciba el dato siempre que se llame a
+        // loadSubscriptionStatus, que es la función que el resto de la app
+        // ya llama desde múltiples sitios.
+        if (typeof window !== 'undefined') {
+            window._planData = data;
+            window.dispatchEvent(new CustomEvent('plan:loaded', { detail: data }));
+        }
+
         if (container) renderPlanCard(container, data);
         renderTrialBanner(data);
 
