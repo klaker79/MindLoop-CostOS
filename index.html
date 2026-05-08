@@ -2518,10 +2518,10 @@
           <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
             <button class="btn btn-secondary" data-action="cerrar-modal-pedido"
               data-i18n="common:btn_close">Cerrar</button>
-            <button class="btn" style="background: #25D366; color: white;" onclick="window.enviarPedidoWhatsApp()">
+            <button class="btn" style="background: #25D366; color: white;" onclick="window.enviarPedidoWhatsApp()" data-feature="pedido_whatsapp">
               <span data-i18n="pedidos:btn_whatsapp">📱 WhatsApp</span>
             </button>
-            <button class="btn btn-primary" data-action="descargar-pedido-pdf" id="btn-descargar-pdf">
+            <button class="btn btn-primary" data-action="descargar-pedido-pdf" id="btn-descargar-pdf" data-feature="pedido_pdf">
               <span data-i18n="pedidos:btn_download_pdf">📄 Descargar PDF</span>
             </button>
           </div>
@@ -3236,7 +3236,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260421-escandallo-toggle"></script>
+  <script type="module" src="./src/main.js?v=20260506-pedidos-pdf-whatsapp-gating"></script>
 </body>
 
 </html>
