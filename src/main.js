@@ -168,13 +168,6 @@ window.setupYieldSlider = setupYieldSlider;
 import { mountHelpModal } from './modules/help/help-modal.js';
 document.addEventListener('DOMContentLoaded', mountHelpModal);
 
-// Plan feature gating — capa visual de planes (corona + paywall).
-// Aplica lock a elementos con data-feature="..." según el plan del
-// usuario. El backend ya tiene su gate propio (requirePlan en
-// lacaleta-api). Esto solo es la cara visual.
-import { mountFeatureLocks } from './modules/plans/feature-gating.js';
-document.addEventListener('DOMContentLoaded', mountFeatureLocks);
-
 // Sales Forecast (predicción)
 import { calcularForecast, renderForecastChart } from './modules/analytics/forecast.js';
 window.calcularForecast = calcularForecast;
