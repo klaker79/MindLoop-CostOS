@@ -30,6 +30,8 @@ export const FEATURE_REQUIREMENTS = {
     importar_pedidos: 'pro',
     transferencias: 'pro',
     repetir_pedido: 'pro',
+    pedido_pdf: 'pro',
+    pedido_whatsapp: 'pro',
 
     // === Pendientes — pestaña a pestaña ===
     // exportar_excel: 'pro',
