@@ -934,11 +934,11 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-receta" data-i18n="recetas:btn_new">➕ Nueva
                 Receta</button>
-              <button class="btn btn-secondary" data-action="importar-recetas" data-i18n="common:btn_import_excel">📤
+              <button class="btn btn-secondary" data-feature="importar_recetas" data-action="importar-recetas" data-i18n="common:btn_import_excel">📤
                 Importar Excel</button>
-              <button class="btn btn-secondary" data-action="exportar-recetas" data-i18n="common:btn_export_excel">📥
+              <button class="btn btn-secondary" data-feature="exportar_recetas" data-action="exportar-recetas" data-i18n="common:btn_export_excel">📥
                 Exportar Excel</button>
-              <button class="btn" onclick="window.mostrarCostTracker()"
+              <button class="btn" data-feature="cost_tracker" onclick="window.mostrarCostTracker()"
                 style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 <span
                   data-i18n="recetas:btn_cost_tracking">Seguimiento Costes</span></button>
             </div>
@@ -3236,7 +3236,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260506-pedidos-pdf-whatsapp-gating"></script>
+  <script type="module" src="./src/main.js?v=20260508-recetas-gating"></script>
 </body>
 
 </html>
