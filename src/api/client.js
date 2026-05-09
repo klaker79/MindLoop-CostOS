@@ -73,20 +73,6 @@ async function handleResponse(response) {
             }
         }
 
-        // 403 Plan gate: solo toast informativo. NO auto-abrir el modal de
-        // upgrade — antes (BUG): cualquier fetch de fondo que recibiese 403
-        // (típico: Starter cargando dashboard pide /recipes-variants y
-        // /gastos-fijos que requieren Pro) disparaba el modal sin que el
-        // usuario hiciera click en nada. UX agresiva.
-        //
-        // El modal de upgrade ahora solo lo dispara feature-gating cuando el
-        // usuario pulsa explícitamente un botón con .locked-feature
-        // (data-feature). Ahí sí es la acción esperada.
-        if (response.status === 403 && typeof errorMessage === 'string' &&
-            (errorMessage.includes('requiere el plan') || errorMessage.includes('prueba ha expirado') || errorMessage.includes('no activa'))) {
-            window.showToast?.(errorMessage, 'warning');
-        }
-
         // 🔧 FIX BUG-5: Incluir .status para que callers puedan distinguir 4xx de 5xx
         const error = new Error(errorMessage);
         error.status = response.status;

@@ -96,9 +96,6 @@ export async function loadSubscriptionStatus() {
         if (container) renderPlanCard(container, data);
         renderTrialBanner(data);
 
-        // Update sidebar locks with fresh plan data
-        window.updateSidebarLocks?.();
-
         // Show trial expired modal if needed (only once per session)
         const isExpired = data.plan_status === 'expired' || (data.plan === 'trial' && data.trial_days_left !== null && data.trial_days_left <= 0);
         if (isExpired && !window._trialExpiredShown) {

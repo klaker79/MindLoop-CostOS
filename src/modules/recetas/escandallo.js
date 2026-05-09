@@ -119,16 +119,13 @@ export async function verEscandallo(recetaId) {
         ? ((real.costeTotal - nominal.costeTotal) / nominal.costeTotal) * 100
         : 0;
 
-    // El modo 'real' es Pro. Si el usuario no puede usarlo, arrancar en 'nominal'
-    // para que el contenido sea coherente con el toggle (que aparecerá con corona).
-    const puedeReal = window.canUse ? window.canUse('escandallo_toggle_real') : true;
     window._escandalloActual = {
         receta,
         real,
         nominal,
         precioVenta,
         deviationPct,
-        modoActivo: puedeReal ? 'real' : 'nominal'
+        modoActivo: 'real'
     };
 
     let modal = document.getElementById('modal-escandallo');
@@ -183,9 +180,7 @@ function renderToggleYDeviation() {
 
     const togglePill = (mode, labelKey) => {
         const active = modoActivo === mode;
-        // Solo el modo 'real' está gateado a Pro. 'nominal' libre (core).
-        const featureAttr = mode === 'real' ? ' data-feature="escandallo_toggle_real"' : '';
-        return `<button type="button" data-modo="${mode}"${featureAttr} class="escandallo-toggle-btn" style="
+        return `<button type="button" data-modo="${mode}" class="escandallo-toggle-btn" style="
             padding: 6px 14px;
             border-radius: 999px;
             border: 1px solid ${active ? '#3B82F6' : '#CBD5E1'};
@@ -217,8 +212,6 @@ function renderToggleYDeviation() {
                 await renderContenido();
             });
         });
-        // El pill 'real' lleva data-feature; aplicar lock tras render dinámico.
-        window.applyFeatureLocks?.();
     }
 
     const devEl = document.getElementById('escandallo-deviation');

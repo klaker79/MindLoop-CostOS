@@ -168,28 +168,12 @@ window.setupYieldSlider = setupYieldSlider;
 import { mountHelpModal } from './modules/help/help-modal.js';
 document.addEventListener('DOMContentLoaded', mountHelpModal);
 
-// Plan feature gating — capa visual con corona dorada en botones de
-// planes superiores. fail-OPEN: si el plan no se ha cargado todavía,
-// los botones se ven normales. Solo bloquea cuando window._planData.plan
-// está cargado y es inferior al requerido. El backend ya tiene su gate
-// independiente con requirePlan() en lacaleta-api/planGate.js.
-import { mountFeatureLocks } from './modules/plans/feature-gating.js';
-document.addEventListener('DOMContentLoaded', mountFeatureLocks);
-
 // Parser flexible de inventario. El módulo es ESM, pero
 // src/legacy/inventario-masivo.js se carga como <script> plano y no puede
 // usar `import`. Lo consume vía window.__inventarioFlexible.
 import * as inventarioFlexible from './modules/inventario/flexible-parser.js';
 if (typeof window !== 'undefined') {
     window.__inventarioFlexible = inventarioFlexible;
-}
-
-// Plan guard: helper para no disparar fetches a endpoints Pro/Premium
-// cuando el usuario no llega al plan. Mismo patrón window-bridge para que
-// los scripts legacy lo consuman.
-import * as planGuard from './modules/plans/plan-guard.js';
-if (typeof window !== 'undefined') {
-    window.__planGuard = planGuard;
 }
 
 // Sales Forecast (predicción)

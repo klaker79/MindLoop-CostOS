@@ -1,7 +1,6 @@
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { calculateIngredientCost, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
-import { planGuardedFetch } from '../plans/plan-guard.js';
 import { t } from '@/i18n/index.js';
 /**
  * Recetas UI Module
@@ -354,16 +353,10 @@ window.filtrarRecetasPorCategoria = function (categoria) {
 };
 
 export async function renderizarRecetas() {
-    // 🍷 Cargar variantes si no están cargadas (para mostrar códigos TPV).
-    //    Saltar si el usuario es Starter — el endpoint requiere Pro y
-    //    devolvería 403 silencioso (ruido en consola/toasts).
+    // 🍷 Cargar variantes si no están cargadas (para mostrar códigos TPV)
     if (!Array.isArray(window.recetasVariantes) && window.API?.fetch) {
         try {
-            const result = await planGuardedFetch(
-                'profesional',
-                () => window.API.fetch('/api/recipes-variants'),
-                []
-            );
+            const result = await window.API.fetch('/api/recipes-variants');
             window.recetasVariantes = Array.isArray(result) ? result : [];
         } catch (e) {
             console.warn('No se pudieron cargar variantes:', e);
@@ -480,7 +473,7 @@ export async function renderizarRecetas() {
             html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="${t('recetas:btn_view_escandallo')}">📊</button>`;
             // Botón de variantes solo para bebidas (botella/copa)
             if (rec.categoria?.toLowerCase() === 'bebidas' || rec.categoria?.toLowerCase() === 'bebida') {
-                html += `<button class="icon-btn" data-feature="variantes_botella_copa" onclick="window.gestionarVariantesReceta(${rec.id})" title="${t('recetas:btn_variants')}" style="color: #7C3AED;">🍷</button>`;
+                html += `<button class="icon-btn" onclick="window.gestionarVariantesReceta(${rec.id})" title="${t('recetas:btn_variants')}" style="color: #7C3AED;">🍷</button>`;
             }
             html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
             html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
@@ -518,15 +511,12 @@ export async function renderizarRecetas() {
               <div>${t('recetas:summary_total', { count: recetas.length })}</div>
               <div>${t('recetas:summary_filtered', { count: filtradas.length })}</div>
               <div>${t('recetas:summary_showing', { count: `${startIndex + 1}-${Math.min(endIndex, totalItems)}` })}</div>
-              <button data-feature="cost_tracker" onclick="window.mostrarCostTracker()" style="margin-left: auto; background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              <button onclick="window.mostrarCostTracker()" style="margin-left: auto; background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
                 📊 ${t('recetas:btn_cost_tracking')}
               </button>
             `;
             resumenEl.style.display = 'flex';
         }
-
-        // Reaplicar locks tras render dinámico (botones 🍷 variantes y 📊 cost tracker).
-        window.applyFeatureLocks?.();
     }
 }
 
