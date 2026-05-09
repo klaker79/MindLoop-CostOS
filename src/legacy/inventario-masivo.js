@@ -15,16 +15,10 @@
 // La elección es transparente: si la cabecera del Excel matchea la plantilla
 // nativa se usa el flujo legacy (compatible 100%). Si no, se aplica el
 // parser flexible. La capa de subida al backend (consolidateStock) NO cambia.
-
-import {
-    isLegacyTemplate as flexIsLegacy,
-    detectColumns as flexDetectColumns,
-    parseFlexibleRows as flexParseRows,
-    buildCodeIndex as flexBuildCodeIndex,
-    buildNameIndex as flexBuildNameIndex,
-    matchRow as flexMatchRow,
-    convertToBaseUnit as flexConvertBase,
-} from '../modules/inventario/flexible-parser.js';
+//
+// IMPORTANTE: este archivo se carga como <script> plano (no ESM), por eso
+// NO usamos `import`. Las funciones del parser viven en window.__inventarioFlexible,
+// expuestas desde main.js (que sí es módulo ES6) para evitar romper el script.
 
 // Función anti-XSS: Sanitiza datos de usuario antes de insertarlos en HTML
 /* global cm -- defined via window.cm in main.js */
@@ -85,7 +79,7 @@ async function leerArchivoInventario(file) {
                 }
 
                 const headers = rows[0] || [];
-                const useLegacy = flexIsLegacy(headers);
+                const useLegacy = window.__inventarioFlexible.isLegacyTemplate(headers);
 
                 if (useLegacy) {
                     // Flujo legacy: 100% compatible con plantilla nativa
@@ -109,7 +103,7 @@ async function leerArchivoInventario(file) {
                 }
 
                 // Flujo flexible: detectar columnas
-                const cols = flexDetectColumns(headers);
+                const cols = window.__inventarioFlexible.detectColumns(headers);
                 if (cols.ambiguous.length > 0) {
                     reject(new Error(
                         'No se pudieron detectar las columnas: ' + cols.ambiguous.join(', ') +
@@ -117,7 +111,7 @@ async function leerArchivoInventario(file) {
                     ));
                     return;
                 }
-                const parsed = flexParseRows(rows, cols);
+                const parsed = window.__inventarioFlexible.parseFlexibleRows(rows, cols);
                 if (parsed.length === 0) {
                     reject(new Error('No se encontraron filas con stock numérico en el archivo'));
                     return;
@@ -149,8 +143,8 @@ async function validarDatosInventario(data) {
     // Modo flexible: cargar variantes del restaurante para matching por código TPV
     const variantes = await cargarVariantesParaMatching();
     const recetasById = new Map((window.recetas || []).map(r => [r.id, r]));
-    const codeIndex = flexBuildCodeIndex(variantes, recetasById);
-    const nameIndex = flexBuildNameIndex(ingredientesActuales);
+    const codeIndex = window.__inventarioFlexible.buildCodeIndex(variantes, recetasById);
+    const nameIndex = window.__inventarioFlexible.buildNameIndex(ingredientesActuales);
     const ctx = { ingredientes: ingredientesActuales, codeIndex, nameIndex };
 
     return data.map(row => validarFlexible(row, ctx));
@@ -177,7 +171,7 @@ function validarLegacy(item, ingredientes) {
 }
 
 function validarFlexible(row, ctx) {
-    const matched = flexMatchRow(row, ctx);
+    const matched = window.__inventarioFlexible.matchRow(row, ctx);
     if (!matched) {
         return {
             ingrediente: row.name || row.codigo || '(sin identificar)',
@@ -191,7 +185,7 @@ function validarFlexible(row, ctx) {
         };
     }
     const ing = matched.ingrediente;
-    const conv = flexConvertBase(row.stock, row.formato, ing);
+    const conv = window.__inventarioFlexible.convertToBaseUnit(row.stock, row.formato, ing);
     const stockBase = conv.stockBase;
     const stockActual = parseFloat(ing.stock_actual || ing.stock_virtual || 0);
     return {
