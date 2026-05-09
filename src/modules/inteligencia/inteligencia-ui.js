@@ -1,5 +1,6 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
+import { planLevelMet } from '../plans/plan-guard.js';
 
 /**
  * 🧠 Inteligencia - Dashboard Predictivo
@@ -7,6 +8,11 @@ import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
 
 // ========== API ==========
 async function fetchIntelligence(endpoint) {
+    // Todos los endpoints /intelligence/* requieren plan profesional.
+    // Si el usuario es Starter, devolver null sin tocar la red.
+    if (!planLevelMet('profesional')) {
+        return null;
+    }
     try {
         // fix M6: el fallback necesita /api al final (igual que getApiUrl() que devuelve baseUrl+'/api')
         const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud/api';

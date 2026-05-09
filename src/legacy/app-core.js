@@ -596,8 +596,11 @@
             return await res.json();
         },
 
-        // GASTOS FIJOS (Fixed Expenses) - Database backed
+        // GASTOS FIJOS (Fixed Expenses) - Database backed. Requiere plan profesional.
         async getGastosFijos() {
+            if (window.__planGuard && !window.__planGuard.planLevelMet('profesional')) {
+                return [];
+            }
             try {
                 const res = await fetchWithCreds(getApiBase() + '/gastos-fijos', {
                     headers: getAuthHeaders(),

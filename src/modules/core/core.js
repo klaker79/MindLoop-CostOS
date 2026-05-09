@@ -8,6 +8,7 @@ import { getApiUrl } from '../../config/app-config.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 import { initializeStores } from '../../stores/index.js';
 import { authStore, PLAN_LEVELS } from '../../stores/authStore.js';
+import { planGuardedFetch } from '../plans/plan-guard.js';
 import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
@@ -76,9 +77,14 @@ async function _cargarDatosInternal() {
             fetch(API_BASE + '/ingredients-suppliers', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /ingredients-suppliers failed, keeping existing data'), window.ingredientesProveedores || [])
             ).catch(() => (console.warn('⚠️ /ingredients-suppliers network error'), window.ingredientesProveedores || [])),
-            fetch(API_BASE + '/recipes-variants', fetchOptions).then((r) =>
-                r.ok ? r.json() : (console.warn('⚠️ /recipes-variants failed, keeping existing data'), window.recetasVariantes || [])
-            ).catch(() => (console.warn('⚠️ /recipes-variants network error'), window.recetasVariantes || [])),
+            // /recipes-variants requiere plan profesional. Saltar el fetch
+            // si el usuario es Starter (evita 403 silencioso en consola).
+            planGuardedFetch('profesional', () =>
+                fetch(API_BASE + '/recipes-variants', fetchOptions).then((r) =>
+                    r.ok ? r.json() : (console.warn('⚠️ /recipes-variants failed, keeping existing data'), window.recetasVariantes || [])
+                ).catch(() => (console.warn('⚠️ /recipes-variants network error'), window.recetasVariantes || [])),
+                window.recetasVariantes || []
+            ),
         ]);
 
         window.ingredientes = Array.isArray(ingredientes) ? ingredientes : [];
