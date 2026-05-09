@@ -9,7 +9,7 @@
 
 import { escapeHTML } from '../../../utils/helpers.js';
 import { apiClient } from '../../../api/client.js';
-import { planLevelMet } from '../../plans/plan-guard.js';
+import { waitForPlanData, planLevelMet } from '../../plans/plan-guard.js';
 import { t } from '@/i18n/index.js';
 
 export async function renderKpiPersonalHoy() {
@@ -23,9 +23,10 @@ export async function renderKpiPersonalHoy() {
         let empleados = window.empleados || [];
         let horariosHoy = [];
 
-        // /empleados y /horarios requieren plan profesional. Si el usuario no
-        // llega, no hay nada que mostrar — el KPI quedará con el placeholder
-        // por defecto (-/-) sin disparar 403 en consola.
+        // /empleados y /horarios requieren plan profesional. Esperamos a
+        // _planData antes del check (sin esto, en la carga inicial cae en
+        // fail-OPEN y dispara los fetches → 403 silenciosos).
+        await waitForPlanData();
         if (!planLevelMet('profesional')) {
             empleados = [];
         } else {

@@ -215,7 +215,10 @@ function validarFlexible(row, ctx) {
  */
 async function cargarVariantesParaMatching() {
     // Saltar si el usuario es Starter — el endpoint requiere Pro y daría 403
-    // silencioso. Sin variantes, el matching cae al modo nombre (también funciona).
+    // silencioso. Sin variantes, el matching cae al modo nombre.
+    if (window.__planGuard?.waitForPlanData) {
+        await window.__planGuard.waitForPlanData();
+    }
     if (window.__planGuard && !window.__planGuard.planLevelMet('profesional')) {
         return [];
     }
