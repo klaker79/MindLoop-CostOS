@@ -176,6 +176,14 @@ document.addEventListener('DOMContentLoaded', mountHelpModal);
 import { mountFeatureLocks } from './modules/plans/feature-gating.js';
 document.addEventListener('DOMContentLoaded', mountFeatureLocks);
 
+// Parser flexible de inventario. El módulo es ESM, pero
+// src/legacy/inventario-masivo.js se carga como <script> plano y no puede
+// usar `import`. Lo consume vía window.__inventarioFlexible.
+import * as inventarioFlexible from './modules/inventario/flexible-parser.js';
+if (typeof window !== 'undefined') {
+    window.__inventarioFlexible = inventarioFlexible;
+}
+
 // Sales Forecast (predicción)
 import { calcularForecast, renderForecastChart } from './modules/analytics/forecast.js';
 window.calcularForecast = calcularForecast;
