@@ -162,6 +162,28 @@ import { setupYieldSlider } from './modules/ingredientes/ingredientes-ui.js';
 window.verEvolucionPrecio = verEvolucionPrecio;
 window.setupYieldSlider = setupYieldSlider;
 
+// Help Modal — videos tutoriales de YouTube por pestaña.
+// Inserta un botón "?" en el header de cada pestaña que tenga entrada
+// en src/modules/help/help-config.js. Sin entrada → sin botón.
+import { mountHelpModal } from './modules/help/help-modal.js';
+document.addEventListener('DOMContentLoaded', mountHelpModal);
+
+// Plan feature gating — capa visual con corona dorada en botones de
+// planes superiores. fail-OPEN: si el plan no se ha cargado todavía,
+// los botones se ven normales. Solo bloquea cuando window._planData.plan
+// está cargado y es inferior al requerido. El backend ya tiene su gate
+// independiente con requirePlan() en lacaleta-api/planGate.js.
+import { mountFeatureLocks } from './modules/plans/feature-gating.js';
+document.addEventListener('DOMContentLoaded', mountFeatureLocks);
+
+// Parser flexible de inventario. El módulo es ESM, pero
+// src/legacy/inventario-masivo.js se carga como <script> plano y no puede
+// usar `import`. Lo consume vía window.__inventarioFlexible.
+import * as inventarioFlexible from './modules/inventario/flexible-parser.js';
+if (typeof window !== 'undefined') {
+    window.__inventarioFlexible = inventarioFlexible;
+}
+
 // Sales Forecast (predicción)
 import { calcularForecast, renderForecastChart } from './modules/analytics/forecast.js';
 window.calcularForecast = calcularForecast;
@@ -664,6 +686,26 @@ window.eliminarUsuarioEquipo = Equipo.eliminarUsuarioEquipo;
 // ============================================
 // Self-registering: sets window.loadSubscriptionStatus, promptUpgradePlan, openBillingPortal
 import './modules/subscription/subscription.js';
+
+// Cargar el plan del usuario al arrancar la app (post-login). subscription.js
+// se llama también al abrir la pestaña Configuración, pero queremos que
+// window._planData esté disponible globalmente desde el primer momento, no
+// solo cuando el usuario navega a Configuración. Cualquier código que necesite
+// el plan (banner trial, feature gating, KPIs condicionados, etc.) puede
+// escuchar el evento `plan:loaded` o leer window._planData tras este bootstrap.
+function bootstrapPlanData() {
+    if (typeof window === 'undefined') return;
+    // Solo intentar si hay sesión (token activo). Si el usuario no está
+    // logueado, no tiene sentido pedir /stripe/subscription-status (devolvería
+    // 401 silencioso).
+    if (!window.authToken && !sessionStorage.getItem('_at')) return;
+    window.loadSubscriptionStatus?.();
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(bootstrapPlanData, 500));
+} else {
+    setTimeout(bootstrapPlanData, 500);
+}
 
 // ============================================
 // MÓDULO: CHAT IA 🤖

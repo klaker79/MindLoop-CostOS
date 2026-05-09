@@ -53,7 +53,7 @@
   <!-- Esto mejora seguridad y control de versiones -->
 
   <link rel="stylesheet" href="styles/main.css?v=20260415-sprint1">
-  <link rel="stylesheet" href="styles/polish.css?v=20260420-gastos-colapsables">
+  <link rel="stylesheet" href="styles/polish.css?v=20260508-locked-section-overlay">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -232,7 +232,7 @@
             <span class="nav-item-icon">📈</span>
             <span class="nav-item-text" data-i18n="common:nav_dashboard">Diario</span>
           </button>
-          <button class="nav-item" data-tab="analisis" data-plan-min="profesional">
+          <button class="nav-item" data-tab="analisis" data-feature="tab_analisis">
             <span class="nav-item-icon">📊</span>
             <span class="nav-item-text" data-i18n="common:nav_analisis">Análisis</span>
           </button>
@@ -765,7 +765,7 @@
             data-i18n="common:tab_inventario_text">📦 Inventario</span><span id="badge-inventario" class="tab-badge"
             style="display:none;">0</span></button>
         <button id="tab-btn-diario" class="tab" data-tab="diario" data-i18n="common:tab_diario">📈 Diario</button>
-        <button id="tab-btn-analisis" class="tab" data-tab="analisis" data-i18n="common:tab_analisis">📊
+        <button id="tab-btn-analisis" class="tab" data-tab="analisis" data-feature="tab_analisis" data-i18n="common:tab_analisis">📊
           Análisis</button>
         <button id="tab-btn-inteligencia" class="tab" data-tab="inteligencia"
           style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none;"
@@ -791,10 +791,10 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-ingrediente" data-i18n="ingredientes:btn_new">➕
                 Añadir Ingrediente</button>
-              <button class="btn btn-secondary" data-action="importar-ingredientes"
+              <button class="btn btn-secondary" data-feature="importar_ingredientes" data-action="importar-ingredientes"
                 data-i18n="common:btn_import_excel">📤 Importar
                 Excel</button>
-              <button class="btn btn-secondary" data-action="exportar-ingredientes"
+              <button class="btn btn-secondary" data-feature="exportar_ingredientes" data-action="exportar-ingredientes"
                 data-i18n="common:btn_export_excel">📥 Exportar Excel</button>
             </div>
           </div>
@@ -848,13 +848,41 @@
                     <option value="suministro" data-i18n="ingredientes:form_family_supply">Suministro</option>
                   </select>
                 </div>
+
+                <!-- Formato de compra (opcional) — pegado a Unidad/Precio porque la
+                     información de "cómo compras este producto" está conceptualmente
+                     ligada al precio y a la unidad, no al inventario. Va antes de
+                     Stock para que el flujo natural sea: identifico → cómo lo compro
+                     → cuánto tengo en stock. -->
+                <div class="form-group"
+                  style="grid-column: span 2; margin-top: 10px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+                  <label style="font-weight: 600; color: #7c3aed;" data-i18n="ingredientes:form_format_title">📦 Formato
+                    de compra (opcional)</label>
+                  <p style="font-size: 12px; color: #64748b; margin: 5px 0 10px;"
+                    data-i18n="ingredientes:form_format_hint">Facilita los pedidos indicando cómo
+                    compras este producto</p>
+                </div>
+                <div class="form-group">
+                  <label data-i18n="ingredientes:form_format_label">Formato</label>
+                  <input type="text" id="ing-formato-compra" placeholder="ej: bote, garrafa, caja..."
+                    data-i18n-placeholder="ingredientes:form_format_placeholder">
+                </div>
+                <div class="form-group">
+                  <label data-i18n="ingredientes:form_format_quantity">Cantidad por formato</label>
+                  <input type="number" id="ing-cantidad-formato" step="0.01" min="0"
+                    placeholder="ej: 0.65 (kg), 10 (L)..."
+                    data-i18n-placeholder="ingredientes:form_format_qty_placeholder">
+                </div>
+
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_label_stock">Stock actual</label>
                   <input type="number" id="ing-stockActual" step="0.01" min="0">
                 </div>
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_label_stock_min">Stock mínimo</label>
-                  <input type="number" id="ing-stockMinimo" step="0.01" min="0">
+                  <!-- min=1: stock_minimo=0 hacía que Smart Order multiplicara su
+                       cálculo por 0 y nunca propusiera reposición. Ver fix 2026-05-07. -->
+                  <input type="number" id="ing-stockMinimo" step="0.01" min="1">
                 </div>
 
                 <!-- RENDIMIENTO / MERMA (Moved to bottom with Slider) -->
@@ -883,27 +911,6 @@
                     Ej: Si compras 1kg de carne y limpias 200g de grasa, el rendimiento es <strong>80%</strong>.
                   </p>
                 </div>
-
-                <!-- Formato de compra (opcional) -->
-                <div class="form-group"
-                  style="grid-column: span 2; margin-top: 10px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
-                  <label style="font-weight: 600; color: #7c3aed;" data-i18n="ingredientes:form_format_title">📦 Formato
-                    de compra (opcional)</label>
-                  <p style="font-size: 12px; color: #64748b; margin: 5px 0 10px;"
-                    data-i18n="ingredientes:form_format_hint">Facilita los pedidos indicando cómo
-                    compras este producto</p>
-                </div>
-                <div class="form-group">
-                  <label data-i18n="ingredientes:form_format_label">Formato</label>
-                  <input type="text" id="ing-formato-compra" placeholder="ej: bote, garrafa, caja..."
-                    data-i18n-placeholder="ingredientes:form_format_placeholder">
-                </div>
-                <div class="form-group">
-                  <label data-i18n="ingredientes:form_format_quantity">Cantidad por formato</label>
-                  <input type="number" id="ing-cantidad-formato" step="0.01" min="0"
-                    placeholder="ej: 0.65 (kg), 10 (L)..."
-                    data-i18n-placeholder="ingredientes:form_format_qty_placeholder">
-                </div>
               </div>
               <div class="form-actions">
                 <button type="button" class="btn btn-secondary" data-action="cerrar-form-ingrediente"
@@ -927,11 +934,11 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-receta" data-i18n="recetas:btn_new">➕ Nueva
                 Receta</button>
-              <button class="btn btn-secondary" data-action="importar-recetas" data-i18n="common:btn_import_excel">📤
+              <button class="btn btn-secondary" data-feature="importar_recetas" data-action="importar-recetas" data-i18n="common:btn_import_excel">📤
                 Importar Excel</button>
-              <button class="btn btn-secondary" data-action="exportar-recetas" data-i18n="common:btn_export_excel">📥
+              <button class="btn btn-secondary" data-feature="exportar_recetas" data-action="exportar-recetas" data-i18n="common:btn_export_excel">📥
                 Exportar Excel</button>
-              <button class="btn" onclick="window.mostrarCostTracker()"
+              <button class="btn" data-feature="cost_tracker" onclick="window.mostrarCostTracker()"
                 style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 <span
                   data-i18n="recetas:btn_cost_tracking">Seguimiento Costes</span></button>
             </div>
@@ -1231,18 +1238,18 @@
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
               <button class="btn btn-primary" data-action="mostrar-form-pedido" data-i18n="pedidos:btn_new">+ New Order</button>
-              <button class="btn" onclick="window.abrirSmartOrder()"
+              <button class="btn" data-feature="smart_order" onclick="window.abrirSmartOrder()"
                 style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white;">
                 🧠 Smart Order</button>
-              <button class="btn" onclick="window.abrirCarrito()"
+              <button class="btn" data-feature="carrito_inteligente" onclick="window.abrirCarrito()"
                 style="background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: white; position: relative;">
                 <span data-i18n="pedidos:btn_cart">🛒 Cart</span>
                 <span id="carrito-badge"
                   style="display: none; background: #22c55e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; justify-content: center; align-items: center; position: absolute; top: -8px; right: -8px; font-weight: 700;"></span>
               </button>
               <span style="width: 1px; height: 24px; background: #e2e8f0;"></span>
-              <button class="btn btn-secondary" data-action="importar-pedidos" style="font-size: 13px; padding: 8px 12px;">📤 Import</button>
-              <button class="btn btn-secondary" onclick="window.abrirModalTransferencia()"
+              <button class="btn btn-secondary" data-feature="importar_pedidos" data-action="importar-pedidos" style="font-size: 13px; padding: 8px 12px;">📤 Import</button>
+              <button class="btn btn-secondary" data-feature="transferencias" onclick="window.abrirModalTransferencia()"
                 id="btn-transferencia" style="font-size: 13px; padding: 8px 12px; display: none;">📦 Transfer</button>
             </div>
           </div>
@@ -1428,7 +1435,7 @@
             </div>
 
             <!-- Matriz BCG - Rediseño Profesional -->
-            <div class="chart-card" id="bcg-matrix-container" style="margin-top: 20px;">
+            <div class="chart-card" id="bcg-matrix-container" data-feature="ingenieria_menu_bcg" data-feature-mode="section" style="margin-top: 20px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <div>
                   <h3 style="margin: 0;" data-i18n="dashboard:bcg_title">🏆 Ingeniería de Menú</h3>
@@ -1544,7 +1551,7 @@
               </div>
 
               <!-- Panel de Recomendaciones Inteligentes -->
-              <div id="bcg-recommendations"
+              <div id="bcg-recommendations" data-feature="recomendaciones_inteligentes" data-feature-mode="section"
                 style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border-radius: 12px; border: 1px solid #c4b5fd;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                   <span style="font-size: 20px;">💡</span>
@@ -2511,10 +2518,10 @@
           <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
             <button class="btn btn-secondary" data-action="cerrar-modal-pedido"
               data-i18n="common:btn_close">Cerrar</button>
-            <button class="btn" style="background: #25D366; color: white;" onclick="window.enviarPedidoWhatsApp()">
+            <button class="btn" style="background: #25D366; color: white;" onclick="window.enviarPedidoWhatsApp()" data-feature="pedido_whatsapp">
               <span data-i18n="pedidos:btn_whatsapp">📱 WhatsApp</span>
             </button>
-            <button class="btn btn-primary" data-action="descargar-pedido-pdf" id="btn-descargar-pdf">
+            <button class="btn btn-primary" data-action="descargar-pedido-pdf" id="btn-descargar-pdf" data-feature="pedido_pdf">
               <span data-i18n="pedidos:btn_download_pdf">📄 Descargar PDF</span>
             </button>
           </div>
@@ -3229,7 +3236,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260421-escandallo-toggle"></script>
+  <script type="module" src="./src/main.js?v=20260509-inventario-flexible"></script>
 </body>
 
 </html>

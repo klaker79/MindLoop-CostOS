@@ -799,7 +799,7 @@ export function renderizarPedidos() {
         }
 
         if (ped.estado === 'recibido') {
-            html += `<button type="button" class="icon-btn" onclick="window.repetirPedido(${ped.id})" title="Repeat order" style="color: #6366f1;">🔄</button>`;
+            html += `<button type="button" class="icon-btn" data-feature="repetir_pedido" onclick="window.repetirPedido(${ped.id})" title="Repeat order" style="color: #6366f1;">🔄</button>`;
         }
 
         html += `<button type="button" class="icon-btn delete" onclick="window.eliminarPedido(${ped.id})">🗑️</button>`;
@@ -809,6 +809,11 @@ export function renderizarPedidos() {
 
     html += '</tbody></table>';
     container.innerHTML = html;
+
+    // Reaplica locks de plan a los botones renderizados dinámicamente (🔄 repetir
+    // pedido marcado con data-feature). Sin esto, mountFeatureLocks (que corre
+    // 1 vez al cargar) no llega a estos botones que se inyectan tras render.
+    window.applyFeatureLocks?.();
 }
 
 /**

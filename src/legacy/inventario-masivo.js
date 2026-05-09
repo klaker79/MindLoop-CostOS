@@ -1,4 +1,24 @@
 // ========== INVENTARIO MASIVO ==========
+//
+// Soporta 2 formatos de Excel:
+//
+//   A) Plantilla nativa (legacy):
+//      Cabecera "Ingrediente" + "Stock Real". Match por nombre exacto.
+//
+//   B) Excel del cliente (flexible):
+//      Detección automática de columnas Name / Stock / Código TPV / Formato.
+//      Match por código TPV vía recetas-variants → fallback a nombre exacto
+//      → fallback a fuzzy/tokens. Si la fila trae Formato y coincide con el
+//      formato_compra del ingrediente, multiplica por cantidad_por_formato
+//      (ej. 0.5 BARRIL → 15 L).
+//
+// La elección es transparente: si la cabecera del Excel matchea la plantilla
+// nativa se usa el flujo legacy (compatible 100%). Si no, se aplica el
+// parser flexible. La capa de subida al backend (consolidateStock) NO cambia.
+//
+// IMPORTANTE: este archivo se carga como <script> plano (no ESM), por eso
+// NO usamos `import`. Las funciones del parser viven en window.__inventarioFlexible,
+// expuestas desde main.js (que sí es módulo ES6) para evitar romper el script.
 
 // Función anti-XSS: Sanitiza datos de usuario antes de insertarlos en HTML
 /* global cm -- defined via window.cm in main.js */
@@ -51,7 +71,6 @@ async function leerArchivoInventario(file) {
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                // Validar que tenga al menos 2 columnas
                 if (rows.length < 2) {
                     reject(
                         new Error('El archivo debe tener al menos 2 filas (encabezado + datos)')
@@ -59,24 +78,48 @@ async function leerArchivoInventario(file) {
                     return;
                 }
 
-                // Parsear datos
-                const result = [];
-                for (let i = 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    if (row[0] && row[1] !== undefined && row[1] !== null && row[1] !== '') {
-                        result.push({
-                            ingrediente: String(row[0]).trim(),
-                            stockReal: parseFloat(row[1]),
-                        });
-                    }
-                }
+                const headers = rows[0] || [];
+                const useLegacy = window.__inventarioFlexible.isLegacyTemplate(headers);
 
-                if (result.length === 0) {
-                    reject(new Error('No se encontraron datos válidos en el archivo'));
+                if (useLegacy) {
+                    // Flujo legacy: 100% compatible con plantilla nativa
+                    const result = [];
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (row[0] && row[1] !== undefined && row[1] !== null && row[1] !== '') {
+                            result.push({
+                                __mode: 'legacy',
+                                ingrediente: String(row[0]).trim(),
+                                stockReal: parseFloat(row[1]),
+                            });
+                        }
+                    }
+                    if (result.length === 0) {
+                        reject(new Error('No se encontraron datos válidos en el archivo'));
+                        return;
+                    }
+                    resolve(result);
                     return;
                 }
 
-                resolve(result);
+                // Flujo flexible: detectar columnas
+                const cols = window.__inventarioFlexible.detectColumns(headers);
+                if (cols.ambiguous.length > 0) {
+                    reject(new Error(
+                        'No se pudieron detectar las columnas: ' + cols.ambiguous.join(', ') +
+                        '. Revisa la cabecera o usa la plantilla descargable.'
+                    ));
+                    return;
+                }
+                const parsed = window.__inventarioFlexible.parseFlexibleRows(rows, cols);
+                if (parsed.length === 0) {
+                    reject(new Error('No se encontraron filas con stock numérico en el archivo'));
+                    return;
+                }
+                // Marcar para validarDatosInventario sepa qué flujo usar
+                parsed.forEach(p => { p.__mode = 'flexible'; });
+                parsed.__cols = cols;
+                resolve(parsed);
             } catch (error) {
                 reject(new Error('Error leyendo el archivo: ' + error.message));
             }
@@ -90,28 +133,104 @@ async function leerArchivoInventario(file) {
 async function validarDatosInventario(data) {
     const ingredientesActuales = window.ingredientes || (await api.getIngredientes());
 
-    return data.map(item => {
-        const ing = ingredientesActuales.find(
-            i => i.nombre.toLowerCase() === item.ingrediente.toLowerCase()
-        );
+    // Detectar modo en base al primer item — leerArchivoInventario marca __mode
+    const isFlexible = data.some(d => d.__mode === 'flexible');
 
+    if (!isFlexible) {
+        return data.map(item => validarLegacy(item, ingredientesActuales));
+    }
+
+    // Modo flexible: cargar variantes del restaurante para matching por código TPV
+    const variantes = await cargarVariantesParaMatching();
+    const recetasById = new Map((window.recetas || []).map(r => [r.id, r]));
+    const codeIndex = window.__inventarioFlexible.buildCodeIndex(variantes, recetasById);
+    const nameIndex = window.__inventarioFlexible.buildNameIndex(ingredientesActuales);
+    const ctx = { ingredientes: ingredientesActuales, codeIndex, nameIndex };
+
+    return data.map(row => validarFlexible(row, ctx));
+}
+
+function validarLegacy(item, ingredientes) {
+    const ing = ingredientes.find(
+        i => i.nombre.toLowerCase() === item.ingrediente.toLowerCase()
+    );
+    return {
+        ...item,
+        ingredienteId: ing ? ing.id : null,
+        stockVirtual: ing ? parseFloat(ing.stock_actual || ing.stock_virtual || 0) : 0,
+        stockActual: ing ? parseFloat(ing.stock_actual || ing.stock_virtual || 0) : null,
+        valido: !!ing && !isNaN(item.stockReal) && item.stockReal >= 0,
+        error: !ing
+            ? 'Ingrediente no encontrado'
+            : isNaN(item.stockReal)
+                ? 'Stock inválido'
+                : item.stockReal < 0
+                    ? 'Stock no puede ser negativo'
+                    : null,
+    };
+}
+
+function validarFlexible(row, ctx) {
+    const matched = window.__inventarioFlexible.matchRow(row, ctx);
+    if (!matched) {
         return {
-            ...item,
-            ingredienteId: ing ? ing.id : null,
-            // Guardamos el Virtual para comparar pérdidas
-            stockVirtual: ing ? parseFloat(ing.stock_actual || ing.stock_virtual || 0) : 0,
-            // stockActual aqui se refiere al que mostramos como ref en la tabla de preview (sistema)
-            stockActual: ing ? parseFloat(ing.stock_actual || ing.stock_virtual || 0) : null,
-            valido: !!ing && !isNaN(item.stockReal) && item.stockReal >= 0,
-            error: !ing
-                ? 'Ingrediente no encontrado'
-                : isNaN(item.stockReal)
-                    ? 'Stock inválido'
-                    : item.stockReal < 0
-                        ? 'Stock no puede ser negativo'
-                        : null,
+            ingrediente: row.name || row.codigo || '(sin identificar)',
+            stockReal: row.stock,
+            stockActual: null,
+            stockVirtual: 0,
+            ingredienteId: null,
+            valido: false,
+            error: 'No se encontró el ingrediente en BBDD',
+            __matchMethod: null,
         };
-    });
+    }
+    const ing = matched.ingrediente;
+    const conv = window.__inventarioFlexible.convertToBaseUnit(row.stock, row.formato, ing);
+    const stockBase = conv.stockBase;
+    const stockActual = parseFloat(ing.stock_actual || ing.stock_virtual || 0);
+    return {
+        ingrediente: ing.nombre,
+        stockReal: stockBase,
+        stockActual,
+        stockVirtual: stockActual,
+        ingredienteId: ing.id,
+        valido: !isNaN(stockBase) && stockBase >= 0,
+        error: isNaN(stockBase)
+            ? 'Stock inválido'
+            : stockBase < 0
+                ? 'Stock no puede ser negativo'
+                : null,
+        __matchMethod: matched.method,
+        __formatApplied: conv.applied,
+        __formatFactor: conv.factor,
+        __originalStock: row.stock,
+        __originalFormato: row.formato,
+    };
+}
+
+/**
+ * Carga las variantes del restaurante. Solo necesario para matching por
+ * código TPV en modo flexible. Si el endpoint falla (plan insuficiente
+ * o red caída) seguimos con array vacío y caemos al matching por nombre.
+ */
+async function cargarVariantesParaMatching() {
+    try {
+        if (window.api && typeof window.api.getRecipesVariants === 'function') {
+            return await window.api.getRecipesVariants();
+        }
+        // Fallback directo al fetch si la api client no expone el método
+        const baseUrl = (window.appConfig && window.appConfig.apiBaseUrl) ||
+            (typeof window !== 'undefined' && window.API_BASE_URL) || '';
+        const token = sessionStorage.getItem('_at') || window.authToken || '';
+        const res = await fetch(`${baseUrl}/recipes-variants`, {
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: 'include',
+        });
+        if (!res.ok) return [];
+        return await res.json();
+    } catch (_e) {
+        return [];
+    }
 }
 
 // Función auxiliar para descargar Excel
@@ -265,6 +384,22 @@ function mostrarPreviewInventario(datos) {
         const icon = item.valido ? '✓' : '✗';
         const iconColor = item.valido ? '#10b981' : '#ef4444';
 
+        // Observación enriquecida para modo flexible: método de match y
+        // conversión de formato si aplicó.
+        let observacion = item.error || 'OK';
+        if (item.valido && item.__matchMethod) {
+            const labels = {
+                codigo_tpv: 'Match: código TPV',
+                nombre_exacto: 'Match: nombre exacto',
+                nombre_fuzzy: 'Match: nombre parcial',
+                nombre_tokens: 'Match: nombre por palabras',
+            };
+            observacion = labels[item.__matchMethod] || 'OK';
+            if (item.__formatApplied) {
+                observacion += ` · ${item.__originalStock} ${item.__originalFormato} × ${item.__formatFactor} = ${item.stockReal}`;
+            }
+        }
+
         html += `
                     <tr style="background: ${bgColor};">
                         <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
@@ -277,8 +412,8 @@ function mostrarPreviewInventario(datos) {
                         <td style="padding: 10px; text-align: right; border-bottom: 1px solid #e2e8f0; font-weight: 600;">
                             ${item.stockReal}
                         </td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: ${item.valido ? '#10b981' : '#ef4444'};">
-                            ${escapeHTML(item.error) || 'OK'}
+                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: ${item.valido ? '#10b981' : '#ef4444'}; font-size: 12px;">
+                            ${escapeHTML(observacion)}
                         </td>
                     </tr>
                 `;
@@ -292,11 +427,31 @@ function mostrarPreviewInventario(datos) {
     document.getElementById('preview-table-container').innerHTML = html;
     document.getElementById('preview-inventario-masivo').style.display = 'block';
 
-    // Solo deshabilitar si NO hay datos válidos, no si hay algunos errores
-    const hayValidos = datosInventarioMasivo.some(d => d.valido);
+    // Guardrail: si estamos en modo flexible y MENOS del 50% matchea, lo más
+    // probable es que la cabecera del Excel se haya detectado mal (columnas
+    // confundidas) o que sea de otro restaurante. Mejor parar que subir
+    // 100 filas con stock=0 a ingredientes equivocados.
+    const totalRows = datosInventarioMasivo.length;
+    const validRows = datosInventarioMasivo.filter(d => d.valido).length;
+    const enModoFlexible = datosInventarioMasivo.some(d => d.__matchMethod !== undefined);
+    const ratioMatch = totalRows > 0 ? validRows / totalRows : 0;
+    const guardrailFalla = enModoFlexible && ratioMatch < 0.5 && totalRows >= 5;
+
+    if (guardrailFalla) {
+        const aviso = document.createElement('div');
+        aviso.style.cssText = 'background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 12px; color: #78350f;';
+        aviso.innerHTML = `<strong>⚠️ Cabecera del Excel sospechosa</strong><br>
+            Solo ${validRows} de ${totalRows} filas (${Math.round(ratioMatch * 100)}%) coinciden con
+            ingredientes de tu restaurante. Suele indicar que las columnas del Excel
+            no se han detectado bien o que el archivo es de otro tenant. Revisa la
+            cabecera o usa la plantilla descargable antes de confirmar.`;
+        document.getElementById('preview-table-container').prepend(aviso);
+    }
+
+    const hayValidos = validRows > 0;
     const btnConfirmar = document.getElementById('btn-confirmar-masivo');
-    btnConfirmar.disabled = !hayValidos;
-    if (!hayValidos) {
+    btnConfirmar.disabled = !hayValidos || guardrailFalla;
+    if (!hayValidos || guardrailFalla) {
         btnConfirmar.style.opacity = '0.5';
         btnConfirmar.style.cursor = 'not-allowed';
     } else {
