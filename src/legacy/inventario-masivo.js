@@ -218,7 +218,6 @@ async function cargarVariantesParaMatching() {
         if (window.api && typeof window.api.getRecipesVariants === 'function') {
             return await window.api.getRecipesVariants();
         }
-        // Fallback directo al fetch si la api client no expone el método
         const baseUrl = (window.appConfig && window.appConfig.apiBaseUrl) ||
             (typeof window !== 'undefined' && window.API_BASE_URL) || '';
         const token = sessionStorage.getItem('_at') || window.authToken || '';

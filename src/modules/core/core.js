@@ -252,10 +252,6 @@ export async function init() {
 
     // Cargar estado de suscripción (banner de trial)
     window.loadSubscriptionStatus?.();
-
-    // Update sidebar lock icons when plan data arrives
-    updateSidebarLocks();
-    window.addEventListener('plan:loaded', () => updateSidebarLocks());
 }
 
 /**
@@ -278,39 +274,12 @@ export function inicializarFechaActual() {
     }
 }
 
-/**
- * Updates sidebar nav items with lock/unlock state based on user plan
- */
-function updateSidebarLocks() {
-    const userLevel = authStore.getState().getPlanLevel();
-    if (userLevel === 0) return; // Plan not loaded yet
-
-    document.querySelectorAll('.nav-item[data-plan-min]').forEach(item => {
-        const requiredLevel = PLAN_LEVELS[item.dataset.planMin] || 0;
-        const locked = userLevel < requiredLevel;
-
-        if (locked) {
-            item.classList.add('nav-locked');
-            if (!item.querySelector('.nav-lock-icon')) {
-                const lockSpan = document.createElement('span');
-                lockSpan.className = 'nav-lock-icon';
-                lockSpan.textContent = '\uD83D\uDD12';
-                item.appendChild(lockSpan);
-            }
-        } else {
-            item.classList.remove('nav-locked');
-            item.querySelector('.nav-lock-icon')?.remove();
-        }
-    });
-}
-
 // Exponer globalmente
 if (typeof window !== 'undefined') {
     window.cargarDatos = cargarDatos;
     window.cambiarTab = cambiarTab;
     window.init = init;
     window.inicializarFechaActual = inicializarFechaActual;
-    window.updateSidebarLocks = updateSidebarLocks;
 }
 
 // Re-compute date when language changes
