@@ -1,6 +1,5 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
-import { planGuardedFetch } from '../plans/plan-guard.js';
 
 /**
  * 🧠 Inteligencia - Dashboard Predictivo
@@ -8,32 +7,26 @@ import { planGuardedFetch } from '../plans/plan-guard.js';
 
 // ========== API ==========
 async function fetchIntelligence(endpoint) {
-    // Todos los endpoints /intelligence/* requieren plan profesional.
-    // planGuardedFetch espera a `plan:loaded` antes de comprobar — evita
-    // race condition donde el primer fetch sale antes de que _planData
-    // esté populado y caía en fail-OPEN → 403.
-    return planGuardedFetch('profesional', async () => {
-        try {
-            // fix M6: el fallback necesita /api al final (igual que getApiUrl() que devuelve baseUrl+'/api')
-            const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud/api';
+    try {
+        // fix M6: el fallback necesita /api al final (igual que getApiUrl() que devuelve baseUrl+'/api')
+        const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud/api';
 
-            // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
-            const headers = { 'Content-Type': 'application/json' };
-            const token = typeof window !== 'undefined' ? window.authToken : null;
-            if (token) headers['Authorization'] = `Bearer ${token}`;
-            const response = await fetch(`${apiBase}/intelligence/${endpoint}`, {
-                method: 'GET',
-                credentials: 'include',
-                headers
-            });
+        // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
+        const headers = { 'Content-Type': 'application/json' };
+        const token = typeof window !== 'undefined' ? window.authToken : null;
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetch(`${apiBase}/intelligence/${endpoint}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers
+        });
 
-            if (!response.ok) return null;
-            return await response.json();
-        } catch (err) {
-            console.error(`Error fetching ${endpoint}:`, err);
-            return null;
-        }
-    }, null);
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (err) {
+        console.error(`Error fetching ${endpoint}:`, err);
+        return null;
+    }
 }
 
 // ========== ESTILOS ==========

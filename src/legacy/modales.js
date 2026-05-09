@@ -232,13 +232,6 @@ async function fetchGastosFijos() {
     if (gastosFijosCache && (now - gastosFijosCacheTime) < CACHE_TTL) {
         return gastosFijosCache;
     }
-    // Endpoint requiere plan profesional. Saltar si el usuario es Starter.
-    if (window.__planGuard?.waitForPlanData) {
-        await window.__planGuard.waitForPlanData();
-    }
-    if (window.__planGuard && !window.__planGuard.planLevelMet('profesional')) {
-        return [];
-    }
     try {
         const res = await fetch(getGastosApiBase() + '/gastos-fijos', {
             headers: getGastosAuthHeaders(),

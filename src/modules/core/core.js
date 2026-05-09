@@ -8,7 +8,6 @@ import { getApiUrl } from '../../config/app-config.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 import { initializeStores } from '../../stores/index.js';
 import { authStore, PLAN_LEVELS } from '../../stores/authStore.js';
-import { planGuardedFetch } from '../plans/plan-guard.js';
 import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
@@ -77,14 +76,9 @@ async function _cargarDatosInternal() {
             fetch(API_BASE + '/ingredients-suppliers', fetchOptions).then((r) =>
                 r.ok ? r.json() : (console.warn('⚠️ /ingredients-suppliers failed, keeping existing data'), window.ingredientesProveedores || [])
             ).catch(() => (console.warn('⚠️ /ingredients-suppliers network error'), window.ingredientesProveedores || [])),
-            // /recipes-variants requiere plan profesional. Saltar el fetch
-            // si el usuario es Starter (evita 403 silencioso en consola).
-            planGuardedFetch('profesional', () =>
-                fetch(API_BASE + '/recipes-variants', fetchOptions).then((r) =>
-                    r.ok ? r.json() : (console.warn('⚠️ /recipes-variants failed, keeping existing data'), window.recetasVariantes || [])
-                ).catch(() => (console.warn('⚠️ /recipes-variants network error'), window.recetasVariantes || [])),
-                window.recetasVariantes || []
-            ),
+            fetch(API_BASE + '/recipes-variants', fetchOptions).then((r) =>
+                r.ok ? r.json() : (console.warn('⚠️ /recipes-variants failed, keeping existing data'), window.recetasVariantes || [])
+            ).catch(() => (console.warn('⚠️ /recipes-variants network error'), window.recetasVariantes || [])),
         ]);
 
         window.ingredientes = Array.isArray(ingredientes) ? ingredientes : [];
@@ -258,10 +252,6 @@ export async function init() {
 
     // Cargar estado de suscripción (banner de trial)
     window.loadSubscriptionStatus?.();
-
-    // Update sidebar lock icons when plan data arrives
-    updateSidebarLocks();
-    window.addEventListener('plan:loaded', () => updateSidebarLocks());
 }
 
 /**
@@ -284,39 +274,12 @@ export function inicializarFechaActual() {
     }
 }
 
-/**
- * Updates sidebar nav items with lock/unlock state based on user plan
- */
-function updateSidebarLocks() {
-    const userLevel = authStore.getState().getPlanLevel();
-    if (userLevel === 0) return; // Plan not loaded yet
-
-    document.querySelectorAll('.nav-item[data-plan-min]').forEach(item => {
-        const requiredLevel = PLAN_LEVELS[item.dataset.planMin] || 0;
-        const locked = userLevel < requiredLevel;
-
-        if (locked) {
-            item.classList.add('nav-locked');
-            if (!item.querySelector('.nav-lock-icon')) {
-                const lockSpan = document.createElement('span');
-                lockSpan.className = 'nav-lock-icon';
-                lockSpan.textContent = '\uD83D\uDD12';
-                item.appendChild(lockSpan);
-            }
-        } else {
-            item.classList.remove('nav-locked');
-            item.querySelector('.nav-lock-icon')?.remove();
-        }
-    });
-}
-
 // Exponer globalmente
 if (typeof window !== 'undefined') {
     window.cargarDatos = cargarDatos;
     window.cambiarTab = cambiarTab;
     window.init = init;
     window.inicializarFechaActual = inicializarFechaActual;
-    window.updateSidebarLocks = updateSidebarLocks;
 }
 
 // Re-compute date when language changes

@@ -214,14 +214,6 @@ function validarFlexible(row, ctx) {
  * o red caída) seguimos con array vacío y caemos al matching por nombre.
  */
 async function cargarVariantesParaMatching() {
-    // Saltar si el usuario es Starter — el endpoint requiere Pro y daría 403
-    // silencioso. Sin variantes, el matching cae al modo nombre.
-    if (window.__planGuard?.waitForPlanData) {
-        await window.__planGuard.waitForPlanData();
-    }
-    if (window.__planGuard && !window.__planGuard.planLevelMet('profesional')) {
-        return [];
-    }
     try {
         if (window.api && typeof window.api.getRecipesVariants === 'function') {
             return await window.api.getRecipesVariants();
