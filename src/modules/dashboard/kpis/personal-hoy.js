@@ -9,6 +9,7 @@
 
 import { escapeHTML } from '../../../utils/helpers.js';
 import { apiClient } from '../../../api/client.js';
+import { planLevelMet } from '../../plans/plan-guard.js';
 import { t } from '@/i18n/index.js';
 
 export async function renderKpiPersonalHoy() {
@@ -22,23 +23,30 @@ export async function renderKpiPersonalHoy() {
         let empleados = window.empleados || [];
         let horariosHoy = [];
 
-        try {
-            if (empleados.length === 0) {
-                // Fetch empleados y horarios en paralelo (no hay dependencia)
-                const [empResult, horResult] = await Promise.all([
-                    apiClient.get('/empleados'),
-                    apiClient.get(`/horarios?desde=${hoyStr}&hasta=${hoyStr}`)
-                ]);
-                empleados = empResult;
-                window.empleados = empleados;
-                horariosHoy = horResult;
-            } else {
-                horariosHoy = await apiClient.get(`/horarios?desde=${hoyStr}&hasta=${hoyStr}`);
+        // /empleados y /horarios requieren plan profesional. Si el usuario no
+        // llega, no hay nada que mostrar — el KPI quedará con el placeholder
+        // por defecto (-/-) sin disparar 403 en consola.
+        if (!planLevelMet('profesional')) {
+            empleados = [];
+        } else {
+            try {
+                if (empleados.length === 0) {
+                    // Fetch empleados y horarios en paralelo (no hay dependencia)
+                    const [empResult, horResult] = await Promise.all([
+                        apiClient.get('/empleados'),
+                        apiClient.get(`/horarios?desde=${hoyStr}&hasta=${hoyStr}`)
+                    ]);
+                    empleados = empResult;
+                    window.empleados = empleados;
+                    horariosHoy = horResult;
+                } else {
+                    horariosHoy = await apiClient.get(`/horarios?desde=${hoyStr}&hasta=${hoyStr}`);
+                }
+                // eslint-disable-next-line no-console
+                console.log(`📅 Horarios de hoy (${hoyStr}): ${horariosHoy.length}`);
+            } catch (e) {
+                console.warn('No se pudieron cargar empleados/horarios:', e);
             }
-            // eslint-disable-next-line no-console
-            console.log(`📅 Horarios de hoy (${hoyStr}): ${horariosHoy.length}`);
-        } catch (e) {
-            console.warn('No se pudieron cargar empleados/horarios:', e);
         }
 
         if (empleados.length === 0) {

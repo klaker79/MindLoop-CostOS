@@ -214,11 +214,15 @@ function validarFlexible(row, ctx) {
  * o red caída) seguimos con array vacío y caemos al matching por nombre.
  */
 async function cargarVariantesParaMatching() {
+    // Saltar si el usuario es Starter — el endpoint requiere Pro y daría 403
+    // silencioso. Sin variantes, el matching cae al modo nombre (también funciona).
+    if (window.__planGuard && !window.__planGuard.planLevelMet('profesional')) {
+        return [];
+    }
     try {
         if (window.api && typeof window.api.getRecipesVariants === 'function') {
             return await window.api.getRecipesVariants();
         }
-        // Fallback directo al fetch si la api client no expone el método
         const baseUrl = (window.appConfig && window.appConfig.apiBaseUrl) ||
             (typeof window !== 'undefined' && window.API_BASE_URL) || '';
         const token = sessionStorage.getItem('_at') || window.authToken || '';

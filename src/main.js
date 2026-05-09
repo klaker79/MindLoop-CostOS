@@ -184,6 +184,14 @@ if (typeof window !== 'undefined') {
     window.__inventarioFlexible = inventarioFlexible;
 }
 
+// Plan guard: helper para no disparar fetches a endpoints Pro/Premium
+// cuando el usuario no llega al plan. Mismo patrón window-bridge para que
+// los scripts legacy lo consuman.
+import * as planGuard from './modules/plans/plan-guard.js';
+if (typeof window !== 'undefined') {
+    window.__planGuard = planGuard;
+}
+
 // Sales Forecast (predicción)
 import { calcularForecast, renderForecastChart } from './modules/analytics/forecast.js';
 window.calcularForecast = calcularForecast;

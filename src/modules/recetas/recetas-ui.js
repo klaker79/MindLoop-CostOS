@@ -1,6 +1,7 @@
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { calculateIngredientCost, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
+import { planLevelMet } from '../plans/plan-guard.js';
 import { t } from '@/i18n/index.js';
 /**
  * Recetas UI Module
@@ -353,13 +354,19 @@ window.filtrarRecetasPorCategoria = function (categoria) {
 };
 
 export async function renderizarRecetas() {
-    // 🍷 Cargar variantes si no están cargadas (para mostrar códigos TPV)
+    // 🍷 Cargar variantes si no están cargadas (para mostrar códigos TPV).
+    //    Saltar si el usuario es Starter — el endpoint requiere Pro y
+    //    devolvería 403 silencioso (ruido en consola/toasts).
     if (!Array.isArray(window.recetasVariantes) && window.API?.fetch) {
-        try {
-            const result = await window.API.fetch('/api/recipes-variants');
-            window.recetasVariantes = Array.isArray(result) ? result : [];
-        } catch (e) {
-            console.warn('No se pudieron cargar variantes:', e);
+        if (planLevelMet('profesional')) {
+            try {
+                const result = await window.API.fetch('/api/recipes-variants');
+                window.recetasVariantes = Array.isArray(result) ? result : [];
+            } catch (e) {
+                console.warn('No se pudieron cargar variantes:', e);
+                window.recetasVariantes = [];
+            }
+        } else {
             window.recetasVariantes = [];
         }
     }
