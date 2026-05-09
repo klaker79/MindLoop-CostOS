@@ -246,7 +246,7 @@
         <!-- Configuración -->
         <div class="nav-section">
           <div class="nav-section-title" data-i18n="common:nav_section_config">Configuración</div>
-          <button class="nav-item" data-tab="horarios" data-plan-min="profesional">
+          <button class="nav-item" data-tab="horarios" data-feature="tab_horarios">
             <span class="nav-item-icon">👥</span>
             <span class="nav-item-text" data-i18n="common:nav_horarios">Horarios</span>
           </button>
@@ -771,7 +771,7 @@
           style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none;"
           data-i18n="common:tab_inteligencia">🧠
           Inteligencia</button>
-        <button id="tab-btn-horarios" class="tab" data-tab="horarios" data-i18n="common:tab_horarios">👥
+        <button id="tab-btn-horarios" class="tab" data-tab="horarios" data-feature="tab_horarios" data-i18n="common:tab_horarios">👥
           Horarios</button>
         <button id="tab-btn-configuracion" class="tab" data-tab="configuracion" data-i18n="common:tab_configuracion">⚙️
           Configuración</button>
@@ -3236,7 +3236,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260509-inventario-flexible"></script>
+  <script type="module" src="./src/main.js?v=20260509-horarios-gating"></script>
 </body>
 
 </html>
