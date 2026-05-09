@@ -598,6 +598,10 @@
 
         // GASTOS FIJOS (Fixed Expenses) - Database backed. Requiere plan profesional.
         async getGastosFijos() {
+            // Esperar a _planData antes del check (race con loadSubscriptionStatus).
+            if (window.__planGuard?.waitForPlanData) {
+                await window.__planGuard.waitForPlanData();
+            }
             if (window.__planGuard && !window.__planGuard.planLevelMet('profesional')) {
                 return [];
             }

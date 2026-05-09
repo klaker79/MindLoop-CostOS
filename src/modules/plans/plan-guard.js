@@ -61,8 +61,48 @@ export function planLevelMet(minPlan) {
 }
 
 /**
- * Wraps a fetch function. Si el plan no llega, devuelve `fallback`
- * directamente, sin tocar la red. Idempotente, sin side-effects.
+ * Espera a que `window._planData` esté populado. Resuelve cuando llega
+ * el evento `plan:loaded` (disparado por subscription.js tras
+ * `loadSubscriptionStatus()`) o tras un timeout (default 1500ms).
+ *
+ * Necesario para evitar la race condition: en la carga inicial,
+ * `cargarDatos()` dispara fetches a endpoints Pro ANTES de que
+ * `loadSubscriptionStatus()` haya seteado `_planData`. Sin esta espera,
+ * `planLevelMet` aplica fail-OPEN y los 403 silenciosos vuelven.
+ *
+ * Tras el timeout cae a fail-OPEN — comportamiento equivalente al
+ * código previo, así que no degrada peor de lo que estaba.
+ *
+ * @param {number} [timeoutMs=1500]
+ * @returns {Promise<void>}
+ */
+export function waitForPlanData(timeoutMs = 1500) {
+    return new Promise((resolve) => {
+        if (typeof window === 'undefined') return resolve();
+        if (window._planData && window._planData.plan) return resolve();
+        let done = false;
+        const timer = setTimeout(() => {
+            if (done) return;
+            done = true;
+            resolve();
+        }, timeoutMs);
+        window.addEventListener('plan:loaded', () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            resolve();
+        }, { once: true });
+    });
+}
+
+/**
+ * Wraps a fetch function. ESPERA a que `window._planData` esté listo
+ * (con timeout) antes de comprobar el plan. Si tras esa espera el plan
+ * no llega al mínimo, devuelve `fallback` sin tocar la red.
+ *
+ * El `await waitForPlanData()` es la pieza crítica: sin él el fetch
+ * salía antes de que subscription.js cargase _planData → fail-OPEN
+ * → 403 silencioso en consola.
  *
  * @template T
  * @param {string} minPlan
@@ -71,6 +111,7 @@ export function planLevelMet(minPlan) {
  * @returns {Promise<T>}
  */
 export async function planGuardedFetch(minPlan, fetchFn, fallback = []) {
+    await waitForPlanData();
     if (!planLevelMet(minPlan)) {
         return /** @type {T} */ (fallback);
     }
