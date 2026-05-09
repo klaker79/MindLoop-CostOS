@@ -52,6 +52,9 @@ export const FEATURE_REQUIREMENTS = {
     ingenieria_menu_bcg: 'premium',         // matriz BCG, sección dentro de la tab
     recomendaciones_inteligentes: 'premium',// panel de recomendaciones IA bajo BCG
 
+    // === Horarios === (activada 2026-05-09)
+    tab_horarios: 'premium',                // tab entera Premium (Staff Scheduler + IA)
+
     // === Pendientes — pestaña a pestaña ===
     // exportar_excel: 'pro',
     // grafica_evolucion_precio: 'pro',
