@@ -1,8 +1,11 @@
-// MindLoop CostOS - Service Worker v3
+// MindLoop CostOS - Service Worker v5
 // Requerido para PWA instalable
 // FIX: Eliminado /styles/main.css que no existe en producción (Vite genera /assets/main-{hash}.css)
+// FIX v5: ignorar requests cross-origin (YouTube thumbnails, CDNs, fonts).
+//         Antes el catch del fetch devolvía el index.html como fallback para
+//         CUALQUIER URL fallida, lo que rompía cualquier <img> cross-origin.
 
-const CACHE_NAME = 'mindloop-costos-v4';
+const CACHE_NAME = 'mindloop-costos-v5';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
@@ -57,6 +60,13 @@ self.addEventListener('fetch', (event) => {
 
     // No cachear requests a API
     if (event.request.url.includes('/api/')) return;
+
+    // No interceptar cross-origin (i.ytimg.com, cdn.jsdelivr.net, fonts...).
+    // El catch del fetch devolvía '/' (index.html) como fallback, lo que
+    // rompía las miniaturas de YouTube y otros recursos externos: el browser
+    // recibía HTML donde esperaba una imagen.
+    const reqUrl = new URL(event.request.url);
+    if (reqUrl.origin !== self.location.origin) return;
 
     event.respondWith(
         fetch(event.request)
