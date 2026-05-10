@@ -24,13 +24,38 @@ import {
     updateQuickButtons,
     clearChat
 } from './chat-messages.js';
+import { api } from '../../api/client.js';
 
 let isChatOpen = false;
+let isMounted = false;
+let chatStatusCache = null;
 
-export function initChatWidget() {
+/**
+ * Intenta montar el widget. Si el add-on Chat IA NO está activado para
+ * este tenant, no monta nada (la activación se hace desde Settings).
+ *
+ * Llama a /chat-status — si el endpoint falla (500, network) se hace
+ * fail-CLOSED: NO monta. Es preferible no enseñar el widget que enseñarlo
+ * y luego que cada mensaje devuelva error.
+ */
+export async function initChatWidget() {
+    if (isMounted) return;
+    try {
+        chatStatusCache = await api.chatStatus();
+    } catch (err) {
+        logger.warn('chat-status fetch failed; widget no se monta:', err.message || err);
+        return;
+    }
+    if (!chatStatusCache?.enabled) return;
+    mountWidget();
+}
+
+function mountWidget() {
+    isMounted = true;
     createChatStyles();
     createChatHTML();
     bindChatEvents();
+    updateUsageBadge(chatStatusCache.used, chatStatusCache.limit);
 
     if (getMessages().length === 0) {
         addMessage('bot', CHAT_CONFIG.welcomeMessage);
@@ -87,7 +112,7 @@ function createChatHTML() {
                     <h3>${CHAT_CONFIG.botName}</h3>
                     <p>${t('chat:subtitle')}</p>
                 </div>
-                <div class="chat-header-status"></div>
+                <div class="chat-header-status" id="chat-header-usage" style="font-size:11px;color:rgba(255,255,255,0.85);margin-right:8px;white-space:nowrap;"></div>
                 <button class="chat-clear-btn" id="chat-clear" title="${t('chat:btn_clear')}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
                         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -252,7 +277,19 @@ function toggleChat(forceState) {
     }
 }
 
+/**
+ * Actualiza el contador "X/300 este mes" en el header del chat.
+ * La llama chat-messages.js tras cada respuesta exitosa para mantenerlo fresco.
+ */
+export function updateUsageBadge(used, limit) {
+    const el = document.getElementById('chat-header-usage');
+    if (!el || used === undefined || used === null) return;
+    el.textContent = `${used}/${limit}`;
+    el.title = `${used} de ${limit} consultas usadas este mes`;
+}
+
 // Exportar para uso global (onclick inline y compat legacy)
 window.initChatWidget = initChatWidget;
 window.clearChatHistory = clearChatHistory;
 window.toggleChat = toggleChat;
+window.updateChatUsageBadge = updateUsageBadge;

@@ -7,6 +7,7 @@ import { getApiUrl } from '../../config/app-config.js';
 import { authStore } from '../../stores/authStore.js';
 import { getDateLocale } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
+import { renderChatAddonCard } from './chat-addon-card.js';
 
 const API_BASE = getApiUrl();
 
@@ -95,6 +96,10 @@ export async function loadSubscriptionStatus() {
 
         if (container) renderPlanCard(container, data);
         renderTrialBanner(data);
+
+        // Tarjeta del Chat IA add-on (estado independiente, fetch propio)
+        const addonContainer = document.getElementById('chat-addon-container');
+        if (addonContainer) renderChatAddonCard(addonContainer);
 
         // Show trial expired modal if needed (only once per session)
         const isExpired = data.plan_status === 'expired' || (data.plan === 'trial' && data.trial_days_left !== null && data.trial_days_left <= 0);

@@ -355,8 +355,31 @@ export const api = {
         apiClient.post('/auth/api-token', { nombre, duracionDias }),
 
     // Chat (Claude API backend). Returns plain text (multi-tenant via JWT).
-    chat: (message, lang = 'es', sessionId = null) =>
-        apiClient.post('/chat', { message, lang, sessionId }),
+    // En error, el caller necesita acceder al body JSON (resets_at en 429,
+    // mensaje en 403) — por eso no se delega en handleResponse genérico.
+    chat: async (message, lang = 'es', sessionId = null) => {
+        const url = `${API_BASE}/chat`;
+        const response = await fetch(url, {
+            method: 'POST',
+            ...defaultConfig,
+            headers: { ...defaultConfig.headers, ...getAuthHeaders() },
+            body: JSON.stringify({ message, lang, sessionId })
+        });
+        if (!response.ok) {
+            let body = null;
+            try { body = await response.json(); } catch (e) { /* not JSON */ }
+            const err = new Error(body?.error || `HTTP ${response.status}`);
+            err.status = response.status;
+            err.data = body;
+            throw err;
+        }
+        return response.text();
+    },
+
+    // Chat add-on (suscripción opcional +30€/mes con cap mensual)
+    chatStatus: () => apiClient.get('/chat-status'),
+    activateChatAddon: () => apiClient.post('/chat-addon/activate', {}),
+    deactivateChatAddon: () => apiClient.post('/chat-addon/deactivate', {}),
 
     // Búsqueda: sales/purchases with date range + optional filters
     // Returns: { tipo, periodo, total_registros, total_importe, resultados, truncado, ... }

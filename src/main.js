@@ -704,11 +704,14 @@ if (document.readyState === 'loading') {
 // ============================================
 import { initChatWidget, clearChatHistory } from './modules/chat/chat-widget.js';
 
-// Inicializar chat cuando el DOM esté listo
+// initChatWidget hace fetch a /chat-status y solo monta si chat_addon=true.
+// Lo lanzamos en cuanto carga el DOM; el propio init es idempotente y la
+// llamada a /chat-status requiere auth (window.authToken) que se setea en
+// el flujo de login antes de DOMContentLoaded.
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initChatWidget);
+    document.addEventListener('DOMContentLoaded', () => initChatWidget());
 } else {
-    setTimeout(initChatWidget, 1000); // Esperar a que cargue todo
+    setTimeout(() => initChatWidget(), 1000);
 }
 
 window.clearChatHistory = clearChatHistory;
