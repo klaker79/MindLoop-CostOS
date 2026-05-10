@@ -376,10 +376,13 @@ export const api = {
         return response.text();
     },
 
-    // Chat add-on (suscripción opcional +30€/mes con cap mensual)
+    // Chat add-on (suscripción opcional +30€/mes con cap mensual).
+    // El alta y la baja pasan por Polar (Merchant of Record). El frontend
+    // pide una checkout session, redirige al cliente, y el flag se setea
+    // desde el webhook firmado tras el cobro real.
     chatStatus: () => apiClient.get('/chat-status'),
-    activateChatAddon: () => apiClient.post('/chat-addon/activate', {}),
-    deactivateChatAddon: () => apiClient.post('/chat-addon/deactivate', {}),
+    createChatAddonCheckout: () => apiClient.post('/chat-addon/checkout-session', {}),
+    openChatAddonPortal: () => apiClient.post('/chat-addon/customer-portal', {}),
 
     // Búsqueda: sales/purchases with date range + optional filters
     // Returns: { tipo, periodo, total_registros, total_importe, resultados, truncado, ... }
