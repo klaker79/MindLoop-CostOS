@@ -7,7 +7,6 @@ import { getApiUrl } from '../../config/app-config.js';
 // 🆕 Zustand stores for state management
 import ingredientStore from '../../stores/ingredientStore.js';
 import { initializeStores } from '../../stores/index.js';
-import { authStore, PLAN_LEVELS } from '../../stores/authStore.js';
 import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
@@ -127,18 +126,6 @@ async function _cargarDatosInternal() {
  * Cambia la pestaña activa
  */
 export function cambiarTab(tab) {
-    // Plan gating: check if user has required plan level for this tab
-    const navItem = document.querySelector(`.nav-item[data-tab="${tab}"]`);
-    const requiredPlan = navItem?.dataset.planMin;
-    if (requiredPlan) {
-        const userLevel = authStore.getState().getPlanLevel();
-        const requiredLevel = PLAN_LEVELS[requiredPlan] || 0;
-        if (userLevel > 0 && userLevel < requiredLevel) {
-            window.promptUpgradePlan?.();
-            return;
-        }
-    }
-
     // Desactivar todas las tabs (legacy horizontal tabs)
     document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
 
