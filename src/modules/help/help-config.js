@@ -17,8 +17,8 @@
  */
 export const HELP_VIDEOS = {
     proveedores:  { videoId: 'TtcgS67S0W4' },
-    ingredientes: { playlistId: 'PLeufMvZTEfBpP-4ininZQDp7L_DgZSuSU' },
-    recetas:      { playlistId: 'PLeufMvZTEfBoiD6F_2j_yeEDbPXNZ2VvR' },
+    ingredientes: { videoId: 'seyEDQhSDoU', playlistId: 'PLeufMvZTEfBpP-4ininZQDp7L_DgZSuSU' },
+    recetas:      { videoId: 'tMLDZqzH6fI', playlistId: 'PLeufMvZTEfBoiD6F_2j_yeEDbPXNZ2VvR' },
     // Pendiente — irán entrando aquí a medida que Iker suba a YouTube:
     // pedidos:        { videoId: '...' },
     // ventas:         { videoId: '...' },

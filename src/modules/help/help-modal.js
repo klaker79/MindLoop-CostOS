@@ -17,6 +17,14 @@ function buildEmbedUrl(entry) {
     // Usamos youtube-nocookie.com — versión privacy-enhanced que no setea
     // cookies de tracking salvo que el usuario interactúe con el video.
     // Mismas funcionalidades de embed que youtube.com.
+    //
+    // Si la entry trae videoId + playlistId, embedamos el videoId pasando
+    // la playlist como queue. Esto muestra el badge "1 of N" y el botón
+    // de "siguiente" en la timeline, que es lo que se espera cuando hay
+    // varios vídeos. `embed/videoseries` solo no enseña que hay cola.
+    if (entry.videoId && entry.playlistId) {
+        return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(entry.videoId)}?list=${encodeURIComponent(entry.playlistId)}&rel=0`;
+    }
     if (entry.playlistId) {
         return `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(entry.playlistId)}&rel=0`;
     }
