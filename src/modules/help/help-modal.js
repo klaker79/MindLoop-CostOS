@@ -2,8 +2,12 @@
  * Help Modal — videos tutoriales de YouTube por pestaña.
  *
  * Inserta un botón "?" en el header (top-bar) de cada pestaña que tenga
- * entrada en HELP_VIDEOS. Al pulsarlo, abre un modal con un iframe de
- * YouTube embebido (video único o playlist completa según el mapping).
+ * entrada en HELP_VIDEOS. Al pulsarlo, abre un modal con:
+ *
+ *   - Si la entry trae `videos: [...]` → reproductor + lista de miniaturas
+ *     clickables debajo. El usuario elige libremente qué vídeo ver.
+ *   - Si la entry trae solo `videoId` → reproductor único.
+ *   - Si la entry trae solo `playlistId` → reproductor con cola embebida.
  *
  * Inicialización: llamar `mountHelpModal()` una vez al cargar la app.
  * Es idempotente: si ya está montado, no duplica el modal.
@@ -13,17 +17,18 @@ import { HELP_VIDEOS } from './help-config.js';
 const MODAL_ID = 'help-modal-overlay';
 const BTN_CLASS = 'help-modal-btn';
 
-function buildEmbedUrl(entry) {
-    // Usamos youtube-nocookie.com — versión privacy-enhanced que no setea
-    // cookies de tracking salvo que el usuario interactúe con el video.
-    // Mismas funcionalidades de embed que youtube.com.
-    if (entry.playlistId) {
-        return `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(entry.playlistId)}&rel=0`;
-    }
-    if (entry.videoId) {
-        return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(entry.videoId)}?rel=0`;
-    }
-    return null;
+function videoEmbedSrc(videoId) {
+    // youtube-nocookie.com — privacy-enhanced. Mismas funcionalidades de embed.
+    return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?rel=0`;
+}
+
+function playlistEmbedSrc(playlistId) {
+    return `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(playlistId)}&rel=0`;
+}
+
+function thumbUrl(videoId) {
+    // mqdefault: 320x180 — ligero y suficiente para grid de miniaturas.
+    return `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/mqdefault.jpg`;
 }
 
 function ensureModalNode() {
@@ -41,7 +46,8 @@ function ensureModalNode() {
     modal.innerHTML = `
         <div class="help-modal-content" style="
             background: #1e293b; border-radius: 14px; overflow: hidden;
-            width: 100%; max-width: 960px; aspect-ratio: 16/9;
+            width: 100%; max-width: 960px; max-height: 90vh;
+            display: flex; flex-direction: column;
             position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         ">
             <button class="help-modal-close" aria-label="Cerrar"
@@ -49,10 +55,16 @@ function ensureModalNode() {
                        background: rgba(0,0,0,0.6); color: white; border: none;
                        width: 36px; height: 36px; border-radius: 50%;
                        font-size: 22px; cursor: pointer; line-height: 1;">×</button>
-            <iframe class="help-modal-iframe"
-                src="" frameborder="0" allowfullscreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                style="width: 100%; height: 100%; border: 0;"></iframe>
+            <div class="help-modal-player" style="aspect-ratio: 16/9; width: 100%; background: black;">
+                <iframe class="help-modal-iframe"
+                    src="" frameborder="0" allowfullscreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    style="width: 100%; height: 100%; border: 0; display: block;"></iframe>
+            </div>
+            <div class="help-modal-list"
+                style="padding: 14px 16px; overflow-y: auto; max-height: 220px;
+                       display: none; gap: 12px; flex-wrap: wrap;
+                       border-top: 1px solid rgba(255,255,255,0.08);"></div>
         </div>
     `;
 
@@ -74,16 +86,79 @@ function ensureModalNode() {
     return modal;
 }
 
+/**
+ * Pinta la lista de miniaturas debajo del iframe. Click en una miniatura
+ * cambia el src del iframe para reproducir ese vídeo.
+ */
+function renderVideoList(modal, videos) {
+    const list = modal.querySelector('.help-modal-list');
+    const iframe = modal.querySelector('.help-modal-iframe');
+    list.innerHTML = '';
+    list.style.display = 'flex';
+
+    videos.forEach((v, idx) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'help-modal-list-item';
+        item.dataset.videoId = v.videoId;
+        item.style.cssText = `
+            display: flex; gap: 10px; align-items: center;
+            padding: 6px; border-radius: 8px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #e2e8f0; cursor: pointer; text-align: left;
+            min-width: 220px; flex: 1 1 220px;
+            transition: background 0.15s, border-color 0.15s;
+        `;
+        item.innerHTML = `
+            <img src="${thumbUrl(v.videoId)}" alt=""
+                style="width: 96px; height: 54px; object-fit: cover;
+                       border-radius: 4px; flex-shrink: 0;">
+            <span style="font-size: 13px; line-height: 1.3;">${v.title || `Vídeo ${idx + 1}`}</span>
+        `;
+        item.addEventListener('click', () => {
+            iframe.src = videoEmbedSrc(v.videoId);
+            // Marcar el activo
+            list.querySelectorAll('.help-modal-list-item').forEach(b => {
+                b.style.borderColor = b === item ? '#6366f1' : 'rgba(255,255,255,0.06)';
+                b.style.background = b === item ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)';
+            });
+        });
+        list.appendChild(item);
+    });
+
+    // Marcar el primero como activo (es el que arranca por defecto).
+    const first = list.querySelector('.help-modal-list-item');
+    if (first) {
+        first.style.borderColor = '#6366f1';
+        first.style.background = 'rgba(99,102,241,0.15)';
+    }
+}
+
 export function openTabHelp(tabKey) {
     const entry = HELP_VIDEOS[tabKey];
     if (!entry) return;
 
-    const url = buildEmbedUrl(entry);
-    if (!url) return;
-
     const modal = ensureModalNode();
     const iframe = modal.querySelector('.help-modal-iframe');
-    iframe.src = url;
+    const list = modal.querySelector('.help-modal-list');
+
+    // Reset list por si abrimos otra pestaña con otra forma de entry
+    list.innerHTML = '';
+    list.style.display = 'none';
+
+    if (Array.isArray(entry.videos) && entry.videos.length > 0) {
+        // Lista de vídeos: arrancar con el primero, mostrar miniaturas
+        iframe.src = videoEmbedSrc(entry.videos[0].videoId);
+        renderVideoList(modal, entry.videos);
+    } else if (entry.videoId) {
+        iframe.src = videoEmbedSrc(entry.videoId);
+    } else if (entry.playlistId) {
+        iframe.src = playlistEmbedSrc(entry.playlistId);
+    } else {
+        return; // entry inválida
+    }
+
     modal.style.display = 'flex';
 }
 
