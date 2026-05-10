@@ -676,7 +676,7 @@ window.eliminarUsuarioEquipo = Equipo.eliminarUsuarioEquipo;
 // ============================================
 // MÓDULO: SUSCRIPCIÓN 💳
 // ============================================
-// Self-registering: sets window.loadSubscriptionStatus, promptUpgradePlan, openBillingPortal
+// Self-registering: sets window.loadSubscriptionStatus
 import './modules/subscription/subscription.js';
 
 // Cargar el plan del usuario al arrancar la app (post-login). subscription.js
