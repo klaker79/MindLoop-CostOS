@@ -16,10 +16,10 @@
  * horarios, configuracion, busqueda).
  */
 export const HELP_VIDEOS = {
-    proveedores: { videoId: 'TtcgS67S0W4' },
+    proveedores:  { videoId: 'TtcgS67S0W4' },
+    ingredientes: { playlistId: 'PLeufMvZTEfBpP-4ininZQDp7L_DgZSuSU' },
+    recetas:      { playlistId: 'PLeufMvZTEfBoiD6F_2j_yeEDbPXNZ2VvR' },
     // Pendiente — irán entrando aquí a medida que Iker suba a YouTube:
-    // ingredientes:   { playlistId: '...' },
-    // recetas:        { playlistId: '...' },
     // pedidos:        { videoId: '...' },
     // ventas:         { videoId: '...' },
     // inventario:     { videoId: '...' },
