@@ -174,6 +174,8 @@ export async function sendMessage() {
     input.disabled = true;
     showTyping();
 
+    let blockAfterResponse = false; // Si llega 429/403, no re-habilitar input
+
     try {
         const lang = window.getCurrentLanguage?.() || 'es';
         let data;
@@ -218,12 +220,45 @@ export async function sendMessage() {
     } catch (error) {
         hideTyping();
         logger.error('Chat error:', error);
-        addMessage('bot', CHAT_CONFIG.errorMessage);
+        // Mensajes específicos del add-on (gate del backend):
+        // 403 CHAT_NOT_ACTIVATED — el tenant desactivó el add-on durante la sesión.
+        // 429 CHAT_QUOTA_EXCEEDED — agotó las 300 consultas del mes.
+        const status = error?.status;
+        const data = error?.data;
+        if (status === 429 && data?.error === 'CHAT_QUOTA_EXCEEDED') {
+            const reset = data.resets_at ? new Date(data.resets_at) : null;
+            const fmt = reset
+                ? reset.toLocaleDateString(getDateLocale(), { day: '2-digit', month: 'long' })
+                : 'el próximo mes';
+            addMessage('bot',
+                `⏳ Has alcanzado el límite de **${data.limit || 300} consultas/mes**. ` +
+                `Vuelve a estar disponible el **${fmt}**.`,
+                false
+            );
+            blockAfterResponse = true;
+        } else if (status === 403 && data?.error === 'CHAT_NOT_ACTIVATED') {
+            addMessage('bot',
+                'El add-on Asistente IA no está activado. Actívalo en **Configuración → Asistente IA** para volver a usar el chat.',
+                false
+            );
+            blockAfterResponse = true;
+        } else {
+            addMessage('bot', CHAT_CONFIG.errorMessage);
+        }
     } finally {
         isWaitingResponse = false;
-        sendBtn.disabled = false;
-        input.disabled = false;
-        input.focus();
+        if (!blockAfterResponse) {
+            sendBtn.disabled = false;
+            input.disabled = false;
+            input.focus();
+        }
+        // Refrescar contador (best-effort, no afecta UX si falla)
+        if (typeof window.updateChatUsageBadge === 'function') {
+            try {
+                const fresh = await api.chatStatus();
+                window.updateChatUsageBadge(fresh.used, fresh.limit);
+            } catch (e) { /* silently */ }
+        }
     }
 }
 

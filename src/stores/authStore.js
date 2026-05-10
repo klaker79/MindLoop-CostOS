@@ -33,8 +33,6 @@ function getApiBaseInline() {
 /**
  * Auth Store - Estado de autenticación
  */
-const PLAN_LEVELS = { starter: 1, trial: 2, profesional: 2, premium: 3 };
-
 export const authStore = createStore((set, get) => ({
     // State
     user: null,
@@ -192,22 +190,13 @@ export const authStore = createStore((set, get) => ({
         }
     },
 
-    getPlanLevel: () => {
-        const plan = get().plan;
-        return PLAN_LEVELS[plan] || 0;
-    },
-
     clearError: () => set({ error: null })
 }));
-
-// Plan level constants (exported for use in gating)
-export { PLAN_LEVELS };
 
 // Getters for external use
 export const getAuthState = () => authStore.getState();
 export const getUser = () => authStore.getState().user;
 export const isAuthenticated = () => authStore.getState().isAuthenticated;
-export const getPlanLevel = () => authStore.getState().getPlanLevel();
 
 // Subscribe helper
 export const subscribeToAuth = (callback) => authStore.subscribe(callback);
