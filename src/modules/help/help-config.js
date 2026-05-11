@@ -32,9 +32,9 @@ export const HELP_VIDEOS = {
             { videoId: '7RwG2IDA-tU', title: 'Variantes y costes' }
         ]
     },
+    ventas: { videoId: 'nfuKIg5CH7s' },
+    pedidos: { videoId: '6-tsxouaGHA' },
     // Pendiente — irán entrando aquí a medida que Iker suba a YouTube:
-    // pedidos:        { videoId: '...' },
-    // ventas:         { videoId: '...' },
     // inventario:     { videoId: '...' },
     // diario:         { videoId: '...' },
     // analisis:       { videoId: '...' },

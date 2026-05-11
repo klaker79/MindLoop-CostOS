@@ -8,8 +8,11 @@
 // BUMP v8: rediseño botón informe (pill ámbar + label) + lang robusto a 'en-US'.
 // BUMP v9: contador 0/300 movido a mini badge flotante esquina sup. der. del chat-window.
 // BUMP v10: selector de mes en el botón informe (popover con 6 meses).
+// BUMP v12: revert del cambio de pedidos (un solo buscador) — vuelve al diseño con dos buscadores.
+// BUMP v13: video tutorial YouTube en pestaña Ventas (botón ?).
+// BUMP v14: video tutorial YouTube en pestaña Pedidos (botón ?).
 
-const CACHE_NAME = 'mindloop-costos-v10';
+const CACHE_NAME = 'mindloop-costos-v14';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
