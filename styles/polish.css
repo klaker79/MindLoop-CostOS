@@ -1246,3 +1246,19 @@ input[type="number"] {
 [data-theme="dark"] .intel-item-name {
     color: #f8fafc;
 }
+
+/* --- TomSelect dropdown: z-index + background sólido ---
+   Bug observado en producción: el dropdown del select de Proveedor en
+   Nuevo Pedido se renderizaba TRANSPARENTE / por debajo de la tabla
+   de pedidos que vive justo debajo del modal. Resultado: las filas de
+   la tabla se asomaban entre las opciones del dropdown.
+   Fix mínimo: garantizar fondo blanco sólido y z-index alto. Aplica
+   a TODOS los TomSelects de la app — no hay ningún caso donde se
+   quiera el efecto contrario. */
+.ts-dropdown {
+    background: #ffffff !important;
+    z-index: 9999 !important;
+}
+[data-theme="dark"] .ts-dropdown {
+    background: #1e293b !important;
+}
