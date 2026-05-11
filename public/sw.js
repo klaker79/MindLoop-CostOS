@@ -10,8 +10,9 @@
 // BUMP v10: selector de mes en el botón informe (popover con 6 meses).
 // BUMP v12: revert del cambio de pedidos (un solo buscador) — vuelve al diseño con dos buscadores.
 // BUMP v13: video tutorial YouTube en pestaña Ventas (botón ?).
+// BUMP v14: video tutorial YouTube en pestaña Pedidos (botón ?).
 
-const CACHE_NAME = 'mindloop-costos-v13';
+const CACHE_NAME = 'mindloop-costos-v14';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
