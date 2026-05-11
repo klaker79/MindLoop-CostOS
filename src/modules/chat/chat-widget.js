@@ -112,7 +112,6 @@ function createChatHTML() {
                     <h3>${CHAT_CONFIG.botName}</h3>
                     <p>${t('chat:subtitle')}</p>
                 </div>
-                <div class="chat-header-status" id="chat-header-usage" style="font-size:11px;color:rgba(255,255,255,0.85);margin-right:12px;white-space:nowrap;"></div>
                 <button class="chat-informe-btn" id="chat-informe" title="${t('chat:btn_informe') || 'Informe ejecutivo del mes'}">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
                         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
@@ -136,6 +135,7 @@ function createChatHTML() {
                 </button>
             </div>
 
+            <div class="chat-usage-badge" id="chat-header-usage" title="${t('chat:usage_title') || 'Consultas usadas este mes'}"></div>
             <div class="chat-messages" id="chat-messages"></div>
 
             <div class="chat-quick-actions" id="chat-quick-actions"></div>
