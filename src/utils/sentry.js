@@ -27,6 +27,22 @@ export function initSentry() {
         dsn: SENTRY_DSN,
         tracesSampleRate: 0.1,
         environment: 'production',
+        // Ignorar errores externos al código de la app:
+        //   - _AutofillCallbackHandler: handler interno del autofill de Safari iOS.
+        //     Se dispara cuando un cliente rellena un formulario con autofill nativo
+        //     y la variable inyectada por WebKit no está disponible en ese momento.
+        //     No afecta funcionalidad; es ruido en Sentry.
+        //   - ResizeObserver loop limit exceeded: avisos no fatales del observer,
+        //     reportados por Chromium pero suprimidos por defecto en Firefox/Safari.
+        //   - Non-Error promise rejection: promesas rechazadas con valores no-Error
+        //     (típicamente extensions o tracking scripts).
+        ignoreErrors: [
+            "Can't find variable: _AutofillCallbackHandler",
+            "_AutofillCallbackHandler",
+            'ResizeObserver loop limit exceeded',
+            'ResizeObserver loop completed with undelivered notifications',
+            'Non-Error promise rejection captured'
+        ],
         // Filtrar errores de extensiones de navegador
         beforeSend(event) {
             if (event.exception?.values?.[0]?.stacktrace?.frames?.some(
