@@ -499,6 +499,44 @@ export function createChatStyles() {
             box-shadow: none;
         }
         
+        /* Header — botón "Informe ejecutivo" (acción premium del add-on) */
+        .chat-informe-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 6px 12px;
+            margin-right: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.45);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+            white-space: nowrap;
+        }
+        .chat-informe-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.55);
+        }
+        .chat-informe-btn:active {
+            transform: translateY(0);
+        }
+        .chat-informe-btn svg {
+            flex-shrink: 0;
+        }
+        .chat-informe-label {
+            line-height: 1;
+        }
+        /* En pantallas muy pequeñas, escondemos el label y dejamos solo el icono */
+        @media (max-width: 420px) {
+            .chat-informe-label { display: none; }
+            .chat-informe-btn { padding: 6px 8px; }
+        }
+
         /* Responsive */
         @media (max-width: 480px) {
             .chat-window {
