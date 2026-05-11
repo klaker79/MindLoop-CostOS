@@ -113,6 +113,11 @@ function createChatHTML() {
                     <p>${t('chat:subtitle')}</p>
                 </div>
                 <div class="chat-header-status" id="chat-header-usage" style="font-size:11px;color:rgba(255,255,255,0.85);margin-right:8px;white-space:nowrap;"></div>
+                <button class="chat-informe-btn" id="chat-informe" title="${t('chat:btn_informe') || 'Informe del mes'}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                    </svg>
+                </button>
                 <button class="chat-clear-btn" id="chat-clear" title="${t('chat:btn_clear')}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
                         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -167,6 +172,11 @@ function bindChatEvents() {
     closeBtn.addEventListener('click', () => toggleChat(false));
 
     document.getElementById('chat-clear').addEventListener('click', () => clearChat());
+
+    const informeBtn = document.getElementById('chat-informe');
+    if (informeBtn) {
+        informeBtn.addEventListener('click', () => generarInforme(informeBtn));
+    }
 
     const ttsBtn = document.getElementById('chat-tts');
     ttsBtn.addEventListener('click', () => {
@@ -274,6 +284,49 @@ function toggleChat(forceState) {
     if (isChatOpen) {
         fab.querySelector('.notification-dot').style.display = 'none';
         document.getElementById('chat-input').focus();
+    }
+}
+
+/**
+ * Pide el informe ejecutivo HTML al backend y lo abre en una pestaña nueva.
+ * El backend hace una llamada Claude single-shot (~5-15s) para el análisis,
+ * por eso mostramos un spinner en el botón mientras tanto.
+ */
+async function generarInforme(btn) {
+    if (btn.dataset.loading === '1') return;
+    btn.dataset.loading = '1';
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="white" class="chat-informe-spin">
+        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+    </svg>`;
+    // CSS minimal para animar el spin sin meter clase global
+    btn.style.opacity = '0.7';
+    btn.querySelector('svg').style.animation = 'spin 1s linear infinite';
+    if (!document.getElementById('chat-informe-spin-style')) {
+        const style = document.createElement('style');
+        style.id = 'chat-informe-spin-style';
+        style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+        document.head.appendChild(style);
+    }
+    try {
+        const lang = (window.getCurrentLanguage?.() || 'es') === 'en' ? 'en' : 'es';
+        const html = await api.getChatInformeMensualHtml(lang);
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const win = window.open(url, '_blank');
+        if (!win) {
+            window.showToast?.(t('chat:informe_popup_blocked') || 'Permite los popups para ver el informe', 'warning');
+        }
+    } catch (err) {
+        logger.warn('Error generando informe mensual:', err.message || err);
+        const msg = err.status === 403
+            ? (t('chat:informe_addon_required') || 'Necesitas el add-on Chat IA activo para generar informes.')
+            : (t('chat:informe_error') || 'No se pudo generar el informe. Inténtalo en un momento.');
+        window.showToast?.(msg, 'error');
+    } finally {
+        btn.dataset.loading = '0';
+        btn.style.opacity = '1';
+        btn.innerHTML = originalHtml;
     }
 }
 
