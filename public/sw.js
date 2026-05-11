@@ -1,11 +1,11 @@
-// MindLoop CostOS - Service Worker v5
+// MindLoop CostOS - Service Worker v6
 // Requerido para PWA instalable
 // FIX: Eliminado /styles/main.css que no existe en producción (Vite genera /assets/main-{hash}.css)
 // FIX v5: ignorar requests cross-origin (YouTube thumbnails, CDNs, fonts).
-//         Antes el catch del fetch devolvía el index.html como fallback para
-//         CUALQUIER URL fallida, lo que rompía cualquier <img> cross-origin.
+// BUMP v6: forzar invalidación de cache en clientes tras revert TomSelect 2026-05-11
+//          (bundles viejos seguían sirviéndose pese a deploy ya hecho).
 
-const CACHE_NAME = 'mindloop-costos-v5';
+const CACHE_NAME = 'mindloop-costos-v6';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
