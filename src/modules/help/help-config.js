@@ -33,8 +33,8 @@ export const HELP_VIDEOS = {
         ]
     },
     ventas: { videoId: 'nfuKIg5CH7s' },
+    pedidos: { videoId: '6-tsxouaGHA' },
     // Pendiente — irán entrando aquí a medida que Iker suba a YouTube:
-    // pedidos:        { videoId: '...' },
     // inventario:     { videoId: '...' },
     // diario:         { videoId: '...' },
     // analisis:       { videoId: '...' },
