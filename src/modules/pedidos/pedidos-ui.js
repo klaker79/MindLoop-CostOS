@@ -376,7 +376,17 @@ export function agregarIngredientePedido() {
     // TomSelect no se cargó.
     import('../../utils/searchable-select.js').then(({ enhanceSearchableSelect }) => {
         const ingSelect = div.querySelector('select');
-        if (ingSelect) enhanceSearchableSelect(ingSelect);
+        if (!ingSelect) return;
+        enhanceSearchableSelect(ingSelect);
+        // TomSelect crea un .ts-wrapper junto al <select> y oculta el select
+        // original. El select tenía flex:2 inline, pero el wrapper nace SIN
+        // flex y se queda en su ancho mínimo → la fila aparecía con un hueco
+        // en blanco a la derecha. Trasladamos el flex al wrapper.
+        const wrapper = div.querySelector('.ts-wrapper');
+        if (wrapper) {
+            wrapper.style.flex = '2 1 240px';
+            wrapper.style.minWidth = '0';
+        }
     }).catch(() => {});
 }
 
