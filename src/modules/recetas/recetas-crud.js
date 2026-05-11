@@ -106,19 +106,21 @@ export function editarReceta(id) {
 
     document.getElementById('lista-ingredientes-receta').innerHTML = '';
     rec.ingredientes.forEach(item => {
-        window.agregarIngredienteReceta();
+        // 🧪 Detectar si es receta base (ingredienteId > 100000)
+        const initialValue = item.ingredienteId > 100000
+            ? `rec_${item.ingredienteId - 100000}`
+            : String(item.ingredienteId);
+
+        // CRÍTICO: pasar initialValue para que <option selected> esté en el
+        // HTML ANTES de que TomSelect inicialice. TomSelect snapshotea el
+        // selectedIndex al iniciar — si no encuentra <option selected> deja
+        // el valor en "". Asignar `selectEl.value = X` DESPUÉS NO sincroniza
+        // (TomSelect ya tiene su estado interno = ""). Bug observable:
+        // wrapper visible vacío + guardado falla "no hay ingredientes".
+        window.agregarIngredienteReceta(initialValue);
         const lastItem = document.querySelector(
             '#lista-ingredientes-receta .ingrediente-item:last-child'
         );
-        const selectEl = lastItem.querySelector('select');
-
-        // 🧪 Detectar si es receta base (ingredienteId > 100000)
-        if (item.ingredienteId > 100000) {
-            const recetaId = item.ingredienteId - 100000;
-            selectEl.value = `rec_${recetaId}`;
-        } else {
-            selectEl.value = item.ingredienteId;
-        }
         lastItem.querySelector('.receta-cantidad').value = item.cantidad;
 
         // 🆕 Cargar Rendimiento con fallback al ingrediente original
