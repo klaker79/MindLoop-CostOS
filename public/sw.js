@@ -1,12 +1,13 @@
-// MindLoop CostOS - Service Worker v7
+// MindLoop CostOS - Service Worker v8
 // Requerido para PWA instalable
 // FIX: Eliminado /styles/main.css que no existe en producción (Vite genera /assets/main-{hash}.css)
 // FIX v5: ignorar requests cross-origin (YouTube thumbnails, CDNs, fonts).
 // BUMP v6: forzar invalidación de cache en clientes tras revert TomSelect 2026-05-11
 //          (bundles viejos seguían sirviéndose pese a deploy ya hecho).
 // BUMP v7: nuevo botón "Informe del mes" en chat-widget + api.getChatInformeMensualHtml.
+// BUMP v8: rediseño botón informe (pill ámbar + label) + lang robusto a 'en-US'.
 
-const CACHE_NAME = 'mindloop-costos-v7';
+const CACHE_NAME = 'mindloop-costos-v8';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
