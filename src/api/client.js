@@ -387,8 +387,11 @@ export const api = {
     // Informe ejecutivo mensual (HTML listo para imprimir/guardar PDF).
     // Devuelve string con HTML completo. El caller lo abre en pestaña nueva.
     // No consume contador del chat — verifica chat_addon aparte en backend.
-    getChatInformeMensualHtml: async (lang = 'es') => {
-        const url = `${API_BASE}/chat/informe-mensual/html?lang=${encodeURIComponent(lang)}`;
+    // mes (opcional): 'YYYY-MM'. Si no se pasa, backend usa mes en curso.
+    getChatInformeMensualHtml: async (lang = 'es', mes = null) => {
+        const params = new URLSearchParams({ lang });
+        if (mes) params.set('mes', mes);
+        const url = `${API_BASE}/chat/informe-mensual/html?${params.toString()}`;
         const response = await fetch(url, {
             method: 'GET',
             ...defaultConfig,

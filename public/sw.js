@@ -7,8 +7,9 @@
 // BUMP v7: nuevo botón "Informe del mes" en chat-widget + api.getChatInformeMensualHtml.
 // BUMP v8: rediseño botón informe (pill ámbar + label) + lang robusto a 'en-US'.
 // BUMP v9: contador 0/300 movido a mini badge flotante esquina sup. der. del chat-window.
+// BUMP v10: selector de mes en el botón informe (popover con 6 meses).
 
-const CACHE_NAME = 'mindloop-costos-v9';
+const CACHE_NAME = 'mindloop-costos-v10';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
