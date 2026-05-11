@@ -23,7 +23,12 @@ export async function guardarReceta(event) {
 
     items.forEach(item => {
         const select = item.querySelector('select');
-        const input = item.querySelector('input');
+        // ⚠️ NO usar item.querySelector('input') — attachSelectSearch inserta
+        // un input "🔍 Buscar..." ANTES del select; sería el primer match y
+        // siempre estaría vacío → la receta se guardaría con ingredientes
+        // vacíos. Mismo bug que en recetas-ui.js:calcularCosteReceta.
+        // Detectado 2026-05-12 al investigar el "modal verde que desaparecía".
+        const input = item.querySelector('.receta-cantidad');
         if (select.value && input.value) {
             // 🧪 Detectar si es receta base (valor empieza con "rec_")
             if (select.value.startsWith('rec_')) {

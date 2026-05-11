@@ -228,7 +228,12 @@ export function calcularCosteReceta() {
 
     items.forEach(item => {
         const select = item.querySelector('select');
-        const input = item.querySelector('input');
+        // ⚠️ NO usar item.querySelector('input') — attachSelectSearch inserta
+        // un input "🔍 Buscar..." ANTES del select; sería el primer match y
+        // siempre estaría vacío → costeLinea quedaría a 0 y el modal verde
+        // de "Rentabilidad en tiempo real" se ocultaría. Selector específico
+        // por clase (bug detectado por Iker 2026-05-12).
+        const input = item.querySelector('.receta-cantidad');
         // 🆕 Span para mostrar el coste de esta línea (cantidad × precio / rendimiento).
         // Se actualiza siempre, incluso cuando la fila no tiene datos válidos (pone "—").
         const costeLineaSpan = item.querySelector('.receta-coste-linea');
