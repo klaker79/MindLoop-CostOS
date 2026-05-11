@@ -22,7 +22,11 @@ setup('authenticate as Demo Trattoria KL', async ({ page }) => {
         );
     }
 
-    await page.goto('/');
+    // waitUntil: 'domcontentloaded' — no esperamos a TODOS los recursos
+    // externos (Sentry CDN, TomSelect CDN) porque desde GitHub Actions
+    // alguno tarda 15-30s y dispara el timeout. Con DOM ready ya tenemos
+    // el form de login pintado, que es lo único que necesitamos.
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Rellena el formulario de login anclado al #login-form para evitar colisiones
     // con los forms de forgot-password y registro (todos usan el mismo placeholder).

@@ -20,7 +20,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Pedidos — formulario Nuevo Pedido', () => {
     test('abre el formulario al pulsar el botón Nuevo Pedido', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         // Esperar a que la SPA termine la carga inicial (auth + datos + plan).
         // Sin esto, en runs lentos el click al tab Pedidos llega antes de que
         // los handlers estén bindeados.
@@ -37,7 +37,7 @@ test.describe('Pedidos — formulario Nuevo Pedido', () => {
     });
 
     test('el select de proveedor se popula con al menos un proveedor real', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle');
 
         await page.locator('[data-tab="pedidos"]').first().click();

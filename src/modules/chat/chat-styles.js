@@ -499,6 +499,123 @@ export function createChatStyles() {
             box-shadow: none;
         }
         
+        /* Popover de selección de mes — se ancla bajo el botón "Informe" */
+        .chat-informe-menu {
+            position: absolute;
+            top: 78px;
+            right: 14px;
+            z-index: 10;
+            min-width: 220px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+            overflow: hidden;
+            animation: chat-informe-menu-in 0.15s ease;
+        }
+        @keyframes chat-informe-menu-in {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .chat-informe-menu-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 14px 6px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .chat-informe-menu-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #0f172a;
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+        .chat-informe-menu-item:hover {
+            background: #fef3c7;
+        }
+        .chat-informe-menu-item + .chat-informe-menu-item {
+            border-top: 1px solid #f8fafc;
+        }
+        .chat-informe-menu-label {
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .chat-informe-menu-sub {
+            font-size: 11px;
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        /* Mini badge "X/300" — esquina superior derecha del chat-window,
+           justo bajo el header. Discreto, no estorba al contenido del chat. */
+        .chat-window { position: fixed; }
+        .chat-usage-badge {
+            position: absolute;
+            top: 92px;
+            right: 14px;
+            z-index: 3;
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748b;
+            background: rgba(248, 250, 252, 0.92);
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            padding: 2px 8px;
+            line-height: 1.4;
+            letter-spacing: 0.2px;
+            pointer-events: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .chat-usage-badge:empty { display: none; }
+
+        /* Header — botón "Informe ejecutivo" (acción premium del add-on) */
+        .chat-informe-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 6px 12px;
+            margin-right: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.45);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+            white-space: nowrap;
+        }
+        .chat-informe-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.55);
+        }
+        .chat-informe-btn:active {
+            transform: translateY(0);
+        }
+        .chat-informe-btn svg {
+            flex-shrink: 0;
+        }
+        .chat-informe-label {
+            line-height: 1;
+        }
+        /* En pantallas muy pequeñas, escondemos el label y dejamos solo el icono */
+        @media (max-width: 420px) {
+            .chat-informe-label { display: none; }
+            .chat-informe-btn { padding: 6px 8px; }
+        }
+
         /* Responsive */
         @media (max-width: 480px) {
             .chat-window {

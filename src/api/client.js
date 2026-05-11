@@ -384,6 +384,30 @@ export const api = {
     createChatAddonCheckout: () => apiClient.post('/chat-addon/checkout-session', {}),
     openChatAddonPortal: () => apiClient.post('/chat-addon/customer-portal', {}),
 
+    // Informe ejecutivo mensual (HTML listo para imprimir/guardar PDF).
+    // Devuelve string con HTML completo. El caller lo abre en pestaña nueva.
+    // No consume contador del chat — verifica chat_addon aparte en backend.
+    // mes (opcional): 'YYYY-MM'. Si no se pasa, backend usa mes en curso.
+    getChatInformeMensualHtml: async (lang = 'es', mes = null) => {
+        const params = new URLSearchParams({ lang });
+        if (mes) params.set('mes', mes);
+        const url = `${API_BASE}/chat/informe-mensual/html?${params.toString()}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            ...defaultConfig,
+            headers: { ...defaultConfig.headers, ...getAuthHeaders() }
+        });
+        if (!response.ok) {
+            let body = null;
+            try { body = await response.json(); } catch (e) { /* not JSON */ }
+            const err = new Error(body?.error || `HTTP ${response.status}`);
+            err.status = response.status;
+            err.data = body;
+            throw err;
+        }
+        return response.text();
+    },
+
     // Búsqueda: sales/purchases with date range + optional filters
     // Returns: { tipo, periodo, total_registros, total_importe, resultados, truncado, ... }
     search: (params) => {
