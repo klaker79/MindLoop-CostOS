@@ -44,11 +44,11 @@ export function mostrarFormularioPedido() {
             select._hasCampoDetalleListener = true;
         }
 
-        // Búsqueda incremental por substring en el desplegable de proveedores
-        // (mismo patrón que el select de ingredientes en pedidos/recetas).
-        import('../../utils/searchable-select.js').then(({ enhanceSearchableSelect }) => {
-            enhanceSearchableSelect(select);
-        }).catch(() => {});
+        // TomSelect DESACTIVADO en pedidos (2026-05-11). Su ciclo asíncrono
+        // de import + .ts-wrapper provocaba "doble casilla" visual y race
+        // conditions al sincronizar el value (mismo problema que en recetas).
+        // Volvemos al <select> nativo HTML5: el usuario teclea la primera
+        // letra del proveedor para saltar a él.
     }
 
     // Ocultar campo detalle mercado al inicio
@@ -240,18 +240,11 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
         proveedorSeleccionado = proveedores[idx];
     }
 
-    // Seleccionar el proveedor en el dropdown. Si TomSelect está aplicado,
-    // setear .value en el <select> oculto NO sincroniza el wrapper visible —
-    // hay que pasar por la API de TomSelect (setValue dispara change interno).
-    // Fallback al select nativo si TomSelect no se cargó.
+    // Seleccionar el proveedor en el dropdown (select nativo HTML5).
     const selectProveedor = document.getElementById('ped-proveedor');
     if (selectProveedor) {
-        if (selectProveedor.tomselect) {
-            selectProveedor.tomselect.setValue(String(proveedorSeleccionado.id));
-        } else {
-            selectProveedor.value = proveedorSeleccionado.id;
-            selectProveedor.dispatchEvent(new Event('change'));
-        }
+        selectProveedor.value = proveedorSeleccionado.id;
+        selectProveedor.dispatchEvent(new Event('change'));
     }
 
     window.showToast(t('pedidos:supplier_selected', { name: proveedorSeleccionado.nombre }), 'success');
@@ -377,23 +370,10 @@ export function agregarIngredientePedido() {
 
     container.appendChild(div);
 
-    // Búsqueda incremental por substring en el desplegable de ingredientes
-    // (el select nativo solo salta a primera letra). Falla a select nativo si
-    // TomSelect no se cargó.
-    import('../../utils/searchable-select.js').then(({ enhanceSearchableSelect }) => {
-        const ingSelect = div.querySelector('select');
-        if (!ingSelect) return;
-        enhanceSearchableSelect(ingSelect);
-        // TomSelect crea un .ts-wrapper junto al <select> y oculta el select
-        // original. El select tenía flex:2 inline, pero el wrapper nace SIN
-        // flex y se queda en su ancho mínimo → la fila aparecía con un hueco
-        // en blanco a la derecha. Trasladamos el flex al wrapper.
-        const wrapper = div.querySelector('.ts-wrapper');
-        if (wrapper) {
-            wrapper.style.flex = '2 1 240px';
-            wrapper.style.minWidth = '0';
-        }
-    }).catch(() => {});
+    // TomSelect DESACTIVADO en pedidos (2026-05-11). El wrapper visible
+    // (.ts-wrapper) provocaba "doble casilla" y race conditions al sincronizar
+    // el value tras seleccionar por la búsqueda superior. Volvemos al
+    // <select> nativo HTML5 — el usuario teclea la primera letra para saltar.
 }
 
 /**
