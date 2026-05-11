@@ -1262,3 +1262,17 @@ input[type="number"] {
 [data-theme="dark"] .ts-dropdown {
     background: #1e293b !important;
 }
+
+/* --- TomSelect .item: sin borde decorativo ---
+   El CSS por defecto de tom-select.min.css pinta un border + background
+   alrededor del .item (el chip de texto del valor seleccionado) dentro
+   del .ts-control. En single-select queda como "una caja dentro de otra"
+   visualmente confusa. Aplanamos el item para que parezca texto plano
+   sobre el control. */
+.ts-wrapper .ts-control > .item {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+}
