@@ -199,13 +199,11 @@ export function agregarIngredienteReceta(initialValue = '') {
 
     lista.appendChild(item);
 
-    // Búsqueda incremental por substring en el desplegable de ingredientes
-    // (con 400+ ingredientes, el select nativo era inservible). Falla a nativo
-    // si TomSelect no se cargó.
-    import('../../utils/searchable-select.js').then(({ enhanceSearchableSelect }) => {
-        const ingSelect = item.querySelector('select');
-        if (ingSelect) enhanceSearchableSelect(ingSelect);
-    }).catch(() => {});
+    // TomSelect DESACTIVADO en recetas (2026-05-11). La integración con el
+    // ciclo asíncrono de import() + select.value provocaba race conditions
+    // al editar (el wrapper no sincronizaba con el value seteado tras init).
+    // Volvemos al <select> nativo HTML5: el usuario teclea la primera letra
+    // del ingrediente para saltar a él. Funcional y sin bugs.
 }
 
 /**
