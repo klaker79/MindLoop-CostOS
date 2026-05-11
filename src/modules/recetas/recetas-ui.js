@@ -199,11 +199,14 @@ export function agregarIngredienteReceta(initialValue = '') {
 
     lista.appendChild(item);
 
-    // TomSelect DESACTIVADO en recetas (2026-05-11). La integración con el
-    // ciclo asíncrono de import() + select.value provocaba race conditions
-    // al editar (el wrapper no sincronizaba con el value seteado tras init).
-    // Volvemos al <select> nativo HTML5: el usuario teclea la primera letra
-    // del ingrediente para saltar a él. Funcional y sin bugs.
+    // Añade un input "Buscar..." encima del <select> nativo que filtra las
+    // <option> al teclear por substring (case-insensitive). No usa TomSelect
+    // — el select sigue siendo HTML5 puro y mantiene su .value aunque las
+    // options no matching estén ocultas. Cero race conditions.
+    import('../../utils/select-with-search.js').then(({ attachSelectSearch }) => {
+        const ingSelect = item.querySelector('select');
+        if (ingSelect) attachSelectSearch(ingSelect, { placeholder: 'Buscar ingrediente...' });
+    }).catch(() => {});
 }
 
 /**
