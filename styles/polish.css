@@ -1286,6 +1286,14 @@ input[type="number"] {
     color: #94a3b8 !important;
     font-style: italic;
 }
+.ts-wrapper {
+    /* TomSelect reemplaza el <select> con su propio wrapper. El select
+       original tiene `flex: 2` en pedidos pero el wrapper se queda en
+       ancho mínimo. Forzamos que el wrapper SÍ respete el flex y nunca
+       baje de 240px para que se lea el nombre del ingrediente entero. */
+    flex: 2 1 auto !important;
+    min-width: 240px !important;
+}
 .ts-wrapper.single .ts-control,
 .ts-wrapper.multi .ts-control {
     padding: 10px 14px !important;
@@ -1294,6 +1302,19 @@ input[type="number"] {
     border-radius: 8px !important;
     border: 1px solid #cbd5e1 !important;
     box-shadow: none !important;
+}
+.ts-dropdown {
+    /* El panel desplegable debe ser ancho como mínimo igual al wrapper,
+       y crecer hasta lo que necesite el ingrediente más largo. Sin esto
+       los nombres con paréntesis (p.ej. "ACEITE DE OLIVA (5,00€/l)") se
+       partían en 3 líneas dentro de cajas estrechas. */
+    min-width: 100% !important;
+    width: max-content !important;
+    max-width: 480px !important;
+}
+.ts-dropdown .option,
+.ts-dropdown .ts-dropdown-content .option {
+    white-space: nowrap !important;
 }
 .ts-wrapper.focus .ts-control {
     border-color: #818cf8 !important;
