@@ -499,6 +499,28 @@ export function createChatStyles() {
             box-shadow: none;
         }
         
+        /* Mini badge "X/300" — esquina superior derecha del chat-window,
+           justo bajo el header. Discreto, no estorba al contenido del chat. */
+        .chat-window { position: fixed; }
+        .chat-usage-badge {
+            position: absolute;
+            top: 92px;
+            right: 14px;
+            z-index: 3;
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748b;
+            background: rgba(248, 250, 252, 0.92);
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            padding: 2px 8px;
+            line-height: 1.4;
+            letter-spacing: 0.2px;
+            pointer-events: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .chat-usage-badge:empty { display: none; }
+
         /* Header — botón "Informe ejecutivo" (acción premium del add-on) */
         .chat-informe-btn {
             display: inline-flex;
