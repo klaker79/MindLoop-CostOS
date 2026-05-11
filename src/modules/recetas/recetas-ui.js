@@ -57,7 +57,7 @@ export function cerrarFormularioReceta() {
  * Agrega una fila de ingrediente en el formulario de receta
  * 🧪 ACTUALIZADO: Incluye recetas base como ingredientes seleccionables
  */
-export function agregarIngredienteReceta() {
+export function agregarIngredienteReceta(initialValue = '') {
     const lista = document.getElementById('lista-ingredientes-receta');
     const item = document.createElement('div');
     item.className = 'ingrediente-item';
@@ -92,13 +92,18 @@ export function agregarIngredienteReceta() {
         a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
     );
 
-    let optionsHtml = `<option value="">${t('recetas:select_ingredient')}</option>`;
+    // initialValue marca la <option> correspondiente como selected EN EL HTML,
+    // imprescindible para que TomSelect lea ese valor al inicializar (snapshotea
+    // selectedIndex en init). Setear `.value` tras init NO sincroniza el wrapper.
+    const sel = (val) => String(val) === String(initialValue) ? ' selected' : '';
+
+    let optionsHtml = `<option value=""${initialValue ? '' : ' selected'}>${t('recetas:select_ingredient')}</option>`;
 
     // Ingredientes normales
     ingredientesOrdenados.forEach(ing => {
         const precio = parseFloat(ing.precio || 0).toFixed(2);
         const unidad = ing.unidad || 'ud';
-        optionsHtml += `<option value="${ing.id}">${escapeHTML(ing.nombre)} (${cm(precio)}/${escapeHTML(unidad)})</option>`;
+        optionsHtml += `<option value="${ing.id}"${sel(ing.id)}>${escapeHTML(ing.nombre)} (${cm(precio)}/${escapeHTML(unidad)})</option>`;
     });
 
     // 🧪 Añadir recetas base como ingredientes seleccionables
@@ -113,7 +118,7 @@ export function agregarIngredienteReceta() {
             const coste = window.calcularCosteRecetaCompleto ?
                 window.calcularCosteRecetaCompleto(rec) : 0;
             // Usar ID negativo para distinguir de ingredientes normales
-            optionsHtml += `<option value="rec_${rec.id}" data-es-receta="true">🧪 ${escapeHTML(rec.nombre)} (${cm(coste)})</option>`;
+            optionsHtml += `<option value="rec_${rec.id}" data-es-receta="true"${sel(`rec_${rec.id}`)}>🧪 ${escapeHTML(rec.nombre)} (${cm(coste)})</option>`;
         });
     }
 
