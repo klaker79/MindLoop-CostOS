@@ -176,7 +176,7 @@ function bindChatEvents() {
 
     const informeBtn = document.getElementById('chat-informe');
     if (informeBtn) {
-        informeBtn.addEventListener('click', () => generarInforme(informeBtn));
+        informeBtn.addEventListener('click', () => toggleInformeMenu(informeBtn));
     }
 
     const ttsBtn = document.getElementById('chat-tts');
@@ -289,11 +289,95 @@ function toggleChat(forceState) {
 }
 
 /**
+ * Genera la lista de opciones para el selector de meses:
+ *   - "Mes en curso" (sin param, backend coge hoy)
+ *   - Últimos 5 meses cerrados (YYYY-MM)
+ * Devuelve [{label, mes|null, sublabel}]
+ */
+function buildMonthOptions(lang) {
+    const opts = [];
+    const now = new Date();
+    const fmtLong = lang === 'en' ? 'en-GB' : 'es-ES';
+
+    // Mes en curso
+    opts.push({
+        label: lang === 'en' ? 'Current month' : 'Mes en curso',
+        sublabel: now.toLocaleDateString(fmtLong, { month: 'long', year: 'numeric' }),
+        mes: null
+    });
+
+    // 5 meses cerrados
+    for (let i = 1; i <= 5; i++) {
+        const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+        const yyyy = d.getUTCFullYear();
+        const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const label = d.toLocaleDateString(fmtLong, { month: 'long', year: 'numeric' });
+        opts.push({
+            label: label.charAt(0).toUpperCase() + label.slice(1),
+            sublabel: i === 1 ? (lang === 'en' ? 'Just closed' : 'Recién cerrado') : '',
+            mes: `${yyyy}-${mm}`
+        });
+    }
+    return opts;
+}
+
+/**
+ * Toggle del popover de selección de mes. Si está abierto lo cierra.
+ * El popover se posiciona absolute respecto al chat-window.
+ */
+function toggleInformeMenu(btn) {
+    const existing = document.getElementById('chat-informe-menu');
+    if (existing) {
+        existing.remove();
+        return;
+    }
+    const lang = String(window.getCurrentLanguage?.() || 'es').toLowerCase().startsWith('en') ? 'en' : 'es';
+    const opts = buildMonthOptions(lang);
+    const menu = document.createElement('div');
+    menu.id = 'chat-informe-menu';
+    menu.className = 'chat-informe-menu';
+    menu.innerHTML = `
+        <div class="chat-informe-menu-header">${t('chat:informe_choose_month') || (lang === 'en' ? 'Choose month' : 'Elige mes')}</div>
+        ${opts.map((o, i) => `
+            <button class="chat-informe-menu-item" data-mes="${o.mes || ''}" data-idx="${i}">
+                <span class="chat-informe-menu-label">${o.label}</span>
+                ${o.sublabel ? `<span class="chat-informe-menu-sub">${o.sublabel}</span>` : ''}
+            </button>
+        `).join('')}
+    `;
+    // Insertar dentro del chat-window para que herede el position:fixed
+    const chatWindow = document.getElementById('chat-window');
+    chatWindow.appendChild(menu);
+
+    menu.addEventListener('click', e => {
+        const item = e.target.closest('.chat-informe-menu-item');
+        if (!item) return;
+        const mes = item.dataset.mes || null;
+        menu.remove();
+        generarInforme(btn, mes);
+    });
+
+    // Cerrar al hacer click fuera (próximo tick para no atrapar el click actual)
+    setTimeout(() => {
+        const closeOnOutside = (ev) => {
+            if (!menu.contains(ev.target) && ev.target !== btn) {
+                menu.remove();
+                document.removeEventListener('click', closeOnOutside);
+            }
+        };
+        document.addEventListener('click', closeOnOutside);
+    }, 0);
+}
+
+/**
  * Pide el informe ejecutivo HTML al backend y lo abre en una pestaña nueva.
  * El backend hace una llamada Claude single-shot (~5-15s) para el análisis,
  * por eso mostramos un spinner en el botón mientras tanto.
+ *
+ * @param {HTMLElement} btn — el botón del header (para feedback visual)
+ * @param {string|null} mes — 'YYYY-MM' o null para mes en curso
  */
-async function generarInforme(btn) {
+async function generarInforme(btn, mes = null) {
     if (btn.dataset.loading === '1') return;
     btn.dataset.loading = '1';
     const originalHtml = btn.innerHTML;
@@ -315,7 +399,7 @@ async function generarInforme(btn) {
         // quedamos con el prefijo. Default 'es'.
         const rawLang = window.getCurrentLanguage?.() || 'es';
         const lang = String(rawLang).toLowerCase().startsWith('en') ? 'en' : 'es';
-        const html = await api.getChatInformeMensualHtml(lang);
+        const html = await api.getChatInformeMensualHtml(lang, mes);
         const blob = new Blob([html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const win = window.open(url, '_blank');
