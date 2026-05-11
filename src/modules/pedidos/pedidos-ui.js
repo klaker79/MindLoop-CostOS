@@ -244,33 +244,7 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
     const selectProveedor = document.getElementById('ped-proveedor');
     if (selectProveedor) {
         selectProveedor.value = proveedorSeleccionado.id;
-        // dispatchEvent dispara también el onchange inline → cargarIngredientesPedido
         selectProveedor.dispatchEvent(new Event('change'));
-    }
-
-    // Auto-rellenar el ingrediente en la primera fila recién creada y disparar
-    // onIngredientePedidoChange para que el precio se autocomplete (incluida
-    // la lógica de última-compra-al-proveedor del backend, modelo B).
-    // Restaura el comportamiento previo al añadir el segundo buscador.
-    const listaContainer = document.getElementById('lista-ingredientes-pedido');
-    const firstRow = listaContainer?.querySelector('.ingrediente-item');
-    if (firstRow) {
-        const ingSelect = firstRow.querySelector('select');
-        if (ingSelect) {
-            const opt = [...ingSelect.options].find(o => parseInt(o.value) === ingredienteId);
-            if (opt) {
-                ingSelect.value = String(ingredienteId);
-                window.onIngredientePedidoChange?.(ingSelect, firstRow.id);
-            } else {
-                // El proveedor de la fila no lista este ingrediente — caso raro
-                // si la asociación cambió entre selección y carga. Avisamos.
-                window.showToast(
-                    t('pedidos:ingredient_not_in_supplier', { name: ing.nombre }) ||
-                    `${ing.nombre} no aparece en la lista del proveedor seleccionado.`,
-                    'warning'
-                );
-            }
-        }
     }
 
     window.showToast(t('pedidos:supplier_selected', { name: proveedorSeleccionado.nombre }), 'success');
@@ -396,10 +370,12 @@ export function agregarIngredientePedido() {
 
     container.appendChild(div);
 
-    // NO se monta buscador encima del <select> de la fila — el modal ya tiene
-    // un buscador azul arriba ("Buscar por ingrediente") que selecciona
-    // proveedor + auto-añade el ingrediente. Tener dos buscadores en el mismo
-    // modal era confuso.
+    // Input "Buscar..." encima del <select> nativo que filtra por substring.
+    // Mismo patrón que en recetas — sin TomSelect, sin race conditions.
+    import('../../utils/select-with-search.js').then(({ attachSelectSearch }) => {
+        const ingSelect = div.querySelector('select');
+        if (ingSelect) attachSelectSearch(ingSelect, { placeholder: 'Buscar ingrediente...' });
+    }).catch(() => {});
 }
 
 /**
