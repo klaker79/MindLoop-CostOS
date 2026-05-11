@@ -44,11 +44,11 @@ export function mostrarFormularioPedido() {
             select._hasCampoDetalleListener = true;
         }
 
-        // TomSelect DESACTIVADO en pedidos (2026-05-11). Su ciclo asíncrono
-        // de import + .ts-wrapper provocaba "doble casilla" visual y race
-        // conditions al sincronizar el value (mismo problema que en recetas).
-        // Volvemos al <select> nativo HTML5: el usuario teclea la primera
-        // letra del proveedor para saltar a él.
+        // Input "Buscar..." encima del <select> nativo que filtra por substring.
+        // Mismo patrón que en recetas — sin TomSelect, sin race conditions.
+        import('../../utils/select-with-search.js').then(({ attachSelectSearch }) => {
+            attachSelectSearch(select, { placeholder: 'Buscar proveedor...' });
+        }).catch(() => {});
     }
 
     // Ocultar campo detalle mercado al inicio
@@ -370,10 +370,12 @@ export function agregarIngredientePedido() {
 
     container.appendChild(div);
 
-    // TomSelect DESACTIVADO en pedidos (2026-05-11). El wrapper visible
-    // (.ts-wrapper) provocaba "doble casilla" y race conditions al sincronizar
-    // el value tras seleccionar por la búsqueda superior. Volvemos al
-    // <select> nativo HTML5 — el usuario teclea la primera letra para saltar.
+    // Input "Buscar..." encima del <select> nativo que filtra por substring.
+    // Mismo patrón que en recetas — sin TomSelect, sin race conditions.
+    import('../../utils/select-with-search.js').then(({ attachSelectSearch }) => {
+        const ingSelect = div.querySelector('select');
+        if (ingSelect) attachSelectSearch(ingSelect, { placeholder: 'Buscar ingrediente...' });
+    }).catch(() => {});
 }
 
 /**
