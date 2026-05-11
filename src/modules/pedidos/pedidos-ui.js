@@ -329,8 +329,12 @@ export function agregarIngredientePedido() {
     const div = document.createElement('div');
     div.className = 'ingrediente-item';
     div.id = rowId;
+    // width:100% asegura que la fila ocupe todo el contenedor —
+    // sin esto la fila se quedaba en el ancho mínimo de sus hijos,
+    // dejando espacio en blanco a la derecha (regresión visible
+    // tras eliminar el botón 💾 en adc13a2).
     div.style.cssText =
-        'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; flex-wrap: wrap;';
+        'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; flex-wrap: wrap; width: 100%; box-sizing: border-box;';
 
     let opciones = `<option value="">${t('pedidos:form_select_supplier')}</option>`;
     // Orden alfabético en el desplegable para que sea más fácil encontrar el ingrediente
