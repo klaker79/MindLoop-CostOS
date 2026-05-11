@@ -47,6 +47,23 @@ export async function guardarPedido(event) {
     return;
   }
 
+  // Aviso preventivo: si la fecha del pedido es futura, pedir confirmación.
+  // Evita errores de tecleo (p.ej. escribir 2026-06-06 cuando era 2026-05-06)
+  // que después generan registros con fechas que no cuadran con compras reales.
+  const fechaPedidoEl = document.getElementById('ped-fecha');
+  if (fechaPedidoEl && fechaPedidoEl.value) {
+    const fechaPedido = new Date(fechaPedidoEl.value);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    if (fechaPedido > hoy) {
+      const ok = window.confirm(
+        `⚠️ La fecha del pedido es ${fechaPedidoEl.value}, en el futuro.\n\n` +
+        `¿Confirmas que es correcta?`
+      );
+      if (!ok) return;
+    }
+  }
+
   // Recoger ingredientes de las filas select+input
   const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
   const ingredientesPedido = [];
