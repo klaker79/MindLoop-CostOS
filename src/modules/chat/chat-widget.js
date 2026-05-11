@@ -25,6 +25,7 @@ import {
     clearChat
 } from './chat-messages.js';
 import { api } from '../../api/client.js';
+import { buildMonthOptions } from './month-options.js';
 
 let isChatOpen = false;
 let isMounted = false;
@@ -286,39 +287,6 @@ function toggleChat(forceState) {
         fab.querySelector('.notification-dot').style.display = 'none';
         document.getElementById('chat-input').focus();
     }
-}
-
-/**
- * Genera la lista de opciones para el selector de meses:
- *   - "Mes en curso" (sin param, backend coge hoy)
- *   - Últimos 5 meses cerrados (YYYY-MM)
- * Devuelve [{label, mes|null, sublabel}]
- */
-function buildMonthOptions(lang) {
-    const opts = [];
-    const now = new Date();
-    const fmtLong = lang === 'en' ? 'en-GB' : 'es-ES';
-
-    // Mes en curso
-    opts.push({
-        label: lang === 'en' ? 'Current month' : 'Mes en curso',
-        sublabel: now.toLocaleDateString(fmtLong, { month: 'long', year: 'numeric' }),
-        mes: null
-    });
-
-    // 5 meses cerrados
-    for (let i = 1; i <= 5; i++) {
-        const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
-        const yyyy = d.getUTCFullYear();
-        const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-        const label = d.toLocaleDateString(fmtLong, { month: 'long', year: 'numeric' });
-        opts.push({
-            label: label.charAt(0).toUpperCase() + label.slice(1),
-            sublabel: i === 1 ? (lang === 'en' ? 'Just closed' : 'Recién cerrado') : '',
-            mes: `${yyyy}-${mm}`
-        });
-    }
-    return opts;
 }
 
 /**
