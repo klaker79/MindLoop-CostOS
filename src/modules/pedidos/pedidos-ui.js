@@ -240,12 +240,18 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
         proveedorSeleccionado = proveedores[idx];
     }
 
-    // Seleccionar el proveedor en el dropdown
+    // Seleccionar el proveedor en el dropdown. Si TomSelect está aplicado,
+    // setear .value en el <select> oculto NO sincroniza el wrapper visible —
+    // hay que pasar por la API de TomSelect (setValue dispara change interno).
+    // Fallback al select nativo si TomSelect no se cargó.
     const selectProveedor = document.getElementById('ped-proveedor');
     if (selectProveedor) {
-        selectProveedor.value = proveedorSeleccionado.id;
-        // Disparar evento change para cargar ingredientes
-        selectProveedor.dispatchEvent(new Event('change'));
+        if (selectProveedor.tomselect) {
+            selectProveedor.tomselect.setValue(String(proveedorSeleccionado.id));
+        } else {
+            selectProveedor.value = proveedorSeleccionado.id;
+            selectProveedor.dispatchEvent(new Event('change'));
+        }
     }
 
     window.showToast(t('pedidos:supplier_selected', { name: proveedorSeleccionado.nombre }), 'success');
