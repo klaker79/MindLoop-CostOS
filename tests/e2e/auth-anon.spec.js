@@ -9,7 +9,9 @@ test.describe('Auth (anónimo)', () => {
         const email = process.env.STAGING_TEST_EMAIL;
         if (!email) test.skip(true, 'STAGING_TEST_EMAIL no configurado');
 
-        await page.goto('/');
+        // Ver comentario en global-setup: domcontentloaded evita esperar
+        // a CDN externos que en GitHub Actions tardan demasiado.
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
 
         const loginForm = page.locator('#login-form');
         await loginForm.locator('#login-email').fill(email);

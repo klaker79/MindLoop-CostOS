@@ -16,7 +16,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard', () => {
     test('muestra KPIs básicos tras login', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
 
         // Algún KPI reconocible: stock value, ingredientes, etc.
         // Uso un locator tolerante a varios idiomas.
@@ -28,7 +28,7 @@ test.describe('Dashboard', () => {
 
 test.describe('Ingredientes', () => {
     test('la lista muestra ingredientes clave del tenant', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
 
         await page.locator('[data-tab="ingredientes"]').first().click();
 
@@ -47,7 +47,7 @@ test.describe('Recetas + escandallo', () => {
     const RECETA_SECUNDARIA = /spaghetti con tomate/i;
 
     test('la lista de recetas muestra recetas del tenant', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
 
         await page.locator('[data-tab="recetas"]').first().click();
 
@@ -56,7 +56,7 @@ test.describe('Recetas + escandallo', () => {
     });
 
     test('abrir escandallo de la receta principal muestra coste y food cost', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
 
         await page.locator('[data-tab="recetas"]').first().click();
         await expect(page.getByText(RECETA_PRINCIPAL).first()).toBeVisible({ timeout: 10_000 });
@@ -74,7 +74,7 @@ test.describe('Recetas + escandallo', () => {
     });
 
     test('toggle Nominal/Real cambia de modo en el escandallo', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
 
         await page.locator('[data-tab="recetas"]').first().click();
         await expect(page.getByText(RECETA_PRINCIPAL).first()).toBeVisible({ timeout: 10_000 });
@@ -113,7 +113,7 @@ test.describe('Recetas + escandallo', () => {
 
 test.describe('i18n', () => {
     test('cambio de idioma a español traduce la navegación', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
 
         // Los botones de idioma viven dentro de #language-switcher en el sidebar inferior.
         // Pueden estar fuera del viewport al arrancar (el sidebar es largo) — scrollIntoView
