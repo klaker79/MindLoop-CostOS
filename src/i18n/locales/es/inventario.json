@@ -99,6 +99,7 @@
 
   "merma_note_placeholder": "Nota (opcional)...",
   "history_subtitle": "Histórico permanente de mermas y pérdidas. Filtra por mes y año con los selectores.",
+  "_comment_info_mermas": "Las claves info_mermas_* se migraron a src/i18n/locales/es/info-content.json (clave 'inventario'). Eliminadas para evitar duplicación.",
 
   "col_status": "Estado",
   "col_ingredient": "Ingrediente",

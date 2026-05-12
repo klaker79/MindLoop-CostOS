@@ -139,6 +139,17 @@ export function openTabHelp(tabKey) {
     const entry = HELP_VIDEOS[tabKey];
     if (!entry) return;
 
+    // Placeholder: pestaña que reserva el botón "Ver tutorial" pero aún no
+    // tiene vídeo grabado. Mostramos un toast en lugar de abrir un modal
+    // vacío. Cuando Iker grabe el vídeo, basta con cambiar `placeholder: true`
+    // por `videoId: 'XXX'` en help-config.js.
+    if (entry.placeholder && !entry.videoId && !entry.playlistId && !(Array.isArray(entry.videos) && entry.videos.length)) {
+        const msg = '🎬 Vídeo tutorial en preparación — próximamente disponible';
+        if (window.showToast) window.showToast(msg, 'info');
+        else alert(msg);
+        return;
+    }
+
     const modal = ensureModalNode();
     const iframe = modal.querySelector('.help-modal-iframe');
     const list = modal.querySelector('.help-modal-list');
@@ -191,7 +202,7 @@ function injectButtonInTab(tabKey) {
     btn.innerHTML = '🎬 Ver tutorial';
     btn.addEventListener('click', () => openTabHelp(tabKey));
 
-    // Localizar el contenedor de acciones del top-bar. Tres casos:
+    // Localizar el contenedor de acciones del top-bar. Cuatro casos:
     //   1) Pestañas tipo Ingredientes/Recetas: ya hay un <div> con flex-gap
     //      que aloja "Añadir", "Importar", "Exportar". Añadimos al final.
     //   2) Pestañas tipo Proveedores: el botón principal "+ Añadir X" está
@@ -201,7 +212,11 @@ function injectButtonInTab(tabKey) {
     //      principal y el nuevo "Ver tutorial" en un <div> compartido,
     //      así .top-bar solo ve 2 elementos (título + grupo de botones)
     //      y los 2 botones quedan pegados.
-    //   3) Pestañas sin botones de acción: append al final del top-bar.
+    //   3) Pestañas tipo Inventario: los botones de acción viven en un
+    //      <div> HERMANO (no dentro del .top-bar) — el primer div sibling
+    //      después del top-bar que contiene buttons. Inyectamos ahí para
+    //      que el "Ver tutorial" quede a la altura del resto de botones.
+    //   4) Pestañas sin botones de acción: append al final del top-bar.
     const directDivs = Array.from(topBar.children).filter(c => c.tagName === 'DIV');
     const directButtons = Array.from(topBar.children).filter(c => c.tagName === 'BUTTON');
 
@@ -216,8 +231,14 @@ function injectButtonInTab(tabKey) {
         // Caso 1: usar el wrapper de acciones existente.
         directDivs[directDivs.length - 1].appendChild(btn);
     } else {
-        // Caso 3: append simple.
-        topBar.appendChild(btn);
+        // Caso 3: buscar div hermano siguiente con botones (patrón Inventario).
+        const siblingActions = tabContent.querySelector('.top-bar + div');
+        if (siblingActions && siblingActions.querySelector('button')) {
+            siblingActions.appendChild(btn);
+        } else {
+            // Caso 4: append simple al top-bar.
+            topBar.appendChild(btn);
+        }
     }
 }
 

@@ -166,7 +166,17 @@ window.setupYieldSlider = setupYieldSlider;
 // Inserta un botón "?" en el header de cada pestaña que tenga entrada
 // en src/modules/help/help-config.js. Sin entrada → sin botón.
 import { mountHelpModal } from './modules/help/help-modal.js';
-document.addEventListener('DOMContentLoaded', mountHelpModal);
+
+// Info Modal — modales "Cómo funciona esta pestaña" con contenido textual
+// estructurado (config en src/i18n/locales/{lang}/info-content.json).
+// Auto-inyecta el botón "ℹ️ Cómo funcionan" en cada pestaña que tenga
+// entrada en el JSON. Sin entrada → sin botón.
+import { mountInfoModal } from './modules/help/info-modal.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+    mountHelpModal();
+    mountInfoModal();
+});
 
 // Parser flexible de inventario. El módulo es ESM, pero
 // src/legacy/inventario-masivo.js se carga como <script> plano y no puede

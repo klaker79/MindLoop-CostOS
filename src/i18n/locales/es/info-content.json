@@ -1,0 +1,100 @@
+{
+  "inventario": {
+    "title": "ℹ️ Mermas y pérdidas — guía completa",
+    "lead": "Todo lo que necesitas saber sobre cómo se generan, dónde se ven y cómo afectan a tus costes.",
+    "blocks": [
+      {
+        "title": "🗑️ Registro manual (Merma Rápida)",
+        "body": "Pulsa \"Merma Rápida\" para registrar una pérdida puntual: caducidad, rotura, robo, error en cocina, etc. Indica ingrediente, cantidad, motivo y nota opcional. El stock baja al instante.",
+        "color": "blue"
+      },
+      {
+        "title": "📊 Registro automático (subida masiva)",
+        "body": "Al subir un inventario físico desde Excel, las diferencias detectadas (stock real menor que el stock del sistema) se registran como merma con motivo \"Ajuste de inventario\" y nota con la fecha de subida. Si el stock real es mayor (entró mercancía no registrada), se considera ajuste al alza, NO merma.",
+        "color": "blue"
+      },
+      {
+        "title": "💶 Cómo se calcula el valor",
+        "body": "Cada merma se valora en euros como cantidad × precio medio de compra del ingrediente. Si no hay compras registradas, cae al precio configurado o al precio por unidad de formato. El precio que ves en el histórico es el coste real de lo perdido.",
+        "color": "blue"
+      },
+      {
+        "title": "📋 Histórico permanente",
+        "body": "Cada merma se conserva indefinidamente — no se borra automáticamente, ni siquiera al fin de mes. Filtra por mes/año con los selectores del botón \"Ver Historial Mermas\". Backup diario en MinIO S3.",
+        "color": "blue"
+      },
+      {
+        "title": "💰 Impacto en el food cost real",
+        "body": "El \"Food cost\" tradicional (en el dashboard y demás pestañas) mide solo lo que vendiste: COGS de ventas / ingresos. Pero el dinero que TIRAS por mermas también es coste real — solo que no aparece como \"venta\". En el informe ejecutivo mensual del Chat IA verás DOS números: \"Food cost ventas\" (el de toda la vida) y \"Food cost real\" (incluyendo mermas). Si la diferencia entre ambos es grande, tienes un problema operativo: estás comprando comida que no llega a salir como plato.",
+        "color": "amber"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Haz inventario físico al menos 1 vez al mes (fin/inicio de mes es lo más cómodo). Las mermas que detectes en la subida quedan registradas y te ayudan a entender dónde se va tu producto. Sin inventario físico periódico, el stock del sistema se separa de la realidad poco a poco.",
+        "color": "green"
+      }
+    ]
+  },
+  "ingredientes": {
+    "title": "ℹ️ Ingredientes — guía rápida",
+    "lead": "Catálogo central de tus materias primas. Cada plato se construye combinando estos ingredientes.",
+    "blocks": [
+      {
+        "title": "📦 Qué es un ingrediente",
+        "body": "Cualquier producto que entra en cocina como materia prima: una bolsa de patatas, una botella de vino, un kilo de carne. Lo defines una vez aquí y lo reutilizas en todas tus recetas.",
+        "color": "blue"
+      },
+      {
+        "title": "💰 Precio y formato",
+        "body": "Cada ingrediente tiene un \"formato de compra\" (caja, garrafa, kilo, unidad…) con su \"cantidad por formato\" (ej. una garrafa de aceite contiene 5 litros). Al comprarlo, el sistema convierte automáticamente entre formato y unidad base. Esto es CLAVE para que los costes de las recetas salgan bien.",
+        "color": "blue"
+      },
+      {
+        "title": "📈 Precio medio de compra",
+        "body": "Cuando registras pedidos, el sistema calcula automáticamente el precio medio real al que has comprado cada ingrediente. Ese es el precio que usan las recetas para calcular su coste — siempre el más reciente y realista, no el que configuraste hace 6 meses.",
+        "color": "blue"
+      },
+      {
+        "title": "🥬 Rendimiento",
+        "body": "Porcentaje de producto aprovechable. Una merluza de 1 kg con rendimiento 60% deja 600 g utilizables tras limpiar. El sistema ajusta el coste real de cada porción usando este número. Por defecto 100% — bájalo para productos con merma estructural (pescados, verduras a recortar, etc.).",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "No metas dos ingredientes parecidos como duplicados (\"Tomate Pera\" + \"TOMATES\"). Si los compras de distintos proveedores, asocia AMBOS proveedores al mismo ingrediente desde su ficha. Si los fragmentas, no podrás comparar precios ni hacer Smart Order correctamente.",
+        "color": "green"
+      }
+    ]
+  },
+  "recetas": {
+    "title": "ℹ️ Recetas — guía rápida",
+    "lead": "Cada plato de tu carta vive aquí, con sus ingredientes, porciones y precio de venta. El sistema calcula coste, margen y food cost en tiempo real.",
+    "blocks": [
+      {
+        "title": "🍽️ Estructura de una receta",
+        "body": "Cada receta tiene: nombre, categoría (alimento/bebida/vino…), precio de venta, número de porciones y lista de ingredientes con cantidad. El sistema calcula automáticamente el coste por porción y el food cost % en tiempo real mientras editas.",
+        "color": "blue"
+      },
+      {
+        "title": "📐 Porciones — clave",
+        "body": "Si tu receta de \"Salsa boloñesa\" produce 10 raciones con un total de 8 kg de ingredientes, las porciones = 10. El sistema calculará: coste por porción = coste total ÷ 10. Si te equivocas aquí, el food cost saldrá multiplicado o dividido por error.",
+        "color": "amber"
+      },
+      {
+        "title": "🎯 Food cost objetivo",
+        "body": "Umbrales unificados: ≤30% (verde, excelente), 31-35% (objetivo OK), 36-40% (vigilar), >40% (alerta — replantear precio). Para VINOS el target es 45-50% (es normal en hostelería). El sistema te marca cada receta con un color según su food cost real.",
+        "color": "blue"
+      },
+      {
+        "title": "🔄 Recetas base / subrecetas",
+        "body": "Si una salsa o un fondo se usa en varios platos, créalo como receta independiente y referénciala desde las recetas que la consumen. El coste se calcula en cascada: si sube el precio de un ingrediente de la salsa, todos los platos que la usan se recalculan automáticamente.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Cuando edites una receta y cambies cantidades, mira el panel verde \"Rentabilidad en tiempo real\" abajo: te dice al instante si vas dentro de rango. Si rebasas el 35%, plantéate ajustar porción, ingrediente o precio antes de guardar.",
+        "color": "green"
+      }
+    ]
+  }
+}

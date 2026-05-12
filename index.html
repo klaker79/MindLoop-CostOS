@@ -1605,8 +1605,9 @@
             </div>
           </div>
 
-          <div style="margin-bottom: 15px;">
-            <button class="btn btn-secondary" data-action="mostrar-modal-inventario-masivo"
+          <div class="inventario-action-bar" style="margin-bottom: 15px;">
+            <button class="btn" style="background: linear-gradient(135deg, #10b981, #059669); color: white;"
+              data-action="mostrar-modal-inventario-masivo"
               data-i18n="inventario:btn_update_bulk">📊 ACTUALIZAR INVENTARIO
               MASIVO</button>
             <button class="btn btn-primary" data-action="guardar-cambios-stock" data-i18n="inventario:btn_save_stock">💾
@@ -1617,6 +1618,10 @@
               data-action="ver-historial-mermas" data-i18n="inventario:btn_waste_history">📋 Ver Historial
               Mermas</button>
             <button class="btn btn-secondary" data-action="exportar-inventario">📤 Export Excel</button>
+            <!-- "ℹ️ Cómo funcionan" se inyecta automáticamente por info-modal.js
+                 si hay entry para "inventario" en src/i18n/locales/{lang}/info-content.json -->
+            <!-- "🎬 Ver tutorial" se inyecta automáticamente por help-modal.js
+                 si hay entry para "inventario" en src/modules/help/help-config.js -->
           </div>
 
           <div id="resumen-inventario" style="display: none; gap: 20px;"></div>
@@ -2781,6 +2786,10 @@
           </div>
         </div>
       </div>
+
+      <!-- Modal: Información de Mermas (educativo) — MIGRADO a info-modal.js
+           El contenido vive ahora en src/i18n/locales/{lang}/info-content.json
+           bajo la clave "inventario". El modal lo renderiza dinámicamente. -->
 
       <!-- Modal: Registrar Mermas (Mejorado) -->
       <div id="modal-merma-rapida" class="modal">
