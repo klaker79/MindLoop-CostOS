@@ -266,6 +266,38 @@ async function descargarExcel(datos, filename, sheetName) {
     return false;
 }
 
+/**
+ * Construye una fila de plantilla con las 4 columnas:
+ *   - Ingrediente
+ *   - Cuenta en: descriptivo humano ("garrafa de 5 L" / "kg" / "ud").
+ *     El parser flexible IGNORA esta columna — es solo guía visual.
+ *   - Formato: valor EXACTO de `ing.formato_compra` (ej. "garrafa").
+ *     Si el usuario mantiene este valor, el parser flexible interpreta
+ *     "Stock Real" como cantidad en formato y multiplica por
+ *     cantidad_por_formato. Si lo edita o lo borra, asume unidad base.
+ *   - Stock Real: vacío para que el usuario lo rellene tras contar.
+ *
+ * Si el ingrediente NO tiene `formato_compra` (o cpf<=1), tanto "Cuenta en"
+ * como "Formato" reflejan la unidad base sola; el stock se interpreta
+ * directamente en unidad base (kg/L/ud).
+ */
+function _filaPlantillaInventario(ing) {
+    const cpf = parseFloat(ing.cantidad_por_formato);
+    const tieneFormatoReal = ing.formato_compra
+        && Number.isFinite(cpf)
+        && cpf > 1;
+    const unidad = (ing.unidad || 'ud').trim();
+    const cuentaEn = tieneFormatoReal
+        ? `${ing.formato_compra} de ${cpf} ${unidad}`
+        : unidad;
+    return {
+        Ingrediente: ing.nombre,
+        'Cuenta en': cuentaEn,
+        'Formato': tieneFormatoReal ? ing.formato_compra : '',
+        'Stock Real': ''
+    };
+}
+
 // Descargar plantilla COMPLETA (todos los ingredientes)
 window.descargarPlantillaStock = async function () {
     try {
@@ -274,10 +306,7 @@ window.descargarPlantillaStock = async function () {
             return;
         }
 
-        const datos = window.ingredientes.map(ing => ({
-            Ingrediente: ing.nombre,
-            'Stock Real': '',
-        }));
+        const datos = window.ingredientes.map(_filaPlantillaInventario);
 
         const filename = `Plantilla_Inventario_COMPLETO_${new Date().toISOString().split('T')[0]}.xlsx`;
         if (!(await descargarExcel(datos, filename, 'Todos'))) {
@@ -306,10 +335,7 @@ window.descargarPlantillaAlimentos = async function () {
             return;
         }
 
-        const datos = alimentos.map(ing => ({
-            Ingrediente: ing.nombre,
-            'Stock Real': '',
-        }));
+        const datos = alimentos.map(_filaPlantillaInventario);
 
         const filename = `Plantilla_ALIMENTOS_${new Date().toISOString().split('T')[0]}.xlsx`;
         if (!(await descargarExcel(datos, filename, 'Alimentos'))) {
@@ -338,10 +364,7 @@ window.descargarPlantillaBebidas = async function () {
             return;
         }
 
-        const datos = bebidas.map(ing => ({
-            Ingrediente: ing.nombre,
-            'Stock Real': '',
-        }));
+        const datos = bebidas.map(_filaPlantillaInventario);
 
         const filename = `Plantilla_BEBIDAS_${new Date().toISOString().split('T')[0]}.xlsx`;
         if (!(await descargarExcel(datos, filename, 'Bebidas'))) {
