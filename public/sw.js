@@ -23,8 +23,9 @@
 // BUMP v22: inventario — ACTUALIZAR INVENTARIO MASIVO verde + Ver Tutorial inyectado en la fila de botones.
 // BUMP v23: sistema info-modal unificado (config en info-content.json), inventario migrado + borradores ingredientes y recetas.
 // BUMP v24: añadidos borradores info-content para pedidos, diario y análisis (incluye matriz BCG).
+// BUMP v25: fix bugs pedidos — fecha futura por timezone + cpf "30.000" interpretado como "treinta mil".
 
-const CACHE_NAME = 'mindloop-costos-v24';
+const CACHE_NAME = 'mindloop-costos-v25';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
