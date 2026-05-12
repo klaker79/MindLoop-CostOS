@@ -20,8 +20,9 @@
 // BUMP v19: botón "ℹ️ Cómo funcionan" + modal educativo de mermas en pestaña Inventario.
 // BUMP v20: botón "📹 Tutorial" en inventario + modal informativo ampliado con food cost real.
 // BUMP v21: unificar botones — tutorial inventario usa sistema HELP_VIDEOS (placeholder hasta video).
+// BUMP v22: inventario — ACTUALIZAR INVENTARIO MASIVO verde + Ver Tutorial inyectado en la fila de botones.
 
-const CACHE_NAME = 'mindloop-costos-v21';
+const CACHE_NAME = 'mindloop-costos-v22';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
