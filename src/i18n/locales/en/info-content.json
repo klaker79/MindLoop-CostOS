@@ -96,5 +96,108 @@
         "color": "green"
       }
     ]
+  },
+  "pedidos": {
+    "title": "ℹ️ Pedidos — guía rápida",
+    "lead": "Aquí gestionas los pedidos a tus proveedores. Tres caminos para crearlos, y un flujo de DOS pasos: pedir → recibir.",
+    "blocks": [
+      {
+        "title": "➕ Tres formas de crear un pedido",
+        "body": "1) Nuevo Pedido: el clásico — eliges proveedor, fecha e ingredientes manualmente. 2) Smart Order: la app te sugiere qué pedir según consumo histórico y stock actual; revisas y confirmas. 3) Carrito: añades ingredientes desde el listado con un solo clic y luego envías el carrito como pedido. Elige el que más se ajuste a tu rutina.",
+        "color": "blue"
+      },
+      {
+        "title": "📋 Flujo de DOS pasos (importante)",
+        "body": "Crear el pedido → queda en estado PENDIENTE. El stock NO cambia, los precios NO se registran. Cuando llega la mercancía, pulsas \"Recibir pedido\": ajustas cantidades y precios reales si hay varianza, confirmas, y SOLO ENTONCES sube el stock_actual, se registra el precio real de compra (alimenta precio_medio_compra) y el pedido pasa a RECIBIDO.",
+        "color": "blue"
+      },
+      {
+        "title": "🏪 Excepción: proveedor \"Mercado\" / \"Plaza\"",
+        "body": "Si vas físicamente y traes la mercancía en el momento, el pedido se crea YA en estado recibido y el stock se actualiza al instante. Detección automática por nombre del proveedor que contenga \"mercado\".",
+        "color": "blue"
+      },
+      {
+        "title": "💶 Precio real en la recepción",
+        "body": "El precio se autocompleta desde el ingrediente, pero PUEDES editarlo si la factura del día trae otro. Ese precio editado se registra en el histórico de compras y el sistema lo usa como precio medio de compra para los cálculos de coste de receta. No actualiza el precio base del ingrediente — solo el promedio real de compras.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Avisa por aviso del proveedor o agenda mental: si dejas pedidos PENDIENTES sin recibir cuando ya tienes la mercancía, el stock se descuadra. Mantén el inventario fiel: recibe el día que llega, ajusta cantidades reales si hubo merma o falta, y verifica el precio si te suena raro.",
+        "color": "green"
+      }
+    ]
+  },
+  "diario": {
+    "title": "ℹ️ Diario — guía rápida",
+    "lead": "Vista tipo Excel de tu actividad diaria: compras vs ventas, día a día. La fotografía del día y del mes a un golpe de vista.",
+    "blocks": [
+      {
+        "title": "📊 Cuatro vistas del mismo dato",
+        "body": "1) Compras (Costes): cuánto te ha costado cada día comprar materia prima. 2) Ventas (Ingresos): cuánto facturaste cada día. 3) Por Proveedor: gasto por proveedor en cada día. 4) P&L Diario: ingresos − costes − margen, agrupado por día. Cambia entre vistas con los botones superiores.",
+        "color": "blue"
+      },
+      {
+        "title": "🗓️ Selector mes/año",
+        "body": "El mes/año que elijas filtra TODA la vista (las 4 vistas comparten el rango). Empieza por el mes en curso para ver dónde estás; luego compara con el mes anterior para detectar tendencias (subida de costes, días flojos de venta…).",
+        "color": "blue"
+      },
+      {
+        "title": "📥 Exportar Excel",
+        "body": "Genera un Excel real con los datos del mes filtrado — para llevárselo al gestor, archivar, o cruzar con tu contabilidad. Mantiene el formato de la vista que tengas activa.",
+        "color": "blue"
+      },
+      {
+        "title": "🎯 Cómo lo lee un dueño experto",
+        "body": "Mira primero \"P&L Diario\" — te dice si cada día has ganado o perdido. Después \"Por Proveedor\" para detectar al que más te factura (negociar o cambiar). \"Ventas\" para identificar días flojos de la semana (¿abrir o no?). \"Compras\" para detectar picos de gasto que no sigan al ritmo de venta.",
+        "color": "blue"
+      },
+      {
+        "title": "🎯 Punto de Equilibrio Mensual",
+        "body": "Widget destacado: te dice cuántos PLATOS te faltan vender en lo que queda de mes para cubrir tus gastos fijos. Lo calcula con tu margen medio por plato real (no estimado). Si ya estás por encima del equilibrio, sale en verde: \"✅ Gastos fijos cubiertos, todo desde aquí es beneficio\". Es el número más útil para fijar objetivo semanal del equipo.",
+        "color": "amber"
+      },
+      {
+        "title": "🤖 Recomendaciones automáticas",
+        "body": "El sistema analiza tus ventas y propone acciones concretas: 🚨 Retirar/reformar platos que ni venden ni dan margen. 💰 Subir precio a los que venden bien con margen bajo. 📢 Promocionar los de buen margen con poca visibilidad. ✨ Mantener destacados los \"estrella\". Cada recomendación incluye los nombres concretos de los platos — no consejos genéricos.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Acostúmbrate a revisar el Diario una vez por semana, no solo al cerrar el mes. Patrones que se detectan a tiempo (gasto desproporcionado un martes, venta floja un domingo) dan margen para reaccionar antes de que el mes se vaya por el desagüe. El widget de Punto de Equilibrio sirve como brújula semanal del equipo.",
+        "color": "green"
+      }
+    ]
+  },
+  "analisis": {
+    "title": "ℹ️ Análisis — guía rápida",
+    "lead": "Aquí está la inteligencia de tu negocio: rentabilidad por plato, ingeniería de menú (matriz BCG) y gráficos para entender dónde ganas y dónde pierdes dinero.",
+    "blocks": [
+      {
+        "title": "🏆 Ranking de Rentabilidad",
+        "body": "Tabla con tus platos ordenados por margen € absoluto del mes (ingresos − coste). El #1 es tu \"caballo de batalla\": el que más DINERO te lleva a caja. Ojo: alto margen unitario no siempre = #1. Un plato con margen del 80% que vende 10 unidades genera menos que otro con margen 50% que vende 200. El ranking premia volumen × margen, no porcentaje.",
+        "color": "blue"
+      },
+      {
+        "title": "🧠 Ingeniería de Menú (matriz BCG)",
+        "body": "Cada plato cae en uno de 4 cuadrantes según popularidad (eje X) y margen (eje Y): 🟢 ESTRELLA = alto margen + alta venta (protégelo, no toques). 🔵 PUZZLE = alto margen + poca venta (promociónalo: foto carta, recomendación camarero). 🟠 CABALLO = bajo margen + mucha venta (renegocia coste con proveedor o sube precio 5% — la gente lo seguirá pidiendo). 🔴 PERRO = bajo margen + poca venta (sustituir o eliminar de carta).",
+        "color": "amber"
+      },
+      {
+        "title": "📈 Gráficos de evolución",
+        "body": "Ingresos vs gastos mes a mes, food cost por categoría, top ingredientes por consumo… Sirven para detectar tendencias largas: ¿el food cost sube despacio mes tras mes? Quizás los proveedores te están subiendo precios sin que te enteres. ¿Las ventas caen un día concreto cada semana? Cambia carta o promo ese día.",
+        "color": "blue"
+      },
+      {
+        "title": "💰 Margen medio vs coste medio",
+        "body": "Cifras de cabecera: margen promedio y coste promedio de TUS recetas (solo alimentos, las bebidas se filtran por defecto). Compara con los benchmarks del sector: margen medio sano en hostelería = 65-70%. Por debajo del 60% = revisar carta.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Revisa la matriz BCG cada 2-3 meses, no semanalmente — los platos no cambian de cuadrante por una mala semana. El uso real: planificar el próximo cambio de carta. PERROS fuera, PUZZLES con foto y recomendación, CABALLOS con +1€, ESTRELLAS intocables.",
+        "color": "green"
+      }
+    ]
   }
 }
