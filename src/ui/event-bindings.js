@@ -114,25 +114,6 @@ const actionHandlers = {
     },
     'cerrar-modal-info-mermas': () => closeModal('modal-info-mermas'),
 
-    // Tutorial de Inventario (video YouTube). Si la entrada HELP_VIDEOS para
-    // 'inventario' aún no tiene videoId (pendiente de grabar), mostramos un
-    // toast informativo en lugar de abrir un modal vacío.
-    'tutorial-inventario': async () => {
-        try {
-            const { HELP_VIDEOS } = await import('@/modules/help/help-config.js');
-            const entry = HELP_VIDEOS?.inventario;
-            const hasVideo = entry && (entry.videoId || entry.playlistId || (Array.isArray(entry.videos) && entry.videos.length));
-            if (!hasVideo) {
-                window.showToast?.('🎬 Vídeo en preparación — próximamente disponible', 'info');
-                return;
-            }
-            const { openTabHelp } = await import('@/modules/help/help-modal.js');
-            openTabHelp('inventario');
-        } catch (err) {
-            console.warn('Error abriendo tutorial inventario:', err);
-            window.showToast?.('No se pudo abrir el tutorial', 'error');
-        }
-    },
 
     // Evolución de Precios
     'cerrar-modal-evolucion-precio': () => closeModal('modal-evolucion-precio'),
