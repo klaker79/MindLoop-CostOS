@@ -14,8 +14,10 @@
 // BUMP v15: fix recetas — querySelector('input') pillaba el buscador en lugar de .receta-cantidad.
 //          Síntomas: (1) modal "Rentabilidad en tiempo real" desaparecía al cambiar cantidad,
 //                    (2) guardarReceta guardaba ingredientes: [] (catastrófico).
+// BUMP v16: plantilla inventario masivo con columnas "Cuenta en" + "Formato" pre-rellenadas.
+// BUMP v17: subida de inventario registra mermas REALES (antes solo anunciaba; ahora persisten en histórico).
 
-const CACHE_NAME = 'mindloop-costos-v15';
+const CACHE_NAME = 'mindloop-costos-v17';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
