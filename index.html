@@ -1618,10 +1618,10 @@
               data-action="ver-historial-mermas" data-i18n="inventario:btn_waste_history">📋 Ver Historial
               Mermas</button>
             <button class="btn btn-secondary" data-action="exportar-inventario">📤 Export Excel</button>
-            <button class="btn btn-secondary" data-action="mostrar-info-mermas"
-              data-i18n="inventario:btn_mermas_info"
-              data-i18n-title="inventario:btn_mermas_info_tooltip"
-              title="Cómo funcionan las mermas (manual + automática, retención, impacto en costes)">ℹ️ Cómo funcionan</button>
+            <!-- "ℹ️ Cómo funcionan" se inyecta automáticamente por info-modal.js
+                 si hay entry para "inventario" en src/i18n/locales/{lang}/info-content.json -->
+            <!-- "🎬 Ver tutorial" se inyecta automáticamente por help-modal.js
+                 si hay entry para "inventario" en src/modules/help/help-config.js -->
           </div>
 
           <div id="resumen-inventario" style="display: none; gap: 20px;"></div>
@@ -2787,60 +2787,9 @@
         </div>
       </div>
 
-      <!-- Modal: Información de Mermas (educativo) -->
-      <div id="modal-info-mermas" class="modal">
-        <div class="modal-content" style="max-width: 720px; max-height: 90vh; overflow-y: auto;">
-          <span class="close" data-action="cerrar-modal-info-mermas">&times;</span>
-          <h2 style="color: #0284c7; display: flex; align-items: center; gap: 10px;">
-            <span data-i18n="inventario:info_mermas_title">ℹ️ Mermas y pérdidas — guía completa</span>
-          </h2>
-          <p style="color: #64748b; margin-bottom: 18px; font-size: 13px;"
-            data-i18n="inventario:info_mermas_lead">Todo lo que necesitas saber sobre cómo se generan, dónde se ven y cómo afectan a tus costes.</p>
-
-          <div style="line-height: 1.6; color: #1e293b; font-size: 14px;">
-            <!-- 1. Manualmente -->
-            <div style="margin-bottom: 16px; padding: 12px 14px; background: #f0f9ff; border-left: 3px solid #0284c7; border-radius: 6px;">
-              <strong style="color: #0284c7;" data-i18n="inventario:info_mermas_manual_title">🗑️ Registro manual (Merma Rápida)</strong><br>
-              <span data-i18n="inventario:info_mermas_manual_body">Pulsa "Merma Rápida" para registrar una pérdida puntual: caducidad, rotura, robo, error en cocina, etc. Indica ingrediente, cantidad, motivo y nota opcional. El stock baja al instante.</span>
-            </div>
-
-            <!-- 2. Automáticamente -->
-            <div style="margin-bottom: 16px; padding: 12px 14px; background: #f0f9ff; border-left: 3px solid #0284c7; border-radius: 6px;">
-              <strong style="color: #0284c7;" data-i18n="inventario:info_mermas_auto_title">📊 Registro automático (subida masiva)</strong><br>
-              <span data-i18n="inventario:info_mermas_auto_body">Al subir un inventario físico desde Excel, las diferencias detectadas (stock real menor que el stock del sistema) se registran como merma con motivo "Ajuste de inventario" y nota con la fecha de subida. Si el stock real es mayor (entró mercancía no registrada), se considera ajuste al alza, NO merma.</span>
-            </div>
-
-            <!-- 3. Cómo se valora -->
-            <div style="margin-bottom: 16px; padding: 12px 14px; background: #f0f9ff; border-left: 3px solid #0284c7; border-radius: 6px;">
-              <strong style="color: #0284c7;" data-i18n="inventario:info_mermas_value_title">💶 Cómo se calcula el valor</strong><br>
-              <span data-i18n="inventario:info_mermas_value_body">Cada merma se valora en euros como `cantidad × precio medio de compra` del ingrediente. Si no hay compras registradas, cae al precio configurado o al precio por unidad de formato. El precio que ves en el histórico es el coste real de lo perdido.</span>
-            </div>
-
-            <!-- 4. Histórico permanente -->
-            <div style="margin-bottom: 16px; padding: 12px 14px; background: #f0f9ff; border-left: 3px solid #0284c7; border-radius: 6px;">
-              <strong style="color: #0284c7;" data-i18n="inventario:info_mermas_history_title">📋 Histórico permanente</strong><br>
-              <span data-i18n="inventario:info_mermas_history_body">Cada merma se conserva indefinidamente — no se borra automáticamente, ni siquiera al fin de mes. Filtra por mes/año con los selectores del botón "Ver Historial Mermas". Backup diario en MinIO S3.</span>
-            </div>
-
-            <!-- 5. Impacto en costes -->
-            <div style="margin-bottom: 16px; padding: 12px 14px; background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 6px;">
-              <strong style="color: #92400e;" data-i18n="inventario:info_mermas_impact_title">💰 Impacto en el food cost real</strong><br>
-              <span data-i18n="inventario:info_mermas_impact_body">El "Food cost" tradicional (en el dashboard y demás pestañas) mide solo lo que vendiste: COGS de ventas / ingresos. Pero el dinero que TIRAS por mermas también es coste real — solo que no aparece como "venta". En el informe ejecutivo mensual del Chat IA verás DOS números: "Food cost ventas" (el de toda la vida) y "Food cost real" (incluyendo mermas). Si la diferencia entre ambos es grande, tienes un problema operativo: estás comprando comida que no llega a salir como plato.</span>
-            </div>
-
-            <!-- 6. Tip -->
-            <div style="margin-bottom: 8px; padding: 12px 14px; background: #ecfdf5; border-left: 3px solid #10b981; border-radius: 6px;">
-              <strong style="color: #065f46;" data-i18n="inventario:info_mermas_tip_title">💡 Consejo</strong><br>
-              <span data-i18n="inventario:info_mermas_tip_body">Haz inventario físico al menos 1 vez al mes (fin/inicio de mes es lo más cómodo). Las mermas que detectes en la subida quedan registradas y te ayudan a entender dónde se va tu producto. Sin inventario físico periódico, el stock del sistema se separa de la realidad poco a poco.</span>
-            </div>
-          </div>
-
-          <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-info-mermas"
-              data-i18n="common:btn_close">Cerrar</button>
-          </div>
-        </div>
-      </div>
+      <!-- Modal: Información de Mermas (educativo) — MIGRADO a info-modal.js
+           El contenido vive ahora en src/i18n/locales/{lang}/info-content.json
+           bajo la clave "inventario". El modal lo renderiza dinámicamente. -->
 
       <!-- Modal: Registrar Mermas (Mejorado) -->
       <div id="modal-merma-rapida" class="modal">
