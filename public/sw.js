@@ -19,8 +19,9 @@
 // BUMP v18: historial mermas — auto-cargar al cambiar selector + subtítulo aclarado (retención permanente).
 // BUMP v19: botón "ℹ️ Cómo funcionan" + modal educativo de mermas en pestaña Inventario.
 // BUMP v20: botón "📹 Tutorial" en inventario + modal informativo ampliado con food cost real.
+// BUMP v21: unificar botones — tutorial inventario usa sistema HELP_VIDEOS (placeholder hasta video).
 
-const CACHE_NAME = 'mindloop-costos-v20';
+const CACHE_NAME = 'mindloop-costos-v21';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

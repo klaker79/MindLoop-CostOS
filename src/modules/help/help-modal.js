@@ -139,6 +139,17 @@ export function openTabHelp(tabKey) {
     const entry = HELP_VIDEOS[tabKey];
     if (!entry) return;
 
+    // Placeholder: pestaña que reserva el botón "Ver tutorial" pero aún no
+    // tiene vídeo grabado. Mostramos un toast en lugar de abrir un modal
+    // vacío. Cuando Iker grabe el vídeo, basta con cambiar `placeholder: true`
+    // por `videoId: 'XXX'` en help-config.js.
+    if (entry.placeholder && !entry.videoId && !entry.playlistId && !(Array.isArray(entry.videos) && entry.videos.length)) {
+        const msg = '🎬 Vídeo tutorial en preparación — próximamente disponible';
+        if (window.showToast) window.showToast(msg, 'info');
+        else alert(msg);
+        return;
+    }
+
     const modal = ensureModalNode();
     const iframe = modal.querySelector('.help-modal-iframe');
     const list = modal.querySelector('.help-modal-list');

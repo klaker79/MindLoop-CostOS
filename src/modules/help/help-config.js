@@ -34,6 +34,10 @@ export const HELP_VIDEOS = {
     },
     ventas: { videoId: 'nfuKIg5CH7s' },
     pedidos: { videoId: '6-tsxouaGHA' },
+    // Placeholder: reserva el botón "🎬 Ver tutorial" en la pestaña pero
+    // muestra toast "próximamente" hasta que se grabe el video. Cuando esté,
+    // cambiar a `inventario: { videoId: 'XXX' }`.
+    inventario: { placeholder: true },
     // Pendiente — irán entrando aquí a medida que Iker suba a YouTube:
     // inventario:     { videoId: '...' },
     // diario:         { videoId: '...' },
