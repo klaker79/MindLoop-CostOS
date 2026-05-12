@@ -153,8 +153,18 @@
         "color": "blue"
       },
       {
+        "title": "🎯 Punto de Equilibrio Mensual",
+        "body": "Widget destacado: te dice cuántos PLATOS te faltan vender en lo que queda de mes para cubrir tus gastos fijos. Lo calcula con tu margen medio por plato real (no estimado). Si ya estás por encima del equilibrio, sale en verde: \"✅ Gastos fijos cubiertos, todo desde aquí es beneficio\". Es el número más útil para fijar objetivo semanal del equipo.",
+        "color": "amber"
+      },
+      {
+        "title": "🤖 Recomendaciones automáticas",
+        "body": "El sistema analiza tus ventas y propone acciones concretas: 🚨 Retirar/reformar platos que ni venden ni dan margen. 💰 Subir precio a los que venden bien con margen bajo. 📢 Promocionar los de buen margen con poca visibilidad. ✨ Mantener destacados los \"estrella\". Cada recomendación incluye los nombres concretos de los platos — no consejos genéricos.",
+        "color": "blue"
+      },
+      {
         "title": "💡 Consejo",
-        "body": "Acostúmbrate a revisar el Diario una vez por semana, no solo al cerrar el mes. Patrones que se detectan a tiempo (gasto desproporcionado un martes, venta floja un domingo) dan margen para reaccionar antes de que el mes se vaya por el desagüe.",
+        "body": "Acostúmbrate a revisar el Diario una vez por semana, no solo al cerrar el mes. Patrones que se detectan a tiempo (gasto desproporcionado un martes, venta floja un domingo) dan margen para reaccionar antes de que el mes se vaya por el desagüe. El widget de Punto de Equilibrio sirve como brújula semanal del equipo.",
         "color": "green"
       }
     ]
