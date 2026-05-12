@@ -1616,6 +1616,10 @@
             <button class="btn" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white;"
               data-action="ver-historial-mermas" data-i18n="inventario:btn_waste_history">📋 Ver Historial
               Mermas</button>
+            <button class="btn" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white;"
+              data-action="mostrar-info-mermas" data-i18n="inventario:btn_mermas_info"
+              data-i18n-title="inventario:btn_mermas_info_tooltip"
+              title="Cómo funcionan las mermas (manual + automática, retención, impacto en costes)">ℹ️ Cómo funcionan</button>
             <button class="btn btn-secondary" data-action="exportar-inventario">📤 Export Excel</button>
           </div>
 
@@ -2777,6 +2781,38 @@
 
           <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
             <button class="btn btn-secondary" data-action="cerrar-modal-historial-mermas"
+              data-i18n="common:btn_close">Cerrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Información de Mermas (educativo) -->
+      <div id="modal-info-mermas" class="modal">
+        <div class="modal-content" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
+          <span class="close" data-action="cerrar-modal-info-mermas">&times;</span>
+          <h2 style="color: #0284c7; display: flex; align-items: center; gap: 10px;">
+            <span data-i18n="inventario:info_mermas_title">ℹ️ Mermas y pérdidas — cómo funcionan</span>
+          </h2>
+          <div style="margin-top: 18px; line-height: 1.6; color: #1e293b; font-size: 14px;">
+            <div style="margin-bottom: 14px;">
+              <strong style="color: #0284c7;" data-i18n="inventario:info_mermas_manual_title">🗑️ Manualmente</strong><br>
+              <span data-i18n="inventario:info_mermas_manual_body">Pulsa "Merma Rápida" para registrar una pérdida puntual: caducidad, rotura, robo, error en cocina, etc. Indica ingrediente, cantidad y motivo.</span>
+            </div>
+            <div style="margin-bottom: 14px;">
+              <strong style="color: #0284c7;" data-i18n="inventario:info_mermas_auto_title">📊 Automáticamente</strong><br>
+              <span data-i18n="inventario:info_mermas_auto_body">Al subir un inventario físico masivo desde Excel, las diferencias detectadas (stock real menor que el stock del sistema) se registran como merma con motivo "Ajuste de inventario".</span>
+            </div>
+            <div style="margin-bottom: 14px;">
+              <strong style="color: #0284c7;" data-i18n="inventario:info_mermas_history_title">📋 Histórico permanente</strong><br>
+              <span data-i18n="inventario:info_mermas_history_body">Cada merma se conserva indefinidamente. No se borra automáticamente. Filtra por mes/año con los selectores del botón "Ver Historial Mermas".</span>
+            </div>
+            <div style="margin-bottom: 14px;">
+              <strong style="color: #0284c7;" data-i18n="inventario:info_mermas_impact_title">💰 Impacto en costes</strong><br>
+              <span data-i18n="inventario:info_mermas_impact_body">Las mermas suman al COGS del mes y bajan el margen neto. El informe ejecutivo del Chat IA las refleja con su valor económico real.</span>
+            </div>
+          </div>
+          <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+            <button class="btn btn-secondary" data-action="cerrar-modal-info-mermas"
               data-i18n="common:btn_close">Cerrar</button>
           </div>
         </div>

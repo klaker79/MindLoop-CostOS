@@ -99,6 +99,17 @@
 
   "merma_note_placeholder": "Note (optional)...",
   "history_subtitle": "Permanent waste and loss history. Filter by month and year with the selectors.",
+  "btn_mermas_info": "ℹ️ How it works",
+  "btn_mermas_info_tooltip": "How waste is recorded, how long it's kept, and how it affects food cost",
+  "info_mermas_title": "ℹ️ Waste & losses — how it works",
+  "info_mermas_manual_title": "🗑️ Manually",
+  "info_mermas_manual_body": "Click \"Quick Waste\" to log a one-off loss: expiration, breakage, theft, kitchen error, etc. Specify ingredient, quantity and reason.",
+  "info_mermas_auto_title": "📊 Automatically",
+  "info_mermas_auto_body": "When uploading a physical inventory via Excel, any detected differences (real stock lower than system stock) are recorded as waste with reason \"Inventory adjustment\".",
+  "info_mermas_history_title": "📋 Permanent history",
+  "info_mermas_history_body": "Every waste record is kept indefinitely. No automatic deletion. Filter by month/year using the selectors in \"View Waste History\".",
+  "info_mermas_impact_title": "💰 Cost impact",
+  "info_mermas_impact_body": "Waste adds to the month's COGS and reduces net margin. The Chat AI executive report reflects its real monetary value.",
 
   "col_status": "Status",
   "col_ingredient": "Ingredient",

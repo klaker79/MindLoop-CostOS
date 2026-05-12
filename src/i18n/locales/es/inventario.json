@@ -99,6 +99,17 @@
 
   "merma_note_placeholder": "Nota (opcional)...",
   "history_subtitle": "Histórico permanente de mermas y pérdidas. Filtra por mes y año con los selectores.",
+  "btn_mermas_info": "ℹ️ Cómo funcionan",
+  "btn_mermas_info_tooltip": "Cómo se generan las mermas, cuánto duran y cómo afectan al food cost",
+  "info_mermas_title": "ℹ️ Mermas y pérdidas — cómo funcionan",
+  "info_mermas_manual_title": "🗑️ Manualmente",
+  "info_mermas_manual_body": "Pulsa \"Merma Rápida\" para registrar una pérdida puntual: caducidad, rotura, robo, error en cocina, etc. Indica ingrediente, cantidad y motivo.",
+  "info_mermas_auto_title": "📊 Automáticamente",
+  "info_mermas_auto_body": "Al subir un inventario físico masivo desde Excel, las diferencias detectadas (stock real menor que el stock del sistema) se registran como merma con motivo \"Ajuste de inventario\".",
+  "info_mermas_history_title": "📋 Histórico permanente",
+  "info_mermas_history_body": "Cada merma se conserva indefinidamente. No se borra automáticamente. Filtra por mes/año con los selectores del botón \"Ver Historial Mermas\".",
+  "info_mermas_impact_title": "💰 Impacto en costes",
+  "info_mermas_impact_body": "Las mermas suman al COGS del mes y bajan el margen neto. El informe ejecutivo del Chat IA las refleja con su valor económico real.",
 
   "col_status": "Estado",
   "col_ingredient": "Ingrediente",
