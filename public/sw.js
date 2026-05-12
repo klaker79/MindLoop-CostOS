@@ -22,8 +22,9 @@
 // BUMP v21: unificar botones — tutorial inventario usa sistema HELP_VIDEOS (placeholder hasta video).
 // BUMP v22: inventario — ACTUALIZAR INVENTARIO MASIVO verde + Ver Tutorial inyectado en la fila de botones.
 // BUMP v23: sistema info-modal unificado (config en info-content.json), inventario migrado + borradores ingredientes y recetas.
+// BUMP v24: añadidos borradores info-content para pedidos, diario y análisis (incluye matriz BCG).
 
-const CACHE_NAME = 'mindloop-costos-v23';
+const CACHE_NAME = 'mindloop-costos-v24';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
