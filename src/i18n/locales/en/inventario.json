@@ -98,7 +98,7 @@
   "history_main_reason_label": "Main Reason",
 
   "merma_note_placeholder": "Note (optional)...",
-  "history_subtitle": "Record of all waste and losses registered this month.",
+  "history_subtitle": "Permanent waste and loss history. Filter by month and year with the selectors.",
 
   "col_status": "Status",
   "col_ingredient": "Ingredient",

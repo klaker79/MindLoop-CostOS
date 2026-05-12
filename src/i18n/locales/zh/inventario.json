@@ -94,7 +94,7 @@
   "history_total_loss": "总损失",
   "history_records": "记录数",
   "history_main_reason_label": "主要原因",
-  "history_subtitle": "本月所有损耗记录。",
+  "history_subtitle": "损耗与损失的永久历史记录。使用选择器按月和年筛选。",
   "col_status": "状态",
   "col_ingredient": "食材",
   "col_virtual_stock": "账面库存",

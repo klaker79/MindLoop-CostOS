@@ -16,8 +16,9 @@
 //                    (2) guardarReceta guardaba ingredientes: [] (catastrófico).
 // BUMP v16: plantilla inventario masivo con columnas "Cuenta en" + "Formato" pre-rellenadas.
 // BUMP v17: subida de inventario registra mermas REALES (antes solo anunciaba; ahora persisten en histórico).
+// BUMP v18: historial mermas — auto-cargar al cambiar selector + subtítulo aclarado (retención permanente).
 
-const CACHE_NAME = 'mindloop-costos-v17';
+const CACHE_NAME = 'mindloop-costos-v18';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
