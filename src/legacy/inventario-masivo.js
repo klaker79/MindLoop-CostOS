@@ -490,27 +490,59 @@ window.confirmarInventarioMasivo = async function () {
         return;
     }
 
-    // Preparar datos para consolidación
-    const adjustments = datosValidos.map(d => ({
-        id: d.ingredienteId,
-        stock_real: d.stockReal,
-    }));
+    // Split en dos buckets:
+    //   - mermasDetectadas: stock_real < stock_virtual → registrar como merma
+    //     real en la tabla `mermas` (descuenta stock + queda en histórico).
+    //   - ajustesPositivos: stock_real >= stock_virtual → consolidateStock
+    //     (sube stock_actual al valor contado).
+    // ANTES llamábamos consolidateStock para TODO y luego resetMermas, que
+    // (a) NO registraba las nuevas pérdidas en histórico, y (b) restauraba
+    // el stock de las mermas previas inflando el conteo del usuario.
+    // Bug reportado por Iker 2026-05-12 con la cebolla.
+    const inventario = Array.isArray(window.inventarioCompleto) ? window.inventarioCompleto : [];
+    const ingredientes = Array.isArray(window.ingredientes) ? window.ingredientes : [];
+    const inventarioMap = new Map(inventario.map(i => [i.id, i]));
+    const ingredientesMap = new Map(ingredientes.map(i => [i.id, i]));
 
-    const mermas = [];
+    const mermasDetectadas = [];
+    const ajustesPositivos = [];
+
     datosValidos.forEach(d => {
         if (d.stockReal < d.stockVirtual) {
-            mermas.push({
-                nombre: d.ingrediente,
-                diferencia: (d.stockVirtual - d.stockReal).toFixed(2),
+            const ing = ingredientesMap.get(d.ingredienteId) || {};
+            const inv = inventarioMap.get(d.ingredienteId) || {};
+            const cantidad = +(d.stockVirtual - d.stockReal).toFixed(4);
+            // Precio unitario (€/unidad-base) con prioridad estándar:
+            // precio_medio_compra > precio_medio > precio/cpf > 0
+            let precioUnit = parseFloat(inv.precio_medio_compra) || 0;
+            if (!precioUnit) precioUnit = parseFloat(inv.precio_medio) || 0;
+            if (!precioUnit && ing.precio && ing.cantidad_por_formato > 0) {
+                precioUnit = parseFloat(ing.precio) / parseFloat(ing.cantidad_por_formato);
+            }
+            mermasDetectadas.push({
+                ingredienteId: d.ingredienteId,
+                ingredienteNombre: d.ingrediente,
+                cantidad,
+                unidad: ing.unidad || 'ud',
+                valorPerdida: +(cantidad * precioUnit).toFixed(2),
+                motivo: 'Ajuste de inventario',
+                nota: `Detectada en subida de Excel — ${new Date().toLocaleDateString('es-ES')}`
+            });
+        } else {
+            ajustesPositivos.push({
+                id: d.ingredienteId,
+                stock_real: d.stockReal,
             });
         }
     });
 
     let mensaje = `¿Confirmar actualización de ${datosValidos.length} ingredientes?`;
-    if (mermas.length > 0) {
-        mensaje += `\n\n⚠️ SE DETECTARON ${mermas.length} MERMAS (Stock Real < Sistema).\nSe registrarán como pérdidas.`;
-    } else {
-        mensaje += `\n\nEl stock del sistema se ajustará al stock real importado.`;
+    if (mermasDetectadas.length > 0) {
+        const valorTotal = mermasDetectadas.reduce((s, m) => s + m.valorPerdida, 0);
+        mensaje += `\n\n⚠️ ${mermasDetectadas.length} mermas detectadas (valor estimado: ${valorTotal.toFixed(2)}€).\nSe registrarán en el Historial de Mermas con motivo "Ajuste de inventario".`;
+    }
+    if (ajustesPositivos.length > 0) {
+        mensaje += `\n\n${ajustesPositivos.length} ingredientes con stock real ≥ sistema: se ajustarán al alza.`;
     }
 
     if (!confirm(mensaje)) {
@@ -519,30 +551,22 @@ window.confirmarInventarioMasivo = async function () {
 
     document.getElementById('loading-overlay').classList.add('active');
 
-
     try {
-        // Preparar finalStock para el UPDATE real del stock
-        const finalStock = datosValidos.map(d => ({
-            id: d.ingredienteId,
-            stock_real: d.stockReal,
-        }));
+        // 1. Registrar mermas (cada una descuenta stock_actual en backend).
+        if (mermasDetectadas.length > 0) {
+            await window.api.createMermas(mermasDetectadas);
+        }
 
-        // Usar consolidación con finalStock
-        await window.api.consolidateStock([], [], finalStock);
-
-        // Reset mermas del período (nuevo ciclo de inventario)
-        try {
-            await window.API?.resetMermas?.('subida_inventario');
-            console.log('✅ Mermas del período reseteadas');
-        } catch (mermaError) {
-            console.warn('⚠️ No se pudieron resetear las mermas:', mermaError.message);
+        // 2. Ajustes positivos (subir stock al valor contado).
+        if (ajustesPositivos.length > 0) {
+            await window.api.consolidateStock([], [], ajustesPositivos);
         }
 
         document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(
-            `✓ ${datosValidos.length} ingredientes actualizados y consolidados`,
-            'success'
-        );
+        const resumen = mermasDetectadas.length > 0
+            ? `✓ ${datosValidos.length} ingredientes (${mermasDetectadas.length} merma(s) registradas)`
+            : `✓ ${datosValidos.length} ingredientes actualizados`;
+        window.showToast(resumen, 'success');
 
         document.getElementById('modal-inventario-masivo').classList.remove('active');
         await window.cargarDatos();
