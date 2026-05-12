@@ -333,6 +333,13 @@ export const api = {
         return apiClient.get(`/mermas${params.length ? '?' + params.join('&') : ''}`);
     },
     getMermasResumen: () => apiClient.get('/mermas/resumen'),
+    /**
+     * Registra un lote de mermas en la tabla `mermas`. Cada merma descuenta
+     * stock_actual del ingrediente y aparece en "Historial de Mermas".
+     * Payload: { mermas: [{ ingredienteId, ingredienteNombre, cantidad,
+     *   unidad, valorPerdida, motivo, nota, responsableId? }] }
+     */
+    createMermas: (mermas) => apiClient.post('/mermas', { mermas }),
 
     // KPIs
     getDailyKPIs: (date = null) => apiClient.get(date ? `/kpis/daily?date=${date}` : '/kpis/daily'),
