@@ -17,8 +17,9 @@
 // BUMP v16: plantilla inventario masivo con columnas "Cuenta en" + "Formato" pre-rellenadas.
 // BUMP v17: subida de inventario registra mermas REALES (antes solo anunciaba; ahora persisten en histórico).
 // BUMP v18: historial mermas — auto-cargar al cambiar selector + subtítulo aclarado (retención permanente).
+// BUMP v19: botón "ℹ️ Cómo funcionan" + modal educativo de mermas en pestaña Inventario.
 
-const CACHE_NAME = 'mindloop-costos-v18';
+const CACHE_NAME = 'mindloop-costos-v19';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

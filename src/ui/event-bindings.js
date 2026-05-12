@@ -107,6 +107,13 @@ const actionHandlers = {
     'ver-historial-mermas': () => window.verHistorialMermas?.(),
     'cerrar-modal-historial-mermas': () => closeModal('modal-historial-mermas'),
 
+    // Info Mermas (modal educativo)
+    'mostrar-info-mermas': () => {
+        const m = document.getElementById('modal-info-mermas');
+        if (m) m.classList.add('active');
+    },
+    'cerrar-modal-info-mermas': () => closeModal('modal-info-mermas'),
+
     // Evolución de Precios
     'cerrar-modal-evolucion-precio': () => closeModal('modal-evolucion-precio'),
 
