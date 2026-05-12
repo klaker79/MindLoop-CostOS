@@ -98,7 +98,7 @@
   "history_main_reason_label": "Motivo Principal",
 
   "merma_note_placeholder": "Nota (opcional)...",
-  "history_subtitle": "Registro de todas las mermas y pérdidas registradas este mes.",
+  "history_subtitle": "Histórico permanente de mermas y pérdidas. Filtra por mes y año con los selectores.",
 
   "col_status": "Estado",
   "col_ingredient": "Ingrediente",

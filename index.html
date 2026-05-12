@@ -2700,6 +2700,7 @@
           <!-- Filtros -->
           <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center;">
             <select id="mermas-mes" class="form-control"
+              onchange="window.cargarHistorialMermas()"
               style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
               <option value="1" data-i18n="dashboard:month_january">Enero</option>
               <option value="2" data-i18n="dashboard:month_february">Febrero</option>
@@ -2715,6 +2716,7 @@
               <option value="12" data-i18n="dashboard:month_december">Diciembre</option>
             </select>
             <select id="mermas-ano" class="form-control"
+              onchange="window.cargarHistorialMermas()"
               style="padding: 8px; border-radius: 8px; border: 1px solid #ddd;">
               <option value="2024">2024</option>
               <option value="2025">2025</option>
