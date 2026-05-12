@@ -107,12 +107,9 @@ const actionHandlers = {
     'ver-historial-mermas': () => window.verHistorialMermas?.(),
     'cerrar-modal-historial-mermas': () => closeModal('modal-historial-mermas'),
 
-    // Info Mermas (modal educativo)
-    'mostrar-info-mermas': () => {
-        const m = document.getElementById('modal-info-mermas');
-        if (m) m.classList.add('active');
-    },
-    'cerrar-modal-info-mermas': () => closeModal('modal-info-mermas'),
+    // Info Mermas: migrado al sistema info-modal.js. El botón se inyecta
+    // automáticamente y abre el modal dinámico — no necesita handlers
+    // de data-action aquí.
 
 
     // Evolución de Precios
