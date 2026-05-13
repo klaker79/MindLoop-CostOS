@@ -50,12 +50,18 @@ export async function guardarPedido(event) {
   // Aviso preventivo: si la fecha del pedido es futura, pedir confirmación.
   // Evita errores de tecleo (p.ej. escribir 2026-06-06 cuando era 2026-05-06)
   // que después generan registros con fechas que no cuadran con compras reales.
+  //
+  // 🔧 FIX 2026-05-12: Comparar como strings YYYY-MM-DD en lugar de objetos
+  //    Date. `new Date('2026-05-12')` se parsea como medianoche UTC, que en
+  //    España (CEST/UTC+2) son las 2 AM hora local — mayor que `hoy` a las
+  //    0 AM local → disparaba el aviso para hoy mismo. La comparación de
+  //    strings ISO (YYYY-MM-DD) es lexicográficamente correcta y sin
+  //    ambigüedades de timezone.
   const fechaPedidoEl = document.getElementById('ped-fecha');
   if (fechaPedidoEl && fechaPedidoEl.value) {
-    const fechaPedido = new Date(fechaPedidoEl.value);
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    if (fechaPedido > hoy) {
+    const now = new Date();
+    const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (fechaPedidoEl.value > hoyStr) {
       const ok = window.confirm(
         `⚠️ La fecha del pedido es ${fechaPedidoEl.value}, en el futuro.\n\n` +
         `¿Confirmas que es correcta?`
