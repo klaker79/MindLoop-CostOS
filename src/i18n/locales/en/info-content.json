@@ -199,5 +199,155 @@
         "color": "green"
       }
     ]
+  },
+  "proveedores": {
+    "title": "ℹ️ Suppliers — quick guide",
+    "lead": "Your contacts book. Link each supplier to the ingredients they provide so the app knows who to order each item from.",
+    "blocks": [
+      {
+        "title": "📇 What to save per supplier",
+        "body": "Name, contact person, phone, email and notes. Email is key if you want to send orders directly by mail from the app. Notes are useful for delivery days, minimum order, discounts, etc.",
+        "color": "blue"
+      },
+      {
+        "title": "🔗 Link to ingredients",
+        "body": "From the ingredient card (Ingredients tab) you can assign one or more suppliers and mark the main one. Smart Order and the cart ALWAYS use the main supplier of each ingredient. If you don't assign one, that ingredient is orphaned and won't appear in order suggestions.",
+        "color": "amber"
+      },
+      {
+        "title": "📊 Top suppliers in the report",
+        "body": "The monthly executive report ranks your suppliers by amount billed in the month. It shows you who you're paying the most and where there might be room to renegotiate.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Tip",
+        "body": "When you add a new supplier, assign their ingredients BEFORE making the first order. That way Smart Order and the cart will have context from day one. Without this, the system can't suggest who to order each product from.",
+        "color": "green"
+      }
+    ]
+  },
+  "ventas": {
+    "title": "ℹ️ Sales — quick guide",
+    "lead": "The food cost engine. Every dish you sell automatically subtracts its ingredients from stock per recipe and feeds the analytics.",
+    "blocks": [
+      {
+        "title": "🧾 Record a manual sale",
+        "body": "Pick the dish, the quantity and register. The system uses the recipe to deduct ALL ingredients from stock (with recursive sub-recipe expansion). Useful for ad-hoc consumption or if you don't have a POS.",
+        "color": "blue"
+      },
+      {
+        "title": "📤 Import from POS",
+        "body": "Button \"Import POS Sales\": upload an Excel with the day's sales (typical format: dish, quantity, total). The app processes them in bulk — deducting stock per dish sold and feeding the profitability ranking. Do it daily or every 2-3 days to keep food cost up to date.",
+        "color": "amber"
+      },
+      {
+        "title": "🍷 Variants (wines, portions)",
+        "body": "For dishes with sizes (glass/bottle of wine, half / full portion) you can define variants with a multiplier factor. On sale, you pick the variant and the system deducts the proportional ingredient quantity. Essential for wine-by-the-glass food cost to come out right.",
+        "color": "blue"
+      },
+      {
+        "title": "📉 Stock auto-deducted",
+        "body": "Every sale subtracts the relevant ingredients. If you sell a draft beer (0.4 L), the app subtracts 0.4 L from the tank automatically. You don't have to touch stock — inventory stays live every day, effortlessly.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Tip",
+        "body": "Upload POS sales daily, ideally at closing. If you wait until the weekend, stock drifts from reality and analytics lag. The golden routine: import POS every morning with your coffee.",
+        "color": "green"
+      }
+    ]
+  },
+  "horarios": {
+    "title": "ℹ️ Schedules — quick guide",
+    "lead": "MindLoop Staff Scheduler. Manage employees, shifts and labour cost. And if you want, let AI generate the week's roster for you.",
+    "blocks": [
+      {
+        "title": "👥 Add an employee",
+        "body": "Each employee has: name, colour (to identify on the roster), contract hours, hourly cost, role and fixed days off. The hourly cost is used to compute labour cost per shift and per month.",
+        "color": "blue"
+      },
+      {
+        "title": "📅 Build shifts manually",
+        "body": "Click on the day × employee cell and fill clock-in and clock-out. The system automatically computes: hours worked daily/weekly, labour cost, overtime vs contract hours. Useful when your roster is stable and predictable.",
+        "color": "blue"
+      },
+      {
+        "title": "⚡ Generate AI Roster",
+        "body": "Button \"Generate AI Roster\": the app creates a full weekly roster respecting contract hours, fixed days off and minimum shift coverage. You review, tweak if needed, save. Saves you 1-2 hours per week and reduces human error.",
+        "color": "amber"
+      },
+      {
+        "title": "💶 Integrated labour cost",
+        "body": "Sum of (hours worked × hourly cost) per employee, day, week and month. Appears in the P&L of the executive report and in the Break-Even calculation. Raise salaries and all profitability numbers adjust instantly.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Tip",
+        "body": "Update each employee's hourly cost as soon as there's a raise (pay rise, union, seniority). If you keep old figures, the report's labour cost will be lower than reality and you'll think you're earning more than you actually are.",
+        "color": "green"
+      }
+    ]
+  },
+  "inteligencia": {
+    "title": "ℹ️ Intelligence — quick guide",
+    "lead": "Three panels that monitor your business without being asked: stock approaching expiry, recipes with thin margin, and monthly losses.",
+    "blocks": [
+      {
+        "title": "🌿 Stock Freshness",
+        "body": "List of fresh products to use before they expire. Computed from last purchase date and historical consumption pattern. If a product hasn't been used in days and the dishes that consume it sell slowly, it appears here flagged \"USE TODAY\" or \"REVIEW\". Prevents food waste.",
+        "color": "blue"
+      },
+      {
+        "title": "🎯 Price Review",
+        "body": "Recipes with food cost > 40%. These are your dishes on alert: either you pay too much for their ingredients (renegotiate with supplier) or you have to raise the sale price. The app flags which ones and by how much they exceed the 35% target.",
+        "color": "amber"
+      },
+      {
+        "title": "💸 Monthly Losses",
+        "body": "Total wastage valued in € for the current month, compared with last month. If the figure grows, there's an operational issue: expiries from over-buying, kitchen errors, theft. Cross-check with the wastage history (Inventory tab) to identify which specific ingredient is leaking.",
+        "color": "blue"
+      },
+      {
+        "title": "🔄 Live update",
+        "body": "All 3 panels refresh every time you enter the tab. The \"Refresh\" button forces recompute if you just loaded recent data and want to see it instantly (e.g. just imported the day's POS).",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Tip",
+        "body": "Check this tab on Monday mornings together with the Diary. In 3 minutes you know what product to use today, what recipe needs adjusting this month, and whether losses are trending well. It's your \"quick dashboard\" before starting the week.",
+        "color": "green"
+      }
+    ]
+  },
+  "configuracion": {
+    "title": "ℹ️ Settings & Team — quick guide",
+    "lead": "The engine room of the app: users, plan, restaurant data and language. You set it up once and forget about it.",
+    "blocks": [
+      {
+        "title": "👥 My Team",
+        "body": "Invite users to your restaurant by email. Each invited user can be \"admin\" (full access) or \"user\" (operational, no plan or billing). If you have a chef, manager, or waiters using the app, invite them: they share data but with their own access.",
+        "color": "blue"
+      },
+      {
+        "title": "🏢 Restaurant data",
+        "body": "Restaurant name and unique ID (auto-assigned). The ID is used for multi-tenant isolation: your data NEVER mixes with another restaurant's, not even by app error.",
+        "color": "blue"
+      },
+      {
+        "title": "💳 Plan & Billing",
+        "body": "See your active plan (Starter, Pro…), subscription status, next renewal, and the Chat AI add-on if you have it. Payments go through Polar.sh (compliant with EU VAT).",
+        "color": "blue"
+      },
+      {
+        "title": "📘 Download Dossier",
+        "body": "Button \"Download/Print Dossier\": generates a PDF with ALL the app's formulas and rules (how food cost, margin, cost per portion and thresholds are computed). Useful for audits, your accountant, or to understand exactly what each figure means.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Tip",
+        "body": "When you onboard a new team member, invite them from here instead of sharing your password. You'll have a record of who made each change and can revoke access instantly if anyone leaves the restaurant.",
+        "color": "green"
+      }
+    ]
   }
 }
