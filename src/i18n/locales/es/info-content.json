@@ -199,5 +199,155 @@
         "color": "green"
       }
     ]
+  },
+  "proveedores": {
+    "title": "ℹ️ Proveedores — guía rápida",
+    "lead": "Tu agenda de contactos. Asocia cada proveedor a los ingredientes que te suministra para que la app sepa a quién pedir cada cosa.",
+    "blocks": [
+      {
+        "title": "📇 Qué guardar de cada proveedor",
+        "body": "Nombre, contacto, teléfono, email y notas. El email es clave si quieres enviar pedidos por correo directamente desde la app. Las notas son útiles para apuntar condiciones (días de reparto, mínimo pedido, descuentos, etc.).",
+        "color": "blue"
+      },
+      {
+        "title": "🔗 Vincular con ingredientes",
+        "body": "Desde la ficha del ingrediente (pestaña Ingredientes) puedes asignar uno o varios proveedores y marcar cuál es el principal. Smart Order y los carritos usan SIEMPRE el proveedor principal de cada ingrediente. Si no lo asignas, ese ingrediente queda huérfano y no aparecerá en las sugerencias de pedido.",
+        "color": "amber"
+      },
+      {
+        "title": "📊 Top proveedores en el informe",
+        "body": "El informe ejecutivo mensual te ordena tus proveedores por importe facturado en el mes. Te enseña a quién le estás pagando más y dónde podría haber margen para renegociar.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Cuando metas un proveedor nuevo, asígnale los ingredientes que te suministra ANTES de hacer el primer pedido. Así Smart Order y el carrito ya tendrán contexto desde el día uno. Sin esto, el sistema no podrá sugerirte a quién pedir cada producto.",
+        "color": "green"
+      }
+    ]
+  },
+  "ventas": {
+    "title": "ℹ️ Ventas — guía rápida",
+    "lead": "El motor del food cost. Cada plato que vendes resta automáticamente sus ingredientes del stock según la receta y alimenta los análisis.",
+    "blocks": [
+      {
+        "title": "🧾 Registrar venta manual",
+        "body": "Eliges plato, cantidad y registras. El sistema usa la receta para descontar TODOS los ingredientes del stock (con expansión recursiva de subrecetas). Útil para apuntar consumos puntuales o si no tienes TPV.",
+        "color": "blue"
+      },
+      {
+        "title": "📤 Importar desde TPV",
+        "body": "Botón \"Importar Ventas TPV\": sube un Excel con las ventas del día (formato típico: plato, cantidad, total). La app las procesa de golpe — restando stock de cada plato vendido y alimentando el ranking de rentabilidad. Hazlo a diario o cada 2-3 días para mantener el food cost actualizado.",
+        "color": "amber"
+      },
+      {
+        "title": "🍷 Variantes (vinos, raciones)",
+        "body": "Para platos con tamaños (copa/botella de vino, media ración / ración entera) puedes definir variantes con factor multiplicador. Al vender, eliges la variante y el sistema descuenta la cantidad proporcional de ingredientes. Imprescindible para que el food cost de los vinos por copa salga bien.",
+        "color": "blue"
+      },
+      {
+        "title": "📉 Stock descontado automáticamente",
+        "body": "Cada venta resta los ingredientes correspondientes. Si vendes una caña de cerveza (0,4 L), la app descuenta 0,4 L del tanque automáticamente. No tienes que tocar el stock — el inventario va vivo a diario sin esfuerzo.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Sube las ventas del TPV diariamente, idealmente al cierre. Si lo dejas para fin de semana, el stock se descuadra del real y los análisis se retrasan. La rutina de oro: importar TPV todas las mañanas con el café.",
+        "color": "green"
+      }
+    ]
+  },
+  "horarios": {
+    "title": "ℹ️ Horarios — guía rápida",
+    "lead": "MindLoop Staff Scheduler. Gestiona empleados, turnos y coste de personal. Y si quieres, deja que la IA te genere el cuadrante de la semana.",
+    "blocks": [
+      {
+        "title": "👥 Alta de empleado",
+        "body": "Cada empleado tiene: nombre, color (para distinguirlo en el cuadrante), horas de contrato, coste por hora, puesto y días libres fijos. El coste por hora se usa para calcular el coste laboral por turno y por mes.",
+        "color": "blue"
+      },
+      {
+        "title": "📅 Crear turnos manualmente",
+        "body": "Click en la celda día × empleado y rellenas hora de entrada y salida. El sistema calcula automáticamente: horas trabajadas en el día/semana, coste laboral, exceso vs horas de contrato. Útil cuando el cuadrante de tu negocio es estable y conocido.",
+        "color": "blue"
+      },
+      {
+        "title": "⚡ Generar Horario IA",
+        "body": "Botón \"Generar Horario IA\": la app crea un cuadrante completo para la semana respetando: horas de contrato, días libres fijos, cobertura mínima por turno. Lo revisas, ajustas si hace falta, guardas. Te ahorra 1-2 horas semanales y reduce errores humanos.",
+        "color": "amber"
+      },
+      {
+        "title": "💶 Coste laboral integrado",
+        "body": "Suma de (horas trabajadas × coste/hora) por empleado, día, semana y mes. Aparece en el P&L del informe ejecutivo y en el cálculo del Punto de Equilibrio. Si subes los sueldos, todos los cálculos de rentabilidad se ajustan al instante.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Actualiza el coste por hora de cada empleado en cuanto haya subida (paga, convenio, antigüedad). Si te quedas con cifras viejas, el coste laboral del informe será más bajo del real y pensarás que ganas más de lo que realmente ganas.",
+        "color": "green"
+      }
+    ]
+  },
+  "inteligencia": {
+    "title": "ℹ️ Inteligencia — guía rápida",
+    "lead": "Tres paneles que vigilan tu negocio sin que tengas que pedírselo: stock que caduca, recetas con margen bajo y pérdidas del mes.",
+    "blocks": [
+      {
+        "title": "🌿 Frescura del Stock",
+        "body": "Lista de productos frescos por usar antes de que caduquen. Se calcula con la fecha de última compra y el patrón de consumo histórico. Si hay producto que llevas días sin usar y el ritmo de venta de las recetas que lo consumen es lento, te sale aquí marcado como \"USAR HOY\" o \"REVISAR\". Evita tirar comida.",
+        "color": "blue"
+      },
+      {
+        "title": "🎯 Revisión de Precios",
+        "body": "Recetas con food cost > 40%. Son tus platos en alerta: o pagas más de lo razonable por sus ingredientes (renegocia con proveedor), o tienes que subir el precio de venta. La app te marca cuáles son y por cuánto se pasan del objetivo del 35%.",
+        "color": "amber"
+      },
+      {
+        "title": "💸 Pérdidas del Mes",
+        "body": "Total de mermas valoradas en euros del mes en curso, comparado con el mes anterior. Si la cifra crece, hay un problema operativo: caducidades por compras excesivas, errores de cocina, robos. Cruza con el histórico de mermas (pestaña Inventario) para identificar qué ingrediente concreto se va.",
+        "color": "blue"
+      },
+      {
+        "title": "🔄 Actualización en directo",
+        "body": "Los 3 paneles se refrescan cada vez que entras a la pestaña. El botón \"Actualizar\" fuerza recálculo si has metido datos recientes y quieres verlos al instante (ej. acabas de subir el TPV del día).",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Revisa esta pestaña los lunes por la mañana junto con el Diario. En 3 minutos sabes qué producto hay que usar hoy, qué receta hay que ajustar este mes y si las pérdidas van por buen camino. Es tu \"cuadro de mando rápido\" antes de empezar la semana.",
+        "color": "green"
+      }
+    ]
+  },
+  "configuracion": {
+    "title": "ℹ️ Configuración & Equipo — guía rápida",
+    "lead": "El cuarto de máquinas de la app: usuarios, plan, datos del restaurante e idioma. Lo configuras una vez y te olvidas.",
+    "blocks": [
+      {
+        "title": "👥 Mi Equipo",
+        "body": "Invita usuarios a tu restaurante con su email. Cada usuario invitado puede ser \"admin\" (acceso total) o \"usuario\" (acceso operativo, sin tocar plan ni facturación). Si tienes cocinero, encargado, camareros con ojos en la app, invítalos: comparten datos pero cada uno con su acceso.",
+        "color": "blue"
+      },
+      {
+        "title": "🏢 Datos del restaurante",
+        "body": "Nombre del restaurante e ID único (asignado automáticamente). El ID se usa para el aislamiento multi-tenant: tus datos NUNCA se mezclan con los de otro restaurante, ni siquiera por error de la app.",
+        "color": "blue"
+      },
+      {
+        "title": "💳 Plan & Facturación",
+        "body": "Aquí ves tu plan activo (Starter, Profesional…), estado de la suscripción, próxima renovación y el complemento Chat IA si lo tienes contratado. Los pagos pasan por Polar.sh (compliant con IVA UE).",
+        "color": "blue"
+      },
+      {
+        "title": "📘 Descargar Dossier",
+        "body": "Botón \"Descargar/Imprimir Dossier\": genera un PDF con TODAS las fórmulas y reglas de la app (cómo se calcula el food cost, el margen, el coste por porción, los umbrales…). Útil para auditorías, para tu gestor, o para entender exactamente qué hace cada cifra.",
+        "color": "blue"
+      },
+      {
+        "title": "💡 Consejo",
+        "body": "Cuando incorpores a alguien nuevo al equipo, invítalo desde aquí en lugar de compartir tu contraseña. Así tendrás registro de quién hace cada cambio y podrás revocar accesos al instante si alguien deja el restaurante.",
+        "color": "green"
+      }
+    ]
   }
 }
