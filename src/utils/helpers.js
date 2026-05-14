@@ -162,6 +162,36 @@ export function cm(value, decimals = 2) {
 }
 
 /**
+ * Formatea cantidades (cantidad_por_formato, stock, etc.) sin caer en la
+ * trampa del separador de miles en es-ES.
+ *
+ * Contexto del problema (incidente 2026-05-12):
+ *   `cantidad_por_formato` viene de Postgres como NUMERIC(10,3), que el
+ *   driver entrega como STRING tipo "30.000". Si haces directamente
+ *   `valor.toLocaleString('es-ES')` sobre ese string, JS lo interpreta como
+ *   "treinta mil" porque en es-ES el punto es separador de miles.
+ *
+ * Este helper hace:
+ *   1. parseFloat → convierte string a Number real.
+ *   2. toLocaleString con useGrouping=false → NUNCA mete separador de miles.
+ *
+ * Resultado predecible: "30.000" string → 30 number → "30" o "30,5" según
+ * tenga decimales reales o no.
+ *
+ * @param {number|string} value - Cantidad (puede venir como string desde pg).
+ * @param {number} maxDecimals - Decimales máximos a mostrar (default 4).
+ * @returns {string} Cantidad formateada lista para insertar en UI.
+ */
+export function formatQuantity(value, maxDecimals = 4) {
+    const num = parseFloat(value);
+    if (!Number.isFinite(num)) return String(value ?? '');
+    return num.toLocaleString('es-ES', {
+        maximumFractionDigits: maxDecimals,
+        useGrouping: false
+    });
+}
+
+/**
  * Devuelve el BCP-47 locale apropiado para FORMATEO de fecha/hora en UI según
  * el idioma activo del usuario. Centralizado para Capa 7 (auditoría 2026-04-28)
  * — antes había ~17 sitios con `'es-ES'` hardcodeado que rompían tenants Malasia.
@@ -550,4 +580,5 @@ if (typeof window !== 'undefined') {
     window.escapeHTML = escapeHTML;
     window.safeNumber = safeNumber;
     window.formatearFecha = formatearFecha;
+    window.formatQuantity = formatQuantity;
 }

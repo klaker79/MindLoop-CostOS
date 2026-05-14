@@ -1,4 +1,4 @@
-import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpers.js';
 import { validarDesvioPrecio } from '../../utils/precio-validator.js';
 import { t } from '@/i18n/index.js';
 /**
@@ -412,10 +412,7 @@ export function onIngredientePedidoChange(selectElement, rowId) {
         // que en es-ES se LEE como "treinta mil" (punto = separador de miles).
         // Bug reportado por Iker 2026-05-12 con BARRIL (30 L) mostrándose como
         // "30.000 l". Solución: parseFloat + toLocaleString sin agrupación.
-        const cpfNumeric = parseFloat(cantidadFormato);
-        const cpfDisplay = Number.isFinite(cpfNumeric)
-            ? cpfNumeric.toLocaleString('es-ES', { maximumFractionDigits: 4, useGrouping: false })
-            : cantidadFormato;
+        const cpfDisplay = formatQuantity(cantidadFormato);
         formatoSelect.innerHTML = `
             <option value="formato" data-multiplicador="${cantidadFormato}" data-formato-mult="${cantidadFormato}" data-precio-formato="${precioGeneral}">${escapeHTML(formato)} (${cpfDisplay} ${unidad})</option>
             <option value="unidad" data-multiplicador="1" data-formato-mult="1" data-precio-unidad="${precioUnidad}">${escapeHTML(unidad)} (unidad suelta ~${cm(precioUnidad)})</option>

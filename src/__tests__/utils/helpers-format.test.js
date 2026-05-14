@@ -104,3 +104,42 @@ describe('safeNumber', () => {
         expect(helpers.safeNumber('')).toBe(0);
     });
 });
+
+// ═══════════════════════════════════════════════
+// formatQuantity — bug "30.000" → "treinta mil"
+// (NUMERIC(10,3) llega como string desde Postgres)
+// ═══════════════════════════════════════════════
+describe('formatQuantity — anti-bug separador de miles es-ES', () => {
+    test('string "30.000" (NUMERIC postgres) → "30" (no "30.000")', () => {
+        // El bug: toLocaleString('es-ES') directo sobre "30.000" lo lee como 30000.
+        // El helper hace parseFloat antes y useGrouping=false después.
+        expect(helpers.formatQuantity('30.000')).toBe('30');
+    });
+
+    test('número 30 → "30"', () => {
+        expect(helpers.formatQuantity(30)).toBe('30');
+    });
+
+    test('string con decimales reales "0.5" → "0,5" (coma en es-ES)', () => {
+        expect(helpers.formatQuantity('0.5')).toBe('0,5');
+    });
+
+    test('número 1500 nunca lleva separador de miles', () => {
+        // Si dejásemos useGrouping default, en es-ES saldría "1.500".
+        // Con useGrouping=false sale "1500" — sin ambigüedad.
+        expect(helpers.formatQuantity(1500)).toBe('1500');
+    });
+
+    test('null/undefined no rompe', () => {
+        expect(helpers.formatQuantity(null)).toBe('');
+        expect(helpers.formatQuantity(undefined)).toBe('');
+    });
+
+    test('string no numérico se devuelve tal cual', () => {
+        expect(helpers.formatQuantity('caja')).toBe('caja');
+    });
+
+    test('maxDecimals respetado', () => {
+        expect(helpers.formatQuantity(3.14159, 2)).toBe('3,14');
+    });
+});
