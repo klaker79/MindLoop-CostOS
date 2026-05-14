@@ -22,6 +22,8 @@
   "btn_delete": "Delete",
   "btn_edit": "Edit",
   "btn_close": "Close",
+  "info_modal_btn": "ℹ️ How it works",
+  "info_modal_btn_aria": "How this tab works",
   "btn_add": "Add",
   "btn_search": "Search",
   "btn_filter": "Filter",

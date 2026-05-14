@@ -22,6 +22,8 @@
   "btn_delete": "Eliminar",
   "btn_edit": "Editar",
   "btn_close": "Cerrar",
+  "info_modal_btn": "ℹ️ Cómo funcionan",
+  "info_modal_btn_aria": "Cómo funciona esta pestaña",
   "btn_add": "Añadir",
   "btn_search": "Buscar",
   "btn_filter": "Filtrar",
