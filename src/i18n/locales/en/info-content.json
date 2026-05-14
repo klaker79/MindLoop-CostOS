@@ -134,37 +134,37 @@
     "blocks": [
       {
         "title": "📊 Cuatro vistas del mismo dato",
-        "body": "1) Compras (Costes): cuánto te ha costado cada día comprar materia prima. 2) Ventas (Ingresos): cuánto facturaste cada día. 3) Por Proveedor: gasto por proveedor en cada día. 4) P&L Diario: ingresos − costes − margen, agrupado por día. Cambia entre vistas con los botones superiores.",
+        "body": "1) Compras (Costes): precio de compra por ingrediente cada día. 2) Ventas (Ingresos): ventas por receta cada día. 3) Por Proveedor: gasto por proveedor en cada día. 4) P&L Diario: ingresos, costes, margen y beneficio neto, agrupados por día. Cambia entre vistas con los botones superiores.",
         "color": "blue"
       },
       {
-        "title": "🗓️ Selector mes/año",
-        "body": "El mes/año que elijas filtra TODA la vista (las 4 vistas comparten el rango). Empieza por el mes en curso para ver dónde estás; luego compara con el mes anterior para detectar tendencias (subida de costes, días flojos de venta…).",
+        "title": "🗓️ Selector mes/año y semanas",
+        "body": "El mes/año que elijas filtra TODA la vista. Justo debajo tienes el filtro de semanas (Todo el mes / Semana 1-7 / 8-14 / 15-21 / 22-28 / 29-31) para mirar solo un tramo concreto.",
+        "color": "blue"
+      },
+      {
+        "title": "📊 P&L Diario — la vista clave",
+        "body": "Por cada día del mes ves: INGRESOS, COSTES PROD., MARGEN BRUTO, GASTOS FIJOS/DÍA y BENEFICIO NETO. Las celdas con beneficio positivo van en verde, las negativas en rojo. Esto rompe con la trampa del cierre mensual: dejas de tener UN número grande al mes y ves cada día por separado.",
+        "color": "amber"
+      },
+      {
+        "title": "💰 Beneficio Neto por Día",
+        "body": "Panel destacado bajo las tablas con la lista de beneficio neto día a día — la misma información del P&L pero en formato lista, fácil de escanear de un vistazo.",
+        "color": "blue"
+      },
+      {
+        "title": "💰 Gastos Fijos Mensuales",
+        "body": "Configura aquí los gastos fijos del restaurante (alquiler, luz, agua, sueldos, impuestos…) con el botón +. Cada categoría se reparte automáticamente por día y aparece en la fila GASTOS FIJOS/DÍA del P&L. Cambios se guardan al instante.",
         "color": "blue"
       },
       {
         "title": "📥 Exportar Excel",
-        "body": "Genera un Excel real con los datos del mes filtrado — para llevárselo al gestor, archivar, o cruzar con tu contabilidad. Mantiene el formato de la vista que tengas activa.",
-        "color": "blue"
-      },
-      {
-        "title": "🎯 Cómo lo lee un dueño experto",
-        "body": "Mira primero \"P&L Diario\" — te dice si cada día has ganado o perdido. Después \"Por Proveedor\" para detectar al que más te factura (negociar o cambiar). \"Ventas\" para identificar días flojos de la semana (¿abrir o no?). \"Compras\" para detectar picos de gasto que no sigan al ritmo de venta.",
-        "color": "blue"
-      },
-      {
-        "title": "🎯 Punto de Equilibrio Mensual",
-        "body": "Widget destacado: te dice cuántos PLATOS te faltan vender en lo que queda de mes para cubrir tus gastos fijos. Lo calcula con tu margen medio por plato real (no estimado). Si ya estás por encima del equilibrio, sale en verde: \"✅ Gastos fijos cubiertos, todo desde aquí es beneficio\". Es el número más útil para fijar objetivo semanal del equipo.",
-        "color": "amber"
-      },
-      {
-        "title": "🤖 Recomendaciones automáticas",
-        "body": "El sistema analiza tus ventas y propone acciones concretas: 🚨 Retirar/reformar platos que ni venden ni dan margen. 💰 Subir precio a los que venden bien con margen bajo. 📢 Promocionar los de buen margen con poca visibilidad. ✨ Mantener destacados los \"estrella\". Cada recomendación incluye los nombres concretos de los platos — no consejos genéricos.",
+        "body": "Genera un Excel real con los datos del mes filtrado — para llevárselo al gestor, archivar, o cruzar con tu contabilidad.",
         "color": "blue"
       },
       {
         "title": "💡 Consejo",
-        "body": "Acostúmbrate a revisar el Diario una vez por semana, no solo al cerrar el mes. Patrones que se detectan a tiempo (gasto desproporcionado un martes, venta floja un domingo) dan margen para reaccionar antes de que el mes se vaya por el desagüe. El widget de Punto de Equilibrio sirve como brújula semanal del equipo.",
+        "body": "Revisa el Diario una vez por semana, no solo al cerrar el mes. Patrones que se detectan a tiempo (gasto desproporcionado un martes, venta floja un domingo) dan margen para reaccionar antes de que el mes se vaya por el desagüe.",
         "color": "green"
       }
     ]
@@ -290,31 +290,26 @@
   },
   "inteligencia": {
     "title": "ℹ️ Intelligence — quick guide",
-    "lead": "Three panels that monitor your business without being asked: stock approaching expiry, recipes with thin margin, and monthly losses.",
+    "lead": "Two panels that monitor your business without being asked: stock approaching expiry, and recipes with thin margin.",
     "blocks": [
       {
-        "title": "🌿 Stock Freshness",
-        "body": "List of fresh products to use before they expire. Computed from last purchase date and historical consumption pattern. If a product hasn't been used in days and the dishes that consume it sell slowly, it appears here flagged \"USE TODAY\" or \"REVIEW\". Prevents food waste.",
+        "title": "🧊 Stock Freshness",
+        "body": "List of fresh products to use before they expire. Computed from last purchase date and historical consumption pattern. Items appear flagged \"📋 Use today\" or \"⚠️ Review\" by urgency. Prevents food waste.",
         "color": "blue"
       },
       {
-        "title": "🎯 Price Review",
-        "body": "Recipes with food cost > 40%. These are your dishes on alert: either you pay too much for their ingredients (renegotiate with supplier) or you have to raise the sale price. The app flags which ones and by how much they exceed the 35% target.",
+        "title": "💰 Price Review",
+        "body": "Recipes with thin margin or high food cost. These are your dishes on alert: either you pay too much for their ingredients (renegotiate with supplier) or you have to raise the sale price. The app shows current cost, food cost % and a suggested price.",
         "color": "amber"
       },
       {
-        "title": "💸 Monthly Losses",
-        "body": "Total wastage valued in € for the current month, compared with last month. If the figure grows, there's an operational issue: expiries from over-buying, kitchen errors, theft. Cross-check with the wastage history (Inventory tab) to identify which specific ingredient is leaking.",
-        "color": "blue"
-      },
-      {
         "title": "🔄 Live update",
-        "body": "All 3 panels refresh every time you enter the tab. The \"Refresh\" button forces recompute if you just loaded recent data and want to see it instantly (e.g. just imported the day's POS).",
+        "body": "Panels refresh every time you enter the tab. The \"Refresh\" button forces recompute if you just loaded recent data and want to see it instantly (e.g. just imported the day's POS).",
         "color": "blue"
       },
       {
         "title": "💡 Tip",
-        "body": "Check this tab on Monday mornings together with the Diary. In 3 minutes you know what product to use today, what recipe needs adjusting this month, and whether losses are trending well. It's your \"quick dashboard\" before starting the week.",
+        "body": "Check this tab on Monday mornings together with the Diary. In 2 minutes you know what product to use today and what recipe needs adjusting this month. It's your \"quick dashboard\" before starting the week.",
         "color": "green"
       }
     ]
