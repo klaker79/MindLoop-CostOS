@@ -20,6 +20,8 @@
   "btn_delete": "删除",
   "btn_edit": "编辑",
   "btn_close": "关闭",
+  "info_modal_btn": "ℹ️ 如何使用",
+  "info_modal_btn_aria": "本标签页的使用说明",
   "btn_add": "添加",
   "btn_search": "搜索",
   "btn_filter": "筛选",

@@ -24,6 +24,8 @@
  * Colores soportados: blue (default), amber (warning), green (tip), red.
  */
 
+import { t } from '@/i18n/index.js';
+
 const MODAL_ID = 'info-modal-overlay';
 const BTN_CLASS = 'info-modal-btn';
 
@@ -93,7 +95,7 @@ function ensureModalNode() {
             overflow: hidden;
         ">
             <div class="info-modal-header" style="padding: 20px 24px 12px; border-bottom: 1px solid #e2e8f0;">
-                <button class="info-modal-close" aria-label="Cerrar"
+                <button class="info-modal-close" aria-label="${escapeHTML(t('common:btn_close', 'Cerrar'))}"
                     style="position: absolute; top: 14px; right: 14px;
                            background: none; border: none; font-size: 28px;
                            color: #64748b; cursor: pointer; line-height: 1;">×</button>
@@ -106,7 +108,7 @@ function ensureModalNode() {
                 line-height: 1.6; color: #1e293b; font-size: 14px;"></div>
             <div class="info-modal-footer" style="padding: 14px 24px;
                 border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end;">
-                <button class="btn btn-secondary info-modal-close-btn">Cerrar</button>
+                <button class="btn btn-secondary info-modal-close-btn">${escapeHTML(t('common:btn_close', 'Cerrar'))}</button>
             </div>
         </div>
     `;
@@ -176,12 +178,14 @@ function injectInfoButton(tabKey) {
     if (topBar.querySelector(`.${BTN_CLASS}`) ||
         tabContent.querySelector(`.${BTN_CLASS}`)) return;
 
+    const btnLabel = t('common:info_modal_btn', 'ℹ️ Cómo funcionan');
+    const btnAria = t('common:info_modal_btn_aria', 'Cómo funciona esta pestaña');
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `btn btn-secondary ${BTN_CLASS}`;
-    btn.setAttribute('aria-label', 'Cómo funciona esta pestaña');
-    btn.title = 'Cómo funciona esta pestaña';
-    btn.innerHTML = 'ℹ️ Cómo funcionan';
+    btn.setAttribute('aria-label', btnAria);
+    btn.title = btnAria;
+    btn.innerHTML = btnLabel;
     btn.addEventListener('click', () => openInfoTab(tabKey));
 
     const directDivs = Array.from(topBar.children).filter(c => c.tagName === 'DIV');
@@ -212,12 +216,18 @@ export async function mountInfoModal() {
     Object.keys(content).forEach(injectInfoButton);
 }
 
-// Re-inyectar cuando cambia el idioma (los botones se mantienen, pero el
-// contenido del modal usará el JSON del nuevo idioma).
+// Re-inyectar botones y contenido cuando cambia el idioma. Limpia los
+// botones existentes (que tienen label del idioma anterior) y vuelve a
+// inyectarlos con el label del nuevo idioma.
 if (typeof window !== 'undefined') {
-    window.addEventListener('languageChanged', () => {
+    window.addEventListener('languageChanged', async () => {
         _contentCache = null;
         _contentLang = null;
+        // Quitar los botones existentes (todos con clase BTN_CLASS).
+        document.querySelectorAll(`.${BTN_CLASS}`).forEach(b => b.remove());
+        // Re-inyectar con el nuevo idioma.
+        const content = await loadInfoContent();
+        Object.keys(content).forEach(injectInfoButton);
     });
     window.openInfoTab = openInfoTab;
 }

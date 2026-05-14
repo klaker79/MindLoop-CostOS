@@ -1,201 +1,201 @@
 {
   "inventario": {
-    "title": "ℹ️ Mermas y pérdidas — guía completa",
-    "lead": "Todo lo que necesitas saber sobre cómo se generan, dónde se ven y cómo afectan a tus costes.",
+    "title": "ℹ️ 损耗与损失 — 完整指南",
+    "lead": "关于如何产生、在哪里查看以及如何影响成本的全部信息。",
     "blocks": [
       {
-        "title": "🗑️ Registro manual (Merma Rápida)",
-        "body": "Pulsa \"Merma Rápida\" para registrar una pérdida puntual: caducidad, rotura, robo, error en cocina, etc. Indica ingrediente, cantidad, motivo y nota opcional. El stock baja al instante.",
+        "title": "🗑️ 手动登记(快速损耗)",
+        "body": "按\"快速损耗\"按钮可登记一次性损失:过期、破损、盗窃、厨房失误等。请注明食材、数量、原因和可选备注。库存立即下降。",
         "color": "blue"
       },
       {
-        "title": "📊 Registro automático (subida masiva)",
-        "body": "Al subir un inventario físico desde Excel, las diferencias detectadas (stock real menor que el stock del sistema) se registran como merma con motivo \"Ajuste de inventario\" y nota con la fecha de subida. Si el stock real es mayor (entró mercancía no registrada), se considera ajuste al alza, NO merma.",
+        "title": "📊 自动登记(批量上传)",
+        "body": "从Excel上传实物盘点时,检测到的差异(实际库存少于系统库存)将以\"库存调整\"为原因记录为损耗,并附上上传日期的备注。如果实际库存更多(进货未登记),则视为向上调整,不视为损耗。",
         "color": "blue"
       },
       {
-        "title": "💶 Cómo se calcula el valor",
-        "body": "Cada merma se valora en euros como cantidad × precio medio de compra del ingrediente. Si no hay compras registradas, cae al precio configurado o al precio por unidad de formato. El precio que ves en el histórico es el coste real de lo perdido.",
+        "title": "💶 价值如何计算",
+        "body": "每笔损耗按数量 × 食材平均采购价计算价值。如果没有采购记录,则使用配置价格或按格式单价计算。您在历史记录中看到的价格是损失的实际成本。",
         "color": "blue"
       },
       {
-        "title": "📋 Histórico permanente",
-        "body": "Cada merma se conserva indefinidamente — no se borra automáticamente, ni siquiera al fin de mes. Filtra por mes/año con los selectores del botón \"Ver Historial Mermas\". Backup diario en MinIO S3.",
+        "title": "📋 永久历史记录",
+        "body": "每笔损耗都会无限期保留 — 不会自动删除,甚至月底也不会。通过\"查看损耗历史\"按钮的选择器按月/年筛选。每日备份到MinIO S3。",
         "color": "blue"
       },
       {
-        "title": "💰 Impacto en el food cost real",
-        "body": "El \"Food cost\" tradicional (en el dashboard y demás pestañas) mide solo lo que vendiste: COGS de ventas / ingresos. Pero el dinero que TIRAS por mermas también es coste real — solo que no aparece como \"venta\". En el informe ejecutivo mensual del Chat IA verás DOS números: \"Food cost ventas\" (el de toda la vida) y \"Food cost real\" (incluyendo mermas). Si la diferencia entre ambos es grande, tienes un problema operativo: estás comprando comida que no llega a salir como plato.",
+        "title": "💰 对真实食物成本的影响",
+        "body": "传统食物成本(仪表板和其他标签页)只衡量您售出的:销售COGS / 收入。但您扔掉的损耗钱也是真实成本 — 只是不显示为\"销售\"。在Chat AI的月度执行报告中,您会看到两个数字:\"销售食物成本\"(传统)和\"真实食物成本\"(包含损耗)。如果两者差距大,您有运营问题:您买的食物没能作为菜品销售出去。",
         "color": "amber"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Haz inventario físico al menos 1 vez al mes (fin/inicio de mes es lo más cómodo). Las mermas que detectes en la subida quedan registradas y te ayudan a entender dónde se va tu producto. Sin inventario físico periódico, el stock del sistema se separa de la realidad poco a poco.",
+        "title": "💡 提示",
+        "body": "每月至少做一次实物盘点(月底/月初最方便)。上传时检测到的损耗会被记录,帮助您了解产品流失到哪里。没有定期实物盘点,系统库存会逐渐偏离实际。",
         "color": "green"
       }
     ]
   },
   "ingredientes": {
-    "title": "ℹ️ Ingredientes — guía rápida",
-    "lead": "Catálogo central de tus materias primas. Cada plato se construye combinando estos ingredientes.",
+    "title": "ℹ️ 食材 — 快速指南",
+    "lead": "您原材料的中央目录。每道菜都是通过这些食材的组合构建的。",
     "blocks": [
       {
-        "title": "📦 Qué es un ingrediente",
-        "body": "Cualquier producto que entra en cocina como materia prima: una bolsa de patatas, una botella de vino, un kilo de carne. Lo defines una vez aquí y lo reutilizas en todas tus recetas.",
+        "title": "📦 什么是食材",
+        "body": "任何作为原材料进入厨房的产品:一袋土豆、一瓶葡萄酒、一公斤肉。您在此定义一次,然后在所有食谱中重复使用。",
         "color": "blue"
       },
       {
-        "title": "💰 Precio y formato",
-        "body": "Cada ingrediente tiene un \"formato de compra\" (caja, garrafa, kilo, unidad…) con su \"cantidad por formato\" (ej. una garrafa de aceite contiene 5 litros). Al comprarlo, el sistema convierte automáticamente entre formato y unidad base. Esto es CLAVE para que los costes de las recetas salgan bien.",
+        "title": "💰 价格和格式",
+        "body": "每种食材都有\"采购格式\"(箱、桶、公斤、单位…)及其\"格式数量\"(例如一桶油含5升)。采购时系统自动在格式和基本单位之间转换。这是食谱成本正确的关键。",
         "color": "blue"
       },
       {
-        "title": "📈 Precio medio de compra",
-        "body": "Cuando registras pedidos, el sistema calcula automáticamente el precio medio real al que has comprado cada ingrediente. Ese es el precio que usan las recetas para calcular su coste — siempre el más reciente y realista, no el que configuraste hace 6 meses.",
+        "title": "📈 平均采购价",
+        "body": "当您登记订单时,系统自动计算您实际购买每种食材的平均价格。这是食谱用来计算成本的价格 — 始终是最新、最真实的,而非6个月前配置的。",
         "color": "blue"
       },
       {
-        "title": "🥬 Rendimiento",
-        "body": "Porcentaje de producto aprovechable. Una merluza de 1 kg con rendimiento 60% deja 600 g utilizables tras limpiar. El sistema ajusta el coste real de cada porción usando este número. Por defecto 100% — bájalo para productos con merma estructural (pescados, verduras a recortar, etc.).",
+        "title": "🥬 出品率",
+        "body": "可用产品的百分比。1公斤鳕鱼出品率60%,清理后剩600克可用。系统使用此数字调整每份的真实成本。默认100% — 对于有结构性损耗的产品(鱼、需修剪的蔬菜等)请降低。",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "No metas dos ingredientes parecidos como duplicados (\"Tomate Pera\" + \"TOMATES\"). Si los compras de distintos proveedores, asocia AMBOS proveedores al mismo ingrediente desde su ficha. Si los fragmentas, no podrás comparar precios ni hacer Smart Order correctamente.",
+        "title": "💡 提示",
+        "body": "不要将两种相似食材作为重复项(\"梨形番茄\" + \"番茄\")。如果您从不同供应商购买,请从其卡片为同一食材分配两个供应商。如果分散,您将无法比较价格或正确使用智能订购。",
         "color": "green"
       }
     ]
   },
   "recetas": {
-    "title": "ℹ️ Recetas — guía rápida",
-    "lead": "Cada plato de tu carta vive aquí, con sus ingredientes, porciones y precio de venta. El sistema calcula coste, margen y food cost en tiempo real.",
+    "title": "ℹ️ 食谱 — 快速指南",
+    "lead": "您菜单上的每道菜都在这里,有食材、份数和售价。系统实时计算成本、毛利和食物成本。",
     "blocks": [
       {
-        "title": "🍽️ Estructura de una receta",
-        "body": "Cada receta tiene: nombre, categoría (alimento/bebida/vino…), precio de venta, número de porciones y lista de ingredientes con cantidad. El sistema calcula automáticamente el coste por porción y el food cost % en tiempo real mientras editas.",
+        "title": "🍽️ 食谱结构",
+        "body": "每个食谱包含:名称、类别(食品/饮料/葡萄酒…)、售价、份数和带数量的食材列表。系统在您编辑时实时自动计算每份成本和食物成本%。",
         "color": "blue"
       },
       {
-        "title": "📐 Porciones — clave",
-        "body": "Si tu receta de \"Salsa boloñesa\" produce 10 raciones con un total de 8 kg de ingredientes, las porciones = 10. El sistema calculará: coste por porción = coste total ÷ 10. Si te equivocas aquí, el food cost saldrá multiplicado o dividido por error.",
+        "title": "📐 份数 — 关键",
+        "body": "如果您的\"博洛尼亚酱\"食谱总共8公斤食材产出10份,则份数=10。系统将计算:每份成本=总成本÷10。如果在此出错,食物成本将被错误地乘或除。",
         "color": "amber"
       },
       {
-        "title": "🎯 Food cost objetivo",
-        "body": "Umbrales unificados: ≤30% (verde, excelente), 31-35% (objetivo OK), 36-40% (vigilar), >40% (alerta — replantear precio). Para VINOS el target es 45-50% (es normal en hostelería). El sistema te marca cada receta con un color según su food cost real.",
+        "title": "🎯 目标食物成本",
+        "body": "统一阈值:≤30%(绿色,优秀),31-35%(目标OK),36-40%(关注),>40%(警报 — 重新审视价格)。葡萄酒目标为45-50%(餐饮业正常)。系统根据每个食谱的真实食物成本为其上色。",
         "color": "blue"
       },
       {
-        "title": "🔄 Recetas base / subrecetas",
-        "body": "Si una salsa o un fondo se usa en varios platos, créalo como receta independiente y referénciala desde las recetas que la consumen. El coste se calcula en cascada: si sube el precio de un ingrediente de la salsa, todos los platos que la usan se recalculan automáticamente.",
+        "title": "🔄 基础食谱/子食谱",
+        "body": "如果某酱汁或高汤用于多道菜,将其创建为独立食谱并从使用它的食谱中引用。成本级联计算:如果酱汁的某食材价格上涨,所有使用它的菜品都会自动重新计算。",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Cuando edites una receta y cambies cantidades, mira el panel verde \"Rentabilidad en tiempo real\" abajo: te dice al instante si vas dentro de rango. Si rebasas el 35%, plantéate ajustar porción, ingrediente o precio antes de guardar.",
+        "title": "💡 提示",
+        "body": "编辑食谱并更改数量时,查看下方绿色的\"实时盈利能力\"面板:它会立即告诉您是否在范围内。如果超过35%,在保存前考虑调整份量、食材或价格。",
         "color": "green"
       }
     ]
   },
   "pedidos": {
-    "title": "ℹ️ Pedidos — guía rápida",
-    "lead": "Aquí gestionas los pedidos a tus proveedores. Tres caminos para crearlos, y un flujo de DOS pasos: pedir → recibir.",
+    "title": "ℹ️ 订单 — 快速指南",
+    "lead": "在此管理给供应商的订单。三种创建方式,两步流程:下单 → 接收。",
     "blocks": [
       {
-        "title": "➕ Tres formas de crear un pedido",
-        "body": "1) Nuevo Pedido: el clásico — eliges proveedor, fecha e ingredientes manualmente. 2) Smart Order: la app te sugiere qué pedir según consumo histórico y stock actual; revisas y confirmas. 3) Carrito: añades ingredientes desde el listado con un solo clic y luego envías el carrito como pedido. Elige el que más se ajuste a tu rutina.",
+        "title": "➕ 三种创建订单的方式",
+        "body": "1) 新订单:经典方式 — 手动选择供应商、日期和食材。2) 智能订购:应用根据历史消费和当前库存建议订什么;您审查并确认。3) 购物车:一键从列表添加食材,然后将购物车作为订单提交。选择最适合您日常的方式。",
         "color": "blue"
       },
       {
-        "title": "📋 Flujo de DOS pasos (importante)",
-        "body": "Crear el pedido → queda en estado PENDIENTE. El stock NO cambia, los precios NO se registran. Cuando llega la mercancía, pulsas \"Recibir pedido\": ajustas cantidades y precios reales si hay varianza, confirmas, y SOLO ENTONCES sube el stock_actual, se registra el precio real de compra (alimenta precio_medio_compra) y el pedido pasa a RECIBIDO.",
+        "title": "📋 两步流程(重要)",
+        "body": "创建订单 → 保持待处理状态。库存不变,价格不记录。当货物到达时,按\"接收订单\":如果有差异调整实际数量和价格,确认,然后才会增加stock_actual,记录实际采购价(填充平均采购价),订单变为已接收。",
         "color": "blue"
       },
       {
-        "title": "🏪 Excepción: proveedor \"Mercado\" / \"Plaza\"",
-        "body": "Si vas físicamente y traes la mercancía en el momento, el pedido se crea YA en estado recibido y el stock se actualiza al instante. Detección automática por nombre del proveedor que contenga \"mercado\".",
+        "title": "🏪 例外:\"市场\"/\"广场\"供应商",
+        "body": "如果您亲自去并立即带回货物,订单创建时就是已接收状态,库存立即更新。通过供应商名称包含\"市场\"自动检测。",
         "color": "blue"
       },
       {
-        "title": "💶 Precio real en la recepción",
-        "body": "El precio se autocompleta desde el ingrediente, pero PUEDES editarlo si la factura del día trae otro. Ese precio editado se registra en el histórico de compras y el sistema lo usa como precio medio de compra para los cálculos de coste de receta. No actualiza el precio base del ingrediente — solo el promedio real de compras.",
+        "title": "💶 接收时的实际价格",
+        "body": "价格从食材自动填充,但如果当天发票有不同价格,您可以编辑它。编辑的价格会记录在采购历史中,系统将其用作食谱成本计算的平均采购价。它不更新食材的基础价格 — 只更新实际采购平均值。",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Avisa por aviso del proveedor o agenda mental: si dejas pedidos PENDIENTES sin recibir cuando ya tienes la mercancía, el stock se descuadra. Mantén el inventario fiel: recibe el día que llega, ajusta cantidades reales si hubo merma o falta, y verifica el precio si te suena raro.",
+        "title": "💡 提示",
+        "body": "心里提醒或供应商通知:如果货物已到达但您将待处理订单保留未接收,库存会失同步。保持库存忠实:到货当天接收,如果有损耗或缺失调整实际数量,如果价格看起来奇怪请核实。",
         "color": "green"
       }
     ]
   },
   "diario": {
-    "title": "ℹ️ Diario — guía rápida",
-    "lead": "Vista tipo Excel de tu actividad diaria: compras vs ventas, día a día. La fotografía del día y del mes a un golpe de vista.",
+    "title": "ℹ️ 日记 — 快速指南",
+    "lead": "您每日活动的电子表格式视图:采购vs销售,日复一日。一眼即可看到当日和当月的全貌。",
     "blocks": [
       {
-        "title": "📊 Cuatro vistas del mismo dato",
-        "body": "1) Compras (Costes): precio de compra por ingrediente cada día. 2) Ventas (Ingresos): ventas por receta cada día. 3) Por Proveedor: gasto por proveedor en cada día. 4) P&L Diario: ingresos, costes, margen y beneficio neto, agrupados por día. Cambia entre vistas con los botones superiores.",
+        "title": "📊 同一数据的四个视图",
+        "body": "1) 采购(成本):每天按食材的采购价。2) 销售(收入):每天按食谱的销售。3) 按供应商:每天按供应商的支出。4) 每日P&L:收入、成本、毛利和净利润,按日分组。使用顶部按钮切换视图。",
         "color": "blue"
       },
       {
-        "title": "🗓️ Selector mes/año y semanas",
-        "body": "El mes/año que elijas filtra TODA la vista. Justo debajo tienes el filtro de semanas (Todo el mes / Semana 1-7 / 8-14 / 15-21 / 22-28 / 29-31) para mirar solo un tramo concreto.",
+        "title": "🗓️ 月/年和周选择器",
+        "body": "您选择的月/年过滤整个视图。下方有周筛选器(整月/第1周1-7/8-14/15-21/22-28/29-31)以查看特定范围。",
         "color": "blue"
       },
       {
-        "title": "📊 P&L Diario — la vista clave",
-        "body": "Por cada día del mes ves: INGRESOS, COSTES PROD., MARGEN BRUTO, GASTOS FIJOS/DÍA y BENEFICIO NETO. Las celdas con beneficio positivo van en verde, las negativas en rojo. Esto rompe con la trampa del cierre mensual: dejas de tener UN número grande al mes y ves cada día por separado.",
+        "title": "📊 每日P&L — 关键视图",
+        "body": "本月每天您看到:收入、生产成本、毛利、固定开支/天和净利润。利润为正的单元格变绿,为负的变红。这打破了月底结算的陷阱:您不再每月只有一个大数字,而是分别看到每一天。",
         "color": "amber"
       },
       {
-        "title": "💰 Beneficio Neto por Día",
-        "body": "Panel destacado bajo las tablas con la lista de beneficio neto día a día — la misma información del P&L pero en formato lista, fácil de escanear de un vistazo.",
+        "title": "💰 每日净利润",
+        "body": "表格下方的突出面板,显示每日净利润列表 — 与P&L相同信息但以列表格式呈现,一目了然。",
         "color": "blue"
       },
       {
-        "title": "💰 Gastos Fijos Mensuales",
-        "body": "Configura aquí los gastos fijos del restaurante (alquiler, luz, agua, sueldos, impuestos…) con el botón +. Cada categoría se reparte automáticamente por día y aparece en la fila GASTOS FIJOS/DÍA del P&L. Cambios se guardan al instante.",
+        "title": "💰 月度固定开支",
+        "body": "在此使用+按钮配置餐厅的固定开支(租金、电、水、工资、税务…)。每个类别按日自动分摊并出现在P&L的固定开支/天行中。变更立即保存。",
         "color": "blue"
       },
       {
-        "title": "📥 Exportar Excel",
-        "body": "Genera un Excel real con los datos del mes filtrado — para llevárselo al gestor, archivar, o cruzar con tu contabilidad.",
+        "title": "📥 导出Excel",
+        "body": "为筛选的月份生成真实的Excel文件 — 用于发送给会计师、存档或与您的会计核对。",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Revisa el Diario una vez por semana, no solo al cerrar el mes. Patrones que se detectan a tiempo (gasto desproporcionado un martes, venta floja un domingo) dan margen para reaccionar antes de que el mes se vaya por el desagüe.",
+        "title": "💡 提示",
+        "body": "每周检查一次日记,不要只在月底。及时发现的模式(周二支出过高、周日销售疲软)给您反应时间,在月份失控前调整。",
         "color": "green"
       }
     ]
   },
   "analisis": {
-    "title": "ℹ️ Análisis — guía rápida",
-    "lead": "Aquí está la inteligencia de tu negocio: rentabilidad por plato, ingeniería de menú (matriz BCG) y gráficos para entender dónde ganas y dónde pierdes dinero.",
+    "title": "ℹ️ 分析 — 快速指南",
+    "lead": "这里是您的业务智能:按菜品的盈利能力、菜单工程(BCG矩阵)和图表,帮助您了解在哪里赚钱和亏钱。",
     "blocks": [
       {
-        "title": "🏆 Ranking de Rentabilidad",
-        "body": "Tabla con tus platos ordenados por margen € absoluto del mes (ingresos − coste). El #1 es tu \"caballo de batalla\": el que más DINERO te lleva a caja. Ojo: alto margen unitario no siempre = #1. Un plato con margen del 80% que vende 10 unidades genera menos que otro con margen 50% que vende 200. El ranking premia volumen × margen, no porcentaje.",
+        "title": "🏆 盈利能力排名",
+        "body": "按本月绝对毛利(收入−成本)排序的菜品表。第1名是您的主力:带来最多收入的菜。注意:高单位毛利不总是第1名。毛利80%但只卖10份的菜带来的收入比毛利50%卖200份的菜少。排名奖励数量×毛利,而非百分比。",
         "color": "blue"
       },
       {
-        "title": "🧠 Ingeniería de Menú (matriz BCG)",
-        "body": "Cada plato cae en uno de 4 cuadrantes según popularidad (eje X) y margen (eje Y): 🟢 ESTRELLA = alto margen + alta venta (protégelo, no toques). 🔵 PUZZLE = alto margen + poca venta (promociónalo: foto carta, recomendación camarero). 🟠 CABALLO = bajo margen + mucha venta (renegocia coste con proveedor o sube precio 5% — la gente lo seguirá pidiendo). 🔴 PERRO = bajo margen + poca venta (sustituir o eliminar de carta).",
+        "title": "🧠 菜单工程(BCG矩阵)",
+        "body": "每道菜根据受欢迎度(X轴)和毛利(Y轴)落入4个象限之一:🟢 明星=高毛利+高销售(保护,不要碰)。🔵 拼图=高毛利+低销售(推广:菜单照片、服务员推荐)。🟠 耕马=低毛利+高销售(与供应商重新谈判成本或加价5% — 人们仍会点)。🔴 狗=低毛利+低销售(更换或从菜单中删除)。",
         "color": "amber"
       },
       {
-        "title": "📈 Gráficos de evolución",
-        "body": "Ingresos vs gastos mes a mes, food cost por categoría, top ingredientes por consumo… Sirven para detectar tendencias largas: ¿el food cost sube despacio mes tras mes? Quizás los proveedores te están subiendo precios sin que te enteres. ¿Las ventas caen un día concreto cada semana? Cambia carta o promo ese día.",
+        "title": "📈 演变图表",
+        "body": "月度收入vs支出、按类别食物成本、按消费排序的顶级食材…用于检测长期趋势:食物成本是否在慢慢上升?也许供应商在涨价而您未察觉。销售是否在某周特定一天下降?那天更改菜单或推广。",
         "color": "blue"
       },
       {
-        "title": "💰 Margen medio vs coste medio",
-        "body": "Cifras de cabecera: margen promedio y coste promedio de TUS recetas (solo alimentos, las bebidas se filtran por defecto). Compara con los benchmarks del sector: margen medio sano en hostelería = 65-70%. Por debajo del 60% = revisar carta.",
+        "title": "💰 平均毛利vs平均成本",
+        "body": "标题数字:您食谱的平均毛利和平均成本(仅食品 — 默认过滤饮料)。与行业基准比较:餐饮业健康的平均毛利=65-70%。低于60%=审查菜单。",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Revisa la matriz BCG cada 2-3 meses, no semanalmente — los platos no cambian de cuadrante por una mala semana. El uso real: planificar el próximo cambio de carta. PERROS fuera, PUZZLES con foto y recomendación, CABALLOS con +1€, ESTRELLAS intocables.",
+        "title": "💡 提示",
+        "body": "每2-3个月审查BCG矩阵,而不是每周 — 菜品不会因为糟糕的一周而改变象限。实际用途:规划下次菜单变更。狗淘汰,拼图配照片和推荐,耕马+1欧元,明星不动。",
         "color": "green"
       }
     ]
@@ -278,7 +278,7 @@
       },
       {
         "title": "💶 集成的人工成本",
-        "body": "按员工、日、周和月计算的(工作小时数×时薪)之和。出现在执行报告的损益表和盈亏平衡点计算中。提高工资,所有盈利能力数字会立即调整。",
+        "body": "按员工、日、周和月计算的(工作小时数×时薪)之和。出现在执行报告的损益表中。",
         "color": "blue"
       },
       {

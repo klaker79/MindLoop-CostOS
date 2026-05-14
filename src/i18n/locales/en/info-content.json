@@ -1,201 +1,201 @@
 {
   "inventario": {
-    "title": "ℹ️ Mermas y pérdidas — guía completa",
-    "lead": "Todo lo que necesitas saber sobre cómo se generan, dónde se ven y cómo afectan a tus costes.",
+    "title": "ℹ️ Wastage and losses — full guide",
+    "lead": "Everything you need to know about how they are generated, where to see them and how they affect your costs.",
     "blocks": [
       {
-        "title": "🗑️ Registro manual (Merma Rápida)",
-        "body": "Pulsa \"Merma Rápida\" para registrar una pérdida puntual: caducidad, rotura, robo, error en cocina, etc. Indica ingrediente, cantidad, motivo y nota opcional. El stock baja al instante.",
+        "title": "🗑️ Manual entry (Quick Wastage)",
+        "body": "Press \"Quick Wastage\" to record a one-off loss: expiry, breakage, theft, kitchen error, etc. Indicate ingredient, quantity, reason and optional note. Stock drops instantly.",
         "color": "blue"
       },
       {
-        "title": "📊 Registro automático (subida masiva)",
-        "body": "Al subir un inventario físico desde Excel, las diferencias detectadas (stock real menor que el stock del sistema) se registran como merma con motivo \"Ajuste de inventario\" y nota con la fecha de subida. Si el stock real es mayor (entró mercancía no registrada), se considera ajuste al alza, NO merma.",
+        "title": "📊 Automatic entry (bulk upload)",
+        "body": "When you upload a physical inventory from Excel, detected differences (real stock lower than system stock) are recorded as wastage with reason \"Inventory adjustment\" and a note with the upload date. If real stock is higher (unregistered merchandise came in), it is treated as an upward adjustment, NOT wastage.",
         "color": "blue"
       },
       {
-        "title": "💶 Cómo se calcula el valor",
-        "body": "Cada merma se valora en euros como cantidad × precio medio de compra del ingrediente. Si no hay compras registradas, cae al precio configurado o al precio por unidad de formato. El precio que ves en el histórico es el coste real de lo perdido.",
+        "title": "💶 How value is computed",
+        "body": "Each wastage is valued in your currency as quantity × average purchase price of the ingredient. If there are no recorded purchases, it falls back to configured price or price per unit format. The price you see in the history is the actual cost of what was lost.",
         "color": "blue"
       },
       {
-        "title": "📋 Histórico permanente",
-        "body": "Cada merma se conserva indefinidamente — no se borra automáticamente, ni siquiera al fin de mes. Filtra por mes/año con los selectores del botón \"Ver Historial Mermas\". Backup diario en MinIO S3.",
+        "title": "📋 Permanent history",
+        "body": "Each wastage is kept indefinitely — not auto-deleted, not even at month-end. Filter by month/year using the selectors of the \"View Wastage History\" button. Daily backup to MinIO S3.",
         "color": "blue"
       },
       {
-        "title": "💰 Impacto en el food cost real",
-        "body": "El \"Food cost\" tradicional (en el dashboard y demás pestañas) mide solo lo que vendiste: COGS de ventas / ingresos. Pero el dinero que TIRAS por mermas también es coste real — solo que no aparece como \"venta\". En el informe ejecutivo mensual del Chat IA verás DOS números: \"Food cost ventas\" (el de toda la vida) y \"Food cost real\" (incluyendo mermas). Si la diferencia entre ambos es grande, tienes un problema operativo: estás comprando comida que no llega a salir como plato.",
+        "title": "💰 Impact on real food cost",
+        "body": "Traditional Food Cost (in dashboard and other tabs) only measures what you sold: sales COGS / revenue. But the money you THROW AWAY as wastage is also real cost — it just doesn't show up as \"sales\". In the monthly executive report from Chat AI you will see TWO numbers: \"Sales Food Cost\" (the classic one) and \"Real Food Cost\" (including wastage). If the gap between them is large, you have an operational problem: you are buying food that never makes it out as a dish.",
         "color": "amber"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Haz inventario físico al menos 1 vez al mes (fin/inicio de mes es lo más cómodo). Las mermas que detectes en la subida quedan registradas y te ayudan a entender dónde se va tu producto. Sin inventario físico periódico, el stock del sistema se separa de la realidad poco a poco.",
+        "title": "💡 Tip",
+        "body": "Do a physical inventory at least once a month (end/start of month is most convenient). Wastage detected on upload is recorded and helps you understand where your product is leaking. Without periodic physical inventory, system stock drifts away from reality over time.",
         "color": "green"
       }
     ]
   },
   "ingredientes": {
-    "title": "ℹ️ Ingredientes — guía rápida",
-    "lead": "Catálogo central de tus materias primas. Cada plato se construye combinando estos ingredientes.",
+    "title": "ℹ️ Ingredients — quick guide",
+    "lead": "Central catalog of your raw materials. Every dish is built by combining these ingredients.",
     "blocks": [
       {
-        "title": "📦 Qué es un ingrediente",
-        "body": "Cualquier producto que entra en cocina como materia prima: una bolsa de patatas, una botella de vino, un kilo de carne. Lo defines una vez aquí y lo reutilizas en todas tus recetas.",
+        "title": "📦 What is an ingredient",
+        "body": "Any product that enters the kitchen as raw material: a bag of potatoes, a bottle of wine, a kilo of meat. You define it once here and reuse it in every recipe.",
         "color": "blue"
       },
       {
-        "title": "💰 Precio y formato",
-        "body": "Cada ingrediente tiene un \"formato de compra\" (caja, garrafa, kilo, unidad…) con su \"cantidad por formato\" (ej. una garrafa de aceite contiene 5 litros). Al comprarlo, el sistema convierte automáticamente entre formato y unidad base. Esto es CLAVE para que los costes de las recetas salgan bien.",
+        "title": "💰 Price and format",
+        "body": "Each ingredient has a \"purchase format\" (box, jug, kilo, unit…) with its \"quantity per format\" (e.g. an oil jug contains 5 liters). On purchase, the system converts automatically between format and base unit. This is KEY for recipe costs to come out right.",
         "color": "blue"
       },
       {
-        "title": "📈 Precio medio de compra",
-        "body": "Cuando registras pedidos, el sistema calcula automáticamente el precio medio real al que has comprado cada ingrediente. Ese es el precio que usan las recetas para calcular su coste — siempre el más reciente y realista, no el que configuraste hace 6 meses.",
+        "title": "📈 Average purchase price",
+        "body": "When you record orders, the system automatically computes the real average price at which you've bought each ingredient. That's the price recipes use to calculate cost — always the most recent and realistic, not what you configured 6 months ago.",
         "color": "blue"
       },
       {
-        "title": "🥬 Rendimiento",
-        "body": "Porcentaje de producto aprovechable. Una merluza de 1 kg con rendimiento 60% deja 600 g utilizables tras limpiar. El sistema ajusta el coste real de cada porción usando este número. Por defecto 100% — bájalo para productos con merma estructural (pescados, verduras a recortar, etc.).",
+        "title": "🥬 Yield",
+        "body": "Percentage of usable product. A 1 kg hake with 60% yield leaves 600 g usable after cleaning. The system adjusts the real cost per portion using this number. Default 100% — lower it for products with structural wastage (fish, vegetables to trim, etc.).",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "No metas dos ingredientes parecidos como duplicados (\"Tomate Pera\" + \"TOMATES\"). Si los compras de distintos proveedores, asocia AMBOS proveedores al mismo ingrediente desde su ficha. Si los fragmentas, no podrás comparar precios ni hacer Smart Order correctamente.",
+        "title": "💡 Tip",
+        "body": "Don't create two similar ingredients as duplicates (\"Pear Tomato\" + \"TOMATOES\"). If you buy them from different suppliers, link BOTH suppliers to the same ingredient from its card. If you fragment them, you can't compare prices or use Smart Order correctly.",
         "color": "green"
       }
     ]
   },
   "recetas": {
-    "title": "ℹ️ Recetas — guía rápida",
-    "lead": "Cada plato de tu carta vive aquí, con sus ingredientes, porciones y precio de venta. El sistema calcula coste, margen y food cost en tiempo real.",
+    "title": "ℹ️ Recipes — quick guide",
+    "lead": "Every dish on your menu lives here, with its ingredients, portions and sale price. The system computes cost, margin and food cost in real time.",
     "blocks": [
       {
-        "title": "🍽️ Estructura de una receta",
-        "body": "Cada receta tiene: nombre, categoría (alimento/bebida/vino…), precio de venta, número de porciones y lista de ingredientes con cantidad. El sistema calcula automáticamente el coste por porción y el food cost % en tiempo real mientras editas.",
+        "title": "🍽️ Recipe structure",
+        "body": "Each recipe has: name, category (food/drink/wine…), sale price, number of portions and ingredient list with quantity. The system automatically computes cost per portion and food cost % in real time while you edit.",
         "color": "blue"
       },
       {
-        "title": "📐 Porciones — clave",
-        "body": "Si tu receta de \"Salsa boloñesa\" produce 10 raciones con un total de 8 kg de ingredientes, las porciones = 10. El sistema calculará: coste por porción = coste total ÷ 10. Si te equivocas aquí, el food cost saldrá multiplicado o dividido por error.",
+        "title": "📐 Portions — key",
+        "body": "If your \"Bolognese sauce\" recipe yields 10 servings with 8 kg of total ingredients, portions = 10. The system will compute: cost per portion = total cost ÷ 10. If you get this wrong, food cost will come out multiplied or divided by mistake.",
         "color": "amber"
       },
       {
-        "title": "🎯 Food cost objetivo",
-        "body": "Umbrales unificados: ≤30% (verde, excelente), 31-35% (objetivo OK), 36-40% (vigilar), >40% (alerta — replantear precio). Para VINOS el target es 45-50% (es normal en hostelería). El sistema te marca cada receta con un color según su food cost real.",
+        "title": "🎯 Target food cost",
+        "body": "Unified thresholds: ≤30% (green, excellent), 31-35% (target OK), 36-40% (watch), >40% (alert — review price). For WINES the target is 45-50% (normal in hospitality). The system colors each recipe according to its real food cost.",
         "color": "blue"
       },
       {
-        "title": "🔄 Recetas base / subrecetas",
-        "body": "Si una salsa o un fondo se usa en varios platos, créalo como receta independiente y referénciala desde las recetas que la consumen. El coste se calcula en cascada: si sube el precio de un ingrediente de la salsa, todos los platos que la usan se recalculan automáticamente.",
+        "title": "🔄 Base recipes / sub-recipes",
+        "body": "If a sauce or stock is used in several dishes, create it as a stand-alone recipe and reference it from the recipes that consume it. Cost cascades: if an ingredient price in the sauce goes up, every dish that uses it is automatically recomputed.",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Cuando edites una receta y cambies cantidades, mira el panel verde \"Rentabilidad en tiempo real\" abajo: te dice al instante si vas dentro de rango. Si rebasas el 35%, plantéate ajustar porción, ingrediente o precio antes de guardar.",
+        "title": "💡 Tip",
+        "body": "When you edit a recipe and change quantities, look at the green panel \"Real-time profitability\" below: it tells you instantly if you are within range. If you go over 35%, consider adjusting portion, ingredient or price before saving.",
         "color": "green"
       }
     ]
   },
   "pedidos": {
-    "title": "ℹ️ Pedidos — guía rápida",
-    "lead": "Aquí gestionas los pedidos a tus proveedores. Tres caminos para crearlos, y un flujo de DOS pasos: pedir → recibir.",
+    "title": "ℹ️ Orders — quick guide",
+    "lead": "This is where you manage orders to your suppliers. Three ways to create them, and a TWO-step flow: order → receive.",
     "blocks": [
       {
-        "title": "➕ Tres formas de crear un pedido",
-        "body": "1) Nuevo Pedido: el clásico — eliges proveedor, fecha e ingredientes manualmente. 2) Smart Order: la app te sugiere qué pedir según consumo histórico y stock actual; revisas y confirmas. 3) Carrito: añades ingredientes desde el listado con un solo clic y luego envías el carrito como pedido. Elige el que más se ajuste a tu rutina.",
+        "title": "➕ Three ways to create an order",
+        "body": "1) New Order: the classic — pick supplier, date and ingredients manually. 2) Smart Order: the app suggests what to order based on historical consumption and current stock; you review and confirm. 3) Cart: add ingredients from the list with one click and then submit the cart as an order. Pick the one that fits your routine.",
         "color": "blue"
       },
       {
-        "title": "📋 Flujo de DOS pasos (importante)",
-        "body": "Crear el pedido → queda en estado PENDIENTE. El stock NO cambia, los precios NO se registran. Cuando llega la mercancía, pulsas \"Recibir pedido\": ajustas cantidades y precios reales si hay varianza, confirmas, y SOLO ENTONCES sube el stock_actual, se registra el precio real de compra (alimenta precio_medio_compra) y el pedido pasa a RECIBIDO.",
+        "title": "📋 TWO-step flow (important)",
+        "body": "Create the order → it stays as PENDING. Stock does NOT change, prices are NOT recorded. When the merchandise arrives, you press \"Receive order\": adjust real quantities and prices if there's variance, confirm, and ONLY THEN stock_actual goes up, real purchase price is recorded (feeds average purchase price) and the order moves to RECEIVED.",
         "color": "blue"
       },
       {
-        "title": "🏪 Excepción: proveedor \"Mercado\" / \"Plaza\"",
-        "body": "Si vas físicamente y traes la mercancía en el momento, el pedido se crea YA en estado recibido y el stock se actualiza al instante. Detección automática por nombre del proveedor que contenga \"mercado\".",
+        "title": "🏪 Exception: supplier \"Market\" / \"Plaza\"",
+        "body": "If you go physically and bring merchandise back on the spot, the order is created already in received state and stock is updated instantly. Auto-detected by supplier name containing \"market\".",
         "color": "blue"
       },
       {
-        "title": "💶 Precio real en la recepción",
-        "body": "El precio se autocompleta desde el ingrediente, pero PUEDES editarlo si la factura del día trae otro. Ese precio editado se registra en el histórico de compras y el sistema lo usa como precio medio de compra para los cálculos de coste de receta. No actualiza el precio base del ingrediente — solo el promedio real de compras.",
+        "title": "💶 Real price on reception",
+        "body": "Price is auto-filled from the ingredient, but you CAN edit it if the day's invoice has a different one. That edited price is recorded in the purchase history and the system uses it as average purchase price for recipe cost calculations. It does NOT update the ingredient's base price — only the real purchase average.",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Avisa por aviso del proveedor o agenda mental: si dejas pedidos PENDIENTES sin recibir cuando ya tienes la mercancía, el stock se descuadra. Mantén el inventario fiel: recibe el día que llega, ajusta cantidades reales si hubo merma o falta, y verifica el precio si te suena raro.",
+        "title": "💡 Tip",
+        "body": "Mental note or supplier reminder: if you leave PENDING orders unreceived when the merchandise has already arrived, stock goes out of sync. Keep inventory faithful: receive the day it arrives, adjust real quantities if there was wastage or missing, and verify price if it looks odd.",
         "color": "green"
       }
     ]
   },
   "diario": {
-    "title": "ℹ️ Diario — guía rápida",
-    "lead": "Vista tipo Excel de tu actividad diaria: compras vs ventas, día a día. La fotografía del día y del mes a un golpe de vista.",
+    "title": "ℹ️ Diary — quick guide",
+    "lead": "Spreadsheet-style view of your daily activity: purchases vs sales, day by day. The day and the month at a glance.",
     "blocks": [
       {
-        "title": "📊 Cuatro vistas del mismo dato",
-        "body": "1) Compras (Costes): precio de compra por ingrediente cada día. 2) Ventas (Ingresos): ventas por receta cada día. 3) Por Proveedor: gasto por proveedor en cada día. 4) P&L Diario: ingresos, costes, margen y beneficio neto, agrupados por día. Cambia entre vistas con los botones superiores.",
+        "title": "📊 Four views of the same data",
+        "body": "1) Purchases (Costs): purchase price by ingredient each day. 2) Sales (Revenue): sales by recipe each day. 3) By Supplier: spend per supplier each day. 4) Daily P&L: revenue, costs, margin and net profit, grouped by day. Switch views with the buttons at the top.",
         "color": "blue"
       },
       {
-        "title": "🗓️ Selector mes/año y semanas",
-        "body": "El mes/año que elijas filtra TODA la vista. Justo debajo tienes el filtro de semanas (Todo el mes / Semana 1-7 / 8-14 / 15-21 / 22-28 / 29-31) para mirar solo un tramo concreto.",
+        "title": "🗓️ Month/year and week selector",
+        "body": "The month/year you choose filters THE WHOLE view. Just below you have a week filter (Whole month / Week 1-7 / 8-14 / 15-21 / 22-28 / 29-31) to look at a specific range.",
         "color": "blue"
       },
       {
-        "title": "📊 P&L Diario — la vista clave",
-        "body": "Por cada día del mes ves: INGRESOS, COSTES PROD., MARGEN BRUTO, GASTOS FIJOS/DÍA y BENEFICIO NETO. Las celdas con beneficio positivo van en verde, las negativas en rojo. Esto rompe con la trampa del cierre mensual: dejas de tener UN número grande al mes y ves cada día por separado.",
+        "title": "📊 Daily P&L — the key view",
+        "body": "For each day of the month you see: REVENUE, PROD. COSTS, GROSS MARGIN, FIXED EXPENSES/DAY and NET PROFIT. Cells with positive profit go green, negatives red. This breaks the trap of month-end closing: you stop having ONE big number per month and see each day separately.",
         "color": "amber"
       },
       {
-        "title": "💰 Beneficio Neto por Día",
-        "body": "Panel destacado bajo las tablas con la lista de beneficio neto día a día — la misma información del P&L pero en formato lista, fácil de escanear de un vistazo.",
+        "title": "💰 Net Profit by Day",
+        "body": "Highlighted panel below the tables with the daily net profit list — the same information as the P&L but in list format, easy to scan at a glance.",
         "color": "blue"
       },
       {
-        "title": "💰 Gastos Fijos Mensuales",
-        "body": "Configura aquí los gastos fijos del restaurante (alquiler, luz, agua, sueldos, impuestos…) con el botón +. Cada categoría se reparte automáticamente por día y aparece en la fila GASTOS FIJOS/DÍA del P&L. Cambios se guardan al instante.",
+        "title": "💰 Monthly Fixed Expenses",
+        "body": "Configure here the restaurant's fixed expenses (rent, electricity, water, salaries, taxes…) with the + button. Each category is spread automatically per day and appears in the FIXED EXPENSES/DAY row of the P&L. Changes save instantly.",
         "color": "blue"
       },
       {
-        "title": "📥 Exportar Excel",
-        "body": "Genera un Excel real con los datos del mes filtrado — para llevárselo al gestor, archivar, o cruzar con tu contabilidad.",
+        "title": "📥 Export Excel",
+        "body": "Generates a real Excel file with the data for the filtered month — to send to your accountant, archive, or cross-check with your accounting.",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Revisa el Diario una vez por semana, no solo al cerrar el mes. Patrones que se detectan a tiempo (gasto desproporcionado un martes, venta floja un domingo) dan margen para reaccionar antes de que el mes se vaya por el desagüe.",
+        "title": "💡 Tip",
+        "body": "Check the Diary once a week, not only at month-end. Patterns detected in time (disproportionate spend on a Tuesday, weak sales on a Sunday) give you room to react before the month goes down the drain.",
         "color": "green"
       }
     ]
   },
   "analisis": {
-    "title": "ℹ️ Análisis — guía rápida",
-    "lead": "Aquí está la inteligencia de tu negocio: rentabilidad por plato, ingeniería de menú (matriz BCG) y gráficos para entender dónde ganas y dónde pierdes dinero.",
+    "title": "ℹ️ Analysis — quick guide",
+    "lead": "This is your business intelligence: profitability per dish, menu engineering (BCG matrix) and charts to understand where you make and lose money.",
     "blocks": [
       {
-        "title": "🏆 Ranking de Rentabilidad",
-        "body": "Tabla con tus platos ordenados por margen € absoluto del mes (ingresos − coste). El #1 es tu \"caballo de batalla\": el que más DINERO te lleva a caja. Ojo: alto margen unitario no siempre = #1. Un plato con margen del 80% que vende 10 unidades genera menos que otro con margen 50% que vende 200. El ranking premia volumen × margen, no porcentaje.",
+        "title": "🏆 Profitability Ranking",
+        "body": "Table with your dishes sorted by absolute margin for the month (revenue − cost). #1 is your workhorse: the one bringing the most MONEY to the till. Beware: high unit margin is not always #1. A dish with 80% margin selling 10 units brings less than one with 50% margin selling 200. The ranking rewards volume × margin, not percentage.",
         "color": "blue"
       },
       {
-        "title": "🧠 Ingeniería de Menú (matriz BCG)",
-        "body": "Cada plato cae en uno de 4 cuadrantes según popularidad (eje X) y margen (eje Y): 🟢 ESTRELLA = alto margen + alta venta (protégelo, no toques). 🔵 PUZZLE = alto margen + poca venta (promociónalo: foto carta, recomendación camarero). 🟠 CABALLO = bajo margen + mucha venta (renegocia coste con proveedor o sube precio 5% — la gente lo seguirá pidiendo). 🔴 PERRO = bajo margen + poca venta (sustituir o eliminar de carta).",
+        "title": "🧠 Menu Engineering (BCG matrix)",
+        "body": "Each dish falls into one of 4 quadrants based on popularity (X axis) and margin (Y axis): 🟢 STAR = high margin + high sales (protect, don't touch). 🔵 PUZZLE = high margin + low sales (promote: menu photo, waiter recommendation). 🟠 PLOWHORSE = low margin + high sales (renegotiate cost with supplier or raise price 5% — people will still order). 🔴 DOG = low margin + low sales (replace or remove from menu).",
         "color": "amber"
       },
       {
-        "title": "📈 Gráficos de evolución",
-        "body": "Ingresos vs gastos mes a mes, food cost por categoría, top ingredientes por consumo… Sirven para detectar tendencias largas: ¿el food cost sube despacio mes tras mes? Quizás los proveedores te están subiendo precios sin que te enteres. ¿Las ventas caen un día concreto cada semana? Cambia carta o promo ese día.",
+        "title": "📈 Evolution charts",
+        "body": "Revenue vs spend month over month, food cost by category, top ingredients by consumption… Useful to detect long trends: is food cost slowly creeping up? Maybe suppliers are raising prices without you noticing. Do sales drop on a specific day of the week? Change menu or promo that day.",
         "color": "blue"
       },
       {
-        "title": "💰 Margen medio vs coste medio",
-        "body": "Cifras de cabecera: margen promedio y coste promedio de TUS recetas (solo alimentos, las bebidas se filtran por defecto). Compara con los benchmarks del sector: margen medio sano en hostelería = 65-70%. Por debajo del 60% = revisar carta.",
+        "title": "💰 Average margin vs average cost",
+        "body": "Headline figures: average margin and average cost of YOUR recipes (food only — drinks filtered by default). Compare against industry benchmarks: healthy average margin in hospitality = 65-70%. Below 60% = review menu.",
         "color": "blue"
       },
       {
-        "title": "💡 Consejo",
-        "body": "Revisa la matriz BCG cada 2-3 meses, no semanalmente — los platos no cambian de cuadrante por una mala semana. El uso real: planificar el próximo cambio de carta. PERROS fuera, PUZZLES con foto y recomendación, CABALLOS con +1€, ESTRELLAS intocables.",
+        "title": "💡 Tip",
+        "body": "Review the BCG matrix every 2-3 months, not weekly — dishes don't switch quadrants because of a bad week. Real use: plan your next menu change. DOGS out, PUZZLES with photo and recommendation, PLOWHORSES with +1€, STARS untouched.",
         "color": "green"
       }
     ]
@@ -278,7 +278,7 @@
       },
       {
         "title": "💶 Integrated labour cost",
-        "body": "Sum of (hours worked × hourly cost) per employee, day, week and month. Appears in the P&L of the executive report and in the Break-Even calculation. Raise salaries and all profitability numbers adjust instantly.",
+        "body": "Sum of (hours worked × hourly cost) per employee, day, week and month. Appears in the P&L of the executive report.",
         "color": "blue"
       },
       {
