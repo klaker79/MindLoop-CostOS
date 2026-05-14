@@ -134,37 +134,37 @@
     "blocks": [
       {
         "title": "📊 Cuatro vistas del mismo dato",
-        "body": "1) Compras (Costes): cuánto te ha costado cada día comprar materia prima. 2) Ventas (Ingresos): cuánto facturaste cada día. 3) Por Proveedor: gasto por proveedor en cada día. 4) P&L Diario: ingresos − costes − margen, agrupado por día. Cambia entre vistas con los botones superiores.",
+        "body": "1) Compras (Costes): precio de compra por ingrediente cada día. 2) Ventas (Ingresos): ventas por receta cada día. 3) Por Proveedor: gasto por proveedor en cada día. 4) P&L Diario: ingresos, costes, margen y beneficio neto, agrupados por día. Cambia entre vistas con los botones superiores.",
         "color": "blue"
       },
       {
-        "title": "🗓️ Selector mes/año",
-        "body": "El mes/año que elijas filtra TODA la vista (las 4 vistas comparten el rango). Empieza por el mes en curso para ver dónde estás; luego compara con el mes anterior para detectar tendencias (subida de costes, días flojos de venta…).",
+        "title": "🗓️ Selector mes/año y semanas",
+        "body": "El mes/año que elijas filtra TODA la vista. Justo debajo tienes el filtro de semanas (Todo el mes / Semana 1-7 / 8-14 / 15-21 / 22-28 / 29-31) para mirar solo un tramo concreto.",
+        "color": "blue"
+      },
+      {
+        "title": "📊 P&L Diario — la vista clave",
+        "body": "Por cada día del mes ves: INGRESOS, COSTES PROD., MARGEN BRUTO, GASTOS FIJOS/DÍA y BENEFICIO NETO. Las celdas con beneficio positivo van en verde, las negativas en rojo. Esto rompe con la trampa del cierre mensual: dejas de tener UN número grande al mes y ves cada día por separado.",
+        "color": "amber"
+      },
+      {
+        "title": "💰 Beneficio Neto por Día",
+        "body": "Panel destacado bajo las tablas con la lista de beneficio neto día a día — la misma información del P&L pero en formato lista, fácil de escanear de un vistazo.",
+        "color": "blue"
+      },
+      {
+        "title": "💰 Gastos Fijos Mensuales",
+        "body": "Configura aquí los gastos fijos del restaurante (alquiler, luz, agua, sueldos, impuestos…) con el botón +. Cada categoría se reparte automáticamente por día y aparece en la fila GASTOS FIJOS/DÍA del P&L. Cambios se guardan al instante.",
         "color": "blue"
       },
       {
         "title": "📥 Exportar Excel",
-        "body": "Genera un Excel real con los datos del mes filtrado — para llevárselo al gestor, archivar, o cruzar con tu contabilidad. Mantiene el formato de la vista que tengas activa.",
-        "color": "blue"
-      },
-      {
-        "title": "🎯 Cómo lo lee un dueño experto",
-        "body": "Mira primero \"P&L Diario\" — te dice si cada día has ganado o perdido. Después \"Por Proveedor\" para detectar al que más te factura (negociar o cambiar). \"Ventas\" para identificar días flojos de la semana (¿abrir o no?). \"Compras\" para detectar picos de gasto que no sigan al ritmo de venta.",
-        "color": "blue"
-      },
-      {
-        "title": "🎯 Punto de Equilibrio Mensual",
-        "body": "Widget destacado: te dice cuántos PLATOS te faltan vender en lo que queda de mes para cubrir tus gastos fijos. Lo calcula con tu margen medio por plato real (no estimado). Si ya estás por encima del equilibrio, sale en verde: \"✅ Gastos fijos cubiertos, todo desde aquí es beneficio\". Es el número más útil para fijar objetivo semanal del equipo.",
-        "color": "amber"
-      },
-      {
-        "title": "🤖 Recomendaciones automáticas",
-        "body": "El sistema analiza tus ventas y propone acciones concretas: 🚨 Retirar/reformar platos que ni venden ni dan margen. 💰 Subir precio a los que venden bien con margen bajo. 📢 Promocionar los de buen margen con poca visibilidad. ✨ Mantener destacados los \"estrella\". Cada recomendación incluye los nombres concretos de los platos — no consejos genéricos.",
+        "body": "Genera un Excel real con los datos del mes filtrado — para llevárselo al gestor, archivar, o cruzar con tu contabilidad.",
         "color": "blue"
       },
       {
         "title": "💡 Consejo",
-        "body": "Acostúmbrate a revisar el Diario una vez por semana, no solo al cerrar el mes. Patrones que se detectan a tiempo (gasto desproporcionado un martes, venta floja un domingo) dan margen para reaccionar antes de que el mes se vaya por el desagüe. El widget de Punto de Equilibrio sirve como brújula semanal del equipo.",
+        "body": "Revisa el Diario una vez por semana, no solo al cerrar el mes. Patrones que se detectan a tiempo (gasto desproporcionado un martes, venta floja un domingo) dan margen para reaccionar antes de que el mes se vaya por el desagüe.",
         "color": "green"
       }
     ]
@@ -290,31 +290,26 @@
   },
   "inteligencia": {
     "title": "ℹ️ 智能 — 快速指南",
-    "lead": "三个面板无需您过问就持续监控您的业务:即将过期的库存、毛利低的食谱、以及月度损失。",
+    "lead": "两个面板无需您过问就持续监控您的业务:即将过期的库存和毛利低的食谱。",
     "blocks": [
       {
-        "title": "🌿 库存新鲜度",
-        "body": "需要在过期前使用的新鲜产品列表。根据最后采购日期和历史消费模式计算。如果某产品已经几天没用,且使用它的菜品销售缓慢,它会在这里显示为\"今日使用\"或\"待审查\"。防止食物浪费。",
+        "title": "🧊 库存新鲜度",
+        "body": "需要在过期前使用的新鲜产品列表。根据最后采购日期和历史消费模式计算。项目会按紧急程度标记为\"📋 今日使用\"或\"⚠️ 待审查\"。防止食物浪费。",
         "color": "blue"
       },
       {
-        "title": "🎯 价格审查",
-        "body": "食物成本>40%的食谱。这些是您警报中的菜品:要么您食材付得太多(与供应商重新协商),要么需要提高售价。应用标记哪些以及超出35%目标多少。",
+        "title": "💰 价格审查",
+        "body": "毛利低或食物成本高的食谱。这些是您警报中的菜品:要么您食材付得太多(与供应商重新协商),要么需要提高售价。应用显示当前成本、食物成本%和建议价格。",
         "color": "amber"
       },
       {
-        "title": "💸 月度损失",
-        "body": "当月以欧元计价的总损耗,与上月比较。如果数字增长,存在运营问题:过量采购导致的过期、厨房失误、盗窃。与损耗历史(库存标签页)交叉检查,以识别具体哪种食材在流失。",
-        "color": "blue"
-      },
-      {
         "title": "🔄 实时更新",
-        "body": "您每次进入标签页时,3个面板都会刷新。如果您刚加载了最新数据并想立即查看(例如刚导入了当天的POS数据),\"刷新\"按钮强制重新计算。",
+        "body": "您每次进入标签页时,面板都会刷新。如果您刚加载了最新数据并想立即查看(例如刚导入了当天的POS数据),\"刷新\"按钮强制重新计算。",
         "color": "blue"
       },
       {
         "title": "💡 提示",
-        "body": "周一早上与日记一起检查此标签页。3分钟内您就知道今天该使用什么产品、本月该调整什么食谱、以及损失趋势是否良好。这是您开始一周前的\"快速仪表板\"。",
+        "body": "周一早上与日记一起检查此标签页。2分钟内您就知道今天该使用什么产品、本月该调整什么食谱。这是您开始一周前的\"快速仪表板\"。",
         "color": "green"
       }
     ]
