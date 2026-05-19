@@ -111,3 +111,16 @@ If numbers don't match between modules → it's a BUG. Fix before deploying.
 ### DOM Safety
 - Always null-check `document.getElementById()` before accessing `.style`, `.textContent`, etc.
 - Use optional chaining or guard: `const el = document.getElementById('x'); if (el) el.textContent = '...';`
+
+## Source of truth para features por pestaña
+- **NUNCA confiar en `src/i18n/locales/*/info-content.json`** para afirmar qué features tiene una pestaña — esos textos los escribí yo (Claude) y pueden contener invenciones. Incidente 2026-05-14: inventé "Punto de Equilibrio" y "Recomendaciones BCG" en pestaña Diario.
+- Para saber qué hay realmente en una pestaña: leer `<div id="tab-XXX">` en `index.html` + el módulo que la renderiza en `src/modules/<tab>/`.
+- Mapa verificado en memoria persistente `project_app_tabs_map_2026_05_14.md`.
+
+## Bug clásico: NUMERIC(10,3) "30.000" → "treinta mil" (es-ES)
+- Usar siempre `formatQuantity()` de `src/utils/helpers.js` para mostrar cantidades de Postgres en UI.
+- `toLocaleString('es-ES')` directo sobre el string crudo confunde el punto como separador de miles.
+
+## Service Worker — bump obligatorio
+- Cambios en `src/i18n/locales/*` o JS cacheado → bumpear `CACHE_NAME` en `public/sw.js`.
+- Sin bump, los clientes siguen viendo la versión cacheada hasta varios días después.

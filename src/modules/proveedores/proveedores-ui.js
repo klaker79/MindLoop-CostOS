@@ -122,15 +122,29 @@ export function filtrarIngredientesProveedor() {
 }
 
 /**
- * Renderiza la tabla de proveedores
+ * Renderiza la tabla de proveedores.
+ *
+ * Filtro "empieza por palabra" (cambio 2026-05-19 a petición de Iker):
+ *   - Nombre: divide por espacios y matchea si ALGUNA palabra empieza por la búsqueda.
+ *     Ej. buscar "casa" → "A CASA DA QUENLLA" ✅, "GROVEMAR" ❌.
+ *   - Teléfono: startsWith (ej. buscar "991" → "991130795").
+ *   - Email: startsWith de cualquier "palabra" separada por @ o .
+ *     Ej. buscar "info" → "info@proveedor.com" ✅, "comprasinfo@..." ❌.
+ *
+ * Antes usaba `includes()` lo que metía demasiados falsos positivos (buscar "ma"
+ * sacaba "GROVEMAR", "LAMASTELLE", "PRIMAVINIA", etc.). El nuevo enfoque es
+ * más predecible para el usuario.
  */
 export function renderizarProveedores() {
-    const busqueda = document.getElementById('busqueda-proveedores')?.value.toLowerCase() || '';
-    const filtrados = window.proveedores.filter(
-        p =>
-            p.nombre.toLowerCase().includes(busqueda) ||
-            (p.telefono && p.telefono.includes(busqueda)) ||
-            (p.email && p.email.toLowerCase().includes(busqueda))
+    const busqueda = document.getElementById('busqueda-proveedores')?.value.toLowerCase().trim() || '';
+    const matchEmpiezaPorPalabra = (texto, query, separador = /\s+/) => {
+        if (!texto) return false;
+        return texto.toLowerCase().split(separador).some(palabra => palabra.startsWith(query));
+    };
+    const filtrados = !busqueda ? window.proveedores : window.proveedores.filter(p =>
+        matchEmpiezaPorPalabra(p.nombre, busqueda) ||
+        (p.telefono && p.telefono.startsWith(busqueda)) ||
+        (p.email && matchEmpiezaPorPalabra(p.email, busqueda, /[@.]/))
     );
 
     const container = document.getElementById('tabla-proveedores');
