@@ -25,22 +25,48 @@ describe('Sanitize - sanitizeHTML', () => {
 });
 
 describe('Sanitize - sanitizeURL', () => {
+    let sanitizeURL;
+
+    beforeAll(async () => {
+        const mod = await import('../../src/utils/sanitize.js');
+        sanitizeURL = mod.sanitizeURL;
+    });
+
     test('acepta URLs http/https', () => {
-        const httpUrl = 'https://example.com';
-        expect(httpUrl.startsWith('http')).toBe(true);
+        expect(sanitizeURL('https://example.com')).toBe('https://example.com');
+        expect(sanitizeURL('http://example.com/path')).toBe('http://example.com/path');
     });
 
-    test('rechaza URLs javascript:', () => {
-        const jsUrl = 'javascript:alert(1)';
-        expect(jsUrl.startsWith('javascript')).toBe(true);
-        // sanitizeURL debería retornar string vacío o about:blank
-        const safeDefault = 'about:blank';
-        expect(safeDefault).toBe('about:blank');
+    test('rechaza javascript:', () => {
+        expect(sanitizeURL('javascript:alert(1)')).toBe('');
+        expect(sanitizeURL('  JavaScript:alert(1)')).toBe(''); // case-insensitive + spaces
     });
 
-    test('maneja URLs relativas', () => {
-        const relativeUrl = '/path/to/resource';
-        expect(relativeUrl.startsWith('/')).toBe(true);
+    test('rechaza data:', () => {
+        expect(sanitizeURL('data:text/html,<script>alert(1)</script>')).toBe('');
+    });
+
+    test('rechaza vbscript: (legacy IE)', () => {
+        expect(sanitizeURL('vbscript:msgbox(1)')).toBe('');
+        expect(sanitizeURL('VBSCRIPT:msgbox(1)')).toBe('');
+    });
+
+    test('rechaza file: (acceso local)', () => {
+        expect(sanitizeURL('file:///etc/passwd')).toBe('');
+        expect(sanitizeURL('FILE://c:/windows/system32')).toBe('');
+    });
+
+    test('acepta URLs relativas y mailto:/tel:', () => {
+        expect(sanitizeURL('/path/to/resource')).toBe('/path/to/resource');
+        expect(sanitizeURL('mailto:user@example.com')).toBe('mailto:user@example.com');
+        expect(sanitizeURL('tel:+34666123456')).toBe('tel:+34666123456');
+    });
+
+    test('maneja valores inválidos', () => {
+        expect(sanitizeURL('')).toBe('');
+        expect(sanitizeURL(null)).toBe('');
+        expect(sanitizeURL(undefined)).toBe('');
+        expect(sanitizeURL(42)).toBe('');
     });
 });
 

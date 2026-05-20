@@ -113,8 +113,12 @@ export function sanitizeURL(url) {
 
     const trimmed = url.trim().toLowerCase();
 
-    // Prevenir javascript: y data: URLs
-    if (trimmed.startsWith('javascript:') || trimmed.startsWith('data:')) {
+    // Bloquear esquemas peligrosos conocidos.
+    // CodeQL alert "Incomplete URL scheme check" — antes solo cubría javascript:
+    // y data:. vbscript: y file: también deben rechazarse aunque sean legacy,
+    // porque algunos navegadores antiguos/embebidos los procesan.
+    const dangerousSchemes = ['javascript:', 'data:', 'vbscript:', 'file:'];
+    if (dangerousSchemes.some(scheme => trimmed.startsWith(scheme))) {
         console.warn('URL peligrosa bloqueada:', url);
         return '';
     }
