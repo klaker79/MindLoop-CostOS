@@ -31,8 +31,9 @@
 // BUMP v30: filtro buscador Proveedores — "empieza por palabra" (split + startsWith) en lugar de "includes". Buscar "ma" ya no devuelve "GROVEMAR", "LAMASTELLE", etc.
 // BUMP v31: dossier v2.6 — 5 errores típicos al principio + sección n8n + señales de alarma + FAQ ampliada + glosario.
 // BUMP v32: modal invitar usuario — label "Usuario interno (email)" + helper text aclarando que el email no tiene que ser real (es/en/zh).
+// BUMP v33: tarjeta de pago Plan MindLoop (95€/mes) con checkout Polar + botón gestionar suscripción.
 
-const CACHE_NAME = 'mindloop-costos-v32';
+const CACHE_NAME = 'mindloop-costos-v33';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

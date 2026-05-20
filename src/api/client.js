@@ -391,6 +391,12 @@ export const api = {
     createChatAddonCheckout: () => apiClient.post('/chat-addon/checkout-session', {}),
     openChatAddonPortal: () => apiClient.post('/chat-addon/customer-portal', {}),
 
+    // Plan base MindLoop CostOS (95€/mes vía Polar).
+    // Mismo patrón que el add-on: backend devuelve URL Polar para checkout
+    // o customer portal; el flag plan_status se actualiza via webhook.
+    createBasePlanCheckout: () => apiClient.post('/subscription/checkout-base', {}),
+    openSubscriptionPortal: () => apiClient.post('/subscription/customer-portal', {}),
+
     // Informe ejecutivo mensual (HTML listo para imprimir/guardar PDF).
     // Devuelve string con HTML completo. El caller lo abre en pestaña nueva.
     // No consume contador del chat — verifica chat_addon aparte en backend.
