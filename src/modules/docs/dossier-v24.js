@@ -1,6 +1,15 @@
 /**
- * MindLoop CostOS - Dossier Técnico v2.5
- * Documentación completa integrada en la aplicación
+ * MindLoop CostOS - Dossier Técnico v2.6
+ * Documentación completa integrada en la aplicación.
+ *
+ * v2.6 (2026-05-20): añadidas secciones operativas:
+ *   - Errores típicos al principio (5 casos reales: VINO ALMA DE MAR,
+ *     NAVAJAS/BERBERECHOS, ingredientes duplicados, precio vs CPF,
+ *     recetas sin escandallo)
+ *   - Sección dedicada a importación TPV vía n8n + filtro de cordura
+ *   - Señales de alarma con tabla rojo/amarillo/verde por urgencia
+ *   - FAQ ampliada (móvil, exportación, multi-usuario, etc.)
+ *   - Glosario sin jerga
  */
 
 import { getDateLocale } from '../../utils/helpers.js';
@@ -283,13 +292,14 @@ export function generarDossierHTML() {
 <div class="cover">
     <h1>📘 Dossier Técnico</h1>
     <p class="subtitle">Guía Completa de Fórmulas, Cálculos y Uso del Sistema</p>
-    <span class="version">MindLoop CostOS v2.5 Premium | ${fechaActual}</span>
+    <span class="version">MindLoop CostOS v2.6 Premium | ${fechaActual}</span>
 </div>
 
 <!-- TOC -->
 <div class="toc">
     <h2>📑 Índice de Contenidos</h2>
     <ul>
+        <li><a href="#errores-tipicos"><strong>⛔ Lectura obligatoria — 5 errores típicos que rompen los cálculos</strong></a></li>
         <li><a href="#intro">1. Introducción al Sistema</a></li>
         <li><a href="#ingredientes">2. Gestión de Ingredientes</a></li>
         <li><a href="#recetas">3. Recetas y Costing</a></li>
@@ -297,13 +307,78 @@ export function generarDossierHTML() {
         <li><a href="#pedidos">5. Gestión de Pedidos</a></li>
         <li><a href="#inventario">6. Control de Inventario</a></li>
         <li><a href="#ventas">7. Registro de Ventas</a></li>
-        <li><a href="#pl">8. Beneficio Neto (P&L)</a></li>
-        <li><a href="#finanzas">9. Análisis Financiero</a></li>
-        <li><a href="#escandallo">10. Escandallo Visual</a></li>
-        <li><a href="#mermas">11. Control de Mermas</a></li>
-        <li><a href="#forecast">12. Proyección de Ventas</a></li>
-        <li><a href="#chatbot">13. Asistente IA</a></li>
-        <li><a href="#faq">14. Preguntas Frecuentes</a></li>
+        <li><a href="#importacion-tpv">8. Importación automática del TPV (n8n)</a></li>
+        <li><a href="#pl">9. Beneficio Neto (P&L)</a></li>
+        <li><a href="#finanzas">10. Análisis Financiero</a></li>
+        <li><a href="#escandallo">11. Escandallo Visual</a></li>
+        <li><a href="#mermas">12. Control de Mermas</a></li>
+        <li><a href="#forecast">13. Proyección de Ventas</a></li>
+        <li><a href="#chatbot">14. Asistente IA</a></li>
+        <li><a href="#alarmas"><strong>🚨 Señales de alarma — qué reportar y cuándo</strong></a></li>
+        <li><a href="#faq">Preguntas Frecuentes</a></li>
+        <li><a href="#glosario">Glosario</a></li>
+    </ul>
+</div>
+
+<!-- ⛔ ERRORES TÍPICOS — lectura obligatoria al principio -->
+<h2 id="errores-tipicos" style="color:#dc2626;">⛔ Antes de empezar: los 5 errores típicos</h2>
+<div class="warning" style="background:#fef2f2;border-color:#dc2626;">
+    <div class="warning-title">⚠️ Lee esto AHORA. Aunque la app es fácil de usar, hay 5 errores que rompen los cálculos silenciosamente. Son los responsables del 90% de los incidentes que vemos.</div>
+</div>
+
+<h3>1. 🔴 Códigos TPV duplicados entre receta padre y variante COPA</h3>
+<div class="example" style="border-color:#dc2626;background:#fef2f2;">
+    <div class="example-title">Caso real — VINO ALMA DE MAR</div>
+    <p>Tanto la receta padre "VINO ALMA DE MAR" como su variante COPA tenían el mismo código TPV <code>01553</code>.</p>
+    <p>Cuando el TPV vendía una copa, el sistema podía matchear con la receta padre (factor=1) en lugar de la variante COPA (factor=0.2).</p>
+    <p><strong>Consecuencia:</strong> cada copa vendida descontaba <strong>una botella entera</strong> del stock. En 1 mes te vacías el stock de vinos 5× más rápido de lo real.</p>
+    <p><strong>Cómo evitarlo:</strong> cada código TPV es único. Si una receta tiene variante COPA, el código del TPV debe estar SOLO en la variante (no en la receta padre, o bien la receta padre lleva el código de BOTELLA y la COPA otro código distinto).</p>
+</div>
+
+<h3>2. 🔴 Códigos TPV cruzados — dos productos con el mismo código</h3>
+<div class="example" style="border-color:#dc2626;background:#fef2f2;">
+    <div class="example-title">Caso real — NAVAJAS ↔ BERBERECHOS</div>
+    <p>En MindLoop, la receta NAVAJAS tenía código <code>01162</code>. En el TPV, ese código pertenecía a BERBERECHOS.</p>
+    <p><strong>Consecuencia:</strong> cada venta de berberechos se contaba como navajas en MindLoop. El stock real de navajas no bajaba, el de berberechos se vaciaba silenciosamente. Food cost falseado.</p>
+    <p><strong>Cómo evitarlo:</strong> verifica que el código de la app coincide <strong>exactamente</strong> con el del TPV — abre el TPV y compara con lo que tengas en MindLoop.</p>
+</div>
+
+<h3>3. 🔴 Ingredientes duplicados</h3>
+<div class="example" style="border-color:#dc2626;background:#fef2f2;">
+    <div class="example-title">Caso real — Vino con año diferente como "ingredientes nuevos"</div>
+    <p>Cada vez que cambiaba la cosecha se creaba un ingrediente nuevo ("Alma de Mar 2020", "Alma de Mar 2022") en lugar de editar el existente.</p>
+    <p><strong>Consecuencia:</strong> el stock se fragmenta entre múltiples "ingredientes" que en realidad son el mismo producto comercial. Las recetas que usan "Alma de Mar 2020" no se actualizan automáticamente al pasar al 2022.</p>
+    <p><strong>Cómo evitarlo:</strong> al crear un ingrediente, busca primero. Si ya existe uno parecido, edita en vez de crear. El nombre debe ser estable a través de cosechas.</p>
+</div>
+
+<h3>4. 🔴 Confusión entre Precio Formato y Precio Unitario</h3>
+<div class="example" style="border-color:#dc2626;background:#fef2f2;">
+    <div class="example-title">Caso típico — saco de harina de 25 kg a 30€</div>
+    <p>Forma incorrecta: meter <code>precio = 1.20</code> y <code>cantidad_por_formato = 1</code> porque "es 1.20 €/kg".</p>
+    <p>Forma correcta: <code>precio = 30</code> y <code>cantidad_por_formato = 25000</code> (porque la unidad base es gr, hay 25.000 gr en el saco). La app calculará el precio unitario sola.</p>
+    <p><strong>Regla mnemónica:</strong> el campo "Precio" es lo que aparece en la <strong>factura del proveedor</strong>. No lo dividas, no lo multipliques.</p>
+</div>
+
+<h3>5. 🔴 Recetas sin escandallo (sin ingredientes asignados)</h3>
+<div class="example" style="border-color:#dc2626;background:#fef2f2;">
+    <div class="example-title">Caso típico — Recetas "REFRESCO", "VARIOS", "MENU DEL DÍA"</div>
+    <p>Si una receta no tiene ingredientes en su escandallo:</p>
+    <ul>
+        <li>Su food cost aparece como 0% (te da la sensación de margen del 100%).</li>
+        <li>Al venderse, no descuenta nada de stock.</li>
+        <li>El producto vendido "no se gasta" en MindLoop pero sí físicamente en el restaurante.</li>
+    </ul>
+    <p><strong>Cómo evitarlo:</strong> cada receta debe tener al menos 1 ingrediente con cantidad &gt; 0. Para botones genéricos (VARIOS, MENU), o creas un escandallo aproximado, o aceptas explícitamente que no contabilizas su coste.</p>
+</div>
+
+<div class="warning" style="background:#fff7ed;border-color:#f59e0b;">
+    <div class="warning-title">💡 Cómo detectar si ya cometiste alguno de estos errores</div>
+    <ul>
+        <li>Stock de vinos que se vacía MUCHO más rápido de lo que vendes → error 1.</li>
+        <li>Un ingrediente "se vacía solo" sin saber por qué → error 2.</li>
+        <li>Food cost de varias recetas a la vez sale mal → error 3.</li>
+        <li>Un ingrediente con precio "raro" comparado con los demás → error 4.</li>
+        <li>Una receta con food cost 0% y margen 100% → error 5.</li>
     </ul>
 </div>
 
@@ -580,8 +655,73 @@ export function generarDossierHTML() {
     Nuevo Stock = Stock Actual - (Cantidad Receta × Unidades Vendidas)
 </div>
 
-<!-- 8. P&L DIARIO -->
-<h2 id="pl">8. 💰 Beneficio Neto por Día (P&L)</h2>
+<!-- 8. IMPORTACIÓN AUTOMÁTICA TPV -->
+<h2 id="importacion-tpv">8. 📥 Importación automática del TPV (n8n)</h2>
+<div class="section-intro">
+    <p>MindLoop puede recibir el cierre del día de tu TPV automáticamente vía email. Cada noche, tu TPV manda un PDF, n8n lo procesa con IA, lo valida y lo sube a la app.</p>
+</div>
+
+<h3>Flujo automático</h3>
+<table>
+    <tr><th>Paso</th><th>Qué pasa</th></tr>
+    <tr><td>1</td><td>Tu TPV envía un email con el PDF del cierre diario</td></tr>
+    <tr><td>2</td><td>Gmail recibe (cuenta configurada en onboarding) y n8n detecta el email</td></tr>
+    <tr><td>3</td><td>Claude IA parsea el PDF y extrae las líneas de venta</td></tr>
+    <tr><td>4</td><td><strong>Filtro de cordura</strong> valida cada línea (ver abajo)</td></tr>
+    <tr><td>5</td><td>POST a la API de MindLoop con las ventas válidas</td></tr>
+    <tr><td>6</td><td>Stock se descuenta automáticamente y el dashboard se actualiza</td></tr>
+    <tr><td>7</td><td>Email "Notificación DEV" al dueño con resumen del día</td></tr>
+</table>
+
+<h3>Filtro de cordura — qué se descarta</h3>
+<div class="section-intro">
+    <p>Para evitar cargas catastróficas si la IA parsea mal el PDF (ya ha pasado: food cost del 192% el 23 de abril por confundir columnas), el flujo descarta automáticamente líneas con valores absurdos.</p>
+</div>
+
+<table>
+    <tr><th>Condición</th><th>Acción</th><th>Por qué</th></tr>
+    <tr><td><strong>cantidad ≤ 0 o cantidad &gt; 200</strong></td><td>Descartar</td><td>Nadie vende 300 unidades de un plato suelto al día</td></tr>
+    <tr><td><strong>precio &gt; 500 €</strong></td><td>Descartar</td><td>Bug de parser confundiendo columnas</td></tr>
+    <tr><td><strong>precio entre 0.01 € y 0.10 €</strong></td><td>Descartar</td><td>Sospechosamente bajo</td></tr>
+    <tr><td><strong>precio = 0 € (con código TPV válido)</strong></td><td><strong>ACEPTAR</strong></td><td>Categorías agrupadas tipo "REFRESCO" donde el TPV no manda precio por unidad. El backend usa el precio_venta de la receta como fallback.</td></tr>
+</table>
+
+<div class="example">
+    <div class="example-title">📌 Por qué se acepta precio = 0</div>
+    <p>El TPV agrupa varios refrescos en un solo botón "REFRESCO" con total 19.60€ y 7 unidades. En el desglose por producto manda:</p>
+    <ul>
+        <li>COCA-COLA 3 unidades — precio_unitario 0€</li>
+        <li>FANTA LIMÓN 2 unidades — precio_unitario 0€</li>
+        <li>MOSTO 2 unidades — precio_unitario 0€</li>
+    </ul>
+    <p>El backend reconoce el código TPV, busca la receta, usa su <code>precio_venta</code> configurado. Así el ingreso se calcula correctamente aunque el TPV no mandara el precio.</p>
+</div>
+
+<div class="warning">
+    <div class="warning-title">⚠️ Si recibes alertas de descartes recurrentes</div>
+    <p>Si todos los días el email te avisa que se descartan las MISMAS recetas, contacta a soporte. Causas típicas:</p>
+    <ul>
+        <li>Códigos TPV mal asignados o desactualizados.</li>
+        <li>Cambio de formato en el PDF del TPV (la IA se confunde con el nuevo layout).</li>
+        <li>Productos nuevos sin receta en MindLoop.</li>
+    </ul>
+    <p><strong>No tocar el flujo n8n directamente</strong> — cambios incorrectos rompen la importación.</p>
+</div>
+
+<h3>Disparar manualmente</h3>
+<p>Si un día falla la importación automática (raro pero pasa: Gmail filtró el email como spam, TPV no envió):</p>
+<ol>
+    <li>Sube el PDF manualmente desde <strong>Ventas → + Subir PDF</strong>.</li>
+    <li>O contacta a soporte para que dispare el flujo con el PDF que tú mandes.</li>
+</ol>
+
+<div class="warning" style="background:#fef2f2;border-color:#dc2626;">
+    <div class="warning-title">⛔ NUNCA re-disparar manualmente un PDF ya procesado</div>
+    <p>Duplicaría todas las ventas — el backend no tiene deduplicación nativa. Si el día ya está procesado, no hagas nada.</p>
+</div>
+
+<!-- 9. P&L DIARIO (antes era 8) -->
+<h2 id="pl">9. 💰 Beneficio Neto por Día (P&L)</h2>
 <div class="section-intro">
     <p>El sistema calcula el <strong>beneficio neto real</strong> de cada día, incluyendo la parte proporcional de gastos fijos.</p>
 </div>
@@ -626,7 +766,7 @@ export function generarDossierHTML() {
 </div>
 
 <!-- 9. FINANZAS -->
-<h2 id="finanzas">9. 💼 Análisis Financiero</h2>
+<h2 id="finanzas">10. 💼 Análisis Financiero</h2>
 
 <div class="formula">
     <span class="formula-name">Punto de Equilibrio (Break-Even)</span>
@@ -641,7 +781,7 @@ export function generarDossierHTML() {
 </div>
 
 <!-- 10. ESCANDALLO -->
-<h2 id="escandallo">10. 📊 Escandallo Visual</h2>
+<h2 id="escandallo">11. 📊 Escandallo Visual</h2>
 <div class="section-intro">
     <p>El escandallo muestra el <strong>desglose de costes</strong> de cada receta con un gráfico circular interactivo.</p>
 </div>
@@ -723,7 +863,7 @@ export function generarDossierHTML() {
 </div>
 
 <!-- 11. MERMAS -->
-<h2 id="mermas">11. 🗑️ Control de Mermas</h2>
+<h2 id="mermas">12. 🗑️ Control de Mermas</h2>
 <div class="section-intro">
     <p>Registra pérdidas de producto descontando automáticamente del stock y calculando el impacto económico.</p>
 </div>
@@ -741,7 +881,7 @@ export function generarDossierHTML() {
 </div>
 
 <!-- 12. FORECAST -->
-<h2 id="forecast">12. 📈 Proyección de Ventas</h2>
+<h2 id="forecast">13. 📈 Proyección de Ventas</h2>
 <div class="section-intro">
     <p>Predicción de la facturación de los próximos 7 días usando algoritmos de <strong>media móvil ponderada</strong>.</p>
 </div>
@@ -768,7 +908,7 @@ export function generarDossierHTML() {
 </table>
 
 <!-- 13. CHATBOT -->
-<h2 id="chatbot">13. 🤖 Asistente IA (Chatbot)</h2>
+<h2 id="chatbot">14. 🤖 Asistente IA (Chatbot)</h2>
 <div class="section-intro">
     <p>El chatbot integrado puede responder preguntas sobre tu negocio consultando la base de datos en tiempo real.</p>
 </div>
@@ -789,8 +929,41 @@ export function generarDossierHTML() {
     <p>El chatbot usa <strong>fórmulas diferentes para comida y vinos</strong>. Cuando preguntes sobre precios ideales de vinos, automáticamente aplica el objetivo del 45% en lugar del 30%.</p>
 </div>
 
-<!-- 14. FAQ -->
-<h2 id="faq">14. ❓ Preguntas Frecuentes</h2>
+<!-- 🚨 SEÑALES DE ALARMA -->
+<h2 id="alarmas" style="color:#dc2626;">🚨 Señales de alarma — qué reportar y cuándo</h2>
+<div class="warning" style="background:#fff7ed;border-color:#f59e0b;">
+    <div class="warning-title">⚠️ No esperes al final del mes. Cuanto antes detectas un problema, más fácil arreglarlo.</div>
+</div>
+
+<h3 style="color:#dc2626;">🔴 CRÍTICO — Reportar HOY</h3>
+<table>
+    <tr><th>Síntoma</th><th>Causa probable</th><th>Acción</th></tr>
+    <tr><td>Food cost &gt; 60% en un día</td><td>Bug parser n8n (cantidades infladas) o variantes con factor mal</td><td>Captura del día + email a soporte. NO tocar.</td></tr>
+    <tr><td>Stock negativo en algún ingrediente</td><td>Cálculo erróneo o descontamientos dobles</td><td>Hacer inventario físico + reportar.</td></tr>
+    <tr><td>Plato que vende 100× lo habitual en un día</td><td>Bug parser interpretó porcentajes como unidades</td><td>Comparar con cierre TPV físico. Reportar.</td></tr>
+    <tr><td>Stock value duplicado de un día para otro</td><td>Recepción procesada con formato_override incorrecto</td><td>Revisar pedidos recibidos. Reportar.</td></tr>
+    <tr><td>Recetas que aparecen / desaparecen</td><td>Soft-delete o creación accidental</td><td>Revisar pestaña Recetas. Recuperar con soporte.</td></tr>
+</table>
+
+<h3 style="color:#f59e0b;">🟡 IMPORTANTE — Investigar esta semana</h3>
+<table>
+    <tr><th>Síntoma</th><th>Causa probable</th><th>Acción</th></tr>
+    <tr><td>Food cost subió 5+ puntos vs mes anterior</td><td>Precios proveedor subieron / mermas no registradas / escandallos cambiaron</td><td>Comparar gastos por proveedor mes a mes.</td></tr>
+    <tr><td>Margen de un plato cayó vs mes anterior</td><td>Igual que arriba</td><td>Revisar precio_unitario del ingrediente más caro.</td></tr>
+    <tr><td>Email diario con "Líneas descartadas" repetidas</td><td>Códigos TPV mal asignados</td><td>Comparar códigos en MindLoop vs TPV.</td></tr>
+    <tr><td>App muy lenta en alguna pestaña concreta</td><td>Demasiados ingredientes/recetas o un bug</td><td>Reportar a soporte.</td></tr>
+</table>
+
+<h3 style="color:#10b981;">🟢 LEVE — Anotar y revisar a fin de mes</h3>
+<table>
+    <tr><th>Síntoma</th><th>Causa probable</th></tr>
+    <tr><td>Items "Sin stock" crecen semana a semana</td><td>Faltan recepciones por meter o stock_minimo demasiado alto</td></tr>
+    <tr><td>Algún ingrediente con precio que parece raro</td><td>Posible confusión precio/cantidad_por_formato (ver error típico nº4)</td></tr>
+    <tr><td>Variante COPA y BOTELLA con códigos iguales</td><td>Bug latente — arreglar antes de que aparezca el problema en stock</td></tr>
+</table>
+
+<!-- FAQ ampliada -->
+<h2 id="faq">❓ Preguntas Frecuentes</h2>
 
 <h3>¿Por qué el número verde no coincide con mis ventas?</h3>
 <p>El número verde es el <strong>BENEFICIO NETO ACUMULADO</strong>, no las ventas. Es lo que queda después de restar costes de ingredientes y gastos fijos.</p>
@@ -813,10 +986,64 @@ export function generarDossierHTML() {
 <ol>
     <li>Negociar precios con proveedores</li>
     <li>Estandarizar porciones</li>
-    <li>Reducir mermas</li>
+    <li>Reducir mermas (inventarios físicos mensuales)</li>
     <li>Promocionar platos de alto margen</li>
     <li>Revisar recetas con ingredientes caros</li>
 </ol>
+
+<h3>¿La app funciona en móvil / tablet?</h3>
+<p>Sí, es responsive. Recomendación: tablet para cocina/sala, móvil para consulta rápida, ordenador para configuración seria.</p>
+
+<h3>¿Funciona sin conexión?</h3>
+<p>No. La app necesita internet siempre. Si cae el wifi, la app muestra lo último cargado pero no permite operaciones nuevas.</p>
+
+<h3>¿Puedo exportar mis datos?</h3>
+<p>Sí. Soporte puede generar CSVs de recetas, ingredientes, ventas (rango de fechas), o un dump completo de tu tenant.</p>
+
+<h3>¿Qué pasa si cancelo la suscripción?</h3>
+<p>Tus datos siguen en BD. Se exportan en ZIP y se mandan por email. Después de 30 días sin reactivar, se eliminan permanentemente.</p>
+
+<h3>¿Puedo invitar a más usuarios?</h3>
+<p>Sí. Pestaña <strong>Configuración → Mi Equipo → Invitar Usuario</strong>. Cada usuario tiene un rol (admin / usuario).</p>
+
+<h3>¿Cómo cambio de restaurante si tengo varios?</h3>
+<p>Esquina superior derecha → desplegable con tus restaurantes. Cambias y la app recarga con los datos del otro tenant. Los datos están completamente aislados entre tenants.</p>
+
+<h3>¿La app guarda mis datos seguros?</h3>
+<p>Sí. BD Postgres con backup diario, multi-tenant aislado por <code>restaurante_id</code>, conexiones HTTPS, contraseñas hasheadas (no se pueden recuperar, solo resetear). Auditoría de seguridad regular.</p>
+
+<h3>¿Por qué mi food cost varía día a día?</h3>
+<p>Normal. Cada día tienes mix distinto de platos. Lo que importa es el <strong>promedio mensual</strong>, no el del día. Si el promedio mensual cambia mucho mes a mes, eso sí es señal real.</p>
+
+<!-- GLOSARIO -->
+<h2 id="glosario">📖 Glosario</h2>
+
+<table>
+    <tr><th>Término</th><th>Significado</th></tr>
+    <tr><td><strong>COGS</strong></td><td>Cost of Goods Sold. Coste de los ingredientes que entraron en lo que vendiste.</td></tr>
+    <tr><td><strong>CPF</strong></td><td>Cantidad por Formato. Unidades base en el formato de compra. Ej. garrafa 5L de aceite → CPF = 5000 (ml).</td></tr>
+    <tr><td><strong>Escandallo</strong></td><td>Lista de ingredientes con sus cantidades que componen una receta. La "fórmula" del plato.</td></tr>
+    <tr><td><strong>Factor (de variante)</strong></td><td>Fracción que representa la variante respecto a la receta base. Copa de vino con factor 0.2 = consume 1/5 del escandallo base.</td></tr>
+    <tr><td><strong>Food cost</strong></td><td>% del precio de venta que se va a comprar los ingredientes del plato. Normal: 30-35%.</td></tr>
+    <tr><td><strong>formato_override</strong></td><td>Multiplicador que aplicas en un pedido. Si pides 5 garrafas, formato_override=5.</td></tr>
+    <tr><td><strong>Guardrail</strong></td><td>Defensa automática contra errores graves. Ej. la app rechaza recepciones &gt;10.000 unidades.</td></tr>
+    <tr><td><strong>Inventario físico</strong></td><td>Conteo manual de stock real. Se compara con stock teórico para detectar mermas.</td></tr>
+    <tr><td><strong>KPI</strong></td><td>Key Performance Indicator. Métrica clave (food cost, ingresos, stock value, etc.).</td></tr>
+    <tr><td><strong>Margen bruto</strong></td><td>Precio venta - Coste ingredientes. En €.</td></tr>
+    <tr><td><strong>Merma</strong></td><td>Pérdida de stock no atribuible a venta (caducidad, rotura, robo, etc.).</td></tr>
+    <tr><td><strong>Multi-tenant</strong></td><td>Una instalación sirve a varios restaurantes con datos aislados.</td></tr>
+    <tr><td><strong>n8n</strong></td><td>Plataforma de automatización que procesa los emails con cierres TPV.</td></tr>
+    <tr><td><strong>P&amp;L</strong></td><td>Profit & Loss. Cuenta de resultados — ingresos menos costes.</td></tr>
+    <tr><td><strong>Pedido pendiente</strong></td><td>Pedido a proveedor creado pero no recibido. Al confirmar recepción, el stock sube.</td></tr>
+    <tr><td><strong>precio_medio_compra</strong></td><td>Precio promedio real pagado por un ingrediente en los últimos 90 días de albaranes.</td></tr>
+    <tr><td><strong>precio_venta</strong></td><td>Lo que cobras al cliente por una receta. El precio de tu carta.</td></tr>
+    <tr><td><strong>Receta padre vs variante</strong></td><td>Padre = producto base. Variante = forma alternativa de venderla (COPA, MEDIA). Cada una con su código TPV y factor.</td></tr>
+    <tr><td><strong>Rendimiento</strong></td><td>% del producto comprado que sirves al cliente. 1 kg pulpo crudo → 600gr cocinado → rendimiento 60%.</td></tr>
+    <tr><td><strong>Soft-delete</strong></td><td>"Borrar" marcando como inactivo (deleted_at) en lugar de eliminar de la BD. Permite recuperar.</td></tr>
+    <tr><td><strong>Stock teórico</strong></td><td>Cantidad calculada por la app (compras - ventas - mermas). Se compara con stock físico real.</td></tr>
+    <tr><td><strong>Tenant</strong></td><td>Cada cuenta de restaurante. Si tu empresa tiene 3 restaurantes, son 3 tenants distintos.</td></tr>
+    <tr><td><strong>TPV</strong></td><td>Terminal Punto de Venta. El sistema con el que cobras al cliente en mesa (Restoo, Glop, etc.).</td></tr>
+</table>
 
 <!-- RESUMEN FORMULAS -->
 <h2>📋 Resumen de Fórmulas</h2>
