@@ -22,7 +22,7 @@ import { t } from '@/i18n/index.js';
 import { parseMarkdown } from './chat-markdown.js';
 import { getCurrentTab, getCurrentTabContext } from './chat-context.js';
 import { executeAction } from './chat-actions.js';
-import { CHAT_CONFIG, getSessionId, getMessages, pushMessage, resetHistory } from './chat-state.js';
+import { CHAT_CONFIG, getSessionId, getMessages, getRecentHistory, pushMessage, resetHistory } from './chat-state.js';
 
 let isWaitingResponse = false;
 let clearClickCount = 0;
@@ -165,6 +165,11 @@ export async function sendMessage() {
 
     if (!message || isWaitingResponse) return;
 
+    // 2026-05-23: capturar historial reciente ANTES de añadir el mensaje actual
+    // al store. El backend espera el contexto previo separado del `message`
+    // actual (que viaja en su propio campo). Limit 6 = 3 turnos.
+    const recentHistory = getRecentHistory(6);
+
     addMessage('user', message);
     input.value = '';
     input.style.height = 'auto';
@@ -182,7 +187,9 @@ export async function sendMessage() {
 
         if (appConfig.chat.backend === 'claude') {
             // Claude API (multi-tenant vía JWT). El backend saca contexto con tools.
-            data = await api.chat(message, lang, getSessionId());
+            // history = últimos 6 mensajes (3 turnos) para resolver referencias
+            // del tipo "y ayer?" o "ese mismo".
+            data = await api.chat(message, lang, getSessionId(), recentHistory);
         } else {
             // Legacy: webhook n8n con payload completo de contexto de pestaña.
             const tabContext = getCurrentTabContext();

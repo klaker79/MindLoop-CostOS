@@ -32,8 +32,9 @@
 // BUMP v31: dossier v2.6 — 5 errores típicos al principio + sección n8n + señales de alarma + FAQ ampliada + glosario.
 // BUMP v32: modal invitar usuario — label "Usuario interno (email)" + helper text aclarando que el email no tiene que ser real (es/en/zh).
 // BUMP v33: tarjeta de pago Plan MindLoop (95€/mes) con checkout Polar + botón gestionar suscripción.
+// BUMP v34: chat memoria conversacional — sendMessage envía los últimos 6 mensajes como history para resolver "y ayer?", "ese mismo".
 
-const CACHE_NAME = 'mindloop-costos-v33';
+const CACHE_NAME = 'mindloop-costos-v34';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

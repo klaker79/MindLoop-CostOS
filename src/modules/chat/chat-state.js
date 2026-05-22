@@ -96,3 +96,36 @@ export function resetHistory() {
     chatSessionId = generateSessionId();
     localStorage.setItem(chatSessionKey(), chatSessionId);
 }
+
+/**
+ * Devuelve los últimos N mensajes del historial mapeados al formato que
+ * espera Anthropic (`{ role: 'user' | 'assistant', content: string }`).
+ *
+ * 2026-05-23: memoria conversacional mínima — el backend permite hasta 6
+ * mensajes (3 turnos) para que Claude resuelva referencias del tipo
+ * "y ayer?" sin disparar el coste de tokens. El backend además sanea y
+ * limita; aquí solo enviamos el dato, no nos confiamos.
+ *
+ * Filtramos:
+ *  - Mensajes sin texto o con texto vacío
+ *  - El mensaje de bienvenida (welcome) — no aporta contexto útil
+ *  - Cualquier tipo distinto de 'user' / 'bot'
+ */
+export function getRecentHistory(n = 6) {
+    if (!Array.isArray(chatMessages) || chatMessages.length === 0) return [];
+    const out = [];
+    for (let i = chatMessages.length - 1; i >= 0 && out.length < n; i--) {
+        const m = chatMessages[i];
+        if (!m || typeof m.text !== 'string') continue;
+        const text = m.text.trim();
+        if (text.length === 0) continue;
+        // Saltar el welcome message: no es una respuesta real del modelo.
+        if (text === CHAT_CONFIG.welcomeMessage) continue;
+        let role;
+        if (m.type === 'user') role = 'user';
+        else if (m.type === 'bot') role = 'assistant';
+        else continue;
+        out.push({ role, content: text });
+    }
+    return out.reverse(); // restaurar orden cronológico
+}
