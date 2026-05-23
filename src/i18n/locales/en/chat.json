@@ -68,5 +68,19 @@
 
   "toggle_voice_title": "Toggle voice on/off",
   "export_pdf_title": "Export to PDF",
-  "note_registered_via_chat": "Registered via chat"
+  "note_registered_via_chat": "Registered via chat",
+
+  "btn_informe": "Monthly report",
+  "btn_informe_short": "Month",
+  "informe_loading": "Generating…",
+  "informe_addon_required": "You need the Chat AI add-on active to generate reports.",
+  "informe_error": "Could not generate the report. Try again in a moment.",
+  "informe_popup_blocked": "Allow pop-ups to view the report",
+  "informe_choose_month": "Choose month",
+
+  "btn_healthcheck": "Weekly Coach",
+  "btn_healthcheck_short": "Coach",
+  "healthcheck_loading": "Analyzing…",
+  "healthcheck_addon_required": "You need the Chat AI add-on active for the Health Check.",
+  "healthcheck_error": "Could not generate the Health Check. Try again in a moment."
 }
