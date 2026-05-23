@@ -119,6 +119,13 @@ function createChatHTML() {
                     </svg>
                     <span class="chat-informe-label">${t('chat:btn_informe_short') || 'Informe'}</span>
                 </button>
+                <button class="chat-informe-btn chat-healthcheck-btn" id="chat-healthcheck" title="${t('chat:btn_healthcheck') || 'Health Check semanal'}" style="position:relative;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>
+                    </svg>
+                    <span class="chat-informe-label">${t('chat:btn_healthcheck_short') || 'Coach'}</span>
+                    <span id="chat-healthcheck-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;width:10px;height:10px;border-radius:50%;border:2px solid #1e293b;"></span>
+                </button>
                 <button class="chat-clear-btn" id="chat-clear" title="${t('chat:btn_clear')}" style="background:none;border:none;cursor:pointer;padding:8px;margin-right:4px;">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
                         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -178,6 +185,13 @@ function bindChatEvents() {
     const informeBtn = document.getElementById('chat-informe');
     if (informeBtn) {
         informeBtn.addEventListener('click', () => toggleInformeMenu(informeBtn));
+    }
+
+    const healthBtn = document.getElementById('chat-healthcheck');
+    if (healthBtn) {
+        healthBtn.addEventListener('click', () => generarHealthCheck(healthBtn));
+        // Tras montar el chat, comprobamos si hay report nuevo (lunes o no leído).
+        checkHealthCheckStatus();
     }
 
     const ttsBtn = document.getElementById('chat-tts');
@@ -385,6 +399,76 @@ async function generarInforme(btn, mes = null) {
         btn.style.opacity = '';
         btn.style.cursor = '';
         btn.innerHTML = originalHtml;
+    }
+}
+
+/**
+ * Pide el Health Check semanal al backend y lo inserta como mensaje del bot
+ * en el chat. Cacheado por semana ISO en backend — pulsar varias veces el
+ * mismo lunes no consume tokens repetidamente.
+ *
+ * @param {HTMLElement} btn — el botón del header (para feedback visual)
+ */
+async function generarHealthCheck(btn) {
+    if (btn.dataset.loading === '1') return;
+    btn.dataset.loading = '1';
+    const originalHtml = btn.innerHTML;
+    const loadingLabel = t('chat:healthcheck_loading') || 'Analizando…';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+    </svg><span class="chat-informe-label">${loadingLabel}</span>`;
+    btn.style.opacity = '0.85';
+    btn.style.cursor = 'wait';
+    btn.querySelector('svg').style.animation = 'chat-informe-spin 1s linear infinite';
+    try {
+        // El chat se abre si no lo estaba — el cliente debe ver el resultado
+        toggleChat(true);
+        const report = await api.getHealthCheck();
+        // Ocultar badge (ya está leído)
+        const badge = document.getElementById('chat-healthcheck-badge');
+        if (badge) badge.style.display = 'none';
+        // Renderizar como mensaje del bot. Usamos markdown sencillo: el parser
+        // del chat ya soporta negrita y saltos.
+        const text =
+            `🩺 **Health Check semanal (${report.semana_iso})**\n\n` +
+            `🔴 **${report.critico.titulo}**\n${report.critico.detalle}\n\n` +
+            `🟢 **${report.oportunidad.titulo}**\n${report.oportunidad.detalle}\n\n` +
+            `🔵 **${report.accion.titulo}**\n${report.accion.detalle}`;
+        addMessage('bot', text);
+    } catch (err) {
+        logger.warn('Error generando health check:', err.message || err);
+        const msg = err.status === 403
+            ? (t('chat:healthcheck_addon_required') || 'Necesitas el add-on Chat IA activo para el Health Check.')
+            : (t('chat:healthcheck_error') || 'No se pudo generar el Health Check. Inténtalo en un momento.');
+        window.showToast?.(msg, 'error');
+    } finally {
+        btn.dataset.loading = '0';
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+        btn.innerHTML = originalHtml;
+    }
+}
+
+/**
+ * Comprueba si hay report nuevo (no leído / lunes) y pinta el badge rojo
+ * sobre el botón Coach. Llamado al inicializar el chat. Endpoint es barato
+ * (solo lectura BD), no consume tokens.
+ */
+async function checkHealthCheckStatus() {
+    try {
+        const status = await api.getHealthCheckStatus();
+        const badge = document.getElementById('chat-healthcheck-badge');
+        if (!badge) return;
+        // Mostramos el punto si hay report nuevo no leído, o si es lunes y
+        // todavía no se ha generado uno esta semana (oportunidad de ver).
+        if (status?.has_new && status?.addon_enabled !== false) {
+            badge.style.display = '';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch (err) {
+        // No bloquea nada, simplemente no se pinta el badge
+        logger.warn('checkHealthCheckStatus failed (ignorado):', err.message || err);
     }
 }
 

@@ -68,5 +68,19 @@
 
   "toggle_voice_title": "Activar/Desactivar voz",
   "export_pdf_title": "Exportar a PDF",
-  "note_registered_via_chat": "Registrado vía chat"
+  "note_registered_via_chat": "Registrado vía chat",
+
+  "btn_informe": "Informe mensual",
+  "btn_informe_short": "Mes",
+  "informe_loading": "Generando…",
+  "informe_addon_required": "Necesitas el add-on Chat IA activo para generar informes.",
+  "informe_error": "No se pudo generar el informe. Inténtalo en un momento.",
+  "informe_popup_blocked": "Permite los popups para ver el informe",
+  "informe_choose_month": "Elige mes",
+
+  "btn_healthcheck": "Coach semanal",
+  "btn_healthcheck_short": "Coach",
+  "healthcheck_loading": "Analizando…",
+  "healthcheck_addon_required": "Necesitas el add-on Chat IA activo para el Health Check.",
+  "healthcheck_error": "No se pudo generar el Health Check. Inténtalo en un momento."
 }

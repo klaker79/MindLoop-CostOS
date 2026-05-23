@@ -67,5 +67,19 @@
   "btn_speak": "语音",
   "toggle_voice_title": "开关语音",
   "export_pdf_title": "导出 PDF",
-  "note_registered_via_chat": "通过聊天登记"
+  "note_registered_via_chat": "通过聊天登记",
+
+  "btn_informe": "月度报告",
+  "btn_informe_short": "月度",
+  "informe_loading": "生成中…",
+  "informe_addon_required": "需要激活 AI 聊天插件才能生成报告。",
+  "informe_error": "无法生成报告，请稍后再试。",
+  "informe_popup_blocked": "请允许弹出窗口以查看报告",
+  "informe_choose_month": "选择月份",
+
+  "btn_healthcheck": "每周教练",
+  "btn_healthcheck_short": "教练",
+  "healthcheck_loading": "分析中…",
+  "healthcheck_addon_required": "需要激活 AI 聊天插件才能使用健康检查。",
+  "healthcheck_error": "无法生成健康检查，请稍后再试。"
 }

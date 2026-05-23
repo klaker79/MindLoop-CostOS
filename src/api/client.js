@@ -391,6 +391,18 @@ export const api = {
     createChatAddonCheckout: () => apiClient.post('/chat-addon/checkout-session', {}),
     openChatAddonPortal: () => apiClient.post('/chat-addon/customer-portal', {}),
 
+    // Health Check semanal del Asistente IA (Coach).
+    // POST genera o devuelve el report cacheado de la semana ISO actual.
+    // GET status devuelve si hay report nuevo no leído (para badge "nuevo").
+    getHealthCheck: () => apiClient.post('/chat/health-check', {}),
+    getHealthCheckStatus: () => apiClient.get('/chat/health-check/status'),
+
+    // Plan base MindLoop CostOS (95€/mes vía Polar).
+    // Mismo patrón que el add-on: backend devuelve URL Polar para checkout
+    // o customer portal; el flag plan_status se actualiza via webhook.
+    createBasePlanCheckout: () => apiClient.post('/subscription/checkout-base', {}),
+    openSubscriptionPortal: () => apiClient.post('/subscription/customer-portal', {}),
+
     // Informe ejecutivo mensual (HTML listo para imprimir/guardar PDF).
     // Devuelve string con HTML completo. El caller lo abre en pestaña nueva.
     // No consume contador del chat — verifica chat_addon aparte en backend.
