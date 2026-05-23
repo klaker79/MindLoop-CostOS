@@ -522,9 +522,6 @@ export async function renderizarRecetas() {
               <div>${t('recetas:summary_total', { count: recetas.length })}</div>
               <div>${t('recetas:summary_filtered', { count: filtradas.length })}</div>
               <div>${t('recetas:summary_showing', { count: `${startIndex + 1}-${Math.min(endIndex, totalItems)}` })}</div>
-              <button onclick="window.mostrarCostTracker()" style="margin-left: auto; background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                📊 ${t('recetas:btn_cost_tracking')}
-              </button>
             `;
             resumenEl.style.display = 'flex';
         }
