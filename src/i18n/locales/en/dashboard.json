@@ -52,6 +52,7 @@
   "forecast_limited_data": "Limited data (<7 days)",
   "forecast_no_data": "No historical data",
   "forecast_default": "Based on sales history",
+  "forecast_trend_4w": "4-week trend",
   "forecast_projection": "Projection {{period}} · {{confidence}}",
   "forecast_chart_actual": "Actual sales",
   "forecast_chart_projection": "Projection",

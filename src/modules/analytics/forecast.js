@@ -34,6 +34,9 @@ export function calcularForecast(ventas, dias = 7) {
     // Calculate week comparison (this week vs last week)
     const comparativaSemana = calcularComparativaSemana(ventasPorDia);
 
+    // Calculate 4-week-vs-4-week trend (medium-term direction)
+    const tendencia = calcularTendencia4S(ventasPorDia);
+
     // Generate forecast
     const predicciones = [];
     const hoy = new Date();
@@ -45,8 +48,8 @@ export function calcularForecast(ventas, dias = 7) {
         const diaSemana = fechaFutura.getDay();
         const factorDia = patronSemanal[diaSemana] || 1;
 
-        // Predicted value = moving average * day pattern factor
-        const prediccion = Math.round(mediaMovil * factorDia);
+        // Predicted value = moving average * day pattern factor * trend factor
+        const prediccion = Math.round(mediaMovil * factorDia * tendencia.factor);
 
         predicciones.push({
             fecha: fechaFutura.toISOString().split('T')[0],
@@ -63,14 +66,95 @@ export function calcularForecast(ventas, dias = 7) {
     // Total forecast
     const totalPrediccion = predicciones.reduce((sum, p) => sum + p.prediccion, 0);
 
+    // Confidence interval (band ± σ × √N) around the total
+    const horquilla = calcularHorquillaTotal(predicciones, ventasPorDia);
+
     return {
         predicciones,
         chartData,
         totalPrediccion,
         mediaMovil,
         confianza: calcularConfianza(ventasPorDia),
-        comparativaSemana
+        comparativaSemana,
+        tendencia,
+        horquilla
     };
+}
+
+/**
+ * Calculates a confidence band (min/max) around the total prediction using the
+ * daily standard deviation over the last 30 days. The total band scales with √N
+ * because daily noise is independent (assumed).
+ *
+ * Returns sigmaDiario=null when fewer than 7 days of data are available — not
+ * enough to estimate variability honestly.
+ */
+export function calcularHorquillaTotal(predicciones, ventasPorDia) {
+    if (!predicciones || predicciones.length === 0) {
+        return { min: 0, max: 0, sigmaDiario: 0 };
+    }
+
+    const fechas = Object.keys(ventasPorDia || {}).sort();
+    if (fechas.length < 7) {
+        return { min: null, max: null, sigmaDiario: null };
+    }
+
+    // Use last 30 days (or whatever is available) for σ
+    const ultimos = fechas.slice(-30).map(f => ventasPorDia[f]);
+    const media = ultimos.reduce((a, b) => a + b, 0) / ultimos.length;
+    const varianza = ultimos.reduce((acc, v) => acc + (v - media) ** 2, 0) / ultimos.length;
+    const sigmaDiario = Math.sqrt(varianza);
+
+    const total = predicciones.reduce((sum, p) => sum + p.prediccion, 0);
+    const banda = Math.round(sigmaDiario * Math.sqrt(predicciones.length));
+
+    return {
+        min: Math.max(0, Math.round(total - banda)),
+        max: Math.round(total + banda),
+        sigmaDiario: Math.round(sigmaDiario)
+    };
+}
+
+/**
+ * Compares the last 4 weeks (days 0..27) with the 4 weeks before (days 28..55)
+ * and returns a multiplicative factor to apply to the daily prediction.
+ *
+ * Capped at [0.7, 1.4] to stay defensive against outliers. Requires ≥56 days
+ * of data and a non-zero prior period to be applicable; otherwise factor=1.
+ */
+export function calcularTendencia4S(ventasPorDia) {
+    const fechas = Object.keys(ventasPorDia || {}).sort();
+    if (fechas.length < 56) {
+        return { factor: 1, porcentaje: 0, direccion: 'estable', aplicable: false };
+    }
+
+    const hoy = new Date();
+    const limiteReciente = new Date(hoy);
+    limiteReciente.setDate(hoy.getDate() - 28);
+    const limiteAnterior = new Date(hoy);
+    limiteAnterior.setDate(hoy.getDate() - 56);
+
+    let sumaReciente = 0;
+    let sumaAnterior = 0;
+    fechas.forEach(f => {
+        const d = new Date(f);
+        if (d >= limiteReciente && d <= hoy) sumaReciente += ventasPorDia[f];
+        else if (d >= limiteAnterior && d < limiteReciente) sumaAnterior += ventasPorDia[f];
+    });
+
+    if (sumaAnterior <= 0) {
+        return { factor: 1, porcentaje: 0, direccion: 'estable', aplicable: false };
+    }
+
+    const ratio = sumaReciente / sumaAnterior;
+    const porcentaje = Math.round((ratio - 1) * 100);
+    const factor = Math.max(0.7, Math.min(1.4, ratio));
+
+    let direccion = 'estable';
+    if (porcentaje > 3) direccion = 'up';
+    else if (porcentaje < -3) direccion = 'down';
+
+    return { factor, porcentaje, direccion, aplicable: true };
 }
 
 /**
