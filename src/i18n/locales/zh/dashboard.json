@@ -52,6 +52,7 @@
   "forecast_limited_data": "数据有限（<7 天）",
   "forecast_no_data": "无历史数据",
   "forecast_default": "基于销售历史",
+  "forecast_trend_4w": "近4周趋势",
   "forecast_projection": "预测 {{period}} · {{confidence}}",
   "forecast_chart_actual": "实际销售",
   "forecast_chart_projection": "预测",

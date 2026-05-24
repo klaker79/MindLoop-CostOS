@@ -25,6 +25,8 @@ export function renderForecast() {
         forecastTotalEl.textContent = cm(forecast.totalPrediccion, 0);
     }
 
+    renderHorquilla(forecast.horquilla);
+
     const confianzaEl = document.getElementById('forecast-confianza');
     if (confianzaEl) {
         const confianzaTextos = {
@@ -34,7 +36,9 @@ export function renderForecast() {
             'muy_baja': `📊 ${t('dashboard:forecast_limited_data')}`,
             'sin_datos': `📊 ${t('dashboard:forecast_no_data')}`
         };
-        confianzaEl.textContent = confianzaTextos[forecast.confianza] || t('dashboard:forecast_default');
+        const base = confianzaTextos[forecast.confianza] || t('dashboard:forecast_default');
+        const tendenciaTxt = formatearTendencia(forecast.tendencia);
+        confianzaEl.innerHTML = tendenciaTxt ? `${base} · ${tendenciaTxt}` : base;
     }
 
     const comparativaEl = document.getElementById('forecast-comparativa');
@@ -101,6 +105,8 @@ function updateForecastPeriod(dias) {
         forecastTotalEl.textContent = cm(forecast.totalPrediccion, 0);
     }
 
+    renderHorquilla(forecast.horquilla);
+
     const confianzaEl = document.getElementById('forecast-confianza');
     if (confianzaEl) {
         const periodoTexto = dias === 7 ? t('dashboard:forecast_7days') : dias === 30 ? t('dashboard:forecast_month') : t('dashboard:forecast_quarter');
@@ -111,10 +117,46 @@ function updateForecastPeriod(dias) {
             'muy_baja': `📊 ${t('dashboard:forecast_period_projection', { period: periodoTexto })} · ${t('dashboard:forecast_confidence_limited')}`,
             'sin_datos': `📊 ${t('dashboard:forecast_no_data')}`
         };
-        confianzaEl.textContent = confianzaTextos[forecast.confianza] || t('dashboard:forecast_period_projection', { period: periodoTexto });
+        const base = confianzaTextos[forecast.confianza] || t('dashboard:forecast_period_projection', { period: periodoTexto });
+        const tendenciaTxt = formatearTendencia(forecast.tendencia);
+        confianzaEl.innerHTML = tendenciaTxt ? `${base} · ${tendenciaTxt}` : base;
     }
 
     if (typeof window.renderForecastChart === 'function') {
         window.renderForecastChart('chart-forecast', forecast.chartData);
     }
+}
+
+/**
+ * Pinta la horquilla bajo el total ("21k – 25k"). Si la horquilla no es fiable
+ * (poco histórico), no pinta nada para no engañar.
+ */
+function renderHorquilla(horquilla) {
+    const el = document.getElementById('forecast-rango');
+    if (!el) return;
+    if (!horquilla || horquilla.min === null || horquilla.min === undefined || horquilla.max === null || horquilla.max === undefined) {
+        el.textContent = '';
+        return;
+    }
+    // Si la banda es muy estrecha (≤2% del total), no aporta — no pintar.
+    const ancho = horquilla.max - horquilla.min;
+    if (ancho <= 0) {
+        el.textContent = '';
+        return;
+    }
+    el.textContent = `${cm(horquilla.min, 0)} – ${cm(horquilla.max, 0)}`;
+}
+
+/**
+ * Texto compacto de tendencia 4 semanas vs 4 anteriores. Devuelve '' cuando
+ * no hay suficiente histórico (aplicable=false) para no contar mentiras.
+ */
+function formatearTendencia(tendencia) {
+    if (!tendencia || !tendencia.aplicable) return '';
+    if (tendencia.direccion === 'estable') return '';
+    const flecha = tendencia.direccion === 'up' ? '↑' : '↓';
+    const color = tendencia.direccion === 'up' ? '#10B981' : '#EF4444';
+    const pct = Math.abs(tendencia.porcentaje);
+    const label = t('dashboard:forecast_trend_4w') || 'tendencia 4s';
+    return `<span style="color:${color};font-weight:600">${flecha} ${pct}%</span> ${label}`;
 }
