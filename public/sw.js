@@ -35,8 +35,9 @@
 // BUMP v34: chat-widget — botón Coach (Health Check semanal) + badge "nuevo" + endpoints api.
 // BUMP v35: i18n claves chat — btn_informe_short "Mes" + btn_healthcheck_short "Coach" en es/en/zh (antes salían las keys crudas).
 // BUMP v36: recetas — eliminar botón "Seguimiento Costes" duplicado en el footer del listado (ya está en el top bar).
+// BUMP v37: forecast — horquilla (min-max usando σ × √N) + tendencia 4 semanas vs 4 anteriores con factor capped [0.7, 1.4].
 
-const CACHE_NAME = 'mindloop-costos-v36';
+const CACHE_NAME = 'mindloop-costos-v37';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
