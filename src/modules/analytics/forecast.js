@@ -128,32 +128,30 @@ export function calcularTendencia4S(ventasPorDia) {
         return { factor: 1, porcentaje: 0, direccion: 'estable', aplicable: false };
     }
 
-    // Trabajar en local time consistentemente. Las claves YYYY-MM-DD vienen de
-    // .toISOString() (UTC), pero compararemos rangos de día completo en local
-    // tras normalizar a inicio de día. Bug detectado en code review: parsear
-    // "YYYY-MM-DD" con new Date() lo interpreta como UTC y mezcla zonas en
-    // tenants con offset distinto (Stefania KL = UTC+8). Forzamos local time
-    // descomponiendo manualmente.
-    const parseFechaLocal = (s) => {
+    // Las claves YYYY-MM-DD vienen de .toISOString() (UTC). Trabajamos también
+    // en UTC con timestamps numéricos para eliminar cualquier ambigüedad de
+    // timezone. Bug detectado en code review: el primer intento parseaba en
+    // local y el filtro descalibraba un día en tenants con offset (Stefania KL).
+    const DIA_MS = 24 * 60 * 60 * 1000;
+    const parseFechaUTCms = (s) => {
         const [y, m, d] = s.split('-').map(Number);
-        return new Date(y, m - 1, d);
+        return Date.UTC(y, m - 1, d);
     };
 
-    const hoy = new Date();
-    hoy.setHours(23, 59, 59, 999);
-    const limiteReciente = new Date(hoy);
-    limiteReciente.setDate(hoy.getDate() - 28);
-    limiteReciente.setHours(0, 0, 0, 0);
-    const limiteAnterior = new Date(hoy);
-    limiteAnterior.setDate(hoy.getDate() - 56);
-    limiteAnterior.setHours(0, 0, 0, 0);
+    // Ventanas estrictamente de 28 días cada una, sin solapar.
+    // Reciente:  [hoy-27 .. hoy]      (28 días incluyendo hoy)
+    // Anterior:  [hoy-55 .. hoy-28]   (28 días anteriores)
+    const ahora = new Date();
+    const hoyMs = Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), ahora.getUTCDate());
+    const limiteRecienteMs = hoyMs - 27 * DIA_MS;
+    const limiteAnteriorMs = hoyMs - 55 * DIA_MS;
 
     let sumaReciente = 0;
     let sumaAnterior = 0;
     fechas.forEach(f => {
-        const d = parseFechaLocal(f);
-        if (d >= limiteReciente && d <= hoy) sumaReciente += ventasPorDia[f];
-        else if (d >= limiteAnterior && d < limiteReciente) sumaAnterior += ventasPorDia[f];
+        const dMs = parseFechaUTCms(f);
+        if (dMs >= limiteRecienteMs && dMs <= hoyMs) sumaReciente += ventasPorDia[f];
+        else if (dMs >= limiteAnteriorMs && dMs < limiteRecienteMs) sumaAnterior += ventasPorDia[f];
     });
 
     if (sumaAnterior <= 0) {
