@@ -128,16 +128,30 @@ export function calcularTendencia4S(ventasPorDia) {
         return { factor: 1, porcentaje: 0, direccion: 'estable', aplicable: false };
     }
 
+    // Trabajar en local time consistentemente. Las claves YYYY-MM-DD vienen de
+    // .toISOString() (UTC), pero compararemos rangos de día completo en local
+    // tras normalizar a inicio de día. Bug detectado en code review: parsear
+    // "YYYY-MM-DD" con new Date() lo interpreta como UTC y mezcla zonas en
+    // tenants con offset distinto (Stefania KL = UTC+8). Forzamos local time
+    // descomponiendo manualmente.
+    const parseFechaLocal = (s) => {
+        const [y, m, d] = s.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    };
+
     const hoy = new Date();
+    hoy.setHours(23, 59, 59, 999);
     const limiteReciente = new Date(hoy);
     limiteReciente.setDate(hoy.getDate() - 28);
+    limiteReciente.setHours(0, 0, 0, 0);
     const limiteAnterior = new Date(hoy);
     limiteAnterior.setDate(hoy.getDate() - 56);
+    limiteAnterior.setHours(0, 0, 0, 0);
 
     let sumaReciente = 0;
     let sumaAnterior = 0;
     fechas.forEach(f => {
-        const d = new Date(f);
+        const d = parseFechaLocal(f);
         if (d >= limiteReciente && d <= hoy) sumaReciente += ventasPorDia[f];
         else if (d >= limiteAnterior && d < limiteReciente) sumaAnterior += ventasPorDia[f];
     });
@@ -147,8 +161,11 @@ export function calcularTendencia4S(ventasPorDia) {
     }
 
     const ratio = sumaReciente / sumaAnterior;
-    const porcentaje = Math.round((ratio - 1) * 100);
     const factor = Math.max(0.7, Math.min(1.4, ratio));
+    // El porcentaje mostrado al usuario debe reflejar el factor REALMENTE
+    // aplicado (capped), no el ratio bruto. Si las ventas se multiplican por
+    // 5 mostrar "↑500%" engaña porque la predicción solo aplicó ×1.4.
+    const porcentaje = Math.round((factor - 1) * 100);
 
     let direccion = 'estable';
     if (porcentaje > 3) direccion = 'up';

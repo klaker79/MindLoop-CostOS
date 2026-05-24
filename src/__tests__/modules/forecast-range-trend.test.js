@@ -200,5 +200,29 @@ describe('forecast.calcularTendencia4S', () => {
 
         expect(out.factor).toBeLessThanOrEqual(1.4);
         expect(out.factor).toBeGreaterThan(1);
+        // El porcentaje mostrado refleja el factor aplicado, NO el ratio bruto.
+        // Subida de 5× → factor 1.4 → porcentaje 40 (no 400).
+        expect(out.porcentaje).toBe(40);
+    });
+
+    it('cap inferior: bajada extrema se trunca a 0.7 (porcentaje -30)', () => {
+        const ventasPorDia = {};
+        const hoy = new Date();
+        for (let i = 0; i < 28; i++) {
+            const d = new Date(hoy);
+            d.setDate(hoy.getDate() - i);
+            ventasPorDia[d.toISOString().split('T')[0]] = 100; // ÷10 vs anterior
+        }
+        for (let i = 28; i < 56; i++) {
+            const d = new Date(hoy);
+            d.setDate(hoy.getDate() - i);
+            ventasPorDia[d.toISOString().split('T')[0]] = 1000;
+        }
+
+        const out = calcularTendencia4S(ventasPorDia);
+
+        expect(out.factor).toBeGreaterThanOrEqual(0.7);
+        expect(out.factor).toBeLessThan(1);
+        expect(out.porcentaje).toBe(-30);
     });
 });
