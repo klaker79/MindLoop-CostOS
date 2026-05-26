@@ -444,3 +444,189 @@ th.numeric,
   background: linear-gradient(135deg, #faf8f4 0%, #f1efe7 100%) !important;
   border-left: 4px solid var(--accent) !important;
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE C — MODALES + TABLAS
+   --------------------------------------------------------------------
+   Sobreescribir modales (botones, headers, cards-resumen) y tablas
+   genéricas para que tengan look editorial sobrio, no AI-aesthetic.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- C.1 Modal containers — sombras tintadas, bordes suaves --- */
+.modal {
+  background: rgba(20, 25, 15, 0.6) !important;
+  backdrop-filter: blur(4px);
+}
+.modal-content {
+  background: var(--app-surface) !important;
+  border-radius: 18px !important;
+  border: 1px solid var(--app-border) !important;
+  box-shadow:
+    0 25px 60px rgba(63, 77, 42, 0.18),
+    0 8px 20px rgba(63, 77, 42, 0.08) !important;
+  padding: 32px !important;
+}
+
+/* --- C.2 Modal headlines en Fraunces serif --- */
+.modal-content h2,
+.modal-content h3 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+  font-size: 1.5rem !important;
+  color: #1e293b !important;
+  margin-bottom: 8px !important;
+}
+.modal-content h4 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 1.05rem !important;
+  color: var(--accent-dark) !important;
+  letter-spacing: -0.005em !important;
+}
+
+/* --- C.3 Botones .btn-success → verde oliva consistente --- */
+/* El verde brillante de "Confirmar Recepción" cambia al accent
+   editorial para coherencia con el resto del tema. */
+.btn.btn-success,
+.btn-success {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(63, 77, 42, 0.2) !important;
+}
+.btn.btn-success:hover,
+.btn-success:hover {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%) !important;
+  box-shadow: 0 4px 12px rgba(63, 77, 42, 0.28) !important;
+}
+
+/* --- C.4 Card resumen del modal recepción (verde fluo → beige) --- */
+/* Detecta el panel verde de varianza por sus inline styles típicos
+   (#f0fdf4 / #10b981) y lo sobreescribe. */
+.modal-content div[style*="background: #f0fdf4"],
+.modal-content div[style*="background:#f0fdf4"],
+.modal-content div[style*="border: 2px solid #10b981"] {
+  background: var(--accent-tint) !important;
+  border: 1px solid var(--accent-soft) !important;
+  border-left: 4px solid var(--accent) !important;
+  border-radius: 10px !important;
+}
+
+/* Las cifras verdes brillantes dentro del resumen → verde oliva. */
+#modal-rec-resumen-recibido {
+  color: var(--accent-dark) !important;
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+#modal-rec-resumen-original,
+#modal-rec-resumen-varianza {
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* --- C.5 Card info del pedido (gris claro → beige unificado) --- */
+.modal-content div[style*="background: #f8f8f8"],
+.modal-content div[style*="background:#f8f8f8"] {
+  background: var(--app-bg-soft) !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   C.6 TABLAS — respiro + tipografía editorial
+   --------------------------------------------------------------------
+   Tablas genéricas (modales + página): más padding vertical, headers
+   en font display, separadores muy sutiles, tabular-nums.
+   ════════════════════════════════════════════════════════════════════ */
+
+table {
+  border-spacing: 0 !important;
+  border-collapse: separate !important;
+}
+
+table thead {
+  background: var(--app-bg-soft) !important;
+  border-bottom: 2px solid var(--app-border) !important;
+}
+table thead th {
+  padding: 16px 14px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  text-align: left !important;
+  background: transparent !important;
+  border-bottom: 1px solid var(--app-border) !important;
+}
+
+table tbody td {
+  padding: 14px !important;
+  border-bottom: 1px solid #f1f0e8 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+  vertical-align: middle !important;
+}
+
+table tbody tr:hover {
+  background: var(--accent-tint) !important;
+}
+
+table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Tabular nums en cifras dentro de tablas. */
+table tbody td.numeric,
+table tbody td[align="right"],
+table tbody td[style*="text-align: right"],
+table tbody td[style*="text-align:right"] {
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Links/IDs dentro de tablas (era verde fluo "#botella") → verde oliva. */
+table tbody td a {
+  color: var(--accent-dark) !important;
+  text-decoration: none;
+  font-weight: 600;
+}
+table tbody td a:hover {
+  color: var(--accent) !important;
+  text-decoration: underline;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   C.7 INPUTS dentro de tablas/modales → bordes suaves
+   ════════════════════════════════════════════════════════════════════ */
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="email"],
+.modal-content select,
+.modal-content textarea,
+table input[type="text"],
+table input[type="number"] {
+  border: 1px solid var(--app-border) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 14px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.modal-content input[type="text"]:focus,
+.modal-content input[type="number"]:focus,
+.modal-content input[type="email"]:focus,
+.modal-content select:focus,
+.modal-content textarea:focus,
+table input[type="text"]:focus,
+table input[type="number"]:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(63, 77, 42, 0.12) !important;
+  outline: none !important;
+}
