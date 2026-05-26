@@ -572,6 +572,35 @@ table tbody td {
   vertical-align: middle !important;
 }
 
+/* Celdas con fondo navy oscuro (columna TOTAL MES en tabla Diario,
+   y similares) → texto blanco. El !important de arriba ganaba al
+   style="color: white" inline del finance.css, dejando los totales
+   ilegibles (negro sobre navy). */
+table tbody td[style*="background: #1e3a5f"],
+table tbody td[style*="background:#1e3a5f"],
+table thead th[style*="background: #1e3a5f"],
+table thead th[style*="background:#1e3a5f"] {
+  color: white !important;
+  font-weight: 700 !important;
+}
+
+
+/* --- Botones de Semana en Diario (Todo el mes / Semana 1..5) ---
+   index.html:1841 define inline:
+     .btn-semana.active { background: #7C3AED !important; color: white !important; }
+   Sobrescribimos con navy editorial. */
+.btn-semana.active,
+.btn-semana.btn-primary {
+  background: var(--accent) !important;
+  color: white !important;
+  border-color: var(--accent) !important;
+}
+.btn-semana.active:hover,
+.btn-semana.btn-primary:hover {
+  background: var(--accent-dark) !important;
+  border-color: var(--accent-dark) !important;
+}
+
 table tbody tr:hover {
   background: var(--accent-tint) !important;
 }
