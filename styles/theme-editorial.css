@@ -822,3 +822,50 @@ button[onclick*="mostrarCostTracker"]:hover {
   background: #e6e9f0 !important;
   color: #2d4666 !important;
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE F — DIARIO + BOTÓN FLOTANTE CHAT
+   --------------------------------------------------------------------
+   F.1 Las 3 cards moradas de la pestaña Diario (inline gradient
+       #667eea → #764ba2) sustituidas por navy editorial.
+   F.2 Botón flotante .chat-fab (inline gradient #7c3aed → #a855f7
+       inyectado por chat-styles.js) sustituido por navy.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- F.1 Cards moradas en pestaña Diario --- */
+/* Las 3 cards (Beneficio Neto por Día, Gastos Fijos Mensuales, stat-card
+   purple Gastos Fijos Totales) están pintadas con inline:
+     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+   Sobreescribimos con navy editorial coherente. */
+
+#tab-diario div[style*="linear-gradient(135deg, #667eea"],
+#tab-diario .stat-card.purple {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.22) !important;
+}
+
+/* El sub-card interno de "Se guardan automáticamente..." tenía bg
+   rgba(255,255,255,0.2) — se queda blanco semitransparente, OK con navy. */
+
+
+/* --- F.2 Botón flotante chat (Asistente IA) --- */
+/* chat-styles.js inyecta:
+     .chat-fab { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+     box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+   Sobreescribimos con navy editorial + sombra tintada. */
+
+.chat-fab {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.4) !important;
+}
+.chat-fab:hover {
+  box-shadow: 0 6px 30px rgba(30, 58, 95, 0.5) !important;
+}
+
+/* Notification-dot del chat-fab era verde fluo (#10b981). Lo dejamos
+   verde semántico pero algo más sobrio. */
+.chat-fab .notification-dot {
+  background: var(--accent-light) !important;
+}
