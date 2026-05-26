@@ -299,3 +299,148 @@ th.numeric,
 [data-theme="dark"] .sidebar-brand-name {
   color: inherit;
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE B — DESATURAR CTAs + CIFRAS GRANDES + KPI BORDERS
+   --------------------------------------------------------------------
+   Sobreescribir TODOS los hardcodes inline saturados del dashboard
+   (verde fluo, azul fuerte, naranja, morado, rosa, etc) por la paleta
+   editorial unificada. Toda la dashboard pasa a tonos verde oliva +
+   neutros sobrios.
+
+   Mantiene intactos los semánticos de food cost (rojo >38%, naranja
+   34-38%, verde ≤33%) — son funcionales, no decorativos.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- B.1 Cifras grandes saturadas → verde oliva oscuro / neutros --- */
+
+/* Valor Stock (era verde fluo gradient → ahora verde oliva oscuro). */
+#kpi-valor-stock,
+#kpi-valor-stock[style] {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  background-clip: initial !important;
+  color: var(--accent-dark) !important;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Proyección total (era morado → ahora marrón tierra). */
+#forecast-total,
+#forecast-total[style] {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  background-clip: initial !important;
+  color: #7a5c3a !important;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Total Top Proveedores (era morado → ahora verde oliva oscuro). */
+#dashboard-proveedores-total,
+#dashboard-proveedores-total[style] {
+  color: var(--accent-dark) !important;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Items Stock (era azul → ahora gris neutro). */
+#kpi-items-stock {
+  color: #475569 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stock count (era naranja saturado → ahora ocre sobrio). */
+#kpi-stock-count {
+  color: #8a6e3e !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cifras de "Hoy": ventas/ingresos/plato estrella → neutralizar. */
+#ventas-hoy {
+  color: var(--accent-dark) !important;
+  font-variant-numeric: tabular-nums;
+}
+#ingresos-hoy {
+  color: #4a5b6c !important;
+  font-variant-numeric: tabular-nums;
+}
+#plato-estrella-hoy {
+  color: #7a5c3a !important;
+}
+
+
+/* --- B.2 Botones CTA dashboard (Venta/Pedido/Stock) --- */
+/* Eran 3 gradients saturados (verde fluo, azul fuerte, naranja).
+   Ahora todos en estilo outline sobrio: fondo blanco, borde y texto
+   verde oliva. Los iconos siguen siendo emojis (mantienen carácter). */
+
+.dashboard-card button[data-tab="ventas"],
+.dashboard-card button[data-tab="pedidos"],
+.dashboard-card button[data-tab="inventario"] {
+  background: white !important;
+  color: var(--accent-dark) !important;
+  border: 1px solid var(--app-border) !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.dashboard-card button[data-tab="ventas"]:hover,
+.dashboard-card button[data-tab="pedidos"]:hover,
+.dashboard-card button[data-tab="inventario"]:hover {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent-soft) !important;
+  color: var(--accent-dark) !important;
+}
+
+
+/* --- B.3 KPI mini border-left unificado → todos verde oliva --- */
+/* Eran 4 colores distintos (verde/azul/naranja/morado). Para look
+   profesional unificamos a verde oliva, manteniendo el accent visual
+   pero con paleta coherente. */
+
+.kpi-row > .kpi-mini[style*="border-left"] {
+  border-left: 3px solid var(--accent) !important;
+}
+
+
+/* --- B.4 Icon backgrounds (cajitas 44x44 de cards) → neutros sepia --- */
+/* Eran gradients chillones por card (amarillo/azul/morado/verde/naranja).
+   Sobreescribimos sólo dentro de #dashboard-premium para no romper otros
+   sitios que usen este patrón con sentido semántico. */
+
+#dashboard-premium div[style*="width: 44px"][style*="height: 44px"] {
+  background: linear-gradient(135deg, #f5f5f0, #e8e8e0) !important;
+}
+
+
+/* --- B.5 Sub-cards "Actividad del día" (Ventas/Ingresos/Estrella) --- */
+/* Las 3 mini-tarjetas tienen gradients pastel saturados (verde claro,
+   azul claro, naranja claro). Las pasamos a tonos beige unificados. */
+
+#dashboard-premium div[style*="background: linear-gradient(135deg, #F0FDF4"],
+#dashboard-premium div[style*="background: linear-gradient(135deg, #EFF6FF"],
+#dashboard-premium div[style*="background: linear-gradient(135deg, #FFF7ED"] {
+  background: linear-gradient(135deg, #f8f6f0, #ecebe2) !important;
+}
+
+
+/* --- B.6 Cards principales — sombras tintadas + bordes suaves --- */
+/* Las dashboard-card tienen box-shadow plana rgba(0,0,0,0.08).
+   La tintamos para que combine con el accent. */
+
+.dashboard-card {
+  box-shadow: 0 4px 20px rgba(63, 77, 42, 0.06) !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+
+/* --- B.7 Banner fecha actual (era azul cielo claro) → beige --- */
+#fecha-actual-banner {
+  background: linear-gradient(135deg, #faf8f4 0%, #f1efe7 100%) !important;
+  border-left: 4px solid var(--accent) !important;
+}
