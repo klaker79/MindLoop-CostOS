@@ -140,5 +140,8 @@
   "label_completed": "¡Completado!",
   "label_recalculate_costs": "Recalcular Costes",
   "unit_botella": "Botella",
-  "unit_pza": "Ud."
+  "unit_pza": "Ud.",
+
+  "mobile_only_banner_title": "Mejor en ordenador",
+  "mobile_only_banner_hint": "Esta sección está pensada para pantalla grande. Abre la app en el portátil o sobremesa para verla bien."
 }

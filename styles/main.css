@@ -3763,3 +3763,67 @@ table tbody tr:nth-child(10) {
     white-space: nowrap;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Banner "abre en ordenador" (sprint 2 mobile, 2026-05-26)
+   --------------------------------------------------------------------
+   Pestañas no aptas para móvil (Análisis, Inteligencia, Diario):
+   - Desktop: el banner está OCULTO. La pestaña funciona normal.
+   - Móvil (<768px): el banner SE MUESTRA y oculta el resto del contenido
+     de la pestaña. El usuario ve un mensaje claro de que abra la app en
+     ordenador, en vez de luchar con gráficas/KPIs ilegibles en pantalla
+     pequeña.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Desktop (por defecto): banner oculto. */
+.desktop-only-banner {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Mostrar banner solo cuando la pestaña padre está activa. */
+  #tab-analisis.active .desktop-only-banner,
+  #tab-inteligencia.active .desktop-only-banner,
+  #tab-diario.active .desktop-only-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+    margin: 16px 12px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    min-height: 240px;
+  }
+
+  /* Estilos internos del banner. */
+  .desktop-only-banner__icon {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .desktop-only-banner h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #1e293b;
+    font-weight: 700;
+  }
+  .desktop-only-banner p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+
+  /* Ocultar el resto del contenido de las pestañas afectadas en móvil.
+     Targeteamos cualquier hijo directo que NO sea el banner. */
+  #tab-analisis.active > *:not(.desktop-only-banner),
+  #tab-inteligencia.active > *:not(.desktop-only-banner),
+  #tab-diario.active > *:not(.desktop-only-banner) {
+    display: none !important;
+  }
+}
