@@ -609,6 +609,88 @@ table tbody td[style*="background:#152b48"] {
   border-color: var(--accent-dark) !important;
 }
 
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE J — TOASTS + LOGIN
+   --------------------------------------------------------------------
+   J.1 Toasts globales (showToast) con paleta editorial
+   J.2 Página de Login con look coherente
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- J.1 Toasts globales --- */
+/* main.css define .toast con border-left 4px de color por tipo:
+   success #10B981 (verde fluo), error #EF4444, warning #F59E0B,
+   info #3B82F6 (azul fuerte). Mantenemos lectura semántica pero
+   con tonos sobrios coherentes. */
+
+.toast {
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.12) !important;
+  border-radius: 14px !important;
+  border-left-width: 4px !important;
+}
+.toast.success {
+  border-left-color: #4a6b3e !important;     /* verde sobrio editorial */
+}
+.toast.error {
+  border-left-color: #c84a4a !important;     /* rojo sobrio */
+}
+.toast.warning {
+  border-left-color: #a98759 !important;     /* ocre */
+}
+.toast.info {
+  border-left-color: var(--accent) !important;  /* navy */
+}
+
+
+/* --- J.2 Pantalla de Login --- */
+.login-container {
+  border-radius: 18px !important;
+  box-shadow:
+    0 25px 60px rgba(30, 58, 95, 0.20),
+    0 8px 20px rgba(30, 58, 95, 0.10) !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+.login-header h1 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+  color: var(--accent-dark) !important;
+}
+.login-header p {
+  color: #64748b !important;
+}
+
+/* Inputs del login con focus navy. */
+.login-form input[type="email"],
+.login-form input[type="password"] {
+  border: 1px solid var(--app-border) !important;
+  border-radius: 10px !important;
+  padding: 12px 14px !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+.login-form input[type="email"]:focus,
+.login-form input[type="password"]:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.10) !important;
+  outline: none !important;
+}
+
+/* Link "¿Olvidaste tu contraseña?" estaba en #6366f1 morado inline.
+   Lo cambiamos a navy editorial. */
+.login-footer a[data-action="forgot-password"] {
+  color: var(--accent) !important;
+}
+.login-footer a[data-action="forgot-password"]:hover {
+  color: var(--accent-dark) !important;
+}
+
+/* Error message del login (rojo). */
+.login-error {
+  color: #c84a4a !important;
+}
+
 table tbody tr:hover {
   background: var(--accent-tint) !important;
 }
