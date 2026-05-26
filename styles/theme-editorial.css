@@ -873,3 +873,55 @@ button[onclick*="mostrarCostTracker"]:hover {
 .chat-fab .notification-dot {
   background: var(--accent-light) !important;
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE G — MICRO-FIXES
+   --------------------------------------------------------------------
+   G.1 Botón "Guardar cambios" en modal Editar Pedido (#2563eb inline)
+   G.2 Modales con scroll horizontal feo → más respiro
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- G.1 Botón "Guardar cambios" en modal Editar Pedido --- */
+/* pedidos-editar.js renderiza inline:
+     style="background: #2563eb; color: white; ..."
+   Lo sobreescribimos a navy editorial.
+   El selector apunta por onclick para máxima especificidad. */
+button[onclick="window.guardarEdicionPedido()"] {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  border-radius: 8px !important;
+}
+button[onclick="window.guardarEdicionPedido()"]:hover {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%) !important;
+}
+
+
+/* --- G.2 Modales con scroll horizontal feo --- */
+/* Modal "Recibir Pedido" (y otros similares) tenían table con
+   min-width: 780px inline + modal-content max-width: 1100px. En
+   pantallas <1100px aparecía un scroll horizontal muy corto y feo.
+   Bajamos el min-width de las tablas dentro de modales para que se
+   adapten mejor al modal, y aumentamos un pelín el max-width
+   del modal-content. */
+
+.modal-content {
+  max-width: min(1200px, calc(100vw - 32px)) !important;
+}
+
+/* Reducir el min-width forzado de tablas dentro de modales que no
+   tengan tantas columnas. Mantenemos un mínimo razonable. */
+.modal-content table {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+/* El contenedor de scroll (overflow-x: auto) que envuelve la tabla
+   conserva su comportamiento pero con scroll suave de iOS. */
+.modal-content div[style*="overflow-x: auto"],
+.modal-content div[style*="overflow-x:auto"] {
+  -webkit-overflow-scrolling: touch !important;
+  margin: 0 -8px !important;     /* extiende ligeramente para evitar
+                                    scroll por padding del modal */
+  padding: 0 8px !important;
+}
