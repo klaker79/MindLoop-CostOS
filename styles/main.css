@@ -3515,3 +3515,122 @@ table tbody tr:nth-child(10) {
     font-size: 15px !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Ingredientes: tabla → tarjetas apiladas (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   Aditivo. Solo afecta a #tabla-ingredientes en <768px.
+   Mismo patrón que #tabla-pedidos.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-ingredientes table {
+    min-width: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0;
+  }
+  #tabla-ingredientes thead { display: none; }
+  #tabla-ingredientes tbody,
+  #tabla-ingredientes tr,
+  #tabla-ingredientes td {
+    display: block;
+    width: 100%;
+  }
+  #tabla-ingredientes tr {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+  #tabla-ingredientes td {
+    padding: 6px 0 !important;
+    border: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px !important;
+    min-width: 0;
+  }
+  #tabla-ingredientes td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  /* Última celda = acciones. Sin label, sin justify-content space-between
+     porque tiene muchos botones (5). Se alinea a la derecha con wrap si hace falta. */
+  #tabla-ingredientes td:last-child {
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 10px !important;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  #tabla-ingredientes td:last-child::before {
+    display: none;
+  }
+  #tabla-ingredientes td .icon-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Inventario: tabla → tarjetas apiladas (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   Aditivo. Solo afecta a #tabla-inventario en <768px.
+   Mismo patrón que #tabla-pedidos.
+   Notas:
+   - Inventario incluye un <input> editable en la celda Stock Real + botón 📦.
+     Se permite que esa celda crezca verticalmente si hace falta (no forzar
+     altura). El input mantiene su ancho fijo (70px) — vale igual en móvil.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-inventario table {
+    min-width: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0;
+  }
+  #tabla-inventario thead { display: none; }
+  #tabla-inventario tbody,
+  #tabla-inventario tr,
+  #tabla-inventario td {
+    display: block;
+    width: 100%;
+  }
+  #tabla-inventario tr {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+  #tabla-inventario td {
+    padding: 6px 0 !important;
+    border: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px !important;
+    min-width: 0;
+  }
+  #tabla-inventario td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+}
