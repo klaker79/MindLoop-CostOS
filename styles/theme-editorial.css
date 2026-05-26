@@ -216,6 +216,32 @@ select:focus,
 
 
 /* ════════════════════════════════════════════════════════════════════
+   5.b HEADER GLOBAL — sustituir gradient morado de polish.css:246
+   --------------------------------------------------------------------
+   polish.css:246 define:
+     .header {
+       background: linear-gradient(135deg, #4F46E5, #7C3AED, #9333EA) !important;
+       box-shadow: 0 4px 24px rgba(79, 70, 229, 0.2) !important;
+     }
+   Sobreescribimos con verde oliva editorial.
+   ════════════════════════════════════════════════════════════════════ */
+.header {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 50%, var(--accent-darker) 100%) !important;
+  box-shadow: 0 4px 24px rgba(63, 77, 42, 0.18) !important;
+  border: none !important;
+}
+.app-header {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+}
+.header h1,
+.header p,
+.app-header h1,
+.app-header p {
+  color: white !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
    6. TIPOGRAFÍA — Fraunces display + tabular nums
    ════════════════════════════════════════════════════════════════════ */
 
