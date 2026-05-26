@@ -1996,7 +1996,7 @@ async function renderizarTablaPLDiario() {
     const totalLabelHeader = esSemana
         ? (window.t('balance:pl_total_week') || 'TOTAL SEMANA')
         : window.t('balance:pl_total_month');
-    html += `<th style="background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: white; padding: 14px 16px; font-weight: 700;">${totalLabelHeader}</th></tr></thead>`;
+    html += `<th style="background: linear-gradient(135deg, #1e3a5f 0%, #152b48 100%); color: white; padding: 14px 16px; font-weight: 700;">${totalLabelHeader}</th></tr></thead>`;
 
     // Body
     html += '<tbody>';
@@ -2010,7 +2010,7 @@ async function renderizarTablaPLDiario() {
         totalIngresos += val;
         html += `<td style="text-align: center; padding: 16px 8px; font-weight: 600; color: #166534; border-bottom: 1px solid #bbf7d0;">${cm(val)}</td>`;
     });
-    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${cm(totalIngresos)}</td></tr>`;
+    html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">${cm(totalIngresos)}</td></tr>`;
 
     // ── FILA: COSTES DE PRODUCCIÓN ──
     html += `<tr style="background: #fef2f2;"><td style="position: sticky; left: 0; background: #fef2f2; padding: 16px; font-weight: 600; color: #991b1b; border-bottom: 1px solid #fecaca;">${window.t('balance:pl_cogs')}</td>`;
@@ -2019,7 +2019,7 @@ async function renderizarTablaPLDiario() {
         totalCostes += val;
         html += `<td style="text-align: center; padding: 16px 8px; color: #dc2626; border-bottom: 1px solid #fecaca;">${cm(val)}</td>`;
     });
-    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${cm(totalCostes)}</td></tr>`;
+    html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">${cm(totalCostes)}</td></tr>`;
 
     // ── SEPARADOR ──
     html += `<tr><td colspan="${dias.length + 2}" style="height: 3px; background: linear-gradient(90deg, #e2e8f0 0%, #94a3b8 50%, #e2e8f0 100%); padding: 0;"></td></tr>`;
@@ -2032,7 +2032,7 @@ async function renderizarTablaPLDiario() {
         const color = margenDia >= 0 ? '#d97706' : '#dc2626';
         html += `<td style="text-align: center; padding: 16px 8px; font-weight: 700; color: ${color}; border-bottom: 1px solid #fcd34d;">${cm(margenDia)}</td>`;
     });
-    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${cm(totalMargenBruto)}</td></tr>`;
+    html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">${cm(totalMargenBruto)}</td></tr>`;
 
     // ── FILA: GASTOS FIJOS / DÍA ──
     // 🔧 FIX: antes se multiplicaba por dias.length (sólo días con movimiento), lo que
@@ -2053,25 +2053,28 @@ async function renderizarTablaPLDiario() {
     dias.forEach(() => {
         html += `<td style="text-align: center; padding: 16px 8px; color: #be185d; border-bottom: 1px solid #f9a8d4;">${cm(gastosFijosDia)}</td>`;
     });
-    html += `<td style="text-align: center; background: #1e40af; color: white; font-weight: 700; padding: 16px;">${cm(totalGastosFijosMostrados)}</td></tr>`;
+    html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">${cm(totalGastosFijosMostrados)}</td></tr>`;
 
     // ── SEPARADOR GRUESO ──
-    html += `<tr><td colspan="${dias.length + 2}" style="height: 4px; background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #1e40af 100%); padding: 0;"></td></tr>`;
+    html += `<tr><td colspan="${dias.length + 2}" style="height: 4px; background: linear-gradient(90deg, #1e3a5f 0%, #3b82f6 50%, #1e3a5f 100%); padding: 0;"></td></tr>`;
 
     // ── FILA: BENEFICIO NETO (MARGEN BRUTO - GASTOS FIJOS) ──
     // Total del período coherente con la fila de gastos fijos: margen bruto total menos
     // el gasto fijo real del período (no la suma de "gastoDia × días con movimiento").
-    html += `<tr style="background: #dbeafe;"><td style="position: sticky; left: 0; background: #dbeafe; padding: 18px 16px; font-weight: 700; font-size: 15px; color: #1e40af; border-bottom: 2px solid #93c5fd;">${window.t('balance:pl_net_profit')}</td>`;
+    html += `<tr style="background: #dbeafe;"><td style="position: sticky; left: 0; background: #dbeafe; padding: 18px 16px; font-weight: 700; font-size: 15px; color: #1e3a5f; border-bottom: 2px solid #93c5fd;">${window.t('balance:pl_net_profit')}</td>`;
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
         const beneficioNeto = margenDia - gastosFijosDia;
-        const color = beneficioNeto >= 0 ? '#1e40af' : '#dc2626';
+        const color = beneficioNeto >= 0 ? '#1e3a5f' : '#dc2626';
         const bg = beneficioNeto >= 0 ? '#dbeafe' : '#fee2e2';
         html += `<td style="text-align: center; padding: 18px 8px; font-weight: 700; font-size: 14px; color: ${color}; background: ${bg}; border-bottom: 2px solid #93c5fd;">${cm(beneficioNeto)}</td>`;
     });
     const totalBeneficioNeto = totalMargenBruto - totalGastosFijosMostrados;
-    const colorTotal = totalBeneficioNeto >= 0 ? '#22c55e' : '#ef4444';
-    html += `<td style="text-align: center; background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: ${colorTotal}; font-weight: 800; font-size: 16px; padding: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${cm(totalBeneficioNeto)}</td></tr>`;
+    // 🎨 Tonos legibles sobre fondo navy oscuro (rediseño 2026-05-26).
+    // Antes: #22c55e (verde fluo) / #ef4444 (rojo fuerte) — ilegibles
+    // sobre navy.
+    const colorTotal = totalBeneficioNeto >= 0 ? '#a3e9a4' : '#fda4af';
+    html += `<td style="text-align: center; background: linear-gradient(135deg, #1e3a5f 0%, #152b48 100%); color: ${colorTotal}; font-weight: 800; font-size: 16px; padding: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">${cm(totalBeneficioNeto)}</td></tr>`;
 
     html += '</tbody></table></div>';
 
