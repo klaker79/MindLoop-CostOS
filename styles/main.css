@@ -3712,3 +3712,54 @@ table tbody tr:nth-child(10) {
     display: none;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Ingredientes: cabecera compactada (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   Aplica SOLO en <768px:
+   - .filtros-ingredientes (label + 4 botones de categoría): oculta el label,
+     una sola fila con scroll horizontal si hace falta, botones más compactos.
+   - #resumen-ingredientes (3 contadores total/filtrado/mostrando): una sola
+     línea pequeña en lugar de 3 divs en columna.
+   El objetivo es que en móvil la tabla quede visible cuanto antes, sin
+   que el header coma 3-4 líneas de scroll.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Fila de filtros: ocultar el label "Filtrar por:" (los iconos bastan)
+     y forzar una sola fila con scroll horizontal si hace falta. */
+  #tab-ingredientes .filtros-ingredientes {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 4px;
+  }
+  #tab-ingredientes .filtros-ingredientes > span:first-child {
+    display: none !important;
+  }
+  #tab-ingredientes .filtros-ingredientes .filtro-btn {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* Resumen compacto en una sola fila scrollable, fuente pequeña. */
+  #resumen-ingredientes {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px !important;
+    font-size: 11px !important;
+    color: #64748b;
+    margin-bottom: 8px !important;
+    padding-bottom: 2px;
+  }
+  #resumen-ingredientes > div {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
