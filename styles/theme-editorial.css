@@ -925,3 +925,107 @@ button[onclick="window.guardarEdicionPedido()"]:hover {
                                     scroll por padding del modal */
   padding: 0 8px !important;
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE H — POLISH FINAL (sombras + stat-cards + skeletons)
+   --------------------------------------------------------------------
+   H.1 Stat-cards de Diario (.green/.blue/.orange) armonizar con navy
+   H.2 Loading skeletons con tinte navy
+   H.3 Sombras globales tintadas navy en cards principales
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- H.1 Stat-cards de Diario --- */
+/* main.css define border-left-color en:
+     .stat-card        → #c35a3f (rojo terracota)
+     .stat-card.green  → #10b981 (verde fluo)  - Total Ventas
+     .stat-card.blue   → #3b82f6 (azul fuerte) - Beneficio Bruto
+     .stat-card.orange → #f59e0b (naranja)     - Food Cost
+   Armonizamos manteniendo lectura semántica pero con paleta sobria. */
+
+.stat-card {
+  background: linear-gradient(135deg, #fff 0%, var(--app-bg-soft) 100%) !important;
+  border-left: 4px solid var(--accent-soft) !important;
+  box-shadow: 0 2px 10px rgba(30, 58, 95, 0.06) !important;
+}
+.stat-card.green {
+  border-left-color: #6b8e5a !important;   /* verde editorial sobrio (no fluo) */
+}
+.stat-card.blue {
+  border-left-color: var(--accent) !important;  /* navy */
+}
+.stat-card.orange {
+  border-left-color: #a98759 !important;   /* ocre (no naranja chillón) */
+}
+
+/* La cifra grande dentro de stat-card con Fraunces + tabular nums. */
+.stat-card .value {
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums !important;
+  color: var(--accent-dark) !important;
+}
+.stat-card.green .value {
+  color: #4a6b3e !important;     /* verde sobrio */
+}
+.stat-card.orange .value {
+  color: #8a6e3e !important;     /* ocre */
+}
+
+
+/* --- H.2 Loading skeletons con tinte navy --- */
+/* skeleton.css usa gradient con grises fríos (#e2e8f0 / #f1f5f9).
+   Lo tintamos con un leve azul-navy para que combine con el tema. */
+.skeleton {
+  background: linear-gradient(90deg,
+    #dde3ec 25%,
+    #e8edf3 37%,
+    #dde3ec 63%) !important;
+  background-size: 400% 100% !important;
+}
+
+
+/* --- H.3 Sombras globales tintadas navy --- */
+/* Cards principales que aún usan rgba(0,0,0,X) plano → tintadas con
+   navy (rgba(30,58,95,X)) para coherencia con el tema. */
+
+.card {
+  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.06),
+              0 1px 3px rgba(30, 58, 95, 0.04) !important;
+}
+
+.main-card {
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.06),
+              0 1px 3px rgba(30, 58, 95, 0.04) !important;
+}
+
+.form-card {
+  box-shadow: 0 4px 16px rgba(30, 58, 95, 0.06) !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+.kpi-mini {
+  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.06) !important;
+}
+
+/* Botones primarios: sombra tintada navy. */
+.btn.btn-primary,
+.btn-primary {
+  box-shadow: 0 2px 6px rgba(30, 58, 95, 0.18) !important;
+}
+.btn.btn-primary:hover,
+.btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.25) !important;
+}
+
+/* Tabs principales con sombra inset suave navy en lugar de negro. */
+.tabs {
+  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.06) !important;
+}
+
+/* Inputs en formularios: sombra suave navy al focus. */
+input:focus,
+textarea:focus,
+select:focus {
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.10) !important;
+}
