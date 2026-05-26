@@ -1029,3 +1029,247 @@ textarea:focus,
 select:focus {
   box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.10) !important;
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE I — CHAT IA REDISEÑADO
+   --------------------------------------------------------------------
+   chat-styles.js inyecta runtime un CSS lleno de gradients morados
+   (#7c3aed/#a855f7) y azul fuerte. Lo sobreescribimos completamente
+   con navy editorial + tipografía Fraunces en headlines + tablas con
+   look editorial estilo GG-OS.
+
+   Nuestro override carga al final del <head> → !important garantiza
+   prioridad sobre los <style> inyectados después.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- I.1 Chat window — más ancho, sombras tintadas navy --- */
+.chat-window {
+  width: 480px !important;            /* +30px sobre 450px original */
+  height: 620px !important;            /* +70px sobre 550px original */
+  border-radius: 18px !important;
+  box-shadow: 0 16px 50px rgba(30, 58, 95, 0.18),
+              0 4px 12px rgba(30, 58, 95, 0.08) !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+
+/* --- I.2 Chat header — navy editorial --- */
+.chat-header {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  padding: 22px 24px !important;
+}
+.chat-header-avatar {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+.chat-header-info h3 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 18px !important;
+  letter-spacing: -0.01em !important;
+}
+.chat-header-info p {
+  font-size: 12px !important;
+  opacity: 0.85 !important;
+}
+.chat-header-status {
+  background: #94c08a !important;   /* verde sobrio en lugar de #10b981 fluo */
+}
+
+
+/* --- I.3 Mensajes — tipografía + respiro + colores navy --- */
+.chat-messages {
+  background: var(--app-bg-soft) !important;   /* beige cálido en lugar de #f8fafc */
+  padding: 24px !important;
+  gap: 18px !important;
+}
+
+.chat-message-avatar {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+.chat-message.user .chat-message-avatar {
+  background: linear-gradient(135deg, #4a5b6c 0%, #2d3e4f 100%) !important;
+}
+
+.chat-message-content {
+  background: white !important;
+  border: 1px solid var(--app-border) !important;
+  border-radius: 14px !important;
+  border-top-left-radius: 4px !important;
+  padding: 14px 18px !important;
+  box-shadow: 0 1px 3px rgba(30, 58, 95, 0.05) !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  color: #1e293b !important;
+}
+.chat-message.user .chat-message-content {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 14px !important;
+  border-top-right-radius: 4px !important;
+}
+
+/* Headers dentro de mensajes en Fraunces (cuando el modelo escribe
+   "## Título" o similar via markdown). */
+.chat-message-content h1,
+.chat-message-content h2,
+.chat-message-content h3,
+.chat-message-content h4 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  color: var(--accent-dark) !important;
+  margin: 12px 0 8px 0 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.chat-message-content strong {
+  color: var(--accent-dark) !important;
+  font-weight: 700 !important;
+}
+
+
+/* --- I.4 Tablas dentro del chat — look editorial --- */
+.chat-table-wrapper {
+  margin: 12px 0 !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--app-border) !important;
+  overflow: hidden !important;
+}
+.chat-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--accent-soft) !important;
+}
+
+.chat-table {
+  font-size: 12px !important;
+  background: white !important;
+  border-collapse: collapse !important;
+  border-radius: 0 !important;
+}
+.chat-table th {
+  background: var(--app-bg-soft) !important;
+  color: var(--accent-dark) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  padding: 10px 12px !important;
+  border-bottom: 2px solid var(--app-border) !important;
+  text-align: left !important;
+}
+.chat-table td {
+  padding: 10px 12px !important;
+  border-bottom: 1px solid #f1f0e8 !important;
+  color: #1e293b !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.chat-table tr:nth-child(even) {
+  background: transparent !important;       /* sin zebra agresivo */
+}
+.chat-table tr:hover {
+  background: var(--accent-tint) !important;
+}
+
+
+/* --- I.5 Código inline --- */
+.chat-inline-code {
+  background: var(--accent-tint) !important;
+  color: var(--accent-dark) !important;
+  padding: 2px 8px !important;
+  border-radius: 6px !important;
+  font-family: 'SFMono-Regular', Consolas, monospace !important;
+  font-size: 12.5px !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+
+/* --- I.6 Input + botones de envío --- */
+.chat-input-container {
+  background: white !important;
+  border-top: 1px solid var(--app-border) !important;
+  padding: 18px 22px !important;
+}
+
+.chat-input {
+  border: 1px solid var(--app-border) !important;
+  border-radius: 22px !important;
+  padding: 12px 18px !important;
+  font-size: 14px !important;
+  background: var(--app-bg-soft) !important;
+}
+.chat-input:focus {
+  border-color: var(--accent) !important;
+  background: white !important;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.10) !important;
+}
+
+.chat-send-btn {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  width: 42px !important;
+  height: 42px !important;
+}
+.chat-send-btn:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3) !important;
+}
+
+.chat-mic-btn {
+  background: var(--app-bg-soft) !important;
+  border: 1px solid var(--app-border) !important;
+}
+.chat-mic-btn:hover {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent-soft) !important;
+}
+.chat-mic-btn svg {
+  fill: var(--accent) !important;
+}
+
+
+/* --- I.7 Quick actions / botones rápidos del chat --- */
+.chat-quick-actions {
+  background: white !important;
+  padding: 14px 22px 18px !important;
+  gap: 8px !important;
+}
+
+.chat-quick-btn {
+  background: white !important;
+  border: 1px solid var(--app-border) !important;
+  border-radius: 20px !important;
+  padding: 8px 14px !important;
+  font-size: 12px !important;
+  color: var(--accent-dark) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+.chat-quick-btn:hover {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent-soft) !important;
+  color: var(--accent-dark) !important;
+}
+
+
+/* --- I.8 Action buttons embebidos en mensajes --- */
+.chat-action-btn {
+  background: var(--accent) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+.chat-action-btn:hover {
+  background: var(--accent-dark) !important;
+}
+
+
+/* --- I.9 Close button (X arriba derecha) --- */
+.chat-close-btn {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+.chat-close-btn:hover {
+  background: rgba(255, 255, 255, 0.28) !important;
+}
