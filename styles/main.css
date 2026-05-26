@@ -3440,3 +3440,390 @@ table tbody tr:nth-child(10) {
   max-width: 100%;
   padding: 0;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Pedidos: tabla → tarjetas apiladas (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   - Aditivo: no toca ningún estilo desktop.
+   - Scope: SOLO #tabla-pedidos. El resto de tablas siguen como hoy
+     (scroll horizontal vía el bloque @media de 2779).
+   - Requiere data-label="..." en cada <td> (ya añadido en pedidos-ui.js
+     usando las MISMAS traducciones que el <thead>).
+   - Para revertir: borrar este bloque entero + los data-label en pedidos-ui.js.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-pedidos table {
+    min-width: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0;
+  }
+  #tabla-pedidos thead {
+    display: none;
+  }
+  #tabla-pedidos tbody,
+  #tabla-pedidos tr,
+  #tabla-pedidos td {
+    display: block;
+    width: 100%;
+  }
+  #tabla-pedidos tr {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+  #tabla-pedidos td {
+    padding: 6px 0 !important;
+    border: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px !important;
+    min-width: 0;
+  }
+  #tabla-pedidos td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  /* Última celda = acciones. Sin label, alineado a la derecha,
+     separada con una línea suave de la info de arriba. */
+  #tabla-pedidos td:last-child {
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 10px !important;
+    margin-top: 4px;
+    justify-content: flex-end;
+  }
+  #tabla-pedidos td:last-child::before {
+    display: none;
+  }
+  /* Botones de acción más cómodos al pulgar */
+  #tabla-pedidos td .actions {
+    gap: 8px;
+  }
+  #tabla-pedidos td .icon-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Ingredientes: tabla → tarjetas apiladas (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   Aditivo. Solo afecta a #tabla-ingredientes en <768px.
+   Mismo patrón que #tabla-pedidos.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-ingredientes table {
+    min-width: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0;
+  }
+  #tabla-ingredientes thead { display: none; }
+  #tabla-ingredientes tbody,
+  #tabla-ingredientes tr,
+  #tabla-ingredientes td {
+    display: block;
+    width: 100%;
+  }
+  #tabla-ingredientes tr {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+  #tabla-ingredientes td {
+    padding: 6px 0 !important;
+    border: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px !important;
+    min-width: 0;
+  }
+  #tabla-ingredientes td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  /* Última celda = acciones. Sin label, sin justify-content space-between
+     porque tiene muchos botones (5). Se alinea a la derecha con wrap si hace falta. */
+  #tabla-ingredientes td:last-child {
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 10px !important;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  #tabla-ingredientes td:last-child::before {
+    display: none;
+  }
+  #tabla-ingredientes td .icon-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Inventario: tabla → tarjetas apiladas (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   Aditivo. Solo afecta a #tabla-inventario en <768px.
+   Mismo patrón que #tabla-pedidos.
+   Notas:
+   - Inventario incluye un <input> editable en la celda Stock Real + botón 📦.
+     Se permite que esa celda crezca verticalmente si hace falta (no forzar
+     altura). El input mantiene su ancho fijo (70px) — vale igual en móvil.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-inventario table {
+    min-width: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0;
+  }
+  #tabla-inventario thead { display: none; }
+  #tabla-inventario tbody,
+  #tabla-inventario tr,
+  #tabla-inventario td {
+    display: block;
+    width: 100%;
+  }
+  #tabla-inventario tr {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+  #tabla-inventario td {
+    padding: 6px 0 !important;
+    border: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px !important;
+    min-width: 0;
+  }
+  #tabla-inventario td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Ventas: agrupado por día + tarjetas (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   Estructura especial: las filas .venta-dia-header (colspan=6) actúan
+   como cabecera de sección por día, y las filas .venta-row son ventas
+   individuales que en móvil se transforman a tarjetas apiladas.
+   Aditivo. Scoped a #tabla-ventas en <768px.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-ventas table {
+    min-width: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0;
+  }
+
+  /* Cabecera de día (colspan=6): mantener como banner de sección,
+     más compacta en móvil. */
+  #tabla-ventas tr.venta-dia-header {
+    display: block;
+    margin: 12px 0 6px 0;
+  }
+  #tabla-ventas tr.venta-dia-header td {
+    display: block;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    border-radius: 8px;
+    background: #f1f5f9 !important;
+    border-bottom: none !important;
+  }
+
+  /* Cada venta individual: tarjeta apilada. */
+  #tabla-ventas tr.venta-row {
+    display: block;
+    background: white;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+  }
+  #tabla-ventas tr.venta-row td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0 !important;
+    border: none !important;
+    font-size: 13px !important;
+    color: #1e293b !important;
+    text-align: left !important;
+  }
+  #tabla-ventas tr.venta-row td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  /* La fecha duplica la cabecera del día → ocultarla en móvil. */
+  #tabla-ventas tr.venta-row td:first-child {
+    display: none;
+  }
+  /* Última celda = acción borrar. Sin label, alineado a la derecha,
+     separado con line-top suave. */
+  #tabla-ventas tr.venta-row td:last-child {
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 8px !important;
+    margin-top: 4px;
+    justify-content: flex-end;
+  }
+  #tabla-ventas tr.venta-row td:last-child::before {
+    display: none;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Ingredientes: cabecera compactada (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   Aplica SOLO en <768px:
+   - .filtros-ingredientes (label + 4 botones de categoría): oculta el label,
+     una sola fila con scroll horizontal si hace falta, botones más compactos.
+   - #resumen-ingredientes (3 contadores total/filtrado/mostrando): una sola
+     línea pequeña en lugar de 3 divs en columna.
+   El objetivo es que en móvil la tabla quede visible cuanto antes, sin
+   que el header coma 3-4 líneas de scroll.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Fila de filtros: ocultar el label "Filtrar por:" (los iconos bastan)
+     y forzar una sola fila con scroll horizontal si hace falta. */
+  #tab-ingredientes .filtros-ingredientes {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 4px;
+  }
+  #tab-ingredientes .filtros-ingredientes > span:first-child {
+    display: none !important;
+  }
+  #tab-ingredientes .filtros-ingredientes .filtro-btn {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* Resumen compacto en una sola fila scrollable, fuente pequeña. */
+  #resumen-ingredientes {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px !important;
+    font-size: 11px !important;
+    color: #64748b;
+    margin-bottom: 8px !important;
+    padding-bottom: 2px;
+  }
+  #resumen-ingredientes > div {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Banner "abre en ordenador" (sprint 2 mobile, 2026-05-26)
+   --------------------------------------------------------------------
+   Pestañas no aptas para móvil (Análisis, Inteligencia, Diario):
+   - Desktop: el banner está OCULTO. La pestaña funciona normal.
+   - Móvil (<768px): el banner SE MUESTRA y oculta el resto del contenido
+     de la pestaña. El usuario ve un mensaje claro de que abra la app en
+     ordenador, en vez de luchar con gráficas/KPIs ilegibles en pantalla
+     pequeña.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Desktop (por defecto): banner oculto. */
+.desktop-only-banner {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Mostrar banner solo cuando la pestaña padre está activa. */
+  #tab-analisis.active .desktop-only-banner,
+  #tab-inteligencia.active .desktop-only-banner,
+  #tab-diario.active .desktop-only-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+    margin: 16px 12px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    min-height: 240px;
+  }
+
+  /* Estilos internos del banner. */
+  .desktop-only-banner__icon {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .desktop-only-banner h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #1e293b;
+    font-weight: 700;
+  }
+  .desktop-only-banner p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+
+  /* Ocultar el resto del contenido de las pestañas afectadas en móvil.
+     Targeteamos cualquier hijo directo que NO sea el banner. */
+  #tab-analisis.active > *:not(.desktop-only-banner),
+  #tab-inteligencia.active > *:not(.desktop-only-banner),
+  #tab-diario.active > *:not(.desktop-only-banner) {
+    display: none !important;
+  }
+}

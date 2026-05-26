@@ -1844,10 +1844,21 @@
                     ? cachedValue
                     : (ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '');
 
+                // 📱 Labels para vista móvil (tarjetas) — usan las MISMAS traducciones que el <thead>.
+                const _tLbl = window.t || (k => k);
+                const lblSt = _tLbl('inventario:col_status');
+                const lblIg = _tLbl('inventario:col_ingredient');
+                const lblVt = _tLbl('inventario:col_virtual_stock');
+                const lblRl = _tLbl('inventario:col_real_stock');
+                const lblDf = _tLbl('inventario:col_difference');
+                const lblAp = _tLbl('inventario:col_avg_price');
+                const lblSv = _tLbl('inventario:col_stock_value');
+                const lblUn = _tLbl('inventario:col_unit');
+
                 html += '<tr>';
-                html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
-                html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
-                html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${translateUnit(ing.unidad)}</small></span></td>`;
+                html += `<td data-label="${lblSt}"><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
+                html += `<td data-label="${lblIg}"><strong>${escapeHTML(ing.nombre)}</strong></td>`;
+                html += `<td data-label="${lblVt}"><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${translateUnit(ing.unidad)}</small></span></td>`;
 
                 // Input con evento ONINPUT para cálculo dinámico y guardar en cache
                 // Mostrar siempre el botón de conversión 📦
@@ -1876,7 +1887,7 @@
                         title="${btnTitle}">📦</button>
                    </div>`;
 
-                html += `<td>${formatoHelper}</td>`;
+                html += `<td data-label="${lblRl}">${formatoHelper}</td>`;
 
                 // Celda de Diferencia con ID único para actualizar
                 let diffDisplay = '-';
@@ -1892,9 +1903,9 @@
                     else if (d > 0) diffColor = '#10b981'; // Positivo (Sobra) -> Verde
                 }
 
-                html += `<td id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
+                html += `<td data-label="${lblDf}" id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
 
-                html += `<td>${cm(precioMedio)}/${translateUnit(ing.unidad)}</td>`;
+                html += `<td data-label="${lblAp}">${cm(precioMedio)}/${translateUnit(ing.unidad)}</td>`;
 
                 // Valor Stock: Por defecto usa Virtual. Si hay Real guardado, usa Real.
                 const cantidadParaValor =
@@ -1903,8 +1914,8 @@
                         : parseFloat(ing.stock_virtual || 0);
                 const valorStockCalc = cantidadParaValor * precioMedio;
 
-                html += `<td id="val-cell-${ing.id}"><strong>${cm(valorStockCalc)}</strong></td>`;
-                html += `<td>${translateUnit(ing.unidad)}</td>`;
+                html += `<td data-label="${lblSv}" id="val-cell-${ing.id}"><strong>${cm(valorStockCalc)}</strong></td>`;
+                html += `<td data-label="${lblUn}">${translateUnit(ing.unidad)}</td>`;
                 html += '</tr>';
             });
 

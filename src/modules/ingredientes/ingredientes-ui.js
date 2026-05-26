@@ -270,18 +270,27 @@ export function renderizarIngredientes() {
                 ? `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, true)" title="${t('ingredientes:btn_activate_title')}" style="color: #22c55e;">✅</button>`
                 : `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, false)" title="${t('ingredientes:btn_deactivate_title')}" style="color: #f59e0b;">⏸️</button>`;
 
+            // 📱 Labels para vista móvil (tarjetas) — usan las MISMAS traducciones que el <thead>.
+            const lblIng = t('ingredientes:col_ingredient');
+            const lblFam = t('ingredientes:col_family');
+            const lblSup = t('ingredientes:col_supplier');
+            const lblPri = t('ingredientes:col_price');
+            const lblSto = t('ingredientes:col_stock');
+            const lblMin = t('ingredientes:col_stock_min');
+            const lblAct = t('ingredientes:col_actions');
+
             return `<tr style="${rowStyle}">
-                <td><strong>${escapeHTML(ing.nombre)}</strong>${esInactivo ? `<br><small style="color:#ef4444;">⚠️ ${t('ingredientes:badge_inactive')}</small>` : ''}</td>
-                <td><span class="badge ${familiaBadge}">${familiaLabel}</span></td>
-                <td>${escapeHTML(nombreProv)}</td>
-                <td title="${tooltipText}" style="cursor: help;">${precioHtml}</td>
-                <td>${ing.stock_actual
+                <td data-label="${lblIng}"><strong>${escapeHTML(ing.nombre)}</strong>${esInactivo ? `<br><small style="color:#ef4444;">⚠️ ${t('ingredientes:badge_inactive')}</small>` : ''}</td>
+                <td data-label="${lblFam}"><span class="badge ${familiaBadge}">${familiaLabel}</span></td>
+                <td data-label="${lblSup}">${escapeHTML(nombreProv)}</td>
+                <td data-label="${lblPri}" title="${tooltipText}" style="cursor: help;">${precioHtml}</td>
+                <td data-label="${lblSto}">${ing.stock_actual
                     ? `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${escapeHTML(ing.unidad)}</span>${stockBajo && ing.stock_minimo ? ' ⚠️' : ''}`
                     : '-'
                 }
                 </td>
-                <td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + escapeHTML(ing.unidad) : '-'}</td>
-                <td>
+                <td data-label="${lblMin}">${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + escapeHTML(ing.unidad) : '-'}</td>
+                <td data-label="${lblAct}">
                     <button class="icon-btn" onclick="window.agregarAlCarrito(${ing.id}, 1)" title="${t('ingredientes:btn_add_to_cart_title')}" style="color: #f97316;">🛒</button>
                     <button class="icon-btn" onclick="window.verEvolucionPrecio(${ing.id})" title="${t('ingredientes:btn_price_evolution_title')}" style="color: #3b82f6;">📈</button>
                     <button class="icon-btn" onclick="window.gestionarProveedoresIngrediente(${ing.id})" title="${t('ingredientes:btn_manage_suppliers_title')}" style="color: #8b5cf6;">🏢</button>

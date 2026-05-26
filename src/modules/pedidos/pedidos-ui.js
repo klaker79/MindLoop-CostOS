@@ -771,33 +771,40 @@ export function renderizarPedidos() {
         const fecha = new Date(fechaStr).toLocaleDateString(getDateLocale());
         const esCompraMercado = ped.es_compra_mercado;
 
+        // 📱 Labels para vista móvil (tarjetas) — usan las MISMAS strings que el <thead>.
+        // Si data-label se ignora en desktop no afecta a nada; en móvil el CSS lo muestra.
+        const lblDate = t('pedidos:col_date');
+        const lblSupplier = t('pedidos:col_supplier');
+        const lblStatus = t('pedidos:col_status');
+        const lblActions = t('ingredientes:col_actions');
+
         html += '<tr>';
-        html += `<td>#${ped.id}</td>`;
-        html += `<td>${fecha}</td>`;
+        html += `<td data-label="ID">#${ped.id}</td>`;
+        html += `<td data-label="${lblDate}">${fecha}</td>`;
 
         // Proveedor + detalle mercado
         if (esCompraMercado && ped.detalle_mercado) {
-            html += `<td>${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}<br><small style="color:#10b981;">📍 ${escapeHTML(ped.detalle_mercado)}</small></td>`;
+            html += `<td data-label="${lblSupplier}">${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}<br><small style="color:#10b981;">📍 ${escapeHTML(ped.detalle_mercado)}</small></td>`;
         } else {
-            html += `<td>${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}</td>`;
+            html += `<td data-label="${lblSupplier}">${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}</td>`;
         }
 
         // Items: descripción para mercado, count para normal
         if (esCompraMercado && ped.descripcion_mercado) {
-            html += `<td><small style="color:#64748b;">${escapeHTML(ped.descripcion_mercado)}</small></td>`;
+            html += `<td data-label="Items"><small style="color:#64748b;">${escapeHTML(ped.descripcion_mercado)}</small></td>`;
         } else {
-            html += `<td>${ped.ingredientes?.length || 0}</td>`;
+            html += `<td data-label="Items">${ped.ingredientes?.length || 0}</td>`;
         }
 
         // 🔧 FIX: Mostrar total_recibido si el pedido está recibido, si no el total original
         const totalMostrar = ped.estado === 'recibido' && ped.total_recibido ? ped.total_recibido : ped.total;
-        html += `<td>${cm(parseFloat(totalMostrar || 0))}</td>`;
+        html += `<td data-label="Total">${cm(parseFloat(totalMostrar || 0))}</td>`;
 
         const estadoClass = ped.estado === 'recibido' ? 'badge-success' : 'badge-warning';
         const estadoTexto = ped.estado === 'recibido' ? t('pedidos:status_received') : t('pedidos:status_pending');
-        html += `<td><span class="badge ${estadoClass}">${estadoTexto}</span></td>`;
+        html += `<td data-label="${lblStatus}"><span class="badge ${estadoClass}">${estadoTexto}</span></td>`;
 
-        html += `<td><div class="actions">`;
+        html += `<td data-label="${lblActions}"><div class="actions">`;
         html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="${t('pedidos:btn_view_details')}">👁️</button>`;
 
         if (ped.estado === 'pendiente') {
