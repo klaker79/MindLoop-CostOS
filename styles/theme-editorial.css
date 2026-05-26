@@ -11,10 +11,10 @@
 
    FASE A — Tokens fundacionales:
    1. Body: gradient morado → fondo neutro premium #fafaf7.
-   2. Sidebar (gradient principal): morado → verde oliva oscuro.
-   3. Botones .btn-primary, .login-btn: gradient verde oliva.
+   2. Sidebar (gradient principal): morado → azul navy oscuro.
+   3. Botones .btn-primary, .login-btn: gradient azul navy.
    4. Outline, colores de focus, scrollbar, sidebar-toggle, login-page:
-      verde oliva.
+      azul navy.
    5. Tipografía Fraunces en headlines, tabular-nums en cifras.
 
    NO se tocan colores semánticos:
@@ -39,17 +39,17 @@
   --app-surface-elevated: #fcfcfa;
   --app-border: #e8e8e0;
 
-  /* Accent — verde oliva oscuro editorial */
-  --accent: #3f4d2a;
-  --accent-dark: #2f3a1f;
-  --accent-darker: #25301a;
-  --accent-soft: #6b8048;
-  --accent-light: #8ba562;
-  --accent-tint: #f5f7ef;
+  /* Accent — azul navy editorial */
+  --accent: #1e3a5f;
+  --accent-dark: #152b48;
+  --accent-darker: #0e2034;
+  --accent-soft: #3b5d85;
+  --accent-light: #5d80a8;
+  --accent-tint: #eef2f7;
 
   /* Sobreescribir tokens del :root original */
-  --gradient-start: #3f4d2a;
-  --gradient-end: #2f3a1f;
+  --gradient-start: #1e3a5f;
+  --gradient-end: #152b48;
 
   /* Tipografía */
   --font-display: 'Fraunces', 'Playfair Display', 'Times New Roman', Georgia, serif;
@@ -79,7 +79,7 @@ body.login {
 
 
 /* ════════════════════════════════════════════════════════════════════
-   3. SIDEBAR — gradient morado → verde oliva
+   3. SIDEBAR — gradient morado → azul navy
    --------------------------------------------------------------------
    main.css:2517 → .sidebar gradient HARDCODED → SUSTITUIDO
    main.css:2751 → .sidebar-toggle background → SUSTITUIDO
@@ -223,11 +223,11 @@ select:focus,
        background: linear-gradient(135deg, #4F46E5, #7C3AED, #9333EA) !important;
        box-shadow: 0 4px 24px rgba(79, 70, 229, 0.2) !important;
      }
-   Sobreescribimos con verde oliva editorial.
+   Sobreescribimos con azul navy editorial.
    ════════════════════════════════════════════════════════════════════ */
 .header {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 50%, var(--accent-darker) 100%) !important;
-  box-shadow: 0 4px 24px rgba(63, 77, 42, 0.18) !important;
+  box-shadow: 0 4px 24px rgba(30, 58, 95, 0.18) !important;
   border: none !important;
 }
 .app-header {
@@ -306,7 +306,7 @@ th.numeric,
    --------------------------------------------------------------------
    Sobreescribir TODOS los hardcodes inline saturados del dashboard
    (verde fluo, azul fuerte, naranja, morado, rosa, etc) por la paleta
-   editorial unificada. Toda la dashboard pasa a tonos verde oliva +
+   editorial unificada. Toda la dashboard pasa a tonos azul navy +
    neutros sobrios.
 
    Mantiene intactos los semánticos de food cost (rojo >38%, naranja
@@ -314,9 +314,9 @@ th.numeric,
    ════════════════════════════════════════════════════════════════════ */
 
 
-/* --- B.1 Cifras grandes saturadas → verde oliva oscuro / neutros --- */
+/* --- B.1 Cifras grandes saturadas → azul navy oscuro / neutros --- */
 
-/* Valor Stock (era verde fluo gradient → ahora verde oliva oscuro). */
+/* Valor Stock (era verde fluo gradient → ahora azul navy oscuro). */
 #kpi-valor-stock,
 #kpi-valor-stock[style] {
   background: none !important;
@@ -340,7 +340,7 @@ th.numeric,
   font-variant-numeric: tabular-nums;
 }
 
-/* Total Top Proveedores (era morado → ahora verde oliva oscuro). */
+/* Total Top Proveedores (era morado → ahora azul navy oscuro). */
 #dashboard-proveedores-total,
 #dashboard-proveedores-total[style] {
   color: var(--accent-dark) !important;
@@ -377,7 +377,7 @@ th.numeric,
 /* --- B.2 Botones CTA dashboard (Venta/Pedido/Stock) --- */
 /* Eran 3 gradients saturados (verde fluo, azul fuerte, naranja).
    Ahora todos en estilo outline sobrio: fondo blanco, borde y texto
-   verde oliva. Los iconos siguen siendo emojis (mantienen carácter). */
+   azul navy. Los iconos siguen siendo emojis (mantienen carácter). */
 
 .dashboard-card button[data-tab="ventas"],
 .dashboard-card button[data-tab="pedidos"],
@@ -398,9 +398,9 @@ th.numeric,
 }
 
 
-/* --- B.3 KPI mini border-left unificado → todos verde oliva --- */
+/* --- B.3 KPI mini border-left unificado → todos azul navy --- */
 /* Eran 4 colores distintos (verde/azul/naranja/morado). Para look
-   profesional unificamos a verde oliva, manteniendo el accent visual
+   profesional unificamos a azul navy, manteniendo el accent visual
    pero con paleta coherente. */
 
 .kpi-row > .kpi-mini[style*="border-left"] {
@@ -434,7 +434,7 @@ th.numeric,
    La tintamos para que combine con el accent. */
 
 .dashboard-card {
-  box-shadow: 0 4px 20px rgba(63, 77, 42, 0.06) !important;
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.06) !important;
   border: 1px solid var(--app-border) !important;
 }
 
@@ -456,7 +456,7 @@ th.numeric,
 
 /* --- C.1 Modal containers — sombras tintadas, bordes suaves --- */
 .modal {
-  background: rgba(20, 25, 15, 0.6) !important;
+  background: rgba(10, 18, 30, 0.6) !important;
   backdrop-filter: blur(4px);
 }
 .modal-content {
@@ -464,8 +464,8 @@ th.numeric,
   border-radius: 18px !important;
   border: 1px solid var(--app-border) !important;
   box-shadow:
-    0 25px 60px rgba(63, 77, 42, 0.18),
-    0 8px 20px rgba(63, 77, 42, 0.08) !important;
+    0 25px 60px rgba(30, 58, 95, 0.18),
+    0 8px 20px rgba(30, 58, 95, 0.08) !important;
   padding: 32px !important;
 }
 
@@ -487,7 +487,7 @@ th.numeric,
   letter-spacing: -0.005em !important;
 }
 
-/* --- C.3 Botones .btn-success → verde oliva consistente --- */
+/* --- C.3 Botones .btn-success → azul navy consistente --- */
 /* El verde brillante de "Confirmar Recepción" cambia al accent
    editorial para coherencia con el resto del tema. */
 .btn.btn-success,
@@ -495,12 +495,12 @@ th.numeric,
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
   color: white !important;
   border: none !important;
-  box-shadow: 0 2px 6px rgba(63, 77, 42, 0.2) !important;
+  box-shadow: 0 2px 6px rgba(30, 58, 95, 0.2) !important;
 }
 .btn.btn-success:hover,
 .btn-success:hover {
   background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%) !important;
-  box-shadow: 0 4px 12px rgba(63, 77, 42, 0.28) !important;
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.28) !important;
 }
 
 /* --- C.4 Card resumen del modal recepción (verde fluo → beige) --- */
@@ -515,7 +515,7 @@ th.numeric,
   border-radius: 10px !important;
 }
 
-/* Las cifras verdes brillantes dentro del resumen → verde oliva. */
+/* Las cifras verdes brillantes dentro del resumen → azul navy. */
 #modal-rec-resumen-recibido {
   color: var(--accent-dark) !important;
   font-family: var(--font-display) !important;
@@ -588,7 +588,7 @@ table tbody td[style*="text-align:right"] {
   font-variant-numeric: tabular-nums !important;
 }
 
-/* Links/IDs dentro de tablas (era verde fluo "#botella") → verde oliva. */
+/* Links/IDs dentro de tablas (era verde fluo "#botella") → azul navy. */
 table tbody td a {
   color: var(--accent-dark) !important;
   text-decoration: none;
@@ -627,7 +627,7 @@ table input[type="number"] {
 table input[type="text"]:focus,
 table input[type="number"]:focus {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 3px rgba(63, 77, 42, 0.12) !important;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
   outline: none !important;
 }
 
@@ -635,7 +635,7 @@ table input[type="number"]:focus {
 /* ════════════════════════════════════════════════════════════════════
    FASE D — DESATURAR GRÁFICAS, TABS Y BANDAS DECORATIVAS
    --------------------------------------------------------------------
-   D.1 Forecast tabs (7 días / Mes) — tab activo morado → verde oliva
+   D.1 Forecast tabs (7 días / Mes) — tab activo morado → azul navy
    D.2 Bandas superiores decorativas de cards dashboard-premium
        (eran 7 colores chillones cada una distinta) → paleta editorial
        sobria coherente con el tema
@@ -676,7 +676,7 @@ table input[type="number"]:focus {
 
 /* Row 2 */
 #dashboard-premium > div:nth-child(2) > .dashboard-card:nth-child(1)::before {
-  background: linear-gradient(90deg, #3f4d2a, #6b8048, #3f4d2a) !important;  /* verde oliva (Valor Stock) */
+  background: linear-gradient(90deg, #1e3a5f, #3b5d85, #1e3a5f) !important;  /* azul navy (Valor Stock) */
 }
 #dashboard-premium > div:nth-child(2) > .dashboard-card:nth-child(2)::before {
   background: linear-gradient(90deg, #7a5c3a, #9c7a55, #7a5c3a) !important;  /* marrón tierra (Proyección) */
@@ -687,7 +687,7 @@ table input[type="number"]:focus {
 
 /* Row 3 — full width (Top Proveedores) */
 #dashboard-premium > div:nth-child(3) > .dashboard-card::before {
-  background: linear-gradient(90deg, #3f4d2a, #6b8048, #3f4d2a) !important;  /* verde oliva accent */
+  background: linear-gradient(90deg, #1e3a5f, #3b5d85, #1e3a5f) !important;  /* azul navy accent */
 }
 
 
@@ -698,8 +698,8 @@ table input[type="number"]:focus {
 .app .sidebar,
 aside.sidebar {
   background: linear-gradient(180deg,
-    rgba(63, 77, 42, 0.98) 0%,
-    rgba(47, 58, 31, 0.99) 50%,
-    rgba(37, 48, 26, 0.99) 100%) !important;
-  box-shadow: 4px 0 24px rgba(63, 77, 42, 0.18) !important;
+    rgba(30, 58, 95, 0.98) 0%,
+    rgba(21, 43, 72, 0.99) 50%,
+    rgba(14, 32, 52, 0.99) 100%) !important;
+  box-shadow: 4px 0 24px rgba(30, 58, 95, 0.18) !important;
 }

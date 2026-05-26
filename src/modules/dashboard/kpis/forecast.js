@@ -78,8 +78,8 @@ function initForecastTabs() {
 
             tabs.forEach(otherTab => {
                 if (otherTab === tab) {
-                    // 🎨 Verde oliva editorial (Fase D — 2026-05-26)
-                    otherTab.style.background = 'linear-gradient(135deg, #3f4d2a, #2f3a1f)';
+                    // 🎨 Azul navy editorial (Fase D — 2026-05-26, rev. accent)
+                    otherTab.style.background = 'linear-gradient(135deg, #1e3a5f, #152b48)';
                     otherTab.style.color = 'white';
                     otherTab.style.fontWeight = '600';
                 } else {
