@@ -3634,3 +3634,81 @@ table tbody tr:nth-child(10) {
     flex-shrink: 0;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Ventas: agrupado por día + tarjetas (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   Estructura especial: las filas .venta-dia-header (colspan=6) actúan
+   como cabecera de sección por día, y las filas .venta-row son ventas
+   individuales que en móvil se transforman a tarjetas apiladas.
+   Aditivo. Scoped a #tabla-ventas en <768px.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-ventas table {
+    min-width: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0;
+  }
+
+  /* Cabecera de día (colspan=6): mantener como banner de sección,
+     más compacta en móvil. */
+  #tabla-ventas tr.venta-dia-header {
+    display: block;
+    margin: 12px 0 6px 0;
+  }
+  #tabla-ventas tr.venta-dia-header td {
+    display: block;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    border-radius: 8px;
+    background: #f1f5f9 !important;
+    border-bottom: none !important;
+  }
+
+  /* Cada venta individual: tarjeta apilada. */
+  #tabla-ventas tr.venta-row {
+    display: block;
+    background: white;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+  }
+  #tabla-ventas tr.venta-row td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0 !important;
+    border: none !important;
+    font-size: 13px !important;
+    color: #1e293b !important;
+    text-align: left !important;
+  }
+  #tabla-ventas tr.venta-row td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  /* La fecha duplica la cabecera del día → ocultarla en móvil. */
+  #tabla-ventas tr.venta-row td:first-child {
+    display: none;
+  }
+  /* Última celda = acción borrar. Sin label, alineado a la derecha,
+     separado con line-top suave. */
+  #tabla-ventas tr.venta-row td:last-child {
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 8px !important;
+    margin-top: 4px;
+    justify-content: flex-end;
+  }
+  #tabla-ventas tr.venta-row td:last-child::before {
+    display: none;
+  }
+}
