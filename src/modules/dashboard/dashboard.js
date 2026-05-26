@@ -33,15 +33,19 @@ let periodoVistaActual = 'semana';
 export function cambiarPeriodoVista(periodo) {
     periodoVistaActual = periodo;
 
-    // Actualizar botones activos
+    // Actualizar botones activos. Usar clases (no style inline) para que
+    // el CSS del tema editorial (Fase E.1) pueda pintar navy en el activo.
+    // Antes hardcodeaba style.background = '#0ea5e9' (azul cielo) pero
+    // chocaba con .periodo-btn { background: white !important } del tema.
     document.querySelectorAll('.periodo-btn').forEach(btn => {
         if (btn.dataset.periodo === periodo) {
-            btn.style.background = '#0ea5e9';
-            btn.style.color = 'white';
+            btn.classList.add('active');
         } else {
-            btn.style.background = 'white';
-            btn.style.color = '#0369a1';
+            btn.classList.remove('active');
         }
+        // Limpiar inline styles antiguos por si quedan de cargas previas.
+        btn.style.background = '';
+        btn.style.color = '';
     });
 
     // Actualizar KPIs según período
