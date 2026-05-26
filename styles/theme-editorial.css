@@ -1,30 +1,30 @@
 /* ════════════════════════════════════════════════════════════════════
-   TEMA VISUAL — MindLoop CostOS · Fase A (2026-05-26)
+   TEMA VISUAL — MindLoop CostOS · Fase A v2 (2026-05-26)
    --------------------------------------------------------------------
-   Rediseño fundacional aplicando la skill redesign-existing-projects.
+   Rediseño fundacional aplicando skill redesign-existing-projects.
    100% aditivo. Cargado DESPUÉS de main.css + polish.css → prioridad.
 
+   v2: añade overrides SISTEMÁTICOS a los 14 hardcodes de #667eea /
+   #764ba2 / #f093fb en main.css. El v1 sólo cambiaba variables CSS,
+   pero la app tiene colores hardcodeados que no usan las variables.
+   Ahora se cubren TODOS los selectores afectados.
+
    FASE A — Tokens fundacionales:
-   1. Sustituir el gradient morado del body (AI fingerprint) por
-      fondo neutro premium.
-   2. Sustituir el accent primario (#667eea/#764ba2 morado/azul) por
-      verde oliva oscuro editorial.
-   3. Importar fuente display Fraunces para headlines.
-   4. Aplicar tabular-nums en cifras numéricas.
+   1. Body: gradient morado → fondo neutro premium #fafaf7.
+   2. Sidebar (gradient principal): morado → verde oliva oscuro.
+   3. Botones .btn-primary, .login-btn: gradient verde oliva.
+   4. Outline, colores de focus, scrollbar, sidebar-toggle, login-page:
+      verde oliva.
+   5. Tipografía Fraunces en headlines, tabular-nums en cifras.
 
    NO se tocan colores semánticos:
    - Stock: critico/bajo/ok
    - Food cost: ≤33% verde, 34-38% naranja, >38% rojo
    - Badges: success/warning/danger/info
    - Toasts, alertas, charts (Chart.js)
+   - Botones de KPI/dashboard con paleta propia
 
-   FASES PENDIENTES (próximos PRs, no en este archivo todavía):
-   - Fase B: aplanar cards, sombras tintadas, border-radius con lógica
-   - Fase C: jerarquía tipográfica (display sizes, weights)
-   - Fase D: whitespace + asimetría
-
-   Cómo revertir: borrar este archivo + la línea que lo carga en
-   index.html. Cero deuda, todo vuelve al estado anterior.
+   Cómo revertir: borrar este archivo + la línea de carga en index.html.
    ════════════════════════════════════════════════════════════════════ */
 
 
@@ -32,24 +32,22 @@
    1. TOKENS — nueva paleta + tipografía
    ════════════════════════════════════════════════════════════════════ */
 :root {
-  /* Paleta neutra premium (sustituye gradient morado del body). */
-  --app-bg: #fafaf7;             /* Off-white cálido para body */
-  --app-bg-soft: #f5f5f0;        /* Tinte secundario */
-  --app-surface: #ffffff;        /* Cards y contenedores principales */
+  /* Paleta neutra premium */
+  --app-bg: #fafaf7;
+  --app-bg-soft: #f5f5f0;
+  --app-surface: #ffffff;
   --app-surface-elevated: #fcfcfa;
-  --app-border: #e8e8e0;         /* Borde sutil cálido (sustituye #e2e8f0 frío) */
+  --app-border: #e8e8e0;
 
-  /* Accent primario — verde oliva oscuro editorial.
-     Sustituye al gradient morado/azul de --gradient-start/end. */
+  /* Accent — verde oliva oscuro editorial */
   --accent: #3f4d2a;
   --accent-dark: #2f3a1f;
   --accent-darker: #25301a;
   --accent-soft: #6b8048;
-  --accent-tint: #f5f7ef;        /* Tinte muy claro para fondos sutiles */
+  --accent-light: #8ba562;
+  --accent-tint: #f5f7ef;
 
-  /* Sobreescribir los tokens del :root original que se usan en muchos
-     gradientes/botones del proyecto. Esto cambia el accent en toda la
-     app SIN tocar main.css. */
+  /* Sobreescribir tokens del :root original */
   --gradient-start: #3f4d2a;
   --gradient-end: #2f3a1f;
 
@@ -59,27 +57,169 @@
 
 
 /* ════════════════════════════════════════════════════════════════════
-   2. BODY — fondo neutro premium (eliminar gradient morado)
+   2. BODY + LOGIN PAGE — fondo neutro premium
+   --------------------------------------------------------------------
+   main.css:40 → body gradient morado → SUSTITUIDO
+   main.css:2083 → login-page gradient morado → SUSTITUIDO
    ════════════════════════════════════════════════════════════════════ */
-
-/* main.css:40 → background: linear-gradient(135deg, #667eea, #764ba2, #f093fb)
-   Lo reemplazamos por un fondo neutro premium. */
 body {
-  background: var(--app-bg);
-  background-attachment: scroll;
+  background: var(--app-bg) !important;
 }
 
-/* En dark mode mantenemos el comportamiento original — no nos metemos. */
 [data-theme="dark"] body {
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%) !important;
+}
+
+/* Login page background. */
+.login-page,
+.login-screen,
+body.login {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 50%, var(--accent-darker) 100%) !important;
 }
 
 
 /* ════════════════════════════════════════════════════════════════════
-   3. TIPOGRAFÍA — Fraunces display + tabular nums
+   3. SIDEBAR — gradient morado → verde oliva
+   --------------------------------------------------------------------
+   main.css:2517 → .sidebar gradient HARDCODED → SUSTITUIDO
+   main.css:2751 → .sidebar-toggle background → SUSTITUIDO
+   main.css:2765 → .sidebar-toggle:hover → SUSTITUIDO
+   ════════════════════════════════════════════════════════════════════ */
+.sidebar {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+}
+
+.sidebar-toggle {
+  background: var(--accent-dark) !important;
+}
+.sidebar-toggle:hover {
+  background: var(--accent) !important;
+}
+
+/* Nav item activo. */
+.nav-item.active,
+.sidebar-nav-item.active,
+.sidebar .nav-item.active,
+.sidebar a.active {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: white !important;
+}
+
+/* Nav item hover. */
+.sidebar .nav-item:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   4. BOTONES — primary/secondary
+   --------------------------------------------------------------------
+   main.css:2160 → .login-btn gradient → SUSTITUIDO
+   Botones .btn.btn-primary y .btn.btn-secondary del HTML real.
    ════════════════════════════════════════════════════════════════════ */
 
-/* Headlines principales — Fraunces (serif editorial moderna). */
+.btn.btn-primary,
+.btn-primary,
+.login-btn {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+}
+.btn.btn-primary:hover,
+.btn-primary:hover,
+.login-btn:hover {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%) !important;
+}
+
+/* Botones secundarios (Importar Excel / Exportar Excel / Tutorial / Cómo funcionan).
+   Los dejamos con outline neutro premium en vez de los colores actuales. */
+.btn.btn-secondary,
+.btn-secondary {
+  background: white !important;
+  color: var(--accent) !important;
+  border: 1px solid var(--app-border) !important;
+}
+.btn.btn-secondary:hover,
+.btn-secondary:hover {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent-soft) !important;
+}
+
+/* Tab activo (horizontal tabs). */
+.tab.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+}
+
+/* Filtro-btn activo (Ingredientes filtros Todas/Alimento/Bebida/Suministro). */
+.filtro-btn.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  border-color: var(--accent) !important;
+  color: white !important;
+}
+
+/* Paginación hover. */
+.paginacion button:hover:not(:disabled) {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: white !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   5. ACENTOS PEQUEÑOS — outline, focus, scrollbar, links
+   --------------------------------------------------------------------
+   main.css:283 → outline #667eea → SUSTITUIDO
+   main.css:518, 2190 → color #667eea → SUSTITUIDO
+   main.css:571 → border-top-color spinner → SUSTITUIDO
+   main.css:658 → scrollbar-thumb gradient → SUSTITUIDO
+   main.css:2154 → border-color #667eea → SUSTITUIDO
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Focus outline global. */
+*:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+}
+
+/* Scrollbar thumb. */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dark) !important;
+}
+
+/* Spinner / loader. */
+.spinner-primary,
+.loader-primary,
+.spinner {
+  border-top-color: var(--accent) !important;
+}
+
+/* Links de marca. */
+a.brand-link,
+.link-primary {
+  color: var(--accent) !important;
+}
+a.brand-link:hover,
+.link-primary:hover {
+  color: var(--accent-dark) !important;
+}
+
+/* Inputs focus border. */
+input:focus,
+textarea:focus,
+select:focus,
+.input:focus {
+  border-color: var(--accent) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   6. TIPOGRAFÍA — Fraunces display + tabular nums
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Headlines principales. */
 .header h1,
 .app-name,
 .brand-name,
@@ -89,20 +229,21 @@ body {
 .form-card h3,
 .empty-state h3,
 .modal-header h2,
-.modal-header h3 {
+.modal-header h3,
+.sidebar-brand-name {
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.015em;
   line-height: 1.15;
 }
 
-/* H2 grandes (encabezado de pestaña): font-size escalable y respiro. */
+/* H2 grandes (encabezado de pestaña). */
 .top-bar h2,
 .main-card h2 {
   font-size: clamp(1.5rem, 2.5vw, 2rem);
 }
 
-/* Tabular nums en cifras numéricas — datos cuadran en columnas. */
+/* Tabular nums en cifras numéricas. */
 .kpi-card .value,
 .kpi-card .number,
 .kpi-mini .value,
@@ -123,88 +264,12 @@ th.numeric,
 
 
 /* ════════════════════════════════════════════════════════════════════
-   4. BRANDING — sustituir morado/azul por verde oliva
-   --------------------------------------------------------------------
-   SÓLO aplica al branding (botones primary, tabs activos, sidebar
-   nav activo, paginación hover, filtros activos, links principales).
-   NO toca colores semánticos.
+   7. COMPATIBILIDAD CON DARK MODE
    ════════════════════════════════════════════════════════════════════ */
-
-/* Botón primario. */
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-}
-.btn-primary:hover {
-  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%);
-}
-
-/* Tab activo (las pestañas horizontales). */
-.tab.active {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-}
-
-/* Sidebar nav activo. */
-.nav-item.active,
-.sidebar-nav-item.active,
-.sidebar a.active {
-  background: var(--accent);
-  color: white;
-}
-
-/* Filtro-btn activo (Ingredientes). */
-.filtro-btn.active {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-  border-color: var(--accent);
-}
-
-/* Paginación hover. */
-.paginacion button:hover:not(:disabled) {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-
-/* Header global de la app. */
-.app-header,
-.header {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-}
-.app-header h1,
-.header h1,
-.app-header p,
-.header p {
-  color: white;
-}
-
-/* Spinner / loader principal. */
-.spinner-primary,
-.loader-primary {
-  border-top-color: var(--accent);
-}
-
-/* Links de marca. */
-a.brand-link,
-.link-primary {
-  color: var(--accent);
-}
-a.brand-link:hover,
-.link-primary:hover {
-  color: var(--accent-dark);
-}
-
-
-/* ════════════════════════════════════════════════════════════════════
-   5. COMPATIBILIDAD CON DARK MODE
-   --------------------------------------------------------------------
-   En dark mode, no imponer el fondo crema ni el header verde oliva
-   sobre los colores propios del dark mode. Dejamos heredar.
-   ════════════════════════════════════════════════════════════════════ */
-[data-theme="dark"] body {
-  background-color: inherit;
-}
 [data-theme="dark"] .header h1,
 [data-theme="dark"] .app-name,
 [data-theme="dark"] .main-card h2,
-[data-theme="dark"] .top-bar h2 {
+[data-theme="dark"] .top-bar h2,
+[data-theme="dark"] .sidebar-brand-name {
   color: inherit;
 }
