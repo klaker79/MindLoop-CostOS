@@ -837,6 +837,23 @@ table tbody td[style*="background:#152b48"] {
   color: #94a3b8 !important;
 }
 
+
+/* --- K.3 Select NATIVO (no Tom Select) — option highlight ---
+   Cuando un <select> nativo abre su dropdown, la opción resaltada
+   por defecto usa el color del SO (azul Windows fluo). Chrome/Edge
+   recientes respetan estas reglas, Firefox parcialmente, Safari no.
+   También permite definir accent-color global. */
+select {
+  accent-color: var(--accent);
+}
+select option:checked {
+  background-color: var(--accent) !important;
+  color: white !important;
+}
+select option:hover {
+  background-color: var(--accent-tint) !important;
+}
+
 table tbody tr:hover {
   background: var(--accent-tint) !important;
 }
