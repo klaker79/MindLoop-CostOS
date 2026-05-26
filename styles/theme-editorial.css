@@ -630,3 +630,76 @@ table input[type="number"]:focus {
   box-shadow: 0 0 0 3px rgba(63, 77, 42, 0.12) !important;
   outline: none !important;
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE D — DESATURAR GRÁFICAS, TABS Y BANDAS DECORATIVAS
+   --------------------------------------------------------------------
+   D.1 Forecast tabs (7 días / Mes) — tab activo morado → verde oliva
+   D.2 Bandas superiores decorativas de cards dashboard-premium
+       (eran 7 colores chillones cada una distinta) → paleta editorial
+       sobria coherente con el tema
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- D.1 Forecast period tabs --- */
+.forecast-period-tab.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+.forecast-period-tab:not(.active) {
+  background: var(--app-bg-soft) !important;
+  color: #64748b !important;
+}
+.forecast-period-tab:not(.active):hover {
+  background: var(--accent-tint) !important;
+  color: var(--accent-dark) !important;
+}
+
+
+/* --- D.2 Bandas decorativas superiores de dashboard-premium cards --- */
+/* polish.css define 7 bandas decorativas con linear-gradient en
+   colores chillones (naranja/azul/rosa/verde fluo/morado/rojo/morado).
+   Las sustituimos por paleta editorial coherente. */
+
+/* Row 1 */
+#dashboard-premium > div:nth-child(1) > .dashboard-card:nth-child(1)::before {
+  background: linear-gradient(90deg, #8a6e3e, #a98759, #8a6e3e) !important;  /* ocre (Stock Bajo) */
+}
+#dashboard-premium > div:nth-child(1) > .dashboard-card:nth-child(2)::before {
+  background: linear-gradient(90deg, #4a5b6c, #6c7c8c, #4a5b6c) !important;  /* gris azulado (Hoy) */
+}
+#dashboard-premium > div:nth-child(1) > .dashboard-card:nth-child(3)::before {
+  background: linear-gradient(90deg, #7a5c3a, #9c7a55, #7a5c3a) !important;  /* marrón tierra (Personal) */
+}
+
+/* Row 2 */
+#dashboard-premium > div:nth-child(2) > .dashboard-card:nth-child(1)::before {
+  background: linear-gradient(90deg, #3f4d2a, #6b8048, #3f4d2a) !important;  /* verde oliva (Valor Stock) */
+}
+#dashboard-premium > div:nth-child(2) > .dashboard-card:nth-child(2)::before {
+  background: linear-gradient(90deg, #7a5c3a, #9c7a55, #7a5c3a) !important;  /* marrón tierra (Proyección) */
+}
+#dashboard-premium > div:nth-child(2) > .dashboard-card:nth-child(3)::before {
+  background: linear-gradient(90deg, #5a4a3a, #7a6555, #5a4a3a) !important;  /* marrón oscuro (Cambios Precio) */
+}
+
+/* Row 3 — full width (Top Proveedores) */
+#dashboard-premium > div:nth-child(3) > .dashboard-card::before {
+  background: linear-gradient(90deg, #3f4d2a, #6b8048, #3f4d2a) !important;  /* verde oliva accent */
+}
+
+
+/* --- D.3 Sidebar override más profundo
+   polish.css:163-167 redefine .sidebar con gradient morado-violeta-azul
+   más oscuro. Ya tenemos override en Fase A v3 pero confirmamos con
+   especificidad mayor. */
+.app .sidebar,
+aside.sidebar {
+  background: linear-gradient(180deg,
+    rgba(63, 77, 42, 0.98) 0%,
+    rgba(47, 58, 31, 0.99) 50%,
+    rgba(37, 48, 26, 0.99) 100%) !important;
+  box-shadow: 4px 0 24px rgba(63, 77, 42, 0.18) !important;
+}
