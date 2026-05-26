@@ -2073,8 +2073,10 @@ async function renderizarTablaPLDiario() {
     // 🎨 Tonos legibles sobre fondo navy oscuro (rediseño 2026-05-26).
     // Antes: #22c55e (verde fluo) / #ef4444 (rojo fuerte) — ilegibles
     // sobre navy.
+    // Usamos !important inline para vencer el "color: #1e293b !important"
+    // genérico que el tema editorial aplica a todas las table td.
     const colorTotal = totalBeneficioNeto >= 0 ? '#a3e9a4' : '#fda4af';
-    html += `<td style="text-align: center; background: linear-gradient(135deg, #1e3a5f 0%, #152b48 100%); color: ${colorTotal}; font-weight: 800; font-size: 16px; padding: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">${cm(totalBeneficioNeto)}</td></tr>`;
+    html += `<td style="text-align: center; background: linear-gradient(135deg, #1e3a5f 0%, #152b48 100%); color: ${colorTotal} !important; font-weight: 800; font-size: 16px; padding: 18px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">${cm(totalBeneficioNeto)}</td></tr>`;
 
     html += '</tbody></table></div>';
 
