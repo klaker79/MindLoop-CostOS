@@ -804,14 +804,18 @@ button[onclick*="mostrarCostTracker"]:hover {
   color: var(--accent-dark) !important;
 }
 
-/* badge-info ya es azul, lo ajustamos al matiz navy en lugar del azul
-   genérico #dbeafe / #2563eb. */
+/* badge-info se usa para familia "Bebida" en el listado de ingredientes.
+   Lo pintamos en marrón tierra claro para que coincida con el botón
+   del filtro "Bebidas" (que ya es marrón tierra en Fase E.3).
+   Así, cuando filtras Bebidas, el badge de cada fila se ve del mismo
+   color que el botón activo del filtro. */
 .badge-info {
-  background: #e8edf3 !important;
-  color: var(--accent) !important;
+  background: #ede4d8 !important;       /* beige cálido marrón */
+  color: #7a5c3a !important;             /* marrón tierra oscuro */
 }
 
-/* badge-warning (Suministros etc.): tono ocre coherente. */
+/* badge-warning (Suministros): tono ocre coherente con el botón del
+   filtro "Suministros" (Fase E.3). */
 .badge-warning {
   background: #f1eadd !important;
   color: #8a6e3e !important;
