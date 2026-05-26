@@ -56,7 +56,13 @@ export function parseMarkdown(text) {
             if (cells.length > 0) {
                 const tag = isHeader ? 'th' : 'td';
                 tableHtml += '<tr>' + cells.map(c => {
-                    const safeCell = c.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    // Escape HTML primero, luego procesar markdown inline
+                    // dentro de la celda (negritas con **, código con `).
+                    // Sin esto, **VINO** aparecía literal con asteriscos.
+                    let safeCell = c.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    safeCell = safeCell.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    safeCell = safeCell.replace(/__(.+?)__/g, '<strong>$1</strong>');
+                    safeCell = safeCell.replace(/`([^`]+)`/g, '<code class="chat-inline-code">$1</code>');
                     return `<${tag}>${safeCell}</${tag}>`;
                 }).join('') + '</tr>';
                 isHeader = false;

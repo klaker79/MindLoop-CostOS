@@ -1158,28 +1158,45 @@ select:focus {
 }
 
 .chat-table {
-  font-size: 12px !important;
+  font-size: 12.5px !important;
   background: white !important;
   border-collapse: collapse !important;
   border-radius: 0 !important;
+  white-space: normal !important;       /* permite wrap, evita scroll inn. */
+  width: 100% !important;
+  table-layout: auto !important;
 }
 .chat-table th {
   background: var(--app-bg-soft) !important;
   color: var(--accent-dark) !important;
   font-family: var(--font-display) !important;
   font-weight: 600 !important;
-  font-size: 11px !important;
+  font-size: 10.5px !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.4px !important;
-  padding: 10px 12px !important;
+  letter-spacing: 0.5px !important;
+  padding: 10px 10px !important;
   border-bottom: 2px solid var(--app-border) !important;
   text-align: left !important;
+  white-space: nowrap !important;       /* headers cortos sí en una línea */
 }
 .chat-table td {
-  padding: 10px 12px !important;
+  padding: 9px 10px !important;
   border-bottom: 1px solid #f1f0e8 !important;
   color: #1e293b !important;
   font-variant-numeric: tabular-nums !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.4 !important;
+}
+/* Las celdas con strong (negrita) destacan suavemente */
+.chat-table td strong {
+  color: var(--accent-dark) !important;
+  font-weight: 600 !important;
+}
+/* Primera columna (suele ser rank/emoji) compacta */
+.chat-table td:first-child {
+  font-weight: 600 !important;
+  white-space: nowrap !important;
 }
 .chat-table tr:nth-child(even) {
   background: transparent !important;       /* sin zebra agresivo */
