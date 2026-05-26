@@ -2372,11 +2372,20 @@
                     if (provTotalEl) provTotalEl.textContent = cm(totalMes);
 
                     if (provOrdenados.length > 0) {
+                        // 🎨 Paleta editorial sobria (Fase A — rediseño visual 2026-05-26).
+                        // Sustituye los 8 gradients chillones originales (morado/azul/violeta/
+                        // celeste/verde/amarillo/rojo/rosa) por una secuencia de tonos terrosos
+                        // y verdes oliva que combina con el accent del tema. Distinguibles
+                        // entre sí pero sin gritar.
                         const colores = [
-                            ['#6366F1', '#818CF8'], ['#8B5CF6', '#A78BFA'],
-                            ['#3B82F6', '#60A5FA'], ['#0EA5E9', '#38BDF8'],
-                            ['#10B981', '#34D399'], ['#F59E0B', '#FBBF24'],
-                            ['#EF4444', '#F87171'], ['#EC4899', '#F472B6']
+                            ['#3f4d2a', '#5a6b3e'], // verde oliva oscuro
+                            ['#7a5c3a', '#9c7a55'], // marrón/tierra cálido
+                            ['#4a5b6c', '#6c7c8c'], // gris azulado sobrio
+                            ['#6b8048', '#8ba562'], // verde oliva claro
+                            ['#8a6e3e', '#a98759'], // ocre
+                            ['#5a4a3a', '#7a6555'], // marrón oscuro
+                            ['#3a4a5a', '#5a6b7c'], // gris navy
+                            ['#6b7a4a', '#8a9c68']  // verde lima sobrio
                         ];
                         provBarrasEl.innerHTML = provOrdenados.map(([nombre, total], i) => {
                             const pct = Math.max(8, (total / maxGasto) * 100);
