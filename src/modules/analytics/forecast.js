@@ -430,17 +430,18 @@ export async function renderForecastChart(containerId, chartData) {
     const canvas = ctx.canvas || ctx;
     const chartCtx = canvas.getContext ? canvas.getContext('2d') : ctx;
 
-    // Green gradient for actual sales
-    const greenGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
-    greenGradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
-    greenGradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.12)');
-    greenGradient.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
+    // 🎨 Paleta editorial Fase D (2026-05-26, rev. navy):
+    // - Ventas reales: azul navy editorial (en lugar de verde fluo)
+    // - Proyección: marrón tierra cálido (mantiene, diferencia bien del navy)
+    const navyGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
+    navyGradient.addColorStop(0, 'rgba(30, 58, 95, 0.32)');
+    navyGradient.addColorStop(0.5, 'rgba(30, 58, 95, 0.10)');
+    navyGradient.addColorStop(1, 'rgba(30, 58, 95, 0.02)');
 
-    // Purple gradient for forecast
-    const purpleGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
-    purpleGradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
-    purpleGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.1)');
-    purpleGradient.addColorStop(1, 'rgba(139, 92, 246, 0.01)');
+    const tierraGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
+    tierraGradient.addColorStop(0, 'rgba(122, 92, 58, 0.28)');
+    tierraGradient.addColorStop(0.5, 'rgba(122, 92, 58, 0.09)');
+    tierraGradient.addColorStop(1, 'rgba(122, 92, 58, 0.01)');
 
     window._forecastChart = new Chart(ctx, {
         type: 'line',
@@ -450,36 +451,36 @@ export async function renderForecastChart(containerId, chartData) {
                 {
                     label: t('dashboard:forecast_chart_actual'),
                     data: chartData.historico,
-                    borderColor: '#10B981',
-                    backgroundColor: greenGradient,
+                    borderColor: '#1e3a5f',
+                    backgroundColor: navyGradient,
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 5,
                     pointHoverRadius: 8,
-                    pointBackgroundColor: '#10B981',
+                    pointBackgroundColor: '#1e3a5f',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
                     pointHoverBorderWidth: 3,
-                    pointHoverBackgroundColor: '#10B981',
+                    pointHoverBackgroundColor: '#1e3a5f',
                     pointHoverBorderColor: '#ffffff'
                 },
                 {
                     label: t('dashboard:forecast_chart_projection'),
                     data: chartData.forecast,
-                    borderColor: '#8B5CF6',
-                    backgroundColor: purpleGradient,
+                    borderColor: '#7a5c3a',
+                    backgroundColor: tierraGradient,
                     borderWidth: 2.5,
                     borderDash: [6, 4],
                     fill: true,
                     tension: 0.4,
                     pointRadius: 5,
                     pointHoverRadius: 8,
-                    pointBackgroundColor: '#8B5CF6',
+                    pointBackgroundColor: '#7a5c3a',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
                     pointHoverBorderWidth: 3,
-                    pointHoverBackgroundColor: '#8B5CF6',
+                    pointHoverBackgroundColor: '#7a5c3a',
                     pointHoverBorderColor: '#ffffff',
                     pointStyle: 'rectRounded'
                 }
