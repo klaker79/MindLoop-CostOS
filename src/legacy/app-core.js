@@ -2372,20 +2372,19 @@
                     if (provTotalEl) provTotalEl.textContent = cm(totalMes);
 
                     if (provOrdenados.length > 0) {
-                        // 🎨 Paleta editorial sobria (Fase A — rediseño visual 2026-05-26).
-                        // Sustituye los 8 gradients chillones originales (morado/azul/violeta/
-                        // celeste/verde/amarillo/rojo/rosa) por una secuencia de tonos terrosos
-                        // y verdes oliva que combina con el accent del tema. Distinguibles
-                        // entre sí pero sin gritar.
+                        // 🎨 Paleta editorial sobria (Fase A — rediseño visual 2026-05-26,
+                        // rev. navy 2026-05-26). Sustituye los 8 gradients chillones originales
+                        // por tonos navy + tierra + ocre + grises. Distinguibles entre sí pero
+                        // sin gritar y coherente con el accent navy del tema.
                         const colores = [
-                            ['#3f4d2a', '#5a6b3e'], // verde oliva oscuro
+                            ['#1e3a5f', '#3b5d85'], // azul navy editorial (accent)
                             ['#7a5c3a', '#9c7a55'], // marrón/tierra cálido
                             ['#4a5b6c', '#6c7c8c'], // gris azulado sobrio
-                            ['#6b8048', '#8ba562'], // verde oliva claro
+                            ['#3b5d85', '#5d80a8'], // azul navy claro
                             ['#8a6e3e', '#a98759'], // ocre
                             ['#5a4a3a', '#7a6555'], // marrón oscuro
                             ['#3a4a5a', '#5a6b7c'], // gris navy
-                            ['#6b7a4a', '#8a9c68']  // verde lima sobrio
+                            ['#2d4666', '#4d6a8e']  // navy alternativo sobrio
                         ];
                         provBarrasEl.innerHTML = provOrdenados.map(([nombre, total], i) => {
                             const pct = Math.max(8, (total / maxGasto) * 100);

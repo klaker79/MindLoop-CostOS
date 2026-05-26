@@ -430,13 +430,13 @@ export async function renderForecastChart(containerId, chartData) {
     const canvas = ctx.canvas || ctx;
     const chartCtx = canvas.getContext ? canvas.getContext('2d') : ctx;
 
-    // 🎨 Paleta editorial Fase D (2026-05-26):
-    // - Ventas reales: verde oliva oscuro (en lugar de verde fluo)
-    // - Proyección: marrón tierra cálido (en lugar de morado)
-    const oliveGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
-    oliveGradient.addColorStop(0, 'rgba(63, 77, 42, 0.32)');
-    oliveGradient.addColorStop(0.5, 'rgba(63, 77, 42, 0.10)');
-    oliveGradient.addColorStop(1, 'rgba(63, 77, 42, 0.02)');
+    // 🎨 Paleta editorial Fase D (2026-05-26, rev. navy):
+    // - Ventas reales: azul navy editorial (en lugar de verde fluo)
+    // - Proyección: marrón tierra cálido (mantiene, diferencia bien del navy)
+    const navyGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
+    navyGradient.addColorStop(0, 'rgba(30, 58, 95, 0.32)');
+    navyGradient.addColorStop(0.5, 'rgba(30, 58, 95, 0.10)');
+    navyGradient.addColorStop(1, 'rgba(30, 58, 95, 0.02)');
 
     const tierraGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
     tierraGradient.addColorStop(0, 'rgba(122, 92, 58, 0.28)');
@@ -451,18 +451,18 @@ export async function renderForecastChart(containerId, chartData) {
                 {
                     label: t('dashboard:forecast_chart_actual'),
                     data: chartData.historico,
-                    borderColor: '#3f4d2a',
-                    backgroundColor: oliveGradient,
+                    borderColor: '#1e3a5f',
+                    backgroundColor: navyGradient,
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 5,
                     pointHoverRadius: 8,
-                    pointBackgroundColor: '#3f4d2a',
+                    pointBackgroundColor: '#1e3a5f',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
                     pointHoverBorderWidth: 3,
-                    pointHoverBackgroundColor: '#3f4d2a',
+                    pointHoverBackgroundColor: '#1e3a5f',
                     pointHoverBorderColor: '#ffffff'
                 },
                 {
