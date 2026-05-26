@@ -180,11 +180,12 @@ function renderToggleYDeviation() {
 
     const togglePill = (mode, labelKey) => {
         const active = modoActivo === mode;
+        // 🎨 Navy editorial (rediseño 2026-05-26)
         return `<button type="button" data-modo="${mode}" class="escandallo-toggle-btn" style="
             padding: 6px 14px;
             border-radius: 999px;
-            border: 1px solid ${active ? '#3B82F6' : '#CBD5E1'};
-            background: ${active ? '#3B82F6' : '#F8FAFC'};
+            border: 1px solid ${active ? '#1e3a5f' : '#CBD5E1'};
+            background: ${active ? '#1e3a5f' : '#F8FAFC'};
             color: ${active ? 'white' : '#334155'};
             font-size: 12px;
             font-weight: 600;
