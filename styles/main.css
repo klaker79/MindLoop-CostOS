@@ -3440,3 +3440,78 @@ table tbody tr:nth-child(10) {
   max-width: 100%;
   padding: 0;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Pedidos: tabla → tarjetas apiladas (sprint mobile 2026-05-26)
+   --------------------------------------------------------------------
+   - Aditivo: no toca ningún estilo desktop.
+   - Scope: SOLO #tabla-pedidos. El resto de tablas siguen como hoy
+     (scroll horizontal vía el bloque @media de 2779).
+   - Requiere data-label="..." en cada <td> (ya añadido en pedidos-ui.js
+     usando las MISMAS traducciones que el <thead>).
+   - Para revertir: borrar este bloque entero + los data-label en pedidos-ui.js.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-pedidos table {
+    min-width: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0;
+  }
+  #tabla-pedidos thead {
+    display: none;
+  }
+  #tabla-pedidos tbody,
+  #tabla-pedidos tr,
+  #tabla-pedidos td {
+    display: block;
+    width: 100%;
+  }
+  #tabla-pedidos tr {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+  #tabla-pedidos td {
+    padding: 6px 0 !important;
+    border: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px !important;
+    min-width: 0;
+  }
+  #tabla-pedidos td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  /* Última celda = acciones. Sin label, alineado a la derecha,
+     separada con una línea suave de la info de arriba. */
+  #tabla-pedidos td:last-child {
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 10px !important;
+    margin-top: 4px;
+    justify-content: flex-end;
+  }
+  #tabla-pedidos td:last-child::before {
+    display: none;
+  }
+  /* Botones de acción más cómodos al pulgar */
+  #tabla-pedidos td .actions {
+    gap: 8px;
+  }
+  #tabla-pedidos td .icon-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 15px !important;
+  }
+}
