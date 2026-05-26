@@ -703,3 +703,122 @@ aside.sidebar {
     rgba(14, 32, 52, 0.99) 100%) !important;
   box-shadow: 4px 0 24px rgba(30, 58, 95, 0.18) !important;
 }
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE E — MATIZACIONES POST-NAVY
+   --------------------------------------------------------------------
+   Detalles que quedaban con sus colores azul cielo / morado / verde
+   chillón y no encajaban con el navy editorial:
+   E.1 Botones período Hoy/Semana/Mes del banner fecha
+   E.2 Botón "Seguimiento Costes" (morado)
+   E.3 Filtros Alimento/Bebida/Suministro (chillones)
+   E.4 Badges familia "Alimento" + stock "X kg" (verde fluo)
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- E.1 Botones de período Hoy/Semana/Mes (banner fecha actual) --- */
+/* Inline tienen border:1px solid #0ea5e9 (azul cielo), bg azul activo
+   y texto #0369a1 inactivo. Sobreescribir a navy. */
+.periodo-btn {
+  border: 1px solid var(--accent-soft) !important;
+  background: white !important;
+  color: var(--accent-dark) !important;
+}
+.periodo-btn:hover:not(.active) {
+  background: var(--accent-tint) !important;
+}
+.periodo-btn.active {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: white !important;
+}
+
+
+/* --- E.2 Botón "Seguimiento Costes" (morado #7C3AED inline) --- */
+button[onclick*="mostrarCostTracker"] {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+button[onclick*="mostrarCostTracker"]:hover {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%) !important;
+}
+
+
+/* --- E.3 Filtros de categoría (Alimento/Bebida/Suministro) --- */
+/* Definidos inline en src/modules/ingredientes/ingredientes-ui.js
+   con paleta chillona (verde fluo / azul fluo / ámbar). Los pasamos
+   a tonos sobrios coherentes con el navy. */
+
+/* Alimento (era verde claro #dcfce7 + borde verde #22c55e). */
+.filtro-btn.grupo[onclick*="alimento"] {
+  background: #eef2f7 !important;
+  border-color: var(--accent-soft) !important;
+  color: var(--accent-dark) !important;
+}
+.filtro-btn.grupo[onclick*="alimento"].active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  border-color: var(--accent) !important;
+  color: white !important;
+}
+
+/* Bebida (era azul claro #dbeafe + borde azul #3b82f6). */
+.filtro-btn.grupo[onclick*="bebida"] {
+  background: #ede4d8 !important;        /* beige cálido */
+  border-color: #9c7a55 !important;      /* marrón tierra */
+  color: #7a5c3a !important;
+}
+.filtro-btn.grupo[onclick*="bebida"].active {
+  background: linear-gradient(135deg, #7a5c3a 0%, #5a4528 100%) !important;
+  border-color: #5a4528 !important;
+  color: white !important;
+}
+
+/* Suministro (era ámbar #fef3c7 + borde naranja #f59e0b). */
+.filtro-btn.grupo[onclick*="suministro"] {
+  background: #f5efe2 !important;        /* beige más claro */
+  border-color: #a98759 !important;      /* ocre */
+  color: #8a6e3e !important;
+}
+.filtro-btn.grupo[onclick*="suministro"].active {
+  background: linear-gradient(135deg, #8a6e3e 0%, #6e552c 100%) !important;
+  border-color: #6e552c !important;
+  color: white !important;
+}
+
+
+/* --- E.4 Badges familia + stock-ok (verde fluo → navy claro) --- */
+/* badge-success aparece como pill "Alimento" en listado de ingredientes.
+   stock-ok aparece como "5.40 kg" en stock real. Eran verdes fluo.
+   Mantenemos rojo en stock-low (alerta semántica) y verde en food-cost
+   por debajo del 33% (semántico también). */
+
+.badge-success {
+  background: #e2eaf3 !important;       /* navy muy claro */
+  color: var(--accent-dark) !important;  /* navy oscuro */
+}
+
+.stock-ok {
+  background: #e2eaf3 !important;
+  color: var(--accent-dark) !important;
+}
+
+/* badge-info ya es azul, lo ajustamos al matiz navy en lugar del azul
+   genérico #dbeafe / #2563eb. */
+.badge-info {
+  background: #e8edf3 !important;
+  color: var(--accent) !important;
+}
+
+/* badge-warning (Suministros etc.): tono ocre coherente. */
+.badge-warning {
+  background: #f1eadd !important;
+  color: #8a6e3e !important;
+}
+
+/* badge-purple (si se usa en algún sitio): tono navy alternativo. */
+.badge-purple {
+  background: #e6e9f0 !important;
+  color: #2d4666 !important;
+}
