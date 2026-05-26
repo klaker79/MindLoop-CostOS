@@ -1044,10 +1044,17 @@ select:focus {
    ════════════════════════════════════════════════════════════════════ */
 
 
-/* --- I.1 Chat window — más ancho, sombras tintadas navy --- */
+/* --- I.1 Chat window — panel grande estilo GG-OS --- */
+/* Antes: 450x550 flotante pequeño.
+   Ahora: 600px ancho × 80vh alto (mín 600px) → mucho más espacio
+   para conversaciones largas y tablas. En pantallas pequeñas
+   (<1024px) el chat-styles.js original ya tiene un @media que lo
+   pone full-screen, ese sigue activo. */
 .chat-window {
-  width: 480px !important;            /* +30px sobre 450px original */
-  height: 620px !important;            /* +70px sobre 550px original */
+  width: 600px !important;
+  height: 80vh !important;
+  max-height: 880px !important;
+  min-height: 600px !important;
   border-radius: 18px !important;
   box-shadow: 0 16px 50px rgba(30, 58, 95, 0.18),
               0 4px 12px rgba(30, 58, 95, 0.08) !important;
@@ -1055,23 +1062,30 @@ select:focus {
 }
 
 
-/* --- I.2 Chat header — navy editorial --- */
+/* --- I.2 Chat header — más compacto + título más grande --- */
+/* Header antes: padding 22 24, ocupaba mucho vertical y h3 18px se
+   apretaba en 2-3 líneas con los botones Mes/Coach/etc al lado.
+   Ahora: padding 14 22 (menos alto), h3 20px más prominente. */
 .chat-header {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
-  padding: 22px 24px !important;
+  padding: 14px 22px !important;
 }
 .chat-header-avatar {
   background: rgba(255, 255, 255, 0.18) !important;
+  width: 40px !important;
+  height: 40px !important;
 }
 .chat-header-info h3 {
   font-family: var(--font-display) !important;
   font-weight: 600 !important;
-  font-size: 18px !important;
+  font-size: 20px !important;        /* más grande, más editorial */
   letter-spacing: -0.01em !important;
+  line-height: 1.15 !important;
 }
 .chat-header-info p {
   font-size: 12px !important;
   opacity: 0.85 !important;
+  margin: 2px 0 0 !important;
 }
 .chat-header-status {
   background: #94c08a !important;   /* verde sobrio en lugar de #10b981 fluo */
