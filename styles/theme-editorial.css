@@ -751,15 +751,15 @@ button[onclick*="mostrarCostTracker"]:hover {
    con paleta chillona (verde fluo / azul fluo / ámbar). Los pasamos
    a tonos sobrios coherentes con el navy. */
 
-/* Alimento (era verde claro #dcfce7 + borde verde #22c55e). */
+/* Alimento — verde sobrio editorial (cada familia tiene SU color). */
 .filtro-btn.grupo[onclick*="alimento"] {
-  background: #eef2f7 !important;
-  border-color: var(--accent-soft) !important;
-  color: var(--accent-dark) !important;
+  background: #e8efe2 !important;        /* verde claro editorial */
+  border-color: #8aa572 !important;       /* verde sobrio */
+  color: #4a6b3e !important;              /* verde oscuro editorial */
 }
 .filtro-btn.grupo[onclick*="alimento"].active {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
-  border-color: var(--accent) !important;
+  background: linear-gradient(135deg, #4a6b3e 0%, #36502c 100%) !important;
+  border-color: #36502c !important;
   color: white !important;
 }
 
@@ -794,11 +794,15 @@ button[onclick*="mostrarCostTracker"]:hover {
    Mantenemos rojo en stock-low (alerta semántica) y verde en food-cost
    por debajo del 33% (semántico también). */
 
+/* badge-success = familia "Alimento" en listado ingredientes.
+   Verde sobrio editorial para coincidir con el filtro Alimento. */
 .badge-success {
-  background: #e2eaf3 !important;       /* navy muy claro */
-  color: var(--accent-dark) !important;  /* navy oscuro */
+  background: #e8efe2 !important;        /* verde claro editorial */
+  color: #4a6b3e !important;              /* verde oscuro */
 }
 
+/* stock-ok = badge "X kg" stock saludable.
+   Mantenemos navy claro (es lectura cuantitativa, no familia). */
 .stock-ok {
   background: #e2eaf3 !important;
   color: var(--accent-dark) !important;
