@@ -343,20 +343,23 @@ window.filtrarRecetasPorCategoria = function (categoria) {
 
     // Actualizar estilos de botones
     const botones = document.querySelectorAll('#filtros-recetas .filter-btn');
+    // 🎨 Paleta editorial (Fase E rediseño 2026-05-26):
+    // - Alimentos → verde sobrio  Bebidas → marrón tierra  Base → navy
+    // Mantiene paridad con los filtros de Ingredientes y resto del tema.
     botones.forEach(btn => {
         const btnCategoria = btn.dataset.filter;
         if (btnCategoria === categoria) {
             btn.classList.add('active');
             btn.style.background = btnCategoria === 'todas' ? '#f1f5f9' :
-                btnCategoria === 'alimentos' ? '#22c55e' :
-                    btnCategoria === 'base' ? '#7c3aed' : '#3b82f6';
+                btnCategoria === 'alimentos' ? '#4a6b3e' :
+                    btnCategoria === 'base' ? '#1e3a5f' : '#7a5c3a';
             btn.style.color = btnCategoria === 'todas' ? '#475569' : 'white';
         } else {
             btn.classList.remove('active');
             btn.style.background = 'white';
-            btn.style.color = btnCategoria === 'alimentos' ? '#22c55e' :
-                btnCategoria === 'bebida' ? '#3b82f6' :
-                    btnCategoria === 'base' ? '#7c3aed' : '#475569';
+            btn.style.color = btnCategoria === 'alimentos' ? '#4a6b3e' :
+                btnCategoria === 'bebida' ? '#7a5c3a' :
+                    btnCategoria === 'base' ? '#1e3a5f' : '#475569';
         }
     });
 

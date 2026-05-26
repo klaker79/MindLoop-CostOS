@@ -1,0 +1,1661 @@
+/* ════════════════════════════════════════════════════════════════════
+   TEMA VISUAL — MindLoop CostOS · Fase A v2 (2026-05-26)
+   --------------------------------------------------------------------
+   Rediseño fundacional aplicando skill redesign-existing-projects.
+   100% aditivo. Cargado DESPUÉS de main.css + polish.css → prioridad.
+
+   v2: añade overrides SISTEMÁTICOS a los 14 hardcodes de #667eea /
+   #764ba2 / #f093fb en main.css. El v1 sólo cambiaba variables CSS,
+   pero la app tiene colores hardcodeados que no usan las variables.
+   Ahora se cubren TODOS los selectores afectados.
+
+   FASE A — Tokens fundacionales:
+   1. Body: gradient morado → fondo neutro premium #fafaf7.
+   2. Sidebar (gradient principal): morado → azul navy oscuro.
+   3. Botones .btn-primary, .login-btn: gradient azul navy.
+   4. Outline, colores de focus, scrollbar, sidebar-toggle, login-page:
+      azul navy.
+   5. Tipografía Fraunces en headlines, tabular-nums en cifras.
+
+   NO se tocan colores semánticos:
+   - Stock: critico/bajo/ok
+   - Food cost: ≤33% verde, 34-38% naranja, >38% rojo
+   - Badges: success/warning/danger/info
+   - Toasts, alertas, charts (Chart.js)
+   - Botones de KPI/dashboard con paleta propia
+
+   Cómo revertir: borrar este archivo + la línea de carga en index.html.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* ════════════════════════════════════════════════════════════════════
+   1. TOKENS — nueva paleta + tipografía
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Paleta neutra premium */
+  --app-bg: #fafaf7;
+  --app-bg-soft: #f5f5f0;
+  --app-surface: #ffffff;
+  --app-surface-elevated: #fcfcfa;
+  --app-border: #e8e8e0;
+
+  /* Accent — azul navy editorial */
+  --accent: #1e3a5f;
+  --accent-dark: #152b48;
+  --accent-darker: #0e2034;
+  --accent-soft: #3b5d85;
+  --accent-light: #5d80a8;
+  --accent-tint: #eef2f7;
+
+  /* Sobreescribir tokens del :root original */
+  --gradient-start: #1e3a5f;
+  --gradient-end: #152b48;
+
+  /* Tipografía */
+  --font-display: 'Fraunces', 'Playfair Display', 'Times New Roman', Georgia, serif;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   2. BODY + LOGIN PAGE — fondo neutro premium
+   --------------------------------------------------------------------
+   main.css:40 → body gradient morado → SUSTITUIDO
+   main.css:2083 → login-page gradient morado → SUSTITUIDO
+   ════════════════════════════════════════════════════════════════════ */
+body {
+  background: var(--app-bg) !important;
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%) !important;
+}
+
+/* Login page background. */
+.login-page,
+.login-screen,
+body.login {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 50%, var(--accent-darker) 100%) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   3. SIDEBAR — gradient morado → azul navy
+   --------------------------------------------------------------------
+   main.css:2517 → .sidebar gradient HARDCODED → SUSTITUIDO
+   main.css:2751 → .sidebar-toggle background → SUSTITUIDO
+   main.css:2765 → .sidebar-toggle:hover → SUSTITUIDO
+   ════════════════════════════════════════════════════════════════════ */
+.sidebar {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+}
+
+.sidebar-toggle {
+  background: var(--accent-dark) !important;
+}
+.sidebar-toggle:hover {
+  background: var(--accent) !important;
+}
+
+/* Nav item activo. */
+.nav-item.active,
+.sidebar-nav-item.active,
+.sidebar .nav-item.active,
+.sidebar a.active {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: white !important;
+}
+
+/* Nav item hover. */
+.sidebar .nav-item:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   4. BOTONES — primary/secondary
+   --------------------------------------------------------------------
+   main.css:2160 → .login-btn gradient → SUSTITUIDO
+   Botones .btn.btn-primary y .btn.btn-secondary del HTML real.
+   ════════════════════════════════════════════════════════════════════ */
+
+.btn.btn-primary,
+.btn-primary,
+.login-btn {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+}
+.btn.btn-primary:hover,
+.btn-primary:hover,
+.login-btn:hover {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%) !important;
+}
+
+/* Botones secundarios (Importar Excel / Exportar Excel / Tutorial / Cómo funcionan).
+   Los dejamos con outline neutro premium en vez de los colores actuales. */
+.btn.btn-secondary,
+.btn-secondary {
+  background: white !important;
+  color: var(--accent) !important;
+  border: 1px solid var(--app-border) !important;
+}
+.btn.btn-secondary:hover,
+.btn-secondary:hover {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent-soft) !important;
+}
+
+/* Tab activo (horizontal tabs). */
+.tab.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+}
+
+/* Filtro-btn activo (Ingredientes filtros Todas/Alimento/Bebida/Suministro). */
+.filtro-btn.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  border-color: var(--accent) !important;
+  color: white !important;
+}
+
+/* Paginación hover. */
+.paginacion button:hover:not(:disabled) {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: white !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   5. ACENTOS PEQUEÑOS — outline, focus, scrollbar, links
+   --------------------------------------------------------------------
+   main.css:283 → outline #667eea → SUSTITUIDO
+   main.css:518, 2190 → color #667eea → SUSTITUIDO
+   main.css:571 → border-top-color spinner → SUSTITUIDO
+   main.css:658 → scrollbar-thumb gradient → SUSTITUIDO
+   main.css:2154 → border-color #667eea → SUSTITUIDO
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Focus outline global. */
+*:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+}
+
+/* Scrollbar thumb. */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dark) !important;
+}
+
+/* Spinner / loader. */
+.spinner-primary,
+.loader-primary,
+.spinner {
+  border-top-color: var(--accent) !important;
+}
+
+/* Links de marca. */
+a.brand-link,
+.link-primary {
+  color: var(--accent) !important;
+}
+a.brand-link:hover,
+.link-primary:hover {
+  color: var(--accent-dark) !important;
+}
+
+/* Inputs focus border. */
+input:focus,
+textarea:focus,
+select:focus,
+.input:focus {
+  border-color: var(--accent) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   5.b HEADER GLOBAL — sustituir gradient morado de polish.css:246
+   --------------------------------------------------------------------
+   polish.css:246 define:
+     .header {
+       background: linear-gradient(135deg, #4F46E5, #7C3AED, #9333EA) !important;
+       box-shadow: 0 4px 24px rgba(79, 70, 229, 0.2) !important;
+     }
+   Sobreescribimos con azul navy editorial.
+   ════════════════════════════════════════════════════════════════════ */
+.header {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 50%, var(--accent-darker) 100%) !important;
+  box-shadow: 0 4px 24px rgba(30, 58, 95, 0.18) !important;
+  border: none !important;
+}
+.app-header {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+}
+.header h1,
+.header p,
+.app-header h1,
+.app-header p {
+  color: white !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   6. TIPOGRAFÍA — Fraunces display + tabular nums
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Headlines principales. */
+.header h1,
+.app-name,
+.brand-name,
+.main-card h2,
+.top-bar h2,
+.chart-header h3,
+.form-card h3,
+.empty-state h3,
+.modal-header h2,
+.modal-header h3,
+.sidebar-brand-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+/* H2 grandes (encabezado de pestaña). */
+.top-bar h2,
+.main-card h2 {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+}
+
+/* Tabular nums en cifras numéricas. */
+.kpi-card .value,
+.kpi-card .number,
+.kpi-mini .value,
+.dashboard-card .number,
+.dashboard-card .value,
+.stat-value,
+.number-large,
+td.numeric,
+th.numeric,
+.cm,
+.precio,
+.stock-value,
+.food-cost-value,
+.kpi-row .kpi-mini {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   7. COMPATIBILIDAD CON DARK MODE
+   ════════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] .header h1,
+[data-theme="dark"] .app-name,
+[data-theme="dark"] .main-card h2,
+[data-theme="dark"] .top-bar h2,
+[data-theme="dark"] .sidebar-brand-name {
+  color: inherit;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE B — DESATURAR CTAs + CIFRAS GRANDES + KPI BORDERS
+   --------------------------------------------------------------------
+   Sobreescribir TODOS los hardcodes inline saturados del dashboard
+   (verde fluo, azul fuerte, naranja, morado, rosa, etc) por la paleta
+   editorial unificada. Toda la dashboard pasa a tonos azul navy +
+   neutros sobrios.
+
+   Mantiene intactos los semánticos de food cost (rojo >38%, naranja
+   34-38%, verde ≤33%) — son funcionales, no decorativos.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- B.1 Cifras grandes saturadas → azul navy oscuro / neutros --- */
+
+/* Valor Stock (era verde fluo gradient → ahora azul navy oscuro). */
+#kpi-valor-stock,
+#kpi-valor-stock[style] {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  background-clip: initial !important;
+  color: var(--accent-dark) !important;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Proyección total (era morado → ahora marrón tierra). */
+#forecast-total,
+#forecast-total[style] {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+  background-clip: initial !important;
+  color: #7a5c3a !important;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Total Top Proveedores (era morado → ahora azul navy oscuro). */
+#dashboard-proveedores-total,
+#dashboard-proveedores-total[style] {
+  color: var(--accent-dark) !important;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Items Stock (era azul → ahora gris neutro). */
+#kpi-items-stock {
+  color: #475569 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stock count (era naranja saturado → ahora ocre sobrio). */
+#kpi-stock-count {
+  color: #8a6e3e !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cifras de "Hoy": ventas/ingresos/plato estrella → neutralizar. */
+#ventas-hoy {
+  color: var(--accent-dark) !important;
+  font-variant-numeric: tabular-nums;
+}
+#ingresos-hoy {
+  color: #4a5b6c !important;
+  font-variant-numeric: tabular-nums;
+}
+#plato-estrella-hoy {
+  color: #7a5c3a !important;
+}
+
+
+/* --- B.2 Botones CTA dashboard (Venta/Pedido/Stock) --- */
+/* Eran 3 gradients saturados (verde fluo, azul fuerte, naranja).
+   Ahora todos en estilo outline sobrio: fondo blanco, borde y texto
+   azul navy. Los iconos siguen siendo emojis (mantienen carácter). */
+
+.dashboard-card button[data-tab="ventas"],
+.dashboard-card button[data-tab="pedidos"],
+.dashboard-card button[data-tab="inventario"] {
+  background: white !important;
+  color: var(--accent-dark) !important;
+  border: 1px solid var(--app-border) !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.dashboard-card button[data-tab="ventas"]:hover,
+.dashboard-card button[data-tab="pedidos"]:hover,
+.dashboard-card button[data-tab="inventario"]:hover {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent-soft) !important;
+  color: var(--accent-dark) !important;
+}
+
+
+/* --- B.3 KPI mini border-left unificado → todos azul navy --- */
+/* Eran 4 colores distintos (verde/azul/naranja/morado). Para look
+   profesional unificamos a azul navy, manteniendo el accent visual
+   pero con paleta coherente. */
+
+.kpi-row > .kpi-mini[style*="border-left"] {
+  border-left: 3px solid var(--accent) !important;
+}
+
+
+/* --- B.4 Icon backgrounds (cajitas 44x44 de cards) → neutros sepia --- */
+/* Eran gradients chillones por card (amarillo/azul/morado/verde/naranja).
+   Sobreescribimos sólo dentro de #dashboard-premium para no romper otros
+   sitios que usen este patrón con sentido semántico. */
+
+#dashboard-premium div[style*="width: 44px"][style*="height: 44px"] {
+  background: linear-gradient(135deg, #f5f5f0, #e8e8e0) !important;
+}
+
+
+/* --- B.5 Sub-cards "Actividad del día" (Ventas/Ingresos/Estrella) --- */
+/* Las 3 mini-tarjetas tienen gradients pastel saturados (verde claro,
+   azul claro, naranja claro). Las pasamos a tonos beige unificados. */
+
+#dashboard-premium div[style*="background: linear-gradient(135deg, #F0FDF4"],
+#dashboard-premium div[style*="background: linear-gradient(135deg, #EFF6FF"],
+#dashboard-premium div[style*="background: linear-gradient(135deg, #FFF7ED"] {
+  background: linear-gradient(135deg, #f8f6f0, #ecebe2) !important;
+}
+
+
+/* --- B.6 Cards principales — sombras tintadas + bordes suaves --- */
+/* Las dashboard-card tienen box-shadow plana rgba(0,0,0,0.08).
+   La tintamos para que combine con el accent. */
+
+.dashboard-card {
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.06) !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+
+/* --- B.7 Banner fecha actual (era azul cielo claro) → beige --- */
+#fecha-actual-banner {
+  background: linear-gradient(135deg, #faf8f4 0%, #f1efe7 100%) !important;
+  border-left: 4px solid var(--accent) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE C — MODALES + TABLAS
+   --------------------------------------------------------------------
+   Sobreescribir modales (botones, headers, cards-resumen) y tablas
+   genéricas para que tengan look editorial sobrio, no AI-aesthetic.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- C.1 Modal containers — sombras tintadas, bordes suaves --- */
+.modal {
+  background: rgba(10, 18, 30, 0.6) !important;
+  backdrop-filter: blur(4px);
+}
+.modal-content {
+  background: var(--app-surface) !important;
+  border-radius: 18px !important;
+  border: 1px solid var(--app-border) !important;
+  box-shadow:
+    0 25px 60px rgba(30, 58, 95, 0.18),
+    0 8px 20px rgba(30, 58, 95, 0.08) !important;
+  padding: 32px !important;
+}
+
+/* --- C.2 Modal headlines en Fraunces serif --- */
+.modal-content h2,
+.modal-content h3 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+  font-size: 1.5rem !important;
+  color: #1e293b !important;
+  margin-bottom: 8px !important;
+}
+.modal-content h4 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 1.05rem !important;
+  color: var(--accent-dark) !important;
+  letter-spacing: -0.005em !important;
+}
+
+/* --- C.3 Botones .btn-success → azul navy consistente --- */
+/* El verde brillante de "Confirmar Recepción" cambia al accent
+   editorial para coherencia con el resto del tema. */
+.btn.btn-success,
+.btn-success {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(30, 58, 95, 0.2) !important;
+}
+.btn.btn-success:hover,
+.btn-success:hover {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%) !important;
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.28) !important;
+}
+
+/* --- C.4 Card resumen del modal recepción (verde fluo → beige) --- */
+/* Detecta el panel verde de varianza por sus inline styles típicos
+   (#f0fdf4 / #10b981) y lo sobreescribe. */
+.modal-content div[style*="background: #f0fdf4"],
+.modal-content div[style*="background:#f0fdf4"],
+.modal-content div[style*="border: 2px solid #10b981"] {
+  background: var(--accent-tint) !important;
+  border: 1px solid var(--accent-soft) !important;
+  border-left: 4px solid var(--accent) !important;
+  border-radius: 10px !important;
+}
+
+/* Las cifras verdes brillantes dentro del resumen → azul navy. */
+#modal-rec-resumen-recibido {
+  color: var(--accent-dark) !important;
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+#modal-rec-resumen-original,
+#modal-rec-resumen-varianza {
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* --- C.5 Card info del pedido (gris claro → beige unificado) --- */
+.modal-content div[style*="background: #f8f8f8"],
+.modal-content div[style*="background:#f8f8f8"] {
+  background: var(--app-bg-soft) !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   C.6 TABLAS — respiro + tipografía editorial
+   --------------------------------------------------------------------
+   Tablas genéricas (modales + página): más padding vertical, headers
+   en font display, separadores muy sutiles, tabular-nums.
+   ════════════════════════════════════════════════════════════════════ */
+
+table {
+  border-spacing: 0 !important;
+  border-collapse: separate !important;
+}
+
+table thead {
+  background: var(--app-bg-soft) !important;
+  border-bottom: 2px solid var(--app-border) !important;
+}
+table thead th {
+  padding: 16px 14px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  text-align: left !important;
+  background: transparent !important;
+  border-bottom: 1px solid var(--app-border) !important;
+}
+
+table tbody td {
+  padding: 14px !important;
+  border-bottom: 1px solid #f1f0e8 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+  vertical-align: middle !important;
+}
+
+/* Celdas con fondo navy oscuro (columna TOTAL MES en tabla Diario,
+   y similares) → texto blanco. El !important de arriba ganaba al
+   style="color: white" inline del finance.css, dejando los totales
+   ilegibles (negro sobre navy).
+   IMPORTANTE: el selector debe matchear SOLO el background con navy,
+   no cualquier substring #1e3a5f. Si matcheamos #1e3a5f a secas,
+   capturamos también color: #1e3a5f (texto navy sobre fondo claro)
+   y lo convertimos en blanco — bug confirmado en fila BENEFICIO NETO. */
+table tbody td[style*="background: #1e3a5f"],
+table tbody td[style*="background:#1e3a5f"],
+table thead th[style*="background: #1e3a5f"],
+table thead th[style*="background:#1e3a5f"],
+table tbody td[style*="linear-gradient(135deg, #1e3a5f"],
+table thead th[style*="linear-gradient(135deg, #1e3a5f"],
+table tbody td[style*="background: #152b48"],
+table tbody td[style*="background:#152b48"] {
+  color: white !important;
+  font-weight: 700 !important;
+}
+
+
+/* --- Botones de Semana en Diario (Todo el mes / Semana 1..5) ---
+   index.html:1841 define inline:
+     .btn-semana.active { background: #7C3AED !important; color: white !important; }
+   Sobrescribimos con navy editorial. */
+.btn-semana.active,
+.btn-semana.btn-primary {
+  background: var(--accent) !important;
+  color: white !important;
+  border-color: var(--accent) !important;
+}
+.btn-semana.active:hover,
+.btn-semana.btn-primary:hover {
+  background: var(--accent-dark) !important;
+  border-color: var(--accent-dark) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE J — TOASTS + LOGIN
+   --------------------------------------------------------------------
+   J.1 Toasts globales (showToast) con paleta editorial
+   J.2 Página de Login con look coherente
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- J.1 Toasts globales --- */
+/* main.css define .toast con border-left 4px de color por tipo:
+   success #10B981 (verde fluo), error #EF4444, warning #F59E0B,
+   info #3B82F6 (azul fuerte). Mantenemos lectura semántica pero
+   con tonos sobrios coherentes. */
+
+.toast {
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.12) !important;
+  border-radius: 14px !important;
+  border-left-width: 4px !important;
+}
+.toast.success {
+  border-left-color: #4a6b3e !important;     /* verde sobrio editorial */
+}
+.toast.error {
+  border-left-color: #c84a4a !important;     /* rojo sobrio */
+}
+.toast.warning {
+  border-left-color: #a98759 !important;     /* ocre */
+}
+.toast.info {
+  border-left-color: var(--accent) !important;  /* navy */
+}
+
+
+/* --- J.2 Pantalla de Login --- */
+.login-container {
+  border-radius: 18px !important;
+  box-shadow:
+    0 25px 60px rgba(30, 58, 95, 0.20),
+    0 8px 20px rgba(30, 58, 95, 0.10) !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+.login-header h1 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+  color: var(--accent-dark) !important;
+}
+.login-header p {
+  color: #64748b !important;
+}
+
+/* Inputs del login con focus navy. */
+.login-form input[type="email"],
+.login-form input[type="password"] {
+  border: 1px solid var(--app-border) !important;
+  border-radius: 10px !important;
+  padding: 12px 14px !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+.login-form input[type="email"]:focus,
+.login-form input[type="password"]:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.10) !important;
+  outline: none !important;
+}
+
+/* Link "¿Olvidaste tu contraseña?" estaba en #6366f1 morado inline.
+   Lo cambiamos a navy editorial. */
+.login-footer a[data-action="forgot-password"] {
+  color: var(--accent) !important;
+}
+.login-footer a[data-action="forgot-password"]:hover {
+  color: var(--accent-dark) !important;
+}
+
+/* Error message del login (rojo). */
+.login-error {
+  color: #c84a4a !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE K — FORMULARIOS + TOM SELECT (dropdowns autocompletar)
+   --------------------------------------------------------------------
+   K.1 .form-card (Añadir Ingrediente/Receta/Proveedor): main.css usaba
+       background #fff5f2 + border 2px #c35a3f (rojo terracota) — antiguo.
+   K.2 Tom Select (carga desde CDN, tema gris frío) → override navy.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- K.1 Formularios .form-card --- */
+.form-card {
+  background: var(--app-surface) !important;
+  border: 1px solid var(--app-border) !important;
+  border-radius: 14px !important;
+  padding: 28px !important;
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.06) !important;
+}
+
+.form-card h3 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  color: var(--accent-dark) !important;
+  letter-spacing: -0.01em !important;
+  border-bottom: 1px solid var(--app-border) !important;
+  padding-bottom: 14px !important;
+  margin-bottom: 20px !important;
+}
+
+.form-card .close-btn {
+  background: var(--app-bg-soft) !important;
+  border: 1px solid var(--app-border) !important;
+  border-radius: 8px !important;
+  color: var(--accent-dark) !important;
+  transition: all 0.2s ease !important;
+}
+.form-card .close-btn:hover {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent-soft) !important;
+}
+
+.form-group label {
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+}
+
+.form-card input[type="text"],
+.form-card input[type="number"],
+.form-card input[type="email"],
+.form-card input[type="date"],
+.form-card select,
+.form-card textarea {
+  border: 1px solid var(--app-border) !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 14px !important;
+  background: white !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+.form-card input[type="text"]:focus,
+.form-card input[type="number"]:focus,
+.form-card input[type="email"]:focus,
+.form-card input[type="date"]:focus,
+.form-card select:focus,
+.form-card textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.10) !important;
+  outline: none !important;
+}
+
+.form-actions {
+  border-top: 1px solid var(--app-border) !important;
+  padding-top: 20px !important;
+  margin-top: 10px !important;
+}
+
+
+/* --- K.2 Tom Select dropdowns ---
+   Library carga desde CDN (line 9 index.html). Tema gris frío por
+   defecto. Sobrescribimos con paleta navy editorial. */
+
+.ts-wrapper.single .ts-control,
+.ts-wrapper.multi .ts-control {
+  border: 1px solid var(--app-border) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  background: white !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 14px !important;
+  min-height: 40px !important;
+}
+
+.ts-wrapper.focus .ts-control {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.10) !important;
+}
+
+.ts-dropdown {
+  border: 1px solid var(--app-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(30, 58, 95, 0.12) !important;
+  margin-top: 4px !important;
+  background: white !important;
+}
+
+.ts-dropdown .option {
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+  border-bottom: 1px solid #f1f0e8 !important;
+}
+.ts-dropdown .option:last-child {
+  border-bottom: none !important;
+}
+
+.ts-dropdown .active,
+.ts-dropdown .option.active {
+  background: var(--accent-tint) !important;
+  color: var(--accent-dark) !important;
+}
+
+.ts-dropdown .option.selected {
+  background: var(--accent) !important;
+  color: white !important;
+}
+
+/* Items "pill" en multi-select */
+.ts-wrapper.multi .ts-control > .item {
+  background: var(--accent-tint) !important;
+  color: var(--accent-dark) !important;
+  border: 1px solid var(--accent-soft) !important;
+  border-radius: 999px !important;
+  padding: 3px 12px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+/* Placeholder del input */
+.ts-control input::placeholder {
+  color: #94a3b8 !important;
+}
+
+
+/* --- K.3 Select NATIVO (no Tom Select) — option highlight ---
+   Cuando un <select> nativo abre su dropdown, la opción resaltada
+   por defecto usa el color del SO (azul Windows fluo). Chrome/Edge
+   recientes respetan estas reglas, Firefox parcialmente, Safari no.
+   También permite definir accent-color global. */
+select {
+  accent-color: var(--accent);
+}
+select option:checked {
+  background-color: var(--accent) !important;
+  color: white !important;
+}
+select option:hover {
+  background-color: var(--accent-tint) !important;
+}
+
+table tbody tr:hover {
+  background: var(--accent-tint) !important;
+}
+
+table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Tabular nums en cifras dentro de tablas. */
+table tbody td.numeric,
+table tbody td[align="right"],
+table tbody td[style*="text-align: right"],
+table tbody td[style*="text-align:right"] {
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Links/IDs dentro de tablas (era verde fluo "#botella") → azul navy. */
+table tbody td a {
+  color: var(--accent-dark) !important;
+  text-decoration: none;
+  font-weight: 600;
+}
+table tbody td a:hover {
+  color: var(--accent) !important;
+  text-decoration: underline;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   C.7 INPUTS dentro de tablas/modales → bordes suaves
+   ════════════════════════════════════════════════════════════════════ */
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="email"],
+.modal-content select,
+.modal-content textarea,
+table input[type="text"],
+table input[type="number"] {
+  border: 1px solid var(--app-border) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 14px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.modal-content input[type="text"]:focus,
+.modal-content input[type="number"]:focus,
+.modal-content input[type="email"]:focus,
+.modal-content select:focus,
+.modal-content textarea:focus,
+table input[type="text"]:focus,
+table input[type="number"]:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12) !important;
+  outline: none !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE D — DESATURAR GRÁFICAS, TABS Y BANDAS DECORATIVAS
+   --------------------------------------------------------------------
+   D.1 Forecast tabs (7 días / Mes) — tab activo morado → azul navy
+   D.2 Bandas superiores decorativas de cards dashboard-premium
+       (eran 7 colores chillones cada una distinta) → paleta editorial
+       sobria coherente con el tema
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- D.1 Forecast period tabs --- */
+.forecast-period-tab.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+.forecast-period-tab:not(.active) {
+  background: var(--app-bg-soft) !important;
+  color: #64748b !important;
+}
+.forecast-period-tab:not(.active):hover {
+  background: var(--accent-tint) !important;
+  color: var(--accent-dark) !important;
+}
+
+
+/* --- D.2 Bandas decorativas superiores de dashboard-premium cards --- */
+/* polish.css define 7 bandas decorativas con linear-gradient en
+   colores chillones (naranja/azul/rosa/verde fluo/morado/rojo/morado).
+   Las sustituimos por paleta editorial coherente. */
+
+/* Row 1 */
+#dashboard-premium > div:nth-child(1) > .dashboard-card:nth-child(1)::before {
+  background: linear-gradient(90deg, #8a6e3e, #a98759, #8a6e3e) !important;  /* ocre (Stock Bajo) */
+}
+#dashboard-premium > div:nth-child(1) > .dashboard-card:nth-child(2)::before {
+  background: linear-gradient(90deg, #4a5b6c, #6c7c8c, #4a5b6c) !important;  /* gris azulado (Hoy) */
+}
+#dashboard-premium > div:nth-child(1) > .dashboard-card:nth-child(3)::before {
+  background: linear-gradient(90deg, #7a5c3a, #9c7a55, #7a5c3a) !important;  /* marrón tierra (Personal) */
+}
+
+/* Row 2 */
+#dashboard-premium > div:nth-child(2) > .dashboard-card:nth-child(1)::before {
+  background: linear-gradient(90deg, #1e3a5f, #3b5d85, #1e3a5f) !important;  /* azul navy (Valor Stock) */
+}
+#dashboard-premium > div:nth-child(2) > .dashboard-card:nth-child(2)::before {
+  background: linear-gradient(90deg, #7a5c3a, #9c7a55, #7a5c3a) !important;  /* marrón tierra (Proyección) */
+}
+#dashboard-premium > div:nth-child(2) > .dashboard-card:nth-child(3)::before {
+  background: linear-gradient(90deg, #5a4a3a, #7a6555, #5a4a3a) !important;  /* marrón oscuro (Cambios Precio) */
+}
+
+/* Row 3 — full width (Top Proveedores) */
+#dashboard-premium > div:nth-child(3) > .dashboard-card::before {
+  background: linear-gradient(90deg, #1e3a5f, #3b5d85, #1e3a5f) !important;  /* azul navy accent */
+}
+
+
+/* --- D.3 Sidebar override más profundo
+   polish.css:163-167 redefine .sidebar con gradient morado-violeta-azul
+   más oscuro. Ya tenemos override en Fase A v3 pero confirmamos con
+   especificidad mayor. */
+.app .sidebar,
+aside.sidebar {
+  background: linear-gradient(180deg,
+    rgba(30, 58, 95, 0.98) 0%,
+    rgba(21, 43, 72, 0.99) 50%,
+    rgba(14, 32, 52, 0.99) 100%) !important;
+  box-shadow: 4px 0 24px rgba(30, 58, 95, 0.18) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE E — MATIZACIONES POST-NAVY
+   --------------------------------------------------------------------
+   Detalles que quedaban con sus colores azul cielo / morado / verde
+   chillón y no encajaban con el navy editorial:
+   E.1 Botones período Hoy/Semana/Mes del banner fecha
+   E.2 Botón "Seguimiento Costes" (morado)
+   E.3 Filtros Alimento/Bebida/Suministro (chillones)
+   E.4 Badges familia "Alimento" + stock "X kg" (verde fluo)
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- E.1 Botones de período Hoy/Semana/Mes (banner fecha actual) --- */
+/* Inline tienen border:1px solid #0ea5e9 (azul cielo), bg azul activo
+   y texto #0369a1 inactivo. Sobreescribir a navy. */
+.periodo-btn {
+  border: 1px solid var(--accent-soft) !important;
+  background: white !important;
+  color: var(--accent-dark) !important;
+}
+.periodo-btn:hover:not(.active) {
+  background: var(--accent-tint) !important;
+}
+.periodo-btn.active {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: white !important;
+}
+
+
+/* --- E.2 Botón "Seguimiento Costes" (morado #7C3AED inline) --- */
+button[onclick*="mostrarCostTracker"] {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+button[onclick*="mostrarCostTracker"]:hover {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%) !important;
+}
+
+
+/* --- E.3 Filtros de categoría (Alimento/Bebida/Suministro) --- */
+/* Definidos inline en src/modules/ingredientes/ingredientes-ui.js
+   con paleta chillona (verde fluo / azul fluo / ámbar). Los pasamos
+   a tonos sobrios coherentes con el navy. */
+
+/* Alimento — verde sobrio editorial (cada familia tiene SU color). */
+.filtro-btn.grupo[onclick*="alimento"] {
+  background: #e8efe2 !important;        /* verde claro editorial */
+  border-color: #8aa572 !important;       /* verde sobrio */
+  color: #4a6b3e !important;              /* verde oscuro editorial */
+}
+.filtro-btn.grupo[onclick*="alimento"].active {
+  background: linear-gradient(135deg, #4a6b3e 0%, #36502c 100%) !important;
+  border-color: #36502c !important;
+  color: white !important;
+}
+
+/* Bebida (era azul claro #dbeafe + borde azul #3b82f6). */
+.filtro-btn.grupo[onclick*="bebida"] {
+  background: #ede4d8 !important;        /* beige cálido */
+  border-color: #9c7a55 !important;      /* marrón tierra */
+  color: #7a5c3a !important;
+}
+.filtro-btn.grupo[onclick*="bebida"].active {
+  background: linear-gradient(135deg, #7a5c3a 0%, #5a4528 100%) !important;
+  border-color: #5a4528 !important;
+  color: white !important;
+}
+
+/* Suministro (era ámbar #fef3c7 + borde naranja #f59e0b). */
+.filtro-btn.grupo[onclick*="suministro"] {
+  background: #f5efe2 !important;        /* beige más claro */
+  border-color: #a98759 !important;      /* ocre */
+  color: #8a6e3e !important;
+}
+.filtro-btn.grupo[onclick*="suministro"].active {
+  background: linear-gradient(135deg, #8a6e3e 0%, #6e552c 100%) !important;
+  border-color: #6e552c !important;
+  color: white !important;
+}
+
+
+/* --- E.3.bis Filtros de RECETAS (.filter-btn en #filtros-recetas) ---
+   index.html linea 967+ pinta los botones inline con:
+     Alimentos → border #22c55e + color #22c55e (verde fluo)
+     Bebidas → border #3b82f6 + color #3b82f6 (azul fluo)
+     Base → border #7c3aed + color #7c3aed (morado fluo)
+   El JS (recetas-ui.js:340) ya está actualizado a la paleta sobria.
+   Aquí sobrescribimos el estado INICIAL (HTML inline) para que
+   coincida con el tema editorial desde la carga. */
+
+#filtros-recetas .filter-btn[data-filter="alimentos"] {
+  border-color: #8aa572 !important;       /* verde sobrio */
+  color: #4a6b3e !important;              /* verde oscuro editorial */
+}
+#filtros-recetas .filter-btn[data-filter="bebida"] {
+  border-color: #9c7a55 !important;       /* marrón tierra suave */
+  color: #7a5c3a !important;              /* marrón tierra oscuro */
+}
+#filtros-recetas .filter-btn[data-filter="base"] {
+  border-color: var(--accent-soft) !important;   /* navy soft */
+  color: var(--accent-dark) !important;          /* navy oscuro */
+}
+#filtros-recetas .filter-btn[data-filter="todas"] {
+  border-color: var(--app-border) !important;
+  color: #475569 !important;
+}
+
+/* Estado ACTIVO: texto blanco siempre (el span hereda del button).
+   Sin este override mi !important de arriba ganaba al style.color='white'
+   inline que pone recetas-ui.js, y el texto quedaba invisible sobre el
+   fondo oscuro del activo. */
+#filtros-recetas .filter-btn.active[data-filter="alimentos"],
+#filtros-recetas .filter-btn.active[data-filter="bebida"],
+#filtros-recetas .filter-btn.active[data-filter="base"] {
+  color: white !important;
+}
+#filtros-recetas .filter-btn.active[data-filter="alimentos"] span,
+#filtros-recetas .filter-btn.active[data-filter="bebida"] span,
+#filtros-recetas .filter-btn.active[data-filter="base"] span {
+  color: white !important;
+}
+
+
+/* --- E.4 Badges familia + stock-ok (verde fluo → navy claro) --- */
+/* badge-success aparece como pill "Alimento" en listado de ingredientes.
+   stock-ok aparece como "5.40 kg" en stock real. Eran verdes fluo.
+   Mantenemos rojo en stock-low (alerta semántica) y verde en food-cost
+   por debajo del 33% (semántico también). */
+
+/* badge-success = familia "Alimento" en listado ingredientes.
+   Verde sobrio editorial para coincidir con el filtro Alimento. */
+.badge-success {
+  background: #e8efe2 !important;        /* verde claro editorial */
+  color: #4a6b3e !important;              /* verde oscuro */
+}
+
+/* stock-ok = badge "X kg" stock saludable.
+   Mantenemos navy claro (es lectura cuantitativa, no familia). */
+.stock-ok {
+  background: #e2eaf3 !important;
+  color: var(--accent-dark) !important;
+}
+
+/* badge-info se usa para familia "Bebida" en el listado de ingredientes.
+   Lo pintamos en marrón tierra claro para que coincida con el botón
+   del filtro "Bebidas" (que ya es marrón tierra en Fase E.3).
+   Así, cuando filtras Bebidas, el badge de cada fila se ve del mismo
+   color que el botón activo del filtro. */
+.badge-info {
+  background: #ede4d8 !important;       /* beige cálido marrón */
+  color: #7a5c3a !important;             /* marrón tierra oscuro */
+}
+
+/* badge-warning (Suministros): tono ocre coherente con el botón del
+   filtro "Suministros" (Fase E.3). */
+.badge-warning {
+  background: #f1eadd !important;
+  color: #8a6e3e !important;
+}
+
+/* badge-purple (si se usa en algún sitio): tono navy alternativo. */
+.badge-purple {
+  background: #e6e9f0 !important;
+  color: #2d4666 !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE F — DIARIO + BOTÓN FLOTANTE CHAT
+   --------------------------------------------------------------------
+   F.1 Las 3 cards moradas de la pestaña Diario (inline gradient
+       #667eea → #764ba2) sustituidas por navy editorial.
+   F.2 Botón flotante .chat-fab (inline gradient #7c3aed → #a855f7
+       inyectado por chat-styles.js) sustituido por navy.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- F.1 Cards moradas en pestaña Diario --- */
+/* Las 3 cards (Beneficio Neto por Día, Gastos Fijos Mensuales, stat-card
+   purple Gastos Fijos Totales) están pintadas con inline:
+     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+   Sobreescribimos con navy editorial coherente. */
+
+#tab-diario div[style*="linear-gradient(135deg, #667eea"],
+#tab-diario .stat-card.purple {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.22) !important;
+}
+
+/* El sub-card interno de "Se guardan automáticamente..." tenía bg
+   rgba(255,255,255,0.2) — se queda blanco semitransparente, OK con navy. */
+
+
+/* --- F.2 Botón flotante chat (Asistente IA) --- */
+/* chat-styles.js inyecta:
+     .chat-fab { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+     box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+   Sobreescribimos con navy editorial + sombra tintada. */
+
+.chat-fab {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.4) !important;
+}
+.chat-fab:hover {
+  box-shadow: 0 6px 30px rgba(30, 58, 95, 0.5) !important;
+}
+
+/* Notification-dot del chat-fab era verde fluo (#10b981). Lo dejamos
+   verde semántico pero algo más sobrio. */
+.chat-fab .notification-dot {
+  background: var(--accent-light) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE G — MICRO-FIXES
+   --------------------------------------------------------------------
+   G.1 Botón "Guardar cambios" en modal Editar Pedido (#2563eb inline)
+   G.2 Modales con scroll horizontal feo → más respiro
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- G.1 Botón "Guardar cambios" en modal Editar Pedido --- */
+/* pedidos-editar.js renderiza inline:
+     style="background: #2563eb; color: white; ..."
+   Lo sobreescribimos a navy editorial.
+   El selector apunta por onclick para máxima especificidad. */
+button[onclick="window.guardarEdicionPedido()"] {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  border-radius: 8px !important;
+}
+button[onclick="window.guardarEdicionPedido()"]:hover {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%) !important;
+}
+
+
+/* --- G.2 Modales con scroll horizontal feo --- */
+/* Modal "Recibir Pedido" (y otros similares) tenían table con
+   min-width: 780px inline + modal-content max-width: 1100px. En
+   pantallas <1100px aparecía un scroll horizontal muy corto y feo.
+   Bajamos el min-width de las tablas dentro de modales para que se
+   adapten mejor al modal, y aumentamos un pelín el max-width
+   del modal-content. */
+
+.modal-content {
+  max-width: min(1200px, calc(100vw - 32px)) !important;
+}
+
+/* Reducir el min-width forzado de tablas dentro de modales que no
+   tengan tantas columnas. Mantenemos un mínimo razonable. */
+.modal-content table {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+/* El contenedor de scroll (overflow-x: auto) que envuelve la tabla
+   conserva su comportamiento pero con scroll suave de iOS. */
+.modal-content div[style*="overflow-x: auto"],
+.modal-content div[style*="overflow-x:auto"] {
+  -webkit-overflow-scrolling: touch !important;
+  margin: 0 -8px !important;     /* extiende ligeramente para evitar
+                                    scroll por padding del modal */
+  padding: 0 8px !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE H — POLISH FINAL (sombras + stat-cards + skeletons)
+   --------------------------------------------------------------------
+   H.1 Stat-cards de Diario (.green/.blue/.orange) armonizar con navy
+   H.2 Loading skeletons con tinte navy
+   H.3 Sombras globales tintadas navy en cards principales
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- H.1 Stat-cards de Diario --- */
+/* main.css define border-left-color en:
+     .stat-card        → #c35a3f (rojo terracota)
+     .stat-card.green  → #10b981 (verde fluo)  - Total Ventas
+     .stat-card.blue   → #3b82f6 (azul fuerte) - Beneficio Bruto
+     .stat-card.orange → #f59e0b (naranja)     - Food Cost
+   Armonizamos manteniendo lectura semántica pero con paleta sobria. */
+
+.stat-card {
+  background: linear-gradient(135deg, #fff 0%, var(--app-bg-soft) 100%) !important;
+  border-left: 4px solid var(--accent-soft) !important;
+  box-shadow: 0 2px 10px rgba(30, 58, 95, 0.06) !important;
+}
+.stat-card.green {
+  border-left-color: #6b8e5a !important;   /* verde editorial sobrio (no fluo) */
+}
+.stat-card.blue {
+  border-left-color: var(--accent) !important;  /* navy */
+}
+.stat-card.orange {
+  border-left-color: #a98759 !important;   /* ocre (no naranja chillón) */
+}
+
+/* La cifra grande dentro de stat-card con Fraunces + tabular nums. */
+.stat-card .value {
+  font-family: var(--font-display) !important;
+  font-variant-numeric: tabular-nums !important;
+  color: var(--accent-dark) !important;
+}
+.stat-card.green .value {
+  color: #4a6b3e !important;     /* verde sobrio */
+}
+.stat-card.orange .value {
+  color: #8a6e3e !important;     /* ocre */
+}
+
+
+/* --- H.2 Loading skeletons con tinte navy --- */
+/* skeleton.css usa gradient con grises fríos (#e2e8f0 / #f1f5f9).
+   Lo tintamos con un leve azul-navy para que combine con el tema. */
+.skeleton {
+  background: linear-gradient(90deg,
+    #dde3ec 25%,
+    #e8edf3 37%,
+    #dde3ec 63%) !important;
+  background-size: 400% 100% !important;
+}
+
+
+/* --- H.3 Sombras globales tintadas navy --- */
+/* Cards principales que aún usan rgba(0,0,0,X) plano → tintadas con
+   navy (rgba(30,58,95,X)) para coherencia con el tema. */
+
+.card {
+  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.06),
+              0 1px 3px rgba(30, 58, 95, 0.04) !important;
+}
+
+.main-card {
+  box-shadow: 0 4px 20px rgba(30, 58, 95, 0.06),
+              0 1px 3px rgba(30, 58, 95, 0.04) !important;
+}
+
+.form-card {
+  box-shadow: 0 4px 16px rgba(30, 58, 95, 0.06) !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+.kpi-mini {
+  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.06) !important;
+}
+
+/* Botones primarios: sombra tintada navy. */
+.btn.btn-primary,
+.btn-primary {
+  box-shadow: 0 2px 6px rgba(30, 58, 95, 0.18) !important;
+}
+.btn.btn-primary:hover,
+.btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.25) !important;
+}
+
+/* Tabs principales con sombra inset suave navy en lugar de negro. */
+.tabs {
+  box-shadow: 0 2px 8px rgba(30, 58, 95, 0.06) !important;
+}
+
+/* Inputs en formularios: sombra suave navy al focus. */
+input:focus,
+textarea:focus,
+select:focus {
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.10) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE I — CHAT IA REDISEÑADO
+   --------------------------------------------------------------------
+   chat-styles.js inyecta runtime un CSS lleno de gradients morados
+   (#7c3aed/#a855f7) y azul fuerte. Lo sobreescribimos completamente
+   con navy editorial + tipografía Fraunces en headlines + tablas con
+   look editorial estilo GG-OS.
+
+   Nuestro override carga al final del <head> → !important garantiza
+   prioridad sobre los <style> inyectados después.
+   ════════════════════════════════════════════════════════════════════ */
+
+
+/* --- I.1 Chat window — panel grande estilo GG-OS --- */
+/* Antes: 450x550 flotante pequeño.
+   Ahora: 600px ancho × 80vh alto (mín 600px) → mucho más espacio
+   para conversaciones largas y tablas. En pantallas pequeñas
+   (<1024px) el chat-styles.js original ya tiene un @media que lo
+   pone full-screen, ese sigue activo. */
+.chat-window {
+  width: 600px !important;
+  height: 80vh !important;
+  max-height: 880px !important;
+  min-height: 600px !important;
+  border-radius: 18px !important;
+  box-shadow: 0 16px 50px rgba(30, 58, 95, 0.18),
+              0 4px 12px rgba(30, 58, 95, 0.08) !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+
+/* --- I.2 Chat header — más compacto + título más grande --- */
+/* Header antes: padding 22 24, ocupaba mucho vertical y h3 18px se
+   apretaba en 2-3 líneas con los botones Mes/Coach/etc al lado.
+   Ahora: padding 14 22 (menos alto), h3 20px más prominente. */
+.chat-header {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  padding: 14px 22px !important;
+}
+.chat-header-avatar {
+  background: rgba(255, 255, 255, 0.18) !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+.chat-header-info h3 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 20px !important;        /* más grande, más editorial */
+  letter-spacing: -0.01em !important;
+  line-height: 1.15 !important;
+}
+.chat-header-info p {
+  font-size: 12px !important;
+  opacity: 0.85 !important;
+  margin: 2px 0 0 !important;
+}
+.chat-header-status {
+  background: #94c08a !important;   /* verde sobrio en lugar de #10b981 fluo */
+}
+
+
+/* --- I.3 Mensajes — tipografía + respiro + colores navy --- */
+.chat-messages {
+  background: var(--app-bg-soft) !important;   /* beige cálido en lugar de #f8fafc */
+  padding: 24px !important;
+  gap: 18px !important;
+}
+
+.chat-message-avatar {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+.chat-message.user .chat-message-avatar {
+  background: linear-gradient(135deg, #4a5b6c 0%, #2d3e4f 100%) !important;
+}
+
+.chat-message-content {
+  background: white !important;
+  border: 1px solid var(--app-border) !important;
+  border-radius: 14px !important;
+  border-top-left-radius: 4px !important;
+  padding: 14px 18px !important;
+  box-shadow: 0 1px 3px rgba(30, 58, 95, 0.05) !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  color: #1e293b !important;
+}
+.chat-message.user .chat-message-content {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 14px !important;
+  border-top-right-radius: 4px !important;
+}
+
+/* Headers dentro de mensajes en Fraunces (cuando el modelo escribe
+   "## Título" o similar via markdown). */
+.chat-message-content h1,
+.chat-message-content h2,
+.chat-message-content h3,
+.chat-message-content h4 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  color: var(--accent-dark) !important;
+  margin: 12px 0 8px 0 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.chat-message-content strong {
+  color: var(--accent-dark) !important;
+  font-weight: 700 !important;
+}
+
+
+/* --- I.4 Tablas dentro del chat — look editorial --- */
+.chat-table-wrapper {
+  margin: 12px 0 !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--app-border) !important;
+  overflow: hidden !important;
+}
+.chat-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--accent-soft) !important;
+}
+
+.chat-table {
+  font-size: 12.5px !important;
+  background: white !important;
+  border-collapse: collapse !important;
+  border-radius: 0 !important;
+  white-space: normal !important;       /* permite wrap, evita scroll inn. */
+  width: 100% !important;
+  table-layout: auto !important;
+}
+.chat-table th {
+  background: var(--app-bg-soft) !important;
+  color: var(--accent-dark) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  font-size: 10.5px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 10px 10px !important;
+  border-bottom: 2px solid var(--app-border) !important;
+  text-align: left !important;
+  white-space: nowrap !important;       /* headers cortos sí en una línea */
+}
+.chat-table td {
+  padding: 9px 10px !important;
+  border-bottom: 1px solid #f1f0e8 !important;
+  color: #1e293b !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.4 !important;
+}
+/* Las celdas con strong (negrita) destacan suavemente */
+.chat-table td strong {
+  color: var(--accent-dark) !important;
+  font-weight: 600 !important;
+}
+/* Primera columna (suele ser rank/emoji) compacta */
+.chat-table td:first-child {
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+.chat-table tr:nth-child(even) {
+  background: transparent !important;       /* sin zebra agresivo */
+}
+.chat-table tr:hover {
+  background: var(--accent-tint) !important;
+}
+
+
+/* --- I.5 Código inline --- */
+.chat-inline-code {
+  background: var(--accent-tint) !important;
+  color: var(--accent-dark) !important;
+  padding: 2px 8px !important;
+  border-radius: 6px !important;
+  font-family: 'SFMono-Regular', Consolas, monospace !important;
+  font-size: 12.5px !important;
+  border: 1px solid var(--app-border) !important;
+}
+
+
+/* --- I.6 Input + botones de envío --- */
+.chat-input-container {
+  background: white !important;
+  border-top: 1px solid var(--app-border) !important;
+  padding: 18px 22px !important;
+}
+
+.chat-input {
+  border: 1px solid var(--app-border) !important;
+  border-radius: 22px !important;
+  padding: 12px 18px !important;
+  font-size: 14px !important;
+  background: var(--app-bg-soft) !important;
+}
+.chat-input:focus {
+  border-color: var(--accent) !important;
+  background: white !important;
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.10) !important;
+}
+
+.chat-send-btn {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+  width: 42px !important;
+  height: 42px !important;
+}
+.chat-send-btn:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3) !important;
+}
+
+.chat-mic-btn {
+  background: var(--app-bg-soft) !important;
+  border: 1px solid var(--app-border) !important;
+}
+.chat-mic-btn:hover {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent-soft) !important;
+}
+.chat-mic-btn svg {
+  fill: var(--accent) !important;
+}
+
+
+/* --- I.7 Quick actions / botones rápidos del chat --- */
+.chat-quick-actions {
+  background: white !important;
+  padding: 14px 22px 18px !important;
+  gap: 8px !important;
+}
+
+.chat-quick-btn {
+  background: white !important;
+  border: 1px solid var(--app-border) !important;
+  border-radius: 20px !important;
+  padding: 8px 14px !important;
+  font-size: 12px !important;
+  color: var(--accent-dark) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+.chat-quick-btn:hover {
+  background: var(--accent-tint) !important;
+  border-color: var(--accent-soft) !important;
+  color: var(--accent-dark) !important;
+}
+
+
+/* --- I.8 Action buttons embebidos en mensajes --- */
+.chat-action-btn {
+  background: var(--accent) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+.chat-action-btn:hover {
+  background: var(--accent-dark) !important;
+}
+
+
+/* --- I.9 Close button (X arriba derecha) --- */
+.chat-close-btn {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+.chat-close-btn:hover {
+  background: rgba(255, 255, 255, 0.28) !important;
+}
+
+
+/* --- I.10 Hint inline del chat (cuando borras chat con doble click) ---
+   Sustituye al showToast global que tapaba el botón papelera. Aparece
+   centrado horizontalmente debajo del header, dentro del .chat-window. */
+.chat-inline-hint {
+  position: absolute;
+  top: 76px;                        /* debajo del header compacto */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 10;
+  box-shadow: 0 4px 14px rgba(146, 64, 14, 0.18);
+  animation: chatHintIn 0.2s ease-out;
+  white-space: nowrap;
+  pointer-events: none;
+}
+@keyframes chatHintIn {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}

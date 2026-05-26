@@ -312,12 +312,29 @@ export function renderChatHistory() {
 /**
  * Borra historial tras dos clicks en 2s (anti-accidental). El primero muestra
  * el hint de confirmación; el segundo resetea y pinta el welcome.
+ *
+ * Antes usaba window.showToast() global pero ese toast aparece arriba a la
+ * derecha y TAPA el botón de la papelera del chat header → imposible dar el
+ * segundo click. Ahora mostramos el hint INLINE dentro del chat-window
+ * (centro superior, debajo del header) para que no obstruya el botón.
  */
+function showChatHint(message) {
+    const chatWindow = document.querySelector('.chat-window');
+    if (!chatWindow) return;
+    // Quitar hint previo si existe
+    chatWindow.querySelector('.chat-inline-hint')?.remove();
+    const hint = document.createElement('div');
+    hint.className = 'chat-inline-hint';
+    hint.textContent = message;
+    chatWindow.appendChild(hint);
+    setTimeout(() => hint.remove(), 2200);
+}
+
 export function clearChat() {
     clearClickCount++;
 
     if (clearClickCount === 1) {
-        window.showToast?.(t('chat:clear_confirm_hint'), 'warning');
+        showChatHint(t('chat:clear_confirm_hint'));
         clearClickTimer = setTimeout(() => {
             clearClickCount = 0;
         }, 2000);
