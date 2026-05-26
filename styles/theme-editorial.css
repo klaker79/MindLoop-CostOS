@@ -576,12 +576,18 @@ table tbody td {
    y similares) → texto blanco. El !important de arriba ganaba al
    style="color: white" inline del finance.css, dejando los totales
    ilegibles (negro sobre navy).
-   El selector usa [style*="#1e3a5f"] para capturar tanto fondos
-   sólidos como gradients. */
-table tbody td[style*="#1e3a5f"],
-table thead th[style*="#1e3a5f"],
-table tbody td[style*="#152b48"],
-table thead th[style*="#152b48"] {
+   IMPORTANTE: el selector debe matchear SOLO el background con navy,
+   no cualquier substring #1e3a5f. Si matcheamos #1e3a5f a secas,
+   capturamos también color: #1e3a5f (texto navy sobre fondo claro)
+   y lo convertimos en blanco — bug confirmado en fila BENEFICIO NETO. */
+table tbody td[style*="background: #1e3a5f"],
+table tbody td[style*="background:#1e3a5f"],
+table thead th[style*="background: #1e3a5f"],
+table thead th[style*="background:#1e3a5f"],
+table tbody td[style*="linear-gradient(135deg, #1e3a5f"],
+table thead th[style*="linear-gradient(135deg, #1e3a5f"],
+table tbody td[style*="background: #152b48"],
+table tbody td[style*="background:#152b48"] {
   color: white !important;
   font-weight: 700 !important;
 }
