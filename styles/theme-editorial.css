@@ -1304,3 +1304,30 @@ select:focus {
 .chat-close-btn:hover {
   background: rgba(255, 255, 255, 0.28) !important;
 }
+
+
+/* --- I.10 Hint inline del chat (cuando borras chat con doble click) ---
+   Sustituye al showToast global que tapaba el botón papelera. Aparece
+   centrado horizontalmente debajo del header, dentro del .chat-window. */
+.chat-inline-hint {
+  position: absolute;
+  top: 76px;                        /* debajo del header compacto */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 10;
+  box-shadow: 0 4px 14px rgba(146, 64, 14, 0.18);
+  animation: chatHintIn 0.2s ease-out;
+  white-space: nowrap;
+  pointer-events: none;
+}
+@keyframes chatHintIn {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
