@@ -814,6 +814,21 @@ button[onclick*="mostrarCostTracker"]:hover {
   color: #475569 !important;
 }
 
+/* Estado ACTIVO: texto blanco siempre (el span hereda del button).
+   Sin este override mi !important de arriba ganaba al style.color='white'
+   inline que pone recetas-ui.js, y el texto quedaba invisible sobre el
+   fondo oscuro del activo. */
+#filtros-recetas .filter-btn.active[data-filter="alimentos"],
+#filtros-recetas .filter-btn.active[data-filter="bebida"],
+#filtros-recetas .filter-btn.active[data-filter="base"] {
+  color: white !important;
+}
+#filtros-recetas .filter-btn.active[data-filter="alimentos"] span,
+#filtros-recetas .filter-btn.active[data-filter="bebida"] span,
+#filtros-recetas .filter-btn.active[data-filter="base"] span {
+  color: white !important;
+}
+
 
 /* --- E.4 Badges familia + stock-ok (verde fluo → navy claro) --- */
 /* badge-success aparece como pill "Alimento" en listado de ingredientes.
