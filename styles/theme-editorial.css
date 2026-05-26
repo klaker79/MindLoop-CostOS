@@ -788,6 +788,33 @@ button[onclick*="mostrarCostTracker"]:hover {
 }
 
 
+/* --- E.3.bis Filtros de RECETAS (.filter-btn en #filtros-recetas) ---
+   index.html linea 967+ pinta los botones inline con:
+     Alimentos → border #22c55e + color #22c55e (verde fluo)
+     Bebidas → border #3b82f6 + color #3b82f6 (azul fluo)
+     Base → border #7c3aed + color #7c3aed (morado fluo)
+   El JS (recetas-ui.js:340) ya está actualizado a la paleta sobria.
+   Aquí sobrescribimos el estado INICIAL (HTML inline) para que
+   coincida con el tema editorial desde la carga. */
+
+#filtros-recetas .filter-btn[data-filter="alimentos"] {
+  border-color: #8aa572 !important;       /* verde sobrio */
+  color: #4a6b3e !important;              /* verde oscuro editorial */
+}
+#filtros-recetas .filter-btn[data-filter="bebida"] {
+  border-color: #9c7a55 !important;       /* marrón tierra suave */
+  color: #7a5c3a !important;              /* marrón tierra oscuro */
+}
+#filtros-recetas .filter-btn[data-filter="base"] {
+  border-color: var(--accent-soft) !important;   /* navy soft */
+  color: var(--accent-dark) !important;          /* navy oscuro */
+}
+#filtros-recetas .filter-btn[data-filter="todas"] {
+  border-color: var(--app-border) !important;
+  color: #475569 !important;
+}
+
+
 /* --- E.4 Badges familia + stock-ok (verde fluo → navy claro) --- */
 /* badge-success aparece como pill "Alimento" en listado de ingredientes.
    stock-ok aparece como "5.40 kg" en stock real. Eran verdes fluo.
