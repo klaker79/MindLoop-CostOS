@@ -1,71 +1,210 @@
 /* ════════════════════════════════════════════════════════════════════
-   TEMA EDITORIAL — MindLoop CostOS (Nivel A, 2026-05-26)
+   TEMA VISUAL — MindLoop CostOS · Fase A (2026-05-26)
    --------------------------------------------------------------------
-   Cambios visuales suaves, 100% aditivos, sin tocar JS ni HTML.
-   Cargado DESPUÉS de main.css + polish.css → tiene prioridad cuando
-   hay conflictos de selector.
+   Rediseño fundacional aplicando la skill redesign-existing-projects.
+   100% aditivo. Cargado DESPUÉS de main.css + polish.css → prioridad.
 
-   Filosofía:
-   - Tipografía: Playfair Display (serif editorial) para títulos.
-                 Montserrat (sans-serif) sigue para body — sin tocar.
-   - PALETA: NO se toca. La paleta CostOS actual (morado/azul,
-     dashboard, badges, semánticos) queda intacta tal como está.
-   - Espaciado: cards principales con más respiro.
+   FASE A — Tokens fundacionales:
+   1. Sustituir el gradient morado del body (AI fingerprint) por
+      fondo neutro premium.
+   2. Sustituir el accent primario (#667eea/#764ba2 morado/azul) por
+      verde oliva oscuro editorial.
+   3. Importar fuente display Fraunces para headlines.
+   4. Aplicar tabular-nums en cifras numéricas.
 
-   Cómo revertir si no gusta:
-   - Borrar este archivo + las 2 líneas que lo cargan en index.html.
-     Todo vuelve a estar como antes. Cero deuda.
+   NO se tocan colores semánticos:
+   - Stock: critico/bajo/ok
+   - Food cost: ≤33% verde, 34-38% naranja, >38% rojo
+   - Badges: success/warning/danger/info
+   - Toasts, alertas, charts (Chart.js)
+
+   FASES PENDIENTES (próximos PRs, no en este archivo todavía):
+   - Fase B: aplanar cards, sombras tintadas, border-radius con lógica
+   - Fase C: jerarquía tipográfica (display sizes, weights)
+   - Fase D: whitespace + asimetría
+
+   Cómo revertir: borrar este archivo + la línea que lo carga en
+   index.html. Cero deuda, todo vuelve al estado anterior.
    ════════════════════════════════════════════════════════════════════ */
 
-/* ============================================
-   TOKENS — variables del tema editorial
-   ============================================ */
+
+/* ════════════════════════════════════════════════════════════════════
+   1. TOKENS — nueva paleta + tipografía
+   ════════════════════════════════════════════════════════════════════ */
 :root {
-  /* Tipografía editorial — sólo se aplica en títulos seleccionados. */
-  --font-display: 'Playfair Display', 'Times New Roman', Georgia, serif;
+  /* Paleta neutra premium (sustituye gradient morado del body). */
+  --app-bg: #fafaf7;             /* Off-white cálido para body */
+  --app-bg-soft: #f5f5f0;        /* Tinte secundario */
+  --app-surface: #ffffff;        /* Cards y contenedores principales */
+  --app-surface-elevated: #fcfcfa;
+  --app-border: #e8e8e0;         /* Borde sutil cálido (sustituye #e2e8f0 frío) */
+
+  /* Accent primario — verde oliva oscuro editorial.
+     Sustituye al gradient morado/azul de --gradient-start/end. */
+  --accent: #3f4d2a;
+  --accent-dark: #2f3a1f;
+  --accent-darker: #25301a;
+  --accent-soft: #6b8048;
+  --accent-tint: #f5f7ef;        /* Tinte muy claro para fondos sutiles */
+
+  /* Sobreescribir los tokens del :root original que se usan en muchos
+     gradientes/botones del proyecto. Esto cambia el accent en toda la
+     app SIN tocar main.css. */
+  --gradient-start: #3f4d2a;
+  --gradient-end: #2f3a1f;
+
+  /* Tipografía */
+  --font-display: 'Fraunces', 'Playfair Display', 'Times New Roman', Georgia, serif;
 }
 
-/* ============================================
-   TÍTULOS — serif editorial Playfair Display
-   ============================================ */
 
-/* Header principal de la app (nombre "MindLoopIA CostOS"). */
+/* ════════════════════════════════════════════════════════════════════
+   2. BODY — fondo neutro premium (eliminar gradient morado)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* main.css:40 → background: linear-gradient(135deg, #667eea, #764ba2, #f093fb)
+   Lo reemplazamos por un fondo neutro premium. */
+body {
+  background: var(--app-bg);
+  background-attachment: scroll;
+}
+
+/* En dark mode mantenemos el comportamiento original — no nos metemos. */
+[data-theme="dark"] body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   3. TIPOGRAFÍA — Fraunces display + tabular nums
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Headlines principales — Fraunces (serif editorial moderna). */
 .header h1,
 .app-name,
-.brand-name {
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-/* Títulos de pestañas y secciones (h2/h3 principales). */
+.brand-name,
 .main-card h2,
 .top-bar h2,
 .chart-header h3,
 .form-card h3,
-.empty-state h3 {
+.empty-state h3,
+.modal-header h2,
+.modal-header h3 {
   font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
 }
 
-/* No tocamos h3 dentro de tarjetas pequeñas, badges, ni botones —
-   esos son funcionales, no editoriales, y se quedan sans-serif. */
-
-/* ============================================
-   ESPACIADO — más respiro en cards principales
-   ============================================ */
-
-/* Cards principales: padding superior/inferior más generoso. */
-.form-card,
-.main-card {
-  padding: 28px 24px;
+/* H2 grandes (encabezado de pestaña): font-size escalable y respiro. */
+.top-bar h2,
+.main-card h2 {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
 }
 
-/* Top-bar (encabezado de cada pestaña): más espacio inferior. */
-.top-bar {
-  margin-bottom: 24px;
+/* Tabular nums en cifras numéricas — datos cuadran en columnas. */
+.kpi-card .value,
+.kpi-card .number,
+.kpi-mini .value,
+.dashboard-card .number,
+.dashboard-card .value,
+.stat-value,
+.number-large,
+td.numeric,
+th.numeric,
+.cm,
+.precio,
+.stock-value,
+.food-cost-value,
+.kpi-row .kpi-mini {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
-/* No subimos padding en tablas, tabs ni badges — son densos por diseño
-   y meterles más espacio rompe la legibilidad. */
+
+/* ════════════════════════════════════════════════════════════════════
+   4. BRANDING — sustituir morado/azul por verde oliva
+   --------------------------------------------------------------------
+   SÓLO aplica al branding (botones primary, tabs activos, sidebar
+   nav activo, paginación hover, filtros activos, links principales).
+   NO toca colores semánticos.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Botón primario. */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-darker) 100%);
+}
+
+/* Tab activo (las pestañas horizontales). */
+.tab.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+}
+
+/* Sidebar nav activo. */
+.nav-item.active,
+.sidebar-nav-item.active,
+.sidebar a.active {
+  background: var(--accent);
+  color: white;
+}
+
+/* Filtro-btn activo (Ingredientes). */
+.filtro-btn.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  border-color: var(--accent);
+}
+
+/* Paginación hover. */
+.paginacion button:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* Header global de la app. */
+.app-header,
+.header {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+}
+.app-header h1,
+.header h1,
+.app-header p,
+.header p {
+  color: white;
+}
+
+/* Spinner / loader principal. */
+.spinner-primary,
+.loader-primary {
+  border-top-color: var(--accent);
+}
+
+/* Links de marca. */
+a.brand-link,
+.link-primary {
+  color: var(--accent);
+}
+a.brand-link:hover,
+.link-primary:hover {
+  color: var(--accent-dark);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   5. COMPATIBILIDAD CON DARK MODE
+   --------------------------------------------------------------------
+   En dark mode, no imponer el fondo crema ni el header verde oliva
+   sobre los colores propios del dark mode. Dejamos heredar.
+   ════════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] body {
+  background-color: inherit;
+}
+[data-theme="dark"] .header h1,
+[data-theme="dark"] .app-name,
+[data-theme="dark"] .main-card h2,
+[data-theme="dark"] .top-bar h2 {
+  color: inherit;
+}
