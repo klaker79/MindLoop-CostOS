@@ -153,20 +153,18 @@ export function agregarIngredienteReceta(initialValue = '') {
                 ${optionsHtml}
             </select>
         </div>
-        <div style="flex: 1.5; position: relative;">
-            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #94a3b8; pointer-events: none; line-height: 1;">📏</span>
+        <div style="flex: 1.5;">
             <input type="number" step="0.001" min="0" placeholder="${t('recetas:placeholder_quantity')}"
                 class="receta-cantidad"
-                style="width: 100%; padding: 12px 12px 12px 44px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;"
+                style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;"
                 onchange="window.calcularCosteReceta()">
         </div>
 
         <!-- MERMA / RENDIMIENTO EN RECETA -->
-        <div style="flex: 1; position: relative;" title="% Rendimiento (Merma)">
-            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: #64748b; pointer-events: none; line-height: 1;">%</span>
+        <div style="flex: 1;" title="% Rendimiento (Merma)">
             <input type="number" step="1" min="1" max="100" placeholder="${t('recetas:placeholder_yield')}" value="100"
                 class="receta-rendimiento"
-                style="width: 100%; padding: 12px 8px 12px 32px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fffbeb;"
+                style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fffbeb;"
                 onchange="window.calcularCosteReceta()">
         </div>
         <span class="receta-coste-linea" title="Coste de este ingrediente (cantidad × precio / rendimiento)" style="
