@@ -335,7 +335,7 @@ export function agregarIngredientePedido() {
     div.style.cssText =
         'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; flex-wrap: wrap; width: 100%; box-sizing: border-box;';
 
-    let opciones = `<option value="">${t('pedidos:form_select_supplier')}</option>`;
+    let opciones = `<option value="">${t('pedidos:form_select_ingredient')}</option>`;
     // Orden alfabético en el desplegable para que sea más fácil encontrar el ingrediente
     const ingredientesOrdenados = [...ingredientesDisponibles].sort((a, b) =>
         (a.nombre || '').localeCompare(b.nombre || '', undefined, { sensitivity: 'base' })
