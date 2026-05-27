@@ -90,6 +90,7 @@
   "form_search_ingredient_placeholder": "输入食材名称...",
   "form_supplier": "供应商",
   "form_select_supplier": "选择供应商...",
+  "form_select_ingredient": "选择食材...",
   "form_order_date": "订单日期",
   "form_market_stall": "市场摊位",
   "form_market_stall_hint": "可选",

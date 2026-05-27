@@ -99,6 +99,7 @@
   "form_search_ingredient_placeholder": "Type ingredient name...",
   "form_supplier": "Supplier",
   "form_select_supplier": "Select supplier...",
+  "form_select_ingredient": "Select ingredient...",
   "form_order_date": "Order date",
   "form_market_stall": "Market Stall",
   "form_market_stall_hint": "optional",
