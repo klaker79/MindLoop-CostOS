@@ -40,8 +40,9 @@
 // BUMP v39: recetas — eliminados iconos 📏 y % de los inputs de escandallo (decisión UX: inputs limpios).
 // BUMP v40: recetas — iconos 📏 y % movidos a la DERECHA del input (sufijo) + spinner buttons ocultados vía CSS.
 // BUMP v41: pedidos — placeholder del select de ingredientes corregido ("Seleccionar ingrediente..." en vez de "Seleccionar proveedor...").
+// BUMP v42: análisis — ranking de rentabilidad y matriz BCG ahora excluyen también las recetas "base" (preparaciones intermedias, no vendibles).
 
-const CACHE_NAME = 'mindloop-costos-v41';
+const CACHE_NAME = 'mindloop-costos-v42';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
