@@ -946,11 +946,12 @@
         try {
             const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
 
-            // 🔧 FILTRO: Excluir bebidas de la ingeniería de menú (solo platos de comida)
-            // El backend ya filtra, pero doble protección en frontend
+            // 🔧 FILTRO: Excluir bebidas Y preparaciones base de la ingeniería de menú
+            // (solo platos vendibles de comida — las "base" son subproductos como salsas,
+            // bechamel, masas, tofee... que no se venden directamente al cliente).
             const menuAnalysis = menuAnalysisRaw.filter(item => {
                 const cat = (item.categoria || '').toLowerCase();
-                return cat !== 'bebidas' && cat !== 'bebida';
+                return cat !== 'bebidas' && cat !== 'bebida' && cat !== 'base';
             });
 
             let totalMargen = 0;
@@ -964,10 +965,12 @@
                 return { ...rec, coste, margen, margenPct };
             });
 
-            // 🔧 FILTRO: Solo platos de comida para tabla de rentabilidad
+            // 🔧 FILTRO: Solo platos vendibles para tabla de rentabilidad.
+            // Excluir bebidas (van a su propio análisis) y preparaciones base (subproductos
+            // que no se venden directamente y distorsionarían el ranking con márgenes infladísimos).
             const datosRecetas = datosRecetasRaw.filter(rec => {
                 const cat = (rec.categoria || '').toLowerCase();
-                return cat !== 'bebidas' && cat !== 'bebida';
+                return cat !== 'bebidas' && cat !== 'bebida' && cat !== 'base';
             });
 
             const margenPromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.margenPct, 0) / datosRecetas.length).toFixed(1) : '0';
