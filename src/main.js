@@ -279,7 +279,6 @@ window.mostrarFormularioReceta = RecetasUI.mostrarFormularioReceta;
 window.cerrarFormularioReceta = RecetasUI.cerrarFormularioReceta;
 window.agregarIngredienteReceta = RecetasUI.agregarIngredienteReceta;
 window.calcularCosteReceta = RecetasUI.calcularCosteReceta;
-window.exportarRecetas = RecetasUI.exportarRecetas;
 window.actualizarPrecioSugerido = RecetasUI.actualizarPrecioSugerido;
 window.aplicarPrecioSugerido = RecetasUI.aplicarPrecioSugerido;
 

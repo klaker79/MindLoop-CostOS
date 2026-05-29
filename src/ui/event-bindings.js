@@ -40,7 +40,6 @@ const actionHandlers = {
     'cerrar-form-receta': () => window.cerrarFormularioReceta?.(),
     'importar-recetas': () => window.mostrarModalImportarRecetas?.(),
     'descargar-plantilla-escandallo': () => window.descargarPlantillaEscandallo?.(),
-    'exportar-recetas': () => window.exportarRecetas?.(),
     'agregar-ingrediente-receta': () => window.agregarIngredienteReceta?.(),
     'cancelar-importar-recetas': () => window.cancelarImportarRecetas?.(),
     'confirmar-importar-recetas': () => window.confirmarImportarRecetas?.(),

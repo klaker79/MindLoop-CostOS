@@ -946,7 +946,7 @@
                 Receta</button>
               <button class="btn btn-secondary" data-action="importar-recetas" data-i18n="common:btn_import_excel">📤
                 Importar Excel</button>
-              <button class="btn btn-secondary" data-action="exportar-recetas" data-i18n="common:btn_export_excel">📥
+              <button class="btn btn-secondary" data-action="descargar-plantilla-escandallo" data-i18n="common:btn_export_excel">📥
                 Exportar Excel</button>
               <button class="btn" onclick="window.mostrarCostTracker()"
                 style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 <span
@@ -3008,9 +3008,9 @@
               <strong>Cantidad</strong>, <strong>Rendimiento</strong> (una fila por línea del escandallo).
             </p>
 
-            <div style="margin-bottom: 15px;">
-              <button class="btn btn-secondary btn-small" data-action="descargar-plantilla-escandallo"
-                data-i18n="recetas:import_template_btn">⬇️ Descargar mis recetas</button>
+            <div style="margin-bottom: 15px; font-size: 13px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;"
+              data-i18n="recetas:import_export_hint">
+              💡 ¿No tienes el archivo? Pulsa <strong>"📥 Exportar Excel"</strong> (arriba) para bajar tus recetas en este formato, edítalas y vuelve a subirlas aquí.
             </div>
 
             <div
@@ -3151,7 +3151,7 @@
       </div>
       </script>
     </div>
-    <script src="src/legacy/inventario-masivo.js?v=20260529-escandallo-codigo-tpv"></script>
+    <script src="src/legacy/inventario-masivo.js?v=20260529-recetas-1export-1import"></script>
 
     <!-- CARRITO DE PEDIDOS - El código está en src/modules/pedidos/pedidos-cart.js -->
 
@@ -3264,7 +3264,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260529-stockmin-required"></script>
+  <script type="module" src="./src/main.js?v=20260529-recetas-1export-1import"></script>
 </body>
 
 </html>

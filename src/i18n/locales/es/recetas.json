@@ -145,6 +145,7 @@
   "import_modal_title": "Importar Recetas desde Excel",
   "import_columns_hint": "Sube un Excel con las columnas: Receta, Categoría, Precio Venta, Porciones, Ingrediente, Cantidad, Rendimiento (una fila por línea del escandallo).",
   "import_template_btn": "⬇️ Descargar mis recetas",
+  "import_export_hint": "💡 ¿No tienes el archivo? Pulsa \"📥 Exportar Excel\" (arriba) para bajar tus recetas en este formato, edítalas y vuelve a subirlas aquí.",
   "export_escandallo_btn": "📋 Exportar escandallo",
   "import_preview_title": "Vista Previa de Recetas",
   "import_confirm_btn": "Importar Recetas",
