@@ -153,14 +153,18 @@ export function validateIngrediente(data) {
         else sanitized.stock_actual = stock.value;
     }
 
-    // Stock mínimo (> 0). Smart Order calcula la cantidad a reponer multiplicando
-    // por stock_minimo: con valor 0 el cálculo siempre da 0 unidades a comprar y
-    // el ingrediente queda excluido en silencio (reportado por Iker 2026-05-07).
-    // Para "no quiero reposición automática" la vía correcta es desactivar el
-    // ingrediente (activo=FALSE), no dejar stock_minimo=0.
-    if (data.stock_minimo !== undefined && data.stock_minimo !== '') {
+    // Stock mínimo OBLIGATORIO (> 0). El Smart Order calcula la reposición como
+    // (stock_minimo × 2) − stock_actual: con stock_minimo ausente o 0 el cálculo
+    // da 0 y el ingrediente nunca se propone para reponer — la función queda
+    // inservible (reportado por Iker 2026-05-07 y 2026-05-29). Para "no quiero
+    // reposición automática" la vía correcta es desactivar el ingrediente
+    // (activo=FALSE), no dejarlo sin stock mínimo.
+    const stockMinReq = isRequired(data.stock_minimo, 'Stock mínimo');
+    if (!stockMinReq.valid) {
+        errors.push('Stock mínimo es obligatorio y debe ser mayor que 0 (lo usa el Smart Order para calcular la reposición)');
+    } else {
         const stockMin = isPositive(data.stock_minimo, 'Stock mínimo');
-        if (!stockMin.valid) errors.push(stockMin.error);
+        if (!stockMin.valid) errors.push('Stock mínimo debe ser mayor que 0 (lo usa el Smart Order para calcular la reposición)');
         else sanitized.stock_minimo = stockMin.value;
     }
 

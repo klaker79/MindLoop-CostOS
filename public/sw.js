@@ -47,8 +47,9 @@
 // BUMP v46: botón "Exportar escandallo" (recetas reales en formato editable/re-importable).
 // BUMP v47: exportar escandallo POR receta (icono 📋 en cada fila) en vez de todas de golpe.
 // BUMP v48: eliminada "Producir plato" (botón ⬇️ + modal + funciones): doble conteo con ventas.
+// BUMP v49: Stock mínimo OBLIGATORIO (>0) al crear/editar ingrediente — sin él el Smart Order no propone reposición.
 
-const CACHE_NAME = 'mindloop-costos-v48';
+const CACHE_NAME = 'mindloop-costos-v49';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
