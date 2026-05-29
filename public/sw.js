@@ -51,8 +51,9 @@
 // BUMP v50: "Descargar plantilla" recetas exporta tus recetas reales (round-trip) en vez del ejemplo pulpo hardcodeado.
 // BUMP v51: import de ingredientes solo CREA nuevos (salta existentes) — antes duplicaba todo el inventario al reimportar.
 // BUMP v52: import de recetas reconoce subrecetas por nombre (round-trip sin perder líneas de subreceta).
+// BUMP v53: escandallo export/import incluye la columna "Código TPV" (campo codigo de la receta).
 
-const CACHE_NAME = 'mindloop-costos-v52';
+const CACHE_NAME = 'mindloop-costos-v53';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
