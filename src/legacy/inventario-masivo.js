@@ -1039,20 +1039,68 @@ window.cancelarImportarRecetas = function () {
     datosImportarRecetas = [];
 };
 
-// 🆕 Plantilla de escandallo (formato largo) + hoja con los nombres exactos de
-// los ingredientes del restaurante para que el matching por nombre no falle.
+// Construye las filas de escandallo (SIN cabecera) de UNA receta, en el formato
+// del import: la 1ª línea lleva Categoría/Precio/Porciones; las siguientes en
+// blanco. Rendimiento vacío si la línea no lo fija (al reimportar hereda del
+// ingrediente). Compartido por la plantilla (todas las recetas) y el export por
+// receta para que ambos formatos no diverjan nunca.
+function _filasEscandalloDeReceta(rec, ingMap, recMap) {
+    const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
+    const precio = parseFloat(rec.precio_venta) || 0;
+    const porciones = parseInt(rec.porciones) || 1;
+    if (lineas.length === 0) {
+        return [[rec.nombre, rec.categoria || '', precio, porciones, '', '', '']];
+    }
+    return lineas.map((item, idx) => {
+        let nombreIng;
+        if (item.ingredienteId > 100000) {
+            const sub = recMap.get(item.ingredienteId - 100000);
+            nombreIng = sub ? sub.nombre : `receta#${item.ingredienteId - 100000}`;
+        } else {
+            const ing = ingMap.get(item.ingredienteId);
+            nombreIng = ing ? ing.nombre : `ingrediente#${item.ingredienteId}`;
+        }
+        const rend = (item.rendimiento != null && parseFloat(item.rendimiento) > 0)
+            ? parseFloat(item.rendimiento) : '';
+        const cantidad = parseFloat(item.cantidad) || 0;
+        return idx === 0
+            ? [rec.nombre, rec.categoria || '', precio, porciones, nombreIng, cantidad, rend]
+            : [rec.nombre, '', '', '', nombreIng, cantidad, rend];
+    });
+}
+
+// "Descargar plantilla" = exporta TODAS tus recetas reales en el formato
+// re-importable (round-trip masivo: editar en Excel → reimportar = upsert) +
+// una hoja con los nombres exactos de los ingredientes para que el matching no
+// falle. Si el restaurante aún no tiene recetas, cae a un ejemplo (PULPO A
+// FEIRA) para enseñar el formato a quien empieza de cero.
 window.descargarPlantillaEscandallo = async function () {
     try {
         if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
             await window.loadXLSX();
         }
+        const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+        const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+        const recMap = new Map(recetas.map(r => [r.id, r]));
+
+        const cabecera = ['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento'];
+        let filas;
+        if (recetas.length > 0) {
+            filas = [cabecera];
+            for (const rec of recetas) {
+                for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
+            }
+        } else {
+            // Restaurante sin recetas: ejemplo para aprender el formato.
+            filas = [
+                cabecera,
+                ['PULPO A FEIRA', 'Alimentos', 18, 1, 'PULPO', 0.25, 60],
+                ['PULPO A FEIRA', '', '', '', 'PATATA', 0.20, ''],
+                ['PULPO A FEIRA', '', '', '', 'ACEITE DE OLIVA', 0.02, ''],
+            ];
+        }
+
         const wb = XLSX.utils.book_new();
-        const filas = [
-            ['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento'],
-            ['PULPO A FEIRA', 'Alimentos', 18, 1, 'PULPO', 0.25, 60],
-            ['PULPO A FEIRA', '', '', '', 'PATATA', 0.20, ''],
-            ['PULPO A FEIRA', '', '', '', 'ACEITE DE OLIVA', 0.02, ''],
-        ];
         const wsEsc = XLSX.utils.aoa_to_sheet(filas);
         wsEsc['!cols'] = [{ wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
         XLSX.utils.book_append_sheet(wb, wsEsc, 'Escandallo');
@@ -1062,7 +1110,8 @@ window.descargarPlantillaEscandallo = async function () {
         wsIng['!cols'] = [{ wch: 30 }, { wch: 12 }];
         XLSX.utils.book_append_sheet(wb, wsIng, 'Ingredientes disponibles');
 
-        XLSX.writeFile(wb, `plantilla_escandallo_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const sufijo = recetas.length > 0 ? 'recetas' : 'ejemplo';
+        XLSX.writeFile(wb, `escandallo_${sufijo}_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
         window.showToast('Error generando la plantilla: ' + error.message, 'error');
     }
@@ -1084,32 +1133,8 @@ window.exportarEscandalloReceta = async function (recetaId) {
         const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
         const recMap = new Map(recetas.map(r => [r.id, r]));
 
-        const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
-        const precio = parseFloat(rec.precio_venta) || 0;
-        const porciones = parseInt(rec.porciones) || 1;
         const filas = [['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento']];
-        if (lineas.length === 0) {
-            filas.push([rec.nombre, rec.categoria || '', precio, porciones, '', '', '']);
-        } else {
-            lineas.forEach((item, idx) => {
-                let nombreIng;
-                if (item.ingredienteId > 100000) {
-                    const sub = recMap.get(item.ingredienteId - 100000);
-                    nombreIng = sub ? sub.nombre : `receta#${item.ingredienteId - 100000}`;
-                } else {
-                    const ing = ingMap.get(item.ingredienteId);
-                    nombreIng = ing ? ing.nombre : `ingrediente#${item.ingredienteId}`;
-                }
-                const rend = (item.rendimiento != null && parseFloat(item.rendimiento) > 0)
-                    ? parseFloat(item.rendimiento) : '';
-                const cantidad = parseFloat(item.cantidad) || 0;
-                if (idx === 0) {
-                    filas.push([rec.nombre, rec.categoria || '', precio, porciones, nombreIng, cantidad, rend]);
-                } else {
-                    filas.push([rec.nombre, '', '', '', nombreIng, cantidad, rend]);
-                }
-            });
-        }
+        for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
 
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(filas);
