@@ -45,8 +45,9 @@
 // BUMP v44: import de escandallo de recetas (Excel formato largo) + plantilla descargable.
 // BUMP v45: import de recetas = upsert (re-importar actualiza la existente, no duplica) + refresco de datos.
 // BUMP v46: botón "Exportar escandallo" (recetas reales en formato editable/re-importable).
+// BUMP v47: exportar escandallo POR receta (icono 📋 en cada fila) en vez de todas de golpe.
 
-const CACHE_NAME = 'mindloop-costos-v46';
+const CACHE_NAME = 'mindloop-costos-v47';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

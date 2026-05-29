@@ -1068,29 +1068,29 @@ window.descargarPlantillaEscandallo = async function () {
     }
 };
 
-// 🆕 Exporta TODAS las recetas reales en el formato de escandallo (mismo que el
-// import) para poder editarlas en Excel y re-importarlas (round-trip). Una fila
-// por línea; cabecera (categoría/precio/porciones) solo en la 1ª línea de cada
-// receta; el nombre de receta se repite en cada fila. Rendimiento en blanco si
-// la línea no lo fija (para que al re-importar herede del ingrediente).
-window.exportarEscandallo = async function () {
+// 🆕 Exporta el escandallo de UNA receta concreta en el formato del import
+// (Receta/Categoría/Precio/Porciones/Ingrediente/Cantidad/Rendimiento), para
+// editarla en Excel y re-importarla (round-trip). El nombre del archivo lleva
+// el nombre de la receta. Rendimiento en blanco si la línea no lo fija (para
+// que al re-importar herede del ingrediente).
+window.exportarEscandalloReceta = async function (recetaId) {
     try {
         if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
             await window.loadXLSX();
         }
         const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+        const rec = recetas.find(r => r.id === recetaId);
+        if (!rec) { window.showToast('Receta no encontrada', 'error'); return; }
         const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
         const recMap = new Map(recetas.map(r => [r.id, r]));
 
+        const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
+        const precio = parseFloat(rec.precio_venta) || 0;
+        const porciones = parseInt(rec.porciones) || 1;
         const filas = [['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento']];
-        recetas.forEach(rec => {
-            const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
-            const precio = parseFloat(rec.precio_venta) || 0;
-            const porciones = parseInt(rec.porciones) || 1;
-            if (lineas.length === 0) {
-                filas.push([rec.nombre, rec.categoria || '', precio, porciones, '', '', '']);
-                return;
-            }
+        if (lineas.length === 0) {
+            filas.push([rec.nombre, rec.categoria || '', precio, porciones, '', '', '']);
+        } else {
             lineas.forEach((item, idx) => {
                 let nombreIng;
                 if (item.ingredienteId > 100000) {
@@ -1109,13 +1109,14 @@ window.exportarEscandallo = async function () {
                     filas.push([rec.nombre, '', '', '', nombreIng, cantidad, rend]);
                 }
             });
-        });
+        }
 
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(filas);
         ws['!cols'] = [{ wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
         XLSX.utils.book_append_sheet(wb, ws, 'Escandallo');
-        XLSX.writeFile(wb, `escandallo_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const slug = String(rec.nombre || 'receta').trim().replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '').toLowerCase() || 'receta';
+        XLSX.writeFile(wb, `escandallo_${slug}_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
         window.showToast('Error exportando el escandallo: ' + error.message, 'error');
     }

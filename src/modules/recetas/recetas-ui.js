@@ -485,6 +485,7 @@ export async function renderizarRecetas() {
             html += `<td><span class="badge ${badgeClass}">${cm(margen)} (${pct}%)</span></td>`;
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="${t('recetas:btn_view_escandallo')}">📊</button>`;
+            html += `<button class="icon-btn" onclick="window.exportarEscandalloReceta(${rec.id})" title="${t('recetas:export_escandallo_btn')}">📋</button>`;
             // Botón de variantes solo para bebidas (botella/copa)
             if (rec.categoria?.toLowerCase() === 'bebidas' || rec.categoria?.toLowerCase() === 'bebida') {
                 html += `<button class="icon-btn" onclick="window.gestionarVariantesReceta(${rec.id})" title="${t('recetas:btn_variants')}" style="color: #7C3AED;">🍷</button>`;
