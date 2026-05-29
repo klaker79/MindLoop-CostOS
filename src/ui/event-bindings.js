@@ -92,8 +92,6 @@ const actionHandlers = {
     'exportar-diario-excel': () => window.exportarDiarioExcel?.(),
 
     // Producción
-    'cerrar-modal-producir': () => window.cerrarModalProducir?.(),
-    'confirmar-produccion': () => window.confirmarProduccion?.(),
 
     // Mermas
     'confirmar-mermas': () => window.confirmarMermasFinal?.(),

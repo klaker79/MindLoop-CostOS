@@ -2288,28 +2288,6 @@
       </div>
 
       <!-- Modales (simplificados) -->
-      <div id="modal-producir" class="modal">
-        <div class="modal-content">
-          <h3 data-i18n="recetas:produce_title">Producir platos</h3>
-          <p style="margin-bottom: 20px;" data-i18n-html="recetas:produce_how_many_html">¿Cuántas unidades de <strong
-              id="modal-plato-nombre"></strong>?</p>
-          <div class="form-group">
-            <label data-i18n="common:label_quantity">Cantidad</label>
-            <input type="number" id="modal-cantidad" min="1" value="1" style="width:100%;padding:10px;"
-              oninput="window.actualizarDetalleDescuento()">
-          </div>
-          <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 6px;">
-            <strong data-i18n="recetas:produce_stock_deduction">⚠️ Descuento de stock:</strong>
-            <div id="modal-descuento-detalle" style="margin-top: 10px;"></div>
-          </div>
-          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-producir"
-              data-i18n="common:btn_cancel">Cancelar</button>
-            <button class="btn btn-success" data-action="confirmar-produccion"
-              data-i18n="recetas:produce_confirm">Confirmar</button>
-          </div>
-        </div>
-      </div>
 
       <!-- Modal Empleado -->
       <div id="modal-empleado"
