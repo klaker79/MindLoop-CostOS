@@ -145,7 +145,7 @@
   "import_modal_title": "从 Excel 导入菜品",
   "import_columns_hint": "上传 Excel，列为：菜品、类别、售价、份数、食材、数量、出成率（每行一条配方明细）。",
   "import_template_btn": "⬇️ 下载我的菜谱",
-  "import_export_hint": "💡 没有文件？点击上方的\"📥 导出 Excel\"下载你的菜谱（此格式），编辑后再上传到这里。",
+  "import_export_hint": "💡 没有文件？点击\"📥 导出 Excel\"下载你的菜谱（此格式），编辑后再上传到这里。",
   "export_escandallo_btn": "📋 导出配方明细",
   "import_preview_title": "菜品预览",
   "import_confirm_btn": "导入菜品",
