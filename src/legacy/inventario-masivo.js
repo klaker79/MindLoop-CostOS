@@ -969,46 +969,65 @@ window.confirmarImportarRecetas = async function () {
         return;
     }
 
-    // Saltar recetas cuyo nombre ya existe → re-subir es seguro, no duplica.
-    const existentes = new Set(
-        (window.recetas || []).map(r => String(r.nombre || '').trim().toLowerCase())
+    // Upsert por nombre: si la receta ya existe se ACTUALIZA (no se duplica).
+    const existentesMap = new Map(
+        (window.recetas || []).map(r => [String(r.nombre || '').trim().toLowerCase(), r])
     );
 
     document.getElementById('loading-overlay').classList.add('active');
 
     const creadas = [];
-    const saltadas = [];
+    const actualizadas = [];
     const errores = [];
 
     for (const rec of datosValidos) {
         const clave = String(rec.nombre || '').trim().toLowerCase();
-        if (existentes.has(clave)) { saltadas.push(rec.nombre); continue; }
+        const existente = existentesMap.get(clave);
         try {
-            await window.api.createReceta({
-                nombre: rec.nombre,
-                categoria: rec.categoria,
-                precio_venta: rec.precioVenta,
-                porciones: rec.porciones,
-                ingredientes: rec.ingredientes || [],
-            });
-            creadas.push(rec.nombre);
-            existentes.add(clave); // si el Excel repite el nombre, no duplicar
+            if (existente) {
+                // Si el import NO trae líneas (solo cabecera), conservar el escandallo
+                // actual para no borrarlo sin querer; si trae líneas, se sustituye.
+                const ingredientesFinal = (rec.ingredientes && rec.ingredientes.length > 0)
+                    ? rec.ingredientes
+                    : (existente.ingredientes || []);
+                await window.api.updateReceta(existente.id, {
+                    nombre: rec.nombre,
+                    categoria: rec.categoria,
+                    precio_venta: rec.precioVenta,
+                    porciones: rec.porciones,
+                    ingredientes: ingredientesFinal,
+                });
+                actualizadas.push(rec.nombre);
+            } else {
+                const nueva = await window.api.createReceta({
+                    nombre: rec.nombre,
+                    categoria: rec.categoria,
+                    precio_venta: rec.precioVenta,
+                    porciones: rec.porciones,
+                    ingredientes: rec.ingredientes || [],
+                });
+                creadas.push(rec.nombre);
+                if (nueva && nueva.id) existentesMap.set(clave, nueva); // si el Excel repite el nombre, actualizar la 2ª vez
+            }
         } catch (error) {
             errores.push(`${rec.nombre}: ${error.message}`);
         }
     }
 
+    // Refrescar estado: window.recetas queda al día → un re-import posterior
+    // reconoce las recetas y las actualiza en vez de duplicarlas.
+    await window.cargarDatos();
+    window.renderizarRecetas();
     document.getElementById('loading-overlay').classList.remove('active');
     document.getElementById('modal-importar-recetas').classList.remove('active');
-    await window.renderizarRecetas();
 
     const totalSinEmparejar = datosValidos.reduce((s, d) => s + (d.sinEmparejar ? d.sinEmparejar.length : 0), 0);
-    if (errores.length === 0 && saltadas.length === 0 && totalSinEmparejar === 0) {
-        window.showToast(`✓ ${creadas.length} recetas importadas con su escandallo`, 'success');
+    const tipo = (creadas.length || actualizadas.length) ? 'success' : 'error';
+    if (errores.length === 0 && totalSinEmparejar === 0) {
+        window.showToast(`✓ ${creadas.length} creadas · ${actualizadas.length} actualizadas`, tipo);
     } else {
-        window.showToast(`✓ ${creadas.length} creadas · ${saltadas.length} saltadas`, creadas.length ? 'success' : 'error');
-        let resumen = `Importación completada:\n\n✓ ${creadas.length} recetas creadas`;
-        if (saltadas.length) resumen += `\n↪ ${saltadas.length} saltadas (ya existían): ${saltadas.join(', ')}`;
+        window.showToast(`✓ ${creadas.length} creadas · ${actualizadas.length} actualizadas`, tipo);
+        let resumen = `Importación completada:\n\n✓ ${creadas.length} recetas creadas\n✏️ ${actualizadas.length} actualizadas`;
         if (totalSinEmparejar) resumen += `\n⚠ ${totalSinEmparejar} líneas sin emparejar (ingrediente no encontrado — revísalas)`;
         if (errores.length) resumen += `\n✗ ${errores.length} con error:\n${errores.join('\n')}`;
         alert(resumen);
