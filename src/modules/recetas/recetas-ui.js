@@ -490,7 +490,6 @@ export async function renderizarRecetas() {
             if (rec.categoria?.toLowerCase() === 'bebidas' || rec.categoria?.toLowerCase() === 'bebida') {
                 html += `<button class="icon-btn" onclick="window.gestionarVariantesReceta(${rec.id})" title="${t('recetas:btn_variants')}" style="color: #7C3AED;">🍷</button>`;
             }
-            html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
             html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
             html += `<button class="icon-btn delete" onclick="window.eliminarReceta(${rec.id})">🗑️</button>`;
             html += '</div></td>';
