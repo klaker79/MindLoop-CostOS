@@ -900,6 +900,7 @@ function validarRecetasConEscandallo(data) {
                     categoria: String(celdaReceta(row, ['Categoría', 'Categoria'])).trim() || 'principal',
                     precioVenta: parseFloat(celdaReceta(row, ['Precio Venta', 'Precio (€)', 'Precio'])) || 0,
                     porciones: parseInt(celdaReceta(row, ['Porciones'])) || 1,
+                    codigo: String(celdaReceta(row, ['Código TPV', 'Codigo TPV', 'Código', 'Codigo'])).trim() || null,
                     ingredientes: [],
                     sinEmparejar: [],
                     valido: true,
@@ -912,9 +913,11 @@ function validarRecetasConEscandallo(data) {
                 const cat = String(celdaReceta(row, ['Categoría', 'Categoria'])).trim();
                 const precio = parseFloat(celdaReceta(row, ['Precio Venta', 'Precio (€)', 'Precio']));
                 const porc = parseInt(celdaReceta(row, ['Porciones']));
+                const cod = String(celdaReceta(row, ['Código TPV', 'Codigo TPV', 'Código', 'Codigo'])).trim();
                 if (cat && r.categoria === 'principal') r.categoria = cat;
                 if (precio > 0 && !r.precioVenta) r.precioVenta = precio;
                 if (porc > 1 && r.porciones === 1) r.porciones = porc;
+                if (cod && !r.codigo) r.codigo = cod;
             }
         }
         if (!current) continue;
@@ -1059,6 +1062,8 @@ window.confirmarImportarRecetas = async function () {
                     categoria: rec.categoria,
                     precio_venta: rec.precioVenta,
                     porciones: rec.porciones,
+                    // Código TPV: si el Excel no lo trae, conservar el actual (no borrarlo).
+                    codigo: rec.codigo || existente.codigo || null,
                     ingredientes: ingredientesFinal,
                 });
                 actualizadas.push(rec.nombre);
@@ -1068,6 +1073,7 @@ window.confirmarImportarRecetas = async function () {
                     categoria: rec.categoria,
                     precio_venta: rec.precioVenta,
                     porciones: rec.porciones,
+                    codigo: rec.codigo || null,
                     ingredientes: rec.ingredientes || [],
                 });
                 creadas.push(rec.nombre);
@@ -1112,8 +1118,9 @@ function _filasEscandalloDeReceta(rec, ingMap, recMap) {
     const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
     const precio = parseFloat(rec.precio_venta) || 0;
     const porciones = parseInt(rec.porciones) || 1;
+    const codigo = rec.codigo || ''; // Código TPV (campo `codigo` de la receta)
     if (lineas.length === 0) {
-        return [[rec.nombre, rec.categoria || '', precio, porciones, '', '', '']];
+        return [[rec.nombre, codigo, rec.categoria || '', precio, porciones, '', '', '']];
     }
     return lineas.map((item, idx) => {
         let nombreIng;
@@ -1127,9 +1134,10 @@ function _filasEscandalloDeReceta(rec, ingMap, recMap) {
         const rend = (item.rendimiento != null && parseFloat(item.rendimiento) > 0)
             ? parseFloat(item.rendimiento) : '';
         const cantidad = parseFloat(item.cantidad) || 0;
+        // El Código TPV es atributo de receta → solo en la 1ª línea (como Categoría/Precio/Porciones).
         return idx === 0
-            ? [rec.nombre, rec.categoria || '', precio, porciones, nombreIng, cantidad, rend]
-            : [rec.nombre, '', '', '', nombreIng, cantidad, rend];
+            ? [rec.nombre, codigo, rec.categoria || '', precio, porciones, nombreIng, cantidad, rend]
+            : [rec.nombre, '', '', '', '', nombreIng, cantidad, rend];
     });
 }
 
@@ -1147,7 +1155,7 @@ window.descargarPlantillaEscandallo = async function () {
         const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
         const recMap = new Map(recetas.map(r => [r.id, r]));
 
-        const cabecera = ['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento'];
+        const cabecera = ['Receta', 'Código TPV', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento'];
         let filas;
         if (recetas.length > 0) {
             filas = [cabecera];
@@ -1158,15 +1166,15 @@ window.descargarPlantillaEscandallo = async function () {
             // Restaurante sin recetas: ejemplo para aprender el formato.
             filas = [
                 cabecera,
-                ['PULPO A FEIRA', 'Alimentos', 18, 1, 'PULPO', 0.25, 60],
-                ['PULPO A FEIRA', '', '', '', 'PATATA', 0.20, ''],
-                ['PULPO A FEIRA', '', '', '', 'ACEITE DE OLIVA', 0.02, ''],
+                ['PULPO A FEIRA', '0001', 'Alimentos', 18, 1, 'PULPO', 0.25, 60],
+                ['PULPO A FEIRA', '', '', '', '', 'PATATA', 0.20, ''],
+                ['PULPO A FEIRA', '', '', '', '', 'ACEITE DE OLIVA', 0.02, ''],
             ];
         }
 
         const wb = XLSX.utils.book_new();
         const wsEsc = XLSX.utils.aoa_to_sheet(filas);
-        wsEsc['!cols'] = [{ wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+        wsEsc['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
         XLSX.utils.book_append_sheet(wb, wsEsc, 'Escandallo');
 
         const ings = (window.ingredientes || []).map(i => [i.nombre, i.unidad || '']);
@@ -1197,12 +1205,12 @@ window.exportarEscandalloReceta = async function (recetaId) {
         const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
         const recMap = new Map(recetas.map(r => [r.id, r]));
 
-        const filas = [['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento']];
+        const filas = [['Receta', 'Código TPV', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento']];
         for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
 
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(filas);
-        ws['!cols'] = [{ wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+        ws['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
         XLSX.utils.book_append_sheet(wb, ws, 'Escandallo');
         const slug = String(rec.nombre || 'receta').trim().replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '').toLowerCase() || 'receta';
         XLSX.writeFile(wb, `escandallo_${slug}_${new Date().toISOString().split('T')[0]}.xlsx`);
