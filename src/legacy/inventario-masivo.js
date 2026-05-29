@@ -777,7 +777,32 @@ window.procesarArchivoRecetas = async function (input) {
     }
 };
 
+// 🔎 Lee una celda probando varios nombres de columna (case-insensitive).
+function celdaReceta(row, nombres) {
+    const keys = Object.keys(row);
+    for (const n of nombres) {
+        const target = String(n).trim().toLowerCase();
+        for (const k of keys) {
+            if (String(k).trim().toLowerCase() === target) {
+                const v = row[k];
+                if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+            }
+        }
+    }
+    return '';
+}
+
 function validarDatosRecetas(data) {
+    if (!Array.isArray(data) || data.length === 0) return [];
+    // 🆕 Detectar formato escandallo: ¿hay columna "Ingrediente"?
+    const tieneEscandallo = data.some(row =>
+        Object.keys(row).some(k => String(k).trim().toLowerCase() === 'ingrediente')
+    );
+    return tieneEscandallo ? validarRecetasConEscandallo(data) : validarRecetasSoloCabecera(data);
+}
+
+// Comportamiento histórico: una fila = una receta vacía (solo cabecera).
+function validarRecetasSoloCabecera(data) {
     return data.map(row => {
         const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
         const categoria = row['Categoría'] || row['categoria'] || row['Categoria'] || 'principal';
@@ -793,30 +818,97 @@ function validarDatosRecetas(data) {
             precioVenta: isNaN(precioVenta) ? 0 : precioVenta,
             porciones: isNaN(porciones) || porciones < 1 ? 1 : porciones,
             ingredientes: [],
+            sinEmparejar: [],
             valido: valido,
             error: valido ? null : 'Nombre requerido',
         };
     });
 }
 
+// 🆕 Formato largo: varias filas por receta, cada una una línea del escandallo.
+// Empareja "Ingrediente" por nombre contra window.ingredientes y construye las
+// líneas {ingredienteId, cantidad, rendimiento?}. Rendimiento en blanco = hereda
+// del ingrediente (no se fija en la línea). Las líneas sin emparejar se reportan.
+// La cabecera (categoría/precio/porciones) puede ir solo en la 1ª fila de cada
+// receta; el nombre de receta se arrastra a las filas siguientes si va en blanco.
+function validarRecetasConEscandallo(data) {
+    const ingMap = new Map(
+        (window.ingredientes || []).map(i => [String(i.nombre || '').trim().toLowerCase(), i])
+    );
+    const porNombre = new Map();
+    const orden = [];
+    let current = '';
+
+    for (const row of data) {
+        const recetaCell = String(celdaReceta(row, ['Receta', 'Nombre'])).trim();
+        if (recetaCell) {
+            current = recetaCell;
+            if (!porNombre.has(current)) {
+                porNombre.set(current, {
+                    nombre: current,
+                    categoria: String(celdaReceta(row, ['Categoría', 'Categoria'])).trim() || 'principal',
+                    precioVenta: parseFloat(celdaReceta(row, ['Precio Venta', 'Precio (€)', 'Precio'])) || 0,
+                    porciones: parseInt(celdaReceta(row, ['Porciones'])) || 1,
+                    ingredientes: [],
+                    sinEmparejar: [],
+                    valido: true,
+                    error: null,
+                });
+                orden.push(current);
+            } else {
+                // Rellenar cabecera si esta fila la trae y aún no estaba fijada
+                const r = porNombre.get(current);
+                const cat = String(celdaReceta(row, ['Categoría', 'Categoria'])).trim();
+                const precio = parseFloat(celdaReceta(row, ['Precio Venta', 'Precio (€)', 'Precio']));
+                const porc = parseInt(celdaReceta(row, ['Porciones']));
+                if (cat && r.categoria === 'principal') r.categoria = cat;
+                if (precio > 0 && !r.precioVenta) r.precioVenta = precio;
+                if (porc > 1 && r.porciones === 1) r.porciones = porc;
+            }
+        }
+        if (!current) continue;
+        const r = porNombre.get(current);
+        const ingNombre = String(celdaReceta(row, ['Ingrediente'])).trim();
+        if (!ingNombre) continue; // fila solo de cabecera, sin línea
+        const cantidad = parseFloat(celdaReceta(row, ['Cantidad']));
+        if (!(cantidad > 0)) { r.sinEmparejar.push(`${ingNombre} (cantidad inválida)`); continue; }
+        const ing = ingMap.get(ingNombre.toLowerCase());
+        if (!ing) { r.sinEmparejar.push(ingNombre); continue; }
+        const linea = { ingredienteId: ing.id, cantidad };
+        const rend = parseFloat(celdaReceta(row, ['Rendimiento', 'Rendimiento (%)']));
+        if (rend > 0 && rend <= 100) linea.rendimiento = rend; // blanco = hereda del ingrediente
+        r.ingredientes.push(linea);
+    }
+
+    const resultado = orden.map(n => porNombre.get(n));
+    resultado.forEach(r => {
+        if (!r.nombre) { r.valido = false; r.error = 'Nombre requerido'; }
+        else if (r.ingredientes.length === 0) { r.valido = false; r.error = 'Sin líneas válidas emparejadas'; }
+    });
+    return resultado;
+}
+
 function mostrarPreviewRecetas(datos) {
     const validos = datos.filter(d => d.valido).length;
     const invalidos = datos.filter(d => !d.valido).length;
+    const totalSinEmparejar = datos.reduce((s, d) => s + (d.sinEmparejar ? d.sinEmparejar.length : 0), 0);
 
     let html = `
         <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-          <strong>Resumen:</strong> 
-          <span style="color: #10b981;">✓ ${validos} válidos</span>
+          <strong>Resumen:</strong>
+          <span style="color: #10b981;">✓ ${validos} válidas</span>
           ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
+          ${totalSinEmparejar > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠ ${totalSinEmparejar} líneas sin emparejar</span>` : ''}
         </div>
         <table style="width: 100%; font-size: 13px;">
           <thead>
             <tr style="background: #f1f5f9;">
               <th style="padding: 10px; text-align: left;">Estado</th>
-              <th style="padding: 10px; text-align: left;">Nombre</th>
+              <th style="padding: 10px; text-align: left;">Receta</th>
               <th style="padding: 10px; text-align: center;">Categoría</th>
               <th style="padding: 10px; text-align: right;">Precio Venta</th>
               <th style="padding: 10px; text-align: center;">Porciones</th>
+              <th style="padding: 10px; text-align: center;">Líneas</th>
               <th style="padding: 10px; text-align: left;">Observación</th>
             </tr>
           </thead>
@@ -826,6 +918,21 @@ function mostrarPreviewRecetas(datos) {
         const icon = item.valido ? '✓' : '✗';
         const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
         const iconColor = item.valido ? '#10b981' : '#ef4444';
+        const nLineas = item.ingredientes ? item.ingredientes.length : 0;
+        const sinEmp = item.sinEmparejar || [];
+
+        let obs, obsColor;
+        if (!item.valido) {
+            obs = escapeHTML(item.error || 'Error');
+            if (sinEmp.length) obs += ` (sin emparejar: ${sinEmp.map(s => escapeHTML(s)).join(', ')})`;
+            obsColor = '#ef4444';
+        } else if (sinEmp.length > 0) {
+            obs = `⚠ Sin emparejar: ${sinEmp.map(s => escapeHTML(s)).join(', ')}`;
+            obsColor = '#f59e0b';
+        } else {
+            obs = 'OK';
+            obsColor = '#10b981';
+        }
 
         html += `
           <tr style="background: ${bgColor};">
@@ -834,7 +941,8 @@ function mostrarPreviewRecetas(datos) {
             <td style="padding: 10px; text-align: center;">${escapeHTML(item.categoria)}</td>
             <td style="padding: 10px; text-align: right;">${cm(item.precioVenta)}</td>
             <td style="padding: 10px; text-align: center;">${item.porciones}</td>
-            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${escapeHTML(item.error) || 'OK'}</td>
+            <td style="padding: 10px; text-align: center;">${nLineas}</td>
+            <td style="padding: 10px; color: ${obsColor};">${obs}</td>
           </tr>`;
     });
 
@@ -861,34 +969,84 @@ window.confirmarImportarRecetas = async function () {
         return;
     }
 
+    // Saltar recetas cuyo nombre ya existe → re-subir es seguro, no duplica.
+    const existentes = new Set(
+        (window.recetas || []).map(r => String(r.nombre || '').trim().toLowerCase())
+    );
+
     document.getElementById('loading-overlay').classList.add('active');
 
-    try {
-        let importados = 0;
-        for (const rec of datosValidos) {
+    const creadas = [];
+    const saltadas = [];
+    const errores = [];
+
+    for (const rec of datosValidos) {
+        const clave = String(rec.nombre || '').trim().toLowerCase();
+        if (existentes.has(clave)) { saltadas.push(rec.nombre); continue; }
+        try {
             await window.api.createReceta({
                 nombre: rec.nombre,
                 categoria: rec.categoria,
                 precio_venta: rec.precioVenta,
                 porciones: rec.porciones,
-                ingredientes: [],
+                ingredientes: rec.ingredientes || [],
             });
-            importados++;
+            creadas.push(rec.nombre);
+            existentes.add(clave); // si el Excel repite el nombre, no duplicar
+        } catch (error) {
+            errores.push(`${rec.nombre}: ${error.message}`);
         }
+    }
 
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(`✓ ${importados} recetas importadas correctamente`, 'success');
-        document.getElementById('modal-importar-recetas').classList.remove('active');
-        await window.renderizarRecetas();
-    } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast('Error importando: ' + error.message, 'error');
+    document.getElementById('loading-overlay').classList.remove('active');
+    document.getElementById('modal-importar-recetas').classList.remove('active');
+    await window.renderizarRecetas();
+
+    const totalSinEmparejar = datosValidos.reduce((s, d) => s + (d.sinEmparejar ? d.sinEmparejar.length : 0), 0);
+    if (errores.length === 0 && saltadas.length === 0 && totalSinEmparejar === 0) {
+        window.showToast(`✓ ${creadas.length} recetas importadas con su escandallo`, 'success');
+    } else {
+        window.showToast(`✓ ${creadas.length} creadas · ${saltadas.length} saltadas`, creadas.length ? 'success' : 'error');
+        let resumen = `Importación completada:\n\n✓ ${creadas.length} recetas creadas`;
+        if (saltadas.length) resumen += `\n↪ ${saltadas.length} saltadas (ya existían): ${saltadas.join(', ')}`;
+        if (totalSinEmparejar) resumen += `\n⚠ ${totalSinEmparejar} líneas sin emparejar (ingrediente no encontrado — revísalas)`;
+        if (errores.length) resumen += `\n✗ ${errores.length} con error:\n${errores.join('\n')}`;
+        alert(resumen);
     }
 };
 
 window.cancelarImportarRecetas = function () {
     document.getElementById('modal-importar-recetas').classList.remove('active');
     datosImportarRecetas = [];
+};
+
+// 🆕 Plantilla de escandallo (formato largo) + hoja con los nombres exactos de
+// los ingredientes del restaurante para que el matching por nombre no falle.
+window.descargarPlantillaEscandallo = async function () {
+    try {
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        const wb = XLSX.utils.book_new();
+        const filas = [
+            ['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento'],
+            ['PULPO A FEIRA', 'Alimentos', 18, 1, 'PULPO', 0.25, 60],
+            ['PULPO A FEIRA', '', '', '', 'PATATA', 0.20, ''],
+            ['PULPO A FEIRA', '', '', '', 'ACEITE DE OLIVA', 0.02, ''],
+        ];
+        const wsEsc = XLSX.utils.aoa_to_sheet(filas);
+        wsEsc['!cols'] = [{ wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+        XLSX.utils.book_append_sheet(wb, wsEsc, 'Escandallo');
+
+        const ings = (window.ingredientes || []).map(i => [i.nombre, i.unidad || '']);
+        const wsIng = XLSX.utils.aoa_to_sheet([['Ingrediente', 'Unidad'], ...ings]);
+        wsIng['!cols'] = [{ wch: 30 }, { wch: 12 }];
+        XLSX.utils.book_append_sheet(wb, wsIng, 'Ingredientes disponibles');
+
+        XLSX.writeFile(wb, `plantilla_escandallo_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error generando la plantilla: ' + error.message, 'error');
+    }
 };
 
 // ========== IMPORTAR VENTAS TPV ==========

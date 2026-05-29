@@ -3023,10 +3023,15 @@
 
           <div style="margin: 20px 0;">
             <p style="color: #64748b; margin-bottom: 15px;" data-i18n="recetas:import_columns_hint">
-              Upload an Excel (.xlsx) or CSV file with the columns: <strong>Name</strong>,
-              <strong>Category</strong>,
-              <strong>Sale Price</strong>, <strong>Portions</strong>
+              Sube un Excel con las columnas: <strong>Receta</strong>, <strong>Categoría</strong>,
+              <strong>Precio Venta</strong>, <strong>Porciones</strong>, <strong>Ingrediente</strong>,
+              <strong>Cantidad</strong>, <strong>Rendimiento</strong> (una fila por línea del escandallo).
             </p>
+
+            <div style="margin-bottom: 15px;">
+              <button class="btn btn-secondary btn-small" data-action="descargar-plantilla-escandallo"
+                data-i18n="recetas:import_template_btn">⬇️ Descargar plantilla</button>
+            </div>
 
             <div
               style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
@@ -3166,7 +3171,7 @@
       </div>
       </script>
     </div>
-    <script src="src/legacy/inventario-masivo.js?v=20260416-sprint2"></script>
+    <script src="src/legacy/inventario-masivo.js?v=20260529-escandallo"></script>
 
     <!-- CARRITO DE PEDIDOS - El código está en src/modules/pedidos/pedidos-cart.js -->
 
