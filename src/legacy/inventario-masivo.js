@@ -969,46 +969,65 @@ window.confirmarImportarRecetas = async function () {
         return;
     }
 
-    // Saltar recetas cuyo nombre ya existe → re-subir es seguro, no duplica.
-    const existentes = new Set(
-        (window.recetas || []).map(r => String(r.nombre || '').trim().toLowerCase())
+    // Upsert por nombre: si la receta ya existe se ACTUALIZA (no se duplica).
+    const existentesMap = new Map(
+        (window.recetas || []).map(r => [String(r.nombre || '').trim().toLowerCase(), r])
     );
 
     document.getElementById('loading-overlay').classList.add('active');
 
     const creadas = [];
-    const saltadas = [];
+    const actualizadas = [];
     const errores = [];
 
     for (const rec of datosValidos) {
         const clave = String(rec.nombre || '').trim().toLowerCase();
-        if (existentes.has(clave)) { saltadas.push(rec.nombre); continue; }
+        const existente = existentesMap.get(clave);
         try {
-            await window.api.createReceta({
-                nombre: rec.nombre,
-                categoria: rec.categoria,
-                precio_venta: rec.precioVenta,
-                porciones: rec.porciones,
-                ingredientes: rec.ingredientes || [],
-            });
-            creadas.push(rec.nombre);
-            existentes.add(clave); // si el Excel repite el nombre, no duplicar
+            if (existente) {
+                // Si el import NO trae líneas (solo cabecera), conservar el escandallo
+                // actual para no borrarlo sin querer; si trae líneas, se sustituye.
+                const ingredientesFinal = (rec.ingredientes && rec.ingredientes.length > 0)
+                    ? rec.ingredientes
+                    : (existente.ingredientes || []);
+                await window.api.updateReceta(existente.id, {
+                    nombre: rec.nombre,
+                    categoria: rec.categoria,
+                    precio_venta: rec.precioVenta,
+                    porciones: rec.porciones,
+                    ingredientes: ingredientesFinal,
+                });
+                actualizadas.push(rec.nombre);
+            } else {
+                const nueva = await window.api.createReceta({
+                    nombre: rec.nombre,
+                    categoria: rec.categoria,
+                    precio_venta: rec.precioVenta,
+                    porciones: rec.porciones,
+                    ingredientes: rec.ingredientes || [],
+                });
+                creadas.push(rec.nombre);
+                if (nueva && nueva.id) existentesMap.set(clave, nueva); // si el Excel repite el nombre, actualizar la 2ª vez
+            }
         } catch (error) {
             errores.push(`${rec.nombre}: ${error.message}`);
         }
     }
 
+    // Refrescar estado: window.recetas queda al día → un re-import posterior
+    // reconoce las recetas y las actualiza en vez de duplicarlas.
+    await window.cargarDatos();
+    window.renderizarRecetas();
     document.getElementById('loading-overlay').classList.remove('active');
     document.getElementById('modal-importar-recetas').classList.remove('active');
-    await window.renderizarRecetas();
 
     const totalSinEmparejar = datosValidos.reduce((s, d) => s + (d.sinEmparejar ? d.sinEmparejar.length : 0), 0);
-    if (errores.length === 0 && saltadas.length === 0 && totalSinEmparejar === 0) {
-        window.showToast(`✓ ${creadas.length} recetas importadas con su escandallo`, 'success');
+    const tipo = (creadas.length || actualizadas.length) ? 'success' : 'error';
+    if (errores.length === 0 && totalSinEmparejar === 0) {
+        window.showToast(`✓ ${creadas.length} creadas · ${actualizadas.length} actualizadas`, tipo);
     } else {
-        window.showToast(`✓ ${creadas.length} creadas · ${saltadas.length} saltadas`, creadas.length ? 'success' : 'error');
-        let resumen = `Importación completada:\n\n✓ ${creadas.length} recetas creadas`;
-        if (saltadas.length) resumen += `\n↪ ${saltadas.length} saltadas (ya existían): ${saltadas.join(', ')}`;
+        window.showToast(`✓ ${creadas.length} creadas · ${actualizadas.length} actualizadas`, tipo);
+        let resumen = `Importación completada:\n\n✓ ${creadas.length} recetas creadas\n✏️ ${actualizadas.length} actualizadas`;
         if (totalSinEmparejar) resumen += `\n⚠ ${totalSinEmparejar} líneas sin emparejar (ingrediente no encontrado — revísalas)`;
         if (errores.length) resumen += `\n✗ ${errores.length} con error:\n${errores.join('\n')}`;
         alert(resumen);
@@ -1046,6 +1065,59 @@ window.descargarPlantillaEscandallo = async function () {
         XLSX.writeFile(wb, `plantilla_escandallo_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
         window.showToast('Error generando la plantilla: ' + error.message, 'error');
+    }
+};
+
+// 🆕 Exporta TODAS las recetas reales en el formato de escandallo (mismo que el
+// import) para poder editarlas en Excel y re-importarlas (round-trip). Una fila
+// por línea; cabecera (categoría/precio/porciones) solo en la 1ª línea de cada
+// receta; el nombre de receta se repite en cada fila. Rendimiento en blanco si
+// la línea no lo fija (para que al re-importar herede del ingrediente).
+window.exportarEscandallo = async function () {
+    try {
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+        const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+        const recMap = new Map(recetas.map(r => [r.id, r]));
+
+        const filas = [['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento']];
+        recetas.forEach(rec => {
+            const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
+            const precio = parseFloat(rec.precio_venta) || 0;
+            const porciones = parseInt(rec.porciones) || 1;
+            if (lineas.length === 0) {
+                filas.push([rec.nombre, rec.categoria || '', precio, porciones, '', '', '']);
+                return;
+            }
+            lineas.forEach((item, idx) => {
+                let nombreIng;
+                if (item.ingredienteId > 100000) {
+                    const sub = recMap.get(item.ingredienteId - 100000);
+                    nombreIng = sub ? sub.nombre : `receta#${item.ingredienteId - 100000}`;
+                } else {
+                    const ing = ingMap.get(item.ingredienteId);
+                    nombreIng = ing ? ing.nombre : `ingrediente#${item.ingredienteId}`;
+                }
+                const rend = (item.rendimiento != null && parseFloat(item.rendimiento) > 0)
+                    ? parseFloat(item.rendimiento) : '';
+                const cantidad = parseFloat(item.cantidad) || 0;
+                if (idx === 0) {
+                    filas.push([rec.nombre, rec.categoria || '', precio, porciones, nombreIng, cantidad, rend]);
+                } else {
+                    filas.push([rec.nombre, '', '', '', nombreIng, cantidad, rend]);
+                }
+            });
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(filas);
+        ws['!cols'] = [{ wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+        XLSX.utils.book_append_sheet(wb, ws, 'Escandallo');
+        XLSX.writeFile(wb, `escandallo_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error exportando el escandallo: ' + error.message, 'error');
     }
 };
 

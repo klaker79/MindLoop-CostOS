@@ -43,8 +43,10 @@
 // BUMP v42: análisis — ranking de rentabilidad y matriz BCG ahora excluyen también las recetas "base" (preparaciones intermedias, no vendibles).
 // BUMP v43: escandallo — eliminado toggle Real/Nominal (el backend sincroniza precio configurado con el real en cada recepción → siempre coincidían).
 // BUMP v44: import de escandallo de recetas (Excel formato largo) + plantilla descargable.
+// BUMP v45: import de recetas = upsert (re-importar actualiza la existente, no duplica) + refresco de datos.
+// BUMP v46: botón "Exportar escandallo" (recetas reales en formato editable/re-importable).
 
-const CACHE_NAME = 'mindloop-costos-v44';
+const CACHE_NAME = 'mindloop-costos-v46';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
