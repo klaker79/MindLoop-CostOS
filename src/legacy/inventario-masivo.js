@@ -879,6 +879,13 @@ function validarRecetasConEscandallo(data) {
     const ingMap = new Map(
         (window.ingredientes || []).map(i => [String(i.nombre || '').trim().toLowerCase(), i])
     );
+    // Subrecetas: el export escribe el NOMBRE de la subreceta como "ingrediente".
+    // Mapeamos también las recetas por nombre para que el round-trip no las pierda:
+    // si una línea no casa con un ingrediente pero sí con una receta, la tratamos
+    // como subreceta (ingredienteId = 100000 + recetaId, convención de toda la app).
+    const recMap = new Map(
+        (window.recetas || []).map(r => [String(r.nombre || '').trim().toLowerCase(), r])
+    );
     const porNombre = new Map();
     const orden = [];
     let current = '';
@@ -916,9 +923,22 @@ function validarRecetasConEscandallo(data) {
         if (!ingNombre) continue; // fila solo de cabecera, sin línea
         const cantidad = parseFloat(celdaReceta(row, ['Cantidad']));
         if (!(cantidad > 0)) { r.sinEmparejar.push(`${ingNombre} (cantidad inválida)`); continue; }
-        const ing = ingMap.get(ingNombre.toLowerCase());
-        if (!ing) { r.sinEmparejar.push(ingNombre); continue; }
-        const linea = { ingredienteId: ing.id, cantidad };
+        const clave = ingNombre.toLowerCase();
+        const ing = ingMap.get(clave);
+        let linea;
+        if (ing) {
+            linea = { ingredienteId: ing.id, cantidad };
+        } else {
+            // ¿Es una subreceta? La reconocemos por nombre de receta, evitando que
+            // una receta se incluya a sí misma como subreceta (auto-referencia).
+            const sub = recMap.get(clave);
+            if (sub && clave !== current.trim().toLowerCase()) {
+                linea = { ingredienteId: 100000 + sub.id, cantidad };
+            } else {
+                r.sinEmparejar.push(ingNombre);
+                continue;
+            }
+        }
         const rend = parseFloat(celdaReceta(row, ['Rendimiento', 'Rendimiento (%)']));
         if (rend > 0 && rend <= 100) linea.rendimiento = rend; // blanco = hereda del ingrediente
         r.ingredientes.push(linea);
