@@ -145,6 +145,7 @@
   "import_modal_title": "Import Recipes from Excel",
   "import_columns_hint": "Upload an Excel with columns: Recipe, Category, Sale Price, Portions, Ingredient, Quantity, Yield (one row per recipe line).",
   "import_template_btn": "⬇️ Download template",
+  "export_escandallo_btn": "📋 Export breakdown",
   "import_preview_title": "Recipe Preview",
   "import_confirm_btn": "Import Recipes",
   "import_click_to_select": "Click to select file",

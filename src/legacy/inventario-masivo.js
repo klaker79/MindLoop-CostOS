@@ -1068,6 +1068,59 @@ window.descargarPlantillaEscandallo = async function () {
     }
 };
 
+// 🆕 Exporta TODAS las recetas reales en el formato de escandallo (mismo que el
+// import) para poder editarlas en Excel y re-importarlas (round-trip). Una fila
+// por línea; cabecera (categoría/precio/porciones) solo en la 1ª línea de cada
+// receta; el nombre de receta se repite en cada fila. Rendimiento en blanco si
+// la línea no lo fija (para que al re-importar herede del ingrediente).
+window.exportarEscandallo = async function () {
+    try {
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+        const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+        const recMap = new Map(recetas.map(r => [r.id, r]));
+
+        const filas = [['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento']];
+        recetas.forEach(rec => {
+            const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
+            const precio = parseFloat(rec.precio_venta) || 0;
+            const porciones = parseInt(rec.porciones) || 1;
+            if (lineas.length === 0) {
+                filas.push([rec.nombre, rec.categoria || '', precio, porciones, '', '', '']);
+                return;
+            }
+            lineas.forEach((item, idx) => {
+                let nombreIng;
+                if (item.ingredienteId > 100000) {
+                    const sub = recMap.get(item.ingredienteId - 100000);
+                    nombreIng = sub ? sub.nombre : `receta#${item.ingredienteId - 100000}`;
+                } else {
+                    const ing = ingMap.get(item.ingredienteId);
+                    nombreIng = ing ? ing.nombre : `ingrediente#${item.ingredienteId}`;
+                }
+                const rend = (item.rendimiento != null && parseFloat(item.rendimiento) > 0)
+                    ? parseFloat(item.rendimiento) : '';
+                const cantidad = parseFloat(item.cantidad) || 0;
+                if (idx === 0) {
+                    filas.push([rec.nombre, rec.categoria || '', precio, porciones, nombreIng, cantidad, rend]);
+                } else {
+                    filas.push([rec.nombre, '', '', '', nombreIng, cantidad, rend]);
+                }
+            });
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(filas);
+        ws['!cols'] = [{ wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+        XLSX.utils.book_append_sheet(wb, ws, 'Escandallo');
+        XLSX.writeFile(wb, `escandallo_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error exportando el escandallo: ' + error.message, 'error');
+    }
+};
+
 // ========== IMPORTAR VENTAS TPV ==========
 let datosImportarVentas = [];
 
