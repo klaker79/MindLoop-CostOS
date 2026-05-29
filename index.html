@@ -887,10 +887,12 @@
                   <input type="number" id="ing-stockActual" step="0.01" min="0">
                 </div>
                 <div class="form-group">
-                  <label data-i18n="ingredientes:form_label_stock_min">Stock mínimo</label>
-                  <!-- min=1: stock_minimo=0 hacía que Smart Order multiplicara su
-                       cálculo por 0 y nunca propusiera reposición. Ver fix 2026-05-07. -->
-                  <input type="number" id="ing-stockMinimo" step="0.01" min="1">
+                  <label><span data-i18n="ingredientes:form_label_stock_min">Stock mínimo</span> *</label>
+                  <!-- OBLIGATORIO (>0): el Smart Order calcula la reposición como
+                       (stock_minimo × 2) − stock_actual. Con 0 o vacío nunca propone
+                       reponer. `required` + min>0 obligan a un valor válido. Ver fix
+                       2026-05-29 (antes min=1, relajado a >0 a petición de Iker). -->
+                  <input type="number" id="ing-stockMinimo" step="0.01" min="0.01" required>
                 </div>
 
                 <!-- RENDIMIENTO / MERMA (Moved to bottom with Slider) -->
@@ -3262,7 +3264,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260510-remove-plans-gating"></script>
+  <script type="module" src="./src/main.js?v=20260529-stockmin-required"></script>
 </body>
 
 </html>
