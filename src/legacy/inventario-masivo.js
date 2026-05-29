@@ -634,6 +634,14 @@ async function leerArchivoGenerico(file) {
 }
 
 function validarDatosIngredientes(data) {
+    // Set de nombres ya existentes (BD del tenant) para NO duplicar al importar.
+    // El import masivo solo CREA los nuevos; los existentes se saltan (decisión
+    // Iker 2026-05-29 tras duplicar todo el inventario en staging).
+    const existentes = new Set(
+        (window.ingredientes || []).map(i => String(i.nombre || '').trim().toLowerCase())
+    );
+    const vistosEnArchivo = new Set(); // dedupe dentro del propio Excel
+
     return data.map(row => {
         const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
         const precio = parseFloat(row['Precio'] || row['Precio (€)'] || row['precio'] || row['PRECIO'] || 0);
@@ -645,27 +653,40 @@ function validarDatosIngredientes(data) {
             row['Stock Mínimo'] || row['stock_minimo'] || row['Stock Minimo'] || 0
         );
 
-        const valido = nombre.trim().length > 0;
+        const nombreTrim = nombre.trim();
+        const clave = nombreTrim.toLowerCase();
+        const valido = nombreTrim.length > 0;
+        let yaExiste = false;
+        let dupEnArchivo = false;
+        if (valido) {
+            yaExiste = existentes.has(clave);
+            dupEnArchivo = vistosEnArchivo.has(clave);
+            vistosEnArchivo.add(clave);
+        }
         return {
-            nombre: nombre.trim(),
+            nombre: nombreTrim,
             precio: isNaN(precio) ? 0 : precio,
             unidad: unidad,
             stockActual: isNaN(stockActual) ? 0 : stockActual,
             stockMinimo: isNaN(stockMinimo) ? 0 : stockMinimo,
             valido: valido,
+            yaExiste,        // ya está en la BD → se saltará (no duplicar)
+            dupEnArchivo,    // repetido dentro del propio Excel → se saltará
             error: valido ? null : 'Nombre requerido',
         };
     });
 }
 
 function mostrarPreviewIngredientes(datos) {
-    const validos = datos.filter(d => d.valido).length;
+    const nuevos = datos.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo).length;
+    const yaExisten = datos.filter(d => d.valido && (d.yaExiste || d.dupEnArchivo)).length;
     const invalidos = datos.filter(d => !d.valido).length;
 
     let html = `
         <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-          <strong>Resumen:</strong> 
-          <span style="color: #10b981;">✓ ${validos} válidos</span>
+          <strong>Resumen:</strong>
+          <span style="color: #10b981;">✓ ${nuevos} nuevos</span>
+          ${yaExisten > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠ ${yaExisten} ya existen (se saltarán)</span>` : ''}
           ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
         </div>
         <table style="width: 100%; font-size: 13px;">
@@ -682,9 +703,18 @@ function mostrarPreviewIngredientes(datos) {
           <tbody>`;
 
     datos.forEach(item => {
-        const icon = item.valido ? '✓' : '✗';
-        const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
-        const iconColor = item.valido ? '#10b981' : '#ef4444';
+        const seSalta = item.valido && (item.yaExiste || item.dupEnArchivo);
+        const icon = !item.valido ? '✗' : (seSalta ? '⚠' : '✓');
+        const bgColor = !item.valido ? '#fef2f2' : (seSalta ? '#fffbeb' : '#f0fdf4');
+        const iconColor = !item.valido ? '#ef4444' : (seSalta ? '#f59e0b' : '#10b981');
+        const obs = !item.valido
+            ? item.error
+            : item.yaExiste
+                ? 'Ya existe → se saltará'
+                : item.dupEnArchivo
+                    ? 'Repetido en el Excel → se saltará'
+                    : 'Nuevo';
+        const obsColor = !item.valido ? '#ef4444' : (seSalta ? '#f59e0b' : '#10b981');
 
         html += `
           <tr style="background: ${bgColor};">
@@ -693,7 +723,7 @@ function mostrarPreviewIngredientes(datos) {
             <td style="padding: 10px; text-align: right;">${cm(item.precio)}</td>
             <td style="padding: 10px; text-align: center;">${escapeHTML(item.unidad)}</td>
             <td style="padding: 10px; text-align: right;">${item.stockActual}</td>
-            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${escapeHTML(item.error) || 'OK'}</td>
+            <td style="padding: 10px; color: ${obsColor};">${escapeHTML(obs) || 'OK'}</td>
           </tr>`;
     });
 
@@ -702,21 +732,32 @@ function mostrarPreviewIngredientes(datos) {
     document.getElementById('preview-ingredientes-container').innerHTML = html;
     document.getElementById('preview-importar-ingredientes').style.display = 'block';
 
-    const hayValidos = datos.some(d => d.valido);
+    // Solo se importan los NUEVOS → el botón se activa únicamente si hay alguno.
+    const hayNuevos = datos.some(d => d.valido && !d.yaExiste && !d.dupEnArchivo);
     const btn = document.getElementById('btn-confirmar-importar-ingredientes');
-    btn.disabled = !hayValidos;
-    btn.style.opacity = hayValidos ? '1' : '0.5';
+    btn.disabled = !hayNuevos;
+    btn.style.opacity = hayNuevos ? '1' : '0.5';
 }
 
 window.confirmarImportarIngredientes = async function () {
-    const datosValidos = datosImportarIngredientes.filter(d => d.valido);
+    // Solo se CREAN los nuevos. Los que ya existen (en BD o repetidos en el
+    // Excel) se saltan para no duplicar el inventario (decisión Iker 2026-05-29).
+    // Editar precios/datos en bloque NO se hace por aquí: reimportar nombres
+    // existentes duplicaba todo. Para cambiar precios → ficha del ingrediente.
+    const aCrear = datosImportarIngredientes.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo);
+    const saltados = datosImportarIngredientes.filter(d => d.valido && (d.yaExiste || d.dupEnArchivo)).length;
 
-    if (datosValidos.length === 0) {
-        window.showToast('No hay ingredientes válidos para importar', 'error');
+    if (aCrear.length === 0) {
+        window.showToast(
+            saltados > 0
+                ? `No hay ingredientes nuevos: los ${saltados} del Excel ya existen`
+                : 'No hay ingredientes válidos para importar',
+            'info'
+        );
         return;
     }
 
-    if (!confirm(`¿Importar ${datosValidos.length} ingredientes?`)) {
+    if (!confirm(`¿Crear ${aCrear.length} ingredientes nuevos?${saltados > 0 ? `\n(${saltados} ya existen y se saltarán)` : ''}`)) {
         return;
     }
 
@@ -724,7 +765,7 @@ window.confirmarImportarIngredientes = async function () {
 
     try {
         let importados = 0;
-        for (const ing of datosValidos) {
+        for (const ing of aCrear) {
             await window.api.createIngrediente({
                 nombre: ing.nombre,
                 precio: ing.precio,
@@ -736,7 +777,10 @@ window.confirmarImportarIngredientes = async function () {
         }
 
         document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(`✓ ${importados} ingredientes importados correctamente`, 'success');
+        window.showToast(
+            `✓ ${importados} nuevos creados${saltados > 0 ? ` · ${saltados} ya existían (saltados)` : ''}`,
+            'success'
+        );
         document.getElementById('modal-importar-ingredientes').classList.remove('active');
         await window.renderizarIngredientes();
     } catch (error) {
