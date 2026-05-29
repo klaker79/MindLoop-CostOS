@@ -53,8 +53,9 @@
 // BUMP v52: import de recetas reconoce subrecetas por nombre (round-trip sin perder líneas de subreceta).
 // BUMP v53: escandallo export/import incluye la columna "Código TPV" (campo codigo de la receta).
 // BUMP v54: Recetas simplificado a UN Exportar (escandallo editable) + UN Importar. Quitado informe coste/margen y botón duplicado.
+// BUMP v55: pista del modal importar sin "(arriba)" (el botón Exportar Excel está fuera del modal).
 
-const CACHE_NAME = 'mindloop-costos-v54';
+const CACHE_NAME = 'mindloop-costos-v55';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
