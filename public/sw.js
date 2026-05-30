@@ -54,8 +54,9 @@
 // BUMP v53: escandallo export/import incluye la columna "Código TPV" (campo codigo de la receta).
 // BUMP v54: Recetas simplificado a UN Exportar (escandallo editable) + UN Importar. Quitado informe coste/margen y botón duplicado.
 // BUMP v55: pista del modal importar sin "(arriba)" (el botón Exportar Excel está fuera del modal).
+// BUMP v56: import de ingredientes Excel lee columna "Proveedor" (resuelve por nombre → proveedorId).
 
-const CACHE_NAME = 'mindloop-costos-v55';
+const CACHE_NAME = 'mindloop-costos-v56';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

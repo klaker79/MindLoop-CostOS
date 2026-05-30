@@ -642,6 +642,13 @@ function validarDatosIngredientes(data) {
     );
     const vistosEnArchivo = new Set(); // dedupe dentro del propio Excel
 
+    // 🆕 Mapa proveedor nombre (lower+trim) → proveedor para resolver la columna
+    // "Proveedor" del Excel. Antes el import IGNORABA esa columna y todos los
+    // ingredientes nacían sin proveedor (bug reportado por Iker 2026-05-29).
+    const provMap = new Map(
+        (window.proveedores || []).map(p => [String(p.nombre || '').trim().toLowerCase(), p])
+    );
+
     return data.map(row => {
         const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
         const precio = parseFloat(row['Precio'] || row['Precio (€)'] || row['precio'] || row['PRECIO'] || 0);
@@ -652,6 +659,21 @@ function validarDatosIngredientes(data) {
         const stockMinimo = parseFloat(
             row['Stock Mínimo'] || row['stock_minimo'] || row['Stock Minimo'] || 0
         );
+
+        // 🆕 Proveedor por nombre, resuelto a id contra window.proveedores. Si la
+        // celda viene vacía → sin proveedor (igual que antes). Si trae un nombre
+        // que no se empareja → aviso en preview pero el ingrediente se importa
+        // sin proveedor (no bloquea).
+        const proveedorNombreRaw = String(
+            row['Proveedor'] || row['proveedor'] || row['PROVEEDOR'] || row['Supplier'] || ''
+        ).trim();
+        let proveedorId = null;
+        let proveedorAviso = null;
+        if (proveedorNombreRaw) {
+            const match = provMap.get(proveedorNombreRaw.toLowerCase());
+            if (match) proveedorId = match.id;
+            else proveedorAviso = `Proveedor "${proveedorNombreRaw}" no existe`;
+        }
 
         const nombreTrim = nombre.trim();
         const clave = nombreTrim.toLowerCase();
@@ -669,6 +691,9 @@ function validarDatosIngredientes(data) {
             unidad: unidad,
             stockActual: isNaN(stockActual) ? 0 : stockActual,
             stockMinimo: isNaN(stockMinimo) ? 0 : stockMinimo,
+            proveedorNombre: proveedorNombreRaw,
+            proveedorId,
+            proveedorAviso,
             valido: valido,
             yaExiste,        // ya está en la BD → se saltará (no duplicar)
             dupEnArchivo,    // repetido dentro del propio Excel → se saltará
@@ -681,6 +706,7 @@ function mostrarPreviewIngredientes(datos) {
     const nuevos = datos.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo).length;
     const yaExisten = datos.filter(d => d.valido && (d.yaExiste || d.dupEnArchivo)).length;
     const invalidos = datos.filter(d => !d.valido).length;
+    const sinProveedor = datos.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo && d.proveedorAviso).length;
 
     let html = `
         <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
@@ -688,12 +714,14 @@ function mostrarPreviewIngredientes(datos) {
           <span style="color: #10b981;">✓ ${nuevos} nuevos</span>
           ${yaExisten > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠ ${yaExisten} ya existen (se saltarán)</span>` : ''}
           ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
+          ${sinProveedor > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠ ${sinProveedor} sin proveedor emparejado</span>` : ''}
         </div>
         <table style="width: 100%; font-size: 13px;">
           <thead>
             <tr style="background: #f1f5f9;">
               <th style="padding: 10px; text-align: left;">Estado</th>
               <th style="padding: 10px; text-align: left;">Nombre</th>
+              <th style="padding: 10px; text-align: left;">Proveedor</th>
               <th style="padding: 10px; text-align: right;">Precio</th>
               <th style="padding: 10px; text-align: center;">Unidad</th>
               <th style="padding: 10px; text-align: right;">Stock</th>
@@ -707,19 +735,31 @@ function mostrarPreviewIngredientes(datos) {
         const icon = !item.valido ? '✗' : (seSalta ? '⚠' : '✓');
         const bgColor = !item.valido ? '#fef2f2' : (seSalta ? '#fffbeb' : '#f0fdf4');
         const iconColor = !item.valido ? '#ef4444' : (seSalta ? '#f59e0b' : '#10b981');
-        const obs = !item.valido
+        // Observación principal (estado de la fila), con aviso de proveedor anexado si aplica.
+        let obs = !item.valido
             ? item.error
             : item.yaExiste
                 ? 'Ya existe → se saltará'
                 : item.dupEnArchivo
                     ? 'Repetido en el Excel → se saltará'
                     : 'Nuevo';
-        const obsColor = !item.valido ? '#ef4444' : (seSalta ? '#f59e0b' : '#10b981');
+        let obsColor = !item.valido ? '#ef4444' : (seSalta ? '#f59e0b' : '#10b981');
+        if (item.valido && !seSalta && item.proveedorAviso) {
+            obs = `${obs} · ⚠ ${item.proveedorAviso} (se importa sin proveedor)`;
+            obsColor = '#f59e0b';
+        }
+        // Celda de proveedor: nombre resuelto si emparejó, o aviso en naranja si no.
+        const provCell = item.proveedorId
+            ? escapeHTML(item.proveedorNombre)
+            : item.proveedorNombre
+                ? `<span style="color:#f59e0b;">⚠ ${escapeHTML(item.proveedorNombre)}</span>`
+                : '<span style="color:#94a3b8;">—</span>';
 
         html += `
           <tr style="background: ${bgColor};">
             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
             <td style="padding: 10px;">${escapeHTML(item.nombre) || '-'}</td>
+            <td style="padding: 10px;">${provCell}</td>
             <td style="padding: 10px; text-align: right;">${cm(item.precio)}</td>
             <td style="padding: 10px; text-align: center;">${escapeHTML(item.unidad)}</td>
             <td style="padding: 10px; text-align: right;">${item.stockActual}</td>
@@ -765,14 +805,24 @@ window.confirmarImportarIngredientes = async function () {
 
     try {
         let importados = 0;
+        const sinProveedorEmparejado = [];
         for (const ing of aCrear) {
-            await window.api.createIngrediente({
+            const payload = {
                 nombre: ing.nombre,
                 precio: ing.precio,
                 unidad: ing.unidad,
                 stockActual: ing.stockActual,
                 stockMinimo: ing.stockMinimo,
-            });
+            };
+            // 🆕 Solo enviar proveedorId si el Excel traía un nombre y se emparejó.
+            // Si traía un nombre que no existe, se crea el ingrediente sin proveedor
+            // y se registra en el informe final para que el usuario lo arregle.
+            if (ing.proveedorId) {
+                payload.proveedorId = ing.proveedorId;
+            } else if (ing.proveedorAviso) {
+                sinProveedorEmparejado.push(`${ing.nombre}: ${ing.proveedorAviso}`);
+            }
+            await window.api.createIngrediente(payload);
             importados++;
         }
 
@@ -783,6 +833,9 @@ window.confirmarImportarIngredientes = async function () {
         );
         document.getElementById('modal-importar-ingredientes').classList.remove('active');
         await window.renderizarIngredientes();
+        if (sinProveedorEmparejado.length > 0) {
+            alert(`Importación completada con avisos:\n\n⚠ ${sinProveedorEmparejado.length} ingredientes se crearon SIN proveedor porque el nombre del Excel no coincide con ninguno existente:\n\n${sinProveedorEmparejado.join('\n')}\n\nRevísalos y asigna el proveedor manualmente, o crea el proveedor y reimporta.`);
+        }
     } catch (error) {
         document.getElementById('loading-overlay').classList.remove('active');
         window.showToast('Error importando: ' + error.message, 'error');
