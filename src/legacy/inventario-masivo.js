@@ -634,19 +634,23 @@ async function leerArchivoGenerico(file) {
 }
 
 function validarDatosIngredientes(data) {
-    // Map nombre → ingrediente existente (BD del tenant). El import solo CREA
-    // los nuevos; los existentes se saltan (Iker 2026-05-29 tras duplicar
-    // inventario). EXCEPCIÓN (Iker 2026-05-30, caso B): si el existente NO
-    // tiene proveedor y el Excel SÍ trae uno emparejado → solo se actualiza
-    // ese campo (resuelve el caso de ingredientes huérfanos del bug anterior).
+    // 🧪 Lógica EXTRAÍDA a src/utils/ingredientes-parser.js con tests defensivos
+    // en src/__tests__/utils/ingredientes-parser.test.js. La función de aquí es
+    // un thin wrapper que inyecta window.ingredientes y window.proveedores como
+    // dependencias. Fallback a la implementación inline si el módulo ESM no
+    // está cargado (por ejemplo, en tests legacy que no arrancan main.js).
+    if (window.__importParsers && typeof window.__importParsers.parseIngredientes === 'function') {
+        return window.__importParsers.parseIngredientes(
+            data,
+            window.ingredientes || [],
+            window.proveedores || []
+        );
+    }
+    // ----- FALLBACK histórico (mantenido por seguridad) -----
     const existentesMap = new Map(
         (window.ingredientes || []).map(i => [String(i.nombre || '').trim().toLowerCase(), i])
     );
-    const vistosEnArchivo = new Set(); // dedupe dentro del propio Excel
-
-    // 🆕 Mapa proveedor nombre (lower+trim) → proveedor para resolver la columna
-    // "Proveedor" del Excel. Antes el import IGNORABA esa columna y todos los
-    // ingredientes nacían sin proveedor (bug reportado por Iker 2026-05-29).
+    const vistosEnArchivo = new Set();
     const provMap = new Map(
         (window.proveedores || []).map(p => [String(p.nombre || '').trim().toLowerCase(), p])
     );
@@ -965,8 +969,19 @@ function celdaReceta(row, nombres) {
 }
 
 function validarDatosRecetas(data) {
+    // 🧪 Lógica EXTRAÍDA a src/utils/escandallo-parser.js con tests defensivos
+    // en src/__tests__/utils/escandallo-parser.test.js. Wrapper que inyecta
+    // window.ingredientes (para matching) y window.recetas (para subrecetas).
+    // Fallback a la implementación inline si el módulo no está cargado.
+    if (window.__importParsers && typeof window.__importParsers.parseRecetas === 'function') {
+        return window.__importParsers.parseRecetas(
+            data,
+            window.ingredientes || [],
+            window.recetas || []
+        );
+    }
+    // ----- FALLBACK histórico (mantenido por seguridad) -----
     if (!Array.isArray(data) || data.length === 0) return [];
-    // 🆕 Detectar formato escandallo: ¿hay columna "Ingrediente"?
     const tieneEscandallo = data.some(row =>
         Object.keys(row).some(k => String(k).trim().toLowerCase() === 'ingrediente')
     );

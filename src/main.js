@@ -186,6 +186,15 @@ if (typeof window !== 'undefined') {
     window.__inventarioFlexible = inventarioFlexible;
 }
 
+// 🆕 Parsers extraídos del Excel de import (escandallo + ingredientes).
+// Tienen tests defensivos en src/__tests__/utils/. El legacy los consume
+// vía window.__importParsers para mantener la regla legacy-no-esm.
+import * as escandalloParser from './utils/escandallo-parser.js';
+import * as ingredientesParser from './utils/ingredientes-parser.js';
+if (typeof window !== 'undefined') {
+    window.__importParsers = Object.assign({}, escandalloParser, ingredientesParser);
+}
+
 // Sales Forecast (predicción)
 import { calcularForecast, renderForecastChart } from './modules/analytics/forecast.js';
 window.calcularForecast = calcularForecast;
