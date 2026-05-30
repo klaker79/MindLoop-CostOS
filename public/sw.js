@@ -55,8 +55,9 @@
 // BUMP v54: Recetas simplificado a UN Exportar (escandallo editable) + UN Importar. Quitado informe coste/margen y botón duplicado.
 // BUMP v55: pista del modal importar sin "(arriba)" (el botón Exportar Excel está fuera del modal).
 // BUMP v56: import de ingredientes Excel lee columna "Proveedor" (resuelve por nombre → proveedorId).
+// BUMP v57: import también actualiza proveedor de ingredientes existentes huérfanos (caso B Iker 2026-05-30).
 
-const CACHE_NAME = 'mindloop-costos-v56';
+const CACHE_NAME = 'mindloop-costos-v57';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
