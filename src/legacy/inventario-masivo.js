@@ -832,6 +832,25 @@ window.confirmarImportarIngredientes = async function () {
 
     document.getElementById('loading-overlay').classList.add('active');
 
+    // 🔗 Crear (o asegurar) la fila en ingredientes_proveedores (pivot).
+    // El form manual de editar ingrediente llama a este endpoint tras guardar;
+    // el import (create + update) no lo hacía → ingredientes con proveedor_id
+    // pero pivot vacía. El desplegable de pedidos filtra por la pivot, así que
+    // esos ingredientes quedaban invisibles aunque estuviesen "asignados" a un
+    // proveedor. Bug confirmado por Iker 2026-05-31 (CALABACIN no aparecía).
+    const asegurarPivotProveedor = async (ingredienteId, proveedorId, precio) => {
+        if (!ingredienteId || !proveedorId) return;
+        try {
+            await window.apiClient.post(`/ingredients/${ingredienteId}/suppliers`, {
+                proveedor_id: parseInt(proveedorId),
+                precio: parseFloat(precio) || 0,
+                es_proveedor_principal: true,
+            });
+        } catch (err) {
+            console.warn(`pivot proveedor falló para ingrediente ${ingredienteId}:`, err?.message);
+        }
+    };
+
     try {
         let importados = 0;
         const sinProveedorEmparejado = [];
@@ -851,17 +870,23 @@ window.confirmarImportarIngredientes = async function () {
             } else if (ing.proveedorAviso) {
                 sinProveedorEmparejado.push(`${ing.nombre}: ${ing.proveedorAviso}`);
             }
-            await window.api.createIngrediente(payload);
+            const creado = await window.api.createIngrediente(payload);
             importados++;
+            // Pivot solo si se emparejó proveedor (no si quedó "sin proveedor").
+            if (ing.proveedorId && creado?.id) {
+                await asegurarPivotProveedor(creado.id, ing.proveedorId, ing.precio);
+            }
         }
 
         // 🆕 Caso B: para existentes SIN proveedor pero con uno en el Excel,
         // PUT con SOLO {proveedorId} → el backend conserva el resto de campos.
+        // Además, asegurar la pivot.
         let actualizados = 0;
         const erroresUpdate = [];
         for (const ing of aActualizarProveedor) {
             try {
                 await window.api.updateIngrediente(ing.existenteId, { proveedorId: ing.proveedorId });
+                await asegurarPivotProveedor(ing.existenteId, ing.proveedorId, ing.precio);
                 actualizados++;
             } catch (err) {
                 erroresUpdate.push(`${ing.nombre}: ${err.message || 'error'}`);
