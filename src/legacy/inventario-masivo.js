@@ -634,11 +634,13 @@ async function leerArchivoGenerico(file) {
 }
 
 function validarDatosIngredientes(data) {
-    // Set de nombres ya existentes (BD del tenant) para NO duplicar al importar.
-    // El import masivo solo CREA los nuevos; los existentes se saltan (decisión
-    // Iker 2026-05-29 tras duplicar todo el inventario en staging).
-    const existentes = new Set(
-        (window.ingredientes || []).map(i => String(i.nombre || '').trim().toLowerCase())
+    // Map nombre → ingrediente existente (BD del tenant). El import solo CREA
+    // los nuevos; los existentes se saltan (Iker 2026-05-29 tras duplicar
+    // inventario). EXCEPCIÓN (Iker 2026-05-30, caso B): si el existente NO
+    // tiene proveedor y el Excel SÍ trae uno emparejado → solo se actualiza
+    // ese campo (resuelve el caso de ingredientes huérfanos del bug anterior).
+    const existentesMap = new Map(
+        (window.ingredientes || []).map(i => [String(i.nombre || '').trim().toLowerCase(), i])
     );
     const vistosEnArchivo = new Set(); // dedupe dentro del propio Excel
 
@@ -680,11 +682,18 @@ function validarDatosIngredientes(data) {
         const valido = nombreTrim.length > 0;
         let yaExiste = false;
         let dupEnArchivo = false;
+        let existenteRef = null;
         if (valido) {
-            yaExiste = existentes.has(clave);
+            existenteRef = existentesMap.get(clave) || null;
+            yaExiste = !!existenteRef;
             dupEnArchivo = vistosEnArchivo.has(clave);
             vistosEnArchivo.add(clave);
         }
+        // 🆕 Caso B (2026-05-30): si el ingrediente ya existe SIN proveedor y el
+        // Excel trae uno emparejado, marcamos para actualizar SOLO el proveedor
+        // (sin tocar precio/stock). El resto de "ya existe" se sigue saltando.
+        const provExistente = existenteRef && (existenteRef.proveedor_id || existenteRef.proveedorId);
+        const actualizarProveedor = yaExiste && !dupEnArchivo && !provExistente && !!proveedorId;
         return {
             nombre: nombreTrim,
             precio: isNaN(precio) ? 0 : precio,
@@ -697,6 +706,8 @@ function validarDatosIngredientes(data) {
             valido: valido,
             yaExiste,        // ya está en la BD → se saltará (no duplicar)
             dupEnArchivo,    // repetido dentro del propio Excel → se saltará
+            actualizarProveedor, // 🆕 excepción al "saltar": solo update del proveedor
+            existenteId: existenteRef ? existenteRef.id : null,
             error: valido ? null : 'Nombre requerido',
         };
     });
@@ -704,7 +715,9 @@ function validarDatosIngredientes(data) {
 
 function mostrarPreviewIngredientes(datos) {
     const nuevos = datos.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo).length;
-    const yaExisten = datos.filter(d => d.valido && (d.yaExiste || d.dupEnArchivo)).length;
+    // Los marcados para actualizar proveedor NO cuentan como "saltados" (sí se tocan).
+    const yaExisten = datos.filter(d => d.valido && (d.yaExiste || d.dupEnArchivo) && !d.actualizarProveedor).length;
+    const actualizar = datos.filter(d => d.valido && d.actualizarProveedor).length;
     const invalidos = datos.filter(d => !d.valido).length;
     const sinProveedor = datos.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo && d.proveedorAviso).length;
 
@@ -712,6 +725,7 @@ function mostrarPreviewIngredientes(datos) {
         <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
           <strong>Resumen:</strong>
           <span style="color: #10b981;">✓ ${nuevos} nuevos</span>
+          ${actualizar > 0 ? `<span style="color: #3b82f6; margin-left: 10px;">✏️ ${actualizar} a actualizar (solo proveedor)</span>` : ''}
           ${yaExisten > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠ ${yaExisten} ya existen (se saltarán)</span>` : ''}
           ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
           ${sinProveedor > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠ ${sinProveedor} sin proveedor emparejado</span>` : ''}
@@ -731,20 +745,28 @@ function mostrarPreviewIngredientes(datos) {
           <tbody>`;
 
     datos.forEach(item => {
-        const seSalta = item.valido && (item.yaExiste || item.dupEnArchivo);
-        const icon = !item.valido ? '✗' : (seSalta ? '⚠' : '✓');
-        const bgColor = !item.valido ? '#fef2f2' : (seSalta ? '#fffbeb' : '#f0fdf4');
-        const iconColor = !item.valido ? '#ef4444' : (seSalta ? '#f59e0b' : '#10b981');
+        const seSalta = item.valido && (item.yaExiste || item.dupEnArchivo) && !item.actualizarProveedor;
+        const icon = !item.valido ? '✗' : (item.actualizarProveedor ? '✏️' : (seSalta ? '⚠' : '✓'));
+        const bgColor = !item.valido
+            ? '#fef2f2'
+            : (item.actualizarProveedor ? '#eff6ff' : (seSalta ? '#fffbeb' : '#f0fdf4'));
+        const iconColor = !item.valido
+            ? '#ef4444'
+            : (item.actualizarProveedor ? '#3b82f6' : (seSalta ? '#f59e0b' : '#10b981'));
         // Observación principal (estado de la fila), con aviso de proveedor anexado si aplica.
         let obs = !item.valido
             ? item.error
-            : item.yaExiste
-                ? 'Ya existe → se saltará'
-                : item.dupEnArchivo
-                    ? 'Repetido en el Excel → se saltará'
-                    : 'Nuevo';
-        let obsColor = !item.valido ? '#ef4444' : (seSalta ? '#f59e0b' : '#10b981');
-        if (item.valido && !seSalta && item.proveedorAviso) {
+            : item.actualizarProveedor
+                ? 'Existe sin proveedor → se actualizará el proveedor'
+                : item.yaExiste
+                    ? 'Ya existe → se saltará'
+                    : item.dupEnArchivo
+                        ? 'Repetido en el Excel → se saltará'
+                        : 'Nuevo';
+        let obsColor = !item.valido
+            ? '#ef4444'
+            : (item.actualizarProveedor ? '#3b82f6' : (seSalta ? '#f59e0b' : '#10b981'));
+        if (item.valido && !seSalta && !item.actualizarProveedor && item.proveedorAviso) {
             obs = `${obs} · ⚠ ${item.proveedorAviso} (se importa sin proveedor)`;
             obsColor = '#f59e0b';
         }
@@ -772,11 +794,13 @@ function mostrarPreviewIngredientes(datos) {
     document.getElementById('preview-ingredientes-container').innerHTML = html;
     document.getElementById('preview-importar-ingredientes').style.display = 'block';
 
-    // Solo se importan los NUEVOS → el botón se activa únicamente si hay alguno.
+    // El botón se activa si hay nuevos a crear O updates de proveedor a aplicar.
     const hayNuevos = datos.some(d => d.valido && !d.yaExiste && !d.dupEnArchivo);
+    const hayUpdates = datos.some(d => d.valido && d.actualizarProveedor);
+    const habilitado = hayNuevos || hayUpdates;
     const btn = document.getElementById('btn-confirmar-importar-ingredientes');
-    btn.disabled = !hayNuevos;
-    btn.style.opacity = hayNuevos ? '1' : '0.5';
+    btn.disabled = !habilitado;
+    btn.style.opacity = habilitado ? '1' : '0.5';
 }
 
 window.confirmarImportarIngredientes = async function () {
@@ -785,9 +809,10 @@ window.confirmarImportarIngredientes = async function () {
     // Editar precios/datos en bloque NO se hace por aquí: reimportar nombres
     // existentes duplicaba todo. Para cambiar precios → ficha del ingrediente.
     const aCrear = datosImportarIngredientes.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo);
-    const saltados = datosImportarIngredientes.filter(d => d.valido && (d.yaExiste || d.dupEnArchivo)).length;
+    const aActualizarProveedor = datosImportarIngredientes.filter(d => d.valido && d.actualizarProveedor);
+    const saltados = datosImportarIngredientes.filter(d => d.valido && (d.yaExiste || d.dupEnArchivo) && !d.actualizarProveedor).length;
 
-    if (aCrear.length === 0) {
+    if (aCrear.length === 0 && aActualizarProveedor.length === 0) {
         window.showToast(
             saltados > 0
                 ? `No hay ingredientes nuevos: los ${saltados} del Excel ya existen`
@@ -797,7 +822,11 @@ window.confirmarImportarIngredientes = async function () {
         return;
     }
 
-    if (!confirm(`¿Crear ${aCrear.length} ingredientes nuevos?${saltados > 0 ? `\n(${saltados} ya existen y se saltarán)` : ''}`)) {
+    const partes = [];
+    if (aCrear.length) partes.push(`crear ${aCrear.length} nuevos`);
+    if (aActualizarProveedor.length) partes.push(`actualizar proveedor en ${aActualizarProveedor.length} existentes`);
+    if (saltados > 0) partes.push(`saltar ${saltados} ya existentes`);
+    if (!confirm(`¿Confirmar: ${partes.join(' · ')}?`)) {
         return;
     }
 
@@ -826,15 +855,36 @@ window.confirmarImportarIngredientes = async function () {
             importados++;
         }
 
+        // 🆕 Caso B: para existentes SIN proveedor pero con uno en el Excel,
+        // PUT con SOLO {proveedorId} → el backend conserva el resto de campos.
+        let actualizados = 0;
+        const erroresUpdate = [];
+        for (const ing of aActualizarProveedor) {
+            try {
+                await window.api.updateIngrediente(ing.existenteId, { proveedorId: ing.proveedorId });
+                actualizados++;
+            } catch (err) {
+                erroresUpdate.push(`${ing.nombre}: ${err.message || 'error'}`);
+            }
+        }
+
         document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(
-            `✓ ${importados} nuevos creados${saltados > 0 ? ` · ${saltados} ya existían (saltados)` : ''}`,
-            'success'
-        );
+        const partesToast = [];
+        if (importados) partesToast.push(`✓ ${importados} creados`);
+        if (actualizados) partesToast.push(`✏️ ${actualizados} con proveedor actualizado`);
+        if (saltados) partesToast.push(`${saltados} saltados`);
+        window.showToast(partesToast.join(' · ') || '✓ Importación completada', 'success');
         document.getElementById('modal-importar-ingredientes').classList.remove('active');
         await window.renderizarIngredientes();
-        if (sinProveedorEmparejado.length > 0) {
-            alert(`Importación completada con avisos:\n\n⚠ ${sinProveedorEmparejado.length} ingredientes se crearon SIN proveedor porque el nombre del Excel no coincide con ninguno existente:\n\n${sinProveedorEmparejado.join('\n')}\n\nRevísalos y asigna el proveedor manualmente, o crea el proveedor y reimporta.`);
+        if (sinProveedorEmparejado.length > 0 || erroresUpdate.length > 0) {
+            let resumen = 'Importación completada con avisos:\n';
+            if (sinProveedorEmparejado.length > 0) {
+                resumen += `\n⚠ ${sinProveedorEmparejado.length} creados SIN proveedor (nombre del Excel no coincide):\n${sinProveedorEmparejado.join('\n')}\n`;
+            }
+            if (erroresUpdate.length > 0) {
+                resumen += `\n✗ ${erroresUpdate.length} fallaron al actualizar proveedor:\n${erroresUpdate.join('\n')}\n`;
+            }
+            alert(resumen);
         }
     } catch (error) {
         document.getElementById('loading-overlay').classList.remove('active');
