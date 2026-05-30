@@ -279,7 +279,6 @@ window.mostrarFormularioReceta = RecetasUI.mostrarFormularioReceta;
 window.cerrarFormularioReceta = RecetasUI.cerrarFormularioReceta;
 window.agregarIngredienteReceta = RecetasUI.agregarIngredienteReceta;
 window.calcularCosteReceta = RecetasUI.calcularCosteReceta;
-window.exportarRecetas = RecetasUI.exportarRecetas;
 window.actualizarPrecioSugerido = RecetasUI.actualizarPrecioSugerido;
 window.aplicarPrecioSugerido = RecetasUI.aplicarPrecioSugerido;
 
@@ -288,12 +287,6 @@ window.guardarReceta = RecetasCRUD.guardarReceta;
 window.editarReceta = RecetasCRUD.editarReceta;
 window.eliminarReceta = RecetasCRUD.eliminarReceta;
 window.calcularCosteRecetaCompleto = RecetasCRUD.calcularCosteRecetaCompleto;
-
-// Producción
-window.abrirModalProducir = RecetasCRUD.abrirModalProducir;
-window.cerrarModalProducir = RecetasCRUD.cerrarModalProducir;
-window.actualizarDetalleDescuento = RecetasCRUD.actualizarDetalleDescuento;
-window.confirmarProduccion = RecetasCRUD.confirmarProduccion;
 
 // Cost Tracker (seguimiento de costes)
 import * as CostTracker from './modules/recetas/cost-tracker.js?v=20260308-consistency';

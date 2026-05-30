@@ -39,7 +39,7 @@ const actionHandlers = {
     'mostrar-form-receta': () => window.mostrarFormularioReceta?.(),
     'cerrar-form-receta': () => window.cerrarFormularioReceta?.(),
     'importar-recetas': () => window.mostrarModalImportarRecetas?.(),
-    'exportar-recetas': () => window.exportarRecetas?.(),
+    'descargar-plantilla-escandallo': () => window.descargarPlantillaEscandallo?.(),
     'agregar-ingrediente-receta': () => window.agregarIngredienteReceta?.(),
     'cancelar-importar-recetas': () => window.cancelarImportarRecetas?.(),
     'confirmar-importar-recetas': () => window.confirmarImportarRecetas?.(),
@@ -91,8 +91,6 @@ const actionHandlers = {
     'exportar-diario-excel': () => window.exportarDiarioExcel?.(),
 
     // Producción
-    'cerrar-modal-producir': () => window.cerrarModalProducir?.(),
-    'confirmar-produccion': () => window.confirmarProduccion?.(),
 
     // Mermas
     'confirmar-mermas': () => window.confirmarMermasFinal?.(),

@@ -73,31 +73,8 @@ test.describe('Recetas + escandallo', () => {
         await expect(modal.locator('text=/\\d+[.,]\\d+\\s*[€$R]/').first()).toBeVisible();
     });
 
-    test('toggle Nominal/Real cambia de modo en el escandallo', async ({ page }) => {
-        await page.goto('/', { waitUntil: 'domcontentloaded' });
-
-        await page.locator('[data-tab="recetas"]').first().click();
-        await expect(page.getByText(RECETA_PRINCIPAL).first()).toBeVisible({ timeout: 10_000 });
-
-        await page.locator('tr').filter({ hasText: RECETA_PRINCIPAL }).first()
-            .locator('button.icon-btn.view').click();
-
-        const modal = page.locator('#modal-escandallo');
-        await expect(modal).toBeVisible({ timeout: 10_000 });
-
-        // Los dos botones del toggle existen (basamos en el atributo data-modo del código)
-        const realBtn = modal.locator('[data-modo="real"]');
-        const nominalBtn = modal.locator('[data-modo="nominal"]');
-
-        await expect(realBtn).toBeVisible();
-        await expect(nominalBtn).toBeVisible();
-
-        // Cambio a Nominal y de vuelta a Real: la UI acepta ambos clicks sin romperse.
-        await nominalBtn.click();
-        await expect(modal).toBeVisible();
-        await realBtn.click();
-        await expect(modal).toBeVisible();
-    });
+    // El toggle Nominal/Real del escandallo se eliminó (PR #470, 2026-05-28).
+    // El test que lo cubría queda retirado; ya no hay UI que probar.
 });
 
 // NOTA: test de Pedidos retirado temporalmente (2026-04-22).

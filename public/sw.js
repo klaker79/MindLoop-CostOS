@@ -41,8 +41,25 @@
 // BUMP v40: recetas — iconos 📏 y % movidos a la DERECHA del input (sufijo) + spinner buttons ocultados vía CSS.
 // BUMP v41: pedidos — placeholder del select de ingredientes corregido ("Seleccionar ingrediente..." en vez de "Seleccionar proveedor...").
 // BUMP v42: análisis — ranking de rentabilidad y matriz BCG ahora excluyen también las recetas "base" (preparaciones intermedias, no vendibles).
+// BUMP v43: escandallo — eliminado toggle Real/Nominal (el backend sincroniza precio configurado con el real en cada recepción → siempre coincidían).
+// BUMP v44: import de escandallo de recetas (Excel formato largo) + plantilla descargable.
+// BUMP v45: import de recetas = upsert (re-importar actualiza la existente, no duplica) + refresco de datos.
+// BUMP v46: botón "Exportar escandallo" (recetas reales en formato editable/re-importable).
+// BUMP v47: exportar escandallo POR receta (icono 📋 en cada fila) en vez de todas de golpe.
+// BUMP v48: eliminada "Producir plato" (botón ⬇️ + modal + funciones): doble conteo con ventas.
+// BUMP v49: Stock mínimo OBLIGATORIO (>0) al crear/editar ingrediente — sin él el Smart Order no propone reposición.
+// BUMP v50: "Descargar plantilla" recetas exporta tus recetas reales (round-trip) en vez del ejemplo pulpo hardcodeado.
+// BUMP v51: import de ingredientes solo CREA nuevos (salta existentes) — antes duplicaba todo el inventario al reimportar.
+// BUMP v52: import de recetas reconoce subrecetas por nombre (round-trip sin perder líneas de subreceta).
+// BUMP v53: escandallo export/import incluye la columna "Código TPV" (campo codigo de la receta).
+// BUMP v54: Recetas simplificado a UN Exportar (escandallo editable) + UN Importar. Quitado informe coste/margen y botón duplicado.
+// BUMP v55: pista del modal importar sin "(arriba)" (el botón Exportar Excel está fuera del modal).
+// BUMP v56: import de ingredientes Excel lee columna "Proveedor" (resuelve por nombre → proveedorId).
+// BUMP v57: import también actualiza proveedor de ingredientes existentes huérfanos (caso B Iker 2026-05-30).
+// BUMP v58: Diario KPIs (Ventas/Beneficio/FoodCost) usan /analytics/pnl-breakdown como Dashboard + fix CSS texto Gastos Fijos Totales.
+// BUMP v59: import de ingredientes rellena pivot ingredientes_proveedores tras crear/actualizar (el desplegable de pedidos filtra por pivot).
 
-const CACHE_NAME = 'mindloop-costos-v42';
+const CACHE_NAME = 'mindloop-costos-v59';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

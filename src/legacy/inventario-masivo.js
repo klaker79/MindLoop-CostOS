@@ -634,6 +634,23 @@ async function leerArchivoGenerico(file) {
 }
 
 function validarDatosIngredientes(data) {
+    // Map nombre → ingrediente existente (BD del tenant). El import solo CREA
+    // los nuevos; los existentes se saltan (Iker 2026-05-29 tras duplicar
+    // inventario). EXCEPCIÓN (Iker 2026-05-30, caso B): si el existente NO
+    // tiene proveedor y el Excel SÍ trae uno emparejado → solo se actualiza
+    // ese campo (resuelve el caso de ingredientes huérfanos del bug anterior).
+    const existentesMap = new Map(
+        (window.ingredientes || []).map(i => [String(i.nombre || '').trim().toLowerCase(), i])
+    );
+    const vistosEnArchivo = new Set(); // dedupe dentro del propio Excel
+
+    // 🆕 Mapa proveedor nombre (lower+trim) → proveedor para resolver la columna
+    // "Proveedor" del Excel. Antes el import IGNORABA esa columna y todos los
+    // ingredientes nacían sin proveedor (bug reportado por Iker 2026-05-29).
+    const provMap = new Map(
+        (window.proveedores || []).map(p => [String(p.nombre || '').trim().toLowerCase(), p])
+    );
+
     return data.map(row => {
         const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
         const precio = parseFloat(row['Precio'] || row['Precio (€)'] || row['precio'] || row['PRECIO'] || 0);
@@ -645,34 +662,80 @@ function validarDatosIngredientes(data) {
             row['Stock Mínimo'] || row['stock_minimo'] || row['Stock Minimo'] || 0
         );
 
-        const valido = nombre.trim().length > 0;
+        // 🆕 Proveedor por nombre, resuelto a id contra window.proveedores. Si la
+        // celda viene vacía → sin proveedor (igual que antes). Si trae un nombre
+        // que no se empareja → aviso en preview pero el ingrediente se importa
+        // sin proveedor (no bloquea).
+        const proveedorNombreRaw = String(
+            row['Proveedor'] || row['proveedor'] || row['PROVEEDOR'] || row['Supplier'] || ''
+        ).trim();
+        let proveedorId = null;
+        let proveedorAviso = null;
+        if (proveedorNombreRaw) {
+            const match = provMap.get(proveedorNombreRaw.toLowerCase());
+            if (match) proveedorId = match.id;
+            else proveedorAviso = `Proveedor "${proveedorNombreRaw}" no existe`;
+        }
+
+        const nombreTrim = nombre.trim();
+        const clave = nombreTrim.toLowerCase();
+        const valido = nombreTrim.length > 0;
+        let yaExiste = false;
+        let dupEnArchivo = false;
+        let existenteRef = null;
+        if (valido) {
+            existenteRef = existentesMap.get(clave) || null;
+            yaExiste = !!existenteRef;
+            dupEnArchivo = vistosEnArchivo.has(clave);
+            vistosEnArchivo.add(clave);
+        }
+        // 🆕 Caso B (2026-05-30): si el ingrediente ya existe SIN proveedor y el
+        // Excel trae uno emparejado, marcamos para actualizar SOLO el proveedor
+        // (sin tocar precio/stock). El resto de "ya existe" se sigue saltando.
+        const provExistente = existenteRef && (existenteRef.proveedor_id || existenteRef.proveedorId);
+        const actualizarProveedor = yaExiste && !dupEnArchivo && !provExistente && !!proveedorId;
         return {
-            nombre: nombre.trim(),
+            nombre: nombreTrim,
             precio: isNaN(precio) ? 0 : precio,
             unidad: unidad,
             stockActual: isNaN(stockActual) ? 0 : stockActual,
             stockMinimo: isNaN(stockMinimo) ? 0 : stockMinimo,
+            proveedorNombre: proveedorNombreRaw,
+            proveedorId,
+            proveedorAviso,
             valido: valido,
+            yaExiste,        // ya está en la BD → se saltará (no duplicar)
+            dupEnArchivo,    // repetido dentro del propio Excel → se saltará
+            actualizarProveedor, // 🆕 excepción al "saltar": solo update del proveedor
+            existenteId: existenteRef ? existenteRef.id : null,
             error: valido ? null : 'Nombre requerido',
         };
     });
 }
 
 function mostrarPreviewIngredientes(datos) {
-    const validos = datos.filter(d => d.valido).length;
+    const nuevos = datos.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo).length;
+    // Los marcados para actualizar proveedor NO cuentan como "saltados" (sí se tocan).
+    const yaExisten = datos.filter(d => d.valido && (d.yaExiste || d.dupEnArchivo) && !d.actualizarProveedor).length;
+    const actualizar = datos.filter(d => d.valido && d.actualizarProveedor).length;
     const invalidos = datos.filter(d => !d.valido).length;
+    const sinProveedor = datos.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo && d.proveedorAviso).length;
 
     let html = `
         <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-          <strong>Resumen:</strong> 
-          <span style="color: #10b981;">✓ ${validos} válidos</span>
+          <strong>Resumen:</strong>
+          <span style="color: #10b981;">✓ ${nuevos} nuevos</span>
+          ${actualizar > 0 ? `<span style="color: #3b82f6; margin-left: 10px;">✏️ ${actualizar} a actualizar (solo proveedor)</span>` : ''}
+          ${yaExisten > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠ ${yaExisten} ya existen (se saltarán)</span>` : ''}
           ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
+          ${sinProveedor > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠ ${sinProveedor} sin proveedor emparejado</span>` : ''}
         </div>
         <table style="width: 100%; font-size: 13px;">
           <thead>
             <tr style="background: #f1f5f9;">
               <th style="padding: 10px; text-align: left;">Estado</th>
               <th style="padding: 10px; text-align: left;">Nombre</th>
+              <th style="padding: 10px; text-align: left;">Proveedor</th>
               <th style="padding: 10px; text-align: right;">Precio</th>
               <th style="padding: 10px; text-align: center;">Unidad</th>
               <th style="padding: 10px; text-align: right;">Stock</th>
@@ -682,18 +745,47 @@ function mostrarPreviewIngredientes(datos) {
           <tbody>`;
 
     datos.forEach(item => {
-        const icon = item.valido ? '✓' : '✗';
-        const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
-        const iconColor = item.valido ? '#10b981' : '#ef4444';
+        const seSalta = item.valido && (item.yaExiste || item.dupEnArchivo) && !item.actualizarProveedor;
+        const icon = !item.valido ? '✗' : (item.actualizarProveedor ? '✏️' : (seSalta ? '⚠' : '✓'));
+        const bgColor = !item.valido
+            ? '#fef2f2'
+            : (item.actualizarProveedor ? '#eff6ff' : (seSalta ? '#fffbeb' : '#f0fdf4'));
+        const iconColor = !item.valido
+            ? '#ef4444'
+            : (item.actualizarProveedor ? '#3b82f6' : (seSalta ? '#f59e0b' : '#10b981'));
+        // Observación principal (estado de la fila), con aviso de proveedor anexado si aplica.
+        let obs = !item.valido
+            ? item.error
+            : item.actualizarProveedor
+                ? 'Existe sin proveedor → se actualizará el proveedor'
+                : item.yaExiste
+                    ? 'Ya existe → se saltará'
+                    : item.dupEnArchivo
+                        ? 'Repetido en el Excel → se saltará'
+                        : 'Nuevo';
+        let obsColor = !item.valido
+            ? '#ef4444'
+            : (item.actualizarProveedor ? '#3b82f6' : (seSalta ? '#f59e0b' : '#10b981'));
+        if (item.valido && !seSalta && !item.actualizarProveedor && item.proveedorAviso) {
+            obs = `${obs} · ⚠ ${item.proveedorAviso} (se importa sin proveedor)`;
+            obsColor = '#f59e0b';
+        }
+        // Celda de proveedor: nombre resuelto si emparejó, o aviso en naranja si no.
+        const provCell = item.proveedorId
+            ? escapeHTML(item.proveedorNombre)
+            : item.proveedorNombre
+                ? `<span style="color:#f59e0b;">⚠ ${escapeHTML(item.proveedorNombre)}</span>`
+                : '<span style="color:#94a3b8;">—</span>';
 
         html += `
           <tr style="background: ${bgColor};">
             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
             <td style="padding: 10px;">${escapeHTML(item.nombre) || '-'}</td>
+            <td style="padding: 10px;">${provCell}</td>
             <td style="padding: 10px; text-align: right;">${cm(item.precio)}</td>
             <td style="padding: 10px; text-align: center;">${escapeHTML(item.unidad)}</td>
             <td style="padding: 10px; text-align: right;">${item.stockActual}</td>
-            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${escapeHTML(item.error) || 'OK'}</td>
+            <td style="padding: 10px; color: ${obsColor};">${escapeHTML(obs) || 'OK'}</td>
           </tr>`;
     });
 
@@ -702,43 +794,123 @@ function mostrarPreviewIngredientes(datos) {
     document.getElementById('preview-ingredientes-container').innerHTML = html;
     document.getElementById('preview-importar-ingredientes').style.display = 'block';
 
-    const hayValidos = datos.some(d => d.valido);
+    // El botón se activa si hay nuevos a crear O updates de proveedor a aplicar.
+    const hayNuevos = datos.some(d => d.valido && !d.yaExiste && !d.dupEnArchivo);
+    const hayUpdates = datos.some(d => d.valido && d.actualizarProveedor);
+    const habilitado = hayNuevos || hayUpdates;
     const btn = document.getElementById('btn-confirmar-importar-ingredientes');
-    btn.disabled = !hayValidos;
-    btn.style.opacity = hayValidos ? '1' : '0.5';
+    btn.disabled = !habilitado;
+    btn.style.opacity = habilitado ? '1' : '0.5';
 }
 
 window.confirmarImportarIngredientes = async function () {
-    const datosValidos = datosImportarIngredientes.filter(d => d.valido);
+    // Solo se CREAN los nuevos. Los que ya existen (en BD o repetidos en el
+    // Excel) se saltan para no duplicar el inventario (decisión Iker 2026-05-29).
+    // Editar precios/datos en bloque NO se hace por aquí: reimportar nombres
+    // existentes duplicaba todo. Para cambiar precios → ficha del ingrediente.
+    const aCrear = datosImportarIngredientes.filter(d => d.valido && !d.yaExiste && !d.dupEnArchivo);
+    const aActualizarProveedor = datosImportarIngredientes.filter(d => d.valido && d.actualizarProveedor);
+    const saltados = datosImportarIngredientes.filter(d => d.valido && (d.yaExiste || d.dupEnArchivo) && !d.actualizarProveedor).length;
 
-    if (datosValidos.length === 0) {
-        window.showToast('No hay ingredientes válidos para importar', 'error');
+    if (aCrear.length === 0 && aActualizarProveedor.length === 0) {
+        window.showToast(
+            saltados > 0
+                ? `No hay ingredientes nuevos: los ${saltados} del Excel ya existen`
+                : 'No hay ingredientes válidos para importar',
+            'info'
+        );
         return;
     }
 
-    if (!confirm(`¿Importar ${datosValidos.length} ingredientes?`)) {
+    const partes = [];
+    if (aCrear.length) partes.push(`crear ${aCrear.length} nuevos`);
+    if (aActualizarProveedor.length) partes.push(`actualizar proveedor en ${aActualizarProveedor.length} existentes`);
+    if (saltados > 0) partes.push(`saltar ${saltados} ya existentes`);
+    if (!confirm(`¿Confirmar: ${partes.join(' · ')}?`)) {
         return;
     }
 
     document.getElementById('loading-overlay').classList.add('active');
 
+    // 🔗 Crear (o asegurar) la fila en ingredientes_proveedores (pivot).
+    // El form manual de editar ingrediente llama a este endpoint tras guardar;
+    // el import (create + update) no lo hacía → ingredientes con proveedor_id
+    // pero pivot vacía. El desplegable de pedidos filtra por la pivot, así que
+    // esos ingredientes quedaban invisibles aunque estuviesen "asignados" a un
+    // proveedor. Bug confirmado por Iker 2026-05-31 (CALABACIN no aparecía).
+    const asegurarPivotProveedor = async (ingredienteId, proveedorId, precio) => {
+        if (!ingredienteId || !proveedorId) return;
+        try {
+            await window.apiClient.post(`/ingredients/${ingredienteId}/suppliers`, {
+                proveedor_id: parseInt(proveedorId),
+                precio: parseFloat(precio) || 0,
+                es_proveedor_principal: true,
+            });
+        } catch (err) {
+            console.warn(`pivot proveedor falló para ingrediente ${ingredienteId}:`, err?.message);
+        }
+    };
+
     try {
         let importados = 0;
-        for (const ing of datosValidos) {
-            await window.api.createIngrediente({
+        const sinProveedorEmparejado = [];
+        for (const ing of aCrear) {
+            const payload = {
                 nombre: ing.nombre,
                 precio: ing.precio,
                 unidad: ing.unidad,
                 stockActual: ing.stockActual,
                 stockMinimo: ing.stockMinimo,
-            });
+            };
+            // 🆕 Solo enviar proveedorId si el Excel traía un nombre y se emparejó.
+            // Si traía un nombre que no existe, se crea el ingrediente sin proveedor
+            // y se registra en el informe final para que el usuario lo arregle.
+            if (ing.proveedorId) {
+                payload.proveedorId = ing.proveedorId;
+            } else if (ing.proveedorAviso) {
+                sinProveedorEmparejado.push(`${ing.nombre}: ${ing.proveedorAviso}`);
+            }
+            const creado = await window.api.createIngrediente(payload);
             importados++;
+            // Pivot solo si se emparejó proveedor (no si quedó "sin proveedor").
+            if (ing.proveedorId && creado?.id) {
+                await asegurarPivotProveedor(creado.id, ing.proveedorId, ing.precio);
+            }
+        }
+
+        // 🆕 Caso B: para existentes SIN proveedor pero con uno en el Excel,
+        // PUT con SOLO {proveedorId} → el backend conserva el resto de campos.
+        // Además, asegurar la pivot.
+        let actualizados = 0;
+        const erroresUpdate = [];
+        for (const ing of aActualizarProveedor) {
+            try {
+                await window.api.updateIngrediente(ing.existenteId, { proveedorId: ing.proveedorId });
+                await asegurarPivotProveedor(ing.existenteId, ing.proveedorId, ing.precio);
+                actualizados++;
+            } catch (err) {
+                erroresUpdate.push(`${ing.nombre}: ${err.message || 'error'}`);
+            }
         }
 
         document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(`✓ ${importados} ingredientes importados correctamente`, 'success');
+        const partesToast = [];
+        if (importados) partesToast.push(`✓ ${importados} creados`);
+        if (actualizados) partesToast.push(`✏️ ${actualizados} con proveedor actualizado`);
+        if (saltados) partesToast.push(`${saltados} saltados`);
+        window.showToast(partesToast.join(' · ') || '✓ Importación completada', 'success');
         document.getElementById('modal-importar-ingredientes').classList.remove('active');
         await window.renderizarIngredientes();
+        if (sinProveedorEmparejado.length > 0 || erroresUpdate.length > 0) {
+            let resumen = 'Importación completada con avisos:\n';
+            if (sinProveedorEmparejado.length > 0) {
+                resumen += `\n⚠ ${sinProveedorEmparejado.length} creados SIN proveedor (nombre del Excel no coincide):\n${sinProveedorEmparejado.join('\n')}\n`;
+            }
+            if (erroresUpdate.length > 0) {
+                resumen += `\n✗ ${erroresUpdate.length} fallaron al actualizar proveedor:\n${erroresUpdate.join('\n')}\n`;
+            }
+            alert(resumen);
+        }
     } catch (error) {
         document.getElementById('loading-overlay').classList.remove('active');
         window.showToast('Error importando: ' + error.message, 'error');
@@ -777,7 +949,32 @@ window.procesarArchivoRecetas = async function (input) {
     }
 };
 
+// 🔎 Lee una celda probando varios nombres de columna (case-insensitive).
+function celdaReceta(row, nombres) {
+    const keys = Object.keys(row);
+    for (const n of nombres) {
+        const target = String(n).trim().toLowerCase();
+        for (const k of keys) {
+            if (String(k).trim().toLowerCase() === target) {
+                const v = row[k];
+                if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+            }
+        }
+    }
+    return '';
+}
+
 function validarDatosRecetas(data) {
+    if (!Array.isArray(data) || data.length === 0) return [];
+    // 🆕 Detectar formato escandallo: ¿hay columna "Ingrediente"?
+    const tieneEscandallo = data.some(row =>
+        Object.keys(row).some(k => String(k).trim().toLowerCase() === 'ingrediente')
+    );
+    return tieneEscandallo ? validarRecetasConEscandallo(data) : validarRecetasSoloCabecera(data);
+}
+
+// Comportamiento histórico: una fila = una receta vacía (solo cabecera).
+function validarRecetasSoloCabecera(data) {
     return data.map(row => {
         const nombre = row['Nombre'] || row['nombre'] || row['NOMBRE'] || '';
         const categoria = row['Categoría'] || row['categoria'] || row['Categoria'] || 'principal';
@@ -793,30 +990,120 @@ function validarDatosRecetas(data) {
             precioVenta: isNaN(precioVenta) ? 0 : precioVenta,
             porciones: isNaN(porciones) || porciones < 1 ? 1 : porciones,
             ingredientes: [],
+            sinEmparejar: [],
             valido: valido,
             error: valido ? null : 'Nombre requerido',
         };
     });
 }
 
+// 🆕 Formato largo: varias filas por receta, cada una una línea del escandallo.
+// Empareja "Ingrediente" por nombre contra window.ingredientes y construye las
+// líneas {ingredienteId, cantidad, rendimiento?}. Rendimiento en blanco = hereda
+// del ingrediente (no se fija en la línea). Las líneas sin emparejar se reportan.
+// La cabecera (categoría/precio/porciones) puede ir solo en la 1ª fila de cada
+// receta; el nombre de receta se arrastra a las filas siguientes si va en blanco.
+function validarRecetasConEscandallo(data) {
+    const ingMap = new Map(
+        (window.ingredientes || []).map(i => [String(i.nombre || '').trim().toLowerCase(), i])
+    );
+    // Subrecetas: el export escribe el NOMBRE de la subreceta como "ingrediente".
+    // Mapeamos también las recetas por nombre para que el round-trip no las pierda:
+    // si una línea no casa con un ingrediente pero sí con una receta, la tratamos
+    // como subreceta (ingredienteId = 100000 + recetaId, convención de toda la app).
+    const recMap = new Map(
+        (window.recetas || []).map(r => [String(r.nombre || '').trim().toLowerCase(), r])
+    );
+    const porNombre = new Map();
+    const orden = [];
+    let current = '';
+
+    for (const row of data) {
+        const recetaCell = String(celdaReceta(row, ['Receta', 'Nombre'])).trim();
+        if (recetaCell) {
+            current = recetaCell;
+            if (!porNombre.has(current)) {
+                porNombre.set(current, {
+                    nombre: current,
+                    categoria: String(celdaReceta(row, ['Categoría', 'Categoria'])).trim() || 'principal',
+                    precioVenta: parseFloat(celdaReceta(row, ['Precio Venta', 'Precio (€)', 'Precio'])) || 0,
+                    porciones: parseInt(celdaReceta(row, ['Porciones'])) || 1,
+                    codigo: String(celdaReceta(row, ['Código TPV', 'Codigo TPV', 'Código', 'Codigo'])).trim() || null,
+                    ingredientes: [],
+                    sinEmparejar: [],
+                    valido: true,
+                    error: null,
+                });
+                orden.push(current);
+            } else {
+                // Rellenar cabecera si esta fila la trae y aún no estaba fijada
+                const r = porNombre.get(current);
+                const cat = String(celdaReceta(row, ['Categoría', 'Categoria'])).trim();
+                const precio = parseFloat(celdaReceta(row, ['Precio Venta', 'Precio (€)', 'Precio']));
+                const porc = parseInt(celdaReceta(row, ['Porciones']));
+                const cod = String(celdaReceta(row, ['Código TPV', 'Codigo TPV', 'Código', 'Codigo'])).trim();
+                if (cat && r.categoria === 'principal') r.categoria = cat;
+                if (precio > 0 && !r.precioVenta) r.precioVenta = precio;
+                if (porc > 1 && r.porciones === 1) r.porciones = porc;
+                if (cod && !r.codigo) r.codigo = cod;
+            }
+        }
+        if (!current) continue;
+        const r = porNombre.get(current);
+        const ingNombre = String(celdaReceta(row, ['Ingrediente'])).trim();
+        if (!ingNombre) continue; // fila solo de cabecera, sin línea
+        const cantidad = parseFloat(celdaReceta(row, ['Cantidad']));
+        if (!(cantidad > 0)) { r.sinEmparejar.push(`${ingNombre} (cantidad inválida)`); continue; }
+        const clave = ingNombre.toLowerCase();
+        const ing = ingMap.get(clave);
+        let linea;
+        if (ing) {
+            linea = { ingredienteId: ing.id, cantidad };
+        } else {
+            // ¿Es una subreceta? La reconocemos por nombre de receta, evitando que
+            // una receta se incluya a sí misma como subreceta (auto-referencia).
+            const sub = recMap.get(clave);
+            if (sub && clave !== current.trim().toLowerCase()) {
+                linea = { ingredienteId: 100000 + sub.id, cantidad };
+            } else {
+                r.sinEmparejar.push(ingNombre);
+                continue;
+            }
+        }
+        const rend = parseFloat(celdaReceta(row, ['Rendimiento', 'Rendimiento (%)']));
+        if (rend > 0 && rend <= 100) linea.rendimiento = rend; // blanco = hereda del ingrediente
+        r.ingredientes.push(linea);
+    }
+
+    const resultado = orden.map(n => porNombre.get(n));
+    resultado.forEach(r => {
+        if (!r.nombre) { r.valido = false; r.error = 'Nombre requerido'; }
+        else if (r.ingredientes.length === 0) { r.valido = false; r.error = 'Sin líneas válidas emparejadas'; }
+    });
+    return resultado;
+}
+
 function mostrarPreviewRecetas(datos) {
     const validos = datos.filter(d => d.valido).length;
     const invalidos = datos.filter(d => !d.valido).length;
+    const totalSinEmparejar = datos.reduce((s, d) => s + (d.sinEmparejar ? d.sinEmparejar.length : 0), 0);
 
     let html = `
         <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-          <strong>Resumen:</strong> 
-          <span style="color: #10b981;">✓ ${validos} válidos</span>
+          <strong>Resumen:</strong>
+          <span style="color: #10b981;">✓ ${validos} válidas</span>
           ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
+          ${totalSinEmparejar > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">⚠ ${totalSinEmparejar} líneas sin emparejar</span>` : ''}
         </div>
         <table style="width: 100%; font-size: 13px;">
           <thead>
             <tr style="background: #f1f5f9;">
               <th style="padding: 10px; text-align: left;">Estado</th>
-              <th style="padding: 10px; text-align: left;">Nombre</th>
+              <th style="padding: 10px; text-align: left;">Receta</th>
               <th style="padding: 10px; text-align: center;">Categoría</th>
               <th style="padding: 10px; text-align: right;">Precio Venta</th>
               <th style="padding: 10px; text-align: center;">Porciones</th>
+              <th style="padding: 10px; text-align: center;">Líneas</th>
               <th style="padding: 10px; text-align: left;">Observación</th>
             </tr>
           </thead>
@@ -826,6 +1113,21 @@ function mostrarPreviewRecetas(datos) {
         const icon = item.valido ? '✓' : '✗';
         const bgColor = item.valido ? '#f0fdf4' : '#fef2f2';
         const iconColor = item.valido ? '#10b981' : '#ef4444';
+        const nLineas = item.ingredientes ? item.ingredientes.length : 0;
+        const sinEmp = item.sinEmparejar || [];
+
+        let obs, obsColor;
+        if (!item.valido) {
+            obs = escapeHTML(item.error || 'Error');
+            if (sinEmp.length) obs += ` (sin emparejar: ${sinEmp.map(s => escapeHTML(s)).join(', ')})`;
+            obsColor = '#ef4444';
+        } else if (sinEmp.length > 0) {
+            obs = `⚠ Sin emparejar: ${sinEmp.map(s => escapeHTML(s)).join(', ')}`;
+            obsColor = '#f59e0b';
+        } else {
+            obs = 'OK';
+            obsColor = '#10b981';
+        }
 
         html += `
           <tr style="background: ${bgColor};">
@@ -834,7 +1136,8 @@ function mostrarPreviewRecetas(datos) {
             <td style="padding: 10px; text-align: center;">${escapeHTML(item.categoria)}</td>
             <td style="padding: 10px; text-align: right;">${cm(item.precioVenta)}</td>
             <td style="padding: 10px; text-align: center;">${item.porciones}</td>
-            <td style="padding: 10px; color: ${item.valido ? '#10b981' : '#ef4444'};">${escapeHTML(item.error) || 'OK'}</td>
+            <td style="padding: 10px; text-align: center;">${nLineas}</td>
+            <td style="padding: 10px; color: ${obsColor};">${obs}</td>
           </tr>`;
     });
 
@@ -861,34 +1164,187 @@ window.confirmarImportarRecetas = async function () {
         return;
     }
 
+    // Upsert por nombre: si la receta ya existe se ACTUALIZA (no se duplica).
+    const existentesMap = new Map(
+        (window.recetas || []).map(r => [String(r.nombre || '').trim().toLowerCase(), r])
+    );
+
     document.getElementById('loading-overlay').classList.add('active');
 
-    try {
-        let importados = 0;
-        for (const rec of datosValidos) {
-            await window.api.createReceta({
-                nombre: rec.nombre,
-                categoria: rec.categoria,
-                precio_venta: rec.precioVenta,
-                porciones: rec.porciones,
-                ingredientes: [],
-            });
-            importados++;
-        }
+    const creadas = [];
+    const actualizadas = [];
+    const errores = [];
 
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast(`✓ ${importados} recetas importadas correctamente`, 'success');
-        document.getElementById('modal-importar-recetas').classList.remove('active');
-        await window.renderizarRecetas();
-    } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
-        window.showToast('Error importando: ' + error.message, 'error');
+    for (const rec of datosValidos) {
+        const clave = String(rec.nombre || '').trim().toLowerCase();
+        const existente = existentesMap.get(clave);
+        try {
+            if (existente) {
+                // Si el import NO trae líneas (solo cabecera), conservar el escandallo
+                // actual para no borrarlo sin querer; si trae líneas, se sustituye.
+                const ingredientesFinal = (rec.ingredientes && rec.ingredientes.length > 0)
+                    ? rec.ingredientes
+                    : (existente.ingredientes || []);
+                await window.api.updateReceta(existente.id, {
+                    nombre: rec.nombre,
+                    categoria: rec.categoria,
+                    precio_venta: rec.precioVenta,
+                    porciones: rec.porciones,
+                    // Código TPV: si el Excel no lo trae, conservar el actual (no borrarlo).
+                    codigo: rec.codigo || existente.codigo || null,
+                    ingredientes: ingredientesFinal,
+                });
+                actualizadas.push(rec.nombre);
+            } else {
+                const nueva = await window.api.createReceta({
+                    nombre: rec.nombre,
+                    categoria: rec.categoria,
+                    precio_venta: rec.precioVenta,
+                    porciones: rec.porciones,
+                    codigo: rec.codigo || null,
+                    ingredientes: rec.ingredientes || [],
+                });
+                creadas.push(rec.nombre);
+                if (nueva && nueva.id) existentesMap.set(clave, nueva); // si el Excel repite el nombre, actualizar la 2ª vez
+            }
+        } catch (error) {
+            errores.push(`${rec.nombre}: ${error.message}`);
+        }
+    }
+
+    // Refrescar estado: window.recetas queda al día → un re-import posterior
+    // reconoce las recetas y las actualiza en vez de duplicarlas.
+    await window.cargarDatos();
+    window.renderizarRecetas();
+    document.getElementById('loading-overlay').classList.remove('active');
+    document.getElementById('modal-importar-recetas').classList.remove('active');
+
+    const totalSinEmparejar = datosValidos.reduce((s, d) => s + (d.sinEmparejar ? d.sinEmparejar.length : 0), 0);
+    const tipo = (creadas.length || actualizadas.length) ? 'success' : 'error';
+    if (errores.length === 0 && totalSinEmparejar === 0) {
+        window.showToast(`✓ ${creadas.length} creadas · ${actualizadas.length} actualizadas`, tipo);
+    } else {
+        window.showToast(`✓ ${creadas.length} creadas · ${actualizadas.length} actualizadas`, tipo);
+        let resumen = `Importación completada:\n\n✓ ${creadas.length} recetas creadas\n✏️ ${actualizadas.length} actualizadas`;
+        if (totalSinEmparejar) resumen += `\n⚠ ${totalSinEmparejar} líneas sin emparejar (ingrediente no encontrado — revísalas)`;
+        if (errores.length) resumen += `\n✗ ${errores.length} con error:\n${errores.join('\n')}`;
+        alert(resumen);
     }
 };
 
 window.cancelarImportarRecetas = function () {
     document.getElementById('modal-importar-recetas').classList.remove('active');
     datosImportarRecetas = [];
+};
+
+// Construye las filas de escandallo (SIN cabecera) de UNA receta, en el formato
+// del import: la 1ª línea lleva Categoría/Precio/Porciones; las siguientes en
+// blanco. Rendimiento vacío si la línea no lo fija (al reimportar hereda del
+// ingrediente). Compartido por la plantilla (todas las recetas) y el export por
+// receta para que ambos formatos no diverjan nunca.
+function _filasEscandalloDeReceta(rec, ingMap, recMap) {
+    const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
+    const precio = parseFloat(rec.precio_venta) || 0;
+    const porciones = parseInt(rec.porciones) || 1;
+    const codigo = rec.codigo || ''; // Código TPV (campo `codigo` de la receta)
+    if (lineas.length === 0) {
+        return [[rec.nombre, codigo, rec.categoria || '', precio, porciones, '', '', '']];
+    }
+    return lineas.map((item, idx) => {
+        let nombreIng;
+        if (item.ingredienteId > 100000) {
+            const sub = recMap.get(item.ingredienteId - 100000);
+            nombreIng = sub ? sub.nombre : `receta#${item.ingredienteId - 100000}`;
+        } else {
+            const ing = ingMap.get(item.ingredienteId);
+            nombreIng = ing ? ing.nombre : `ingrediente#${item.ingredienteId}`;
+        }
+        const rend = (item.rendimiento != null && parseFloat(item.rendimiento) > 0)
+            ? parseFloat(item.rendimiento) : '';
+        const cantidad = parseFloat(item.cantidad) || 0;
+        // El Código TPV es atributo de receta → solo en la 1ª línea (como Categoría/Precio/Porciones).
+        return idx === 0
+            ? [rec.nombre, codigo, rec.categoria || '', precio, porciones, nombreIng, cantidad, rend]
+            : [rec.nombre, '', '', '', '', nombreIng, cantidad, rend];
+    });
+}
+
+// "Descargar plantilla" = exporta TODAS tus recetas reales en el formato
+// re-importable (round-trip masivo: editar en Excel → reimportar = upsert) +
+// una hoja con los nombres exactos de los ingredientes para que el matching no
+// falle. Si el restaurante aún no tiene recetas, cae a un ejemplo (PULPO A
+// FEIRA) para enseñar el formato a quien empieza de cero.
+window.descargarPlantillaEscandallo = async function () {
+    try {
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+        const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+        const recMap = new Map(recetas.map(r => [r.id, r]));
+
+        const cabecera = ['Receta', 'Código TPV', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento'];
+        let filas;
+        if (recetas.length > 0) {
+            filas = [cabecera];
+            for (const rec of recetas) {
+                for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
+            }
+        } else {
+            // Restaurante sin recetas: ejemplo para aprender el formato.
+            filas = [
+                cabecera,
+                ['PULPO A FEIRA', '0001', 'Alimentos', 18, 1, 'PULPO', 0.25, 60],
+                ['PULPO A FEIRA', '', '', '', '', 'PATATA', 0.20, ''],
+                ['PULPO A FEIRA', '', '', '', '', 'ACEITE DE OLIVA', 0.02, ''],
+            ];
+        }
+
+        const wb = XLSX.utils.book_new();
+        const wsEsc = XLSX.utils.aoa_to_sheet(filas);
+        wsEsc['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+        XLSX.utils.book_append_sheet(wb, wsEsc, 'Escandallo');
+
+        const ings = (window.ingredientes || []).map(i => [i.nombre, i.unidad || '']);
+        const wsIng = XLSX.utils.aoa_to_sheet([['Ingrediente', 'Unidad'], ...ings]);
+        wsIng['!cols'] = [{ wch: 30 }, { wch: 12 }];
+        XLSX.utils.book_append_sheet(wb, wsIng, 'Ingredientes disponibles');
+
+        const sufijo = recetas.length > 0 ? 'recetas' : 'ejemplo';
+        XLSX.writeFile(wb, `escandallo_${sufijo}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error generando la plantilla: ' + error.message, 'error');
+    }
+};
+
+// 🆕 Exporta el escandallo de UNA receta concreta en el formato del import
+// (Receta/Categoría/Precio/Porciones/Ingrediente/Cantidad/Rendimiento), para
+// editarla en Excel y re-importarla (round-trip). El nombre del archivo lleva
+// el nombre de la receta. Rendimiento en blanco si la línea no lo fija (para
+// que al re-importar herede del ingrediente).
+window.exportarEscandalloReceta = async function (recetaId) {
+    try {
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+        const rec = recetas.find(r => r.id === recetaId);
+        if (!rec) { window.showToast('Receta no encontrada', 'error'); return; }
+        const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+        const recMap = new Map(recetas.map(r => [r.id, r]));
+
+        const filas = [['Receta', 'Código TPV', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento']];
+        for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(filas);
+        ws['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+        XLSX.utils.book_append_sheet(wb, ws, 'Escandallo');
+        const slug = String(rec.nombre || 'receta').trim().replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '').toLowerCase() || 'receta';
+        XLSX.writeFile(wb, `escandallo_${slug}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error exportando el escandallo: ' + error.message, 'error');
+    }
 };
 
 // ========== IMPORTAR VENTAS TPV ==========
@@ -1567,15 +2023,21 @@ window.cargarResumenMensual = async function () {
 // 📅 Filtro de días por semana del mes (1=1-7, 2=8-14, 3=15-21, 4=22-28, 5=29-31, 'todas'=mes completo)
 window.diarioSemanaActiva = 'todas';
 
-// 📊 Recalcula los 4 KPIs del encabezado sumando SOLO los días visibles según filtro.
-// Antes los KPIs mostraban el total del mes aunque se filtrase la semana → incoherencia visible.
-window.actualizarKPIsDiario = function () {
+// 📊 Recalcula los 4 KPIs del encabezado del Diario.
+// Total Compras: sigue saliendo de monthly/summary (precios_compra_diarios; no
+// depende de la receta, no le afecta el bug).
+// Ventas / Beneficio / Food Cost: pasan a usar /analytics/pnl-breakdown (la
+// misma fuente canónica que el Dashboard). Antes se sumaba de
+// data.ventas.recetas, pero monthly/summary excluye ventas cuya receta fue
+// borrada (JOIN con r.deleted_at IS NULL) → los totales aparecían bajos y el
+// food cost distorsionado vs el Dashboard. Bug confirmado por Iker 2026-05-30.
+window.actualizarKPIsDiario = async function () {
     const data = window.datosResumenMensual;
     if (!data) return;
     const diasVisibles = window.filtrarDiasPorSemana(data.dias || [], window.diarioSemanaActiva);
     const diasSet = new Set(diasVisibles);
 
-    // Compras (costes de materia prima) sumados sólo en días visibles
+    // Compras (materia prima) — sigue saliendo de monthly/summary.
     let totalCompras = 0;
     const comprasIng = data.compras?.ingredientes || {};
     for (const ing of Object.values(comprasIng)) {
@@ -1584,20 +2046,53 @@ window.actualizarKPIsDiario = function () {
         }
     }
 
-    // Ventas: ingresos, costes y beneficio bruto en días visibles
+    // Ventas / Beneficio / Food Cost — fuente canónica del Dashboard.
+    // Usa el rango de fechas correspondiente al filtro de semana activo
+    // (o todo el mes si está en "todas").
     let totalIngresos = 0;
     let totalCostesProd = 0;
-    const recetas = data.ventas?.recetas || {};
-    for (const rec of Object.values(recetas)) {
-        for (const [dia, diaData] of Object.entries(rec.dias || {})) {
-            if (diasSet.has(dia)) {
-                totalIngresos += diaData.ingresos || 0;
-                totalCostesProd += diaData.coste || 0;
-            }
+    let foodCost = 0;
+    try {
+        const toLocalDate = (d) => {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        };
+        const ahora = new Date();
+        let desde = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+        let hasta = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 1);
+        const sem = parseInt(window.diarioSemanaActiva);
+        if (Number.isFinite(sem) && sem >= 1 && sem <= 5) {
+            const minDia = (sem - 1) * 7 + 1;
+            const maxDia = sem * 7; // pnl-breakdown usa hasta exclusivo, ver más abajo
+            desde = new Date(ahora.getFullYear(), ahora.getMonth(), minDia);
+            hasta = new Date(ahora.getFullYear(), ahora.getMonth(), maxDia + 1);
         }
+        const desdeStr = toLocalDate(desde);
+        const hastaStr = toLocalDate(hasta);
+        const apiBase = window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud';
+        const resp = await fetch(
+            `${apiBase}/api/analytics/pnl-breakdown?desde=${desdeStr}&hasta=${hastaStr}`,
+            {
+                credentials: 'include',
+                headers: Object.assign(
+                    { 'Content-Type': 'application/json' },
+                    window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}
+                ),
+            }
+        );
+        if (resp.ok) {
+            const pnl = await resp.json();
+            totalIngresos = parseFloat(pnl.total?.ingresos) || 0;
+            totalCostesProd = parseFloat(pnl.total?.cogs) || 0;
+            // Food cost canónico de hostelería = solo COMIDA (el Dashboard hace lo mismo).
+            foodCost = parseFloat(pnl.food?.food_cost_pct) || 0;
+        }
+    } catch (err) {
+        console.warn('No se pudo obtener pnl-breakdown para KPIs del Diario:', err);
     }
     const beneficioBruto = totalIngresos - totalCostesProd;
-    const foodCost = totalIngresos > 0 ? (totalCostesProd / totalIngresos) * 100 : 0;
 
     const elCompras = document.getElementById('diario-total-compras');
     if (elCompras) elCompras.textContent = cm(totalCompras);

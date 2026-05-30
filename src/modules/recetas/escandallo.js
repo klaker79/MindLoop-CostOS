@@ -15,8 +15,6 @@ import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
 import { getIngredientUnitPrice, getIngredientNominalPrice } from '../../utils/cost-calculator.js';
 import { getInvMap, getIngMap } from './recetas-crud.js';
 
-const DEVIATION_WARN_PCT = 15;
-
 function calcularDesglose(receta, modo, recetas, ingMap, invMap, ingredientes) {
     const desglose = [];
     let costeTotal = 0;
@@ -110,22 +108,18 @@ export async function verEscandallo(recetaId) {
     const ingMap = getIngMap();
     const invMap = getInvMap();
 
-    // Calculamos ambos modos una sola vez — el toggle solo cambia qué mostrar.
+    // Coste basado en precio real de compra (precio_medio_compra ponderado).
+    // El backend mantiene `ingredientes.precio` sincronizado con el precio real
+    // de compra en cada recepción (recalcularPrecioPonderado), así que real y
+    // nominal eran siempre idénticos → toggle eliminado (2026-05-28).
     const real = calcularDesglose(receta, 'real', recetas, ingMap, invMap, ingredientes);
-    const nominal = calcularDesglose(receta, 'nominal', recetas, ingMap, invMap, ingredientes);
 
     const precioVenta = parseFloat(receta.precio_venta || 0);
-    const deviationPct = nominal.costeTotal > 0
-        ? ((real.costeTotal - nominal.costeTotal) / nominal.costeTotal) * 100
-        : 0;
 
     window._escandalloActual = {
         receta,
         real,
-        nominal,
-        precioVenta,
-        deviationPct,
-        modoActivo: 'real'
+        precioVenta
     };
 
     let modal = document.getElementById('modal-escandallo');
@@ -140,8 +134,6 @@ export async function verEscandallo(recetaId) {
                     <button onclick="document.getElementById('modal-escandallo').classList.remove('active')"
                         style="background: none; border: none; font-size: 24px; cursor: pointer;">✕</button>
                 </div>
-                <div id="escandallo-toggle" style="margin-bottom: 12px;"></div>
-                <div id="escandallo-deviation" style="margin-bottom: 14px;"></div>
                 <div id="escandallo-resumen" style="margin-bottom: 20px;"></div>
                 <div style="display: flex; flex-direction: column; gap: 20px;">
                     <div style="display: flex; justify-content: center; align-items: center; height: 200px;">
@@ -166,94 +158,17 @@ export async function verEscandallo(recetaId) {
 
     document.getElementById('escandallo-titulo').textContent = `📊 ${receta.nombre}`;
 
-    renderToggleYDeviation();
     await renderContenido();
 
     document.getElementById('btn-exportar-pdf-escandallo').onclick = () => exportarPDFEscandallo();
     modal.classList.add('active');
 }
 
-function renderToggleYDeviation() {
-    const data = window._escandalloActual;
-    if (!data) return;
-    const { modoActivo, deviationPct, nominal, real } = data;
-
-    const togglePill = (mode, labelKey) => {
-        const active = modoActivo === mode;
-        // 🎨 Navy editorial (rediseño 2026-05-26)
-        return `<button type="button" data-modo="${mode}" class="escandallo-toggle-btn" style="
-            padding: 6px 14px;
-            border-radius: 999px;
-            border: 1px solid ${active ? '#1e3a5f' : '#CBD5E1'};
-            background: ${active ? '#1e3a5f' : '#F8FAFC'};
-            color: ${active ? 'white' : '#334155'};
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        ">${escapeHTML(t(labelKey))}</button>`;
-    };
-
-    const togglerEl = document.getElementById('escandallo-toggle');
-    if (togglerEl) {
-        togglerEl.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <span style="font-size: 12px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-                    ${escapeHTML(t('recetas:escandallo_toggle_label'))}
-                </span>
-                <div style="display: flex; gap: 6px;">
-                    ${togglePill('real', 'recetas:escandallo_toggle_real')}
-                    ${togglePill('nominal', 'recetas:escandallo_toggle_nominal')}
-                </div>
-            </div>
-        `;
-        togglerEl.querySelectorAll('[data-modo]').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                data.modoActivo = btn.dataset.modo;
-                renderToggleYDeviation();
-                await renderContenido();
-            });
-        });
-    }
-
-    const devEl = document.getElementById('escandallo-deviation');
-    if (devEl) {
-        const absDev = Math.abs(deviationPct);
-        const warn = isFinite(deviationPct) && absDev >= DEVIATION_WARN_PCT;
-        const bg = warn ? '#FEF3C7' : '#F1F5F9';
-        const border = warn ? '#F59E0B' : '#CBD5E1';
-        const icon = warn ? '⚠️' : 'ℹ️';
-        const sign = deviationPct >= 0 ? '+' : '';
-        const signedPct = isFinite(deviationPct) ? `${sign}${deviationPct.toFixed(1)}%` : '—';
-        const msgKey = warn ? 'recetas:escandallo_deviation_warn' : 'recetas:escandallo_deviation_info';
-
-        devEl.innerHTML = `
-            <div style="background: ${bg}; border-left: 4px solid ${border}; padding: 10px 14px; border-radius: 6px; font-size: 12px; line-height: 1.5;">
-                <div style="display: flex; gap: 8px; align-items: flex-start;">
-                    <span>${icon}</span>
-                    <div>
-                        <div style="font-weight: 600; color: #334155; margin-bottom: 2px;">
-                            ${escapeHTML(t(msgKey))}
-                        </div>
-                        <div style="color: #64748B;">
-                            ${escapeHTML(t('recetas:escandallo_deviation_detail', {
-                                nominal: cm(nominal.costeTotal),
-                                real: cm(real.costeTotal),
-                                delta: signedPct
-                            }))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-}
-
 async function renderContenido() {
     const data = window._escandalloActual;
     if (!data) return;
-    const { receta, real, nominal, precioVenta, modoActivo } = data;
-    const activo = modoActivo === 'nominal' ? nominal : real;
-    const { desglose, costeTotal } = activo;
+    const { receta, real, precioVenta } = data;
+    const { desglose, costeTotal } = real;
 
     const margenEuros = precioVenta - costeTotal;
     const margenPct = precioVenta > 0 ? (margenEuros / precioVenta) * 100 : 0;
@@ -453,7 +368,7 @@ export async function exportarPDFEscandallo() {
     const data = window._escandalloActual;
     if (!data) return;
 
-    const { receta, desglose, costeTotal, precioVenta, margenEuros, foodCost, modoActivo } = data;
+    const { receta, desglose, costeTotal, precioVenta, margenEuros, foodCost } = data;
 
     await loadPDF();
     const jsPDF = window.jsPDF;
@@ -481,14 +396,6 @@ export async function exportarPDFEscandallo() {
     const restaurantName = window.restauranteActual?.nombre || 'MindLoop CostOS';
     doc.setFontSize(10);
     doc.text(restaurantName, pageWidth / 2, 32, { align: 'center' });
-
-    // Mode badge (real / nominal) under the header
-    const modeLabel = t(modoActivo === 'nominal' ? 'recetas:escandallo_toggle_nominal' : 'recetas:escandallo_toggle_real');
-    doc.setFillColor(226, 232, 240);
-    doc.roundedRect(pageWidth - 60, 38, 46, 6, 2, 2, 'F');
-    doc.setTextColor(51, 65, 85);
-    doc.setFontSize(8);
-    doc.text(`${t('recetas:escandallo_toggle_label')}: ${modeLabel}`, pageWidth - 37, 42, { align: 'center' });
 
     doc.setTextColor(30, 41, 59);
 

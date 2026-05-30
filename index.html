@@ -887,10 +887,12 @@
                   <input type="number" id="ing-stockActual" step="0.01" min="0">
                 </div>
                 <div class="form-group">
-                  <label data-i18n="ingredientes:form_label_stock_min">Stock mínimo</label>
-                  <!-- min=1: stock_minimo=0 hacía que Smart Order multiplicara su
-                       cálculo por 0 y nunca propusiera reposición. Ver fix 2026-05-07. -->
-                  <input type="number" id="ing-stockMinimo" step="0.01" min="1">
+                  <label><span data-i18n="ingredientes:form_label_stock_min">Stock mínimo</span> *</label>
+                  <!-- OBLIGATORIO (>0): el Smart Order calcula la reposición como
+                       (stock_minimo × 2) − stock_actual. Con 0 o vacío nunca propone
+                       reponer. `required` + min>0 obligan a un valor válido. Ver fix
+                       2026-05-29 (antes min=1, relajado a >0 a petición de Iker). -->
+                  <input type="number" id="ing-stockMinimo" step="0.01" min="0.01" required>
                 </div>
 
                 <!-- RENDIMIENTO / MERMA (Moved to bottom with Slider) -->
@@ -944,7 +946,7 @@
                 Receta</button>
               <button class="btn btn-secondary" data-action="importar-recetas" data-i18n="common:btn_import_excel">📤
                 Importar Excel</button>
-              <button class="btn btn-secondary" data-action="exportar-recetas" data-i18n="common:btn_export_excel">📥
+              <button class="btn btn-secondary" data-action="descargar-plantilla-escandallo" data-i18n="common:btn_export_excel">📥
                 Exportar Excel</button>
               <button class="btn" onclick="window.mostrarCostTracker()"
                 style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 <span
@@ -2288,28 +2290,6 @@
       </div>
 
       <!-- Modales (simplificados) -->
-      <div id="modal-producir" class="modal">
-        <div class="modal-content">
-          <h3 data-i18n="recetas:produce_title">Producir platos</h3>
-          <p style="margin-bottom: 20px;" data-i18n-html="recetas:produce_how_many_html">¿Cuántas unidades de <strong
-              id="modal-plato-nombre"></strong>?</p>
-          <div class="form-group">
-            <label data-i18n="common:label_quantity">Cantidad</label>
-            <input type="number" id="modal-cantidad" min="1" value="1" style="width:100%;padding:10px;"
-              oninput="window.actualizarDetalleDescuento()">
-          </div>
-          <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 6px;">
-            <strong data-i18n="recetas:produce_stock_deduction">⚠️ Descuento de stock:</strong>
-            <div id="modal-descuento-detalle" style="margin-top: 10px;"></div>
-          </div>
-          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-producir"
-              data-i18n="common:btn_cancel">Cancelar</button>
-            <button class="btn btn-success" data-action="confirmar-produccion"
-              data-i18n="recetas:produce_confirm">Confirmar</button>
-          </div>
-        </div>
-      </div>
 
       <!-- Modal Empleado -->
       <div id="modal-empleado"
@@ -3023,10 +3003,15 @@
 
           <div style="margin: 20px 0;">
             <p style="color: #64748b; margin-bottom: 15px;" data-i18n="recetas:import_columns_hint">
-              Upload an Excel (.xlsx) or CSV file with the columns: <strong>Name</strong>,
-              <strong>Category</strong>,
-              <strong>Sale Price</strong>, <strong>Portions</strong>
+              Sube un Excel con las columnas: <strong>Receta</strong>, <strong>Categoría</strong>,
+              <strong>Precio Venta</strong>, <strong>Porciones</strong>, <strong>Ingrediente</strong>,
+              <strong>Cantidad</strong>, <strong>Rendimiento</strong> (una fila por línea del escandallo).
             </p>
+
+            <div style="margin-bottom: 15px; font-size: 13px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;"
+              data-i18n="recetas:import_export_hint">
+              💡 ¿No tienes el archivo? Pulsa <strong>"📥 Exportar Excel"</strong> para bajar tus recetas en este formato, edítalas y vuelve a subirlas aquí.
+            </div>
 
             <div
               style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
@@ -3166,7 +3151,7 @@
       </div>
       </script>
     </div>
-    <script src="src/legacy/inventario-masivo.js?v=20260416-sprint2"></script>
+    <script src="src/legacy/inventario-masivo.js?v=20260531-import-ing-pivot"></script>
 
     <!-- CARRITO DE PEDIDOS - El código está en src/modules/pedidos/pedidos-cart.js -->
 
@@ -3279,7 +3264,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260510-remove-plans-gating"></script>
+  <script type="module" src="./src/main.js?v=20260529-recetas-1export-1import"></script>
 </body>
 
 </html>
