@@ -1299,6 +1299,15 @@ button[onclick="window.guardarEdicionPedido()"]:hover {
 .stat-card.orange .value {
   color: #8a6e3e !important;     /* ocre */
 }
+/* La purple del Diario ("Gastos Fijos Totales") está sobre fondo navy:
+   sin esta regla la cifra hereda --accent-dark (navy) y queda invisible.
+   Reportado por Iker 2026-05-30. */
+#tab-diario .stat-card.purple .value {
+  color: #ffffff !important;
+}
+#tab-diario .stat-card.purple h3 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
 
 
 /* --- H.2 Loading skeletons con tinte navy --- */

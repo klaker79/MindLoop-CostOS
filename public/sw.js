@@ -56,8 +56,9 @@
 // BUMP v55: pista del modal importar sin "(arriba)" (el botón Exportar Excel está fuera del modal).
 // BUMP v56: import de ingredientes Excel lee columna "Proveedor" (resuelve por nombre → proveedorId).
 // BUMP v57: import también actualiza proveedor de ingredientes existentes huérfanos (caso B Iker 2026-05-30).
+// BUMP v58: Diario KPIs (Ventas/Beneficio/FoodCost) usan /analytics/pnl-breakdown como Dashboard + fix CSS texto Gastos Fijos Totales.
 
-const CACHE_NAME = 'mindloop-costos-v57';
+const CACHE_NAME = 'mindloop-costos-v58';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

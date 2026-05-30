@@ -1998,15 +1998,21 @@ window.cargarResumenMensual = async function () {
 // 📅 Filtro de días por semana del mes (1=1-7, 2=8-14, 3=15-21, 4=22-28, 5=29-31, 'todas'=mes completo)
 window.diarioSemanaActiva = 'todas';
 
-// 📊 Recalcula los 4 KPIs del encabezado sumando SOLO los días visibles según filtro.
-// Antes los KPIs mostraban el total del mes aunque se filtrase la semana → incoherencia visible.
-window.actualizarKPIsDiario = function () {
+// 📊 Recalcula los 4 KPIs del encabezado del Diario.
+// Total Compras: sigue saliendo de monthly/summary (precios_compra_diarios; no
+// depende de la receta, no le afecta el bug).
+// Ventas / Beneficio / Food Cost: pasan a usar /analytics/pnl-breakdown (la
+// misma fuente canónica que el Dashboard). Antes se sumaba de
+// data.ventas.recetas, pero monthly/summary excluye ventas cuya receta fue
+// borrada (JOIN con r.deleted_at IS NULL) → los totales aparecían bajos y el
+// food cost distorsionado vs el Dashboard. Bug confirmado por Iker 2026-05-30.
+window.actualizarKPIsDiario = async function () {
     const data = window.datosResumenMensual;
     if (!data) return;
     const diasVisibles = window.filtrarDiasPorSemana(data.dias || [], window.diarioSemanaActiva);
     const diasSet = new Set(diasVisibles);
 
-    // Compras (costes de materia prima) sumados sólo en días visibles
+    // Compras (materia prima) — sigue saliendo de monthly/summary.
     let totalCompras = 0;
     const comprasIng = data.compras?.ingredientes || {};
     for (const ing of Object.values(comprasIng)) {
@@ -2015,20 +2021,53 @@ window.actualizarKPIsDiario = function () {
         }
     }
 
-    // Ventas: ingresos, costes y beneficio bruto en días visibles
+    // Ventas / Beneficio / Food Cost — fuente canónica del Dashboard.
+    // Usa el rango de fechas correspondiente al filtro de semana activo
+    // (o todo el mes si está en "todas").
     let totalIngresos = 0;
     let totalCostesProd = 0;
-    const recetas = data.ventas?.recetas || {};
-    for (const rec of Object.values(recetas)) {
-        for (const [dia, diaData] of Object.entries(rec.dias || {})) {
-            if (diasSet.has(dia)) {
-                totalIngresos += diaData.ingresos || 0;
-                totalCostesProd += diaData.coste || 0;
-            }
+    let foodCost = 0;
+    try {
+        const toLocalDate = (d) => {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        };
+        const ahora = new Date();
+        let desde = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+        let hasta = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 1);
+        const sem = parseInt(window.diarioSemanaActiva);
+        if (Number.isFinite(sem) && sem >= 1 && sem <= 5) {
+            const minDia = (sem - 1) * 7 + 1;
+            const maxDia = sem * 7; // pnl-breakdown usa hasta exclusivo, ver más abajo
+            desde = new Date(ahora.getFullYear(), ahora.getMonth(), minDia);
+            hasta = new Date(ahora.getFullYear(), ahora.getMonth(), maxDia + 1);
         }
+        const desdeStr = toLocalDate(desde);
+        const hastaStr = toLocalDate(hasta);
+        const apiBase = window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud';
+        const resp = await fetch(
+            `${apiBase}/api/analytics/pnl-breakdown?desde=${desdeStr}&hasta=${hastaStr}`,
+            {
+                credentials: 'include',
+                headers: Object.assign(
+                    { 'Content-Type': 'application/json' },
+                    window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}
+                ),
+            }
+        );
+        if (resp.ok) {
+            const pnl = await resp.json();
+            totalIngresos = parseFloat(pnl.total?.ingresos) || 0;
+            totalCostesProd = parseFloat(pnl.total?.cogs) || 0;
+            // Food cost canónico de hostelería = solo COMIDA (el Dashboard hace lo mismo).
+            foodCost = parseFloat(pnl.food?.food_cost_pct) || 0;
+        }
+    } catch (err) {
+        console.warn('No se pudo obtener pnl-breakdown para KPIs del Diario:', err);
     }
     const beneficioBruto = totalIngresos - totalCostesProd;
-    const foodCost = totalIngresos > 0 ? (totalCostesProd / totalIngresos) * 100 : 0;
 
     const elCompras = document.getElementById('diario-total-compras');
     if (elCompras) elCompras.textContent = cm(totalCompras);
