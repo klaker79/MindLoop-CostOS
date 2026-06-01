@@ -59,8 +59,9 @@
 // BUMP v58: Diario KPIs (Ventas/Beneficio/FoodCost) usan /analytics/pnl-breakdown como Dashboard + fix CSS texto Gastos Fijos Totales.
 // BUMP v59: import de ingredientes rellena pivot ingredientes_proveedores tras crear/actualizar (el desplegable de pedidos filtra por pivot).
 // BUMP v60: parsers de Excel (escandallo + ingredientes) extraídos a src/utils/ con tests defensivos. Legacy hace fallback si el módulo no carga.
+// BUMP v61: buscador de ingrediente en Nuevo Pedido autoselecciona también el ingrediente en el carrito (antes solo el proveedor — el cliente confundía variedades del mismo proveedor, p.ej. Estrella Galicia normal vs 1906).
 
-const CACHE_NAME = 'mindloop-costos-v60';
+const CACHE_NAME = 'mindloop-costos-v61';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

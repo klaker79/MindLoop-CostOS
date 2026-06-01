@@ -241,10 +241,26 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
     }
 
     // Seleccionar el proveedor en el dropdown (select nativo HTML5).
+    // dispatchEvent dispara `cargarIngredientesPedido` (onchange en index.html:1307)
+    // que a su vez crea la primera fila vacía del carrito sincronicamente.
     const selectProveedor = document.getElementById('ped-proveedor');
     if (selectProveedor) {
         selectProveedor.value = proveedorSeleccionado.id;
         selectProveedor.dispatchEvent(new Event('change'));
+    }
+
+    // Autoseleccionar el ingrediente buscado en la primera fila del carrito.
+    // Antes el cliente buscaba "CERVEZA ESTRELLA GALICIA BARRIL 30L" y la app
+    // solo seleccionaba el proveedor (Estrella Galicia) — el dropdown del
+    // ingrediente abajo quedaba vacío y el cliente confundía p.ej. "1906" con
+    // la Estrella normal (incidente La Nave 5 2026-06-01).
+    const primeraFila = document.querySelector('#lista-ingredientes-pedido .ingrediente-item');
+    if (primeraFila) {
+        const selectIng = primeraFila.querySelector('select');
+        if (selectIng && Array.from(selectIng.options).some(o => o.value === String(ing.id))) {
+            selectIng.value = String(ing.id);
+            selectIng.dispatchEvent(new Event('change'));
+        }
     }
 
     window.showToast(t('pedidos:supplier_selected', { name: proveedorSeleccionado.nombre }), 'success');
