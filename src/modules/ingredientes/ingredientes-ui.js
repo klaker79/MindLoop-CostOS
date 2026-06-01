@@ -10,6 +10,8 @@ import { getElement, setElementHTML, hideElement, showElement } from '../../util
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
+import { renderEmptyStateOnboarding } from '../../components/domain/EmptyStateOnboarding.js';
+import { HELP_VIDEOS } from '../help/help-config.js';
 
 
 // Variables para paginación y filtros
@@ -184,15 +186,43 @@ export function renderizarIngredientes() {
     const paginados = filtrados.slice(inicio, fin);
 
     if (filtrados.length === 0) {
-        container.innerHTML =
-            renderizarFiltrosCategorias() +
-            `
+        // Cliente NUEVO sin ingredientes, sin filtros aplicados → empty state onboarding
+        // con video tutorial + CTAs grandes (en vez del cartel sosín de antes).
+        // Si hay búsqueda o filtro de categoría, mantiene el empty state básico.
+        const esClienteNuevo = !busqueda && filtroCategoria === 'todas' && ingredientes.length === 0;
+        if (esClienteNuevo) {
+            container.innerHTML =
+                renderizarFiltrosCategorias() +
+                renderEmptyStateOnboarding({
+                    icon: '🥕',
+                    title: t('ingredientes:onb_title', { defaultValue: 'Empieza con tus ingredientes' }),
+                    subtitle: t('ingredientes:onb_subtitle', {
+                        defaultValue: 'Es el primer paso. Mira el video y elige cómo añadirlos: por Excel o uno a uno.'
+                    }),
+                    videoId: HELP_VIDEOS?.ingredientes?.videos?.[0]?.videoId || null,
+                    primaryCta: {
+                        label: t('ingredientes:onb_cta_import', { defaultValue: '📥 Importar desde Excel' }),
+                        onclick: 'window.mostrarModalImportarIngredientes?.()'
+                    },
+                    secondaryCta: {
+                        label: t('ingredientes:onb_cta_manual', { defaultValue: '✏️ Añadir manual' }),
+                        onclick: 'window.mostrarFormularioIngrediente?.()'
+                    },
+                    tertiaryHelp: t('ingredientes:onb_help', {
+                        defaultValue: '¿Dudas? Escríbenos por WhatsApp y te ayudamos al instante.'
+                    })
+                });
+        } else {
+            container.innerHTML =
+                renderizarFiltrosCategorias() +
+                `
       <div class="empty-state">
         <div class="icon">📦</div>
         <h3>${busqueda || filtroCategoria !== 'todas' ? t('ingredientes:empty_not_found') : t('ingredientes:empty_none_yet')}</h3>
         <p>${busqueda ? t('ingredientes:empty_try_another') : filtroCategoria !== 'todas' ? t('ingredientes:empty_no_in_category') : t('ingredientes:empty_add_first')}</p>
       </div>
     `;
+        }
         const resumen = getElement('resumen-ingredientes');
         if (resumen) resumen.style.display = 'none';
     } else {
