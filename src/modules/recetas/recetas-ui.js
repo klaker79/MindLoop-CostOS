@@ -2,6 +2,8 @@ import { escapeHTML, cm } from '../../utils/helpers.js';
 import { calculateIngredientCost, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 import { t } from '@/i18n/index.js';
+import { renderEmptyStateOnboarding } from '../../components/domain/EmptyStateOnboarding.js';
+import { HELP_VIDEOS } from '../help/help-config.js';
 /**
  * Recetas UI Module
  * Funciones de interfaz de usuario para recetas
@@ -432,12 +434,37 @@ export async function renderizarRecetas() {
     const recetasPagina = filtradas.slice(startIndex, endIndex);
 
     if (filtradas.length === 0) {
-        container.innerHTML = `
+        // Cliente NUEVO sin recetas, sin filtros → empty state onboarding con video + CTAs.
+        // Si hay búsqueda/filtro activos, mantiene el empty state básico.
+        const esClienteNuevo = !busqueda && filtroRecetaCategoria === 'todas' && (window.recetas || []).length === 0;
+        if (esClienteNuevo) {
+            container.innerHTML = renderEmptyStateOnboarding({
+                icon: '👨‍🍳',
+                title: t('recetas:onb_title', { defaultValue: 'Crea tus recetas' }),
+                subtitle: t('recetas:onb_subtitle', {
+                    defaultValue: 'Tu escandallo y food cost se calculan automáticamente. Mira el video y empieza por la receta más vendida.'
+                }),
+                videoId: HELP_VIDEOS?.recetas?.videos?.[0]?.videoId || null,
+                primaryCta: {
+                    label: t('recetas:onb_cta_import', { defaultValue: '📥 Importar desde Excel' }),
+                    onclick: 'window.mostrarModalImportarRecetas?.()'
+                },
+                secondaryCta: {
+                    label: t('recetas:onb_cta_manual', { defaultValue: '✏️ Crear receta' }),
+                    onclick: 'window.mostrarFormularioReceta?.()'
+                },
+                tertiaryHelp: t('recetas:onb_help', {
+                    defaultValue: 'Necesitas tener ingredientes antes. Si no los tienes, ve a la pestaña Ingredientes primero.'
+                })
+            });
+        } else {
+            container.innerHTML = `
       <div class="empty-state">
         <div class="icon">👨‍🍳</div>
         <h3>${busqueda || filtroRecetaCategoria !== 'todas' ? t('recetas:empty_not_found') : t('recetas:empty_none_yet')}</h3>
       </div>
     `;
+        }
         document.getElementById('resumen-recetas').style.display = 'none';
     } else {
         let html = '<table><thead><tr>';
