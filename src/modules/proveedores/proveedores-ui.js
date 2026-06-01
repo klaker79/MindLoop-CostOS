@@ -1,5 +1,7 @@
 import { escapeHTML } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
+import { renderEmptyStateOnboarding } from '../../components/domain/EmptyStateOnboarding.js';
+import { HELP_VIDEOS } from '../help/help-config.js';
 /**
  * Proveedores UI Module
  * Funciones de interfaz de usuario para proveedores
@@ -150,12 +152,32 @@ export function renderizarProveedores() {
     const container = document.getElementById('tabla-proveedores');
 
     if (filtrados.length === 0) {
-        container.innerHTML = `
+        // Cliente NUEVO sin proveedores, sin búsqueda → empty state onboarding.
+        const esClienteNuevo = !busqueda && (window.proveedores || []).length === 0;
+        if (esClienteNuevo) {
+            container.innerHTML = renderEmptyStateOnboarding({
+                icon: '🚚',
+                title: t('proveedores:onb_title', { defaultValue: 'Añade tus proveedores' }),
+                subtitle: t('proveedores:onb_subtitle', {
+                    defaultValue: 'Sin proveedores no podrás hacer pedidos. Mira el video y añade tus principales en 2 minutos.'
+                }),
+                videoId: HELP_VIDEOS?.proveedores?.videoId || null,
+                primaryCta: {
+                    label: t('proveedores:onb_cta_manual', { defaultValue: '✏️ Añadir proveedor' }),
+                    onclick: 'window.mostrarFormularioProveedor?.()'
+                },
+                tertiaryHelp: t('proveedores:onb_help', {
+                    defaultValue: '¿Dudas? Escríbenos por WhatsApp y te ayudamos al instante.'
+                })
+            });
+        } else {
+            container.innerHTML = `
       <div class="empty-state">
         <div class="icon">🚚</div>
         <h3>${busqueda ? t('proveedores:empty_not_found') : t('proveedores:empty_none_yet')}</h3>
       </div>
     `;
+        }
         return;
     }
 
