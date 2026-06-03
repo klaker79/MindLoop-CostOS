@@ -58,9 +58,15 @@ const PASOS = [
 const OVERLAY_ID = 'onboarding-spotlight-overlay';
 const STYLE_ID = 'onboarding-spotlight-styles';
 // Cooldown corto para evitar reaperturas inmediatas tras cerrar el modal
-// con CTA / skip (durante la transición visual). Re-abre al siguiente
-// cambio de tab pasados ~1.5s.
+// con CTA / skip definitivo (durante la transición visual). Re-abre al
+// siguiente cambio de tab pasados ~1.5s.
 let cooldownUntil = 0;
+// Pasos saltados con "Lo hago después" dentro de esta apertura del spotlight.
+// Se resetean al ABRIR el spotlight desde fuera (navegación/creación).
+// Sirve para que el cliente vea los 4 modales en cadena aunque no complete
+// ningún paso real: skip → siguiente paso → skip → siguiente paso → ...
+let skippedInThisOpen = new Set();
+let lastStatus = null; // cache para advance interno
 
 function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -249,9 +255,29 @@ function bumpCooldown(ms = 1500) {
     cooldownUntil = Date.now() + ms;
 }
 
+// Avanza al siguiente paso pendiente añadiendo el actual al set de saltados
+// en esta apertura. Si no quedan más, cierra con cooldown.
+function advanceToNextPendingStep(currentKey) {
+    skippedInThisOpen.add(currentKey);
+    if (!lastStatus) { closeSpotlight(); bumpCooldown(); return; }
+    // Re-renderizar con el mismo status; el cálculo de siguiente paso
+    // excluirá los saltados en esta apertura.
+    const overlay = document.getElementById(OVERLAY_ID);
+    if (overlay) overlay.remove();
+    document.body.classList.remove('spotlight-active');
+    document.querySelectorAll('.nav-item.spotlight-highlight')
+        .forEach(el => el.classList.remove('spotlight-highlight'));
+    const nextOverlay = renderModal(lastStatus);
+    if (!nextOverlay) {
+        // Se han saltado todos los pendientes — cerrar.
+        closeSpotlight();
+        bumpCooldown();
+    }
+}
+
 if (typeof window !== 'undefined') {
     window.__onboardingSpotlightClose = () => { closeSpotlight(); bumpCooldown(); };
-    window.__onboardingSpotlightSkip = () => { closeSpotlight(); bumpCooldown(); };
+    window.__onboardingSpotlightSkip = (currentKey) => advanceToNextPendingStep(currentKey);
     window.__onboardingSpotlightGo = (tab) => {
         closeSpotlight();
         bumpCooldown();
@@ -277,8 +303,11 @@ function renderModal(status) {
     });
     const completados = pasosWithStatus.filter(p => p.completado).length;
     const total = pasosWithStatus.length;
-    const indiceSiguiente = pasosWithStatus.findIndex(p => !p.completado);
-    if (indiceSiguiente === -1) return null; // todo completado
+    // Siguiente paso = no completado Y no saltado en esta apertura
+    const indiceSiguiente = pasosWithStatus.findIndex(p =>
+        !p.completado && !skippedInThisOpen.has(p.key)
+    );
+    if (indiceSiguiente === -1) return null; // todo completado o saltado
     const paso = pasosWithStatus[indiceSiguiente];
     const progresoPct = (completados / total * 100).toFixed(0);
 
@@ -313,7 +342,7 @@ function renderModal(status) {
             <h2 class="spotlight-title">${escapeHTML(paso.titulo)}</h2>
             <p class="spotlight-desc">${escapeHTML(descAdaptada)}</p>
             ${ctaHtml}
-            <button class="spotlight-skip" onclick="window.__onboardingSpotlightSkip()">
+            <button class="spotlight-skip" onclick="window.__onboardingSpotlightSkip('${escapeHTML(paso.key)}')">
                 Lo hago yo después
             </button>
         </div>
@@ -371,6 +400,12 @@ export async function renderOnboardingSpotlight() {
         closeSpotlight();
         return;
     }
+
+    // Nueva apertura: olvidar saltos de aperturas previas. Así si el cliente
+    // saltó los 4 pasos y vuelve al dashboard / navega, vuelve a ver desde
+    // paso 1 los modales en cadena.
+    skippedInThisOpen = new Set();
+    lastStatus = status;
 
     injectStyles();
     renderModal(status);
