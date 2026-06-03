@@ -311,12 +311,13 @@ function renderModal(status) {
     const paso = pasosWithStatus[indiceSiguiente];
     const progresoPct = (completados / total * 100).toFixed(0);
 
-    // Si el cliente ya está en la pestaña del paso pendiente, no apuntamos
-    // al sidebar (es donde ya está) — modal sin flecha y CTA distinto.
+    // SIEMPRE destacamos la pestaña en el sidebar (con flecha) para
+    // coherencia visual paso a paso. Si el cliente YA está en la
+    // pestaña del paso pendiente, solo cambia el texto del CTA.
     const currentTab = getCurrentTab();
     const yaEstaEnPaso = currentTab === paso.tab;
 
-    const target = yaEstaEnPaso ? null : highlightSidebarTab(paso.tab);
+    const target = highlightSidebarTab(paso.tab);
 
     const ctaHtml = yaEstaEnPaso
         ? `<button class="spotlight-cta" onclick="window.__onboardingSpotlightClose()">
