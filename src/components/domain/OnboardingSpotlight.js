@@ -57,7 +57,10 @@ const PASOS = [
 
 const OVERLAY_ID = 'onboarding-spotlight-overlay';
 const STYLE_ID = 'onboarding-spotlight-styles';
-const SKIP_SESSION_KEY = 'onboarding_spotlight_skipped';
+// Cooldown corto para evitar reaperturas inmediatas tras cerrar el modal
+// con CTA / skip (durante la transición visual). Re-abre al siguiente
+// cambio de tab pasados ~1.5s.
+let cooldownUntil = 0;
 
 function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -231,16 +234,29 @@ function closeSpotlight() {
     if (overlay) overlay.remove();
 }
 
+function bumpCooldown(ms = 1500) {
+    cooldownUntil = Date.now() + ms;
+}
+
 if (typeof window !== 'undefined') {
-    window.__onboardingSpotlightClose = closeSpotlight;
-    window.__onboardingSpotlightSkip = () => {
-        try { sessionStorage.setItem(SKIP_SESSION_KEY, '1'); } catch { /* noop */ }
-        closeSpotlight();
-    };
+    window.__onboardingSpotlightClose = () => { closeSpotlight(); bumpCooldown(); };
+    window.__onboardingSpotlightSkip = () => { closeSpotlight(); bumpCooldown(); };
     window.__onboardingSpotlightGo = (tab) => {
         closeSpotlight();
+        bumpCooldown();
         navigateToTab(tab);
     };
+}
+
+function getCurrentTab() {
+    // Pestaña activa: clase 'active' en .tab-content visible
+    const activeContent = document.querySelector('.tab-content.active, .tab-content[style*="block"]');
+    if (activeContent && activeContent.id?.startsWith('tab-')) {
+        return activeContent.id.replace('tab-', '');
+    }
+    // Fallback: nav-item con clase active
+    const activeNav = document.querySelector('.nav-item.active[data-tab]');
+    return activeNav?.dataset?.tab || null;
 }
 
 function renderModal(status) {
@@ -255,7 +271,24 @@ function renderModal(status) {
     const paso = pasosWithStatus[indiceSiguiente];
     const progresoPct = (completados / total * 100).toFixed(0);
 
-    const target = highlightSidebarTab(paso.tab);
+    // Si el cliente ya está en la pestaña del paso pendiente, no apuntamos
+    // al sidebar (es donde ya está) — modal sin flecha y CTA distinto.
+    const currentTab = getCurrentTab();
+    const yaEstaEnPaso = currentTab === paso.tab;
+
+    const target = yaEstaEnPaso ? null : highlightSidebarTab(paso.tab);
+
+    const ctaHtml = yaEstaEnPaso
+        ? `<button class="spotlight-cta" onclick="window.__onboardingSpotlightClose()">
+                Empezar aquí ✓
+           </button>`
+        : `<button class="spotlight-cta" onclick="window.__onboardingSpotlightGo('${escapeHTML(paso.tab)}')">
+                ${escapeHTML(paso.cta)} →
+           </button>`;
+
+    const descAdaptada = yaEstaEnPaso
+        ? `Estás en el sitio correcto. ${paso.descripcion}`
+        : paso.descripcion;
 
     const overlay = document.createElement('div');
     overlay.id = OVERLAY_ID;
@@ -267,27 +300,23 @@ function renderModal(status) {
             </div>
             <div class="spotlight-emoji">${paso.emoji}</div>
             <h2 class="spotlight-title">${escapeHTML(paso.titulo)}</h2>
-            <p class="spotlight-desc">${escapeHTML(paso.descripcion)}</p>
-            <button class="spotlight-cta" onclick="window.__onboardingSpotlightGo('${escapeHTML(paso.tab)}')">
-                ${escapeHTML(paso.cta)} →
-            </button>
+            <p class="spotlight-desc">${escapeHTML(descAdaptada)}</p>
+            ${ctaHtml}
             <button class="spotlight-skip" onclick="window.__onboardingSpotlightSkip()">
                 Lo hago yo después
             </button>
         </div>
     `;
 
-    const arrow = buildArrowSVG();
-    overlay.appendChild(arrow);
-    document.body.appendChild(overlay);
-    document.body.classList.add('spotlight-active');
-
     if (target) {
+        const arrow = buildArrowSVG();
+        overlay.appendChild(arrow);
+        document.body.appendChild(overlay);
+        document.body.classList.add('spotlight-active');
         positionArrow(arrow, target);
         const reposition = () => positionArrow(arrow, target);
         window.addEventListener('resize', reposition);
         window.addEventListener('scroll', reposition, true);
-        // Cleanup listeners cuando se cierre
         const observer = new MutationObserver(() => {
             if (!document.getElementById(OVERLAY_ID)) {
                 window.removeEventListener('resize', reposition);
@@ -296,23 +325,27 @@ function renderModal(status) {
             }
         });
         observer.observe(document.body, { childList: true });
+    } else {
+        document.body.appendChild(overlay);
+        document.body.classList.add('spotlight-active');
     }
 
     return overlay;
 }
 
 /**
- * Punto de entrada. Llamar desde dashboard cuando se entra al dashboard.
- * Decide si abrir el spotlight basándose en:
- *  - onboarding incompleto en el backend.
- *  - NO skip en la sesión actual.
+ * Punto de entrada. Llamar:
+ *  - al entrar al dashboard
+ *  - tras cambiar de pestaña
+ *  - tras crear un proveedor / ingrediente / receta / pedido
+ *
+ * Decide si abrir el spotlight:
+ *  - onboarding completado → no
+ *  - dentro del cooldown (1.5s tras cerrar) → no
+ *  - ya hay overlay abierto → no duplicar
  */
 export async function renderOnboardingSpotlight() {
-    try {
-        if (sessionStorage.getItem(SKIP_SESSION_KEY) === '1') return;
-    } catch { /* noop */ }
-
-    // Si ya está abierto, no duplicar
+    if (Date.now() < cooldownUntil) return;
     if (document.getElementById(OVERLAY_ID)) return;
 
     let status;
@@ -330,4 +363,8 @@ export async function renderOnboardingSpotlight() {
 
     injectStyles();
     renderModal(status);
+}
+
+if (typeof window !== 'undefined') {
+    window.refreshOnboardingSpotlight = renderOnboardingSpotlight;
 }

@@ -254,8 +254,16 @@ export const api = {
     getIngrediente: (id) => apiClient.get(`/ingredients/${id}`),
     getIngredients: () => apiClient.get('/ingredients'),
     getIngredientsAll: () => apiClient.get('/ingredients?all=true'),
-    createIngrediente: (data) => apiClient.post('/ingredients', data),
-    createIngredient: (data) => apiClient.post('/ingredients', data),
+    createIngrediente: async (data) => {
+        const r = await apiClient.post('/ingredients', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
+    createIngredient: async (data) => {
+        const r = await apiClient.post('/ingredients', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
     updateIngrediente: (id, data) => apiClient.put(`/ingredients/${id}`, data),
     updateIngredient: (id, data) => apiClient.put(`/ingredients/${id}`, data),
     deleteIngrediente: (id) => apiClient.delete(`/ingredients/${id}`),
@@ -266,8 +274,16 @@ export const api = {
     getRecetas: () => apiClient.get('/recipes'),
     getReceta: (id) => apiClient.get(`/recipes/${id}`),
     getRecipes: () => apiClient.get('/recipes'),
-    createReceta: (data) => apiClient.post('/recipes', data),
-    createRecipe: (data) => apiClient.post('/recipes', data),
+    createReceta: async (data) => {
+        const r = await apiClient.post('/recipes', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
+    createRecipe: async (data) => {
+        const r = await apiClient.post('/recipes', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
     updateReceta: (id, data) => apiClient.put(`/recipes/${id}`, data),
     updateRecipe: (id, data) => apiClient.put(`/recipes/${id}`, data),
     deleteReceta: (id) => apiClient.delete(`/recipes/${id}`),
@@ -282,7 +298,11 @@ export const api = {
     getPedidos: () => apiClient.get('/orders'),
     getPedido: (id) => apiClient.get(`/orders/${id}`),
     getOrders: () => apiClient.get('/orders'),
-    createPedido: (data) => apiClient.post('/orders', data),
+    createPedido: async (data) => {
+        const r = await apiClient.post('/orders', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
     updatePedido: (id, data) => apiClient.put(`/orders/${id}`, data),
     deletePedido: (id) => apiClient.delete(`/orders/${id}`),
 
@@ -293,7 +313,11 @@ export const api = {
     getProveedores: () => apiClient.get('/suppliers'),
     getProveedor: (id) => apiClient.get(`/suppliers/${id}`),
     getSuppliers: () => apiClient.get('/suppliers'),
-    createProveedor: (data) => apiClient.post('/suppliers', data),
+    createProveedor: async (data) => {
+        const r = await apiClient.post('/suppliers', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
     updateProveedor: (id, data) => apiClient.put(`/suppliers/${id}`, data),
     deleteProveedor: (id) => apiClient.delete(`/suppliers/${id}`),
 

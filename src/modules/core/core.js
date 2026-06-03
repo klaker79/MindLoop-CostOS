@@ -216,6 +216,12 @@ export function cambiarTab(tab) {
             window.loadSubscriptionStatus?.();
             break;
     }
+
+    // Onboarding spotlight: tras cambiar de tab, re-abrir el modal si aún
+    // hay pasos pendientes. Delay para que la pestaña destino se haya
+    // renderizado y el modal sepa "ya estás en el paso pendiente".
+    // El propio componente respeta cooldown post-cierre para no parpadear.
+    setTimeout(() => window.refreshOnboardingSpotlight?.(), 350);
 }
 
 /**
