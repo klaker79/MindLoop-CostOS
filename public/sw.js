@@ -61,8 +61,15 @@
 // BUMP v60: parsers de Excel (escandallo + ingredientes) extraídos a src/utils/ con tests defensivos. Legacy hace fallback si el módulo no carga.
 // BUMP v62: Empty state onboarding en Ingredientes — cliente nuevo ve video tutorial embebido + CTAs grandes (Importar Excel / Añadir manual) en vez del cartel vacío.
 // BUMP v63: Mismo empty state onboarding aplicado a Recetas y Proveedores. Cliente nuevo recibe guía visual en 3 pestañas críticas del flujo inicial.
+// BUMP v64: Onboarding Checklist persistente en dashboard (4 pasos: Proveedores → Ingredientes → Recetas → Pedidos) + banner ámbar de gating suave en Recetas (si no hay ingredientes) y Pedidos (si no hay proveedores). Backend trackea timestamps por paso para el admin panel.
+// BUMP v65: fix — OnboardingChecklist se renderiza ANTES del guard de isDataLoaded(). Sin esto, un cliente nuevo sin datos nunca veía el widget (justo el caso que más lo necesita).
+// BUMP v66: Onboarding Spotlight — modal centrado + overlay oscuro + flecha animada apuntando al sidebar a la pestaña del paso actual. Sidebar dim en pestañas no destacadas. Skippable (queda como widget pequeño fallback). Inspirado en HeyGen onboarding wizard. Iker 2026-06-03.
+// BUMP v67: Spotlight re-trigger por TODO el recorrido. (1) Skip ya no es persistente — solo cooldown 1.5s. (2) Cambio de tab dispara spotlight con paso pendiente. (3) Tras crear proveedor/ingrediente/receta/pedido, spotlight reabre con siguiente paso. (4) Si el cliente ya está en la pestaña del paso pendiente, modal sin flecha + "Empezar aquí ✓".
+// BUMP v68: fix highlight sidebar. El sidebar quedaba bajo el overlay oscuro (stacking context) → la pestaña destacada se veía gris en vez de violeta brillante. Fix: elevar .sidebar a z-index 99999 cuando spotlight-active. Highlight más impactante: borde blanco, gradiente más vivo, glow pulsante con shadow expandiéndose.
+// BUMP v69: "Lo hago después" avanza al siguiente paso del onboarding en cadena, en vez de cerrar. Cliente que salta 4 veces seguidas ve los 4 modales antes de cerrar. Reset de saltados al re-abrir spotlight desde fuera (nueva apertura por navegación/creación).
+// BUMP v70: la flecha al sidebar SIEMPRE aparece, no solo cuando el cliente está en otra pestaña. Coherencia visual paso a paso. CTA cambia ("Empezar aquí ✓" si ya está allí, "Ir a X →" si no).
 
-const CACHE_NAME = 'mindloop-costos-v63';
+const CACHE_NAME = 'mindloop-costos-v70';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
