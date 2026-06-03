@@ -286,6 +286,9 @@ export const api = {
     updatePedido: (id, data) => apiClient.put(`/orders/${id}`, data),
     deletePedido: (id) => apiClient.delete(`/orders/${id}`),
 
+    // Onboarding checklist (4 pasos: proveedores -> ingredientes -> recetas -> pedidos)
+    getOnboardingStatus: () => apiClient.get('/onboarding/status'),
+
     // Suppliers (antes: proveedores)
     getProveedores: () => apiClient.get('/suppliers'),
     getProveedor: (id) => apiClient.get(`/suppliers/${id}`),

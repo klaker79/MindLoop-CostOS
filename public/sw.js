@@ -61,8 +61,9 @@
 // BUMP v60: parsers de Excel (escandallo + ingredientes) extraídos a src/utils/ con tests defensivos. Legacy hace fallback si el módulo no carga.
 // BUMP v62: Empty state onboarding en Ingredientes — cliente nuevo ve video tutorial embebido + CTAs grandes (Importar Excel / Añadir manual) en vez del cartel vacío.
 // BUMP v63: Mismo empty state onboarding aplicado a Recetas y Proveedores. Cliente nuevo recibe guía visual en 3 pestañas críticas del flujo inicial.
+// BUMP v64: Onboarding Checklist persistente en dashboard (4 pasos: Proveedores → Ingredientes → Recetas → Pedidos) + banner ámbar de gating suave en Recetas (si no hay ingredientes) y Pedidos (si no hay proveedores). Backend trackea timestamps por paso para el admin panel.
 
-const CACHE_NAME = 'mindloop-costos-v63';
+const CACHE_NAME = 'mindloop-costos-v64';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

@@ -7,6 +7,7 @@
 import { loadKPIDashboard } from '../../components/domain/KPIDashboard.js';
 import { renderQuickActions } from '../../components/domain/QuickActions.js';
 import { renderOnboardingBanner } from '../../components/domain/OnboardingBanner.js';
+import { renderOnboardingChecklist } from '../../components/domain/OnboardingChecklist.js';
 
 import { showSkeletonIn, isDataLoaded } from './_shared.js';
 import { inicializarFechaActual } from './kpis/fecha-actual.js';
@@ -101,6 +102,9 @@ export async function actualizarKPIs() {
             document.querySelector('main');
         if (dashboardContent) {
             renderOnboardingBanner(dashboardContent);
+            // Checklist persistente 4 pasos (proveedores -> ingredientes -> recetas -> pedidos)
+            // Se inserta arriba del todo hasta que el tenant complete los 4 pasos.
+            renderOnboardingChecklist(dashboardContent);
         }
     } catch (e) {
         console.log('Onboarding banner no disponible:', e.message);
