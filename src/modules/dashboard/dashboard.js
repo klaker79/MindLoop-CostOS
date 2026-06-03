@@ -8,6 +8,7 @@ import { loadKPIDashboard } from '../../components/domain/KPIDashboard.js';
 import { renderQuickActions } from '../../components/domain/QuickActions.js';
 import { renderOnboardingBanner } from '../../components/domain/OnboardingBanner.js';
 import { renderOnboardingChecklist } from '../../components/domain/OnboardingChecklist.js';
+import { renderOnboardingSpotlight } from '../../components/domain/OnboardingSpotlight.js';
 
 import { showSkeletonIn, isDataLoaded } from './_shared.js';
 import { inicializarFechaActual } from './kpis/fecha-actual.js';
@@ -58,9 +59,10 @@ export function cambiarPeriodoVista(periodo) {
  * Actualiza todos los KPIs del dashboard
  */
 export async function actualizarKPIs() {
-    // Onboarding checklist (cliente nuevo): se renderiza ANTES del guard
-    // de datos cargados. Para un tenant nuevo isDataLoaded() es false y
-    // sin esto el widget jamás aparecía — justo el caso que más lo necesita.
+    // Onboarding (cliente nuevo): se renderiza ANTES del guard de datos cargados.
+    // Spotlight modal centrado + widget pequeño fallback (post-skip).
+    // Para un tenant nuevo isDataLoaded() es false y sin esto el widget jamás
+    // aparecía — justo el caso que más lo necesita.
     try {
         const dashboardContentEarly = document.querySelector('.dashboard-content') ||
             document.querySelector('#dashboard') ||
@@ -69,8 +71,11 @@ export async function actualizarKPIs() {
         if (dashboardContentEarly) {
             renderOnboardingChecklist(dashboardContentEarly);
         }
+        // Modal grande spotlight (Iker 2026-06-03): mas visible que el widget.
+        // Se auto-suprime si el cliente lo skipea (sessionStorage) o si onboarding ya completado.
+        renderOnboardingSpotlight();
     } catch (e) {
-        console.log('OnboardingChecklist no disponible:', e.message);
+        console.log('Onboarding widgets no disponibles:', e.message);
     }
 
     // 💀 Si no hay datos aún, mostrar skeletons y salir

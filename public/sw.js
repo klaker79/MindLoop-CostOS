@@ -63,8 +63,9 @@
 // BUMP v63: Mismo empty state onboarding aplicado a Recetas y Proveedores. Cliente nuevo recibe guía visual en 3 pestañas críticas del flujo inicial.
 // BUMP v64: Onboarding Checklist persistente en dashboard (4 pasos: Proveedores → Ingredientes → Recetas → Pedidos) + banner ámbar de gating suave en Recetas (si no hay ingredientes) y Pedidos (si no hay proveedores). Backend trackea timestamps por paso para el admin panel.
 // BUMP v65: fix — OnboardingChecklist se renderiza ANTES del guard de isDataLoaded(). Sin esto, un cliente nuevo sin datos nunca veía el widget (justo el caso que más lo necesita).
+// BUMP v66: Onboarding Spotlight — modal centrado + overlay oscuro + flecha animada apuntando al sidebar a la pestaña del paso actual. Sidebar dim en pestañas no destacadas. Skippable (queda como widget pequeño fallback). Inspirado en HeyGen onboarding wizard. Iker 2026-06-03.
 
-const CACHE_NAME = 'mindloop-costos-v65';
+const CACHE_NAME = 'mindloop-costos-v66';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
