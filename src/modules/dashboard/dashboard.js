@@ -58,6 +58,21 @@ export function cambiarPeriodoVista(periodo) {
  * Actualiza todos los KPIs del dashboard
  */
 export async function actualizarKPIs() {
+    // Onboarding checklist (cliente nuevo): se renderiza ANTES del guard
+    // de datos cargados. Para un tenant nuevo isDataLoaded() es false y
+    // sin esto el widget jamás aparecía — justo el caso que más lo necesita.
+    try {
+        const dashboardContentEarly = document.querySelector('.dashboard-content') ||
+            document.querySelector('#dashboard') ||
+            document.querySelector('.main-content') ||
+            document.querySelector('main');
+        if (dashboardContentEarly) {
+            renderOnboardingChecklist(dashboardContentEarly);
+        }
+    } catch (e) {
+        console.log('OnboardingChecklist no disponible:', e.message);
+    }
+
     // 💀 Si no hay datos aún, mostrar skeletons y salir
     if (!isDataLoaded()) {
         showSkeletonIn(document.getElementById('kpi-ingresos'));
