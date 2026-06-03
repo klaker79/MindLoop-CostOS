@@ -137,32 +137,43 @@ function injectStyles() {
         }
         .spotlight-skip:hover { color: #6b7280; }
 
-        /* Sidebar dim: todas las nav-items atenuadas excepto la del paso actual */
+        /* Sidebar: levantar sobre el overlay para que el highlight no quede
+           bajo la capa oscura (stacking context). Las nav-items siguen
+           atenuándose por opacity propia. */
+        body.spotlight-active .sidebar {
+            position: relative;
+            z-index: 99999;
+        }
         body.spotlight-active .sidebar .nav-item:not(.spotlight-highlight) {
             opacity: 0.25;
             transition: opacity 0.3s;
             pointer-events: none;
         }
-        body.spotlight-active .sidebar .nav-item.spotlight-highlight {
+        body.spotlight-active .sidebar .nav-item.spotlight-highlight,
+        body.spotlight-active .nav-item.spotlight-highlight {
             position: relative;
-            opacity: 1;
-            transform: scale(1.04);
-            background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+            opacity: 1 !important;
+            transform: scale(1.06);
+            background: linear-gradient(135deg, #a855f7, #7c3aed) !important;
             color: white !important;
-            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.3),
-                        0 8px 24px rgba(124, 58, 237, 0.45);
+            border: 2px solid #ffffff !important;
             border-radius: 12px;
-            z-index: 99999;
-            animation: spotlight-pulse 1.8s ease-in-out infinite;
+            z-index: 100000;
+            animation: spotlight-pulse 1.4s ease-in-out infinite;
+        }
+        body.spotlight-active .nav-item.spotlight-highlight * {
+            color: white !important;
         }
         @keyframes spotlight-pulse {
             0%, 100% {
-                box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.3),
-                            0 8px 24px rgba(124, 58, 237, 0.45);
+                box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7),
+                            0 0 20px rgba(168, 85, 247, 0.6),
+                            0 8px 24px rgba(124, 58, 237, 0.5);
             }
             50% {
-                box-shadow: 0 0 0 8px rgba(124, 58, 237, 0.15),
-                            0 12px 32px rgba(124, 58, 237, 0.6);
+                box-shadow: 0 0 0 12px rgba(168, 85, 247, 0),
+                            0 0 32px rgba(168, 85, 247, 0.9),
+                            0 12px 32px rgba(124, 58, 237, 0.7);
             }
         }
 
