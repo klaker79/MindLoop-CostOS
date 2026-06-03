@@ -65,8 +65,9 @@
 // BUMP v65: fix — OnboardingChecklist se renderiza ANTES del guard de isDataLoaded(). Sin esto, un cliente nuevo sin datos nunca veía el widget (justo el caso que más lo necesita).
 // BUMP v66: Onboarding Spotlight — modal centrado + overlay oscuro + flecha animada apuntando al sidebar a la pestaña del paso actual. Sidebar dim en pestañas no destacadas. Skippable (queda como widget pequeño fallback). Inspirado en HeyGen onboarding wizard. Iker 2026-06-03.
 // BUMP v67: Spotlight re-trigger por TODO el recorrido. (1) Skip ya no es persistente — solo cooldown 1.5s. (2) Cambio de tab dispara spotlight con paso pendiente. (3) Tras crear proveedor/ingrediente/receta/pedido, spotlight reabre con siguiente paso. (4) Si el cliente ya está en la pestaña del paso pendiente, modal sin flecha + "Empezar aquí ✓".
+// BUMP v68: fix highlight sidebar. El sidebar quedaba bajo el overlay oscuro (stacking context) → la pestaña destacada se veía gris en vez de violeta brillante. Fix: elevar .sidebar a z-index 99999 cuando spotlight-active. Highlight más impactante: borde blanco, gradiente más vivo, glow pulsante con shadow expandiéndose.
 
-const CACHE_NAME = 'mindloop-costos-v67';
+const CACHE_NAME = 'mindloop-costos-v68';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
