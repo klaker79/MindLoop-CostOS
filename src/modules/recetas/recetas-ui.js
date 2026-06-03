@@ -3,6 +3,7 @@ import { calculateIngredientCost, getIngredientUnitPrice } from '../../utils/cos
 import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 import { t } from '@/i18n/index.js';
 import { renderEmptyStateOnboarding } from '../../components/domain/EmptyStateOnboarding.js';
+import { renderRequirementBanner, removeRequirementBanner } from '../../components/domain/RequirementBanner.js';
 import { HELP_VIDEOS } from '../help/help-config.js';
 /**
  * Recetas UI Module
@@ -419,6 +420,22 @@ export async function renderizarRecetas() {
 
     const container = document.getElementById('tabla-recetas');
     if (!container) return;
+
+    // 🚦 Gating suave: si el cliente no tiene ingredientes, no puede crear recetas
+    // útiles (escandallo vacío). Banner ámbar arriba del tab indicando que vaya a
+    // Ingredientes primero. Se quita solo cuando hay >=1 ingrediente.
+    const tabRecetas = document.getElementById('tab-recetas');
+    const totalIngredientes = (window.ingredientes || []).length;
+    if (tabRecetas && totalIngredientes === 0) {
+        renderRequirementBanner(tabRecetas, {
+            id: 'gating-recetas-sin-ingredientes',
+            message: 'Necesitas crear al menos un ingrediente antes de hacer recetas. Sin ingredientes, el escandallo y el food cost no se pueden calcular.',
+            ctaLabel: 'Ir a Ingredientes',
+            ctaTab: 'ingredientes'
+        });
+    } else {
+        removeRequirementBanner('gating-recetas-sin-ingredientes');
+    }
 
     // === PAGINACIÓN ===
     const ITEMS_PER_PAGE = 25;

@@ -1,5 +1,6 @@
 import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpers.js';
 import { validarDesvioPrecio } from '../../utils/precio-validator.js';
+import { renderRequirementBanner, removeRequirementBanner } from '../../components/domain/RequirementBanner.js';
 import { t } from '@/i18n/index.js';
 /**
  * Pedidos UI Module
@@ -725,6 +726,21 @@ export function renderizarPedidos() {
     const container = document.getElementById('tabla-pedidos');
     const filtro = document.getElementById('filtro-estado-pedido')?.value || 'todos';
     const busqueda = (document.getElementById('busqueda-pedidos')?.value || '').trim().toLowerCase();
+
+    // 🚦 Gating suave: sin proveedores no puedes crear pedidos. Banner ámbar arriba
+    // del tab. Se quita solo cuando hay >=1 proveedor.
+    const tabPedidos = document.getElementById('tab-pedidos');
+    const totalProveedores = (window.proveedores || []).length;
+    if (tabPedidos && totalProveedores === 0) {
+        renderRequirementBanner(tabPedidos, {
+            id: 'gating-pedidos-sin-proveedores',
+            message: 'Necesitas al menos un proveedor para registrar pedidos. Crea uno desde la pestaña Proveedores.',
+            ctaLabel: 'Ir a Proveedores',
+            ctaTab: 'proveedores'
+        });
+    } else {
+        removeRequirementBanner('gating-pedidos-sin-proveedores');
+    }
 
     let pedidosFiltrados = window.pedidos || [];
     if (filtro !== 'todos') {
