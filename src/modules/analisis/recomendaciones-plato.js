@@ -44,12 +44,41 @@ function fmtInt(n) {
 
 /**
  * Calcula medias del menú a partir del array que devuelve /menu-engineering.
- * Sólo cuenta platos con datos válidos.
+ *
+ * Estrategia desde 2026-06-06: si el backend nos manda `metricas` por plato
+ * (`promedioPopularidad`, `promedioMargen`, `promedioFoodCost`), las usamos
+ * directamente — son las mismas medias que el backend usa para clasificar
+ * BCG (popularidad media de platos con ventas, margen ponderado por ventas,
+ * food cost medio de platos con ventas). Así las frases del modal y la
+ * clasificación BCG comparten exactamente la misma referencia.
+ *
+ * Sólo cae al cálculo aritmético local cuando el backend NO entrega métricas
+ * (respuesta degradada o un futuro cliente "tonto"). En ese fallback se
+ * mantiene la implementación previa, con la salvedad de que es media
+ * aritmética simple, no ponderada.
  */
 export function calcularMediasMenu(platos) {
     if (!Array.isArray(platos) || platos.length === 0) {
         return { precio: 0, foodCost: 0, margen: 0, popularidad: 0, totalPlatos: 0 };
     }
+    // Camino preferido: usar las medias ya calculadas por el backend.
+    // Son idénticas en todos los items (`metricas.promedio*`).
+    const m = platos.find(p => p?.metricas)?.metricas;
+    if (m && Number.isFinite(m.promedioMargen) && Number.isFinite(m.promedioPopularidad)) {
+        let sumaPrecio = 0, nPrecio = 0;
+        platos.forEach(p => {
+            const precio = num(p.precio_venta);
+            if (precio !== null && precio > 0) { sumaPrecio += precio; nPrecio++; }
+        });
+        return {
+            precio: nPrecio > 0 ? sumaPrecio / nPrecio : 0,
+            foodCost: Number.isFinite(m.promedioFoodCost) ? m.promedioFoodCost : 0,
+            margen: m.promedioMargen,
+            popularidad: m.promedioPopularidad,
+            totalPlatos: platos.length
+        };
+    }
+    // Fallback aritmético (cliente sin metricas del backend).
     let sumaPrecio = 0, sumaFc = 0, sumaMargen = 0, sumaPop = 0;
     let nPrecio = 0, nFc = 0, nMargen = 0, nPop = 0;
     platos.forEach(p => {
