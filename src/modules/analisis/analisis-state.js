@@ -19,7 +19,11 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 const state = {
     periodo: { tipo: 'historico', desde: null, hasta: null },
     menuEngineering: { data: null, ts: 0 },
-    omnes: { data: null, ts: 0 }
+    omnes: { data: null, ts: 0 },
+    // Medias del menú (precio, foodCost, margen, popularidad) calculadas
+    // a partir del último BCG cargado. Las usa el modal drill-down para
+    // generar recomendaciones reales por plato.
+    medias: null
 };
 
 const listeners = new Set();
@@ -79,6 +83,19 @@ export function getPeriodo() {
 }
 
 /**
+ * Guarda las medias calculadas del menú en el state. Las invoca el
+ * orchestrator después de cargar el BCG, para que el modal drill-down
+ * pueda generar recomendaciones reales sin recalcular.
+ */
+export function setMedias(medias) {
+    state.medias = medias;
+}
+
+export function getMedias() {
+    return state.medias;
+}
+
+/**
  * Devuelve datos de menu-engineering. Si están en cache válida, los devuelve.
  * Si no, fetch al backend y los guarda en cache.
  */
@@ -123,6 +140,7 @@ export function subscribe(fn) {
 // durante la migración (D2-D5).
 if (typeof window !== 'undefined') {
     window.__analisisState = {
-        setPeriodo, getPeriodo, getMenuEngineering, getOmnes, refrescarTodo, subscribe
+        setPeriodo, getPeriodo, getMenuEngineering, getOmnes, refrescarTodo, subscribe,
+        setMedias, getMedias
     };
 }

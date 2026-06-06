@@ -22,7 +22,8 @@ import './styles.css';
 import { renderDashboardSintetico, contarCategorias } from './dashboard-sintetico.js';
 import { renderMatrizBCG } from './matriz-bcg.js';
 import './plato-modal.js'; // auto-registra listener `analisis:plato-click`
-import { getMenuEngineering, getPeriodo } from './analisis-state.js';
+import { getMenuEngineering, getPeriodo, setMedias } from './analisis-state.js';
+import { calcularMediasMenu } from './recomendaciones-plato.js';
 
 const HOST_ID = 'analisis-dashboard-sintetico';
 
@@ -58,6 +59,7 @@ async function onPeriodoChange() {
     if (!host) return;
     try {
         const data = await getMenuEngineering({ force: true });
+        setMedias(calcularMediasMenu(data));
         // Matriz BCG v2 (oculta el contenedor legacy automáticamente).
         try { renderMatrizBCG(data); } catch (e) { console.warn('[analisis] BCGv2 falló (no bloqueante):', e?.message); }
         pintar(host, contarCategorias(data));
@@ -74,6 +76,8 @@ async function onPeriodoChange() {
 async function onRender(menuEngineeringData) {
     const host = ensureHost();
     if (!host) return;
+    // Calcula y guarda medias para que el modal drill-down las use sin recalcular.
+    setMedias(calcularMediasMenu(menuEngineeringData));
     pintar(host, contarCategorias(menuEngineeringData));
     // D3: renderizar BCG v2 y ocultar el contenedor legacy. Si falla, el
     // legacy sigue visible (ocultarLegacy solo se invoca tras render OK).
