@@ -175,3 +175,223 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== Matriz BCG v2 ===== */
+
+.bcg2-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.bcg2-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.bcg2-subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.bcg2-legend {
+    display: inline-flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.bcg2-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.bcg2-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--cat-color, #888);
+}
+
+.bcg2-scatter-wrap {
+    position: relative;
+    height: 460px;
+    margin-bottom: 24px;
+    background: linear-gradient(180deg, rgba(248,250,252,0.6) 0%, rgba(255,255,255,1) 100%);
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 12px 8px;
+}
+
+.bcg2-scatter-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.bcg2-cuadrantes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.bcg2-cuadrante {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.bcg2-cuadrante__header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: color-mix(in srgb, var(--cat-color) 8%, white);
+    border-bottom: 1px solid #e5e7eb;
+    border-left: 4px solid var(--cat-color);
+}
+
+.bcg2-cuadrante__icon {
+    color: var(--cat-color);
+    display: inline-flex;
+    align-items: center;
+}
+
+.bcg2-cuadrante__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.bcg2-cuadrante__hint {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.bcg2-cuadrante__count {
+    background: var(--cat-color);
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    min-width: 28px;
+    text-align: center;
+}
+
+.bcg2-cuadrante__items {
+    padding: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bcg2-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border: 1px solid transparent;
+    text-align: left;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.12s;
+    font-size: 13px;
+}
+
+.bcg2-item:hover {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+}
+
+.bcg2-item__nombre {
+    font-weight: 600;
+    color: #111827;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    margin-right: 12px;
+}
+
+.bcg2-item__metrics {
+    color: #6b7280;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.bcg2-empty {
+    padding: 24px 16px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+    font-style: italic;
+}
+
+@media (max-width: 900px) {
+    .bcg2-cuadrantes-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== Modal drill-down por plato (apm-) ===== */
+
+.apm-metric {
+    background: #f9fafb;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.apm-metric__label {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.apm-metric__value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.2;
+}
+
+.apm-close:hover {
+    color: #374151;
+}
+
+.apm-btn--ghost:hover {
+    background: white;
+    border-color: #d1d5db;
+}
+
+.apm-btn--primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(124, 58, 237, 0.4);
+}
+
+@media (max-width: 540px) {
+    .apm-metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
