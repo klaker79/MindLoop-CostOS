@@ -630,6 +630,74 @@
     font-size: 12px;
 }
 
+.oms-tip {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--tip-border, #e5e7eb);
+    background: var(--tip-bg, #f9fafb);
+    margin-top: 4px;
+}
+
+.oms-tip__icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: var(--tip-icon-bg, #6b7280);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.oms-tip__label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--tip-label, #374151);
+    margin-bottom: 2px;
+}
+
+.oms-tip__text {
+    margin: 0;
+    font-size: 12.5px;
+    color: #1f2937;
+    line-height: 1.45;
+}
+
+.oms-tip--ok {
+    --tip-bg: rgba(209, 250, 229, 0.55);
+    --tip-border: rgba(16, 185, 129, 0.35);
+    --tip-icon-bg: #10b981;
+    --tip-label: #047857;
+}
+
+.oms-tip--warn {
+    --tip-bg: rgba(254, 243, 199, 0.6);
+    --tip-border: rgba(245, 158, 11, 0.35);
+    --tip-icon-bg: #f59e0b;
+    --tip-label: #92400e;
+}
+
+.oms-tip--bad {
+    --tip-bg: rgba(254, 226, 226, 0.6);
+    --tip-border: rgba(239, 68, 68, 0.35);
+    --tip-icon-bg: #ef4444;
+    --tip-label: #991b1b;
+}
+
+.oms-tip--mute {
+    --tip-bg: #f9fafb;
+    --tip-border: #e5e7eb;
+    --tip-icon-bg: #9ca3af;
+    --tip-label: #6b7280;
+}
+
 .oms-recom {
     display: grid;
     grid-template-columns: auto 1fr;

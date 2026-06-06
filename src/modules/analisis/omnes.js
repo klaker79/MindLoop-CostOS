@@ -63,6 +63,113 @@ function badgeHTML(map, estado) {
     return `<span class="oms-badge ${e.cls}">${escapeHTML(e.label)}</span>`;
 }
 
+/* ===== Consejos por card ============================================
+ * Cada función devuelve { tono, titulo, texto } adaptado al estado real
+ * y los números concretos del backend. NO son frases plantilla: usan
+ * nombres de platos, precios y porcentajes reales.
+ *
+ * tono ∈ 'ok' | 'warn' | 'bad' | 'mute'  (mapea a colores oms-tip--*)
+ * ====================================================================*/
+
+function consejoDispersion(d) {
+    if (!d || d.estado === 'sin_datos') {
+        return { tono: 'mute', titulo: 'Sin datos', texto: 'Añade más platos a la carta para poder medir la dispersión.' };
+    }
+    if (d.estado === 'ok') {
+        return { tono: 'ok', titulo: 'Dispersión sana', texto: `Tu plato más caro vale ${d.valor.toFixed(2)}× el más barato — dentro del ideal (≤ 2,5×). Mantén la estructura.` };
+    }
+    const palancas = [];
+    palancas.push(`mueve "${d.plato_max}" (${cm(d.precio_max)}) a sugerencias del día`);
+    palancas.push(`sube 50 cts – 1 € los más baratos como "${d.plato_min}" (${cm(d.precio_min)})`);
+    if (d.estado === 'alta') {
+        return {
+            tono: 'warn',
+            titulo: 'Reduce la brecha',
+            texto: `Tienes ${d.valor.toFixed(2)}× de diferencia entre extremos (ideal ≤ 2,5×). Quita 1-2 platos del extremo caro o ${palancas[1]}. Objetivo: bajar a ≤ 2,5×.`
+        };
+    }
+    // muy_alta
+    return {
+        tono: 'bad',
+        titulo: 'Brecha demasiado grande',
+        texto: `${d.valor.toFixed(2)}× de diferencia entre "${d.plato_max}" (${cm(d.precio_max)}) y "${d.plato_min}" (${cm(d.precio_min)}). El cliente no sabe qué tipo de restaurante eres. ${palancas[0].charAt(0).toUpperCase() + palancas[0].slice(1)} y ${palancas[1]}.`
+    };
+}
+
+function consejoAmplitud(a) {
+    if (!a || a.estado === 'sin_datos') {
+        return { tono: 'mute', titulo: 'Sin datos', texto: 'Necesitas al menos 2 platos para medir la amplitud de gama.' };
+    }
+    if (a.estado === 'equilibrada') {
+        return { tono: 'ok', titulo: 'Distribución equilibrada', texto: `${a.baja_pct}/${a.media_pct}/${a.alta_pct} sobre ${a.total_platos} platos. Cerca del ideal 25/50/25. Mantén.` };
+    }
+    // Detectar qué gama está sobre-representada para personalizar el consejo
+    const ideal = { baja: 25, media: 50, alta: 25 };
+    const exceso = {
+        baja: a.baja_pct - ideal.baja,
+        media: a.media_pct - ideal.media,
+        alta: a.alta_pct - ideal.alta
+    };
+    const maxExceso = Object.keys(exceso).reduce((acc, k) => exceso[k] > exceso[acc] ? k : acc, 'baja');
+    let palanca = '';
+    if (maxExceso === 'media') {
+        palanca = `Tienes el ${a.media_pct}% en gama media. Mete 1-2 platos en gama baja (para atraer) y 1-2 en gama alta (para subir ticket).`;
+    } else if (maxExceso === 'baja') {
+        palanca = `Tienes el ${a.baja_pct}% en gama baja — regalas margen. Sube precios 50 cts – 1 € o reduce 1-2 baratos para forzar el upsell.`;
+    } else {
+        palanca = `Tienes el ${a.alta_pct}% en gama alta — asustas al cliente medio. Mete 2-3 opciones de gama media para que se atreva.`;
+    }
+    const tituloEstado = a.estado === 'muy_desbalanceada' ? 'Carta muy desbalanceada' : 'Carta con desbalance';
+    return {
+        tono: a.estado === 'muy_desbalanceada' ? 'bad' : 'warn',
+        titulo: tituloEstado,
+        texto: `${palanca} Objetivo: acercarte a 25/50/25.`
+    };
+}
+
+function consejoCalidadPrecio(c) {
+    if (!c || c.estado === 'sin_datos') {
+        return { tono: 'mute', titulo: 'Sin datos', texto: 'No hay platos activos para calcular la relación calidad-precio.' };
+    }
+    if (c.estado === 'sin_ventas') {
+        return { tono: 'mute', titulo: 'Sin ventas en el periodo', texto: 'No hay ventas en el periodo seleccionado. Amplía el rango (mes / trimestre) para ver el ratio real.' };
+    }
+    if (c.estado === 'equilibrado') {
+        return { tono: 'ok', titulo: 'Estrategia equilibrada', texto: `Tus clientes piden de media ${cm(c.vendido)} y tu carta ofrece de media ${cm(c.ofertado)}. Lo que vendes coincide con lo que ofreces — estrategia perfecta.` };
+    }
+    if (c.estado === 'bajan') {
+        return {
+            tono: 'warn',
+            titulo: 'Tirón hacia abajo',
+            texto: `Tus clientes piden de media ${cm(c.vendido)} aunque ofreces de media ${cm(c.ofertado)} (ratio ${c.ratio.toFixed(2)}×). Sube precios medios un 5-7% o quita 1-2 platos baratos para forzar el upsell.`
+        };
+    }
+    // suben
+    return {
+        tono: 'warn',
+        titulo: 'Tirón hacia arriba',
+        texto: `Tus clientes piden de media ${cm(c.vendido)} aunque ofreces de media ${cm(c.ofertado)} (ratio ${c.ratio.toFixed(2)}×). Mete más opciones de gama media para no perder al cliente prudente.`
+    };
+}
+
+function tipHTML(tip) {
+    if (!tip) return '';
+    return `
+        <div class="oms-tip oms-tip--${tip.tono}">
+            <div class="oms-tip__icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a7 7 0 0 0-4 12.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26A7 7 0 0 0 12 2z"/>
+                    <line x1="9" y1="22" x2="15" y2="22"/>
+                </svg>
+            </div>
+            <div class="oms-tip__body">
+                <div class="oms-tip__label">${escapeHTML(tip.titulo)}</div>
+                <p class="oms-tip__text">${escapeHTML(tip.texto)}</p>
+            </div>
+        </div>
+    `;
+}
+
 function cardDispersion(d) {
     if (!d || d.estado === 'sin_datos') {
         return `
@@ -73,6 +180,7 @@ function cardDispersion(d) {
                 </div>
                 <div class="oms-card__value oms-card__value--mute">—</div>
                 <p class="oms-card__hint">No hay platos suficientes para calcular dispersión.</p>
+                ${tipHTML(consejoDispersion(d))}
             </div>
         `;
     }
@@ -98,6 +206,7 @@ function cardDispersion(d) {
                     <span class="oms-meta__name" title="${escapeHTML(d.plato_min || '')}">${escapeHTML(d.plato_min || '—')}</span>
                 </div>
             </div>
+            ${tipHTML(consejoDispersion(d))}
         </div>
     `;
 }
@@ -112,6 +221,7 @@ function cardAmplitud(a) {
                 </div>
                 <div class="oms-card__value oms-card__value--mute">—</div>
                 <p class="oms-card__hint">Necesitamos al menos 2 platos para calcular la distribución.</p>
+                ${tipHTML(consejoAmplitud(a))}
             </div>
         `;
     }
@@ -141,6 +251,7 @@ function cardAmplitud(a) {
                     <span class="oms-bars__pct">${a.alta_pct}%</span>
                 </div>
             </div>
+            ${tipHTML(consejoAmplitud(a))}
         </div>
     `;
 }
@@ -155,6 +266,7 @@ function cardCalidadPrecio(c) {
                 </div>
                 <div class="oms-card__value oms-card__value--mute">—</div>
                 <p class="oms-card__hint">No hay platos para calcular relación calidad-precio.</p>
+                ${tipHTML(consejoCalidadPrecio(c))}
             </div>
         `;
     }
@@ -173,6 +285,7 @@ function cardCalidadPrecio(c) {
                         <span class="oms-meta__value">${cm(c.ofertado)}</span>
                     </div>
                 </div>
+                ${tipHTML(consejoCalidadPrecio(c))}
             </div>
         `;
     }
@@ -202,6 +315,7 @@ function cardCalidadPrecio(c) {
                     <span class="oms-meta__name">en el periodo</span>
                 </div>
             </div>
+            ${tipHTML(consejoCalidadPrecio(c))}
         </div>
     `;
 }

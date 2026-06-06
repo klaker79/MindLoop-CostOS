@@ -79,8 +79,9 @@
 // BUMP v79: fix Coach IA v2 — el v78 seguía roto. Causa raíz: disparábamos `input` event tras precargar, lo que activaba el auto-resize del textarea con un prompt muy largo y rompía el layout del chat. Ahora prompt corto en una sola línea + NO disparamos input (el textarea queda con su altura por defecto, el cliente solo ve el texto y pulsa enter).
 // BUMP v80: D5 Análisis — añadido módulo Principios de Omnes (3 cards dispersión/amplitud/calidad-precio + recomendación global) debajo del BCG. Consume /api/analysis/omnes ya existente.
 // BUMP v81: D5 extra — botón "¿Qué es esto?" en el header de Omnes que abre modal explicativo para el cliente (3 principios + qué hacer cuando aparece ámbar/rojo + diferencia con la matriz BCG).
+// BUMP v82: D5 extra — consejo personalizado por card de Omnes (con nombres de platos / precios / porcentajes reales) además de la recomendación global. Cada card pinta un tip verde/ámbar/rojo según estado.
 
-const CACHE_NAME = 'mindloop-costos-v81';
+const CACHE_NAME = 'mindloop-costos-v82';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
