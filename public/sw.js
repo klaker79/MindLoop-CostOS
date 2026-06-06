@@ -83,9 +83,8 @@
 // BUMP v83: D5 fix tono — suavizar frases de los consejos (quitar "el cliente no sabe qué tipo de restaurante eres" y "asustas al cliente medio"). Pasamos a registro de palanca de mejora.
 // BUMP v84: Análisis ampliado — botón "¿Qué es esto?" + tip por cuadrante (con nº de platos y plato top) en Matriz BCG. Coherencia con el bloque Omnes.
 // BUMP v85: Análisis fix coherencia — calcularMediasMenu ahora usa las medias del backend (ponderada por ventas) cuando están disponibles. Antes calculaba media aritmética en local, lo que podía contradecir la clasificación BCG. Fallback aritmético se mantiene para respuestas degradadas.
-// BUMP v86: Omnes — dispersión por sección de carta (entrantes, principales, postres). La global mezcla categorías y engaña en cartas españolas mixtas. Ahora bajo la card de Dispersión hay una mini-tabla con la dispersión interna de cada sección — la que el cliente percibe al elegir dentro de un apartado.
 
-const CACHE_NAME = 'mindloop-costos-v86';
+const CACHE_NAME = 'mindloop-costos-v85';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
