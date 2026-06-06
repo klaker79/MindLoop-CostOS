@@ -192,7 +192,7 @@ export function mostrarOmnesInfo() {
                         Tu plato <strong>más caro</strong> no debería costar más de <strong>2,5 veces</strong> el más barato.
                     </div>
                     <p><span class="oinfo-principle__label">Ejemplo:</span> si las bravas valen 6&nbsp;€, el plato más caro no debería pasar de 15&nbsp;€.</p>
-                    <p><span class="oinfo-principle__label">Por qué importa:</span> cuando un cliente ve un salto enorme (de 6&nbsp;€ a 28&nbsp;€) no entiende qué tipo de restaurante eres. Se pierde — y cuando se pierde, va a lo barato o a lo seguro, no a lo que tú quieres venderle.</p>
+                    <p><span class="oinfo-principle__label">Por qué importa:</span> cuando hay un salto enorme (de 6&nbsp;€ a 28&nbsp;€), la carta pierde coherencia y la decisión del cliente se dispersa. Suele acabar refugiándose en lo más barato o en lo más conocido, no en lo que tú quieres venderle.</p>
                     <p><span class="oinfo-principle__label">Qué hacer si está alta:</span></p>
                     <ul>
                         <li>Quita 1 o 2 platos del extremo caro (o muévelos a sugerencias del día).</li>
@@ -209,7 +209,7 @@ export function mostrarOmnesInfo() {
                         Reparte tu carta en tres tramos: <strong>25%</strong> gama baja, <strong>50%</strong> media, <strong>25%</strong> alta.
                     </div>
                     <p><span class="oinfo-principle__label">Ejemplo:</span> con 12 principales, lo ideal son 3 baratos, 6 medios y 3 caros.</p>
-                    <p><span class="oinfo-principle__label">Por qué importa:</span> el cliente medio quiere "algo del medio". Si la mayoría de la carta es cara, le asustas y pide lo más barato. Si es barata, regalas margen. Con el 50% al medio, la decisión es fácil y cae donde tú ganas.</p>
+                    <p><span class="oinfo-principle__label">Por qué importa:</span> el cliente medio quiere "algo del medio". Si la mayoría de la carta es cara, tiende a pedir lo más barato. Si es barata, regalas margen. Con el 50% al medio, la decisión es fácil y cae donde tú ganas.</p>
                     <p><span class="oinfo-principle__label">Qué hacer si está desbalanceada:</span></p>
                     <ul>
                         <li>Demasiados caros → mete 2-3 opciones de gama media.</li>

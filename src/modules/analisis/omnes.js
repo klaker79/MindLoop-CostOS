@@ -92,7 +92,7 @@ function consejoDispersion(d) {
     return {
         tono: 'bad',
         titulo: 'Brecha demasiado grande',
-        texto: `${d.valor.toFixed(2)}× de diferencia entre "${d.plato_max}" (${cm(d.precio_max)}) y "${d.plato_min}" (${cm(d.precio_min)}). El cliente no sabe qué tipo de restaurante eres. ${palancas[0].charAt(0).toUpperCase() + palancas[0].slice(1)} y ${palancas[1]}.`
+        texto: `${d.valor.toFixed(2)}× de diferencia entre "${d.plato_max}" (${cm(d.precio_max)}) y "${d.plato_min}" (${cm(d.precio_min)}). Acércate al ideal ≤ 2,5×: ${palancas[0]} y ${palancas[1]}.`
     };
 }
 
@@ -117,7 +117,7 @@ function consejoAmplitud(a) {
     } else if (maxExceso === 'baja') {
         palanca = `Tienes el ${a.baja_pct}% en gama baja — regalas margen. Sube precios 50 cts – 1 € o reduce 1-2 baratos para forzar el upsell.`;
     } else {
-        palanca = `Tienes el ${a.alta_pct}% en gama alta — asustas al cliente medio. Mete 2-3 opciones de gama media para que se atreva.`;
+        palanca = `Tienes el ${a.alta_pct}% en gama alta. Mete 2-3 opciones de gama media para que el cliente medio tenga dónde caer y no se vaya al barato.`;
     }
     const tituloEstado = a.estado === 'muy_desbalanceada' ? 'Carta muy desbalanceada' : 'Carta con desbalance';
     return {
