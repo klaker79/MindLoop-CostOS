@@ -77,8 +77,9 @@
 // BUMP v77: modal de validación previa al ejecutar cambios desde el chat (Iker 2026-06-06: "si confirmas, con modal validando el cambio"). Al pulsar Confirmar, antes de ejecutar se abre modal que muestra qué entidad y campo se van a modificar, comparando valor actual vs valor nuevo. Aplicar / Cancelar / Esc / click fuera.
 // BUMP v78: fix Coach IA — al precargar el prompt en #chat-input con el chat cerrado, el auto-resize calculaba scrollHeight contra ancho 0 y rompía el layout del bubble (mensajes en vertical). Ahora abre el chat PRIMERO, espera 220ms al render y luego setea value + dispara input + focus.
 // BUMP v79: fix Coach IA v2 — el v78 seguía roto. Causa raíz: disparábamos `input` event tras precargar, lo que activaba el auto-resize del textarea con un prompt muy largo y rompía el layout del chat. Ahora prompt corto en una sola línea + NO disparamos input (el textarea queda con su altura por defecto, el cliente solo ve el texto y pulsa enter).
+// BUMP v80: D5 Análisis — añadido módulo Principios de Omnes (3 cards dispersión/amplitud/calidad-precio + recomendación global) debajo del BCG. Consume /api/analysis/omnes ya existente.
 
-const CACHE_NAME = 'mindloop-costos-v79';
+const CACHE_NAME = 'mindloop-costos-v80';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
