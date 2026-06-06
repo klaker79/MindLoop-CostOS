@@ -14,6 +14,7 @@
 
 import { getOmnes } from './analisis-state.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
+import { mostrarOmnesInfo } from './omnes-info.js';
 
 const HOST_ID = 'analisis-omnes';
 
@@ -223,6 +224,26 @@ function recomendacionHTML(texto) {
     `;
 }
 
+function bindInfoButton(host) {
+    host.querySelectorAll('[data-action="oms-info"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            mostrarOmnesInfo();
+        });
+    });
+}
+
+const INFO_BTN_HTML = `
+    <button type="button" class="oms-info-btn" data-action="oms-info" aria-label="Qué son los Principios de Omnes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <span>¿Qué es esto?</span>
+    </button>
+`;
+
 function skeletonHTML() {
     return `
         <div class="oms-header">
@@ -230,6 +251,7 @@ function skeletonHTML() {
                 <h3 class="oms-title">Principios de Omnes</h3>
                 <p class="oms-subtitle">Diagnóstico de la estrategia de carta — calculando…</p>
             </div>
+            ${INFO_BTN_HTML}
         </div>
         <div class="oms-cards">
             <div class="oms-card oms-card--skeleton"></div>
@@ -246,6 +268,7 @@ function errorHTML(msg) {
                 <h3 class="oms-title">Principios de Omnes</h3>
                 <p class="oms-subtitle">No se pudieron calcular los Principios de Omnes.</p>
             </div>
+            ${INFO_BTN_HTML}
         </div>
         <div class="oms-error">${escapeHTML(msg || 'Error desconocido')}</div>
     `;
@@ -260,10 +283,12 @@ export async function renderOmnes() {
     const host = ensureHost();
     if (!host) return;
     host.innerHTML = skeletonHTML();
+    bindInfoButton(host);
     try {
         const data = await getOmnes();
         if (!data) {
             host.innerHTML = errorHTML('Sin datos del backend');
+            bindInfoButton(host);
             return;
         }
         host.innerHTML = `
@@ -272,6 +297,7 @@ export async function renderOmnes() {
                     <h3 class="oms-title">Principios de Omnes</h3>
                     <p class="oms-subtitle">Diagnóstico de la estrategia de carta · dispersión, amplitud y calidad-precio.</p>
                 </div>
+                ${INFO_BTN_HTML}
             </div>
             <div class="oms-cards">
                 ${cardDispersion(data.dispersion)}
@@ -280,9 +306,11 @@ export async function renderOmnes() {
             </div>
             ${recomendacionHTML(data.recomendacion_global)}
         `;
+        bindInfoButton(host);
     } catch (err) {
         console.warn('[analisis] omnes falló:', err?.message);
         host.innerHTML = errorHTML(err?.message || 'Error desconocido');
+        bindInfoButton(host);
     }
 }
 

@@ -428,6 +428,33 @@
     color: #6b7280;
 }
 
+.oms-info-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.oms-info-btn:hover {
+    background: linear-gradient(135deg, rgba(124,58,237,0.06), rgba(59,130,246,0.06));
+    border-color: rgba(124,58,237,0.3);
+    color: #4c1d95;
+    transform: translateY(-1px);
+}
+
+.oms-info-btn svg {
+    flex-shrink: 0;
+}
+
 .oms-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
