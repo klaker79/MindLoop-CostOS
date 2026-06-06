@@ -762,21 +762,19 @@
 
 .oms-subcat__row {
     display: grid;
-    grid-template-columns: 1fr auto auto;
-    grid-template-areas: "name value badge" "count badge badge";
-    gap: 2px 8px;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 10px;
     align-items: center;
     background: white;
     border: 1px solid #e5e7eb;
     border-left: 3px solid var(--row-color, #9ca3af);
     border-radius: 8px;
-    padding: 6px 10px;
+    padding: 8px 12px;
     font-size: 12px;
+    min-height: 32px;
 }
-.oms-subcat__name { grid-area: name; }
-.oms-subcat__count { grid-area: count; }
-.oms-subcat__value { grid-area: value; }
-.oms-subcat__badge { grid-area: badge; justify-self: end; align-self: center; }
+.oms-subcat__name { min-width: 0; }
+.oms-subcat__badge { justify-self: end; }
 
 .oms-subcat__row--ok   { --row-color: #10b981; }
 .oms-subcat__row--warn { --row-color: #f59e0b; }
@@ -794,9 +792,10 @@
 .oms-subcat__count {
     color: #6b7280;
     font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
-.oms-subcat__count::before { content: "·"; margin-right: 4px; color: #9ca3af; }
-.oms-subcat__count::after  { content: " platos"; }
+.oms-subcat__count::after { content: " platos"; }
 
 .oms-subcat__value {
     font-weight: 700;

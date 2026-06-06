@@ -84,8 +84,9 @@
 // BUMP v84: Análisis ampliado — botón "¿Qué es esto?" + tip por cuadrante (con nº de platos y plato top) en Matriz BCG. Coherencia con el bloque Omnes.
 // BUMP v85: Análisis fix coherencia — calcularMediasMenu ahora usa las medias del backend (ponderada por ventas) cuando están disponibles. Antes calculaba media aritmética en local, lo que podía contradecir la clasificación BCG. Fallback aritmético se mantiene para respuestas degradadas.
 // BUMP v86: Omnes — dispersión por sección de carta (entrantes, principales, postres). La global mezcla categorías y engaña en cartas españolas mixtas. Ahora bajo la card de Dispersión hay una mini-tabla con la dispersión interna de cada sección — la que el cliente percibe al elegir dentro de un apartado.
+// BUMP v87: fix layout dispersión-por-categoría — el grid-template-areas no era rectangular (badge ocupaba col3 en fila1 y col2-3 en fila2), CSS lo invalidaba y los items se renderizaban en una fila vacía. Cambio a layout horizontal de 4 columnas.
 
-const CACHE_NAME = 'mindloop-costos-v86';
+const CACHE_NAME = 'mindloop-costos-v87';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
