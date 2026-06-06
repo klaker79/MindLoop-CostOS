@@ -1,6 +1,6 @@
-Nombre,Contacto,Teléfono,Email,IVA habitual (%),Dirección,Notas
-PESCADOS PEREZ,Juan Perez,600111222,juan@pescadosperez.com,10,Mercado Central Galicia,Pescado fresco diario llamar 8h
-VERDURAS LA HUERTA,Maria Lopez,600333444,maria@laHuerta.com,4,Pol Industrial 3,Verdura ecologica martes/viernes
-CARNICAS ATLANTICAS,Pedro Garcia,600555666,pedro@carnicas.com,10,Calle Real 12,Reservar lomo con 48h
-BODEGA RIBEIRO,Bodegas SL,600777888,info@bodegariberia.com,21,Carretera Ourense km 5,Vino y bebidas
-LACTEOS DEL VALLE,Ana Rios,600999000,ana@lacteos.com,10,Avda Galicia 88,Queso fresco lunes y jueves
+﻿Nombre;Contacto;Teléfono;Email;IVA habitual (%);Dirección;Notas
+PESCADOS PEREZ;Juan Perez;600111222;juan@pescadosperez.com;10;Mercado Central Galicia;Pescado fresco diario llamar 8h
+VERDURAS LA HUERTA;Maria Lopez;600333444;maria@laHuerta.com;4;Pol Industrial 3;Verdura ecologica martes/viernes
+CARNICAS ATLANTICAS;Pedro Garcia;600555666;pedro@carnicas.com;10;Calle Real 12;Reservar lomo con 48h
+BODEGA RIBEIRO;Bodegas SL;600777888;info@bodegariberia.com;21;Carretera Ourense km 5;Vino y bebidas
+LACTEOS DEL VALLE;Ana Rios;600999000;ana@lacteos.com;10;Avda Galicia 88;Queso fresco lunes y jueves
