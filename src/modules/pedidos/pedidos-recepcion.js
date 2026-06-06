@@ -37,6 +37,16 @@ export function marcarPedidoRecibido(id) {
     const provSpan = document.getElementById('modal-rec-proveedor');
     if (provSpan) provSpan.textContent = prov ? prov.nombre : 'Sin proveedor';
 
+    // Autorelleno IVA del albarán desde el proveedor (Migration 013, 2026-06-06).
+    // Si el proveedor no tiene iva_pct configurado, dejamos vacío (placeholder 0).
+    // El IVA es SOLO display — no se envía al backend ni afecta a precio_medio_compra.
+    const ivaInput = document.getElementById('modal-rec-iva-pct');
+    if (ivaInput) {
+        ivaInput.value = (prov && prov.iva_pct !== null && prov.iva_pct !== undefined) ? prov.iva_pct : '';
+        // Listener idempotente: removemos cualquier anterior antes de añadir.
+        ivaInput.oninput = () => actualizarTotalConIva();
+    }
+
     const fechaSpan = document.getElementById('modal-rec-fecha');
     if (fechaSpan) {
         const fechaStr = typeof ped.fecha === 'string' && ped.fecha.length === 10 ? ped.fecha + 'T12:00:00' : ped.fecha;
@@ -70,6 +80,59 @@ export function marcarPedidoRecibido(id) {
     // Mostrar modal
     const modal = document.getElementById('modal-recibir-pedido');
     if (modal) modal.classList.add('active');
+}
+
+/**
+ * Recalcula el "Total con IVA" del modal de recepción a partir del valor
+ * actual del input IVA y del totalRecibido ya renderizado. Solo es DISPLAY
+ * — no se envía al backend, no afecta a precio_medio_compra ni a ninguna
+ * fórmula crítica. Permite al cliente cuadrar el total con el albarán
+ * físico que viene con IVA aparte.
+ */
+/**
+ * Parsea un string formateado con cm() (ej. "1.234,56 €" o "1,234.56 RM")
+ * a número. Soporta los dos separadores europeos comunes:
+ *   - es/ca/pt: "1.234,56" → 1234.56 (punto miles, coma decimal)
+ *   - en/zh:    "1,234.56" → 1234.56 (coma miles, punto decimal)
+ * Si solo hay un separador, asume que es decimal.
+ */
+function parseMonedaLocale(str) {
+    if (!str) return 0;
+    const limpio = String(str).replace(/[^0-9.,-]/g, '');
+    if (!limpio) return 0;
+    const hasComma = limpio.includes(',');
+    const hasDot = limpio.includes('.');
+    if (hasComma && hasDot) {
+        // Detectar cuál es el decimal: el que aparece más tarde.
+        const idxComma = limpio.lastIndexOf(',');
+        const idxDot = limpio.lastIndexOf('.');
+        if (idxComma > idxDot) {
+            // coma decimal, punto miles
+            return parseFloat(limpio.replace(/\./g, '').replace(',', '.')) || 0;
+        }
+        // punto decimal, coma miles
+        return parseFloat(limpio.replace(/,/g, '')) || 0;
+    }
+    if (hasComma) {
+        return parseFloat(limpio.replace(',', '.')) || 0;
+    }
+    return parseFloat(limpio) || 0;
+}
+
+export function actualizarTotalConIva() {
+    const ivaInput = document.getElementById('modal-rec-iva-pct');
+    const resumenRec = document.getElementById('modal-rec-resumen-recibido');
+    const resumenConIva = document.getElementById('modal-rec-resumen-con-iva');
+    if (!resumenConIva) return;
+    // Re-parseamos el total recibido desde el DOM para no tener que cablear
+    // el valor desde 3 sitios. Soporta separadores de miles europeos.
+    const totalRecibido = parseMonedaLocale(resumenRec?.textContent);
+    const ivaPct = ivaInput ? (parseFloat(ivaInput.value) || 0) : 0;
+    // Clamp defensivo aunque el constraint backend ya lo cubre.
+    const ivaClamped = Math.min(100, Math.max(0, ivaPct));
+    const totalConIva = totalRecibido * (1 + ivaClamped / 100);
+    // cm() respeta la moneda del tenant (RM/€/...).
+    resumenConIva.textContent = cm(totalConIva);
 }
 
 /**
@@ -154,6 +217,9 @@ function renderItemsRecepcionModal(ped) {
         resumenVar.textContent = (varianza >= 0 ? '+' : '') + cm(varianza);
         resumenVar.style.color = varianza > 0 ? '#ef4444' : varianza < 0 ? '#10b981' : '#666';
     }
+
+    // Recalcula "Total con IVA" tras cualquier cambio en el total recibido.
+    actualizarTotalConIva();
 }
 
 /**
@@ -226,6 +292,9 @@ function actualizarTotalesRecepcion(ped, idxActualizado) {
         resumenVar.textContent = (varianza >= 0 ? '+' : '') + cm(varianza);
         resumenVar.style.color = varianza > 0 ? '#ef4444' : varianza < 0 ? '#10b981' : '#666';
     }
+
+    // Recalcula "Total con IVA" tras cualquier cambio en el total recibido.
+    actualizarTotalConIva();
 }
 
 /**

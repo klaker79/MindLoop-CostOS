@@ -85,8 +85,9 @@
 // BUMP v85: Análisis fix coherencia — calcularMediasMenu ahora usa las medias del backend (ponderada por ventas) cuando están disponibles. Antes calculaba media aritmética en local, lo que podía contradecir la clasificación BCG. Fallback aritmético se mantiene para respuestas degradadas.
 // BUMP v86: Omnes — dispersión por sección de carta (entrantes, principales, postres). La global mezcla categorías y engaña en cartas españolas mixtas. Ahora bajo la card de Dispersión hay una mini-tabla con la dispersión interna de cada sección — la que el cliente percibe al elegir dentro de un apartado.
 // BUMP v87: fix layout dispersión-por-categoría — el grid-template-areas no era rectangular (badge ocupaba col3 en fila1 y col2-3 en fila2), CSS lo invalidaba y los items se renderizaban en una fila vacía. Cambio a layout horizontal de 4 columnas.
+// BUMP v89: IVA del albarán en modal recepción + IVA habitual por proveedor (Migration 013). SOLO display para cuadrar con el albarán físico. Cero impacto en precio_medio_compra, food cost, COGS. (v88 reservado al revert de "Por sección de carta" que va en branch separada.)
 
-const CACHE_NAME = 'mindloop-costos-v87';
+const CACHE_NAME = 'mindloop-costos-v89';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

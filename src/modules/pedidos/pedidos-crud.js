@@ -19,6 +19,7 @@ let isCreatingOrder = false;
 export {
   marcarPedidoRecibido,
   actualizarItemRecepcion,
+  actualizarTotalConIva,
   cambiarEstadoItem,
   cerrarModalRecibirPedido,
   confirmarRecepcionPedido
