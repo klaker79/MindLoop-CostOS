@@ -68,8 +68,9 @@
 // BUMP v68: fix highlight sidebar. El sidebar quedaba bajo el overlay oscuro (stacking context) → la pestaña destacada se veía gris en vez de violeta brillante. Fix: elevar .sidebar a z-index 99999 cuando spotlight-active. Highlight más impactante: borde blanco, gradiente más vivo, glow pulsante con shadow expandiéndose.
 // BUMP v69: "Lo hago después" avanza al siguiente paso del onboarding en cadena, en vez de cerrar. Cliente que salta 4 veces seguidas ve los 4 modales antes de cerrar. Reset de saltados al re-abrir spotlight desde fuera (nueva apertura por navegación/creación).
 // BUMP v70: la flecha al sidebar SIEMPRE aparece, no solo cuando el cliente está en otra pestaña. Coherencia visual paso a paso. CTA cambia ("Empezar aquí ✓" si ya está allí, "Ir a X →" si no).
+// BUMP v71: D2 rediseño Análisis. Nuevo módulo src/modules/analisis/ con dashboard sintético arriba del BCG (cards counts + donut + filtro periodo: Histórico/Mes/Trimestre/Año). Aditivo: el BCG legacy queda intacto. Endpoints backend con param ?desde=&hasta= y nuevo /analysis/omnes (para D5).
 
-const CACHE_NAME = 'mindloop-costos-v70';
+const CACHE_NAME = 'mindloop-costos-v71';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
