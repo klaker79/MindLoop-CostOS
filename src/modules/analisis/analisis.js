@@ -22,6 +22,7 @@ import './styles.css';
 import { renderDashboardSintetico, contarCategorias } from './dashboard-sintetico.js';
 import { renderMatrizBCG } from './matriz-bcg.js';
 import './plato-modal.js'; // auto-registra listener `analisis:plato-click`
+import { renderOmnes } from './omnes.js';
 import { getMenuEngineering, getPeriodo, setMedias } from './analisis-state.js';
 import { calcularMediasMenu } from './recomendaciones-plato.js';
 
@@ -63,6 +64,8 @@ async function onPeriodoChange() {
         // Matriz BCG v2 (oculta el contenedor legacy automáticamente).
         try { renderMatrizBCG(data); } catch (e) { console.warn('[analisis] BCGv2 falló (no bloqueante):', e?.message); }
         pintar(host, contarCategorias(data));
+        // Omnes (D5): independiente del BCG, su propio fetch cacheado.
+        try { await renderOmnes(); } catch (e) { console.warn('[analisis] Omnes falló (no bloqueante):', e?.message); }
     } catch (err) {
         console.warn('[analisis] error refrescando BCG:', err?.message);
     }
@@ -83,6 +86,10 @@ async function onRender(menuEngineeringData) {
     // legacy sigue visible (ocultarLegacy solo se invoca tras render OK).
     try { renderMatrizBCG(menuEngineeringData); } catch (e) {
         console.warn('[analisis] BCGv2 falló (no bloqueante):', e?.message);
+    }
+    // D5: Omnes — fetch propio cacheado, no depende del BCG.
+    try { await renderOmnes(); } catch (e) {
+        console.warn('[analisis] Omnes falló (no bloqueante):', e?.message);
     }
 }
 

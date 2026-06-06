@@ -403,3 +403,256 @@
         grid-template-columns: repeat(2, 1fr) !important;
     }
 }
+
+/* ===== Principios de Omnes (oms-) ===== */
+
+.oms-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.oms-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.oms-subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.oms-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.oms-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 220px;
+}
+
+.oms-card--skeleton {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: oms-shimmer 1.4s linear infinite;
+    border-color: #f3f4f6;
+}
+
+@keyframes oms-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.oms-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.oms-card__title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.oms-card__value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+}
+
+.oms-card__value--mute {
+    color: #9ca3af;
+}
+
+.oms-card__sub {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.oms-card__hint {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.oms-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.oms-badge--ok { background: #d1fae5; color: #047857; }
+.oms-badge--warn { background: #fef3c7; color: #92400e; }
+.oms-badge--bad { background: #fee2e2; color: #b91c1c; }
+.oms-badge--mute { background: #f3f4f6; color: #6b7280; }
+
+.oms-meta {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 10px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.oms-meta__row {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.oms-meta__label {
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+    font-size: 10px;
+}
+
+.oms-meta__value {
+    font-weight: 700;
+    color: #111827;
+    font-size: 13px;
+}
+
+.oms-meta__name {
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.oms-bars {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 8px;
+}
+
+.oms-bars__row {
+    display: grid;
+    grid-template-columns: 48px 1fr 38px;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+}
+
+.oms-bars__label {
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.oms-bars__track {
+    height: 6px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.oms-bars__fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.oms-bars__fill--baja { background: #94a3b8; }
+.oms-bars__fill--media { background: #38bdf8; }
+.oms-bars__fill--alta { background: #6366f1; }
+
+.oms-bars__pct {
+    font-weight: 700;
+    color: #111827;
+    text-align: right;
+    font-size: 12px;
+}
+
+.oms-recom {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: start;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.06), rgba(59,130,246,0.06));
+    border: 1px solid rgba(124,58,237,0.18);
+    border-radius: 12px;
+}
+
+.oms-recom__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oms-recom__label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #6b7280;
+    margin-bottom: 2px;
+}
+
+.oms-recom__text {
+    margin: 0;
+    font-size: 14px;
+    color: #111827;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.oms-error {
+    padding: 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .oms-cards {
+        grid-template-columns: 1fr;
+    }
+}
