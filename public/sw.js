@@ -78,8 +78,9 @@
 // BUMP v78: fix Coach IA — al precargar el prompt en #chat-input con el chat cerrado, el auto-resize calculaba scrollHeight contra ancho 0 y rompía el layout del bubble (mensajes en vertical). Ahora abre el chat PRIMERO, espera 220ms al render y luego setea value + dispara input + focus.
 // BUMP v79: fix Coach IA v2 — el v78 seguía roto. Causa raíz: disparábamos `input` event tras precargar, lo que activaba el auto-resize del textarea con un prompt muy largo y rompía el layout del chat. Ahora prompt corto en una sola línea + NO disparamos input (el textarea queda con su altura por defecto, el cliente solo ve el texto y pulsa enter).
 // BUMP v80: D5 Análisis — añadido módulo Principios de Omnes (3 cards dispersión/amplitud/calidad-precio + recomendación global) debajo del BCG. Consume /api/analysis/omnes ya existente.
+// BUMP v81: D5 extra — botón "¿Qué es esto?" en el header de Omnes que abre modal explicativo para el cliente (3 principios + qué hacer cuando aparece ámbar/rojo + diferencia con la matriz BCG).
 
-const CACHE_NAME = 'mindloop-costos-v80';
+const CACHE_NAME = 'mindloop-costos-v81';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
