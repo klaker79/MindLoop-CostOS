@@ -82,27 +82,28 @@ function consultarCoachIA(plato) {
     const prompt = `Análisis (no ejecutar cambios, no emitir [ACTION:...]).\n\nPlato: "${nombre}". Clasificación BCG: ${cat.toUpperCase()}. Métricas: ${metricas}.\n\nDame solo asesoramiento estratégico para mejorar este plato en las próximas 4 semanas: qué hacer con el precio, con el coste, con la promoción y con la posición en carta. No propongas registrar ventas, ni actualizar precios automáticamente, ni añadir pedidos — solo recomendaciones para que yo decida y aplique manualmente después.`;
 
     cerrarModal();
+    // 1) Abrir el chat PRIMERO para que el textarea sea visible y tenga
+    //    ancho real antes de calcular scrollHeight (si seteamos value con
+    //    el chat cerrado, el auto-resize calcula contra ancho 0 y rompe el
+    //    layout del bubble — bug reportado por Iker 2026-06-06).
     setTimeout(() => {
-        const input = document.getElementById('chat-input');
-        if (input) {
-            input.value = prompt;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            // Ajustar altura del textarea si el chat lo redimensiona en input.
-            input.style.height = 'auto';
-            input.style.height = input.scrollHeight + 'px';
-        }
         if (typeof window.toggleChat === 'function') {
             window.toggleChat(true);
         } else {
-            // Fallback: click en el FAB del chat
             const fab = document.querySelector('#chat-fab, .chat-fab');
             if (fab) fab.click();
         }
-        // Foco en input para que el usuario pulse enter
+        // 2) Esperar al render del chat (200ms es generoso) y luego setear
+        //    el prompt + disparar input (para que el chat aplique su auto-resize
+        //    con dimensiones reales) + focus al final.
         setTimeout(() => {
-            const i = document.getElementById('chat-input');
-            if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
-        }, 200);
+            const input = document.getElementById('chat-input');
+            if (!input) return;
+            input.value = prompt;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        }, 220);
     }, 150);
 }
 
