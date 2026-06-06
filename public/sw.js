@@ -85,8 +85,9 @@
 // BUMP v85: Análisis fix coherencia — calcularMediasMenu ahora usa las medias del backend (ponderada por ventas) cuando están disponibles. Antes calculaba media aritmética en local, lo que podía contradecir la clasificación BCG. Fallback aritmético se mantiene para respuestas degradadas.
 // BUMP v88: revert "Por sección de carta" en Omnes. El schema de BD solo tiene `alimentos/bebidas/suministros` como categorías macro — el desglose por subcategoría siempre mostraría una sola fila en los tenants actuales. La idea queda como nota pedagógica, no como feature.
 // BUMP v90: IVA del albarán en modal recepción + IVA habitual por proveedor (Migration 013). SOLO display para cuadrar con el albarán físico. Cero impacto en precio_medio_compra, food cost, COGS.
+// BUMP v91: trial 10 días + plantillas CSV descargables en empty states + welcome email con timeline. Cero cambio en cálculos.
 
-const CACHE_NAME = 'mindloop-costos-v90';
+const CACHE_NAME = 'mindloop-costos-v91';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
