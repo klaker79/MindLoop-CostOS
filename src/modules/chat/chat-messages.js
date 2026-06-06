@@ -22,6 +22,7 @@ import { t } from '@/i18n/index.js';
 import { parseMarkdown } from './chat-markdown.js';
 import { getCurrentTab, getCurrentTabContext } from './chat-context.js';
 import { executeAction } from './chat-actions.js';
+import { showActionConfirmModal } from './chat-action-preview.js';
 import { CHAT_CONFIG, getSessionId, getMessages, pushMessage, resetHistory } from './chat-state.js';
 
 let isWaitingResponse = false;
@@ -111,6 +112,15 @@ function addMessageWithAction(type, text, actionData) {
     const buttonsContainer = document.getElementById(actionId);
 
     confirmBtn.addEventListener('click', async () => {
+        // Modal de validación previa (Iker 2026-06-06): el usuario ve qué
+        // valor se va a cambiar y de qué a qué antes de ejecutar. Si cancela
+        // ahí, los botones del mensaje vuelven a estar disponibles para
+        // que pueda revisar la sugerencia sin haber roto nada.
+        const aprobado = await showActionConfirmModal(actionData);
+        if (!aprobado) {
+            // Nada que hacer — los botones siguen visibles para reintentar.
+            return;
+        }
         buttonsContainer.innerHTML = `<span style="color: #f59e0b;">⏳ ${t('chat:action_executing')}</span>`;
         const success = await executeAction(actionData);
         if (success) {

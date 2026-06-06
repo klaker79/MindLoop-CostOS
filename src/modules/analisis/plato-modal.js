@@ -75,7 +75,11 @@ function consultarCoachIA(plato) {
     if (plato.margen !== null && plato.margen !== undefined) linea.push(`margen ${cm(Number(plato.margen).toFixed(2))}`);
     if (plato.popularidad !== null && plato.popularidad !== undefined) linea.push(`${Math.round(plato.popularidad)} ventas en el periodo`);
     const metricas = linea.join(', ');
-    const prompt = `Soy el dueño del restaurante. Quiero recomendaciones específicas para "${nombre}". Está clasificado como ${cat.toUpperCase()} en la matriz BCG. Datos: ${metricas}. ¿Qué acciones concretas me recomiendas para mejorar este plato en las próximas 4 semanas?`;
+    // Prompt explícitamente analítico — pide a Claude que NO emita
+    // marcadores [ACTION:...] para evitar que el chat muestre botones
+    // "Confirmar/Cancelar" que ejecutarían cambios en BBDD. Esto es solo
+    // un análisis-asesoramiento, no una orden de modificar datos.
+    const prompt = `Análisis (no ejecutar cambios, no emitir [ACTION:...]).\n\nPlato: "${nombre}". Clasificación BCG: ${cat.toUpperCase()}. Métricas: ${metricas}.\n\nDame solo asesoramiento estratégico para mejorar este plato en las próximas 4 semanas: qué hacer con el precio, con el coste, con la promoción y con la posición en carta. No propongas registrar ventas, ni actualizar precios automáticamente, ni añadir pedidos — solo recomendaciones para que yo decida y aplique manualmente después.`;
 
     cerrarModal();
     setTimeout(() => {
