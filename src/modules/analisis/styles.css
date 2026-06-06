@@ -354,6 +354,105 @@
     font-style: italic;
 }
 
+.bcg2-header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.bcg2-info-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.bcg2-info-btn:hover {
+    background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.08));
+    border-color: rgba(16,185,129,0.35);
+    color: #047857;
+    transform: translateY(-1px);
+}
+
+.bcg2-info-btn svg { flex-shrink: 0; }
+
+.bcg2-tip {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: start;
+    padding: 8px 12px;
+    border-radius: 0 0 12px 12px;
+    border-top: 1px solid var(--tip-border, #e5e7eb);
+    background: var(--tip-bg, #f9fafb);
+}
+
+.bcg2-tip__icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--tip-icon-bg, #6b7280);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.bcg2-tip__label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--tip-label, #374151);
+    margin-bottom: 2px;
+}
+
+.bcg2-tip__text {
+    margin: 0;
+    font-size: 12px;
+    color: #1f2937;
+    line-height: 1.4;
+}
+
+.bcg2-tip--ok {
+    --tip-bg: rgba(209, 250, 229, 0.5);
+    --tip-border: rgba(16, 185, 129, 0.3);
+    --tip-icon-bg: #10b981;
+    --tip-label: #047857;
+}
+
+.bcg2-tip--warn {
+    --tip-bg: rgba(254, 243, 199, 0.55);
+    --tip-border: rgba(245, 158, 11, 0.3);
+    --tip-icon-bg: #f59e0b;
+    --tip-label: #92400e;
+}
+
+.bcg2-tip--bad {
+    --tip-bg: rgba(254, 226, 226, 0.55);
+    --tip-border: rgba(239, 68, 68, 0.3);
+    --tip-icon-bg: #ef4444;
+    --tip-label: #991b1b;
+}
+
+.bcg2-tip--mute {
+    --tip-bg: #f9fafb;
+    --tip-border: #e5e7eb;
+    --tip-icon-bg: #9ca3af;
+    --tip-label: #6b7280;
+}
+
 @media (max-width: 900px) {
     .bcg2-cuadrantes-grid {
         grid-template-columns: 1fr;

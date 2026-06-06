@@ -81,8 +81,9 @@
 // BUMP v81: D5 extra — botón "¿Qué es esto?" en el header de Omnes que abre modal explicativo para el cliente (3 principios + qué hacer cuando aparece ámbar/rojo + diferencia con la matriz BCG).
 // BUMP v82: D5 extra — consejo personalizado por card de Omnes (con nombres de platos / precios / porcentajes reales) además de la recomendación global. Cada card pinta un tip verde/ámbar/rojo según estado.
 // BUMP v83: D5 fix tono — suavizar frases de los consejos (quitar "el cliente no sabe qué tipo de restaurante eres" y "asustas al cliente medio"). Pasamos a registro de palanca de mejora.
+// BUMP v84: Análisis ampliado — botón "¿Qué es esto?" + tip por cuadrante (con nº de platos y plato top) en Matriz BCG. Coherencia con el bloque Omnes.
 
-const CACHE_NAME = 'mindloop-costos-v83';
+const CACHE_NAME = 'mindloop-costos-v84';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
