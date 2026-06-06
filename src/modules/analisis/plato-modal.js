@@ -75,17 +75,14 @@ function consultarCoachIA(plato) {
     if (plato.margen !== null && plato.margen !== undefined) linea.push(`margen ${cm(Number(plato.margen).toFixed(2))}`);
     if (plato.popularidad !== null && plato.popularidad !== undefined) linea.push(`${Math.round(plato.popularidad)} ventas en el periodo`);
     const metricas = linea.join(', ');
-    // Prompt explícitamente analítico — pide a Claude que NO emita
-    // marcadores [ACTION:...] para evitar que el chat muestre botones
-    // "Confirmar/Cancelar" que ejecutarían cambios en BBDD. Esto es solo
-    // un análisis-asesoramiento, no una orden de modificar datos.
-    const prompt = `Análisis (no ejecutar cambios, no emitir [ACTION:...]).\n\nPlato: "${nombre}". Clasificación BCG: ${cat.toUpperCase()}. Métricas: ${metricas}.\n\nDame solo asesoramiento estratégico para mejorar este plato en las próximas 4 semanas: qué hacer con el precio, con el coste, con la promoción y con la posición en carta. No propongas registrar ventas, ni actualizar precios automáticamente, ni añadir pedidos — solo recomendaciones para que yo decida y aplique manualmente después.`;
+    // Prompt CORTO en una sola línea para evitar que el textarea
+    // auto-resize calcule un height enorme (causaba bug de layout
+    // visto por Iker 2026-06-06). El detalle del plato cabe en una
+    // línea sola y el chat lo gestiona limpio.
+    const prompt = `Análisis ${cat.toUpperCase()} de "${nombre}" (${metricas}). Dame asesoramiento estratégico para 4 semanas en precio, coste, promoción y carta — solo recomendaciones, no apliques cambios.`;
 
     cerrarModal();
-    // 1) Abrir el chat PRIMERO para que el textarea sea visible y tenga
-    //    ancho real antes de calcular scrollHeight (si seteamos value con
-    //    el chat cerrado, el auto-resize calcula contra ancho 0 y rompe el
-    //    layout del bubble — bug reportado por Iker 2026-06-06).
+    // 1) Abrir el chat PRIMERO para que el textarea tenga ancho real.
     setTimeout(() => {
         if (typeof window.toggleChat === 'function') {
             window.toggleChat(true);
@@ -93,14 +90,15 @@ function consultarCoachIA(plato) {
             const fab = document.querySelector('#chat-fab, .chat-fab');
             if (fab) fab.click();
         }
-        // 2) Esperar al render del chat (200ms es generoso) y luego setear
-        //    el prompt + disparar input (para que el chat aplique su auto-resize
-        //    con dimensiones reales) + focus al final.
+        // 2) Tras el render, precargar value. NO disparamos 'input' a
+        //    propósito — dejamos que el textarea se quede con su altura
+        //    por defecto. El usuario verá el texto y pulsará enter.
+        //    Disparar 'input' aquí causaba auto-resize del textarea con
+        //    height monstruoso que rompía el layout de los bubbles.
         setTimeout(() => {
             const input = document.getElementById('chat-input');
             if (!input) return;
             input.value = prompt;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
             input.focus();
             input.setSelectionRange(input.value.length, input.value.length);
         }, 220);
