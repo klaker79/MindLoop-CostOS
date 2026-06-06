@@ -470,6 +470,10 @@ export async function renderizarRecetas() {
                     label: t('recetas:onb_cta_manual', { defaultValue: '✏️ Crear receta' }),
                     onclick: 'window.mostrarFormularioReceta?.()'
                 },
+                templateDownload: {
+                    url: '/templates/plantilla-recetas.csv',
+                    label: '📥 Descargar plantilla de ejemplo (CSV)'
+                },
                 tertiaryHelp: t('recetas:onb_help', {
                     defaultValue: 'Necesitas tener ingredientes antes. Si no los tienes, ve a la pestaña Ingredientes primero.'
                 })

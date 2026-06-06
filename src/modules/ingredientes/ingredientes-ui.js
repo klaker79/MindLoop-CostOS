@@ -208,6 +208,10 @@ export function renderizarIngredientes() {
                         label: t('ingredientes:onb_cta_manual', { defaultValue: '✏️ Añadir manual' }),
                         onclick: 'window.mostrarFormularioIngrediente?.()'
                     },
+                    templateDownload: {
+                        url: '/templates/plantilla-ingredientes.csv',
+                        label: '📥 Descargar plantilla de ejemplo (CSV)'
+                    },
                     tertiaryHelp: t('ingredientes:onb_help', {
                         defaultValue: '¿Dudas? Escríbenos por WhatsApp y te ayudamos al instante.'
                     })
