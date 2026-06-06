@@ -74,8 +74,9 @@
 // BUMP v74: fix scatter Matriz BCG — el wrap quedaba más alto que el canvas y aparecía hueco blanco abajo. Reducido wrap a 380px y forzado canvas a 100%/100% con !important (Chart.js mete inline sizes que rompían el fit).
 // BUMP v75: recomendaciones REALES por plato en el modal drill-down (A). Calcula medias del menú (precio, food cost, margen, popularidad) y genera 4-6 frases con números concretos del plato: vendes X uds (Yx la media), margen Z€ vs media W€, subiendo a Q€ ganas R€, etc. Las acciones genéricas del Excel quedan ocultas en details/summary como referencia secundaria. Botón "Consulta al Coach IA" (B) pre-rellena el chat con un prompt construido con los datos del plato y abre el widget (no envía automático, el cliente revisa y pulsa enter).
 // BUMP v76: fix Coach IA — el prompt podía hacer que Claude emitiera [ACTION:] como si fuera una orden de cambio. Ahora el prompt pide explícitamente "solo asesoramiento, no emitas [ACTION:]". Complementado con regla anti-ACTION en system prompt backend.
+// BUMP v77: modal de validación previa al ejecutar cambios desde el chat (Iker 2026-06-06: "si confirmas, con modal validando el cambio"). Al pulsar Confirmar, antes de ejecutar se abre modal que muestra qué entidad y campo se van a modificar, comparando valor actual vs valor nuevo. Aplicar / Cancelar / Esc / click fuera.
 
-const CACHE_NAME = 'mindloop-costos-v76';
+const CACHE_NAME = 'mindloop-costos-v77';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
