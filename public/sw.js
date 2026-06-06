@@ -71,8 +71,9 @@
 // BUMP v71: D2 rediseño Análisis. Nuevo módulo src/modules/analisis/ con dashboard sintético arriba del BCG (cards counts + donut + filtro periodo: Histórico/Mes/Trimestre/Año). Aditivo: el BCG legacy queda intacto. Endpoints backend con param ?desde=&hasta= y nuevo /analysis/omnes (para D5).
 // BUMP v72: D3 rediseño Análisis. Matriz BCG v2 reemplaza al BCG legacy (display:none). Scatter limpio con cuadrantes coloreados + 4 cards por categoría con icono SVG, header coloreado, count chip y listas clickables. Click en plato (scatter o lista) emite evento `analisis:plato-click` (lo escucha el modal en D4).
 // BUMP v73: D4 rediseño Análisis. Modal drill-down al click en plato. Icono SVG grande + label + 6 métricas (ventas, precio, coste, margen, food cost, ingresos) + 5 acciones recomendadas según categoría (Excel Ingeniería de Menús) + CTA "Ver escandallo" que navega a Recetas. Cierre con X, click fuera, Esc.
+// BUMP v74: fix scatter Matriz BCG — el wrap quedaba más alto que el canvas y aparecía hueco blanco abajo. Reducido wrap a 380px y forzado canvas a 100%/100% con !important (Chart.js mete inline sizes que rompían el fit).
 
-const CACHE_NAME = 'mindloop-costos-v73';
+const CACHE_NAME = 'mindloop-costos-v74';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
