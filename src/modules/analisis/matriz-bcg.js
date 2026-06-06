@@ -15,6 +15,7 @@
 
 import { renderIcono, COLORES, LABELS, DESCRIPCIONES } from './iconos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
+import { mostrarBcgInfo } from './bcg-info.js';
 
 const HOST_ID = 'analisis-matriz-bcg-v2';
 const SCATTER_CANVAS_ID = 'ans-bcg-scatter';
@@ -73,6 +74,56 @@ function emitirClickPlato(plato) {
     } catch (e) { /* noop */ }
 }
 
+/**
+ * Devuelve el consejo personalizado para un cuadrante, basado en cuántos
+ * platos hay y, cuando aporta, en cuál es el plato top (el primero del
+ * array porque ya viene ordenado por popularidad desc).
+ *
+ * Tono ∈ 'ok' | 'warn' | 'bad' | 'mute'.
+ */
+function consejoCuadrante(categoria, platos) {
+    const n = platos.length;
+    const top = n > 0 ? platos[0] : null;
+    const ejemploTop = top ? ` Empieza por "${top.nombre}".` : '';
+
+    if (categoria === 'estrella') {
+        if (n === 0) return { tono: 'warn', titulo: 'Sin estrellas', texto: 'Tu carta no tiene líderes claros. Coge el Puzzle más rentable y promociónalo cuatro semanas — el objetivo es convertirlo en Estrella.' };
+        return { tono: 'ok', titulo: `${n} ${n === 1 ? 'estrella' : 'estrellas'}`, texto: `Protege estos platos. No subas precio sin pensar, mantén calidad y dales sitio destacado en la carta.${ejemploTop}` };
+    }
+
+    if (categoria === 'puzzle') {
+        if (n === 0) return { tono: 'ok', titulo: 'Sin puzzles', texto: 'Los platos rentables ya se venden bien. Está bien — no hay margen oculto por activar.' };
+        return { tono: 'warn', titulo: `${n} ${n === 1 ? 'puzzle' : 'puzzles'}`, texto: `Ganan bien pero no se venden. Posición destacada en carta, recomendación del camarero, foto en redes.${ejemploTop}` };
+    }
+
+    if (categoria === 'caballo') {
+        if (n === 0) return { tono: 'ok', titulo: 'Sin caballos', texto: 'Bien: tus populares también son rentables. No hay platos con margen apretado entre los más vendidos.' };
+        return { tono: 'warn', titulo: `${n} ${n === 1 ? 'caballo' : 'caballos'}`, texto: `Mucho tráfico, margen justo. Revisa proveedor, ajusta gramaje o sube 30-50 cts el precio. Cuidado al tocarlos — son los que traen al cliente.${ejemploTop}` };
+    }
+
+    // perro
+    if (n === 0) return { tono: 'ok', titulo: 'Sin perros', texto: 'Bien: tu carta no arrastra platos muertos.' };
+    return { tono: 'bad', titulo: `${n} ${n === 1 ? 'perro' : 'perros'}`, texto: `Ni venden ni dejan. Candidatos a retirar para hacer hueco a platos nuevos. Si alguno tiene valor estratégico (ingrediente local, identidad del local), revísalo antes de quitar.${ejemploTop}` };
+}
+
+function tipCuadranteHTML(tip) {
+    if (!tip) return '';
+    return `
+        <div class="bcg2-tip bcg2-tip--${tip.tono}">
+            <div class="bcg2-tip__icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a7 7 0 0 0-4 12.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26A7 7 0 0 0 12 2z"/>
+                    <line x1="9" y1="22" x2="15" y2="22"/>
+                </svg>
+            </div>
+            <div class="bcg2-tip__body">
+                <div class="bcg2-tip__label">${escapeHTML(tip.titulo)}</div>
+                <p class="bcg2-tip__text">${escapeHTML(tip.texto)}</p>
+            </div>
+        </div>
+    `;
+}
+
 function renderListaCuadrante(categoria, platos) {
     const color = COLORES[categoria];
     const items = platos.length === 0
@@ -98,6 +149,7 @@ function renderListaCuadrante(categoria, platos) {
                 <span class="bcg2-cuadrante__count">${platos.length}</span>
             </header>
             <div class="bcg2-cuadrante__items">${items}</div>
+            ${tipCuadranteHTML(consejoCuadrante(categoria, platos))}
         </div>
     `;
 }
@@ -275,12 +327,22 @@ export function renderMatrizBCG(data) {
                 <h3 class="bcg2-title">Matriz BCG · Ingeniería de Menú</h3>
                 <p class="bcg2-subtitle">Cada plato según popularidad y rentabilidad</p>
             </div>
-            <div class="bcg2-legend">
-                ${CATEGORIAS.map(c => `
-                    <span class="bcg2-legend-item" style="--cat-color:${COLORES[c]};">
-                        <span class="bcg2-legend-dot"></span>${LABELS[c]}
-                    </span>
-                `).join('')}
+            <div class="bcg2-header-actions">
+                <div class="bcg2-legend">
+                    ${CATEGORIAS.map(c => `
+                        <span class="bcg2-legend-item" style="--cat-color:${COLORES[c]};">
+                            <span class="bcg2-legend-dot"></span>${LABELS[c]}
+                        </span>
+                    `).join('')}
+                </div>
+                <button type="button" class="bcg2-info-btn" data-action="bcg-info" aria-label="Qué es la Matriz BCG">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                    <span>¿Qué es esto?</span>
+                </button>
             </div>
         </header>
         <div class="bcg2-scatter-wrap">
@@ -298,6 +360,11 @@ export function renderMatrizBCG(data) {
             const plato = data.find(p => p.id === id);
             if (plato) emitirClickPlato(plato);
         });
+    });
+
+    // Bind botón "¿Qué es esto?"
+    host.querySelectorAll('[data-action="bcg-info"]').forEach(btn => {
+        btn.addEventListener('click', (e) => { e.preventDefault(); mostrarBcgInfo(); });
     });
 
     // Render scatter
