@@ -20,6 +20,8 @@
 
 import './styles.css';
 import { renderDashboardSintetico, contarCategorias } from './dashboard-sintetico.js';
+import { renderMatrizBCG } from './matriz-bcg.js';
+import './plato-modal.js'; // auto-registra listener `analisis:plato-click`
 import { getMenuEngineering, getPeriodo } from './analisis-state.js';
 
 const HOST_ID = 'analisis-dashboard-sintetico';
@@ -56,9 +58,8 @@ async function onPeriodoChange() {
     if (!host) return;
     try {
         const data = await getMenuEngineering({ force: true });
-        if (typeof window.renderMenuEngineeringUI === 'function') {
-            window.renderMenuEngineeringUI(data);
-        }
+        // Matriz BCG v2 (oculta el contenedor legacy automáticamente).
+        try { renderMatrizBCG(data); } catch (e) { console.warn('[analisis] BCGv2 falló (no bloqueante):', e?.message); }
         pintar(host, contarCategorias(data));
     } catch (err) {
         console.warn('[analisis] error refrescando BCG:', err?.message);
@@ -74,6 +75,11 @@ async function onRender(menuEngineeringData) {
     const host = ensureHost();
     if (!host) return;
     pintar(host, contarCategorias(menuEngineeringData));
+    // D3: renderizar BCG v2 y ocultar el contenedor legacy. Si falla, el
+    // legacy sigue visible (ocultarLegacy solo se invoca tras render OK).
+    try { renderMatrizBCG(menuEngineeringData); } catch (e) {
+        console.warn('[analisis] BCGv2 falló (no bloqueante):', e?.message);
+    }
 }
 
 if (typeof window !== 'undefined') {
