@@ -375,6 +375,7 @@ window.cerrarModalVerPedido = PedidosCRUD.cerrarModalVerPedido;
 window.descargarPedidoPDF = PedidosCRUD.descargarPedidoPDF;
 window.actualizarItemRecepcion = PedidosCRUD.actualizarItemRecepcion;
 window.cambiarEstadoItem = PedidosCRUD.cambiarEstadoItem;
+window.actualizarTotalConIva = PedidosCRUD.actualizarTotalConIva;
 
 // ⚡ FIX W3: Documentación de módulos con auto-registro en window.*
 // Estos módulos registran sus funciones directamente (window.fn = ...) en vez de exportar+mapear aquí.
