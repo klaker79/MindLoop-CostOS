@@ -990,6 +990,17 @@
 
             // RENDERIZAR INGENIERÍA DE MENÚ (Matriz BCG)
             renderMenuEngineeringUI(menuAnalysis);
+
+            // Hook al módulo nuevo (rediseño 2026-06-05): monta el dashboard
+            // sintético + filtro periodo arriba del BCG. Si el módulo no se
+            // cargó (caché vieja), no falla — try/catch lo protege.
+            try {
+                if (typeof window.mlAnalisisOnRender === 'function') {
+                    window.mlAnalisisOnRender(menuAnalysis);
+                }
+            } catch (e) {
+                console.warn('[analisis-v2] hook falló (no bloqueante):', e?.message);
+            }
         } catch (error) {
             console.error('Error renderizando análisis:', error);
         }

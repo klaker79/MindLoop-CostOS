@@ -443,6 +443,14 @@ import * as Dashboard from './modules/dashboard/dashboard.js?v=20260308-purchase
 window.actualizarKPIs = Dashboard.actualizarKPIs;
 
 // ============================================
+// MÓDULO: ANÁLISIS — Ingeniería de Menú v2 (rediseño 2026-06-05)
+// ============================================
+// Por ahora aditivo: monta el dashboard sintético arriba del BCG legacy.
+// El legacy `renderizarAnalisis` llama a `window.mlAnalisisOnRender(data)`
+// tras pintar la matriz BCG. Si este módulo falla, el legacy sigue intacto.
+import './modules/analisis/analisis.js';
+
+// ============================================
 // MÓDULO: BALANCE / P&L 💰
 // ============================================
 import * as Balance from './modules/balance/index.js';

@@ -309,6 +309,24 @@ export const api = {
     // Onboarding checklist (4 pasos: proveedores -> ingredientes -> recetas -> pedidos)
     getOnboardingStatus: () => apiClient.get('/onboarding/status'),
 
+    // Análisis — Ingeniería de Menú y Principios de Omnes
+    // Periodo opcional via { desde, hasta } en formato YYYY-MM-DD.
+    // Sin periodo → backend usa el histórico completo (compat back).
+    getMenuEngineering: (opts) => {
+        const qs = new URLSearchParams();
+        if (opts?.desde) qs.set('desde', opts.desde);
+        if (opts?.hasta) qs.set('hasta', opts.hasta);
+        const query = qs.toString();
+        return apiClient.get(`/analysis/menu-engineering${query ? '?' + query : ''}`);
+    },
+    getOmnes: (opts) => {
+        const qs = new URLSearchParams();
+        if (opts?.desde) qs.set('desde', opts.desde);
+        if (opts?.hasta) qs.set('hasta', opts.hasta);
+        const query = qs.toString();
+        return apiClient.get(`/analysis/omnes${query ? '?' + query : ''}`);
+    },
+
     // Suppliers (antes: proveedores)
     getProveedores: () => apiClient.get('/suppliers'),
     getProveedor: (id) => apiClient.get(`/suppliers/${id}`),
