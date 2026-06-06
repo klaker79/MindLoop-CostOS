@@ -170,30 +170,7 @@ function tipHTML(tip) {
     `;
 }
 
-function dispersionPorCategoriaHTML(porCat) {
-    if (!Array.isArray(porCat) || porCat.length === 0) return '';
-    const filas = porCat.map(c => {
-        const tono = c.estado === 'ok' ? 'ok' : (c.estado === 'alta' ? 'warn' : 'bad');
-        const claseEstado = ESTADO_DISPERSION[c.estado] || ESTADO_DISPERSION.sin_datos;
-        return `
-            <div class="oms-subcat__row oms-subcat__row--${tono}">
-                <span class="oms-subcat__name" title="${escapeHTML(c.categoria)}">${escapeHTML(c.categoria)}</span>
-                <span class="oms-subcat__count">${c.n_platos}</span>
-                <span class="oms-subcat__value">${c.valor.toFixed(2)}×</span>
-                <span class="oms-badge ${claseEstado.cls} oms-subcat__badge">${escapeHTML(claseEstado.label)}</span>
-            </div>
-        `;
-    }).join('');
-    return `
-        <div class="oms-subcat">
-            <div class="oms-subcat__head">Por sección de carta</div>
-            <p class="oms-subcat__intro">Dispersión interna de cada sección — esto es lo que el cliente percibe al elegir dentro de un apartado.</p>
-            <div class="oms-subcat__list">${filas}</div>
-        </div>
-    `;
-}
-
-function cardDispersion(d, porCat) {
+function cardDispersion(d) {
     if (!d || d.estado === 'sin_datos') {
         return `
             <div class="oms-card">
@@ -216,7 +193,7 @@ function cardDispersion(d, porCat) {
                 ${badgeHTML(ESTADO_DISPERSION, d.estado)}
             </div>
             <div class="oms-card__value">${escapeHTML(valor)}</div>
-            <p class="oms-card__sub">${escapeHTML(ideal)} · plato más caro / plato más barato (carta completa)</p>
+            <p class="oms-card__sub">${escapeHTML(ideal)} · plato más caro / plato más barato</p>
             <div class="oms-meta">
                 <div class="oms-meta__row">
                     <span class="oms-meta__label">Máx</span>
@@ -229,7 +206,6 @@ function cardDispersion(d, porCat) {
                     <span class="oms-meta__name" title="${escapeHTML(d.plato_min || '')}">${escapeHTML(d.plato_min || '—')}</span>
                 </div>
             </div>
-            ${dispersionPorCategoriaHTML(porCat)}
             ${tipHTML(consejoDispersion(d))}
         </div>
     `;
@@ -438,7 +414,7 @@ export async function renderOmnes() {
                 ${INFO_BTN_HTML}
             </div>
             <div class="oms-cards">
-                ${cardDispersion(data.dispersion, data.dispersion_por_categoria)}
+                ${cardDispersion(data.dispersion)}
                 ${cardAmplitud(data.amplitud)}
                 ${cardCalidadPrecio(data.calidad_precio)}
             </div>
