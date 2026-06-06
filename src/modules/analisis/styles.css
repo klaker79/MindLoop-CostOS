@@ -226,17 +226,25 @@
 
 .bcg2-scatter-wrap {
     position: relative;
-    height: 460px;
-    margin-bottom: 24px;
+    height: 380px;
+    margin-bottom: 20px;
     background: linear-gradient(180deg, rgba(248,250,252,0.6) 0%, rgba(255,255,255,1) 100%);
     border: 1px solid #f1f5f9;
     border-radius: 14px;
-    padding: 12px 8px;
+    padding: 8px;
+    overflow: hidden;
+    display: block;
 }
 
-.bcg2-scatter-wrap canvas {
+/* Chart.js mete inline width/height en el canvas — los anulamos para
+   que rellene el wrap por completo. Sin esto, el canvas se queda más
+   pequeño que el contenedor y aparece una franja blanca abajo. */
+.bcg2-scatter-wrap > canvas {
+    display: block !important;
     width: 100% !important;
     height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
 }
 
 .bcg2-cuadrantes-grid {
