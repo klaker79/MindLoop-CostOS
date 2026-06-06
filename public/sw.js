@@ -86,8 +86,10 @@
 // BUMP v88: revert "Por sección de carta" en Omnes. El schema de BD solo tiene `alimentos/bebidas/suministros` como categorías macro — el desglose por subcategoría siempre mostraría una sola fila en los tenants actuales. La idea queda como nota pedagógica, no como feature.
 // BUMP v90: IVA del albarán en modal recepción + IVA habitual por proveedor (Migration 013). SOLO display para cuadrar con el albarán físico. Cero impacto en precio_medio_compra, food cost, COGS.
 // BUMP v91: trial 10 días + plantillas CSV descargables en empty states + welcome email con timeline. Cero cambio en cálculos.
+// BUMP v92: botón "📥 Plantilla" siempre visible en barra de Ingredientes/Recetas/Proveedores (antes solo en empty state, pero el onboarding spotlight obliga a crear el 1º → cliente nunca veía la plantilla).
+// BUMP v93: plantillas CSV con BOM UTF-8 + separador ; + decimales con coma. Antes Excel español lo abría todo en columna A con ñ/í corruptas (ALBARIÑO → ALBARIÃO). Ahora abre limpio con columnas separadas y caracteres correctos.
 
-const CACHE_NAME = 'mindloop-costos-v91';
+const CACHE_NAME = 'mindloop-costos-v93';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
