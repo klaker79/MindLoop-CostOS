@@ -72,8 +72,9 @@
 // BUMP v72: D3 rediseño Análisis. Matriz BCG v2 reemplaza al BCG legacy (display:none). Scatter limpio con cuadrantes coloreados + 4 cards por categoría con icono SVG, header coloreado, count chip y listas clickables. Click en plato (scatter o lista) emite evento `analisis:plato-click` (lo escucha el modal en D4).
 // BUMP v73: D4 rediseño Análisis. Modal drill-down al click en plato. Icono SVG grande + label + 6 métricas (ventas, precio, coste, margen, food cost, ingresos) + 5 acciones recomendadas según categoría (Excel Ingeniería de Menús) + CTA "Ver escandallo" que navega a Recetas. Cierre con X, click fuera, Esc.
 // BUMP v74: fix scatter Matriz BCG — el wrap quedaba más alto que el canvas y aparecía hueco blanco abajo. Reducido wrap a 380px y forzado canvas a 100%/100% con !important (Chart.js mete inline sizes que rompían el fit).
+// BUMP v75: recomendaciones REALES por plato en el modal drill-down (A). Calcula medias del menú (precio, food cost, margen, popularidad) y genera 4-6 frases con números concretos del plato: vendes X uds (Yx la media), margen Z€ vs media W€, subiendo a Q€ ganas R€, etc. Las acciones genéricas del Excel quedan ocultas en details/summary como referencia secundaria. Botón "Consulta al Coach IA" (B) pre-rellena el chat con un prompt construido con los datos del plato y abre el widget (no envía automático, el cliente revisa y pulsa enter).
 
-const CACHE_NAME = 'mindloop-costos-v74';
+const CACHE_NAME = 'mindloop-costos-v75';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

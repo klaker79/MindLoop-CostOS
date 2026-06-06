@@ -17,6 +17,7 @@
 
 import { renderIcono, COLORES, LABELS, DESCRIPCIONES } from './iconos.js';
 import { accionesRecomendadas } from './acciones-recomendadas.js';
+import { generarRecomendaciones } from './recomendaciones-plato.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 
 const MODAL_ID = 'analisis-plato-modal';
@@ -60,6 +61,48 @@ function navegarAReceta(idReceta) {
 }
 
 /**
+ * Construye el prompt para el Coach IA basado en los datos del plato.
+ * Pre-rellena el input del chat y abre el widget. NO envía automáticamente
+ * — el cliente revisa el mensaje y pulsa enter cuando quiera.
+ */
+function consultarCoachIA(plato) {
+    const nombre = plato.nombre || 'el plato';
+    const cat = plato.clasificacion || 'sin clasificar';
+    const linea = [];
+    if (plato.precio_venta) linea.push(`precio venta ${cm(Number(plato.precio_venta).toFixed(2))}`);
+    if (plato.coste !== null && plato.coste !== undefined) linea.push(`coste ${cm(Number(plato.coste).toFixed(2))}`);
+    if (plato.foodCost !== null && plato.foodCost !== undefined) linea.push(`food cost ${Number(plato.foodCost).toFixed(1)}%`);
+    if (plato.margen !== null && plato.margen !== undefined) linea.push(`margen ${cm(Number(plato.margen).toFixed(2))}`);
+    if (plato.popularidad !== null && plato.popularidad !== undefined) linea.push(`${Math.round(plato.popularidad)} ventas en el periodo`);
+    const metricas = linea.join(', ');
+    const prompt = `Soy el dueño del restaurante. Quiero recomendaciones específicas para "${nombre}". Está clasificado como ${cat.toUpperCase()} en la matriz BCG. Datos: ${metricas}. ¿Qué acciones concretas me recomiendas para mejorar este plato en las próximas 4 semanas?`;
+
+    cerrarModal();
+    setTimeout(() => {
+        const input = document.getElementById('chat-input');
+        if (input) {
+            input.value = prompt;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            // Ajustar altura del textarea si el chat lo redimensiona en input.
+            input.style.height = 'auto';
+            input.style.height = input.scrollHeight + 'px';
+        }
+        if (typeof window.toggleChat === 'function') {
+            window.toggleChat(true);
+        } else {
+            // Fallback: click en el FAB del chat
+            const fab = document.querySelector('#chat-fab, .chat-fab');
+            if (fab) fab.click();
+        }
+        // Foco en input para que el usuario pulse enter
+        setTimeout(() => {
+            const i = document.getElementById('chat-input');
+            if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+        }, 200);
+    }, 150);
+}
+
+/**
  * Abre el modal con los datos del plato.
  *
  * @param {object} plato - item del array de /menu-engineering. Debe traer
@@ -73,6 +116,13 @@ export function abrirModalPlato(plato) {
     const cat = plato.clasificacion || 'perro';
     const color = COLORES[cat] || '#6b7280';
 
+    // A) Recomendaciones REALES por plato (con números del plato + medias del menú)
+    const medias = (typeof window !== 'undefined' && window.__analisisState?.getMedias?.())
+        || { precio: 0, foodCost: 0, margen: 0, popularidad: 0, totalPlatos: 0 };
+    const recomendacionesReales = generarRecomendaciones(plato, medias);
+    const recomendacionesHTML = recomendacionesReales.map(a => `<li>${escapeHTML(a)}</li>`).join('');
+
+    // B) Acciones genéricas por categoría (catálogo Excel Ingeniería de Menús)
     const acciones = accionesRecomendadas(cat);
     const accionesHTML = acciones.map(a => `<li>${escapeHTML(a)}</li>`).join('');
 
@@ -148,26 +198,51 @@ export function abrirModalPlato(plato) {
                 </div>
             </section>
 
-            <section class="apm-section" style="padding: 16px 24px 20px; border-top: 1px solid #f3f4f6;">
+            <section class="apm-section" style="padding: 16px 24px 8px; border-top: 1px solid #f3f4f6;">
                 <h3 class="apm-section-title" style="font-size: 11px; font-weight: 700;
                         text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280;
-                        margin: 0 0 12px;">Acciones recomendadas</h3>
+                        margin: 0 0 12px; display: flex; align-items: center; gap: 8px;">
+                    <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};"></span>
+                    Recomendaciones para este plato
+                </h3>
                 <ul class="apm-acciones" style="margin: 0; padding-left: 18px; color: #374151;
-                        font-size: 14px; line-height: 1.6;">${accionesHTML}</ul>
+                        font-size: 14px; line-height: 1.65;">${recomendacionesHTML}</ul>
             </section>
 
-            <footer class="apm-footer" style="display: flex; gap: 8px; justify-content: flex-end;
-                        padding: 16px 24px; border-top: 1px solid #f3f4f6; background: #fafafa;
-                        border-radius: 0 0 18px 18px;">
-                <button class="apm-btn apm-btn--ghost" type="button" data-action="cerrar"
-                        style="background: transparent; border: 1px solid #e5e7eb; padding: 9px 16px;
-                               border-radius: 8px; font-weight: 600; color: #374151;
-                               cursor: pointer; font-size: 14px;">Cerrar</button>
-                <button class="apm-btn apm-btn--primary" type="button" data-action="ver-escandallo"
-                        style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white;
-                               border: none; padding: 9px 16px; border-radius: 8px; font-weight: 700;
-                               cursor: pointer; font-size: 14px;
-                               box-shadow: 0 2px 4px rgba(124,58,237,0.3);">Ver escandallo →</button>
+            <section class="apm-section apm-section--secondary" style="padding: 4px 24px 20px;">
+                <details style="margin-top: 12px;">
+                    <summary style="cursor: pointer; font-size: 11px; font-weight: 700;
+                            text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af;
+                            user-select: none;">Acciones genéricas para ${LABELS[cat]}</summary>
+                    <ul class="apm-acciones" style="margin: 10px 0 0; padding-left: 18px;
+                            color: #6b7280; font-size: 13px; line-height: 1.6;">${accionesHTML}</ul>
+                </details>
+            </section>
+
+            <footer class="apm-footer" style="display: flex; gap: 8px; justify-content: space-between;
+                        align-items: center; padding: 16px 24px; border-top: 1px solid #f3f4f6;
+                        background: #fafafa; border-radius: 0 0 18px 18px; flex-wrap: wrap;">
+                <button class="apm-btn apm-btn--coach" type="button" data-action="coach-ia"
+                        style="background: white; border: 1px solid #e5e7eb;
+                               padding: 9px 14px; border-radius: 8px; font-weight: 600;
+                               color: #6d28d9; cursor: pointer; font-size: 13px;
+                               display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                    </svg>
+                    Consulta al Coach IA
+                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="apm-btn apm-btn--ghost" type="button" data-action="cerrar"
+                            style="background: transparent; border: 1px solid #e5e7eb; padding: 9px 16px;
+                                   border-radius: 8px; font-weight: 600; color: #374151;
+                                   cursor: pointer; font-size: 14px;">Cerrar</button>
+                    <button class="apm-btn apm-btn--primary" type="button" data-action="ver-escandallo"
+                            style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white;
+                                   border: none; padding: 9px 16px; border-radius: 8px; font-weight: 700;
+                                   cursor: pointer; font-size: 14px;
+                                   box-shadow: 0 2px 4px rgba(124,58,237,0.3);">Ver escandallo →</button>
+                </div>
             </footer>
         </div>
     `;
@@ -181,6 +256,9 @@ export function abrirModalPlato(plato) {
 
     // Bind escandallo
     overlay.querySelector('[data-action="ver-escandallo"]')?.addEventListener('click', () => navegarAReceta(plato.id));
+
+    // Bind Coach IA (B)
+    overlay.querySelector('[data-action="coach-ia"]')?.addEventListener('click', () => consultarCoachIA(plato));
 
     // Tecla Esc
     document.addEventListener('keydown', onKeyDown);
