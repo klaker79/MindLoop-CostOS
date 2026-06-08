@@ -2795,22 +2795,25 @@ async function renderizarTablaPLDiario() {
     // (antes solo afectaban al stock, no al beneficio neto). El coste de
     // receta vendida (COSTES PROD) sigue intacto — eso mide la rentabilidad
     // de la carta. La merma se RESTA aparte para mostrar la realidad económica.
+    //
+    // Estructura del endpoint (verificada en mermas.routes.js:239-260):
+    //   { id, ingrediente_id, ingrediente_nombre, cantidad, unidad,
+    //     valor_perdida, motivo, nota, fecha, restaurante_id }
+    // - cantidad y valor_perdida son SIEMPRE positivos (la tabla solo
+    //   almacena pérdidas reales; los ajustes positivos del inventario
+    //   masivo van por otro flujo y NO entran aquí).
     const mermasPorDia = {};
     dias.forEach(dia => { mermasPorDia[dia] = 0; });
     try {
         const mermasMes = await window.api.getMermas(mesSeleccionado, anoSeleccionado);
         if (Array.isArray(mermasMes)) {
             mermasMes.forEach(m => {
-                // Solo cuentan las negativas (pérdidas). Los ajustes positivos
-                // (sobra de stock por error de recuento) no son pérdida, son
-                // ganancia oculta que no entra al P&L para no inflar margen.
-                const cantidad = parseFloat(m.cantidad) || 0;
-                if (cantidad >= 0) return; // signo: backend guarda negativo = pérdida
-                const coste = Math.abs(parseFloat(m.coste) || 0);
+                const valor = parseFloat(m.valor_perdida) || 0;
+                if (valor <= 0) return;
                 // m.fecha llega como YYYY-MM-DD o ISO. Normalizar a YYYY-MM-DD.
                 const fecha = String(m.fecha || '').substring(0, 10);
                 if (mermasPorDia[fecha] !== undefined) {
-                    mermasPorDia[fecha] += coste;
+                    mermasPorDia[fecha] += valor;
                 }
             });
         }
