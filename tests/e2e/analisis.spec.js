@@ -41,11 +41,35 @@ async function aguardarCargaInicial(page) {
     );
 }
 
+/**
+ * Tras el click en [data-tab="analisis"], `cambiarTab` dispara
+ * `window.renderizarAnalisis()` SIN await. Hasta que su fetch a
+ * `/analysis/menu-engineering` complete y se invoque
+ * `window.mlAnalisisOnRender(...)`, los 3 hosts NO existen en el DOM.
+ *
+ * Esperamos a que `stat-total-recetas` cambie de su valor inicial '0' al
+ * conteo real — eso ocurre DENTRO de renderizarAnalisis, ANTES del hook
+ * nuevo, así que cuando este check pasa el hook ya tuvo su oportunidad
+ * de crear los hosts.
+ */
+async function aguardarRenderizarAnalisis(page) {
+    await page.waitForFunction(
+        () => {
+            const stat = document.getElementById('stat-total-recetas');
+            if (!stat) return false;
+            const txt = String(stat.textContent || '').trim();
+            return txt && txt !== '0';
+        },
+        { timeout: 20_000 }
+    );
+}
+
 test.describe('Análisis · Matriz BCG y Omnes', () => {
     test('la pestaña Análisis carga con título BCG y bloque Omnes', async ({ page }) => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
         await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
+        await aguardarRenderizarAnalisis(page);
 
         // Dashboard sintético (4 cards categoría) — primera línea del módulo
         await expect(page.locator('#analisis-dashboard-sintetico')).toBeVisible({ timeout: 15_000 });
@@ -63,6 +87,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
         await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
+        await aguardarRenderizarAnalisis(page);
 
         await expect(page.locator('#analisis-omnes')).toBeVisible({ timeout: 15_000 });
 
@@ -79,6 +104,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
         await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
+        await aguardarRenderizarAnalisis(page);
 
         await expect(page.locator('#analisis-omnes')).toBeVisible({ timeout: 15_000 });
 
@@ -98,6 +124,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
         await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
+        await aguardarRenderizarAnalisis(page);
 
         await expect(page.locator('#analisis-matriz-bcg-v2')).toBeVisible({ timeout: 15_000 });
 
@@ -119,6 +146,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
         await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
+        await aguardarRenderizarAnalisis(page);
 
         await expect(page.locator('#analisis-matriz-bcg-v2')).toBeVisible({ timeout: 15_000 });
 
@@ -140,6 +168,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
         await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
+        await aguardarRenderizarAnalisis(page);
 
         const omnes = page.locator('#analisis-omnes');
         await expect(omnes).toBeVisible({ timeout: 15_000 });
