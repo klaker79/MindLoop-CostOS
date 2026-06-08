@@ -13,19 +13,31 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * El SPA dispara `window.cargarDatos()` al arrancar pero es async — sin esperar
- * a que termine, `window.recetas` y `window.ingredientes` aún están vacíos. Si
- * cambiamos a la pestaña Análisis en ese momento, `renderizarAnalisis()` ve
- * arrays vacíos y sale por la rama "tab vacío" sin llamar al hook nuevo, así
- * que los IDs `#analisis-dashboard-sintetico|matriz-bcg-v2|omnes` nunca se
- * crean. En el navegador no se nota porque cargas la página con calma; en CI
- * el click es inmediato y revienta.
+ * El SPA tiene 2 ventanas de carga ASÍNCRONAS que ambas deben completarse
+ * antes de poder cambiar a la pestaña Análisis con seguridad:
+ *
+ *   1. `window.recetas` / `window.ingredientes` — los popula `cargarDatos()` que
+ *      vive en `src/legacy/app-core.js` (script normal). Si están vacíos cuando
+ *      `renderizarAnalisis()` se ejecuta, la función sale por la rama "tab vacío"
+ *      sin llamar al hook nuevo y los hosts nunca se crean.
+ *
+ *   2. `window.mlAnalisisOnRender` — lo registra el módulo ESM
+ *      `src/modules/analisis/analisis.js`, cuyo bundle `main-*.js` es
+ *      `type="module"` y ejecuta DESPUÉS del DOMContentLoaded. Si el legacy
+ *      `renderizarAnalisis` corre antes de que ese módulo termine, el check
+ *      `typeof window.mlAnalisisOnRender === 'function'` da false → el hook se
+ *      salta sin error → los IDs `#analisis-dashboard-sintetico|matriz-bcg-v2|omnes`
+ *      no se crean.
+ *
+ * En navegador real no se nota porque cargas la página con calma; en CI el
+ * click es inmediato y revienta.
  */
 async function aguardarCargaInicial(page) {
     await page.waitForFunction(
         () => Array.isArray(window.recetas) && window.recetas.length > 0
-            && Array.isArray(window.ingredientes) && window.ingredientes.length > 0,
-        { timeout: 20_000 }
+            && Array.isArray(window.ingredientes) && window.ingredientes.length > 0
+            && typeof window.mlAnalisisOnRender === 'function',
+        { timeout: 30_000 }
     );
 }
 
