@@ -946,13 +946,22 @@
         try {
             const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
 
-            // 🔧 FILTRO: Excluir bebidas Y preparaciones base de la ingeniería de menú
-            // (solo platos vendibles de comida — las "base" son subproductos como salsas,
-            // bechamel, masas, tofee... que no se venden directamente al cliente).
-            const menuAnalysis = menuAnalysisRaw.filter(item => {
-                const cat = (item.categoria || '').toLowerCase();
-                return cat !== 'bebidas' && cat !== 'bebida' && cat !== 'base';
-            });
+            // 🔧 FILTRO categoría (toggle Alimentos/Bebidas/Todo, default 'alimentos').
+            // Antes el filtro estaba hardcoded a "no-bebidas". Iker pidió poder ver
+            // también bebidas (vinos, refrescos) en el ranking. Las preparaciones
+            // base SIEMPRE se excluyen (no se venden directas y distorsionan el ranking).
+            // El toggle se renderiza en renderTablaRentabilidad y persiste en
+            // window.analisisCategoriaFilter.
+            const filtro = window.analisisCategoriaFilter || 'alimentos';
+            const pasaFiltro = (cat) => {
+                const c = String(cat || '').toLowerCase();
+                if (c === 'base') return false; // subproductos: nunca
+                if (filtro === 'todo') return true;
+                const esBebida = (c === 'bebidas' || c === 'bebida');
+                return filtro === 'bebidas' ? esBebida : !esBebida;
+            };
+
+            const menuAnalysis = menuAnalysisRaw.filter(item => pasaFiltro(item.categoria));
 
             let totalMargen = 0;
             let totalCoste = 0;
@@ -965,13 +974,7 @@
                 return { ...rec, coste, margen, margenPct };
             });
 
-            // 🔧 FILTRO: Solo platos vendibles para tabla de rentabilidad.
-            // Excluir bebidas (van a su propio análisis) y preparaciones base (subproductos
-            // que no se venden directamente y distorsionarían el ranking con márgenes infladísimos).
-            const datosRecetas = datosRecetasRaw.filter(rec => {
-                const cat = (rec.categoria || '').toLowerCase();
-                return cat !== 'bebidas' && cat !== 'bebida' && cat !== 'base';
-            });
+            const datosRecetas = datosRecetasRaw.filter(rec => pasaFiltro(rec.categoria));
 
             const margenPromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.margenPct, 0) / datosRecetas.length).toFixed(1) : '0';
             const costePromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.coste, 0) / datosRecetas.length).toFixed(2) : '0';
@@ -1683,6 +1686,39 @@
         // Estado de paginación
         window.rentabilidadPage = window.rentabilidadPage || 1;
 
+        // Toggle de categoría (Alimentos / Bebidas / Todo) — afecta a esta tabla
+        // Y a la matriz BCG (ambas comparten window.analisisCategoriaFilter).
+        // Botones renderizados dinámicamente en el contenedor #toggle-categoria-analisis,
+        // que se inyecta si no existe (idempotente). Iker 2026-06-08.
+        const T = window.t || ((k, def) => def || k);
+        const filtroActual = window.analisisCategoriaFilter || 'alimentos';
+        const opciones = [
+            { key: 'alimentos', label: T('dashboard:analysis_filter_food', '🍽️ Alimentos') },
+            { key: 'bebidas',   label: T('dashboard:analysis_filter_drinks', '🍷 Bebidas') },
+            { key: 'todo',      label: T('dashboard:analysis_filter_all', '🌐 Todo') },
+        ];
+        const contenedor = document.getElementById('tabla-rentabilidad');
+        let toggleEl = document.getElementById('toggle-categoria-analisis');
+        if (!toggleEl && contenedor) {
+            toggleEl = document.createElement('div');
+            toggleEl.id = 'toggle-categoria-analisis';
+            toggleEl.style.cssText = 'display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;';
+            contenedor.parentElement.insertBefore(toggleEl, contenedor);
+        }
+        if (toggleEl) {
+            toggleEl.innerHTML = opciones.map(opt => {
+                const active = opt.key === filtroActual;
+                const bg = active ? '#1e40af' : '#f1f5f9';
+                const color = active ? '#ffffff' : '#475569';
+                const border = active ? '#1e40af' : '#cbd5e1';
+                return `<button type="button"
+                    onclick="window.cambiarFiltroAnalisisCategoria('${opt.key}')"
+                    style="padding: 8px 16px; border-radius: 999px; border: 1px solid ${border}; background: ${bg}; color: ${color}; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+                    ${escapeHTML(opt.label)}
+                </button>`;
+            }).join('');
+        }
+
         // Función para renderizar página
         window.renderRentabilidadPage = function (page = 1) {
             const totalPages = Math.ceil(ordenados.length / ITEMS_PER_PAGE);
@@ -1737,6 +1773,20 @@
         // Renderizar primera página
         window.renderRentabilidadPage(window.rentabilidadPage);
     }
+
+    // Cambia el filtro de categoría del análisis y re-renderiza ranking + BCG.
+    // Whitelist defensiva: solo aceptamos los 3 valores conocidos. Iker 2026-06-08.
+    window.cambiarFiltroAnalisisCategoria = function (filtro) {
+        const validos = ['alimentos', 'bebidas', 'todo'];
+        if (!validos.includes(filtro)) return;
+        if (window.analisisCategoriaFilter === filtro) return;
+        window.analisisCategoriaFilter = filtro;
+        // Reset paginación: el orden cambia con el nuevo conjunto
+        window.rentabilidadPage = 1;
+        if (typeof window.renderizarAnalisis === 'function') {
+            window.renderizarAnalisis();
+        }
+    };
 
     // ========== INVENTARIO ==========
     // Cache para persistir valores de stock introducidos por el usuario
