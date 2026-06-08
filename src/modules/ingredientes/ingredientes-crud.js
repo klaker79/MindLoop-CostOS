@@ -5,6 +5,7 @@
 
 import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
+import { escapeHTML } from '../../utils/helpers.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
 // 🆕 Zustand store para gestión de estado
 import ingredientStore from '../../stores/ingredientStore.js';
@@ -248,6 +249,29 @@ export function editarIngrediente(id) {
 
     const precioEl = getElement('ing-precio');
     if (precioEl) precioEl.value = ing.precio || '';
+
+    // Enriquecer el hint del precio con el PMC actual del ingrediente.
+    // El backend recalcula `ing.precio = PMC × cpf` tras cada pedido recibido
+    // (businessHelpers.recalcularPrecioPonderado), así que precio / cpf = PMC.
+    // Mostrarlo aquí le da al usuario transparencia: ve de dónde sale el número.
+    const hintEl = getElement('ing-precio-hint');
+    if (hintEl) {
+        const precio = parseFloat(ing.precio) || 0;
+        const cpf = parseFloat(ing.cantidad_por_formato) > 0 ? parseFloat(ing.cantidad_por_formato) : 1;
+        // ing.unidad y ing.formato_compra vienen de input del usuario → escapar antes de inyectar.
+        const unidadBase = escapeHTML(ing.unidad || 'ud');
+        const formato = escapeHTML(ing.formato_compra || '');
+        const pmc = precio / cpf;
+        let detalle = '';
+        if (precio > 0) {
+            if (formato && cpf > 1) {
+                detalle = ` Actualmente: <strong>${pmc.toFixed(2)}€/${unidadBase} × ${cpf} = ${precio.toFixed(2)}€/${formato}</strong>.`;
+            } else {
+                detalle = ` Actualmente: <strong>${precio.toFixed(2)}€/${unidadBase}</strong>.`;
+            }
+        }
+        hintEl.innerHTML = `💡 La app recalcula este precio automáticamente tras cada pedido recibido (precio medio de compras × cantidad por formato).${detalle} Si lo editas a mano, el siguiente pedido lo sobreescribirá.`;
+    }
 
     const unidadEl = getElement('ing-unidad');
     if (unidadEl) unidadEl.value = ing.unidad;

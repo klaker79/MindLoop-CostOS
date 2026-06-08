@@ -98,8 +98,9 @@
 // BUMP v101: IVA habitual del proveedor también autorellena el modal de NUEVO pedido. Antes solo lo hacía el modal de recepción. Iker espera que al elegir VINOS TONE (iva_pct=21) el campo IVA del pedido sea 21, no 0. Pedidos-ui:cargarIngredientesPedido lo aplica + recalcula totales.
 // BUMP v102: IVA también en modal Editar Pedido (duplicar / editar pedido pendiente). Antes no aparecía. Autorrellena del proveedor + muestra fila IVA + fila Total con IVA en footer cuando >0. Solo display visual, no se persiste en BD (igual que Nuevo Pedido y Recepción).
 // BUMP v103: fix label dropdown ingrediente en Nuevo Pedido. Mostraba "VINO NANO (80€/botella)" cuando ing.precio=80 era precio de la CAJA, no de la botella. Cliente confundido. Ahora divide por cantidad_por_formato → muestra "VINO NANO (13,33€/botella)" coincidiendo con Inventario. Editar Pedido ya usaba getIngredientUnitPrice() canónico.
+// BUMP v104: transparencia precio ingrediente. Hint visual junto al campo Precio del modal Editar Ingrediente explicando que la app lo recalcula automáticamente tras cada pedido (PMC × cpf). Si el usuario edita un ingrediente existente, hint enriquecido con el desglose actual: "13,33€/botella × 6 = 80€/CAJA". Cliente Iker preocupado por confusión "¿se ha roto?" cuando el precio configurado se mueve solo.
 
-const CACHE_NAME = 'mindloop-costos-v103';
+const CACHE_NAME = 'mindloop-costos-v104';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
