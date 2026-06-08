@@ -12,9 +12,27 @@
  */
 import { test, expect } from '@playwright/test';
 
+/**
+ * El SPA dispara `window.cargarDatos()` al arrancar pero es async — sin esperar
+ * a que termine, `window.recetas` y `window.ingredientes` aún están vacíos. Si
+ * cambiamos a la pestaña Análisis en ese momento, `renderizarAnalisis()` ve
+ * arrays vacíos y sale por la rama "tab vacío" sin llamar al hook nuevo, así
+ * que los IDs `#analisis-dashboard-sintetico|matriz-bcg-v2|omnes` nunca se
+ * crean. En el navegador no se nota porque cargas la página con calma; en CI
+ * el click es inmediato y revienta.
+ */
+async function aguardarCargaInicial(page) {
+    await page.waitForFunction(
+        () => Array.isArray(window.recetas) && window.recetas.length > 0
+            && Array.isArray(window.ingredientes) && window.ingredientes.length > 0,
+        { timeout: 20_000 }
+    );
+}
+
 test.describe('Análisis · Matriz BCG y Omnes', () => {
     test('la pestaña Análisis carga con título BCG y bloque Omnes', async ({ page }) => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
+        await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
 
         // Dashboard sintético (4 cards categoría) — primera línea del módulo
@@ -31,6 +49,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
 
     test('cambiar el periodo recarga BCG y Omnes', async ({ page }) => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
+        await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
 
         await expect(page.locator('#analisis-omnes')).toBeVisible({ timeout: 15_000 });
@@ -46,6 +65,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
 
     test('el botón "¿Qué es esto?" de Omnes abre el modal explicativo', async ({ page }) => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
+        await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
 
         await expect(page.locator('#analisis-omnes')).toBeVisible({ timeout: 15_000 });
@@ -64,6 +84,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
 
     test('el botón "¿Qué es esto?" de la Matriz BCG abre su modal explicativo', async ({ page }) => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
+        await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
 
         await expect(page.locator('#analisis-matriz-bcg-v2')).toBeVisible({ timeout: 15_000 });
@@ -84,6 +105,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
 
     test('click en un plato del BCG abre el modal drill-down con Coach IA', async ({ page }) => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
+        await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
 
         await expect(page.locator('#analisis-matriz-bcg-v2')).toBeVisible({ timeout: 15_000 });
@@ -104,6 +126,7 @@ test.describe('Análisis · Matriz BCG y Omnes', () => {
 
     test('las cards de Omnes muestran su tip de consejo cuando hay datos', async ({ page }) => {
         await page.goto('/', { waitUntil: 'domcontentloaded' });
+        await aguardarCargaInicial(page);
         await page.locator('[data-tab="analisis"]').first().click();
 
         const omnes = page.locator('#analisis-omnes');
