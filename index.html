@@ -1229,22 +1229,35 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-proveedor" data-i18n="proveedores:btn_new">+
                 Añadir Proveedor</button>
-              <!-- Carpeta Excel (UX 2026-06-08 rev2). Proveedores solo tiene
-                   plantilla por ahora (no import/export propios). -->
+              <!-- Carpeta Excel (UX 2026-06-08). 3 opciones: plantilla / import / export. -->
               <div class="ad-wrapper">
                 <button type="button" class="btn btn-secondary ad-trigger ad-folder-trigger"
-                        title="Plantilla de proveedores">
+                        title="Importar y exportar Excel">
                   <span class="ad-folder-icon">📂</span>
                   <span class="ad-folder-label">Excel</span>
                 </button>
                 <div class="ad-menu ad-menu--rich" role="menu">
-                  <a role="menuitem" href="/templates/plantilla-proveedores.csv" download>
+                  <button type="button" role="menuitem" data-action="descargar-plantilla-proveedores">
                     <span class="ad-icon">📥</span>
                     <span class="ad-text">
                       <strong>Descargar plantilla</strong>
-                      <small>CSV de ejemplo con proveedores ya rellenados. Útil para listar tus contactos antes de añadirlos uno a uno.</small>
+                      <small>Excel de ejemplo con proveedores ya rellenados. Edítalo y úsalo como punto de partida.</small>
                     </span>
-                  </a>
+                  </button>
+                  <button type="button" role="menuitem" data-action="importar-proveedores">
+                    <span class="ad-icon">📤</span>
+                    <span class="ad-text">
+                      <strong>Importar desde Excel</strong>
+                      <small>Sube tus proveedores en lote desde un archivo Excel o CSV.</small>
+                    </span>
+                  </button>
+                  <button type="button" role="menuitem" data-action="exportar-proveedores">
+                    <span class="ad-icon">💾</span>
+                    <span class="ad-text">
+                      <strong>Exportar mis proveedores</strong>
+                      <small>Descarga toda tu lista actual en Excel para editar fuera de la app.</small>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -3149,6 +3162,50 @@
               <button class="btn btn-primary" data-action="confirmar-importar-recetas"
                 id="btn-confirmar-importar-recetas" data-i18n="recetas:import_confirm_btn">✓
                 Importar Recetas</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Importar Proveedores -->
+      <div id="modal-importar-proveedores" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+          <span class="close" data-action="cerrar-modal-importar-proveedores">&times;</span>
+          <h2>📤 Importar Proveedores desde Excel</h2>
+
+          <div style="margin: 20px 0;">
+            <p style="color: #64748b; margin-bottom: 15px;">
+              Sube un Excel o CSV con las columnas: <strong>Nombre</strong>, <strong>Contacto</strong>,
+              <strong>Teléfono</strong>, <strong>Email</strong>, <strong>CIF</strong>,
+              <strong>IVA (%)</strong>, <strong>Código</strong>, <strong>Dirección</strong>, <strong>Notas</strong>.
+              Solo <strong>Nombre</strong> es obligatorio.
+            </p>
+
+            <div style="margin-bottom: 15px; font-size: 13px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+              💡 ¿No tienes el archivo? Pulsa <strong>"Descargar plantilla"</strong> en el menú 📂 Excel para empezar con un ejemplo rellenado.
+            </div>
+
+            <div
+              style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+              <input type="file" id="file-importar-proveedores" accept=".xlsx,.csv" style="display: none;"
+                onchange="window.procesarArchivoProveedores(this)">
+              <label for="file-importar-proveedores" style="cursor: pointer;">
+                <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+                <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo</div>
+                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+              </label>
+            </div>
+          </div>
+
+          <div id="preview-importar-proveedores" style="display: none; margin-top: 20px;">
+            <h3>Vista Previa de Proveedores</h3>
+            <div id="preview-proveedores-container"
+              style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+              <button class="btn btn-secondary" data-action="cancelar-importar-proveedores">Cancelar</button>
+              <button class="btn btn-primary" data-action="confirmar-importar-proveedores"
+                id="btn-confirmar-importar-proveedores">✓ Importar Proveedores</button>
             </div>
           </div>
         </div>

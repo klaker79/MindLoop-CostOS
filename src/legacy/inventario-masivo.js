@@ -1417,6 +1417,261 @@ window.exportarEscandalloReceta = async function (recetaId) {
     }
 };
 
+// ========== PROVEEDORES (importar / plantilla / exportar) ==========
+// Cabecera canónica de proveedores. ÚNICO sitio donde se define el orden — la
+// plantilla, el export real y el parser de import comparten esta lista para
+// que los 3 nunca diverjan. Solo `Nombre` es obligatorio; el resto opcional.
+// `iva_pct` se trata como porcentaje 0-100 (NUMERIC(5,2) en BD, no afecta
+// fórmulas — solo display en modal de recepción).
+const PROVEEDORES_HEADER = ['Nombre', 'Contacto', 'Teléfono', 'Email', 'CIF', 'IVA (%)', 'Código', 'Dirección', 'Notas'];
+const PROVEEDORES_COL_WIDTHS = [{ wch: 25 }, { wch: 18 }, { wch: 14 }, { wch: 24 }, { wch: 14 }, { wch: 10 }, { wch: 12 }, { wch: 28 }, { wch: 30 }];
+
+const PLANTILLA_PROVEEDORES_EJEMPLO = [
+    ['PESCADOS PEREZ', 'Juan Perez', '600111222', 'juan@pescadosperez.com', 'B12345678', 10, '', 'Mercado Central Galicia', 'Pescado fresco diario llamar 8h'],
+    ['VERDURAS LA HUERTA', 'Maria Lopez', '600333444', 'maria@laHuerta.com', 'B23456789', 4, '', 'Pol Industrial 3', 'Verdura ecologica martes/viernes'],
+    ['CARNICAS ATLANTICAS', 'Pedro Garcia', '600555666', 'pedro@carnicas.com', 'B34567890', 10, '', 'Calle Real 12', 'Reservar lomo con 48h'],
+    ['BODEGA RIBEIRO', 'Bodegas SL', '600777888', 'info@bodegariberia.com', 'B45678901', 21, '', 'Carretera Ourense km 5', 'Vino y bebidas'],
+    ['LACTEOS DEL VALLE', 'Ana Rios', '600999000', 'ana@lacteos.com', 'B56789012', 10, '', 'Avda Galicia 88', 'Queso fresco lunes y jueves'],
+];
+
+function _filaProveedor(prov) {
+    const iva = (prov.iva_pct !== null && prov.iva_pct !== undefined && prov.iva_pct !== '')
+        ? prov.iva_pct : '';
+    return [
+        prov.nombre || '',
+        prov.contacto || '',
+        prov.telefono || '',
+        prov.email || '',
+        prov.cif || '',
+        iva,
+        prov.codigo || '',
+        prov.direccion || '',
+        prov.notas || '',
+    ];
+}
+
+function _construirLibroProveedores(filasSinCabecera) {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([PROVEEDORES_HEADER, ...filasSinCabecera]);
+    ws['!cols'] = PROVEEDORES_COL_WIDTHS;
+    XLSX.utils.book_append_sheet(wb, ws, 'Proveedores');
+    return wb;
+}
+
+// 📥 Plantilla: SIEMPRE el ejemplo. No depende de los datos del usuario.
+window.descargarPlantillaProveedores = async function () {
+    try {
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        const wb = _construirLibroProveedores(PLANTILLA_PROVEEDORES_EJEMPLO);
+        XLSX.writeFile(wb, `plantilla_proveedores_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error generando la plantilla: ' + error.message, 'error');
+    }
+};
+
+// 💾 Exporta TUS proveedores reales en formato re-importable. Sin proveedores → toast.
+window.exportarProveedores = async function () {
+    try {
+        const proveedores = Array.isArray(window.proveedores) ? window.proveedores : [];
+        if (proveedores.length === 0) {
+            window.showToast('Aún no tienes proveedores. Pulsa "Descargar plantilla" para empezar con un ejemplo.', 'info');
+            return;
+        }
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        const filas = proveedores.map(_filaProveedor);
+        const wb = _construirLibroProveedores(filas);
+        XLSX.writeFile(wb, `mis_proveedores_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error exportando proveedores: ' + error.message, 'error');
+    }
+};
+
+// ===== IMPORT =====
+let datosImportarProveedores = [];
+
+window.mostrarModalImportarProveedores = function () {
+    document.getElementById('modal-importar-proveedores').classList.add('active');
+    document.getElementById('preview-importar-proveedores').style.display = 'none';
+    document.getElementById('file-importar-proveedores').value = '';
+    datosImportarProveedores = [];
+};
+
+window.procesarArchivoProveedores = async function (input) {
+    const file = input.files[0];
+    if (!file) return;
+    document.getElementById('loading-overlay').classList.add('active');
+    try {
+        const data = await leerArchivoGenerico(file);
+        datosImportarProveedores = validarDatosProveedores(data);
+        mostrarPreviewProveedores(datosImportarProveedores);
+    } catch (error) {
+        window.showToast('Error procesando archivo: ' + error.message, 'error');
+    } finally {
+        document.getElementById('loading-overlay').classList.remove('active');
+    }
+};
+
+function celdaProv(row, nombres) {
+    const keys = Object.keys(row);
+    for (const n of nombres) {
+        const target = String(n).trim().toLowerCase();
+        for (const k of keys) {
+            if (String(k).trim().toLowerCase() === target) {
+                const v = row[k];
+                if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+            }
+        }
+    }
+    return '';
+}
+
+function validarDatosProveedores(data) {
+    if (!Array.isArray(data) || data.length === 0) return [];
+    return data.map(row => {
+        const nombre = String(celdaProv(row, ['Nombre', 'nombre', 'NOMBRE'])).trim();
+        const contacto = String(celdaProv(row, ['Contacto', 'contacto'])).trim();
+        const telefono = String(celdaProv(row, ['Teléfono', 'Telefono', 'telefono'])).trim();
+        const email = String(celdaProv(row, ['Email', 'email', 'Correo', 'correo'])).trim();
+        const cif = String(celdaProv(row, ['CIF', 'cif', 'NIF', 'nif'])).trim();
+        const direccion = String(celdaProv(row, ['Dirección', 'Direccion', 'direccion'])).trim();
+        const notas = String(celdaProv(row, ['Notas', 'notas', 'Observaciones'])).trim();
+        const codigo = String(celdaProv(row, ['Código', 'Codigo', 'codigo'])).trim();
+        const ivaRaw = celdaProv(row, ['IVA (%)', 'IVA habitual (%)', 'IVA', 'iva', 'iva_pct']);
+        let iva_pct = null;
+        if (ivaRaw !== '' && ivaRaw !== null && ivaRaw !== undefined) {
+            const n = parseFloat(String(ivaRaw).replace(',', '.'));
+            if (Number.isFinite(n) && n >= 0 && n <= 100) iva_pct = Math.round(n * 100) / 100;
+        }
+        const valido = nombre.length > 0;
+        return {
+            nombre, contacto, telefono, email, cif, direccion, notas, codigo, iva_pct,
+            valido, error: valido ? null : 'Nombre requerido',
+        };
+    });
+}
+
+function mostrarPreviewProveedores(datos) {
+    const validos = datos.filter(d => d.valido).length;
+    const invalidos = datos.filter(d => !d.valido).length;
+
+    let html = `
+        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+          <strong>Resumen:</strong>
+          <span style="color: #10b981;">✓ ${validos} válidos</span>
+          ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
+        </div>
+        <table style="width: 100%; font-size: 13px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="padding: 10px; text-align: left;">Estado</th>
+              <th style="padding: 10px; text-align: left;">Nombre</th>
+              <th style="padding: 10px; text-align: left;">Teléfono</th>
+              <th style="padding: 10px; text-align: left;">Email</th>
+              <th style="padding: 10px; text-align: center;">IVA</th>
+              <th style="padding: 10px; text-align: left;">Observación</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+    datos.forEach(item => {
+        const icon = item.valido ? '✓' : '✗';
+        const bg = item.valido ? '#f0fdf4' : '#fef2f2';
+        const ic = item.valido ? '#10b981' : '#ef4444';
+        const obs = item.valido ? 'OK' : escapeHTML(item.error || 'Error');
+        const obsColor = item.valido ? '#10b981' : '#ef4444';
+        const ivaTxt = item.iva_pct !== null ? `${item.iva_pct}%` : '—';
+        html += `
+          <tr style="background: ${bg};">
+            <td style="padding: 10px;"><span style="color: ${ic};">${icon}</span></td>
+            <td style="padding: 10px;">${escapeHTML(item.nombre) || '-'}</td>
+            <td style="padding: 10px;">${escapeHTML(item.telefono) || '-'}</td>
+            <td style="padding: 10px;">${escapeHTML(item.email) || '-'}</td>
+            <td style="padding: 10px; text-align: center;">${ivaTxt}</td>
+            <td style="padding: 10px; color: ${obsColor};">${obs}</td>
+          </tr>`;
+    });
+    html += '</tbody></table>';
+
+    document.getElementById('preview-proveedores-container').innerHTML = html;
+    document.getElementById('preview-importar-proveedores').style.display = 'block';
+    const btn = document.getElementById('btn-confirmar-importar-proveedores');
+    btn.disabled = !datos.some(d => d.valido);
+    btn.style.opacity = btn.disabled ? '0.5' : '1';
+}
+
+window.confirmarImportarProveedores = async function () {
+    const validos = datosImportarProveedores.filter(d => d.valido);
+    if (validos.length === 0) {
+        window.showToast('No hay proveedores válidos para importar', 'error');
+        return;
+    }
+    if (!confirm(`¿Importar ${validos.length} proveedores?`)) return;
+
+    // Upsert por nombre (case-insensitive). Si ya existe, se ACTUALIZA.
+    const existentes = new Map(
+        (window.proveedores || []).map(p => [String(p.nombre || '').trim().toLowerCase(), p])
+    );
+
+    document.getElementById('loading-overlay').classList.add('active');
+    const creados = [];
+    const actualizados = [];
+    const errores = [];
+
+    for (const p of validos) {
+        const clave = p.nombre.trim().toLowerCase();
+        const existente = existentes.get(clave);
+        const payload = {
+            nombre: p.nombre,
+            contacto: p.contacto,
+            telefono: p.telefono,
+            email: p.email,
+            cif: p.cif,
+            codigo: p.codigo,
+            direccion: p.direccion,
+            notas: p.notas,
+            iva_pct: p.iva_pct,
+        };
+        try {
+            if (existente) {
+                // Conservar la relación con ingredientes — no la tocamos desde el import.
+                payload.ingredientes = existente.ingredientes || [];
+                await window.api.updateProveedor(existente.id, payload);
+                actualizados.push(p.nombre);
+            } else {
+                const nuevo = await window.api.createProveedor(payload);
+                creados.push(p.nombre);
+                if (nuevo && (nuevo.id || nuevo.data?.id)) {
+                    existentes.set(clave, nuevo.data || nuevo);
+                }
+            }
+        } catch (error) {
+            errores.push(`${p.nombre}: ${error.message}`);
+        }
+    }
+
+    await window.cargarDatos();
+    if (typeof window.renderizarProveedores === 'function') window.renderizarProveedores();
+    document.getElementById('loading-overlay').classList.remove('active');
+    document.getElementById('modal-importar-proveedores').classList.remove('active');
+
+    const tipo = (creados.length || actualizados.length) ? 'success' : 'error';
+    if (errores.length === 0) {
+        window.showToast(`✓ ${creados.length} creados · ${actualizados.length} actualizados`, tipo);
+    } else {
+        window.showToast(`✓ ${creados.length} creados · ${actualizados.length} actualizados (${errores.length} con error)`, tipo);
+        alert(`Importación completada:\n\n✓ ${creados.length} creados\n✏️ ${actualizados.length} actualizados\n✗ ${errores.length} con error:\n${errores.join('\n')}`);
+    }
+};
+
+window.cancelarImportarProveedores = function () {
+    document.getElementById('modal-importar-proveedores').classList.remove('active');
+    datosImportarProveedores = [];
+};
+
 // ========== IMPORTAR VENTAS TPV ==========
 let datosImportarVentas = [];
 
