@@ -636,9 +636,14 @@ window.eliminarMerma = async function (id) {
 
         if (response?.success) {
             window.showToast?.('✅ Merma eliminada y stock restaurado', 'success');
-            // Recargar historial y datos
+            // Recargar historial + estado completo (Iker 2026-06-08): antes solo
+            // se refrescaba window.ingredientes, pero la pestaña Inventario lee
+            // de window.inventarioCompleto y se quedaba con datos viejos. Bug
+            // visible al borrar merma → P&L cuadraba pero Inventario no.
             await window.cargarHistorialMermas();
-            window.ingredientes = await window.api?.getIngredientes?.();
+            if (typeof window.cargarDatos === 'function') {
+                await window.cargarDatos();
+            }
             window.renderizarIngredientes?.();
             window.renderizarInventario?.();
         } else {
