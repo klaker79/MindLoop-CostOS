@@ -65,8 +65,17 @@ function buildSubtitle(reason) {
     }
 }
 
+function isOnLoginPage() {
+    if (typeof window === 'undefined' || !window.location) return false;
+    const path = (window.location.pathname || '').toLowerCase();
+    return path.includes('/login') || path.endsWith('login.html');
+}
+
 function showSubscriptionModal(detail) {
     if (modalShown) return;
+    // No mostrar antes de logarse — el usuario aún no sabe qué es CostOS,
+    // sería confuso ver "Tu prueba ha terminado" en la pantalla de login.
+    if (isOnLoginPage()) return;
     modalShown = true;
 
     const reason = detail?.reason || 'no_subscription';
