@@ -448,10 +448,27 @@ export function setupYieldSlider() {
                 }
             };
 
+            // Aviso de propagación (2026-06-08): si el usuario está EDITANDO
+            // un ingrediente existente y mueve el slider del rendimiento, el
+            // cambio impactará a todas las recetas que lo usan (coste teórico
+            // + descuento de stock). Solo mostramos el aviso si:
+            //   - está editando (no creando)
+            //   - el nuevo valor difiere del original al abrir el form
+            const warningEl = document.getElementById('ing-rendimiento-warning');
+            const estaEditando = window.editandoIngredienteId !== null && window.editandoIngredienteId !== undefined;
+            const valorInicial = parseInt(sliderEl.value) || 100;
+
+            const refrescarWarning = (val) => {
+                if (!warningEl) return;
+                const cambiado = estaEditando && parseInt(val) !== valorInicial;
+                warningEl.style.display = cambiado ? 'block' : 'none';
+            };
+
             // Eliminar listeners anteriores
             sliderEl.oninput = function () {
                 rendimientoEl.value = this.value;
                 updateSliderVisuals(this.value);
+                refrescarWarning(this.value);
             };
 
             rendimientoEl.onchange = function () {
@@ -460,10 +477,12 @@ export function setupYieldSlider() {
                 this.value = val;
                 sliderEl.value = val;
                 updateSliderVisuals(val);
+                refrescarWarning(val);
             };
 
-            // Inicializar visual
+            // Inicializar visual + reset warning oculto
             updateSliderVisuals(sliderEl.value);
+            if (warningEl) warningEl.style.display = 'none';
         }
     }, 100);
 }

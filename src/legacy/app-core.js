@@ -1755,8 +1755,17 @@
                 html += `<td>${cm(parseFloat(rec.coste || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.precio_venta || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.margen || 0))}</td>`;
-                // 🔒 Auditoría Capa 7 (S7 / A5-C1): margen ≥67% verde, 62-66% amarillo, <62% rojo (>= en vez de >)
-                html += `<td><span class="badge ${rec.margenPct >= 67 ? 'badge-success' : rec.margenPct >= 62 ? 'badge-warning' : 'badge-danger'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+                // Threshold por categoría — bebidas tienen target distinto que alimentos
+                // (food cost ~30-35% vs wine cost ~45%, → margen mín ≥62 vs ≥55).
+                // Iker 2026-06-08: el badge de un vino al 58% antes salía rojo cuando
+                // realmente está bien para su categoría.
+                const cat = String(rec.categoria || '').toLowerCase();
+                const esBebida = cat === 'bebidas' || cat === 'bebida';
+                const thrSuccess = esBebida ? 55 : 67;
+                const thrWarning = esBebida ? 50 : 62;
+                const pct = parseFloat(rec.margenPct || 0);
+                const badgeClass = pct >= thrSuccess ? 'badge-success' : pct >= thrWarning ? 'badge-warning' : 'badge-danger';
+                html += `<td><span class="badge ${badgeClass}" title="${esBebida ? 'Target bebidas: ≥55% verde' : 'Target alimentos: ≥67% verde'}">${pct.toFixed(1)}%</span></td>`;
                 html += '</tr>';
             });
 

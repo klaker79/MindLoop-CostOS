@@ -535,8 +535,15 @@ export async function renderizarRecetas() {
             const categoriaBadge = esBase ? 'badge-purple' : esBebida ? 'badge-info' : 'badge-success';
             html += `<td><span class="badge ${categoriaBadge}">${escapeHTML(rec.categoria)}</span></td>`;
             html += `<td>${cm(coste)}</td>`;
-            html += `<td>${cm(rec.precio_venta || 0)}</td>`;
-            html += `<td><span class="badge ${badgeClass}">${cm(margen)} (${pct}%)</span></td>`;
+            // Subproductos base no se venden → no tiene sentido PVP ni margen.
+            // Mostrar "—" con badge gris para no engañar con "0% rojo". Iker 2026-06-08.
+            if (esBase) {
+                html += `<td><span style="color:#94a3b8;" title="Los subproductos no se venden al cliente">—</span></td>`;
+                html += `<td><span class="badge" style="background:#e2e8f0;color:#475569;">N/A</span></td>`;
+            } else {
+                html += `<td>${cm(rec.precio_venta || 0)}</td>`;
+                html += `<td><span class="badge ${badgeClass}">${cm(margen)} (${pct}%)</span></td>`;
+            }
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="${t('recetas:btn_view_escandallo')}">📊</button>`;
             html += `<button class="icon-btn" onclick="window.exportarEscandalloReceta(${rec.id})" title="${t('recetas:export_escandallo_btn')}">📋</button>`;
