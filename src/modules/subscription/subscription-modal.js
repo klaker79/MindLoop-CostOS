@@ -123,6 +123,54 @@ function showSubscriptionModal(detail) {
     document.body.appendChild(overlay);
 }
 
+/**
+ * Wrap GLOBAL de window.fetch para detectar 403 SUBSCRIPTION_REQUIRED
+ * desde CUALQUIER cliente HTTP (apiClient, fetchWithCreds del legacy app-core,
+ * llamadas directas a fetch()). Necesario porque el frontend tiene varios
+ * clientes HTTP y no todos pasan por el handleResponse de api/client.js.
+ *
+ * Solo wrap UNA vez. Idempotente.
+ */
+/**
+ * Wrap GLOBAL de window.fetch (idempotente). Captura 403 SUBSCRIPTION_REQUIRED
+ * desde cualquier cliente. Guarda el último detail en window.__pendingSub para
+ * que mountSubscriptionModal lo dispare aunque el evento se haya enviado antes
+ * de que el listener esté atado (race condition: peticiones que arrancan antes
+ * de DOMContentLoaded).
+ */
+function installFetchInterceptor() {
+    if (typeof window === 'undefined' || !window.fetch) return;
+    if (window.__subscriptionInterceptorInstalled) return;
+    window.__subscriptionInterceptorInstalled = true;
+
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async function (...args) {
+        const response = await originalFetch(...args);
+        try {
+            if (response && response.status === 403) {
+                const body = await response.clone().json().catch(() => null);
+                if (body && body.error === 'SUBSCRIPTION_REQUIRED') {
+                    const detail = {
+                        reason: body.reason || 'no_subscription',
+                        trialEndedAt: body.trial_ended_at || null,
+                        plan: body.plan || null,
+                        planStatus: body.plan_status || null,
+                    };
+                    // Buffer: si el modal aún no se montó, queda guardado
+                    window.__pendingSub = detail;
+                    window.dispatchEvent(new CustomEvent('subscription:required', { detail }));
+                }
+            }
+        } catch (_e) { /* swallow — no romper el fetch original */ }
+        return response;
+    };
+}
+
+// Instalar el interceptor INMEDIATAMENTE al import (no esperar DOMContentLoaded).
+// Las peticiones que arrancan al cargar la app (chatStatus, getIngredientes, etc.)
+// salen antes del DOMContentLoaded — si esperamos, perdemos esos 403.
+installFetchInterceptor();
+
 export function mountSubscriptionModal() {
     if (typeof window === 'undefined') return;
     window.addEventListener('subscription:required', (event) => {
@@ -130,4 +178,10 @@ export function mountSubscriptionModal() {
     });
     // Expuesto para testing manual desde consola
     window.showSubscriptionModal = showSubscriptionModal;
+    // Si el interceptor ya recibió un 403 antes de que se montara el listener,
+    // dispararlo ahora (race condition al arrancar la app).
+    if (window.__pendingSub) {
+        showSubscriptionModal(window.__pendingSub);
+        window.__pendingSub = null;
+    }
 }

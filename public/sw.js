@@ -109,8 +109,9 @@
 // BUMP v112: fix UI tras borrar una merma del Historial. Antes solo se recargaba window.ingredientes pero la pestaña Inventario lee de window.inventarioCompleto → quedaba con datos viejos (P&L cuadraba, Inventario no). Ahora llama a window.cargarDatos() que refresca todo el estado del cliente.
 // BUMP v113: pestaña Análisis tragaba 403 trial_expired silenciosamente. Iker simuló trial caducado y vio cards en 0 sin ningún aviso (UX horrible). Fix: getMenuEngineering propaga error con status/trial_expired, y el catch muestra overlay claro con CTA "Ver planes y suscribirse" en vez de console.error mudo.
 // BUMP v114: modelo single-plan. Modal de suscripción GLOBAL — sustituye al overlay específico de Análisis. Interceptor en api/client.js detecta 403 SUBSCRIPTION_REQUIRED desde CUALQUIER endpoint y dispara evento global. El modal full-screen tapa toda la UI con CTA Polar (Self 95€ / Pro 185€). URLs configurables vía VITE_POLAR_CHECKOUT_URL_SELF/PRO y fallback contacto Iker para cuando Polar aún no esté listo (alta autónomos + onboarding Polar = 2-5 días). El chat IA va incluido en el plan (no más add-on de 30€).
+// BUMP v115: el interceptor de v114 solo capturaba 403 desde apiClient (src/api/client.js). El código legacy usa fetchWithCreds en src/legacy/app-core.js que NO pasa por handleResponse → 403 silenciosos, modal nunca aparecía. Fix: wrap GLOBAL de window.fetch al import time (no en DOMContentLoaded para no perder los 403 que ocurren al arrancar la app, como chatStatus). Buffer window.__pendingSub para race conditions.
 
-const CACHE_NAME = 'mindloop-costos-v114';
+const CACHE_NAME = 'mindloop-costos-v115';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
