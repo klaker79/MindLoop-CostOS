@@ -104,8 +104,9 @@
 // BUMP v107: toggle Alimentos/Bebidas/Todo en pestaña Análisis (ranking de rentabilidad + BCG). Antes hardcoded excluía bebidas → VINO NANO invisible aunque tuviera ventas. Iker pidió poder ver bebidas también. Default 'alimentos' (comportamiento histórico). Base SIEMPRE excluida (subproductos distorsionan). 3 botones pill encima de la tabla, persiste en window.analisisCategoriaFilter, re-render automático al cambiar. i18n es/en/zh.
 // BUMP v108: Matriz BCG (Ingeniería de Menú) vuelve a quedar SIEMPRE solo alimentos, independiente del toggle. Iker: la metodología Kasavana-Smith es para platos comparables. Mezclar bebidas (volumen distinto, se piden por categoría) distorsiona los cuadrantes. El toggle solo afecta al Ranking de Rentabilidad.
 // BUMP v109: 4 mejoras UX tras incidente PATATAS duplicada (Iker, 2026-06-08): (1) detección de duplicado al crear ingrediente con confirm, (2) aviso amber en modal Editar Ingrediente cuando se mueve el slider de rendimiento, (3) subproductos base muestran "—" y "N/A" en columnas PVP/Margen del listado (no engañar con "0% rojo"), (4) ranking de rentabilidad usa thresholds distintos por categoría — bebidas verde ≥55%, alimentos verde ≥67%.
+// BUMP v110: nueva fila "🗑️ MERMAS DEL DÍA" en P&L Diario. Antes las mermas solo bajaban el valor del inventario y NO aparecían en el beneficio neto — Iker pidió verlas como pérdida operativa. Carga /mermas?mes=&ano=, agrupa por fecha, muestra solo si hay >0. Beneficio Neto = MARGEN BRUTO − MERMAS − GASTOS FIJOS. COSTES PROD intacto (sigue siendo solo coste de receta vendida). i18n es/en/zh.
 
-const CACHE_NAME = 'mindloop-costos-v109';
+const CACHE_NAME = 'mindloop-costos-v110';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
