@@ -107,8 +107,9 @@
 // BUMP v110: nueva fila "🗑️ MERMAS DEL DÍA" en P&L Diario. Antes las mermas solo bajaban el valor del inventario y NO aparecían en el beneficio neto — Iker pidió verlas como pérdida operativa. Carga /mermas?mes=&ano=, agrupa por fecha, muestra solo si hay >0. Beneficio Neto = MARGEN BRUTO − MERMAS − GASTOS FIJOS. COSTES PROD intacto (sigue siendo solo coste de receta vendida). i18n es/en/zh.
 // BUMP v111: fix bug v110 — el endpoint /mermas devuelve `valor_perdida` (no `coste`) y `cantidad` es POSITIVA en la tabla (no negativa como asumí). Mi código descartaba todas las mermas porque cantidad >= 0. Verificado en mermas.routes.js y StockMovementRepository.createWaste(). Ahora suma correctamente las pérdidas del día.
 // BUMP v112: fix UI tras borrar una merma del Historial. Antes solo se recargaba window.ingredientes pero la pestaña Inventario lee de window.inventarioCompleto → quedaba con datos viejos (P&L cuadraba, Inventario no). Ahora llama a window.cargarDatos() que refresca todo el estado del cliente.
+// BUMP v113: pestaña Análisis tragaba 403 trial_expired silenciosamente. Iker simuló trial caducado y vio cards en 0 sin ningún aviso (UX horrible). Fix: getMenuEngineering propaga error con status/trial_expired, y el catch muestra overlay claro con CTA "Ver planes y suscribirse" en vez de console.error mudo.
 
-const CACHE_NAME = 'mindloop-costos-v112';
+const CACHE_NAME = 'mindloop-costos-v113';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
