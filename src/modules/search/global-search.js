@@ -100,11 +100,17 @@ function performSearch(query) {
     // Search Ingredients
     (window.ingredientes || []).forEach(ing => {
         if (ing.nombre?.toLowerCase().includes(q) || ing.categoria?.toLowerCase().includes(q)) {
+            // Precio €/unidad-base (PMC real). Si tiene formato (CAJA 6 btl),
+            // ing.precio es el del FORMATO → dividir por cpf. Fix 2026-06-08
+            // alineado con pedidos-ui y recetas-ui (label confundía al cliente).
+            const precioFormato = parseFloat(ing.precio || 0);
+            const cpfBuscador = parseFloat(ing.cantidad_por_formato) > 0 ? parseFloat(ing.cantidad_por_formato) : 1;
+            const precioUnitario = precioFormato / cpfBuscador;
             matches.push({
                 type: 'ingrediente',
                 icon: '🥬',
                 title: ing.nombre,
-                subtitle: `${escapeHTML(ing.categoria || t('common:no_category'))} • ${cm(parseFloat(ing.precio || 0))}/${escapeHTML(ing.unidad || 'ud')}`,
+                subtitle: `${escapeHTML(ing.categoria || t('common:no_category'))} • ${cm(precioUnitario)}/${escapeHTML(ing.unidad || 'ud')}`,
                 action: () => {
                     window.cambiarTab?.('ingredientes');
                     document.getElementById('busqueda-ingredientes').value = ing.nombre;

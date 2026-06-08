@@ -103,8 +103,14 @@ export function agregarIngredienteReceta(initialValue = '') {
     let optionsHtml = `<option value=""${initialValue ? '' : ' selected'}>${t('recetas:select_ingredient')}</option>`;
 
     // Ingredientes normales
+    // Mostrar SIEMPRE €/unidad-base (PMC real). Si tiene formato (CAJA 6 btl,
+    // GARRAFA 5 l), ing.precio es el precio del FORMATO → dividir por cpf.
+    // Igual fix que pedidos-ui (2026-06-08): así el label coincide con el
+    // coste de producción que muestra la receta más abajo.
     ingredientesOrdenados.forEach(ing => {
-        const precio = parseFloat(ing.precio || 0).toFixed(2);
+        const precioFormato = parseFloat(ing.precio || 0);
+        const cpf = parseFloat(ing.cantidad_por_formato) > 0 ? parseFloat(ing.cantidad_por_formato) : 1;
+        const precio = (precioFormato / cpf).toFixed(2);
         const unidad = ing.unidad || 'ud';
         optionsHtml += `<option value="${ing.id}"${sel(ing.id)}>${escapeHTML(ing.nombre)} (${cm(precio)}/${escapeHTML(unidad)})</option>`;
     });
@@ -470,6 +476,10 @@ export async function renderizarRecetas() {
                     label: t('recetas:onb_cta_manual', { defaultValue: '✏️ Crear receta' }),
                     onclick: 'window.mostrarFormularioReceta?.()'
                 },
+                templateDownload: {
+                    url: '/templates/plantilla-recetas.csv',
+                    label: '📥 Descargar plantilla de ejemplo (CSV)'
+                },
                 tertiaryHelp: t('recetas:onb_help', {
                     defaultValue: 'Necesitas tener ingredientes antes. Si no los tienes, ve a la pestaña Ingredientes primero.'
                 })
@@ -525,8 +535,15 @@ export async function renderizarRecetas() {
             const categoriaBadge = esBase ? 'badge-purple' : esBebida ? 'badge-info' : 'badge-success';
             html += `<td><span class="badge ${categoriaBadge}">${escapeHTML(rec.categoria)}</span></td>`;
             html += `<td>${cm(coste)}</td>`;
-            html += `<td>${cm(rec.precio_venta || 0)}</td>`;
-            html += `<td><span class="badge ${badgeClass}">${cm(margen)} (${pct}%)</span></td>`;
+            // Subproductos base no se venden → no tiene sentido PVP ni margen.
+            // Mostrar "—" con badge gris para no engañar con "0% rojo". Iker 2026-06-08.
+            if (esBase) {
+                html += `<td><span style="color:#94a3b8;" title="Los subproductos no se venden al cliente">—</span></td>`;
+                html += `<td><span class="badge" style="background:#e2e8f0;color:#475569;">N/A</span></td>`;
+            } else {
+                html += `<td>${cm(rec.precio_venta || 0)}</td>`;
+                html += `<td><span class="badge ${badgeClass}">${cm(margen)} (${pct}%)</span></td>`;
+            }
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="${t('recetas:btn_view_escandallo')}">📊</button>`;
             html += `<button class="icon-btn" onclick="window.exportarEscandalloReceta(${rec.id})" title="${t('recetas:export_escandallo_btn')}">📋</button>`;

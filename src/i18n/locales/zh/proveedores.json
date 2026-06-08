@@ -29,5 +29,6 @@
   "form_label_phone": "电话",
   "form_label_address": "地址",
   "form_label_notes": "备注",
+  "form_label_iva": "常用增值税 (%)",
   "form_supplies_title": "供应的食材"
 }

@@ -30,5 +30,6 @@
   "form_label_phone": "Phone",
   "form_label_address": "Address",
   "form_label_notes": "Notes",
+  "form_label_iva": "Typical VAT (%)",
   "form_supplies_title": "Ingredients supplied"
 }

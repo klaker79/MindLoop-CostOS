@@ -39,6 +39,10 @@ export function renderEmptyStateOnboarding({
     primaryCta = null,
     secondaryCta = null,
     tertiaryHelp = null,
+    // 2026-06-06: link a plantilla CSV/Excel descargable para que el
+    // cliente nuevo tenga un punto de partida ya con datos de ejemplo.
+    // { url: '/templates/x.csv', label: '📥 Descargar plantilla' }
+    templateDownload = null,
 }) {
     const safeTitle = escapeHTML(title);
     const safeSubtitle = escapeHTML(subtitle);
@@ -71,6 +75,16 @@ export function renderEmptyStateOnboarding({
         : '';
     const tertiaryHtml = tertiaryHelp
         ? `<div class="onb-tertiary-help">${escapeHTML(tertiaryHelp)}</div>`
+        : '';
+
+    const templateHtml = templateDownload && templateDownload.url
+        ? `<div class="onb-template-link">
+                <a href="${escapeHTML(templateDownload.url)}" download
+                   style="display:inline-flex; align-items:center; gap:6px; color:#6366f1; text-decoration:none; font-weight:600; font-size:13px; padding:8px 14px; border:1px dashed #c7d2fe; border-radius:8px; background:rgba(199,210,254,0.18);">
+                    ${escapeHTML(templateDownload.label || '📥 Descargar plantilla de ejemplo')}
+                </a>
+                <div style="font-size:11px; color:#6b7280; margin-top:6px;">CSV editable en Excel o Google Sheets. Datos de ejemplo realistas — bórralos y mete los tuyos.</div>
+           </div>`
         : '';
 
     return `
@@ -195,6 +209,7 @@ export function renderEmptyStateOnboarding({
             ${primaryHtml}
             ${secondaryHtml}
         </div>
+        ${templateHtml}
         ${tertiaryHtml}
     </div>`;
 }

@@ -5,6 +5,7 @@
 
 import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
+import { escapeHTML } from '../../utils/helpers.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
 // 🆕 Zustand store para gestión de estado
 import ingredientStore from '../../stores/ingredientStore.js';
@@ -62,6 +63,42 @@ export async function guardarIngrediente(event) {
         return;
     }
 
+    // 🆕 Detección de duplicado por nombre (2026-06-08). Iker se chocó hoy con
+    // 2 PATATAS distintas: el descuento de stock se aplicó al ingrediente
+    // "fantasma" sin que el usuario se diese cuenta. Para prevenir el caso
+    // raíz, antes de CREAR (no editar) buscamos si ya hay un ingrediente con
+    // el mismo nombre normalizado (sin acentos, lowercase, trim). Si lo hay,
+    // confirmamos con el usuario antes de duplicar.
+    const editandoId_dup = window.editandoIngredienteId;
+    if (editandoId_dup === null || editandoId_dup === undefined) {
+        const normalizar = (s) => String(s || '')
+            .trim()
+            .toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const nombreNorm = normalizar(ingrediente.nombre);
+        const duplicado = (window.ingredientes || []).find(i =>
+            normalizar(i.nombre) === nombreNorm
+        );
+        if (duplicado) {
+            const proveedorMsg = duplicado.proveedor_nombre
+                ? ` (proveedor: ${duplicado.proveedor_nombre})`
+                : '';
+            const stockMsg = duplicado.stock_actual !== null && duplicado.stock_actual !== undefined
+                ? ` con stock ${parseFloat(duplicado.stock_actual)} ${duplicado.unidad || ''}`
+                : '';
+            const continuar = window.confirm(
+                `Ya existe un ingrediente llamado "${duplicado.nombre}"${proveedorMsg}${stockMsg}.\n\n` +
+                `Crear otro con el mismo nombre puede fragmentar tu stock y descuentos. ` +
+                `Si solo cambia el proveedor, te recomendamos editar el existente y añadir el nuevo proveedor desde su ficha.\n\n` +
+                `¿Quieres crear uno NUEVO igualmente?`
+            );
+            if (!continuar) {
+                _guardandoIngrediente = false;
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+        }
+    }
 
     if (typeof window.showLoading === 'function') window.showLoading();
 
@@ -248,6 +285,29 @@ export function editarIngrediente(id) {
 
     const precioEl = getElement('ing-precio');
     if (precioEl) precioEl.value = ing.precio || '';
+
+    // Enriquecer el hint del precio con el PMC actual del ingrediente.
+    // El backend recalcula `ing.precio = PMC × cpf` tras cada pedido recibido
+    // (businessHelpers.recalcularPrecioPonderado), así que precio / cpf = PMC.
+    // Mostrarlo aquí le da al usuario transparencia: ve de dónde sale el número.
+    const hintEl = getElement('ing-precio-hint');
+    if (hintEl) {
+        const precio = parseFloat(ing.precio) || 0;
+        const cpf = parseFloat(ing.cantidad_por_formato) > 0 ? parseFloat(ing.cantidad_por_formato) : 1;
+        // ing.unidad y ing.formato_compra vienen de input del usuario → escapar antes de inyectar.
+        const unidadBase = escapeHTML(ing.unidad || 'ud');
+        const formato = escapeHTML(ing.formato_compra || '');
+        const pmc = precio / cpf;
+        let detalle = '';
+        if (precio > 0) {
+            if (formato && cpf > 1) {
+                detalle = ` Actualmente: <strong>${pmc.toFixed(2)}€/${unidadBase} × ${cpf} = ${precio.toFixed(2)}€/${formato}</strong>.`;
+            } else {
+                detalle = ` Actualmente: <strong>${precio.toFixed(2)}€/${unidadBase}</strong>.`;
+            }
+        }
+        hintEl.innerHTML = `💡 La app recalcula este precio automáticamente tras cada pedido recibido (precio medio de compras × cantidad por formato).${detalle} Si lo editas a mano, el siguiente pedido lo sobreescribirá.`;
+    }
 
     const unidadEl = getElement('ing-unidad');
     if (unidadEl) unidadEl.value = ing.unidad;

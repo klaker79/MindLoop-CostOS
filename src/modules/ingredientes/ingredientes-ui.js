@@ -208,6 +208,10 @@ export function renderizarIngredientes() {
                         label: t('ingredientes:onb_cta_manual', { defaultValue: '✏️ Añadir manual' }),
                         onclick: 'window.mostrarFormularioIngrediente?.()'
                     },
+                    templateDownload: {
+                        url: '/templates/plantilla-ingredientes.csv',
+                        label: '📥 Descargar plantilla de ejemplo (CSV)'
+                    },
                     tertiaryHelp: t('ingredientes:onb_help', {
                         defaultValue: '¿Dudas? Escríbenos por WhatsApp y te ayudamos al instante.'
                     })
@@ -444,10 +448,27 @@ export function setupYieldSlider() {
                 }
             };
 
+            // Aviso de propagación (2026-06-08): si el usuario está EDITANDO
+            // un ingrediente existente y mueve el slider del rendimiento, el
+            // cambio impactará a todas las recetas que lo usan (coste teórico
+            // + descuento de stock). Solo mostramos el aviso si:
+            //   - está editando (no creando)
+            //   - el nuevo valor difiere del original al abrir el form
+            const warningEl = document.getElementById('ing-rendimiento-warning');
+            const estaEditando = window.editandoIngredienteId !== null && window.editandoIngredienteId !== undefined;
+            const valorInicial = parseInt(sliderEl.value) || 100;
+
+            const refrescarWarning = (val) => {
+                if (!warningEl) return;
+                const cambiado = estaEditando && parseInt(val) !== valorInicial;
+                warningEl.style.display = cambiado ? 'block' : 'none';
+            };
+
             // Eliminar listeners anteriores
             sliderEl.oninput = function () {
                 rendimientoEl.value = this.value;
                 updateSliderVisuals(this.value);
+                refrescarWarning(this.value);
             };
 
             rendimientoEl.onchange = function () {
@@ -456,10 +477,12 @@ export function setupYieldSlider() {
                 this.value = val;
                 sliderEl.value = val;
                 updateSliderVisuals(val);
+                refrescarWarning(val);
             };
 
-            // Inicializar visual
+            // Inicializar visual + reset warning oculto
             updateSliderVisuals(sliderEl.value);
+            if (warningEl) warningEl.style.display = 'none';
         }
     }, 100);
 }
@@ -497,20 +520,27 @@ export function exportarIngredientes() {
         return;
     }
 
+    // 2026-06-08: columnas alineadas con el importador para round-trip completo.
+    // Antes faltaban Cantidad por formato / Formato / Rendimiento / Familia → si el
+    // cliente exportaba + editaba + re-importaba perdía el formato de compra y los
+    // ingredientes quedaban con cpf=1 (precio unitario inflado × N → food cost falso).
     const columnas = [
-        { header: t('ingredientes:export_col_name'), key: 'nombre' },
-        { header: t('ingredientes:export_col_category'), key: 'categoria' },
+        { header: 'Nombre', key: 'nombre' },
+        { header: 'Precio', value: ing => parseFloat(ing.precio || 0).toFixed(2) },
+        { header: 'Unidad', key: 'unidad' },
+        { header: 'Cantidad por formato', value: ing => ing.cantidad_por_formato || '' },
+        { header: 'Formato', value: ing => ing.formato_compra || '' },
+        { header: 'Rendimiento (%)', value: ing => ing.rendimiento || 100 },
+        { header: 'Stock Actual', value: ing => parseFloat(ing.stock_actual || 0).toFixed(2) },
+        { header: 'Stock Mínimo', value: ing => parseFloat(ing.stock_minimo || 0).toFixed(2) },
+        { header: 'Familia', value: ing => ing.familia || 'alimento' },
         {
-            header: t('ingredientes:export_col_supplier'),
+            header: 'Proveedor',
             value: ing => {
                 const prov = (window.proveedores || []).find(p => p.id === ing.proveedor_id);
-                return prov ? prov.nombre : t('ingredientes:no_supplier');
+                return prov ? prov.nombre : '';
             },
         },
-        { header: t('ingredientes:export_col_price'), value: ing => parseFloat(ing.precio || 0).toFixed(2) },
-        { header: t('ingredientes:export_col_unit'), key: 'unidad' },
-        { header: t('ingredientes:export_col_stock_actual'), value: ing => parseFloat(ing.stock_actual || 0).toFixed(2) },
-        { header: t('ingredientes:export_col_stock_min'), value: ing => parseFloat(ing.stock_minimo || 0).toFixed(2) },
     ];
 
     window.exportarAExcel(window.ingredientes || [], 'Ingredientes_CostOS', columnas);

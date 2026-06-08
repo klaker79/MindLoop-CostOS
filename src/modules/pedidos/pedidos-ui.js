@@ -268,6 +268,16 @@ export function cargarIngredientesPedido() {
     const proveedor = window.proveedores.find(p => p.id === proveedorId);
     const esCompraMercado = proveedor && proveedor.nombre.toLowerCase().includes('mercado');
 
+    // 🆕 Autorelleno IVA habitual del proveedor (Migration 013 ya alimentaba el
+    // modal de recepción; aquí lo extendemos al modal de NUEVO pedido). Si el
+    // proveedor no tiene iva_pct configurado, dejamos 0 (placeholder).
+    const ivaInput = document.getElementById('ped-iva');
+    if (ivaInput && proveedor) {
+        const ivaHabitual = (proveedor.iva_pct !== null && proveedor.iva_pct !== undefined) ? proveedor.iva_pct : 0;
+        ivaInput.value = ivaHabitual;
+        if (typeof window.calcularTotalPedido === 'function') window.calcularTotalPedido();
+    }
+
     // 🏪 Para compras del mercado: mostrar TODOS los ingredientes
     if (esCompraMercado) {
         if ((window.ingredientes || []).length === 0) {
@@ -346,7 +356,17 @@ export function agregarIngredientePedido() {
         const formatoInfo = ing.formato_compra && ing.cantidad_por_formato
             ? `data-formato="${escapeHTML(ing.formato_compra)}" data-cantidad-formato="${escapeHTML(String(ing.cantidad_por_formato))}"`
             : '';
-        opciones += `<option value="${ing.id}" ${formatoInfo} data-unidad="${escapeHTML(ing.unidad || 'ud')}" data-precio="${parseFloat(ing.precio || 0)}">${escapeHTML(ing.nombre)} (${cm(parseFloat(ing.precio || 0))}/${escapeHTML(ing.unidad || 'ud')})</option>`;
+        // Label del dropdown: mostrar SIEMPRE €/unidad-base para que el cliente
+        // pueda comparar con el escandallo (que también va en unidades base).
+        // Si el ingrediente tiene formato (CAJA 6 botellas, GARRAFA 5 l...), el
+        // `ing.precio` es el precio del FORMATO; dividimos por cpf para obtener
+        // el precio real por unidad base. Antes mostraba "80€/botella" cuando
+        // realmente era 80€/CAJA — engañaba al cliente (Iker, 2026-06-08).
+        const precioFormato = parseFloat(ing.precio || 0);
+        const cpf = parseFloat(ing.cantidad_por_formato) > 0 ? parseFloat(ing.cantidad_por_formato) : 1;
+        const precioPorUnidadBase = precioFormato / cpf;
+        const unidadBase = ing.unidad || 'ud';
+        opciones += `<option value="${ing.id}" ${formatoInfo} data-unidad="${escapeHTML(unidadBase)}" data-precio="${precioFormato}">${escapeHTML(ing.nombre)} (${cm(precioPorUnidadBase)}/${escapeHTML(unidadBase)})</option>`;
     });
 
     // Para compras del mercado: mostrar campo de precio editable

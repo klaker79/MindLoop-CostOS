@@ -80,6 +80,7 @@ import './styles/components/kpi-dashboard.css';
 import './styles/components/cost-breakdown.css';
 import './styles/components/quick-actions.css';
 import './styles/components/skeleton.css';
+import './styles/components/action-dropdown.css';
 
 // ============================================
 // 💀 SKELETON LOADING — Remove placeholders when data arrives
@@ -173,9 +174,22 @@ import { mountHelpModal } from './modules/help/help-modal.js';
 // entrada en el JSON. Sin entrada → sin botón.
 import { mountInfoModal } from './modules/help/info-modal.js';
 
+// Componente UI reutilizable: botón con menú desplegable (patrón Notion/Linear).
+// Usado en Ingredientes/Recetas/Proveedores para agrupar Import/Plantilla/Export
+// bajo un único botón limpio. Iker 2026-06-08.
+import { mountActionDropdowns } from './components/ui/action-dropdown.js';
+
+// 🔒 Subscription modal — escucha el evento global 'subscription:required' que
+// dispara api/client.js cuando el backend responde 403 SUBSCRIPTION_REQUIRED
+// (trial caducado o sin plan activo). Overlay full-screen con CTA Polar.
+// Iker 2026-06-08.
+import { mountSubscriptionModal } from './modules/subscription/subscription-modal.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     mountHelpModal();
     mountInfoModal();
+    mountActionDropdowns();
+    mountSubscriptionModal();
 });
 
 // Parser flexible de inventario. El módulo es ESM, pero
@@ -375,6 +389,7 @@ window.cerrarModalVerPedido = PedidosCRUD.cerrarModalVerPedido;
 window.descargarPedidoPDF = PedidosCRUD.descargarPedidoPDF;
 window.actualizarItemRecepcion = PedidosCRUD.actualizarItemRecepcion;
 window.cambiarEstadoItem = PedidosCRUD.cambiarEstadoItem;
+window.actualizarTotalConIva = PedidosCRUD.actualizarTotalConIva;
 
 // ⚡ FIX W3: Documentación de módulos con auto-registro en window.*
 // Estos módulos registran sus funciones directamente (window.fn = ...) en vez de exportar+mapear aquí.
@@ -441,6 +456,14 @@ window.guardarVenta = VentasCRUD.guardarVenta;
 import * as Dashboard from './modules/dashboard/dashboard.js?v=20260308-purchase-avg';
 
 window.actualizarKPIs = Dashboard.actualizarKPIs;
+
+// ============================================
+// MÓDULO: ANÁLISIS — Ingeniería de Menú v2 (rediseño 2026-06-05)
+// ============================================
+// Por ahora aditivo: monta el dashboard sintético arriba del BCG legacy.
+// El legacy `renderizarAnalisis` llama a `window.mlAnalisisOnRender(data)`
+// tras pintar la matriz BCG. Si este módulo falla, el legacy sigue intacto.
+import './modules/analisis/analisis.js';
 
 // ============================================
 // MÓDULO: BALANCE / P&L 💰
@@ -620,9 +643,14 @@ window.eliminarMerma = async function (id) {
 
         if (response?.success) {
             window.showToast?.('✅ Merma eliminada y stock restaurado', 'success');
-            // Recargar historial y datos
+            // Recargar historial + estado completo (Iker 2026-06-08): antes solo
+            // se refrescaba window.ingredientes, pero la pestaña Inventario lee
+            // de window.inventarioCompleto y se quedaba con datos viejos. Bug
+            // visible al borrar merma → P&L cuadraba pero Inventario no.
             await window.cargarHistorialMermas();
-            window.ingredientes = await window.api?.getIngredientes?.();
+            if (typeof window.cargarDatos === 'function') {
+                await window.cargarDatos();
+            }
             window.renderizarIngredientes?.();
             window.renderizarInventario?.();
         } else {

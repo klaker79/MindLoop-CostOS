@@ -866,6 +866,13 @@ window.confirmarImportarIngredientes = async function () {
                 stockActual: ing.stockActual,
                 stockMinimo: ing.stockMinimo,
             };
+            // 2026-06-08: enviar cantidad_por_formato / formato_compra / rendimiento /
+            // familia si el parser los extrajo. Sin esto, comprar por caja/garrafa con
+            // precio del formato inflaba precio unitario × N → food cost mentía.
+            if (ing.cantidadPorFormato) payload.cantidad_por_formato = ing.cantidadPorFormato;
+            if (ing.formatoCompra) payload.formato_compra = ing.formatoCompra;
+            if (ing.rendimiento) payload.rendimiento = ing.rendimiento;
+            if (ing.familia) payload.familia = ing.familia;
             // 🆕 Solo enviar proveedorId si el Excel traía un nombre y se emparejó.
             // Si traía un nombre que no existe, se crea el ingrediente sin proveedor
             // y se registra en el informe final para que el usuario lo arregle.
@@ -904,6 +911,13 @@ window.confirmarImportarIngredientes = async function () {
         if (saltados) partesToast.push(`${saltados} saltados`);
         window.showToast(partesToast.join(' · ') || '✓ Importación completada', 'success');
         document.getElementById('modal-importar-ingredientes').classList.remove('active');
+        // 2026-06-08: antes solo se llamaba a renderizarIngredientes() — que pinta
+        // la lista desde window.ingredientes (state en memoria). Como esa lista NO
+        // se actualizaba tras los POST, los ingredientes recién creados no aparecían
+        // hasta que el usuario hacía F5. Cargamos primero, luego renderizamos.
+        if (typeof window.cargarDatos === 'function') {
+            await window.cargarDatos();
+        }
         await window.renderizarIngredientes();
         if (sinProveedorEmparejado.length > 0 || erroresUpdate.length > 0) {
             let resumen = 'Importación completada con avisos:\n';
@@ -1252,18 +1266,27 @@ window.cancelarImportarRecetas = function () {
     datosImportarRecetas = [];
 };
 
+// Cabecera canónica de escandallo. ÚNICO sitio donde se define el orden — la
+// plantilla, el export y el round-trip lo comparten para nunca divergir.
+// (2026-06-08) Orden alineado con plantilla histórica: cabecera de la receta
+// (Receta/Categoría/Precio/Porciones/Código) antes del bloque de líneas
+// (Ingrediente/Cantidad/Rendimiento). Iker prefirió este orden tras feedback
+// de la plantilla CSV: lee como ficha técnica de cocina.
+const ESCANDALLO_HEADER = ['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Código TPV', 'Ingrediente', 'Cantidad', 'Rendimiento'];
+const ESCANDALLO_COL_WIDTHS = [{ wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+
 // Construye las filas de escandallo (SIN cabecera) de UNA receta, en el formato
-// del import: la 1ª línea lleva Categoría/Precio/Porciones; las siguientes en
-// blanco. Rendimiento vacío si la línea no lo fija (al reimportar hereda del
-// ingrediente). Compartido por la plantilla (todas las recetas) y el export por
-// receta para que ambos formatos no diverjan nunca.
+// del import: la 1ª línea lleva Categoría/Precio/Porciones/Código TPV; las
+// siguientes en blanco. Rendimiento vacío si la línea no lo fija (al reimportar
+// hereda del ingrediente). Compartido por la plantilla (todas las recetas) y
+// el export por receta para que ambos formatos no diverjan nunca.
 function _filasEscandalloDeReceta(rec, ingMap, recMap) {
     const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
     const precio = parseFloat(rec.precio_venta) || 0;
     const porciones = parseInt(rec.porciones) || 1;
     const codigo = rec.codigo || ''; // Código TPV (campo `codigo` de la receta)
     if (lineas.length === 0) {
-        return [[rec.nombre, codigo, rec.categoria || '', precio, porciones, '', '', '']];
+        return [[rec.nombre, rec.categoria || '', precio, porciones, codigo, '', '', '']];
     }
     return lineas.map((item, idx) => {
         let nombreIng;
@@ -1277,58 +1300,90 @@ function _filasEscandalloDeReceta(rec, ingMap, recMap) {
         const rend = (item.rendimiento != null && parseFloat(item.rendimiento) > 0)
             ? parseFloat(item.rendimiento) : '';
         const cantidad = parseFloat(item.cantidad) || 0;
-        // El Código TPV es atributo de receta → solo en la 1ª línea (como Categoría/Precio/Porciones).
+        // Categoría/Precio/Porciones/Código son de la receta → solo en la 1ª línea.
         return idx === 0
-            ? [rec.nombre, codigo, rec.categoria || '', precio, porciones, nombreIng, cantidad, rend]
+            ? [rec.nombre, rec.categoria || '', precio, porciones, codigo, nombreIng, cantidad, rend]
             : [rec.nombre, '', '', '', '', nombreIng, cantidad, rend];
     });
 }
 
-// "Descargar plantilla" = exporta TODAS tus recetas reales en el formato
-// re-importable (round-trip masivo: editar en Excel → reimportar = upsert) +
-// una hoja con los nombres exactos de los ingredientes para que el matching no
-// falle. Si el restaurante aún no tiene recetas, cae a un ejemplo (PULPO A
-// FEIRA) para enseñar el formato a quien empieza de cero.
-window.descargarPlantillaEscandallo = async function () {
+// Filas de ejemplo para la plantilla (5 recetas tipo restaurante gallego). Mismo
+// orden que ESCANDALLO_HEADER. Mantenido aquí (y NO en CSV estático) para que el
+// orden de columnas no pueda desincronizarse del export real.
+const PLANTILLA_RECETAS_EJEMPLO = [
+    ['PULPO A LA GALLEGA', 'alimentos', 18, 1, 'P001', 'PULPO COCIDO', 0.18, 100],
+    ['PULPO A LA GALLEGA', '', '', '', '', 'PATATAS GALLEGAS', 0.20, 85],
+    ['PULPO A LA GALLEGA', '', '', '', '', 'ACEITE OLIVA VIRGEN', 0.02, 100],
+    ['PULPO A LA GALLEGA', '', '', '', '', 'SAL MARINA', 0.003, 100],
+    ['PULPO A LA GALLEGA', '', '', '', '', 'PIMIENTA NEGRA', 0.002, 100],
+    ['LUBINA AL HORNO', 'alimentos', 24, 1, 'L001', 'LUBINA SALVAJE', 0.30, 80],
+    ['LUBINA AL HORNO', '', '', '', '', 'PATATAS GALLEGAS', 0.15, 85],
+    ['LUBINA AL HORNO', '', '', '', '', 'CEBOLLA MORADA', 0.10, 90],
+    ['LUBINA AL HORNO', '', '', '', '', 'ACEITE OLIVA VIRGEN', 0.03, 100],
+    ['LUBINA AL HORNO', '', '', '', '', 'SAL MARINA', 0.003, 100],
+    ['SOLOMILLO CON PATATAS', 'alimentos', 28, 1, 'S001', 'SOLOMILLO TERNERA', 0.20, 90],
+    ['SOLOMILLO CON PATATAS', '', '', '', '', 'PATATAS GALLEGAS', 0.18, 85],
+    ['SOLOMILLO CON PATATAS', '', '', '', '', 'SAL MARINA', 0.003, 100],
+    ['ENSALADA DE QUESO', 'alimentos', 11.5, 1, 'E001', 'QUESO TETILLA', 0.08, 100],
+    ['ENSALADA DE QUESO', '', '', '', '', 'TOMATE RAMA', 0.12, 95],
+    ['ENSALADA DE QUESO', '', '', '', '', 'ACEITE OLIVA VIRGEN', 0.015, 100],
+];
+
+// Construye un libro XLSX con 2 sheets: Escandallo + Ingredientes disponibles.
+// Cuerpo = filas ya construidas (sin cabecera). Devuelve el wb listo para writeFile.
+function _construirLibroEscandallo(filasSinCabecera) {
+    const wb = XLSX.utils.book_new();
+    const wsEsc = XLSX.utils.aoa_to_sheet([ESCANDALLO_HEADER, ...filasSinCabecera]);
+    wsEsc['!cols'] = ESCANDALLO_COL_WIDTHS;
+    XLSX.utils.book_append_sheet(wb, wsEsc, 'Escandallo');
+
+    const ings = (window.ingredientes || []).map(i => [i.nombre, i.unidad || '']);
+    const wsIng = XLSX.utils.aoa_to_sheet([['Ingrediente', 'Unidad'], ...ings]);
+    wsIng['!cols'] = [{ wch: 30 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, wsIng, 'Ingredientes disponibles');
+    return wb;
+}
+
+// 📥 "Descargar plantilla" = SIEMPRE el ejemplo. No depende de los datos del
+// usuario. Genera un XLSX que el cliente puede editar y reimportar. Si quiere
+// exportar SUS recetas, usa el botón "Exportar mis recetas".
+window.descargarPlantillaRecetas = async function () {
     try {
         if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
             await window.loadXLSX();
         }
+        const wb = _construirLibroEscandallo(PLANTILLA_RECETAS_EJEMPLO);
+        XLSX.writeFile(wb, `plantilla_recetas_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error generando la plantilla: ' + error.message, 'error');
+    }
+};
+
+// 💾 "Exportar mis recetas" = exporta TUS recetas reales en formato
+// re-importable. Si aún no tienes recetas, NO descarga un ejemplo (eso
+// confundía: parecía que ya tenías recetas). En su lugar, avisa.
+window.descargarPlantillaEscandallo = async function () {
+    try {
         const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+        if (recetas.length === 0) {
+            window.showToast('Aún no tienes recetas. Pulsa "Descargar plantilla" para empezar con un ejemplo.', 'info');
+            return;
+        }
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
         const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
         const recMap = new Map(recetas.map(r => [r.id, r]));
 
-        const cabecera = ['Receta', 'Código TPV', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento'];
-        let filas;
-        if (recetas.length > 0) {
-            filas = [cabecera];
-            for (const rec of recetas) {
-                for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
-            }
-        } else {
-            // Restaurante sin recetas: ejemplo para aprender el formato.
-            filas = [
-                cabecera,
-                ['PULPO A FEIRA', '0001', 'Alimentos', 18, 1, 'PULPO', 0.25, 60],
-                ['PULPO A FEIRA', '', '', '', '', 'PATATA', 0.20, ''],
-                ['PULPO A FEIRA', '', '', '', '', 'ACEITE DE OLIVA', 0.02, ''],
-            ];
+        const filas = [];
+        for (const rec of recetas) {
+            for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
         }
 
-        const wb = XLSX.utils.book_new();
-        const wsEsc = XLSX.utils.aoa_to_sheet(filas);
-        wsEsc['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
-        XLSX.utils.book_append_sheet(wb, wsEsc, 'Escandallo');
-
-        const ings = (window.ingredientes || []).map(i => [i.nombre, i.unidad || '']);
-        const wsIng = XLSX.utils.aoa_to_sheet([['Ingrediente', 'Unidad'], ...ings]);
-        wsIng['!cols'] = [{ wch: 30 }, { wch: 12 }];
-        XLSX.utils.book_append_sheet(wb, wsIng, 'Ingredientes disponibles');
-
-        const sufijo = recetas.length > 0 ? 'recetas' : 'ejemplo';
-        XLSX.writeFile(wb, `escandallo_${sufijo}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const wb = _construirLibroEscandallo(filas);
+        XLSX.writeFile(wb, `mis_recetas_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
-        window.showToast('Error generando la plantilla: ' + error.message, 'error');
+        window.showToast('Error exportando recetas: ' + error.message, 'error');
     }
 };
 
@@ -1348,18 +1403,273 @@ window.exportarEscandalloReceta = async function (recetaId) {
         const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
         const recMap = new Map(recetas.map(r => [r.id, r]));
 
-        const filas = [['Receta', 'Código TPV', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento']];
+        const filas = [ESCANDALLO_HEADER];
         for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
 
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(filas);
-        ws['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+        ws['!cols'] = ESCANDALLO_COL_WIDTHS;
         XLSX.utils.book_append_sheet(wb, ws, 'Escandallo');
         const slug = String(rec.nombre || 'receta').trim().replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '').toLowerCase() || 'receta';
         XLSX.writeFile(wb, `escandallo_${slug}_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
         window.showToast('Error exportando el escandallo: ' + error.message, 'error');
     }
+};
+
+// ========== PROVEEDORES (importar / plantilla / exportar) ==========
+// Cabecera canónica de proveedores. ÚNICO sitio donde se define el orden — la
+// plantilla, el export real y el parser de import comparten esta lista para
+// que los 3 nunca diverjan. Solo `Nombre` es obligatorio; el resto opcional.
+// `iva_pct` se trata como porcentaje 0-100 (NUMERIC(5,2) en BD, no afecta
+// fórmulas — solo display en modal de recepción).
+const PROVEEDORES_HEADER = ['Nombre', 'Contacto', 'Teléfono', 'Email', 'CIF', 'IVA (%)', 'Código', 'Dirección', 'Notas'];
+const PROVEEDORES_COL_WIDTHS = [{ wch: 25 }, { wch: 18 }, { wch: 14 }, { wch: 24 }, { wch: 14 }, { wch: 10 }, { wch: 12 }, { wch: 28 }, { wch: 30 }];
+
+const PLANTILLA_PROVEEDORES_EJEMPLO = [
+    ['PESCADOS PEREZ', 'Juan Perez', '600111222', 'juan@pescadosperez.com', 'B12345678', 10, '', 'Mercado Central Galicia', 'Pescado fresco diario llamar 8h'],
+    ['VERDURAS LA HUERTA', 'Maria Lopez', '600333444', 'maria@laHuerta.com', 'B23456789', 4, '', 'Pol Industrial 3', 'Verdura ecologica martes/viernes'],
+    ['CARNICAS ATLANTICAS', 'Pedro Garcia', '600555666', 'pedro@carnicas.com', 'B34567890', 10, '', 'Calle Real 12', 'Reservar lomo con 48h'],
+    ['BODEGA RIBEIRO', 'Bodegas SL', '600777888', 'info@bodegariberia.com', 'B45678901', 21, '', 'Carretera Ourense km 5', 'Vino y bebidas'],
+    ['LACTEOS DEL VALLE', 'Ana Rios', '600999000', 'ana@lacteos.com', 'B56789012', 10, '', 'Avda Galicia 88', 'Queso fresco lunes y jueves'],
+];
+
+function _filaProveedor(prov) {
+    const iva = (prov.iva_pct !== null && prov.iva_pct !== undefined && prov.iva_pct !== '')
+        ? prov.iva_pct : '';
+    return [
+        prov.nombre || '',
+        prov.contacto || '',
+        prov.telefono || '',
+        prov.email || '',
+        prov.cif || '',
+        iva,
+        prov.codigo || '',
+        prov.direccion || '',
+        prov.notas || '',
+    ];
+}
+
+function _construirLibroProveedores(filasSinCabecera) {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([PROVEEDORES_HEADER, ...filasSinCabecera]);
+    ws['!cols'] = PROVEEDORES_COL_WIDTHS;
+    XLSX.utils.book_append_sheet(wb, ws, 'Proveedores');
+    return wb;
+}
+
+// 📥 Plantilla: SIEMPRE el ejemplo. No depende de los datos del usuario.
+window.descargarPlantillaProveedores = async function () {
+    try {
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        const wb = _construirLibroProveedores(PLANTILLA_PROVEEDORES_EJEMPLO);
+        XLSX.writeFile(wb, `plantilla_proveedores_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error generando la plantilla: ' + error.message, 'error');
+    }
+};
+
+// 💾 Exporta TUS proveedores reales en formato re-importable. Sin proveedores → toast.
+window.exportarProveedores = async function () {
+    try {
+        const proveedores = Array.isArray(window.proveedores) ? window.proveedores : [];
+        if (proveedores.length === 0) {
+            window.showToast('Aún no tienes proveedores. Pulsa "Descargar plantilla" para empezar con un ejemplo.', 'info');
+            return;
+        }
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
+        const filas = proveedores.map(_filaProveedor);
+        const wb = _construirLibroProveedores(filas);
+        XLSX.writeFile(wb, `mis_proveedores_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error exportando proveedores: ' + error.message, 'error');
+    }
+};
+
+// ===== IMPORT =====
+let datosImportarProveedores = [];
+
+window.mostrarModalImportarProveedores = function () {
+    document.getElementById('modal-importar-proveedores').classList.add('active');
+    document.getElementById('preview-importar-proveedores').style.display = 'none';
+    document.getElementById('file-importar-proveedores').value = '';
+    datosImportarProveedores = [];
+};
+
+window.procesarArchivoProveedores = async function (input) {
+    const file = input.files[0];
+    if (!file) return;
+    document.getElementById('loading-overlay').classList.add('active');
+    try {
+        const data = await leerArchivoGenerico(file);
+        datosImportarProveedores = validarDatosProveedores(data);
+        mostrarPreviewProveedores(datosImportarProveedores);
+    } catch (error) {
+        window.showToast('Error procesando archivo: ' + error.message, 'error');
+    } finally {
+        document.getElementById('loading-overlay').classList.remove('active');
+    }
+};
+
+function celdaProv(row, nombres) {
+    const keys = Object.keys(row);
+    for (const n of nombres) {
+        const target = String(n).trim().toLowerCase();
+        for (const k of keys) {
+            if (String(k).trim().toLowerCase() === target) {
+                const v = row[k];
+                if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+            }
+        }
+    }
+    return '';
+}
+
+function validarDatosProveedores(data) {
+    if (!Array.isArray(data) || data.length === 0) return [];
+    return data.map(row => {
+        const nombre = String(celdaProv(row, ['Nombre', 'nombre', 'NOMBRE'])).trim();
+        const contacto = String(celdaProv(row, ['Contacto', 'contacto'])).trim();
+        const telefono = String(celdaProv(row, ['Teléfono', 'Telefono', 'telefono'])).trim();
+        const email = String(celdaProv(row, ['Email', 'email', 'Correo', 'correo'])).trim();
+        const cif = String(celdaProv(row, ['CIF', 'cif', 'NIF', 'nif'])).trim();
+        const direccion = String(celdaProv(row, ['Dirección', 'Direccion', 'direccion'])).trim();
+        const notas = String(celdaProv(row, ['Notas', 'notas', 'Observaciones'])).trim();
+        const codigo = String(celdaProv(row, ['Código', 'Codigo', 'codigo'])).trim();
+        const ivaRaw = celdaProv(row, ['IVA (%)', 'IVA habitual (%)', 'IVA', 'iva', 'iva_pct']);
+        let iva_pct = null;
+        if (ivaRaw !== '' && ivaRaw !== null && ivaRaw !== undefined) {
+            const n = parseFloat(String(ivaRaw).replace(',', '.'));
+            if (Number.isFinite(n) && n >= 0 && n <= 100) iva_pct = Math.round(n * 100) / 100;
+        }
+        const valido = nombre.length > 0;
+        return {
+            nombre, contacto, telefono, email, cif, direccion, notas, codigo, iva_pct,
+            valido, error: valido ? null : 'Nombre requerido',
+        };
+    });
+}
+
+function mostrarPreviewProveedores(datos) {
+    const validos = datos.filter(d => d.valido).length;
+    const invalidos = datos.filter(d => !d.valido).length;
+
+    let html = `
+        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+          <strong>Resumen:</strong>
+          <span style="color: #10b981;">✓ ${validos} válidos</span>
+          ${invalidos > 0 ? `<span style="color: #ef4444; margin-left: 10px;">✗ ${invalidos} con errores</span>` : ''}
+        </div>
+        <table style="width: 100%; font-size: 13px;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="padding: 10px; text-align: left;">Estado</th>
+              <th style="padding: 10px; text-align: left;">Nombre</th>
+              <th style="padding: 10px; text-align: left;">Teléfono</th>
+              <th style="padding: 10px; text-align: left;">Email</th>
+              <th style="padding: 10px; text-align: center;">IVA</th>
+              <th style="padding: 10px; text-align: left;">Observación</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+    datos.forEach(item => {
+        const icon = item.valido ? '✓' : '✗';
+        const bg = item.valido ? '#f0fdf4' : '#fef2f2';
+        const ic = item.valido ? '#10b981' : '#ef4444';
+        const obs = item.valido ? 'OK' : escapeHTML(item.error || 'Error');
+        const obsColor = item.valido ? '#10b981' : '#ef4444';
+        const ivaTxt = item.iva_pct !== null ? `${item.iva_pct}%` : '—';
+        html += `
+          <tr style="background: ${bg};">
+            <td style="padding: 10px;"><span style="color: ${ic};">${icon}</span></td>
+            <td style="padding: 10px;">${escapeHTML(item.nombre) || '-'}</td>
+            <td style="padding: 10px;">${escapeHTML(item.telefono) || '-'}</td>
+            <td style="padding: 10px;">${escapeHTML(item.email) || '-'}</td>
+            <td style="padding: 10px; text-align: center;">${ivaTxt}</td>
+            <td style="padding: 10px; color: ${obsColor};">${obs}</td>
+          </tr>`;
+    });
+    html += '</tbody></table>';
+
+    document.getElementById('preview-proveedores-container').innerHTML = html;
+    document.getElementById('preview-importar-proveedores').style.display = 'block';
+    const btn = document.getElementById('btn-confirmar-importar-proveedores');
+    btn.disabled = !datos.some(d => d.valido);
+    btn.style.opacity = btn.disabled ? '0.5' : '1';
+}
+
+window.confirmarImportarProveedores = async function () {
+    const validos = datosImportarProveedores.filter(d => d.valido);
+    if (validos.length === 0) {
+        window.showToast('No hay proveedores válidos para importar', 'error');
+        return;
+    }
+    if (!confirm(`¿Importar ${validos.length} proveedores?`)) return;
+
+    // Upsert por nombre (case-insensitive). Si ya existe, se ACTUALIZA.
+    const existentes = new Map(
+        (window.proveedores || []).map(p => [String(p.nombre || '').trim().toLowerCase(), p])
+    );
+
+    document.getElementById('loading-overlay').classList.add('active');
+    const creados = [];
+    const actualizados = [];
+    const errores = [];
+
+    for (const p of validos) {
+        const clave = p.nombre.trim().toLowerCase();
+        const existente = existentes.get(clave);
+        const payload = {
+            nombre: p.nombre,
+            contacto: p.contacto,
+            telefono: p.telefono,
+            email: p.email,
+            cif: p.cif,
+            codigo: p.codigo,
+            direccion: p.direccion,
+            notas: p.notas,
+            iva_pct: p.iva_pct,
+        };
+        try {
+            if (existente) {
+                // Conservar la relación con ingredientes — no la tocamos desde el import.
+                payload.ingredientes = existente.ingredientes || [];
+                await window.api.updateProveedor(existente.id, payload);
+                actualizados.push(p.nombre);
+            } else {
+                const nuevo = await window.api.createProveedor(payload);
+                creados.push(p.nombre);
+                if (nuevo && (nuevo.id || nuevo.data?.id)) {
+                    existentes.set(clave, nuevo.data || nuevo);
+                }
+            }
+        } catch (error) {
+            errores.push(`${p.nombre}: ${error.message}`);
+        }
+    }
+
+    await window.cargarDatos();
+    if (typeof window.renderizarProveedores === 'function') window.renderizarProveedores();
+    document.getElementById('loading-overlay').classList.remove('active');
+    document.getElementById('modal-importar-proveedores').classList.remove('active');
+
+    const tipo = (creados.length || actualizados.length) ? 'success' : 'error';
+    if (errores.length === 0) {
+        window.showToast(`✓ ${creados.length} creados · ${actualizados.length} actualizados`, tipo);
+    } else {
+        window.showToast(`✓ ${creados.length} creados · ${actualizados.length} actualizados (${errores.length} con error)`, tipo);
+        alert(`Importación completada:\n\n✓ ${creados.length} creados\n✏️ ${actualizados.length} actualizados\n✗ ${errores.length} con error:\n${errores.join('\n')}`);
+    }
+};
+
+window.cancelarImportarProveedores = function () {
+    document.getElementById('modal-importar-proveedores').classList.remove('active');
+    datosImportarProveedores = [];
 };
 
 // ========== IMPORTAR VENTAS TPV ==========
@@ -2480,6 +2790,37 @@ async function renderizarTablaPLDiario() {
         }
     }
 
+    // 🆕 (2026-06-08) Calcular mermas por día desde /mermas?mes=&ano=.
+    // Iker pidió que el P&L muestre las mermas como pérdida operativa real
+    // (antes solo afectaban al stock, no al beneficio neto). El coste de
+    // receta vendida (COSTES PROD) sigue intacto — eso mide la rentabilidad
+    // de la carta. La merma se RESTA aparte para mostrar la realidad económica.
+    //
+    // Estructura del endpoint (verificada en mermas.routes.js:239-260):
+    //   { id, ingrediente_id, ingrediente_nombre, cantidad, unidad,
+    //     valor_perdida, motivo, nota, fecha, restaurante_id }
+    // - cantidad y valor_perdida son SIEMPRE positivos (la tabla solo
+    //   almacena pérdidas reales; los ajustes positivos del inventario
+    //   masivo van por otro flujo y NO entran aquí).
+    const mermasPorDia = {};
+    dias.forEach(dia => { mermasPorDia[dia] = 0; });
+    try {
+        const mermasMes = await window.api.getMermas(mesSeleccionado, anoSeleccionado);
+        if (Array.isArray(mermasMes)) {
+            mermasMes.forEach(m => {
+                const valor = parseFloat(m.valor_perdida) || 0;
+                if (valor <= 0) return;
+                // m.fecha llega como YYYY-MM-DD o ISO. Normalizar a YYYY-MM-DD.
+                const fecha = String(m.fecha || '').substring(0, 10);
+                if (mermasPorDia[fecha] !== undefined) {
+                    mermasPorDia[fecha] += valor;
+                }
+            });
+        }
+    } catch (err) {
+        console.warn('No se pudieron cargar mermas para el P&L:', err.message);
+    }
+
     // ═══════════════════════════════════════════════════════════
     // 📊 TABLA P&L - CUENTA DE RESULTADOS
     // ═══════════════════════════════════════════════════════════
@@ -2544,6 +2885,20 @@ async function renderizarTablaPLDiario() {
     });
     html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">${cm(totalMargenBruto)}</td></tr>`;
 
+    // ── FILA: MERMAS DEL DÍA (🆕 2026-06-08) ──
+    // Solo se muestra si hay al menos 1 merma en el periodo, para no contaminar
+    // visualmente el P&L cuando el negocio no tuvo pérdidas registradas.
+    let totalMermas = 0;
+    dias.forEach(dia => { totalMermas += mermasPorDia[dia] || 0; });
+    if (totalMermas > 0) {
+        html += `<tr style="background: #fee2e2;"><td style="position: sticky; left: 0; background: #fee2e2; padding: 16px; font-weight: 600; color: #991b1b; border-bottom: 1px solid #fecaca;" title="Pérdidas registradas vía inventario físico, no incluidas en el coste de receta vendida">${window.t('balance:pl_waste') || '🗑️ MERMAS DEL DÍA'}</td>`;
+        dias.forEach(dia => {
+            const val = mermasPorDia[dia] || 0;
+            html += `<td style="text-align: center; padding: 16px 8px; color: #dc2626; border-bottom: 1px solid #fecaca;">${val > 0 ? '−' + cm(val) : cm(0)}</td>`;
+        });
+        html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">−${cm(totalMermas)}</td></tr>`;
+    }
+
     // ── FILA: GASTOS FIJOS / DÍA ──
     // 🔧 FIX: antes se multiplicaba por dias.length (sólo días con movimiento), lo que
     // infravaloraba el gasto mensual real. El alquiler y personal se pagan todos los días
@@ -2568,18 +2923,19 @@ async function renderizarTablaPLDiario() {
     // ── SEPARADOR GRUESO ──
     html += `<tr><td colspan="${dias.length + 2}" style="height: 4px; background: linear-gradient(90deg, #1e3a5f 0%, #3b82f6 50%, #1e3a5f 100%); padding: 0;"></td></tr>`;
 
-    // ── FILA: BENEFICIO NETO (MARGEN BRUTO - GASTOS FIJOS) ──
-    // Total del período coherente con la fila de gastos fijos: margen bruto total menos
-    // el gasto fijo real del período (no la suma de "gastoDia × días con movimiento").
+    // ── FILA: BENEFICIO NETO (MARGEN BRUTO - MERMAS - GASTOS FIJOS) ──
+    // Total del período coherente con las filas de mermas y gastos fijos.
+    // (2026-06-08) Resta también las mermas del día — antes solo gastos fijos.
     html += `<tr style="background: #dbeafe;"><td style="position: sticky; left: 0; background: #dbeafe; padding: 18px 16px; font-weight: 700; font-size: 15px; color: #1e3a5f; border-bottom: 2px solid #93c5fd;">${window.t('balance:pl_net_profit')}</td>`;
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
-        const beneficioNeto = margenDia - gastosFijosDia;
+        const mermaDia = mermasPorDia[dia] || 0;
+        const beneficioNeto = margenDia - mermaDia - gastosFijosDia;
         const color = beneficioNeto >= 0 ? '#1e3a5f' : '#dc2626';
         const bg = beneficioNeto >= 0 ? '#dbeafe' : '#fee2e2';
         html += `<td style="text-align: center; padding: 18px 8px; font-weight: 700; font-size: 14px; color: ${color}; background: ${bg}; border-bottom: 2px solid #93c5fd;">${cm(beneficioNeto)}</td>`;
     });
-    const totalBeneficioNeto = totalMargenBruto - totalGastosFijosMostrados;
+    const totalBeneficioNeto = totalMargenBruto - totalMermas - totalGastosFijosMostrados;
     // 🎨 Tonos legibles sobre fondo navy oscuro (rediseño 2026-05-26).
     // Antes: #22c55e (verde fluo) / #ef4444 (rojo fuerte) — ilegibles
     // sobre navy.

@@ -73,6 +73,27 @@ async function handleResponse(response) {
             }
         }
 
+        // 🆕 2026-06-08: detectar 403 SUBSCRIPTION_REQUIRED (gating global del
+        // backend tras trial caducado o sin plan activo). Disparar evento global
+        // para que un único componente muestre overlay full-screen con CTA Polar.
+        // No bloquea el throw: la ruta que llamó también recibe el error, pero
+        // el overlay tapa toda la UI.
+        if (response.status === 403) {
+            try {
+                const bodyClone = await response.clone().json().catch(() => null);
+                if (bodyClone && bodyClone.error === 'SUBSCRIPTION_REQUIRED') {
+                    window.dispatchEvent(new CustomEvent('subscription:required', {
+                        detail: {
+                            reason: bodyClone.reason || 'no_subscription',
+                            trialEndedAt: bodyClone.trial_ended_at || null,
+                            plan: bodyClone.plan || null,
+                            planStatus: bodyClone.plan_status || null,
+                        }
+                    }));
+                }
+            } catch (_e) { /* nada */ }
+        }
+
         // 🔧 FIX BUG-5: Incluir .status para que callers puedan distinguir 4xx de 5xx
         const error = new Error(errorMessage);
         error.status = response.status;
@@ -308,6 +329,24 @@ export const api = {
 
     // Onboarding checklist (4 pasos: proveedores -> ingredientes -> recetas -> pedidos)
     getOnboardingStatus: () => apiClient.get('/onboarding/status'),
+
+    // Análisis — Ingeniería de Menú y Principios de Omnes
+    // Periodo opcional via { desde, hasta } en formato YYYY-MM-DD.
+    // Sin periodo → backend usa el histórico completo (compat back).
+    getMenuEngineering: (opts) => {
+        const qs = new URLSearchParams();
+        if (opts?.desde) qs.set('desde', opts.desde);
+        if (opts?.hasta) qs.set('hasta', opts.hasta);
+        const query = qs.toString();
+        return apiClient.get(`/analysis/menu-engineering${query ? '?' + query : ''}`);
+    },
+    getOmnes: (opts) => {
+        const qs = new URLSearchParams();
+        if (opts?.desde) qs.set('desde', opts.desde);
+        if (opts?.hasta) qs.set('hasta', opts.hasta);
+        const query = qs.toString();
+        return apiClient.get(`/analysis/omnes${query ? '?' + query : ''}`);
+    },
 
     // Suppliers (antes: proveedores)
     getProveedores: () => apiClient.get('/suppliers'),

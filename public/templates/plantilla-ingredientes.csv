@@ -1,0 +1,14 @@
+﻿Nombre;Precio;Unidad;Cantidad por formato;Formato;Rendimiento (%);Stock Actual;Stock Mínimo;Familia;Proveedor
+PULPO COCIDO;18,50;kg;1;kg;70;5;2;alimento;PESCADOS PEREZ
+LUBINA SALVAJE;22,00;kg;1;kg;80;3;1;alimento;PESCADOS PEREZ
+PATATAS GALLEGAS;12,00;kg;10;saco;85;25;10;alimento;VERDURAS LA HUERTA
+TOMATE RAMA;11,50;kg;5;caja;95;8;4;alimento;VERDURAS LA HUERTA
+CEBOLLA MORADA;9,00;kg;5;caja;90;6;3;alimento;VERDURAS LA HUERTA
+SOLOMILLO TERNERA;28,00;kg;1;kg;90;4;2;alimento;CARNICAS ATLANTICAS
+LOMO IBERICO;22,50;kg;1;kg;95;2;1;alimento;CARNICAS ATLANTICAS
+QUESO TETILLA;12,00;kg;1;kg;100;3;1;alimento;LACTEOS DEL VALLE
+VINO ALBARIÑO;57,00;botella;6;caja;100;12;6;bebida;BODEGA RIBEIRO
+CERVEZA ESTRELLA;30,00;ud;24;caja;100;48;12;bebida;BODEGA RIBEIRO
+ACEITE OLIVA VIRGEN;36,00;L;5;garrafa;100;8;3;alimento;
+SAL MARINA;1,40;kg;1;paquete;100;10;2;alimento;
+PIMIENTA NEGRA;18,00;kg;1;kg;100;1;0,2;alimento;

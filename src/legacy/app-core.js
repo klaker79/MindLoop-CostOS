@@ -592,7 +592,21 @@
             const res = await fetchWithCreds(getApiBase() + '/analysis/menu-engineering', {
                 headers: getAuthHeaders(),
             });
-            if (!res.ok) throw new Error('Error al obtener ingeniería de menú');
+            if (!res.ok) {
+                // 🆕 2026-06-08: propagar trial expirado para que la UI lo pueda mostrar
+                // con un overlay claro. Antes el catch superior solo hacía console.error
+                // y dejaba al usuario con cards en 0 sin entender nada.
+                if (res.status === 403) {
+                    let body = {};
+                    try { body = await res.json(); } catch (_e) { /* body vacio */ }
+                    const err = new Error(body.error || 'Plan no permite acceso');
+                    err.status = 403;
+                    err.trial_expired = !!body.trial_expired;
+                    err.upgrade_url = body.upgrade_url || '/planes';
+                    throw err;
+                }
+                throw new Error('Error al obtener ingeniería de menú');
+            }
             return await res.json();
         },
 
@@ -946,13 +960,30 @@
         try {
             const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
 
-            // 🔧 FILTRO: Excluir bebidas Y preparaciones base de la ingeniería de menú
-            // (solo platos vendibles de comida — las "base" son subproductos como salsas,
-            // bechamel, masas, tofee... que no se venden directamente al cliente).
-            const menuAnalysis = menuAnalysisRaw.filter(item => {
-                const cat = (item.categoria || '').toLowerCase();
-                return cat !== 'bebidas' && cat !== 'bebida' && cat !== 'base';
-            });
+            // 🔧 FILTRO categoría:
+            //   - Ranking de Rentabilidad (datosRecetas): toggle Alimentos/Bebidas/Todo,
+            //     default 'alimentos'. Iker pidió poder ver bebidas también (Bug 2026-06-08).
+            //   - Matriz BCG (menuAnalysis): SIEMPRE solo alimentos.
+            //     La metodología de Menu Engineering (Kasavana-Smith / BCG) es para platos
+            //     comparables entre sí. Mezclar bebidas (volumen alto, margen distinto,
+            //     se piden por categoría no por plato) distorsiona el cuadrante. Iker
+            //     lo confirmó: "En ingeniería de menús sólo van alimentos".
+            //   - Base SIEMPRE excluida en ambos (subproductos no vendibles).
+            const filtro = window.analisisCategoriaFilter || 'alimentos';
+            const pasaFiltro = (cat) => {
+                const c = String(cat || '').toLowerCase();
+                if (c === 'base') return false; // subproductos: nunca
+                if (filtro === 'todo') return true;
+                const esBebida = (c === 'bebidas' || c === 'bebida');
+                return filtro === 'bebidas' ? esBebida : !esBebida;
+            };
+            // BCG: filtro fijo a alimentos, NO depende del toggle.
+            const esAlimentoVendible = (cat) => {
+                const c = String(cat || '').toLowerCase();
+                return c !== 'base' && c !== 'bebidas' && c !== 'bebida';
+            };
+
+            const menuAnalysis = menuAnalysisRaw.filter(item => esAlimentoVendible(item.categoria));
 
             let totalMargen = 0;
             let totalCoste = 0;
@@ -965,13 +996,7 @@
                 return { ...rec, coste, margen, margenPct };
             });
 
-            // 🔧 FILTRO: Solo platos vendibles para tabla de rentabilidad.
-            // Excluir bebidas (van a su propio análisis) y preparaciones base (subproductos
-            // que no se venden directamente y distorsionarían el ranking con márgenes infladísimos).
-            const datosRecetas = datosRecetasRaw.filter(rec => {
-                const cat = (rec.categoria || '').toLowerCase();
-                return cat !== 'bebidas' && cat !== 'bebida' && cat !== 'base';
-            });
+            const datosRecetas = datosRecetasRaw.filter(rec => pasaFiltro(rec.categoria));
 
             const margenPromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.margenPct, 0) / datosRecetas.length).toFixed(1) : '0';
             const costePromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.coste, 0) / datosRecetas.length).toFixed(2) : '0';
@@ -990,8 +1015,27 @@
 
             // RENDERIZAR INGENIERÍA DE MENÚ (Matriz BCG)
             renderMenuEngineeringUI(menuAnalysis);
+
+            // Hook al módulo nuevo (rediseño 2026-06-05): monta el dashboard
+            // sintético + filtro periodo arriba del BCG. Si el módulo no se
+            // cargó (caché vieja), no falla — try/catch lo protege.
+            try {
+                if (typeof window.mlAnalisisOnRender === 'function') {
+                    window.mlAnalisisOnRender(menuAnalysis);
+                }
+            } catch (e) {
+                console.warn('[analisis-v2] hook falló (no bloqueante):', e?.message);
+            }
         } catch (error) {
             console.error('Error renderizando análisis:', error);
+            // 🔒 2026-06-08: el overlay específico de Análisis fue retirado.
+            // Ahora el modal de "trial caducado / suscríbete" es GLOBAL — lo
+            // dispara automáticamente el interceptor de api/client.js cuando el
+            // backend responde 403 SUBSCRIPTION_REQUIRED desde cualquier endpoint.
+            // Aquí solo nos queda el log + dejar de renderizar.
+            if (error?.status === 403) {
+                // El modal global se está mostrando, no hace falta más
+            }
         }
     };
 
@@ -1672,6 +1716,39 @@
         // Estado de paginación
         window.rentabilidadPage = window.rentabilidadPage || 1;
 
+        // Toggle de categoría (Alimentos / Bebidas / Todo) — afecta a esta tabla
+        // Y a la matriz BCG (ambas comparten window.analisisCategoriaFilter).
+        // Botones renderizados dinámicamente en el contenedor #toggle-categoria-analisis,
+        // que se inyecta si no existe (idempotente). Iker 2026-06-08.
+        const T = window.t || ((k, def) => def || k);
+        const filtroActual = window.analisisCategoriaFilter || 'alimentos';
+        const opciones = [
+            { key: 'alimentos', label: T('dashboard:analysis_filter_food', '🍽️ Alimentos') },
+            { key: 'bebidas',   label: T('dashboard:analysis_filter_drinks', '🍷 Bebidas') },
+            { key: 'todo',      label: T('dashboard:analysis_filter_all', '🌐 Todo') },
+        ];
+        const contenedor = document.getElementById('tabla-rentabilidad');
+        let toggleEl = document.getElementById('toggle-categoria-analisis');
+        if (!toggleEl && contenedor) {
+            toggleEl = document.createElement('div');
+            toggleEl.id = 'toggle-categoria-analisis';
+            toggleEl.style.cssText = 'display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;';
+            contenedor.parentElement.insertBefore(toggleEl, contenedor);
+        }
+        if (toggleEl) {
+            toggleEl.innerHTML = opciones.map(opt => {
+                const active = opt.key === filtroActual;
+                const bg = active ? '#1e40af' : '#f1f5f9';
+                const color = active ? '#ffffff' : '#475569';
+                const border = active ? '#1e40af' : '#cbd5e1';
+                return `<button type="button"
+                    onclick="window.cambiarFiltroAnalisisCategoria('${opt.key}')"
+                    style="padding: 8px 16px; border-radius: 999px; border: 1px solid ${border}; background: ${bg}; color: ${color}; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+                    ${escapeHTML(opt.label)}
+                </button>`;
+            }).join('');
+        }
+
         // Función para renderizar página
         window.renderRentabilidadPage = function (page = 1) {
             const totalPages = Math.ceil(ordenados.length / ITEMS_PER_PAGE);
@@ -1700,8 +1777,17 @@
                 html += `<td>${cm(parseFloat(rec.coste || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.precio_venta || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.margen || 0))}</td>`;
-                // 🔒 Auditoría Capa 7 (S7 / A5-C1): margen ≥67% verde, 62-66% amarillo, <62% rojo (>= en vez de >)
-                html += `<td><span class="badge ${rec.margenPct >= 67 ? 'badge-success' : rec.margenPct >= 62 ? 'badge-warning' : 'badge-danger'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+                // Threshold por categoría — bebidas tienen target distinto que alimentos
+                // (food cost ~30-35% vs wine cost ~45%, → margen mín ≥62 vs ≥55).
+                // Iker 2026-06-08: el badge de un vino al 58% antes salía rojo cuando
+                // realmente está bien para su categoría.
+                const cat = String(rec.categoria || '').toLowerCase();
+                const esBebida = cat === 'bebidas' || cat === 'bebida';
+                const thrSuccess = esBebida ? 55 : 67;
+                const thrWarning = esBebida ? 50 : 62;
+                const pct = parseFloat(rec.margenPct || 0);
+                const badgeClass = pct >= thrSuccess ? 'badge-success' : pct >= thrWarning ? 'badge-warning' : 'badge-danger';
+                html += `<td><span class="badge ${badgeClass}" title="${esBebida ? 'Target bebidas: ≥55% verde' : 'Target alimentos: ≥67% verde'}">${pct.toFixed(1)}%</span></td>`;
                 html += '</tr>';
             });
 
@@ -1726,6 +1812,20 @@
         // Renderizar primera página
         window.renderRentabilidadPage(window.rentabilidadPage);
     }
+
+    // Cambia el filtro de categoría del análisis y re-renderiza ranking + BCG.
+    // Whitelist defensiva: solo aceptamos los 3 valores conocidos. Iker 2026-06-08.
+    window.cambiarFiltroAnalisisCategoria = function (filtro) {
+        const validos = ['alimentos', 'bebidas', 'todo'];
+        if (!validos.includes(filtro)) return;
+        if (window.analisisCategoriaFilter === filtro) return;
+        window.analisisCategoriaFilter = filtro;
+        // Reset paginación: el orden cambia con el nuevo conjunto
+        window.rentabilidadPage = 1;
+        if (typeof window.renderizarAnalisis === 'function') {
+            window.renderizarAnalisis();
+        }
+    };
 
     // ========== INVENTARIO ==========
     // Cache para persistir valores de stock introducidos por el usuario

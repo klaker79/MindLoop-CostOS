@@ -50,6 +50,32 @@ export function parseIngredientes(data, ingredientesArr = [], proveedoresArr = [
             row['Stock Mínimo'] || row['stock_minimo'] || row['Stock Minimo'] || 0
         );
 
+        // 2026-06-08: campos críticos que faltaban en el parser. Sin ellos, cualquier
+        // ingrediente comprado por formato (caja, garrafa, saco) quedaba con cpf=1 y
+        // el precio unitario se inflaba × N → food cost mentiría. Iker detectó el bug
+        // tras revisar la plantilla.
+        const cantidadPorFormatoRaw = parseFloat(
+            row['Cantidad por formato'] || row['cantidad_por_formato'] || row['CPF'] || row['Cant. Formato'] || 0
+        );
+        const cantidadPorFormato = Number.isFinite(cantidadPorFormatoRaw) && cantidadPorFormatoRaw > 0
+            ? cantidadPorFormatoRaw
+            : null;
+        const formatoCompra = String(
+            row['Formato'] || row['formato'] || row['Formato Compra'] || row['formato_compra'] || ''
+        ).trim() || null;
+        const rendimientoRaw = parseFloat(
+            row['Rendimiento (%)'] || row['Rendimiento'] || row['rendimiento'] || 0
+        );
+        const rendimiento = Number.isFinite(rendimientoRaw) && rendimientoRaw > 0 && rendimientoRaw <= 100
+            ? rendimientoRaw
+            : null;
+        const familiaRaw = String(
+            row['Familia'] || row['familia'] || row['Categoría'] || row['Categoria'] || ''
+        ).trim().toLowerCase();
+        const familia = ['alimento', 'alimentos', 'bebida', 'bebidas', 'suministro', 'suministros'].includes(familiaRaw)
+            ? (familiaRaw.endsWith('s') ? familiaRaw.slice(0, -1) : familiaRaw)
+            : 'alimento';
+
         const proveedorNombreRaw = String(
             row['Proveedor'] || row['proveedor'] || row['PROVEEDOR'] || row['Supplier'] || ''
         ).trim();
@@ -80,6 +106,10 @@ export function parseIngredientes(data, ingredientesArr = [], proveedoresArr = [
             nombre: nombreTrim,
             precio: isNaN(precio) ? 0 : precio,
             unidad: unidad,
+            cantidadPorFormato,
+            formatoCompra,
+            rendimiento,
+            familia,
             stockActual: isNaN(stockActual) ? 0 : stockActual,
             stockMinimo: isNaN(stockMinimo) ? 0 : stockMinimo,
             proveedorNombre: proveedorNombreRaw,
