@@ -592,7 +592,21 @@
             const res = await fetchWithCreds(getApiBase() + '/analysis/menu-engineering', {
                 headers: getAuthHeaders(),
             });
-            if (!res.ok) throw new Error('Error al obtener ingeniería de menú');
+            if (!res.ok) {
+                // 🆕 2026-06-08: propagar trial expirado para que la UI lo pueda mostrar
+                // con un overlay claro. Antes el catch superior solo hacía console.error
+                // y dejaba al usuario con cards en 0 sin entender nada.
+                if (res.status === 403) {
+                    let body = {};
+                    try { body = await res.json(); } catch (_e) { /* body vacio */ }
+                    const err = new Error(body.error || 'Plan no permite acceso');
+                    err.status = 403;
+                    err.trial_expired = !!body.trial_expired;
+                    err.upgrade_url = body.upgrade_url || '/planes';
+                    throw err;
+                }
+                throw new Error('Error al obtener ingeniería de menú');
+            }
             return await res.json();
         },
 
@@ -1014,6 +1028,14 @@
             }
         } catch (error) {
             console.error('Error renderizando análisis:', error);
+            // 🔒 2026-06-08: el overlay específico de Análisis fue retirado.
+            // Ahora el modal de "trial caducado / suscríbete" es GLOBAL — lo
+            // dispara automáticamente el interceptor de api/client.js cuando el
+            // backend responde 403 SUBSCRIPTION_REQUIRED desde cualquier endpoint.
+            // Aquí solo nos queda el log + dejar de renderizar.
+            if (error?.status === 403) {
+                // El modal global se está mostrando, no hace falta más
+            }
         }
     };
 
