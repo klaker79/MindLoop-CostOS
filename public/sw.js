@@ -102,8 +102,10 @@
 // BUMP v105: mismo fix de label €/unidad-base aplicado a (1) dropdown de Nueva/Editar Receta (recetas-ui.js) y (2) búsqueda global (global-search.js). Antes mostraban "VINO NANO (80€/botella)" cuando precio era de CAJA. Iker estaba creando receta VINO NANO y vio el bug. Ahora coincide con Inventario, Pedidos y coste de producción del propio modal de receta. Barrido completo de sitios — ingredientes-ui (listado) y app-core (inventario) ya usaban precio_medio correctamente.
 // BUMP v106: tooltip explicativo en "Food Cost real (con error)" de la ficha técnica. Iker preguntó por qué hay 2 FC distintos en la receta (41,7% arriba vs 45% en ficha). Ambos son correctos pero miden cosas distintas (uno sin buffer, otro con +8% para seguridad de precios). Añadido tooltip con icono ? + título HTML nativo en 3 idiomas (es/en/zh).
 // BUMP v107: toggle Alimentos/Bebidas/Todo en pestaña Análisis (ranking de rentabilidad + BCG). Antes hardcoded excluía bebidas → VINO NANO invisible aunque tuviera ventas. Iker pidió poder ver bebidas también. Default 'alimentos' (comportamiento histórico). Base SIEMPRE excluida (subproductos distorsionan). 3 botones pill encima de la tabla, persiste en window.analisisCategoriaFilter, re-render automático al cambiar. i18n es/en/zh.
+// BUMP v108: Matriz BCG (Ingeniería de Menú) vuelve a quedar SIEMPRE solo alimentos, independiente del toggle. Iker: la metodología Kasavana-Smith es para platos comparables. Mezclar bebidas (volumen distinto, se piden por categoría) distorsiona los cuadrantes. El toggle solo afecta al Ranking de Rentabilidad.
+// BUMP v109: 4 mejoras UX tras incidente PATATAS duplicada (Iker, 2026-06-08): (1) detección de duplicado al crear ingrediente con confirm, (2) aviso amber en modal Editar Ingrediente cuando se mueve el slider de rendimiento, (3) subproductos base muestran "—" y "N/A" en columnas PVP/Margen del listado (no engañar con "0% rojo"), (4) ranking de rentabilidad usa thresholds distintos por categoría — bebidas verde ≥55%, alimentos verde ≥67%.
 
-const CACHE_NAME = 'mindloop-costos-v107';
+const CACHE_NAME = 'mindloop-costos-v109';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

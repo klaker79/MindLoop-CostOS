@@ -63,6 +63,42 @@ export async function guardarIngrediente(event) {
         return;
     }
 
+    // 🆕 Detección de duplicado por nombre (2026-06-08). Iker se chocó hoy con
+    // 2 PATATAS distintas: el descuento de stock se aplicó al ingrediente
+    // "fantasma" sin que el usuario se diese cuenta. Para prevenir el caso
+    // raíz, antes de CREAR (no editar) buscamos si ya hay un ingrediente con
+    // el mismo nombre normalizado (sin acentos, lowercase, trim). Si lo hay,
+    // confirmamos con el usuario antes de duplicar.
+    const editandoId_dup = window.editandoIngredienteId;
+    if (editandoId_dup === null || editandoId_dup === undefined) {
+        const normalizar = (s) => String(s || '')
+            .trim()
+            .toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const nombreNorm = normalizar(ingrediente.nombre);
+        const duplicado = (window.ingredientes || []).find(i =>
+            normalizar(i.nombre) === nombreNorm
+        );
+        if (duplicado) {
+            const proveedorMsg = duplicado.proveedor_nombre
+                ? ` (proveedor: ${duplicado.proveedor_nombre})`
+                : '';
+            const stockMsg = duplicado.stock_actual !== null && duplicado.stock_actual !== undefined
+                ? ` con stock ${parseFloat(duplicado.stock_actual)} ${duplicado.unidad || ''}`
+                : '';
+            const continuar = window.confirm(
+                `Ya existe un ingrediente llamado "${duplicado.nombre}"${proveedorMsg}${stockMsg}.\n\n` +
+                `Crear otro con el mismo nombre puede fragmentar tu stock y descuentos. ` +
+                `Si solo cambia el proveedor, te recomendamos editar el existente y añadir el nuevo proveedor desde su ficha.\n\n` +
+                `¿Quieres crear uno NUEVO igualmente?`
+            );
+            if (!continuar) {
+                _guardandoIngrediente = false;
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+        }
+    }
 
     if (typeof window.showLoading === 'function') window.showLoading();
 

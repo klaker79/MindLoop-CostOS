@@ -946,12 +946,15 @@
         try {
             const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
 
-            // 🔧 FILTRO categoría (toggle Alimentos/Bebidas/Todo, default 'alimentos').
-            // Antes el filtro estaba hardcoded a "no-bebidas". Iker pidió poder ver
-            // también bebidas (vinos, refrescos) en el ranking. Las preparaciones
-            // base SIEMPRE se excluyen (no se venden directas y distorsionan el ranking).
-            // El toggle se renderiza en renderTablaRentabilidad y persiste en
-            // window.analisisCategoriaFilter.
+            // 🔧 FILTRO categoría:
+            //   - Ranking de Rentabilidad (datosRecetas): toggle Alimentos/Bebidas/Todo,
+            //     default 'alimentos'. Iker pidió poder ver bebidas también (Bug 2026-06-08).
+            //   - Matriz BCG (menuAnalysis): SIEMPRE solo alimentos.
+            //     La metodología de Menu Engineering (Kasavana-Smith / BCG) es para platos
+            //     comparables entre sí. Mezclar bebidas (volumen alto, margen distinto,
+            //     se piden por categoría no por plato) distorsiona el cuadrante. Iker
+            //     lo confirmó: "En ingeniería de menús sólo van alimentos".
+            //   - Base SIEMPRE excluida en ambos (subproductos no vendibles).
             const filtro = window.analisisCategoriaFilter || 'alimentos';
             const pasaFiltro = (cat) => {
                 const c = String(cat || '').toLowerCase();
@@ -960,8 +963,13 @@
                 const esBebida = (c === 'bebidas' || c === 'bebida');
                 return filtro === 'bebidas' ? esBebida : !esBebida;
             };
+            // BCG: filtro fijo a alimentos, NO depende del toggle.
+            const esAlimentoVendible = (cat) => {
+                const c = String(cat || '').toLowerCase();
+                return c !== 'base' && c !== 'bebidas' && c !== 'bebida';
+            };
 
-            const menuAnalysis = menuAnalysisRaw.filter(item => pasaFiltro(item.categoria));
+            const menuAnalysis = menuAnalysisRaw.filter(item => esAlimentoVendible(item.categoria));
 
             let totalMargen = 0;
             let totalCoste = 0;
@@ -1747,8 +1755,17 @@
                 html += `<td>${cm(parseFloat(rec.coste || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.precio_venta || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.margen || 0))}</td>`;
-                // 🔒 Auditoría Capa 7 (S7 / A5-C1): margen ≥67% verde, 62-66% amarillo, <62% rojo (>= en vez de >)
-                html += `<td><span class="badge ${rec.margenPct >= 67 ? 'badge-success' : rec.margenPct >= 62 ? 'badge-warning' : 'badge-danger'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+                // Threshold por categoría — bebidas tienen target distinto que alimentos
+                // (food cost ~30-35% vs wine cost ~45%, → margen mín ≥62 vs ≥55).
+                // Iker 2026-06-08: el badge de un vino al 58% antes salía rojo cuando
+                // realmente está bien para su categoría.
+                const cat = String(rec.categoria || '').toLowerCase();
+                const esBebida = cat === 'bebidas' || cat === 'bebida';
+                const thrSuccess = esBebida ? 55 : 67;
+                const thrWarning = esBebida ? 50 : 62;
+                const pct = parseFloat(rec.margenPct || 0);
+                const badgeClass = pct >= thrSuccess ? 'badge-success' : pct >= thrWarning ? 'badge-warning' : 'badge-danger';
+                html += `<td><span class="badge ${badgeClass}" title="${esBebida ? 'Target bebidas: ≥55% verde' : 'Target alimentos: ≥67% verde'}">${pct.toFixed(1)}%</span></td>`;
                 html += '</tr>';
             });
 
