@@ -65,17 +65,26 @@ function buildSubtitle(reason) {
     }
 }
 
-function isOnLoginPage() {
-    if (typeof window === 'undefined' || !window.location) return false;
-    const path = (window.location.pathname || '').toLowerCase();
-    return path.includes('/login') || path.endsWith('login.html');
+function isAuthenticated() {
+    // El SPA puede seguir mostrando URL /login.html aunque el usuario ya esté
+    // logado y viendo el dashboard — por eso NO podemos filtrar por pathname.
+    // Fuente de verdad: localStorage.user (se setea en app-core.js tras login).
+    try {
+        if (typeof window === 'undefined' || !window.localStorage) return false;
+        const raw = window.localStorage.getItem('user');
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        return !!(parsed && (parsed.id || parsed.email));
+    } catch (_e) {
+        return false;
+    }
 }
 
 function showSubscriptionModal(detail) {
     if (modalShown) return;
-    // No mostrar antes de logarse — el usuario aún no sabe qué es CostOS,
-    // sería confuso ver "Tu prueba ha terminado" en la pantalla de login.
-    if (isOnLoginPage()) return;
+    // Solo mostrar dentro de la app. Si no hay sesión, el visitante todavía no
+    // sabe qué es CostOS y le saldría "Tu prueba ha terminado" sin contexto.
+    if (!isAuthenticated()) return;
     modalShown = true;
 
     const reason = detail?.reason || 'no_subscription';
