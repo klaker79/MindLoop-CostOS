@@ -113,8 +113,9 @@
 // BUMP v116: suprimir modal de suscripción cuando el usuario está en /login.html. Un visitante con cookie/token de sesión anterior caducada veía "Tu prueba ha terminado" antes de logarse — UX confusa. Ahora el modal solo aparece dentro de la app (post-login).
 // BUMP v117: fix del fix v116 — el SPA puede seguir con URL /login.html aunque el usuario YA esté logado y viendo el dashboard, así que filtrar por pathname mataba el modal incluso dentro de la app. Reemplazo: chequeo localStorage.user (fuente de verdad de sesión). Si hay user → mostrar modal. Si no → suprimir.
 // BUMP v118: Settings → tarjeta "Asistente IA" decía "30€/mes · Cancelar add-on" del modelo viejo. Ahora "Incluido en tu plan". Eliminados botones Activar/Cancelar (chat ya viene en el plan, no hay flow Polar separado).
+// BUMP v119: Omnes Dispersión usa percentiles p5/p95 cuando hay ≥10 platos. Antes el ratio se calculaba con max/min absolutos, así que un BOGAVANTE puntual (160€) o un PAN POR PERSONA (1€) disparaban la dispersión a 160×. Ahora recorta outliers naturalmente. La card muestra "rango p5–p95 (ignora outliers)" cuando aplica para que el cliente entienda el cálculo.
 
-const CACHE_NAME = 'mindloop-costos-v118';
+const CACHE_NAME = 'mindloop-costos-v119';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
