@@ -946,12 +946,15 @@
         try {
             const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
 
-            // 🔧 FILTRO categoría (toggle Alimentos/Bebidas/Todo, default 'alimentos').
-            // Antes el filtro estaba hardcoded a "no-bebidas". Iker pidió poder ver
-            // también bebidas (vinos, refrescos) en el ranking. Las preparaciones
-            // base SIEMPRE se excluyen (no se venden directas y distorsionan el ranking).
-            // El toggle se renderiza en renderTablaRentabilidad y persiste en
-            // window.analisisCategoriaFilter.
+            // 🔧 FILTRO categoría:
+            //   - Ranking de Rentabilidad (datosRecetas): toggle Alimentos/Bebidas/Todo,
+            //     default 'alimentos'. Iker pidió poder ver bebidas también (Bug 2026-06-08).
+            //   - Matriz BCG (menuAnalysis): SIEMPRE solo alimentos.
+            //     La metodología de Menu Engineering (Kasavana-Smith / BCG) es para platos
+            //     comparables entre sí. Mezclar bebidas (volumen alto, margen distinto,
+            //     se piden por categoría no por plato) distorsiona el cuadrante. Iker
+            //     lo confirmó: "En ingeniería de menús sólo van alimentos".
+            //   - Base SIEMPRE excluida en ambos (subproductos no vendibles).
             const filtro = window.analisisCategoriaFilter || 'alimentos';
             const pasaFiltro = (cat) => {
                 const c = String(cat || '').toLowerCase();
@@ -960,8 +963,13 @@
                 const esBebida = (c === 'bebidas' || c === 'bebida');
                 return filtro === 'bebidas' ? esBebida : !esBebida;
             };
+            // BCG: filtro fijo a alimentos, NO depende del toggle.
+            const esAlimentoVendible = (cat) => {
+                const c = String(cat || '').toLowerCase();
+                return c !== 'base' && c !== 'bebidas' && c !== 'bebida';
+            };
 
-            const menuAnalysis = menuAnalysisRaw.filter(item => pasaFiltro(item.categoria));
+            const menuAnalysis = menuAnalysisRaw.filter(item => esAlimentoVendible(item.categoria));
 
             let totalMargen = 0;
             let totalCoste = 0;
