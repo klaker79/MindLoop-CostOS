@@ -99,8 +99,9 @@
 // BUMP v102: IVA también en modal Editar Pedido (duplicar / editar pedido pendiente). Antes no aparecía. Autorrellena del proveedor + muestra fila IVA + fila Total con IVA en footer cuando >0. Solo display visual, no se persiste en BD (igual que Nuevo Pedido y Recepción).
 // BUMP v103: fix label dropdown ingrediente en Nuevo Pedido. Mostraba "VINO NANO (80€/botella)" cuando ing.precio=80 era precio de la CAJA, no de la botella. Cliente confundido. Ahora divide por cantidad_por_formato → muestra "VINO NANO (13,33€/botella)" coincidiendo con Inventario. Editar Pedido ya usaba getIngredientUnitPrice() canónico.
 // BUMP v104: transparencia precio ingrediente. Hint visual junto al campo Precio del modal Editar Ingrediente explicando que la app lo recalcula automáticamente tras cada pedido (PMC × cpf). Si el usuario edita un ingrediente existente, hint enriquecido con el desglose actual: "13,33€/botella × 6 = 80€/CAJA". Cliente Iker preocupado por confusión "¿se ha roto?" cuando el precio configurado se mueve solo.
+// BUMP v105: mismo fix de label €/unidad-base aplicado a (1) dropdown de Nueva/Editar Receta (recetas-ui.js) y (2) búsqueda global (global-search.js). Antes mostraban "VINO NANO (80€/botella)" cuando precio era de CAJA. Iker estaba creando receta VINO NANO y vio el bug. Ahora coincide con Inventario, Pedidos y coste de producción del propio modal de receta. Barrido completo de sitios — ingredientes-ui (listado) y app-core (inventario) ya usaban precio_medio correctamente.
 
-const CACHE_NAME = 'mindloop-costos-v104';
+const CACHE_NAME = 'mindloop-costos-v105';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

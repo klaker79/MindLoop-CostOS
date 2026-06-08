@@ -103,8 +103,14 @@ export function agregarIngredienteReceta(initialValue = '') {
     let optionsHtml = `<option value=""${initialValue ? '' : ' selected'}>${t('recetas:select_ingredient')}</option>`;
 
     // Ingredientes normales
+    // Mostrar SIEMPRE €/unidad-base (PMC real). Si tiene formato (CAJA 6 btl,
+    // GARRAFA 5 l), ing.precio es el precio del FORMATO → dividir por cpf.
+    // Igual fix que pedidos-ui (2026-06-08): así el label coincide con el
+    // coste de producción que muestra la receta más abajo.
     ingredientesOrdenados.forEach(ing => {
-        const precio = parseFloat(ing.precio || 0).toFixed(2);
+        const precioFormato = parseFloat(ing.precio || 0);
+        const cpf = parseFloat(ing.cantidad_por_formato) > 0 ? parseFloat(ing.cantidad_por_formato) : 1;
+        const precio = (precioFormato / cpf).toFixed(2);
         const unidad = ing.unidad || 'ud';
         optionsHtml += `<option value="${ing.id}"${sel(ing.id)}>${escapeHTML(ing.nombre)} (${cm(precio)}/${escapeHTML(unidad)})</option>`;
     });
