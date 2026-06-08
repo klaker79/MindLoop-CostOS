@@ -268,6 +268,16 @@ export function cargarIngredientesPedido() {
     const proveedor = window.proveedores.find(p => p.id === proveedorId);
     const esCompraMercado = proveedor && proveedor.nombre.toLowerCase().includes('mercado');
 
+    // 🆕 Autorelleno IVA habitual del proveedor (Migration 013 ya alimentaba el
+    // modal de recepción; aquí lo extendemos al modal de NUEVO pedido). Si el
+    // proveedor no tiene iva_pct configurado, dejamos 0 (placeholder).
+    const ivaInput = document.getElementById('ped-iva');
+    if (ivaInput && proveedor) {
+        const ivaHabitual = (proveedor.iva_pct !== null && proveedor.iva_pct !== undefined) ? proveedor.iva_pct : 0;
+        ivaInput.value = ivaHabitual;
+        if (typeof window.calcularTotalPedido === 'function') window.calcularTotalPedido();
+    }
+
     // 🏪 Para compras del mercado: mostrar TODOS los ingredientes
     if (esCompraMercado) {
         if ((window.ingredientes || []).length === 0) {
