@@ -866,6 +866,13 @@ window.confirmarImportarIngredientes = async function () {
                 stockActual: ing.stockActual,
                 stockMinimo: ing.stockMinimo,
             };
+            // 2026-06-08: enviar cantidad_por_formato / formato_compra / rendimiento /
+            // familia si el parser los extrajo. Sin esto, comprar por caja/garrafa con
+            // precio del formato inflaba precio unitario × N → food cost mentía.
+            if (ing.cantidadPorFormato) payload.cantidad_por_formato = ing.cantidadPorFormato;
+            if (ing.formatoCompra) payload.formato_compra = ing.formatoCompra;
+            if (ing.rendimiento) payload.rendimiento = ing.rendimiento;
+            if (ing.familia) payload.familia = ing.familia;
             // 🆕 Solo enviar proveedorId si el Excel traía un nombre y se emparejó.
             // Si traía un nombre que no existe, se crea el ingrediente sin proveedor
             // y se registra en el informe final para que el usuario lo arregle.
