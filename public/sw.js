@@ -114,8 +114,9 @@
 // BUMP v117: fix del fix v116 — el SPA puede seguir con URL /login.html aunque el usuario YA esté logado y viendo el dashboard, así que filtrar por pathname mataba el modal incluso dentro de la app. Reemplazo: chequeo localStorage.user (fuente de verdad de sesión). Si hay user → mostrar modal. Si no → suprimir.
 // BUMP v118: Settings → tarjeta "Asistente IA" decía "30€/mes · Cancelar add-on" del modelo viejo. Ahora "Incluido en tu plan". Eliminados botones Activar/Cancelar (chat ya viene en el plan, no hay flow Polar separado).
 // BUMP v119: Omnes Dispersión usa percentiles p5/p95 cuando hay ≥10 platos. Antes el ratio se calculaba con max/min absolutos, así que un BOGAVANTE puntual (160€) o un PAN POR PERSONA (1€) disparaban la dispersión a 160×. Ahora recorta outliers naturalmente. La card muestra "rango p5–p95 (ignora outliers)" cuando aplica para que el cliente entienda el cálculo.
+// BUMP v120: Omnes Dispersión sustituye percentiles por filtro de outliers vs mediana (MAD-like). Funciona en cartas pequeñas (Demo Trattoria 7 platos) también: descarta cualquier plato fuera del rango [mediana/2.5, mediana×2.5]. Casos como OSTRA (unidad), PAN (cubierto), BOGAVANTE (oferta puntual) o menú degustación extremo se excluyen automáticamente sin pedir nada al cliente. La card avisa cuántos platos atípicos se ignoraron.
 
-const CACHE_NAME = 'mindloop-costos-v119';
+const CACHE_NAME = 'mindloop-costos-v120';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

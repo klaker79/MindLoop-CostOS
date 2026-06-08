@@ -186,11 +186,13 @@ function cardDispersion(d) {
     }
     const valor = `${d.valor.toFixed(2)}×`;
     const ideal = 'Ideal ≤ 2,5×';
-    // Si el cálculo recorta outliers via percentiles, lo aclaramos al cliente:
-    // el ratio no es max/min absolutos sino p95/p5 — más robusto frente a
-    // cargos automáticos (PAN) y platos puntuales (BOGAVANTE de oferta).
-    const subtituloRango = d.usa_percentiles
-        ? `${escapeHTML(ideal)} · rango p5–p95 (ignora outliers)`
+    // Si el backend detectó outliers vía mediana y los recortó, lo aclaramos
+    // al cliente. El ratio refleja la carta normal, no cargos automáticos
+    // (PAN, CUBIERTO) ni unidades sueltas (OSTRA, MARISCO) ni ofertas
+    // puntuales (BOGAVANTE).
+    const excluidos = Number(d.platos_excluidos || 0);
+    const subtituloRango = d.filtro_outliers_aplicado
+        ? `${escapeHTML(ideal)} · ${excluidos} plato${excluidos === 1 ? '' : 's'} atípico${excluidos === 1 ? '' : 's'} ignorado${excluidos === 1 ? '' : 's'}`
         : `${escapeHTML(ideal)} · plato más caro / plato más barato`;
     return `
         <div class="oms-card">
