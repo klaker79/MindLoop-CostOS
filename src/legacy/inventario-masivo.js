@@ -2790,6 +2790,34 @@ async function renderizarTablaPLDiario() {
         }
     }
 
+    // 🆕 (2026-06-08) Calcular mermas por día desde /mermas?mes=&ano=.
+    // Iker pidió que el P&L muestre las mermas como pérdida operativa real
+    // (antes solo afectaban al stock, no al beneficio neto). El coste de
+    // receta vendida (COSTES PROD) sigue intacto — eso mide la rentabilidad
+    // de la carta. La merma se RESTA aparte para mostrar la realidad económica.
+    const mermasPorDia = {};
+    dias.forEach(dia => { mermasPorDia[dia] = 0; });
+    try {
+        const mermasMes = await window.api.getMermas(mesSeleccionado, anoSeleccionado);
+        if (Array.isArray(mermasMes)) {
+            mermasMes.forEach(m => {
+                // Solo cuentan las negativas (pérdidas). Los ajustes positivos
+                // (sobra de stock por error de recuento) no son pérdida, son
+                // ganancia oculta que no entra al P&L para no inflar margen.
+                const cantidad = parseFloat(m.cantidad) || 0;
+                if (cantidad >= 0) return; // signo: backend guarda negativo = pérdida
+                const coste = Math.abs(parseFloat(m.coste) || 0);
+                // m.fecha llega como YYYY-MM-DD o ISO. Normalizar a YYYY-MM-DD.
+                const fecha = String(m.fecha || '').substring(0, 10);
+                if (mermasPorDia[fecha] !== undefined) {
+                    mermasPorDia[fecha] += coste;
+                }
+            });
+        }
+    } catch (err) {
+        console.warn('No se pudieron cargar mermas para el P&L:', err.message);
+    }
+
     // ═══════════════════════════════════════════════════════════
     // 📊 TABLA P&L - CUENTA DE RESULTADOS
     // ═══════════════════════════════════════════════════════════
@@ -2854,6 +2882,20 @@ async function renderizarTablaPLDiario() {
     });
     html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">${cm(totalMargenBruto)}</td></tr>`;
 
+    // ── FILA: MERMAS DEL DÍA (🆕 2026-06-08) ──
+    // Solo se muestra si hay al menos 1 merma en el periodo, para no contaminar
+    // visualmente el P&L cuando el negocio no tuvo pérdidas registradas.
+    let totalMermas = 0;
+    dias.forEach(dia => { totalMermas += mermasPorDia[dia] || 0; });
+    if (totalMermas > 0) {
+        html += `<tr style="background: #fee2e2;"><td style="position: sticky; left: 0; background: #fee2e2; padding: 16px; font-weight: 600; color: #991b1b; border-bottom: 1px solid #fecaca;" title="Pérdidas registradas vía inventario físico, no incluidas en el coste de receta vendida">${window.t('balance:pl_waste') || '🗑️ MERMAS DEL DÍA'}</td>`;
+        dias.forEach(dia => {
+            const val = mermasPorDia[dia] || 0;
+            html += `<td style="text-align: center; padding: 16px 8px; color: #dc2626; border-bottom: 1px solid #fecaca;">${val > 0 ? '−' + cm(val) : cm(0)}</td>`;
+        });
+        html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">−${cm(totalMermas)}</td></tr>`;
+    }
+
     // ── FILA: GASTOS FIJOS / DÍA ──
     // 🔧 FIX: antes se multiplicaba por dias.length (sólo días con movimiento), lo que
     // infravaloraba el gasto mensual real. El alquiler y personal se pagan todos los días
@@ -2878,18 +2920,19 @@ async function renderizarTablaPLDiario() {
     // ── SEPARADOR GRUESO ──
     html += `<tr><td colspan="${dias.length + 2}" style="height: 4px; background: linear-gradient(90deg, #1e3a5f 0%, #3b82f6 50%, #1e3a5f 100%); padding: 0;"></td></tr>`;
 
-    // ── FILA: BENEFICIO NETO (MARGEN BRUTO - GASTOS FIJOS) ──
-    // Total del período coherente con la fila de gastos fijos: margen bruto total menos
-    // el gasto fijo real del período (no la suma de "gastoDia × días con movimiento").
+    // ── FILA: BENEFICIO NETO (MARGEN BRUTO - MERMAS - GASTOS FIJOS) ──
+    // Total del período coherente con las filas de mermas y gastos fijos.
+    // (2026-06-08) Resta también las mermas del día — antes solo gastos fijos.
     html += `<tr style="background: #dbeafe;"><td style="position: sticky; left: 0; background: #dbeafe; padding: 18px 16px; font-weight: 700; font-size: 15px; color: #1e3a5f; border-bottom: 2px solid #93c5fd;">${window.t('balance:pl_net_profit')}</td>`;
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
-        const beneficioNeto = margenDia - gastosFijosDia;
+        const mermaDia = mermasPorDia[dia] || 0;
+        const beneficioNeto = margenDia - mermaDia - gastosFijosDia;
         const color = beneficioNeto >= 0 ? '#1e3a5f' : '#dc2626';
         const bg = beneficioNeto >= 0 ? '#dbeafe' : '#fee2e2';
         html += `<td style="text-align: center; padding: 18px 8px; font-weight: 700; font-size: 14px; color: ${color}; background: ${bg}; border-bottom: 2px solid #93c5fd;">${cm(beneficioNeto)}</td>`;
     });
-    const totalBeneficioNeto = totalMargenBruto - totalGastosFijosMostrados;
+    const totalBeneficioNeto = totalMargenBruto - totalMermas - totalGastosFijosMostrados;
     // 🎨 Tonos legibles sobre fondo navy oscuro (rediseño 2026-05-26).
     // Antes: #22c55e (verde fluo) / #ef4444 (rojo fuerte) — ilegibles
     // sobre navy.
