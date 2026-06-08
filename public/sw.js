@@ -96,8 +96,9 @@
 // BUMP v99: Recetas Excel — (1) plantilla pasa de CSV estático a XLSX dinámico (sin aviso "POSIBLE PÉRDIDA DE DATOS"), (2) plantilla y export comparten ORDEN de columnas (Receta/Categoría/Precio/Porciones/Código TPV/Ingrediente/Cantidad/Rendimiento), (3) "Exportar mis recetas" sin recetas → toast en lugar de descargar ejemplo confuso.
 // BUMP v100: Proveedores Excel completo — antes solo tenía "Descargar plantilla" CSV estático. Ahora 3 opciones: plantilla XLSX dinámica + Importar (upsert por nombre, modal con preview, conserva relación de ingredientes) + Exportar mis proveedores. Schema completo (nombre/contacto/teléfono/email/CIF/IVA/código/dirección/notas) alineado con Supplier entity backend.
 // BUMP v101: IVA habitual del proveedor también autorellena el modal de NUEVO pedido. Antes solo lo hacía el modal de recepción. Iker espera que al elegir VINOS TONE (iva_pct=21) el campo IVA del pedido sea 21, no 0. Pedidos-ui:cargarIngredientesPedido lo aplica + recalcula totales.
+// BUMP v102: IVA también en modal Editar Pedido (duplicar / editar pedido pendiente). Antes no aparecía. Autorrellena del proveedor + muestra fila IVA + fila Total con IVA en footer cuando >0. Solo display visual, no se persiste en BD (igual que Nuevo Pedido y Recepción).
 
-const CACHE_NAME = 'mindloop-costos-v101';
+const CACHE_NAME = 'mindloop-costos-v102';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

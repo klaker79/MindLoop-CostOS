@@ -54,13 +54,19 @@ export function abrirModalEditarPedido(id) {
         }
     });
 
+    // IVA habitual del proveedor — display visual para cuadrar contra albarán.
+    // No se persiste en BD (igual que en Nuevo Pedido y Recepción).
+    const prov = (window.proveedores || []).find(p => p.id === pedido.proveedor_id);
+    const ivaInicial = (prov && prov.iva_pct !== null && prov.iva_pct !== undefined) ? prov.iva_pct : 0;
+
     // Estado temporal del modal
     window._editandoPedido = {
         id,
         proveedor_id: pedido.proveedor_id,
         items,
         ajusteImporte,
-        ajusteDescripcion
+        ajusteDescripcion,
+        ivaPct: ivaInicial
     };
 
     renderizarModalEditarPedido();
@@ -144,6 +150,9 @@ function renderizarModalEditarPedido() {
     const subtotalItems = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
     const ajuste = parseFloat(state.ajusteImporte) || 0;
     const totalPedido = subtotalItems + ajuste;
+    const ivaPct = Math.min(100, Math.max(0, parseFloat(state.ivaPct) || 0));
+    const ivaImporte = totalPedido * (ivaPct / 100);
+    const totalConIva = totalPedido + ivaImporte;
 
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
@@ -179,8 +188,28 @@ function renderizarModalEditarPedido() {
                         <td style="padding: 10px; text-align: right; font-weight: 700; color: #059669; font-size: 16px;">${cm(totalPedido)}</td>
                         <td></td>
                     </tr>
+                    ${ivaPct > 0 ? `<tr style="background: #ecfdf5;">
+                        <td colspan="3" style="padding: 10px; text-align: right; font-weight: 600; color: #047857;">+ IVA (${ivaPct}%):</td>
+                        <td style="padding: 10px; text-align: right; font-weight: 600; color: #047857;">${cm(ivaImporte)}</td>
+                        <td></td>
+                    </tr>
+                    <tr style="background: #d1fae5;">
+                        <td colspan="3" style="padding: 10px; text-align: right; font-weight: 700; color: #065f46;">Total con IVA:</td>
+                        <td style="padding: 10px; text-align: right; font-weight: 700; color: #065f46; font-size: 17px;">${cm(totalConIva)}</td>
+                        <td></td>
+                    </tr>` : ''}
                 </tfoot>
             </table>
+
+            <div style="background: #ecfdf5; padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #86efac;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <label style="font-size: 12px; font-weight: 600; color: #047857;">IVA del albarán (%)</label>
+                    <input type="number" step="0.5" min="0" max="100" value="${ivaPct}"
+                        onchange="window.actualizarIvaPedidoEdicion(this.value)"
+                        style="width: 80px; padding: 8px; border: 2px solid #86efac; border-radius: 6px; text-align: center; font-weight: 600;" />
+                    <small style="color: #047857; font-size: 12px;">Autorrellena del proveedor — solo display para cuadrar con el papel del albarán.</small>
+                </div>
+            </div>
 
             <div style="background: #f0f9ff; padding: 14px; border-radius: 8px; margin-bottom: 16px;">
                 <h4 style="margin: 0 0 10px 0;">➕ ${t('pedidos:edit_add_ingredient')}${nombreProveedor ? ` <small style="color: #64748b; font-weight: 400;">${t('pedidos:edit_add_ingredient_from', { supplier: escapeHTML(nombreProveedor) })}</small>` : ''}</h4>
@@ -256,6 +285,14 @@ export function actualizarAjustePedido(campo, valor) {
     } else if (campo === 'descripcion') {
         state.ajusteDescripcion = String(valor || '');
     }
+    renderizarModalEditarPedido();
+}
+
+export function actualizarIvaPedidoEdicion(valor) {
+    const state = window._editandoPedido;
+    if (!state) return;
+    const n = parseFloat(valor);
+    state.ivaPct = Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0;
     renderizarModalEditarPedido();
 }
 
@@ -372,6 +409,7 @@ if (typeof window !== 'undefined') {
     window.agregarItemEdicion = agregarItemEdicion;
     window.autocompletarPrecioEdicion = autocompletarPrecioEdicion;
     window.actualizarAjustePedido = actualizarAjustePedido;
+    window.actualizarIvaPedidoEdicion = actualizarIvaPedidoEdicion;
     window.cerrarModalEditarPedido = cerrarModalEditarPedido;
     window.guardarEdicionPedido = guardarEdicionPedido;
 }
