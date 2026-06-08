@@ -112,8 +112,9 @@
 // BUMP v115: el interceptor de v114 solo capturaba 403 desde apiClient (src/api/client.js). El código legacy usa fetchWithCreds en src/legacy/app-core.js que NO pasa por handleResponse → 403 silenciosos, modal nunca aparecía. Fix: wrap GLOBAL de window.fetch al import time (no en DOMContentLoaded para no perder los 403 que ocurren al arrancar la app, como chatStatus). Buffer window.__pendingSub para race conditions.
 // BUMP v116: suprimir modal de suscripción cuando el usuario está en /login.html. Un visitante con cookie/token de sesión anterior caducada veía "Tu prueba ha terminado" antes de logarse — UX confusa. Ahora el modal solo aparece dentro de la app (post-login).
 // BUMP v117: fix del fix v116 — el SPA puede seguir con URL /login.html aunque el usuario YA esté logado y viendo el dashboard, así que filtrar por pathname mataba el modal incluso dentro de la app. Reemplazo: chequeo localStorage.user (fuente de verdad de sesión). Si hay user → mostrar modal. Si no → suprimir.
+// BUMP v118: Settings → tarjeta "Asistente IA" decía "30€/mes · Cancelar add-on" del modelo viejo. Ahora "Incluido en tu plan". Eliminados botones Activar/Cancelar (chat ya viene en el plan, no hay flow Polar separado).
 
-const CACHE_NAME = 'mindloop-costos-v117';
+const CACHE_NAME = 'mindloop-costos-v118';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
