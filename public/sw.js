@@ -111,8 +111,9 @@
 // BUMP v114: modelo single-plan. Modal de suscripción GLOBAL — sustituye al overlay específico de Análisis. Interceptor en api/client.js detecta 403 SUBSCRIPTION_REQUIRED desde CUALQUIER endpoint y dispara evento global. El modal full-screen tapa toda la UI con CTA Polar (Self 95€ / Pro 185€). URLs configurables vía VITE_POLAR_CHECKOUT_URL_SELF/PRO y fallback contacto Iker para cuando Polar aún no esté listo (alta autónomos + onboarding Polar = 2-5 días). El chat IA va incluido en el plan (no más add-on de 30€).
 // BUMP v115: el interceptor de v114 solo capturaba 403 desde apiClient (src/api/client.js). El código legacy usa fetchWithCreds en src/legacy/app-core.js que NO pasa por handleResponse → 403 silenciosos, modal nunca aparecía. Fix: wrap GLOBAL de window.fetch al import time (no en DOMContentLoaded para no perder los 403 que ocurren al arrancar la app, como chatStatus). Buffer window.__pendingSub para race conditions.
 // BUMP v116: suprimir modal de suscripción cuando el usuario está en /login.html. Un visitante con cookie/token de sesión anterior caducada veía "Tu prueba ha terminado" antes de logarse — UX confusa. Ahora el modal solo aparece dentro de la app (post-login).
+// BUMP v117: fix del fix v116 — el SPA puede seguir con URL /login.html aunque el usuario YA esté logado y viendo el dashboard, así que filtrar por pathname mataba el modal incluso dentro de la app. Reemplazo: chequeo localStorage.user (fuente de verdad de sesión). Si hay user → mostrar modal. Si no → suprimir.
 
-const CACHE_NAME = 'mindloop-costos-v116';
+const CACHE_NAME = 'mindloop-costos-v117';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
