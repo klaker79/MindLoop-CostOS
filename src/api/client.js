@@ -73,6 +73,27 @@ async function handleResponse(response) {
             }
         }
 
+        // 🆕 2026-06-08: detectar 403 SUBSCRIPTION_REQUIRED (gating global del
+        // backend tras trial caducado o sin plan activo). Disparar evento global
+        // para que un único componente muestre overlay full-screen con CTA Polar.
+        // No bloquea el throw: la ruta que llamó también recibe el error, pero
+        // el overlay tapa toda la UI.
+        if (response.status === 403) {
+            try {
+                const bodyClone = await response.clone().json().catch(() => null);
+                if (bodyClone && bodyClone.error === 'SUBSCRIPTION_REQUIRED') {
+                    window.dispatchEvent(new CustomEvent('subscription:required', {
+                        detail: {
+                            reason: bodyClone.reason || 'no_subscription',
+                            trialEndedAt: bodyClone.trial_ended_at || null,
+                            plan: bodyClone.plan || null,
+                            planStatus: bodyClone.plan_status || null,
+                        }
+                    }));
+                }
+            } catch (_e) { /* nada */ }
+        }
+
         // 🔧 FIX BUG-5: Incluir .status para que callers puedan distinguir 4xx de 5xx
         const error = new Error(errorMessage);
         error.status = response.status;

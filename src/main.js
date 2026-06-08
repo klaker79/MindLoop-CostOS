@@ -179,10 +179,17 @@ import { mountInfoModal } from './modules/help/info-modal.js';
 // bajo un único botón limpio. Iker 2026-06-08.
 import { mountActionDropdowns } from './components/ui/action-dropdown.js';
 
+// 🔒 Subscription modal — escucha el evento global 'subscription:required' que
+// dispara api/client.js cuando el backend responde 403 SUBSCRIPTION_REQUIRED
+// (trial caducado o sin plan activo). Overlay full-screen con CTA Polar.
+// Iker 2026-06-08.
+import { mountSubscriptionModal } from './modules/subscription/subscription-modal.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     mountHelpModal();
     mountInfoModal();
     mountActionDropdowns();
+    mountSubscriptionModal();
 });
 
 // Parser flexible de inventario. El módulo es ESM, pero

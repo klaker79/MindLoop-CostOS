@@ -1028,30 +1028,13 @@
             }
         } catch (error) {
             console.error('Error renderizando análisis:', error);
-            // 🆕 2026-06-08: si es trial expirado o plan insuficiente, mostrar overlay
-            // claro al usuario en vez de dejar la pantalla vacía/silenciosa.
+            // 🔒 2026-06-08: el overlay específico de Análisis fue retirado.
+            // Ahora el modal de "trial caducado / suscríbete" es GLOBAL — lo
+            // dispara automáticamente el interceptor de api/client.js cuando el
+            // backend responde 403 SUBSCRIPTION_REQUIRED desde cualquier endpoint.
+            // Aquí solo nos queda el log + dejar de renderizar.
             if (error?.status === 403) {
-                const contenido = document.getElementById('analisis-contenido');
-                if (contenido) {
-                    const esTrial = !!error.trial_expired;
-                    const titulo = esTrial
-                        ? '🔒 Tu periodo de prueba ha expirado'
-                        : '🔒 Esta sección requiere un plan superior';
-                    const subtitulo = esTrial
-                        ? 'Para seguir usando Análisis e Inteligencia, suscríbete al plan MindLoop.'
-                        : 'Suscríbete para acceder a la Ingeniería de Menú y los Principios de Omnes.';
-                    contenido.innerHTML = `
-                        <div style="max-width: 560px; margin: 60px auto; padding: 40px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 16px; text-align: center; color: #f8fafc; box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.4);">
-                            <div style="font-size: 48px; margin-bottom: 12px;">🔒</div>
-                            <h2 style="margin: 0 0 12px 0; font-size: 22px; color: #f8fafc;">${escapeHTML(titulo)}</h2>
-                            <p style="margin: 0 0 28px 0; font-size: 14px; color: #cbd5e1; line-height: 1.5;">${escapeHTML(subtitulo)}</p>
-                            <a href="${escapeHTML(error.upgrade_url || '/planes')}" style="display: inline-block; background: linear-gradient(135deg, #7c3aed, #6366f1); color: white; padding: 12px 32px; border-radius: 999px; font-weight: 600; text-decoration: none; font-size: 14px;">Ver planes y suscribirse</a>
-                        </div>
-                    `;
-                    contenido.style.display = 'block';
-                    const vacio = document.getElementById('analisis-vacio');
-                    if (vacio) vacio.style.display = 'none';
-                }
+                // El modal global se está mostrando, no hace falta más
             }
         }
     };
