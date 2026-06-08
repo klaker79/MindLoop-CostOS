@@ -194,50 +194,70 @@ function injectButtonInTab(tabKey) {
     // Evitar duplicados al re-montar.
     if (topBar.querySelector(`.${BTN_CLASS}`)) return;
 
+    // 2026-06-08: en lugar de inyectar 2 botones separados ("🎬 Ver tutorial"
+    // y "ℹ️ Cómo funcionan"), inyectamos UN solo dropdown "? Ayuda" que
+    // agrupa ambas opciones. Patrón Notion: menos saturación visual.
+    const wrapper = document.createElement('div');
+    wrapper.className = `ad-wrapper ${BTN_CLASS}`;
+
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `btn btn-secondary ${BTN_CLASS}`;
-    btn.setAttribute('aria-label', 'Ver tutorial de esta pestaña');
-    btn.title = 'Ver tutorial en video';
-    btn.innerHTML = '🎬 Ver tutorial';
-    btn.addEventListener('click', () => openTabHelp(tabKey));
+    btn.className = 'btn btn-secondary ad-trigger ad-help-trigger';
+    btn.setAttribute('aria-label', 'Ayuda de esta pestaña');
+    btn.title = 'Ayuda · tutorial y cómo funciona esta pestaña';
+    btn.innerHTML = '?';
 
-    // Localizar el contenedor de acciones del top-bar. Cuatro casos:
-    //   1) Pestañas tipo Ingredientes/Recetas: ya hay un <div> con flex-gap
-    //      que aloja "Añadir", "Importar", "Exportar". Añadimos al final.
-    //   2) Pestañas tipo Proveedores: el botón principal "+ Añadir X" está
-    //      SUELTO directamente bajo .top-bar (sin wrapper). Si añadimos
-    //      otro botón al lado, .top-bar (justify-content: space-between)
-    //      los separa visualmente. Para evitarlo, envolvemos el botón
-    //      principal y el nuevo "Ver tutorial" en un <div> compartido,
-    //      así .top-bar solo ve 2 elementos (título + grupo de botones)
-    //      y los 2 botones quedan pegados.
-    //   3) Pestañas tipo Inventario: los botones de acción viven en un
-    //      <div> HERMANO (no dentro del .top-bar) — el primer div sibling
-    //      después del top-bar que contiene buttons. Inyectamos ahí para
-    //      que el "Ver tutorial" quede a la altura del resto de botones.
-    //   4) Pestañas sin botones de acción: append al final del top-bar.
+    const menu = document.createElement('div');
+    menu.className = 'ad-menu ad-menu--left';
+    menu.setAttribute('role', 'menu');
+    menu.innerHTML = `
+        <button type="button" role="menuitem" class="help-menu-tutorial">
+            <span class="ad-icon">🎬</span>
+            <span>Ver tutorial en video</span>
+        </button>
+        <button type="button" role="menuitem" class="help-menu-info">
+            <span class="ad-icon">ℹ️</span>
+            <span>Cómo funciona esta sección</span>
+        </button>
+    `;
+
+    menu.querySelector('.help-menu-tutorial').addEventListener('click', () => openTabHelp(tabKey));
+    menu.querySelector('.help-menu-info').addEventListener('click', () => {
+        if (typeof window !== 'undefined' && typeof window.openInfoTab === 'function') {
+            window.openInfoTab(tabKey);
+        }
+    });
+
+    wrapper.appendChild(btn);
+    wrapper.appendChild(menu);
+
+    // El wrapper (.ad-wrapper) es lo que se inyecta — contiene botón "?"
+    // + menú colgante. Lo tratamos como un único nodo desde el DOM padre.
+    const injectable = wrapper;
+
+    // Mismos 4 casos de antes (Ingredientes/Recetas → div flex existente;
+    // Proveedores → botones sueltos; Inventario → div hermano; etc).
     const directDivs = Array.from(topBar.children).filter(c => c.tagName === 'DIV');
     const directButtons = Array.from(topBar.children).filter(c => c.tagName === 'BUTTON');
 
     if (directButtons.length > 0) {
-        // Caso 2: agrupar botón(es) suelto(s) + el nuevo en un wrapper.
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'display: flex; gap: 10px; align-items: center;';
-        directButtons.forEach(b => wrapper.appendChild(b));
-        wrapper.appendChild(btn);
-        topBar.appendChild(wrapper);
+        // Caso 2: agrupar botón(es) suelto(s) + el nuevo en un grupo.
+        const group = document.createElement('div');
+        group.style.cssText = 'display: flex; gap: 10px; align-items: center;';
+        directButtons.forEach(b => group.appendChild(b));
+        group.appendChild(injectable);
+        topBar.appendChild(group);
     } else if (directDivs.length > 1) {
         // Caso 1: usar el wrapper de acciones existente.
-        directDivs[directDivs.length - 1].appendChild(btn);
+        directDivs[directDivs.length - 1].appendChild(injectable);
     } else {
         // Caso 3: buscar div hermano siguiente con botones (patrón Inventario).
         const siblingActions = tabContent.querySelector('.top-bar + div');
         if (siblingActions && siblingActions.querySelector('button')) {
-            siblingActions.appendChild(btn);
+            siblingActions.appendChild(injectable);
         } else {
             // Caso 4: append simple al top-bar.
-            topBar.appendChild(btn);
+            topBar.appendChild(injectable);
         }
     }
 }
@@ -245,6 +265,12 @@ function injectButtonInTab(tabKey) {
 export function mountHelpModal() {
     ensureModalNode();
     Object.keys(HELP_VIDEOS).forEach(injectButtonInTab);
+    // 2026-06-08: tras inyectar los dropdowns "? Ayuda", montamos el binding
+    // de toggle/cierre. mountActionDropdowns es idempotente — si los wrappers
+    // ya están bindeados los salta.
+    if (typeof window !== 'undefined' && typeof window.mountActionDropdowns === 'function') {
+        window.mountActionDropdowns();
+    }
 }
 
 // Exponer para uso desde inline handlers o consola si fuera útil.

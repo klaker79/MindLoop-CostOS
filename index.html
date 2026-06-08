@@ -799,14 +799,29 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-ingrediente" data-i18n="ingredientes:btn_new">➕
                 Añadir Ingrediente</button>
-              <button class="btn btn-secondary" data-action="importar-ingredientes"
-                data-i18n="common:btn_import_excel">📤 Importar
-                Excel</button>
-              <a class="btn btn-secondary" href="/templates/plantilla-ingredientes.csv" download
-                title="Descarga un CSV de ejemplo para empezar rápido"
-                style="text-decoration:none;">📥 Plantilla</a>
-              <button class="btn btn-secondary" data-action="exportar-ingredientes"
-                data-i18n="common:btn_export_excel">📥 Exportar Excel</button>
+              <!-- Dropdown agrupado Import/Plantilla/Export (UX 2026-06-08).
+                   Antes eran 3 botones sueltos + 2 de ayuda → saturaba.
+                   Ahora: 1 botón principal + 1 dropdown + 1 botón Ayuda
+                   (inyectado por help-modal.js). Patrón Notion/Linear. -->
+              <div class="ad-wrapper">
+                <button type="button" class="btn btn-secondary ad-trigger">📊 Importar / Exportar</button>
+                <div class="ad-menu" role="menu">
+                  <a role="menuitem" href="/templates/plantilla-ingredientes.csv" download
+                     title="Descarga un CSV de ejemplo para empezar rápido">
+                    <span class="ad-icon">📥</span>
+                    <span>Descargar plantilla de ejemplo</span>
+                  </a>
+                  <button type="button" role="menuitem" data-action="importar-ingredientes">
+                    <span class="ad-icon">📤</span>
+                    <span>Importar desde Excel</span>
+                  </button>
+                  <button type="button" role="menuitem" data-action="exportar-ingredientes">
+                    <span class="ad-icon">💾</span>
+                    <span>Exportar mis datos</span>
+                  </button>
+                  <div class="ad-menu__hint">La plantilla solo se descarga la primera vez para empezar.</div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="search-box">
@@ -947,13 +962,26 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-receta" data-i18n="recetas:btn_new">➕ Nueva
                 Receta</button>
-              <button class="btn btn-secondary" data-action="importar-recetas" data-i18n="common:btn_import_excel">📤
-                Importar Excel</button>
-              <a class="btn btn-secondary" href="/templates/plantilla-recetas.csv" download
-                title="Descarga un CSV de ejemplo para empezar rápido"
-                style="text-decoration:none;">📥 Plantilla</a>
-              <button class="btn btn-secondary" data-action="descargar-plantilla-escandallo" data-i18n="common:btn_export_excel">📥
-                Exportar Excel</button>
+              <!-- Dropdown agrupado Import/Plantilla/Export (UX 2026-06-08). -->
+              <div class="ad-wrapper">
+                <button type="button" class="btn btn-secondary ad-trigger">📊 Importar / Exportar</button>
+                <div class="ad-menu" role="menu">
+                  <a role="menuitem" href="/templates/plantilla-recetas.csv" download
+                     title="Descarga un CSV de ejemplo para empezar rápido">
+                    <span class="ad-icon">📥</span>
+                    <span>Descargar plantilla de ejemplo</span>
+                  </a>
+                  <button type="button" role="menuitem" data-action="importar-recetas">
+                    <span class="ad-icon">📤</span>
+                    <span>Importar desde Excel</span>
+                  </button>
+                  <button type="button" role="menuitem" data-action="descargar-plantilla-escandallo">
+                    <span class="ad-icon">💾</span>
+                    <span>Exportar mis recetas</span>
+                  </button>
+                  <div class="ad-menu__hint">La plantilla solo se descarga la primera vez para empezar.</div>
+                </div>
+              </div>
               <button class="btn" onclick="window.mostrarCostTracker()"
                 style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 <span
                   data-i18n="recetas:btn_cost_tracking">Seguimiento Costes</span></button>
@@ -1180,9 +1208,21 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-proveedor" data-i18n="proveedores:btn_new">+
                 Añadir Proveedor</button>
-              <a class="btn btn-secondary" href="/templates/plantilla-proveedores.csv" download
-                title="Descarga un CSV de ejemplo para empezar rápido"
-                style="text-decoration:none;">📥 Plantilla</a>
+              <!-- Dropdown agrupado Plantilla (UX 2026-06-08).
+                   Proveedores no tiene import/export propio aún, pero mantener
+                   la coherencia visual: la plantilla queda dentro del dropdown
+                   junto al resto. -->
+              <div class="ad-wrapper">
+                <button type="button" class="btn btn-secondary ad-trigger">📊 Plantilla</button>
+                <div class="ad-menu" role="menu">
+                  <a role="menuitem" href="/templates/plantilla-proveedores.csv" download
+                     title="Descarga un CSV de ejemplo para empezar rápido">
+                    <span class="ad-icon">📥</span>
+                    <span>Descargar plantilla de ejemplo</span>
+                  </a>
+                  <div class="ad-menu__hint">Útil para listar a mano tus proveedores antes de añadirlos a la app.</div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="search-box">
