@@ -75,6 +75,7 @@
   "escandallo_iva": "增值税 ({{pct}}%)",
   "escandallo_pvp": "售价 (含增值税)",
   "escandallo_fc_real": "实际食材成本 (含误差)",
+  "escandallo_fc_real_tooltip": "出现两个食材成本是因为它们衡量不同的内容：\n\n• 顶部的食材成本使用配方中原始的食材成本，除以不含税售价。这是您今天实际平均支付的金额。\n\n• 此食材成本 (含误差) 在成本上增加了 {{pct}}% 的缓冲，用于覆盖损耗、溢出、配方错误和临时涨价。使用此值可以安全地定价 — 即使现实波动，按此食材成本销售也能保持利润。",
   "escandallo_toggle_label": "价格模式",
   "escandallo_toggle_real": "实际（采购）",
   "escandallo_toggle_nominal": "标称（配置）",

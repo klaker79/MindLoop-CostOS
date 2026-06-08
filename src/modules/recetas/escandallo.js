@@ -254,8 +254,8 @@ async function renderContenido() {
                     <span style="color: #F8FAFC; font-weight: 700; font-size: 15px; padding-top: 8px; border-top: 1px solid #475569;">${escapeHTML(t('recetas:escandallo_pvp'))}</span>
                     <span style="text-align: right; font-weight: 700; font-size: 15px; color: #F97316; padding-top: 8px; border-top: 1px solid #475569;">${cm(pvpConIva)}</span>
 
-                    <span style="color: #94A3B8; padding-top: 6px;">${escapeHTML(t('recetas:escandallo_fc_real'))}</span>
-                    <span style="text-align: right; font-weight: 700; padding-top: 6px; color: ${foodCostRealColor};">${foodCostReal.toFixed(1)}%</span>
+                    <span style="color: #94A3B8; padding-top: 6px; cursor: help;" title="${escapeHTML(t('recetas:escandallo_fc_real_tooltip', { pct: MARGEN_ERROR_PCT }))}">${escapeHTML(t('recetas:escandallo_fc_real'))} <span style="display: inline-block; width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 50%; background: #475569; color: #F8FAFC; font-size: 11px; font-weight: 700; margin-left: 4px;">?</span></span>
+                    <span style="text-align: right; font-weight: 700; padding-top: 6px; color: ${foodCostRealColor};" title="${escapeHTML(t('recetas:escandallo_fc_real_tooltip', { pct: MARGEN_ERROR_PCT }))}">${foodCostReal.toFixed(1)}%</span>
                 </div>
             </div>
         `;
