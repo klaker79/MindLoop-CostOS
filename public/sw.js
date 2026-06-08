@@ -91,8 +91,9 @@
 // BUMP v94: plantilla ingredientes con cantidad_por_formato + formato_compra + rendimiento + familia. Antes faltaban → comprar por caja/garrafa con precio del formato inflaba precio unitario × N y food cost mentía. Parser actualizado, mandado al backend.
 // BUMP v95: (1) auto-refresh tras import (recarga window.ingredientes antes de renderizar — antes el cliente tenía que F5 para ver lo importado), (2) exportar ingredientes ahora incluye Cantidad por formato/Formato/Rendimiento/Familia (antes export → editar → import perdía esos campos).
 // BUMP v96: rediseño UX de botones en Ingredientes/Recetas/Proveedores. De 5-6 botones planos → 3 botones jerarquizados: [+ Añadir] [📊 Importar/Exportar ▾] [? Ayuda ▾]. El dropdown agrupa Plantilla / Import / Export. El "?" agrupa Tutorial + Cómo funciona. Patrón Notion/Linear. Iker 2026-06-08.
+// BUMP v97: rev2 UX. Iker pidió mantener "🎬 Tutorial" y "ℹ️ Cómo funciona" como botones planos (no dropdown). Sustituir [Importar/Exportar/Plantilla] por un único botón "📂 Excel" que al pulsarse muestra las 3 opciones con descripción breve de cada una. Estética más rica y profesional.
 
-const CACHE_NAME = 'mindloop-costos-v96';
+const CACHE_NAME = 'mindloop-costos-v97';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
