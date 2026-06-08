@@ -186,6 +186,12 @@ function cardDispersion(d) {
     }
     const valor = `${d.valor.toFixed(2)}×`;
     const ideal = 'Ideal ≤ 2,5×';
+    // Si el cálculo recorta outliers via percentiles, lo aclaramos al cliente:
+    // el ratio no es max/min absolutos sino p95/p5 — más robusto frente a
+    // cargos automáticos (PAN) y platos puntuales (BOGAVANTE de oferta).
+    const subtituloRango = d.usa_percentiles
+        ? `${escapeHTML(ideal)} · rango p5–p95 (ignora outliers)`
+        : `${escapeHTML(ideal)} · plato más caro / plato más barato`;
     return `
         <div class="oms-card">
             <div class="oms-card__head">
@@ -193,7 +199,7 @@ function cardDispersion(d) {
                 ${badgeHTML(ESTADO_DISPERSION, d.estado)}
             </div>
             <div class="oms-card__value">${escapeHTML(valor)}</div>
-            <p class="oms-card__sub">${escapeHTML(ideal)} · plato más caro / plato más barato</p>
+            <p class="oms-card__sub">${subtituloRango}</p>
             <div class="oms-meta">
                 <div class="oms-meta__row">
                     <span class="oms-meta__label">Máx</span>
