@@ -212,22 +212,23 @@ function injectInfoButton(tabKey) {
 
 export async function mountInfoModal() {
     ensureModalNode();
-    const content = await loadInfoContent();
-    Object.keys(content).forEach(injectInfoButton);
+    // 2026-06-08: ya no inyectamos botón propio "ℹ️ Cómo funcionan" — ahora va
+    // dentro del dropdown "? Ayuda" del help-modal junto con el tutorial.
+    // Solo preparamos el contenido y exponemos openInfoTab para que el
+    // dropdown lo llame.
+    await loadInfoContent();
 }
 
-// Re-inyectar botones y contenido cuando cambia el idioma. Limpia los
-// botones existentes (que tienen label del idioma anterior) y vuelve a
-// inyectarlos con el label del nuevo idioma.
+// `injectInfoButton` permanece definida arriba para compat / fallback
+// futuro pero ya no se invoca desde mountInfoModal.
+// eslint-disable-next-line no-unused-vars
+const _legacyInjectInfoButton = injectInfoButton;
+
 if (typeof window !== 'undefined') {
     window.addEventListener('languageChanged', async () => {
         _contentCache = null;
         _contentLang = null;
-        // Quitar los botones existentes (todos con clase BTN_CLASS).
-        document.querySelectorAll(`.${BTN_CLASS}`).forEach(b => b.remove());
-        // Re-inyectar con el nuevo idioma.
-        const content = await loadInfoContent();
-        Object.keys(content).forEach(injectInfoButton);
+        await loadInfoContent();
     });
     window.openInfoTab = openInfoTab;
 }

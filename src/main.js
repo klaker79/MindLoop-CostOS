@@ -80,6 +80,7 @@ import './styles/components/kpi-dashboard.css';
 import './styles/components/cost-breakdown.css';
 import './styles/components/quick-actions.css';
 import './styles/components/skeleton.css';
+import './styles/components/action-dropdown.css';
 
 // ============================================
 // 💀 SKELETON LOADING — Remove placeholders when data arrives
@@ -173,9 +174,15 @@ import { mountHelpModal } from './modules/help/help-modal.js';
 // entrada en el JSON. Sin entrada → sin botón.
 import { mountInfoModal } from './modules/help/info-modal.js';
 
+// Componente UI reutilizable: botón con menú desplegable (patrón Notion/Linear).
+// Usado en Ingredientes/Recetas/Proveedores para agrupar Import/Plantilla/Export
+// bajo un único botón limpio. Iker 2026-06-08.
+import { mountActionDropdowns } from './components/ui/action-dropdown.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     mountHelpModal();
     mountInfoModal();
+    mountActionDropdowns();
 });
 
 // Parser flexible de inventario. El módulo es ESM, pero
