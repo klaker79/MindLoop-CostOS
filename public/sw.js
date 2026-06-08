@@ -92,8 +92,9 @@
 // BUMP v95: (1) auto-refresh tras import (recarga window.ingredientes antes de renderizar — antes el cliente tenía que F5 para ver lo importado), (2) exportar ingredientes ahora incluye Cantidad por formato/Formato/Rendimiento/Familia (antes export → editar → import perdía esos campos).
 // BUMP v96: rediseño UX de botones en Ingredientes/Recetas/Proveedores. De 5-6 botones planos → 3 botones jerarquizados: [+ Añadir] [📊 Importar/Exportar ▾] [? Ayuda ▾]. El dropdown agrupa Plantilla / Import / Export. El "?" agrupa Tutorial + Cómo funciona. Patrón Notion/Linear. Iker 2026-06-08.
 // BUMP v97: rev2 UX. Iker pidió mantener "🎬 Tutorial" y "ℹ️ Cómo funciona" como botones planos (no dropdown). Sustituir [Importar/Exportar/Plantilla] por un único botón "📂 Excel" que al pulsarse muestra las 3 opciones con descripción breve de cada una. Estética más rica y profesional.
+// BUMP v98: fix bug visual — .ad-menu se renderizaba SIEMPRE visible porque el CSS tenía `display: flex` por defecto y dependía del atributo `hidden` del JS. Ocultar siempre por CSS y mostrar solo con `.ad-wrapper.ad-open > .ad-menu`. Robusto aunque mountActionDropdowns no haya corrido todavía.
 
-const CACHE_NAME = 'mindloop-costos-v97';
+const CACHE_NAME = 'mindloop-costos-v98';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
