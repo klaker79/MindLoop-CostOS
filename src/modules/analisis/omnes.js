@@ -186,14 +186,10 @@ function cardDispersion(d) {
     }
     const valor = `${d.valor.toFixed(2)}×`;
     const ideal = 'Ideal ≤ 2,5×';
-    // Si el backend detectó outliers vía mediana y los recortó, lo aclaramos
-    // al cliente. El ratio refleja la carta normal, no cargos automáticos
-    // (PAN, CUBIERTO) ni unidades sueltas (OSTRA, MARISCO) ni ofertas
-    // puntuales (BOGAVANTE).
-    const excluidos = Number(d.platos_excluidos || 0);
-    const subtituloRango = d.filtro_outliers_aplicado
-        ? `${escapeHTML(ideal)} · ${excluidos} plato${excluidos === 1 ? '' : 's'} atípico${excluidos === 1 ? '' : 's'} ignorado${excluidos === 1 ? '' : 's'}`
-        : `${escapeHTML(ideal)} · plato más caro / plato más barato`;
+    // Iker 2026-06-09: el backend ya excluye categorías "no plato" (pincho,
+    // aperitivo, tapa, extra, guarnición, aceite, bebidas, suministros, base)
+    // antes de calcular dispersión. Aquí solo mostramos el ratio limpio.
+    const subtituloRango = `${escapeHTML(ideal)} · plato más caro / plato más barato`;
     return `
         <div class="oms-card">
             <div class="oms-card__head">
