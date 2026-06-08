@@ -1266,18 +1266,27 @@ window.cancelarImportarRecetas = function () {
     datosImportarRecetas = [];
 };
 
+// Cabecera canónica de escandallo. ÚNICO sitio donde se define el orden — la
+// plantilla, el export y el round-trip lo comparten para nunca divergir.
+// (2026-06-08) Orden alineado con plantilla histórica: cabecera de la receta
+// (Receta/Categoría/Precio/Porciones/Código) antes del bloque de líneas
+// (Ingrediente/Cantidad/Rendimiento). Iker prefirió este orden tras feedback
+// de la plantilla CSV: lee como ficha técnica de cocina.
+const ESCANDALLO_HEADER = ['Receta', 'Categoría', 'Precio Venta', 'Porciones', 'Código TPV', 'Ingrediente', 'Cantidad', 'Rendimiento'];
+const ESCANDALLO_COL_WIDTHS = [{ wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+
 // Construye las filas de escandallo (SIN cabecera) de UNA receta, en el formato
-// del import: la 1ª línea lleva Categoría/Precio/Porciones; las siguientes en
-// blanco. Rendimiento vacío si la línea no lo fija (al reimportar hereda del
-// ingrediente). Compartido por la plantilla (todas las recetas) y el export por
-// receta para que ambos formatos no diverjan nunca.
+// del import: la 1ª línea lleva Categoría/Precio/Porciones/Código TPV; las
+// siguientes en blanco. Rendimiento vacío si la línea no lo fija (al reimportar
+// hereda del ingrediente). Compartido por la plantilla (todas las recetas) y
+// el export por receta para que ambos formatos no diverjan nunca.
 function _filasEscandalloDeReceta(rec, ingMap, recMap) {
     const lineas = Array.isArray(rec.ingredientes) ? rec.ingredientes : [];
     const precio = parseFloat(rec.precio_venta) || 0;
     const porciones = parseInt(rec.porciones) || 1;
     const codigo = rec.codigo || ''; // Código TPV (campo `codigo` de la receta)
     if (lineas.length === 0) {
-        return [[rec.nombre, codigo, rec.categoria || '', precio, porciones, '', '', '']];
+        return [[rec.nombre, rec.categoria || '', precio, porciones, codigo, '', '', '']];
     }
     return lineas.map((item, idx) => {
         let nombreIng;
@@ -1291,58 +1300,90 @@ function _filasEscandalloDeReceta(rec, ingMap, recMap) {
         const rend = (item.rendimiento != null && parseFloat(item.rendimiento) > 0)
             ? parseFloat(item.rendimiento) : '';
         const cantidad = parseFloat(item.cantidad) || 0;
-        // El Código TPV es atributo de receta → solo en la 1ª línea (como Categoría/Precio/Porciones).
+        // Categoría/Precio/Porciones/Código son de la receta → solo en la 1ª línea.
         return idx === 0
-            ? [rec.nombre, codigo, rec.categoria || '', precio, porciones, nombreIng, cantidad, rend]
+            ? [rec.nombre, rec.categoria || '', precio, porciones, codigo, nombreIng, cantidad, rend]
             : [rec.nombre, '', '', '', '', nombreIng, cantidad, rend];
     });
 }
 
-// "Descargar plantilla" = exporta TODAS tus recetas reales en el formato
-// re-importable (round-trip masivo: editar en Excel → reimportar = upsert) +
-// una hoja con los nombres exactos de los ingredientes para que el matching no
-// falle. Si el restaurante aún no tiene recetas, cae a un ejemplo (PULPO A
-// FEIRA) para enseñar el formato a quien empieza de cero.
-window.descargarPlantillaEscandallo = async function () {
+// Filas de ejemplo para la plantilla (5 recetas tipo restaurante gallego). Mismo
+// orden que ESCANDALLO_HEADER. Mantenido aquí (y NO en CSV estático) para que el
+// orden de columnas no pueda desincronizarse del export real.
+const PLANTILLA_RECETAS_EJEMPLO = [
+    ['PULPO A LA GALLEGA', 'alimentos', 18, 1, 'P001', 'PULPO COCIDO', 0.18, 100],
+    ['PULPO A LA GALLEGA', '', '', '', '', 'PATATAS GALLEGAS', 0.20, 85],
+    ['PULPO A LA GALLEGA', '', '', '', '', 'ACEITE OLIVA VIRGEN', 0.02, 100],
+    ['PULPO A LA GALLEGA', '', '', '', '', 'SAL MARINA', 0.003, 100],
+    ['PULPO A LA GALLEGA', '', '', '', '', 'PIMIENTA NEGRA', 0.002, 100],
+    ['LUBINA AL HORNO', 'alimentos', 24, 1, 'L001', 'LUBINA SALVAJE', 0.30, 80],
+    ['LUBINA AL HORNO', '', '', '', '', 'PATATAS GALLEGAS', 0.15, 85],
+    ['LUBINA AL HORNO', '', '', '', '', 'CEBOLLA MORADA', 0.10, 90],
+    ['LUBINA AL HORNO', '', '', '', '', 'ACEITE OLIVA VIRGEN', 0.03, 100],
+    ['LUBINA AL HORNO', '', '', '', '', 'SAL MARINA', 0.003, 100],
+    ['SOLOMILLO CON PATATAS', 'alimentos', 28, 1, 'S001', 'SOLOMILLO TERNERA', 0.20, 90],
+    ['SOLOMILLO CON PATATAS', '', '', '', '', 'PATATAS GALLEGAS', 0.18, 85],
+    ['SOLOMILLO CON PATATAS', '', '', '', '', 'SAL MARINA', 0.003, 100],
+    ['ENSALADA DE QUESO', 'alimentos', 11.5, 1, 'E001', 'QUESO TETILLA', 0.08, 100],
+    ['ENSALADA DE QUESO', '', '', '', '', 'TOMATE RAMA', 0.12, 95],
+    ['ENSALADA DE QUESO', '', '', '', '', 'ACEITE OLIVA VIRGEN', 0.015, 100],
+];
+
+// Construye un libro XLSX con 2 sheets: Escandallo + Ingredientes disponibles.
+// Cuerpo = filas ya construidas (sin cabecera). Devuelve el wb listo para writeFile.
+function _construirLibroEscandallo(filasSinCabecera) {
+    const wb = XLSX.utils.book_new();
+    const wsEsc = XLSX.utils.aoa_to_sheet([ESCANDALLO_HEADER, ...filasSinCabecera]);
+    wsEsc['!cols'] = ESCANDALLO_COL_WIDTHS;
+    XLSX.utils.book_append_sheet(wb, wsEsc, 'Escandallo');
+
+    const ings = (window.ingredientes || []).map(i => [i.nombre, i.unidad || '']);
+    const wsIng = XLSX.utils.aoa_to_sheet([['Ingrediente', 'Unidad'], ...ings]);
+    wsIng['!cols'] = [{ wch: 30 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, wsIng, 'Ingredientes disponibles');
+    return wb;
+}
+
+// 📥 "Descargar plantilla" = SIEMPRE el ejemplo. No depende de los datos del
+// usuario. Genera un XLSX que el cliente puede editar y reimportar. Si quiere
+// exportar SUS recetas, usa el botón "Exportar mis recetas".
+window.descargarPlantillaRecetas = async function () {
     try {
         if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
             await window.loadXLSX();
         }
+        const wb = _construirLibroEscandallo(PLANTILLA_RECETAS_EJEMPLO);
+        XLSX.writeFile(wb, `plantilla_recetas_${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+        window.showToast('Error generando la plantilla: ' + error.message, 'error');
+    }
+};
+
+// 💾 "Exportar mis recetas" = exporta TUS recetas reales en formato
+// re-importable. Si aún no tienes recetas, NO descarga un ejemplo (eso
+// confundía: parecía que ya tenías recetas). En su lugar, avisa.
+window.descargarPlantillaEscandallo = async function () {
+    try {
         const recetas = Array.isArray(window.recetas) ? window.recetas : [];
+        if (recetas.length === 0) {
+            window.showToast('Aún no tienes recetas. Pulsa "Descargar plantilla" para empezar con un ejemplo.', 'info');
+            return;
+        }
+        if (typeof XLSX === 'undefined' && typeof window.loadXLSX === 'function') {
+            await window.loadXLSX();
+        }
         const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
         const recMap = new Map(recetas.map(r => [r.id, r]));
 
-        const cabecera = ['Receta', 'Código TPV', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento'];
-        let filas;
-        if (recetas.length > 0) {
-            filas = [cabecera];
-            for (const rec of recetas) {
-                for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
-            }
-        } else {
-            // Restaurante sin recetas: ejemplo para aprender el formato.
-            filas = [
-                cabecera,
-                ['PULPO A FEIRA', '0001', 'Alimentos', 18, 1, 'PULPO', 0.25, 60],
-                ['PULPO A FEIRA', '', '', '', '', 'PATATA', 0.20, ''],
-                ['PULPO A FEIRA', '', '', '', '', 'ACEITE DE OLIVA', 0.02, ''],
-            ];
+        const filas = [];
+        for (const rec of recetas) {
+            for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
         }
 
-        const wb = XLSX.utils.book_new();
-        const wsEsc = XLSX.utils.aoa_to_sheet(filas);
-        wsEsc['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
-        XLSX.utils.book_append_sheet(wb, wsEsc, 'Escandallo');
-
-        const ings = (window.ingredientes || []).map(i => [i.nombre, i.unidad || '']);
-        const wsIng = XLSX.utils.aoa_to_sheet([['Ingrediente', 'Unidad'], ...ings]);
-        wsIng['!cols'] = [{ wch: 30 }, { wch: 12 }];
-        XLSX.utils.book_append_sheet(wb, wsIng, 'Ingredientes disponibles');
-
-        const sufijo = recetas.length > 0 ? 'recetas' : 'ejemplo';
-        XLSX.writeFile(wb, `escandallo_${sufijo}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const wb = _construirLibroEscandallo(filas);
+        XLSX.writeFile(wb, `mis_recetas_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
-        window.showToast('Error generando la plantilla: ' + error.message, 'error');
+        window.showToast('Error exportando recetas: ' + error.message, 'error');
     }
 };
 
@@ -1362,12 +1403,12 @@ window.exportarEscandalloReceta = async function (recetaId) {
         const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
         const recMap = new Map(recetas.map(r => [r.id, r]));
 
-        const filas = [['Receta', 'Código TPV', 'Categoría', 'Precio Venta', 'Porciones', 'Ingrediente', 'Cantidad', 'Rendimiento']];
+        const filas = [ESCANDALLO_HEADER];
         for (const fila of _filasEscandalloDeReceta(rec, ingMap, recMap)) filas.push(fila);
 
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(filas);
-        ws['!cols'] = [{ wch: 25 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 10 }, { wch: 12 }];
+        ws['!cols'] = ESCANDALLO_COL_WIDTHS;
         XLSX.utils.book_append_sheet(wb, ws, 'Escandallo');
         const slug = String(rec.nombre || 'receta').trim().replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '').toLowerCase() || 'receta';
         XLSX.writeFile(wb, `escandallo_${slug}_${new Date().toISOString().split('T')[0]}.xlsx`);
