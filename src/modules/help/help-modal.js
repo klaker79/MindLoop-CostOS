@@ -194,46 +194,20 @@ function injectButtonInTab(tabKey) {
     // Evitar duplicados al re-montar.
     if (topBar.querySelector(`.${BTN_CLASS}`)) return;
 
-    // 2026-06-08: en lugar de inyectar 2 botones separados ("🎬 Ver tutorial"
-    // y "ℹ️ Cómo funcionan"), inyectamos UN solo dropdown "? Ayuda" que
-    // agrupa ambas opciones. Patrón Notion: menos saturación visual.
-    const wrapper = document.createElement('div');
-    wrapper.className = `ad-wrapper ${BTN_CLASS}`;
-
+    // 2026-06-08 (rev): el dropdown "? Ayuda" no encajaba estéticamente con
+    // la app. Iker pidió mantener los 2 botones originales ("🎬 Ver tutorial"
+    // y "ℹ️ Cómo funcionan") como botones planos a la derecha.
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'btn btn-secondary ad-trigger ad-help-trigger';
-    btn.setAttribute('aria-label', 'Ayuda de esta pestaña');
-    btn.title = 'Ayuda · tutorial y cómo funciona esta pestaña';
-    btn.innerHTML = '?';
+    btn.className = `btn btn-secondary ${BTN_CLASS}`;
+    btn.setAttribute('aria-label', 'Ver tutorial de esta pestaña');
+    btn.title = 'Ver tutorial en video';
+    btn.innerHTML = '🎬 Ver tutorial';
+    btn.addEventListener('click', () => openTabHelp(tabKey));
 
-    const menu = document.createElement('div');
-    menu.className = 'ad-menu ad-menu--left';
-    menu.setAttribute('role', 'menu');
-    menu.innerHTML = `
-        <button type="button" role="menuitem" class="help-menu-tutorial">
-            <span class="ad-icon">🎬</span>
-            <span>Ver tutorial en video</span>
-        </button>
-        <button type="button" role="menuitem" class="help-menu-info">
-            <span class="ad-icon">ℹ️</span>
-            <span>Cómo funciona esta sección</span>
-        </button>
-    `;
-
-    menu.querySelector('.help-menu-tutorial').addEventListener('click', () => openTabHelp(tabKey));
-    menu.querySelector('.help-menu-info').addEventListener('click', () => {
-        if (typeof window !== 'undefined' && typeof window.openInfoTab === 'function') {
-            window.openInfoTab(tabKey);
-        }
-    });
-
-    wrapper.appendChild(btn);
-    wrapper.appendChild(menu);
-
-    // El wrapper (.ad-wrapper) es lo que se inyecta — contiene botón "?"
-    // + menú colgante. Lo tratamos como un único nodo desde el DOM padre.
-    const injectable = wrapper;
+    // El "btn" plano es lo que se inyecta. Mantenemos `injectable` como alias
+    // por compat con la lógica de injection de abajo.
+    const injectable = btn;
 
     // Mismos 4 casos de antes (Ingredientes/Recetas → div flex existente;
     // Proveedores → botones sueltos; Inventario → div hermano; etc).
@@ -265,12 +239,6 @@ function injectButtonInTab(tabKey) {
 export function mountHelpModal() {
     ensureModalNode();
     Object.keys(HELP_VIDEOS).forEach(injectButtonInTab);
-    // 2026-06-08: tras inyectar los dropdowns "? Ayuda", montamos el binding
-    // de toggle/cierre. mountActionDropdowns es idempotente — si los wrappers
-    // ya están bindeados los salta.
-    if (typeof window !== 'undefined' && typeof window.mountActionDropdowns === 'function') {
-        window.mountActionDropdowns();
-    }
 }
 
 // Exponer para uso desde inline handlers o consola si fuera útil.
