@@ -501,20 +501,27 @@ export function exportarIngredientes() {
         return;
     }
 
+    // 2026-06-08: columnas alineadas con el importador para round-trip completo.
+    // Antes faltaban Cantidad por formato / Formato / Rendimiento / Familia → si el
+    // cliente exportaba + editaba + re-importaba perdía el formato de compra y los
+    // ingredientes quedaban con cpf=1 (precio unitario inflado × N → food cost falso).
     const columnas = [
-        { header: t('ingredientes:export_col_name'), key: 'nombre' },
-        { header: t('ingredientes:export_col_category'), key: 'categoria' },
+        { header: 'Nombre', key: 'nombre' },
+        { header: 'Precio', value: ing => parseFloat(ing.precio || 0).toFixed(2) },
+        { header: 'Unidad', key: 'unidad' },
+        { header: 'Cantidad por formato', value: ing => ing.cantidad_por_formato || '' },
+        { header: 'Formato', value: ing => ing.formato_compra || '' },
+        { header: 'Rendimiento (%)', value: ing => ing.rendimiento || 100 },
+        { header: 'Stock Actual', value: ing => parseFloat(ing.stock_actual || 0).toFixed(2) },
+        { header: 'Stock Mínimo', value: ing => parseFloat(ing.stock_minimo || 0).toFixed(2) },
+        { header: 'Familia', value: ing => ing.familia || 'alimento' },
         {
-            header: t('ingredientes:export_col_supplier'),
+            header: 'Proveedor',
             value: ing => {
                 const prov = (window.proveedores || []).find(p => p.id === ing.proveedor_id);
-                return prov ? prov.nombre : t('ingredientes:no_supplier');
+                return prov ? prov.nombre : '';
             },
         },
-        { header: t('ingredientes:export_col_price'), value: ing => parseFloat(ing.precio || 0).toFixed(2) },
-        { header: t('ingredientes:export_col_unit'), key: 'unidad' },
-        { header: t('ingredientes:export_col_stock_actual'), value: ing => parseFloat(ing.stock_actual || 0).toFixed(2) },
-        { header: t('ingredientes:export_col_stock_min'), value: ing => parseFloat(ing.stock_minimo || 0).toFixed(2) },
     ];
 
     window.exportarAExcel(window.ingredientes || [], 'Ingredientes_CostOS', columnas);

@@ -89,8 +89,9 @@
 // BUMP v92: botón "📥 Plantilla" siempre visible en barra de Ingredientes/Recetas/Proveedores (antes solo en empty state, pero el onboarding spotlight obliga a crear el 1º → cliente nunca veía la plantilla).
 // BUMP v93: plantillas CSV con BOM UTF-8 + separador ; + decimales con coma. Antes Excel español lo abría todo en columna A con ñ/í corruptas (ALBARIÑO → ALBARIÃO). Ahora abre limpio con columnas separadas y caracteres correctos.
 // BUMP v94: plantilla ingredientes con cantidad_por_formato + formato_compra + rendimiento + familia. Antes faltaban → comprar por caja/garrafa con precio del formato inflaba precio unitario × N y food cost mentía. Parser actualizado, mandado al backend.
+// BUMP v95: (1) auto-refresh tras import (recarga window.ingredientes antes de renderizar — antes el cliente tenía que F5 para ver lo importado), (2) exportar ingredientes ahora incluye Cantidad por formato/Formato/Rendimiento/Familia (antes export → editar → import perdía esos campos).
 
-const CACHE_NAME = 'mindloop-costos-v94';
+const CACHE_NAME = 'mindloop-costos-v95';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

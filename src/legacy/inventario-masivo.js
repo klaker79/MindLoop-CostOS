@@ -911,6 +911,13 @@ window.confirmarImportarIngredientes = async function () {
         if (saltados) partesToast.push(`${saltados} saltados`);
         window.showToast(partesToast.join(' · ') || '✓ Importación completada', 'success');
         document.getElementById('modal-importar-ingredientes').classList.remove('active');
+        // 2026-06-08: antes solo se llamaba a renderizarIngredientes() — que pinta
+        // la lista desde window.ingredientes (state en memoria). Como esa lista NO
+        // se actualizaba tras los POST, los ingredientes recién creados no aparecían
+        // hasta que el usuario hacía F5. Cargamos primero, luego renderizamos.
+        if (typeof window.cargarDatos === 'function') {
+            await window.cargarDatos();
+        }
         await window.renderizarIngredientes();
         if (sinProveedorEmparejado.length > 0 || erroresUpdate.length > 0) {
             let resumen = 'Importación completada con avisos:\n';
