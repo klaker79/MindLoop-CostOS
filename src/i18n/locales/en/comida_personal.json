@@ -6,6 +6,8 @@
   "empty_desc": "Tick the 🍽️ Staff box on the order lines that are for the team. They'll appear here with their cost, without touching food cost or stock.",
   "card_month": "This month",
   "card_total": "All-time total",
+  "filter_label": "Month:",
+  "filter_all": "All time",
   "lines": "lines",
   "col_date": "Date",
   "col_supplier": "Supplier",
