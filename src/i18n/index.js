@@ -38,6 +38,7 @@ import es_inteligencia from './locales/es/inteligencia.json';
 import es_simulador from './locales/es/simulador.json';
 import es_onboarding from './locales/es/onboarding.json';
 import es_busqueda from './locales/es/busqueda.json';
+import es_comida_personal from './locales/es/comida_personal.json';
 
 import en_common from './locales/en/common.json';
 import en_ingredientes from './locales/en/ingredientes.json';
@@ -59,6 +60,7 @@ import en_inteligencia from './locales/en/inteligencia.json';
 import en_simulador from './locales/en/simulador.json';
 import en_onboarding from './locales/en/onboarding.json';
 import en_busqueda from './locales/en/busqueda.json';
+import en_comida_personal from './locales/en/comida_personal.json';
 
 import zh_common from './locales/zh/common.json';
 import zh_ingredientes from './locales/zh/ingredientes.json';
@@ -80,6 +82,7 @@ import zh_inteligencia from './locales/zh/inteligencia.json';
 import zh_simulador from './locales/zh/simulador.json';
 import zh_onboarding from './locales/zh/onboarding.json';
 import zh_busqueda from './locales/zh/busqueda.json';
+import zh_comida_personal from './locales/zh/comida_personal.json';
 
 const SUPPORTED_LANGS = ['es', 'en', 'zh'];
 const DEFAULT_LANG = 'es';
@@ -87,7 +90,7 @@ const NAMESPACES = [
     'common', 'ingredientes', 'recetas', 'proveedores',
     'pedidos', 'ventas', 'inventario', 'dashboard',
     'auth', 'chat', 'equipo', 'horarios',
-    'balance', 'alertas', 'export', 'settings', 'inteligencia', 'simulador', 'onboarding', 'busqueda'
+    'balance', 'alertas', 'export', 'settings', 'inteligencia', 'simulador', 'onboarding', 'busqueda', 'comida_personal'
 ];
 
 i18next
@@ -122,6 +125,7 @@ i18next
                 simulador: es_simulador,
                 onboarding: es_onboarding,
                 busqueda: es_busqueda,
+                comida_personal: es_comida_personal,
             },
             en: {
                 common: en_common,
@@ -144,6 +148,7 @@ i18next
                 simulador: en_simulador,
                 onboarding: en_onboarding,
                 busqueda: en_busqueda,
+                comida_personal: en_comida_personal,
             },
             zh: {
                 common: zh_common,
@@ -166,6 +171,7 @@ i18next
                 simulador: zh_simulador,
                 onboarding: zh_onboarding,
                 busqueda: zh_busqueda,
+                comida_personal: zh_comida_personal,
             },
         },
 

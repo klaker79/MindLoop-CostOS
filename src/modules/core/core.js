@@ -190,6 +190,9 @@ export function cambiarTab(tab) {
         case 'pedidos':
             window.renderizarPedidos?.();
             break;
+        case 'comida-personal':
+            window.renderizarComidaPersonal?.();
+            break;
         case 'ventas':
             window.renderizarVentas?.();
             break;

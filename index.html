@@ -219,6 +219,10 @@
             <span class="nav-item-icon">📋</span>
             <span class="nav-item-text" data-i18n="common:nav_pedidos">Pedidos</span>
           </button>
+          <button class="nav-item" data-tab="comida-personal">
+            <span class="nav-item-icon">🍽️</span>
+            <span class="nav-item-text" data-i18n="comida_personal:nav_title">Comida Personal</span>
+          </button>
           <button class="nav-item" data-tab="ventas">
             <span class="nav-item-icon">💰</span>
             <span class="nav-item-text" data-i18n="common:nav_ventas">Ventas</span>
@@ -1866,6 +1870,19 @@
           </div>
           <div id="busqueda-container" class="main-card" style="padding:20px;">
             <!-- Populated by src/modules/busqueda/busqueda.js -->
+          </div>
+        </div>
+
+        <!-- TAB: COMIDA PERSONAL (gasto de comida del equipo, fuera del food cost/stock) -->
+        <div id="tab-comida-personal" class="tab-content">
+          <div class="top-bar">
+            <div>
+              <h2 data-i18n="comida_personal:title">🍽️ Comida Personal</h2>
+              <p data-i18n="comida_personal:description" style="color:#64748b;margin:4px 0 0;">Gasto en comida del equipo. No afecta al food cost ni al stock del restaurante.</p>
+            </div>
+          </div>
+          <div id="comida-personal-container" class="main-card" style="padding:20px;">
+            <!-- Populated by src/modules/comida-personal/comida-personal.js -->
           </div>
         </div>
 

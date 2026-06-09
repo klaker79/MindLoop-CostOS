@@ -80,6 +80,9 @@ export async function guardarPedido(event) {
     const cantidadInput = item.querySelector('.cantidad-input');
     const precioInput = item.querySelector('.precio-input');
     const formatoSelect = item.querySelector('select[id$="-formato-select"]');
+    // 🍽️ Comida de personal: si la línea está marcada, NO cuenta en food cost,
+    // stock ni P&L (el backend la salta igual que las líneas de tipo 'ajuste').
+    const esPersonal = !!item.querySelector('.personal-input')?.checked;
 
     if (select && select.value && cantidadInput && cantidadInput.value) {
       const ingId = parseInt(select.value);
@@ -116,6 +119,7 @@ export async function guardarPedido(event) {
       ingredientesPedido.push({
         ingredienteId: ingId,
         ingrediente_id: ingId,
+        personal: esPersonal,
         cantidad: cantidadReal,
         cantidadOriginal: cantidadValue,
         cantidadFormatos: usandoFormato ? cantidadValue : null,

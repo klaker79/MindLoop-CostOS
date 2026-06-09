@@ -1,0 +1,16 @@
+{
+  "nav_title": "员工餐",
+  "title": "🍽️ 员工餐",
+  "description": "团队用餐支出。不影响餐厅的食材成本或库存。",
+  "empty_title": "尚无员工餐记录",
+  "empty_desc": "在订单中属于团队的明细行勾选 🍽️ 员工 复选框。它们会显示在此处及其费用，而不影响食材成本或库存。",
+  "card_month": "本月",
+  "card_total": "累计总额",
+  "lines": "行",
+  "col_date": "日期",
+  "col_supplier": "供应商",
+  "col_product": "产品",
+  "col_qty": "数量",
+  "col_price": "单价",
+  "col_subtotal": "小计"
+}
