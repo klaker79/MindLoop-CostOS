@@ -1,4 +1,6 @@
 {
+  "personal_label": "Personal",
+  "personal_tooltip": "Marcar como comida de personal: no cuenta en el food cost ni en el stock",
   "title": "Pedidos",
   "need_suppliers_first": "Primero añade proveedores",
   "form_title_new": "Nuevo Pedido",

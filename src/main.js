@@ -763,6 +763,9 @@ window.clearChatHistory = clearChatHistory;
 // so core.js cambiarTab('busqueda') can invoke it without further glue.
 import './modules/busqueda/busqueda.js';
 
+// Side-effect import: attaches window.renderizarComidaPersonal.
+import './modules/comida-personal/comida-personal.js';
+
 // ============================================
 // MÓDULO: INTEGRACIONES 🔗
 // ============================================

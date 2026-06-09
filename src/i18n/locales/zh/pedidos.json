@@ -1,4 +1,6 @@
 {
+  "personal_label": "员工",
+  "personal_tooltip": "标记为员工餐：不计入食材成本或库存",
   "title": "订单",
   "need_suppliers_first": "请先添加供应商",
   "form_title_new": "新建订单",

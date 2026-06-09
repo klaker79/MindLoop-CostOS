@@ -1,0 +1,16 @@
+{
+  "nav_title": "Comida Personal",
+  "title": "🍽️ Comida Personal",
+  "description": "Gasto en comida del equipo. No afecta al food cost ni al stock del restaurante.",
+  "empty_title": "Aún no hay comida de personal registrada",
+  "empty_desc": "Marca la casilla 🍽️ Personal en las líneas de un pedido que sean para el equipo. Aparecerán aquí con su gasto, sin tocar el food cost ni el stock.",
+  "card_month": "Este mes",
+  "card_total": "Total acumulado",
+  "lines": "líneas",
+  "col_date": "Fecha",
+  "col_supplier": "Proveedor",
+  "col_product": "Producto",
+  "col_qty": "Cantidad",
+  "col_price": "Precio ud.",
+  "col_subtotal": "Subtotal"
+}

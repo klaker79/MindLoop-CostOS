@@ -61,7 +61,9 @@ export function marcarPedidoRecibido(id) {
     // 🔒 Excluir items de tipo 'ajuste' (envases/bonificaciones) — solo afectan al total, no al stock
     if (!ped.itemsRecepcion) {
         ped.itemsRecepcion = (ped.ingredientes || [])
-            .filter(item => item.tipo !== 'ajuste')
+            // 🍽️ comida personal: como las líneas 'ajuste', queda fuera de la
+            // recepción y del stock (se preserva aparte más abajo).
+            .filter(item => item.tipo !== 'ajuste' && !item.personal)
             .map(item => {
                 const precio = parseFloat(item.precio_unitario || item.precio || 0);
                 return {
@@ -372,6 +374,15 @@ export async function confirmarRecepcionPedido() {
             totalRecibido += parseFloat(aj.importe) || 0;
         });
 
+        // 🍽️ Preservar líneas de COMIDA PERSONAL: NO entran en stock ni food cost
+        // (las salta el backend, igual que los 'ajuste'), pero sí cuentan en el
+        // total del pedido y en la pestaña "Comida Personal".
+        const personalOriginales = (ped.ingredientes || []).filter(it => it.personal === true && it.tipo !== 'ajuste');
+        personalOriginales.forEach(p => {
+            ingredientesActualizados.push(p);
+            totalRecibido += (parseFloat(p.cantidad) || 0) * (parseFloat(p.precio_unitario || p.precio) || 0);
+        });
+
         /**
          * ⚠️ CRITICAL - NO MODIFICAR ESTA SECCIÓN ⚠️
          * Solo se actualiza el STOCK, NUNCA el precio del ingrediente.
@@ -386,7 +397,7 @@ export async function confirmarRecepcionPedido() {
         // (cantidadReal = cantidadValue * formatoMult cuando se creó el pedido).
         // NO multiplicar otra vez — causaba multiplicación doble (bug 2026-04-15).
         const adjustments = ingredientesActualizados
-            .filter(item => item.estado !== 'no-entregado' && parseFloat(item.cantidadRecibida) > 0)
+            .filter(item => item.estado !== 'no-entregado' && !item.personal && parseFloat(item.cantidadRecibida) > 0)
             .map(item => ({
                 id: item.ingredienteId,
                 delta: parseFloat(item.cantidadRecibida)

@@ -1,4 +1,6 @@
 {
+  "personal_label": "Staff",
+  "personal_tooltip": "Mark as staff meal: it won't count toward food cost or stock",
   "title": "Orders",
   "need_suppliers_first": "Add suppliers first",
   "form_title_new": "New Order",
