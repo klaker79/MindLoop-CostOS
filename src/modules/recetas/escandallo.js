@@ -11,6 +11,7 @@
 
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
+import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
 import { getIngredientUnitPrice, getIngredientNominalPrice } from '../../utils/cost-calculator.js';
 import { getInvMap, getIngMap } from './recetas-crud.js';
@@ -200,8 +201,9 @@ async function renderContenido() {
         foodCostReal
     });
 
-    const foodCostColor = foodCost <= 30 ? '#059669' : foodCost <= 35 ? '#10B981' : foodCost <= 40 ? '#F59E0B' : '#EF4444';
-    const foodCostRealColor = foodCostReal <= 30 ? '#059669' : foodCostReal <= 35 ? '#10B981' : foodCostReal <= 40 ? '#F59E0B' : '#EF4444';
+    const { EXCELLENT_MAX, TARGET_MAX, WATCH_MAX } = FOOD_COST_THRESHOLDS;
+    const foodCostColor = foodCost <= EXCELLENT_MAX ? '#059669' : foodCost <= TARGET_MAX ? '#10B981' : foodCost <= WATCH_MAX ? '#F59E0B' : '#EF4444';
+    const foodCostRealColor = foodCostReal <= EXCELLENT_MAX ? '#059669' : foodCostReal <= TARGET_MAX ? '#10B981' : foodCostReal <= WATCH_MAX ? '#F59E0B' : '#EF4444';
     const precioIdeal = esBebida ? precioSugerido45 : precioSugerido35;
     const precioIdealLabel = esBebida ? '45%' : '35%';
 
@@ -221,7 +223,7 @@ async function renderContenido() {
                     <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_margin')}</div>
                     <div style="font-size: 20px; font-weight: 700; color: #F59E0B;">${cm(margenEuros)}</div>
                 </div>
-                <div style="background: ${foodCost <= 35 ? '#F0FDF4' : foodCost <= 40 ? '#FEF3C7' : '#FEE2E2'}; padding: 12px; border-radius: 8px; text-align: center;">
+                <div style="background: ${foodCost <= TARGET_MAX ? '#F0FDF4' : foodCost <= WATCH_MAX ? '#FEF3C7' : '#FEE2E2'}; padding: 12px; border-radius: 8px; text-align: center;">
                     <div style="font-size: 11px; color: #64748B; text-transform: uppercase;">${t('recetas:escandallo_food_cost')}</div>
                     <div style="font-size: 20px; font-weight: 700; color: ${foodCostColor};">${foodCost.toFixed(1)}%</div>
                 </div>
@@ -409,7 +411,7 @@ export async function exportarPDFEscandallo() {
         { label: t('recetas:escandallo_cost'), value: `${cm(costeTotal)}`, color: [16, 185, 129] },
         { label: t('recetas:escandallo_pvp'), value: `${cm(precioVenta)}`, color: [59, 130, 246] },
         { label: t('recetas:escandallo_margin'), value: `${cm(margenEuros)}`, color: [245, 158, 11] },
-        { label: t('recetas:escandallo_food_cost'), value: `${foodCost.toFixed(1)}%`, color: foodCost <= 35 ? [16, 185, 129] : foodCost <= 40 ? [245, 158, 11] : [239, 68, 68] }
+        { label: t('recetas:escandallo_food_cost'), value: `${foodCost.toFixed(1)}%`, color: foodCost <= FOOD_COST_THRESHOLDS.TARGET_MAX ? [16, 185, 129] : foodCost <= FOOD_COST_THRESHOLDS.WATCH_MAX ? [245, 158, 11] : [239, 68, 68] }
     ];
 
     summaryData.forEach((item, i) => {
