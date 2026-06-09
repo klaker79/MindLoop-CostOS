@@ -49,7 +49,10 @@ export function abrirModalEditarPedido(id) {
             items.push({
                 ingredienteId: it.ingredienteId || it.ingrediente_id,
                 cantidad: parseFloat(it.cantidad) || 0,
-                precio_unitario: parseFloat(it.precio_unitario || it.precioUnitario || it.precio || 0)
+                precio_unitario: parseFloat(it.precio_unitario || it.precioUnitario || it.precio || 0),
+                // 🍽️ preservar la marca de comida personal al editar (si no, se
+                // perdería al guardar y la línea volvería a contar en food cost).
+                personal: it.personal === true
             });
         }
     });
@@ -138,7 +141,11 @@ function renderizarModalEditarPedido() {
                         style="width: 90px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px;" />
                 </td>
                 <td style="padding: 8px; text-align: right; font-weight: 600;">${cm(subtotal)}</td>
-                <td style="padding: 8px;">
+                <td style="padding: 8px; white-space: nowrap;">
+                    <label title="${escapeHTML(t('pedidos:personal_tooltip'))}" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#64748b;margin-right:8px;">
+                        <input type="checkbox" ${it.personal ? 'checked' : ''} onchange="window.togglePersonalEdicion(${idx}, this.checked)" style="cursor:pointer;accent-color:#8b5cf6;width:15px;height:15px;">
+                        🍽️ ${escapeHTML(t('pedidos:personal_label'))}
+                    </label>
                     <button type="button" onclick="window.eliminarItemEdicion(${idx})"
                         style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer;">🗑️</button>
                 </td>
@@ -270,6 +277,15 @@ export function actualizarItemEdicion(idx, campo, valor) {
     renderizarModalEditarPedido();
 }
 
+// 🍽️ Toggle de "comida personal" por línea. Handler aparte de
+// actualizarItemEdicion porque aquel coacciona el valor a número (rompería el booleano).
+export function togglePersonalEdicion(idx, checked) {
+    const state = window._editandoPedido;
+    if (!state || !state.items[idx]) return;
+    state.items[idx].personal = !!checked;
+    renderizarModalEditarPedido();
+}
+
 export function eliminarItemEdicion(idx) {
     const state = window._editandoPedido;
     if (!state) return;
@@ -365,6 +381,7 @@ export async function guardarEdicionPedido() {
     const ingredientesPayload = state.items.map(it => ({
         ingredienteId: it.ingredienteId,
         ingrediente_id: it.ingredienteId,
+        personal: it.personal === true,
         cantidad: it.cantidad,
         precio_unitario: it.precio_unitario,
         precioUnitario: it.precio_unitario,
@@ -405,6 +422,7 @@ export async function guardarEdicionPedido() {
 if (typeof window !== 'undefined') {
     window.abrirModalEditarPedido = abrirModalEditarPedido;
     window.actualizarItemEdicion = actualizarItemEdicion;
+    window.togglePersonalEdicion = togglePersonalEdicion;
     window.eliminarItemEdicion = eliminarItemEdicion;
     window.agregarItemEdicion = agregarItemEdicion;
     window.autocompletarPrecioEdicion = autocompletarPrecioEdicion;
