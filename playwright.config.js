@@ -18,6 +18,10 @@ const IS_CI = !!process.env.CI;
 
 export default defineConfig({
     testDir: './tests/e2e',
+    // Warmup global: despierta staging (Dokploy puede escalar a 0 fuera de
+    // horario) ANTES de cualquier test, para que el primer page.goto no se
+    // coma el cold-start y dispare el timeout. Best-effort: nunca tira la suite.
+    globalSetup: './tests/e2e/global-warmup.js',
     fullyParallel: true,
     forbidOnly: IS_CI,
     retries: IS_CI ? 2 : 0,
@@ -26,7 +30,10 @@ export default defineConfig({
         ['html', { open: 'never' }],
         ['list']
     ],
-    timeout: 30_000,
+    // 60s/test para dar margen al navigationTimeout de 45s (cold-start de
+    // staging) + interacciones de login. El warmup hace que en la práctica
+    // la navegación sea rápida; 45s es solo el techo de seguridad.
+    timeout: 60_000,
     expect: { timeout: 5_000 },
 
     use: {
@@ -35,7 +42,7 @@ export default defineConfig({
         screenshot: 'only-on-failure',
         video: IS_CI ? 'retain-on-failure' : 'off',
         actionTimeout: 10_000,
-        navigationTimeout: 15_000
+        navigationTimeout: 45_000
     },
 
     projects: [
