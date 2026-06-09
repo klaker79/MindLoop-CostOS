@@ -6,6 +6,8 @@
   "empty_desc": "Marca la casilla 🍽️ Personal en las líneas de un pedido que sean para el equipo. Aparecerán aquí con su gasto, sin tocar el food cost ni el stock.",
   "card_month": "Este mes",
   "card_total": "Total acumulado",
+  "filter_label": "Mes:",
+  "filter_all": "Todo el histórico",
   "lines": "líneas",
   "col_date": "Fecha",
   "col_supplier": "Proveedor",

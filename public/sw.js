@@ -117,7 +117,7 @@
 // BUMP v120: Omnes Dispersión sustituye percentiles por filtro de outliers vs mediana (MAD-like). Funciona en cartas pequeñas (Demo Trattoria 7 platos) también: descarta cualquier plato fuera del rango [mediana/2.5, mediana×2.5]. Casos como OSTRA (unidad), PAN (cubierto), BOGAVANTE (oferta puntual) o menú degustación extremo se excluyen automáticamente sin pedir nada al cliente. La card avisa cuántos platos atípicos se ignoraron.
 // BUMP v121: Omnes Dispersión cambia de filtro estadístico a filtro semántico. Backend excluye categorías de extras (pincho, aperitivo, tapa, extra, guarnición, aceite, bebidas, suministros, base) ANTES del cálculo. Sin "forzar" números: el ratio refleja exactamente lo que el cliente entiende como "plato normal". Iker 2026-06-09 — el filtro estadístico camuflaba como outliers cosas que sí son platos legítimos (BOGAVANTE de carta especial, menú degustación), eso era engañoso.
 
-const CACHE_NAME = 'mindloop-costos-v123';
+const CACHE_NAME = 'mindloop-costos-v125';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

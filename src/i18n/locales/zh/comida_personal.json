@@ -6,6 +6,8 @@
   "empty_desc": "在订单中属于团队的明细行勾选 🍽️ 员工 复选框。它们会显示在此处及其费用，而不影响食材成本或库存。",
   "card_month": "本月",
   "card_total": "累计总额",
+  "filter_label": "月份：",
+  "filter_all": "全部历史",
   "lines": "行",
   "col_date": "日期",
   "col_supplier": "供应商",

@@ -53,6 +53,21 @@ function fmtFecha(f) {
     return new Date(s).toLocaleDateString(getDateLocale());
 }
 
+// Periodo seleccionado: null = aún no elegido (se pone al mes actual en el 1er render).
+// 'todos' = todo el histórico. Si no, 'YYYY-MM'.
+let periodoSel = null;
+
+function mesLabel(ym) {
+    if (ym === 'todos') return t('comida_personal:filter_all');
+    const [y, m] = ym.split('-').map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString(getDateLocale(), { month: 'long', year: 'numeric' });
+}
+
+export function filtrarComidaPersonal(periodo) {
+    periodoSel = periodo;
+    renderizarComidaPersonal();
+}
+
 export function renderizarComidaPersonal() {
     const container = document.getElementById('comida-personal-container');
     if (!container) return;
@@ -70,18 +85,36 @@ export function renderizarComidaPersonal() {
         return;
     }
 
+    // Meses disponibles (YYYY-MM) de más reciente a más antiguo.
+    const meses = [...new Set(filas.map(f => String(f.fecha).slice(0, 7)))].sort().reverse();
     const ahora = new Date();
     const mesActual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
-    const totalMes = filas
-        .filter(f => String(f.fecha).slice(0, 7) === mesActual)
-        .reduce((s, f) => s + f.subtotal, 0);
+    // Default: mes actual si tiene datos; si no, el mes más reciente con datos.
+    if (periodoSel === null || (periodoSel !== 'todos' && !meses.includes(periodoSel))) {
+        periodoSel = meses.includes(mesActual) ? mesActual : (meses[0] || 'todos');
+    }
+
+    const filtradas = periodoSel === 'todos'
+        ? filas
+        : filas.filter(f => String(f.fecha).slice(0, 7) === periodoSel);
+    const totalPeriodo = filtradas.reduce((s, f) => s + f.subtotal, 0);
     const totalAcumulado = filas.reduce((s, f) => s + f.subtotal, 0);
+
+    const opciones = ['todos', ...meses]
+        .map(m => `<option value="${m}" ${m === periodoSel ? 'selected' : ''}>${escapeHTML(mesLabel(m))}</option>`)
+        .join('');
+    const selector = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:600;color:#475569;">${escapeHTML(t('comida_personal:filter_label'))}</label>
+        <select onchange="window.filtrarComidaPersonal(this.value)" style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;cursor:pointer;text-transform:capitalize;">${opciones}</select>
+      </div>`;
 
     const cards = `
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
         <div style="flex:1;min-width:190px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border-radius:12px;padding:18px 20px;">
-          <div style="font-size:12px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;">${escapeHTML(t('comida_personal:card_month'))}</div>
-          <div style="font-size:26px;font-weight:700;margin-top:4px;">${cm(totalMes)}</div>
+          <div style="font-size:12px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;">${escapeHTML(mesLabel(periodoSel))}</div>
+          <div style="font-size:26px;font-weight:700;margin-top:4px;">${cm(totalPeriodo)}</div>
+          <div style="font-size:12px;opacity:.8;margin-top:2px;">${filtradas.length} ${escapeHTML(t('comida_personal:lines'))}</div>
         </div>
         <div style="flex:1;min-width:190px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;">
           <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">${escapeHTML(t('comida_personal:card_total'))}</div>
@@ -98,7 +131,7 @@ export function renderizarComidaPersonal() {
         + `<th style="text-align:right;">${escapeHTML(t('comida_personal:col_price'))}</th>`
         + `<th style="text-align:right;">${escapeHTML(t('comida_personal:col_subtotal'))}</th>`;
     tabla += '</tr></thead><tbody>';
-    for (const f of filas) {
+    for (const f of filtradas) {
         tabla += `<tr>
           <td>${fmtFecha(f.fecha)}</td>
           <td>${escapeHTML(f.proveedor)}</td>
@@ -110,9 +143,10 @@ export function renderizarComidaPersonal() {
     }
     tabla += '</tbody></table>';
 
-    container.innerHTML = cards + tabla;
+    container.innerHTML = selector + cards + tabla;
 }
 
 if (typeof window !== 'undefined') {
     window.renderizarComidaPersonal = renderizarComidaPersonal;
+    window.filtrarComidaPersonal = filtrarComidaPersonal;
 }
