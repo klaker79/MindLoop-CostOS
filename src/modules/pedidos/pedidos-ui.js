@@ -386,9 +386,10 @@ export function agregarIngredientePedido() {
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">${cm(0)}</span>
       <span id="${rowId}-conversion" style="font-size: 12px; color: #64748b; min-width: 110px; text-align: center;"></span>
       <label class="personal-check" title="${escapeHTML(t('pedidos:personal_tooltip'))}" style="display: flex; align-items: center; gap: 5px; font-size: 11px; color: #64748b; cursor: pointer; user-select: none; align-self: center; white-space: nowrap;">
-        <input type="checkbox" class="personal-input" style="cursor: pointer; accent-color: #8b5cf6; width: 15px; height: 15px;">
+        <input type="checkbox" class="personal-input" onchange="this.closest('.ingrediente-item').querySelector('.personal-qty').style.display=this.checked?'inline-block':'none'" style="cursor: pointer; accent-color: #8b5cf6; width: 15px; height: 15px;">
         🍽️ ${escapeHTML(t('pedidos:personal_label'))}
       </label>
+      <input type="number" step="0.01" min="0" class="personal-qty" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))}" style="display: none; width: 58px; padding: 6px; border: 1px solid #8b5cf6; border-radius: 6px; text-align: center; align-self: center;">
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
       <div id="${rowId}-precio-warning" style="display: none; flex-basis: 100%; margin-top: 6px; padding: 8px 12px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; color: #92400e; font-size: 12px; font-weight: 600;"></div>
     `;

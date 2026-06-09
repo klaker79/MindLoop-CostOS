@@ -1,6 +1,8 @@
 {
   "personal_label": "Staff",
   "personal_tooltip": "Mark as staff meal: it won't count toward food cost or stock",
+  "personal_qty_ph": "qty",
+  "personal_qty_tooltip": "Quantity for staff (empty = whole line). E.g. order 5, type 3 → 3 staff and 2 production.",
   "title": "Orders",
   "need_suppliers_first": "Add suppliers first",
   "form_title_new": "New Order",

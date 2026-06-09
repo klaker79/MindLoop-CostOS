@@ -146,6 +146,7 @@ function renderizarModalEditarPedido() {
                         <input type="checkbox" ${it.personal ? 'checked' : ''} onchange="window.togglePersonalEdicion(${idx}, this.checked)" style="cursor:pointer;accent-color:#8b5cf6;width:15px;height:15px;">
                         🍽️ ${escapeHTML(t('pedidos:personal_label'))}
                     </label>
+                    ${it.personal ? `<input type="number" step="0.01" min="0" value="${it.personalQty ?? ''}" onchange="window.setPersonalQtyEdicion(${idx}, this.value)" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))}" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" style="width:58px;padding:4px;border:1px solid #8b5cf6;border-radius:4px;text-align:center;margin-right:8px;">` : ''}
                     <button type="button" onclick="window.eliminarItemEdicion(${idx})"
                         style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer;">🗑️</button>
                 </td>
@@ -283,7 +284,17 @@ export function togglePersonalEdicion(idx, checked) {
     const state = window._editandoPedido;
     if (!state || !state.items[idx]) return;
     state.items[idx].personal = !!checked;
+    if (!checked) state.items[idx].personalQty = null; // al desmarcar, limpiar reparto
     renderizarModalEditarPedido();
+}
+
+// 🍽️ Cantidad para personal (reparto de la línea). Vacío/0 = toda la línea es personal.
+// No re-renderiza (no cambia el subtotal de la línea), para no perder el foco al teclear.
+export function setPersonalQtyEdicion(idx, valor) {
+    const state = window._editandoPedido;
+    if (!state || !state.items[idx]) return;
+    const q = parseFloat(valor);
+    state.items[idx].personalQty = (Number.isFinite(q) && q > 0) ? q : null;
 }
 
 export function eliminarItemEdicion(idx) {
@@ -378,15 +389,26 @@ export async function guardarEdicionPedido() {
     const ajuste = parseFloat(state.ajusteImporte) || 0;
     const total = subtotalItems + ajuste;
 
-    const ingredientesPayload = state.items.map(it => ({
-        ingredienteId: it.ingredienteId,
-        ingrediente_id: it.ingredienteId,
-        personal: it.personal === true,
-        cantidad: it.cantidad,
-        precio_unitario: it.precio_unitario,
-        precioUnitario: it.precio_unitario,
-        precio: it.precio_unitario
-    }));
+    // 🍽️ Reparto: si una línea personal tiene personalQty parcial (0 < q < cantidad),
+    // se parte en DOS líneas (producción + personal). Así el dato sigue siendo líneas
+    // binarias (limpio) y el aislamiento ya probado se aplica igual.
+    const ingredientesPayload = [];
+    state.items.forEach(it => {
+        const base = {
+            ingredienteId: it.ingredienteId,
+            ingrediente_id: it.ingredienteId,
+            precio_unitario: it.precio_unitario,
+            precioUnitario: it.precio_unitario,
+            precio: it.precio_unitario
+        };
+        const pq = parseFloat(it.personalQty);
+        if (it.personal === true && Number.isFinite(pq) && pq > 0 && pq < it.cantidad) {
+            ingredientesPayload.push({ ...base, personal: false, cantidad: Math.round((it.cantidad - pq) * 10000) / 10000 });
+            ingredientesPayload.push({ ...base, personal: true, cantidad: pq });
+        } else {
+            ingredientesPayload.push({ ...base, personal: it.personal === true, cantidad: it.cantidad });
+        }
+    });
 
     // Si hay ajuste, añadirlo como item especial al final del array
     if (ajuste !== 0 || state.ajusteDescripcion) {
@@ -423,6 +445,7 @@ if (typeof window !== 'undefined') {
     window.abrirModalEditarPedido = abrirModalEditarPedido;
     window.actualizarItemEdicion = actualizarItemEdicion;
     window.togglePersonalEdicion = togglePersonalEdicion;
+    window.setPersonalQtyEdicion = setPersonalQtyEdicion;
     window.eliminarItemEdicion = eliminarItemEdicion;
     window.agregarItemEdicion = agregarItemEdicion;
     window.autocompletarPrecioEdicion = autocompletarPrecioEdicion;

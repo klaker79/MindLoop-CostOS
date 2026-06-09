@@ -83,6 +83,8 @@ export async function guardarPedido(event) {
     // 🍽️ Comida de personal: si la línea está marcada, NO cuenta en food cost,
     // stock ni P&L (el backend la salta igual que las líneas de tipo 'ajuste').
     const esPersonal = !!item.querySelector('.personal-input')?.checked;
+    // 🍽️ Reparto opcional: cantidad para personal (vacío = toda la línea).
+    const personalQtyRaw = parseFloat(item.querySelector('.personal-qty')?.value);
 
     if (select && select.value && cantidadInput && cantidadInput.value) {
       const ingId = parseInt(select.value);
@@ -109,26 +111,37 @@ export async function guardarPedido(event) {
         usandoFormato = formatoUsado === 'formato' && formatoMult && formatoMult !== 1;
       }
 
-      // Cantidad real en unidad base para stock
-      const cantidadReal = usandoFormato ? cantidadValue * formatoMult : cantidadValue;
+      // (la conversión a unidad base se hace en pushLinea, por porción)
 
       // 💰 El precio del ingrediente YA está en unidad base (€/botella, €/kg)
       // NO hay que dividir, el precio ya es el correcto
       const precioUnitarioBase = precioFinal;
 
-      ingredientesPedido.push({
-        ingredienteId: ingId,
-        ingrediente_id: ingId,
-        personal: esPersonal,
-        cantidad: cantidadReal,
-        cantidadOriginal: cantidadValue,
-        cantidadFormatos: usandoFormato ? cantidadValue : null,
-        formatoUsado: formatoUsado,
-        multiplicador: formatoMult,
-        precio_unitario: precioUnitarioBase,
-        precio: precioUnitarioBase,
-        precioFormato: usandoFormato ? precioFinal * formatoMult : null,
-      });
+      // Empuja una línea con la cantidad TECLEADA `qty` (en unidades de formato si aplica).
+      // La conversión a unidades base usa el MISMO multiplicador para cada parte.
+      const pushLinea = (qty, isPersonal) => {
+        ingredientesPedido.push({
+          ingredienteId: ingId,
+          ingrediente_id: ingId,
+          personal: isPersonal,
+          cantidad: usandoFormato ? qty * formatoMult : qty,
+          cantidadOriginal: qty,
+          cantidadFormatos: usandoFormato ? qty : null,
+          formatoUsado: formatoUsado,
+          multiplicador: formatoMult,
+          precio_unitario: precioUnitarioBase,
+          precio: precioUnitarioBase,
+          precioFormato: usandoFormato ? precioFinal * formatoMult : null,
+        });
+      };
+      // 🍽️ Si está marcada personal con una cantidad parcial (0 < q < total),
+      // se parte en dos líneas: producción + personal. Si no, una sola línea.
+      if (esPersonal && Number.isFinite(personalQtyRaw) && personalQtyRaw > 0 && personalQtyRaw < cantidadValue) {
+        pushLinea(Math.round((cantidadValue - personalQtyRaw) * 10000) / 10000, false);
+        pushLinea(personalQtyRaw, true);
+      } else {
+        pushLinea(cantidadValue, esPersonal);
+      }
     }
   });
 
