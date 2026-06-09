@@ -3,41 +3,58 @@
  * (via `globalSetup` en playwright.config.js).
  *
  * Problema que resuelve: el backend/frontend de staging corre en Dokploy y
- * puede estar escalado a 0 fuera de horario. El primer request lo despierta,
- * pero el cold-start tarda más que el navigationTimeout y tumbaba el nightly
- * con `page.goto Timeout exceeded` ANTES de cargar nada de la app (no era un
- * bug de código, era infra fría).
+ * (a) puede estar escalado a 0 fuera de horario (cold-start), o (b) estar
+ * redeployándose justo cuando se mergea un PR — el mismo merge que dispara la
+ * E2E dispara el redeploy de staging, así que la suite arranca mientras el
+ * contenedor reinicia y todos los `page.goto`/`request.get` dan Timeout ANTES
+ * de cargar nada de la app (no es un bug de código, es la carrera con el deploy).
  *
- * Aquí lo despertamos con reintentos antes de que arranquen los tests, para
- * que el primer `page.goto`/`request.get` real llegue a una instancia caliente.
+ * Aquí ESPERAMOS ACTIVAMENTE a que staging responda 200 antes de arrancar los
+ * tests, con una ventana lo bastante larga (~3 min) para cubrir un redeploy
+ * completo. En cuanto responde 200, seguimos de inmediato (caso normal: rápido).
  *
- * Best-effort: NUNCA lanza. Si staging está genuinamente caído, los tests lo
- * reportarán con su propio error claro — el warmup no debe enmascararlo.
+ * Best-effort: NUNCA lanza. Si staging sigue caído tras la ventana, los tests
+ * lo reportarán con su propio error claro — el warmup no debe enmascararlo.
  */
 import { request } from '@playwright/test';
 
 const STAGING_URL = process.env.STAGING_URL || 'https://staging.mindloop.cloud';
 const STAGING_API_URL = process.env.STAGING_API_URL || 'https://staging-api.mindloop.cloud';
 
-async function warm(ctx, url, attempts = 5, perTryMs = 15_000) {
-    for (let i = 1; i <= attempts; i++) {
+// Ventana total de espera por URL (cubre un redeploy de Dokploy, que puede
+// tardar 1-2 min). perTryMs = timeout de cada intento; gapMs = pausa entre
+// intentos fallidos para repartir los reintentos a lo largo de la ventana
+// (si staging falla rápido con connection-refused, sin pausa haríamos cientos
+// de intentos inútiles).
+const MAX_WAIT_MS = 180_000;
+const PER_TRY_MS = 10_000;
+const GAP_MS = 5_000;
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function warm(ctx, url) {
+    const deadline = Date.now() + MAX_WAIT_MS;
+    let intento = 0;
+    while (Date.now() < deadline) {
+        intento++;
         try {
-            const res = await ctx.get(url, { timeout: perTryMs });
+            const res = await ctx.get(url, { timeout: PER_TRY_MS });
             if (res.ok()) {
-                console.log(`[warmup] ${url} caliente (HTTP ${res.status()}, intento ${i})`);
+                console.log(`[warmup] ${url} caliente (HTTP ${res.status()}, intento ${intento})`);
                 return true;
             }
-            console.log(`[warmup] ${url} -> HTTP ${res.status()} (intento ${i})`);
+            console.log(`[warmup] ${url} -> HTTP ${res.status()} (intento ${intento})`);
         } catch (e) {
-            console.log(`[warmup] ${url} aún frío (intento ${i}): ${e.message}`);
+            console.log(`[warmup] ${url} aún no responde (intento ${intento}): ${e.message}`);
         }
+        if (Date.now() + GAP_MS < deadline) await sleep(GAP_MS);
     }
-    console.log(`[warmup] ${url} sigue sin responder tras ${attempts} intentos — la suite continúa igualmente`);
+    console.log(`[warmup] ${url} sigue sin responder tras ~${Math.round(MAX_WAIT_MS / 1000)}s — la suite continúa igualmente`);
     return false;
 }
 
 export default async function globalWarmup() {
-    console.log('[warmup] Calentando staging (Dokploy puede estar escalado a 0)...');
+    console.log('[warmup] Esperando a que staging responda 200 (cold-start o redeploy en curso)...');
     const ctx = await request.newContext();
     try {
         await Promise.all([
