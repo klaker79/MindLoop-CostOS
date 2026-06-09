@@ -146,7 +146,24 @@ export function renderizarComidaPersonal() {
     container.innerHTML = selector + cards + tabla;
 }
 
+/**
+ * Aplica el opt-in: muestra/oculta la entrada del menú "Comida Personal" según
+ * `window.comidaPersonalActiva` (apagado por defecto). Si se apaga estando en la
+ * pestaña, devuelve al usuario al dashboard para que no quede en una pestaña oculta.
+ */
+export function aplicarGatingComidaPersonal() {
+    const activa = window.comidaPersonalActiva === true;
+    document.querySelectorAll('[data-tab="comida-personal"]').forEach(el => {
+        el.style.display = activa ? '' : 'none';
+    });
+    if (!activa) {
+        const tab = document.getElementById('tab-comida-personal');
+        if (tab && tab.classList.contains('active')) window.cambiarTab?.('dashboard');
+    }
+}
+
 if (typeof window !== 'undefined') {
     window.renderizarComidaPersonal = renderizarComidaPersonal;
     window.filtrarComidaPersonal = filtrarComidaPersonal;
+    window.aplicarGatingComidaPersonal = aplicarGatingComidaPersonal;
 }

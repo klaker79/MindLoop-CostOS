@@ -14,5 +14,12 @@
   "col_product": "Product",
   "col_qty": "Quantity",
   "col_price": "Unit price",
-  "col_subtotal": "Subtotal"
+  "col_subtotal": "Subtotal",
+  "settings_title": "🍽️ Staff Meals",
+  "settings_desc": "Turn this on if you buy food to feed your team. A 🍽️ checkbox appears on orders and a separate tab tracks the spend. It does not affect food cost or stock.",
+  "settings_on": "Enabled",
+  "settings_off": "Disabled",
+  "settings_admin_only": "Only an administrator can change this option.",
+  "settings_toast_on": "Staff meals enabled",
+  "settings_toast_off": "Staff meals disabled"
 }

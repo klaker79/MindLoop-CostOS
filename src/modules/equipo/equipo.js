@@ -36,9 +36,84 @@ function cargarDatosRestaurante() {
 /**
  * Renderiza la lista de miembros del equipo
  */
+/**
+ * Renderiza el interruptor opt-in de "Comida de Personal".
+ * Apagado por defecto. Solo un admin puede cambiarlo. Cuando se activa, aparece
+ * la casilla 🍽️ en los pedidos y la pestaña "Comida Personal" en el menú.
+ */
+export async function renderizarConfigComidaPersonal() {
+    const container = document.getElementById('config-comida-personal');
+    if (!container) return;
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isAdmin = user.rol === 'admin';
+
+    let activa = window.comidaPersonalActiva === true;
+    try {
+        const res = await fetch(API_BASE + '/restaurant/comida-personal', { headers: getAuthHeaders() });
+        if (res.ok) {
+            const data = await res.json();
+            activa = data?.activa === true;
+            window.comidaPersonalActiva = activa;
+            window.aplicarGatingComidaPersonal?.();
+        }
+    } catch (error) {
+        console.error('Error cargando config comida personal:', error);
+    }
+
+    const desc = escapeHTML(t('comida_personal:settings_desc'));
+    const estado = activa
+        ? escapeHTML(t('comida_personal:settings_on'))
+        : escapeHTML(t('comida_personal:settings_off'));
+
+    const toggle = isAdmin
+        ? `<label style="position:relative; display:inline-flex; align-items:center; cursor:pointer; gap:12px;">
+             <input type="checkbox" id="toggle-comida-personal" ${activa ? 'checked' : ''}
+               onchange="window.toggleComidaPersonal(this.checked)"
+               style="width:46px; height:26px; -webkit-appearance:none; appearance:none; background:${activa ? '#7c3aed' : '#cbd5e1'}; border-radius:14px; position:relative; outline:none; cursor:pointer; transition:background .2s;">
+             <span id="toggle-comida-personal-estado" style="font-size:14px; font-weight:600; color:${activa ? '#7c3aed' : '#64748b'};">${estado}</span>
+           </label>
+           <style>#toggle-comida-personal::before{content:'';position:absolute;top:3px;left:${activa ? '23px' : '3px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}</style>`
+        : `<span style="font-size:14px; font-weight:600; color:${activa ? '#7c3aed' : '#64748b'};">${estado}</span>
+           <p style="color:#94a3b8; font-size:12px; margin:6px 0 0 0;">${escapeHTML(t('comida_personal:settings_admin_only'))}</p>`;
+
+    container.innerHTML = `
+      <p style="color:#64748b; font-size:14px; margin:0 0 14px 0;">${desc}</p>
+      ${toggle}`;
+}
+
+/**
+ * Cambia el opt-in de comida de personal (solo admin). Persiste en backend y
+ * aplica el gating (casilla + pestaña) al instante.
+ */
+export async function toggleComidaPersonal(activar) {
+    try {
+        const res = await fetch(API_BASE + '/restaurant/comida-personal', {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ activa: activar === true }),
+        });
+        if (!res.ok) throw new Error('save failed');
+        const data = await res.json();
+        window.comidaPersonalActiva = data?.activa === true;
+        window.aplicarGatingComidaPersonal?.();
+        window.showToast?.(
+            window.comidaPersonalActiva
+                ? t('comida_personal:settings_toast_on')
+                : t('comida_personal:settings_toast_off'),
+            'success'
+        );
+    } catch (error) {
+        window.showToast?.(t('common:toast_error_api'), 'error');
+    }
+    // Re-render para reflejar el estado real devuelto por el backend.
+    renderizarConfigComidaPersonal();
+}
+
 export async function renderizarEquipo() {
     // Cargar datos del restaurante
     cargarDatosRestaurante();
+    renderizarConfigComidaPersonal();
 
     const container = document.getElementById('lista-equipo');
     if (!container) return;
@@ -172,6 +247,8 @@ export async function eliminarUsuarioEquipo(id) {
 // Exponer globalmente
 if (typeof window !== 'undefined') {
     window.renderizarEquipo = renderizarEquipo;
+    window.renderizarConfigComidaPersonal = renderizarConfigComidaPersonal;
+    window.toggleComidaPersonal = toggleComidaPersonal;
     window.mostrarModalInvitar = mostrarModalInvitar;
     window.cerrarModalInvitar = cerrarModalInvitar;
     window.invitarUsuarioEquipo = invitarUsuarioEquipo;
