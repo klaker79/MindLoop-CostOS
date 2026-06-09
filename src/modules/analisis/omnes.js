@@ -186,6 +186,10 @@ function cardDispersion(d) {
     }
     const valor = `${d.valor.toFixed(2)}×`;
     const ideal = 'Ideal ≤ 2,5×';
+    // Iker 2026-06-09: el backend ya excluye categorías "no plato" (pincho,
+    // aperitivo, tapa, extra, guarnición, aceite, bebidas, suministros, base)
+    // antes de calcular dispersión. Aquí solo mostramos el ratio limpio.
+    const subtituloRango = `${escapeHTML(ideal)} · plato más caro / plato más barato`;
     return `
         <div class="oms-card">
             <div class="oms-card__head">
@@ -193,7 +197,7 @@ function cardDispersion(d) {
                 ${badgeHTML(ESTADO_DISPERSION, d.estado)}
             </div>
             <div class="oms-card__value">${escapeHTML(valor)}</div>
-            <p class="oms-card__sub">${escapeHTML(ideal)} · plato más caro / plato más barato</p>
+            <p class="oms-card__sub">${subtituloRango}</p>
             <div class="oms-meta">
                 <div class="oms-meta__row">
                     <span class="oms-meta__label">Máx</span>
