@@ -94,6 +94,14 @@ async function _cargarDatosInternal() {
         // 🍷 Variantes de recetas (botella/copa)
         window.recetasVariantes = Array.isArray(recetasVariantes) ? recetasVariantes : [];
 
+        // 🍽️ Opt-in "Comida de Personal" (por restaurante, apagado por defecto).
+        // No bloquea la carga principal: aplica el gating (casilla + pestaña) en cuanto llega.
+        fetch(API_BASE + '/restaurant/comida-personal', fetchOptions)
+            .then((r) => (r.ok ? r.json() : { activa: false }))
+            .then((d) => { window.comidaPersonalActiva = d?.activa === true; })
+            .catch(() => { window.comidaPersonalActiva = false; })
+            .finally(() => window.aplicarGatingComidaPersonal?.());
+
         // ⚡ Actualizar mapas de búsqueda optimizados
         if (window.dataMaps?.update) {
             window.dataMaps.update();

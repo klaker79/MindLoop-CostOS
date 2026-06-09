@@ -14,5 +14,12 @@
   "col_product": "Producto",
   "col_qty": "Cantidad",
   "col_price": "Precio ud.",
-  "col_subtotal": "Subtotal"
+  "col_subtotal": "Subtotal",
+  "settings_title": "🍽️ Comida de Personal",
+  "settings_desc": "Activa esta opción si compras comida para dar de comer al equipo. Aparecerá una casilla 🍽️ en los pedidos y una pestaña aparte con el gasto. No afecta al food cost ni al stock.",
+  "settings_on": "Activada",
+  "settings_off": "Desactivada",
+  "settings_admin_only": "Solo un administrador puede cambiar esta opción.",
+  "settings_toast_on": "Comida de personal activada",
+  "settings_toast_off": "Comida de personal desactivada"
 }

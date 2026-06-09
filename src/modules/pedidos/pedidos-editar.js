@@ -142,11 +142,12 @@ function renderizarModalEditarPedido() {
                 </td>
                 <td style="padding: 8px; text-align: right; font-weight: 600;">${cm(subtotal)}</td>
                 <td style="padding: 8px; white-space: nowrap;">
+                    ${(window.comidaPersonalActiva === true || it.personal) ? `
                     <label title="${escapeHTML(t('pedidos:personal_tooltip'))}" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#64748b;margin-right:8px;">
                         <input type="checkbox" ${it.personal ? 'checked' : ''} onchange="window.togglePersonalEdicion(${idx}, this.checked)" style="cursor:pointer;accent-color:#8b5cf6;width:15px;height:15px;">
                         🍽️ ${escapeHTML(t('pedidos:personal_label'))}
                     </label>
-                    ${it.personal ? `<input type="number" step="0.01" min="0" value="${it.personalQty ?? ''}" onchange="window.setPersonalQtyEdicion(${idx}, this.value)" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))}" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" style="width:58px;padding:4px;border:1px solid #8b5cf6;border-radius:4px;text-align:center;margin-right:8px;">` : ''}
+                    ${it.personal ? `<input type="number" step="0.01" min="0" value="${it.personalQty ?? ''}" onchange="window.setPersonalQtyEdicion(${idx}, this.value)" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))}" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" style="width:58px;padding:4px;border:1px solid #8b5cf6;border-radius:4px;text-align:center;margin-right:8px;">` : ''}` : ''}
                     <button type="button" onclick="window.eliminarItemEdicion(${idx})"
                         style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer;">🗑️</button>
                 </td>
