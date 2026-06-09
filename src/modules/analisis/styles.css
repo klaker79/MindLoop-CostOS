@@ -682,6 +682,48 @@
     font-size: 12px;
 }
 
+/* Dispersión: 3 más caros / 3 más baratos, en dos columnas, para detectar
+   de un vistazo ítems mal categorizados que se cuelan en los extremos. */
+.oms-extremos {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #f3f4f6;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+}
+
+.oms-extremos__head {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.oms-extremos__row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.oms-extremos__price {
+    font-weight: 700;
+    color: #111827;
+    font-size: 12px;
+}
+
+.oms-extremos__name {
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .oms-bars {
     margin-top: auto;
     display: flex;
