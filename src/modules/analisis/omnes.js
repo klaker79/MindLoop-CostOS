@@ -198,16 +198,14 @@ function cardDispersion(d) {
             </div>
             <div class="oms-card__value">${escapeHTML(valor)}</div>
             <p class="oms-card__sub">${subtituloRango}</p>
-            <div class="oms-meta">
-                <div class="oms-meta__row">
-                    <span class="oms-meta__label">Máx</span>
-                    <span class="oms-meta__value">${cm(d.precio_max)}</span>
-                    <span class="oms-meta__name" title="${escapeHTML(d.plato_max || '')}">${escapeHTML(d.plato_max || '—')}</span>
+            <div class="oms-extremos">
+                <div class="oms-extremos__col">
+                    <div class="oms-extremos__head">🔺 3 más caros</div>
+                    ${(d.mas_caros || []).map(p => `<div class="oms-extremos__row"><span class="oms-extremos__price">${cm(p.precio)}</span><span class="oms-extremos__name" title="${escapeHTML(p.nombre || '')}">${escapeHTML(p.nombre || '—')}</span></div>`).join('') || '<div class="oms-extremos__row"><span class="oms-extremos__name">—</span></div>'}
                 </div>
-                <div class="oms-meta__row">
-                    <span class="oms-meta__label">Mín</span>
-                    <span class="oms-meta__value">${cm(d.precio_min)}</span>
-                    <span class="oms-meta__name" title="${escapeHTML(d.plato_min || '')}">${escapeHTML(d.plato_min || '—')}</span>
+                <div class="oms-extremos__col">
+                    <div class="oms-extremos__head">🔻 3 más baratos</div>
+                    ${(d.mas_baratos || []).map(p => `<div class="oms-extremos__row"><span class="oms-extremos__price">${cm(p.precio)}</span><span class="oms-extremos__name" title="${escapeHTML(p.nombre || '')}">${escapeHTML(p.nombre || '—')}</span></div>`).join('') || '<div class="oms-extremos__row"><span class="oms-extremos__name">—</span></div>'}
                 </div>
             </div>
             ${tipHTML(consejoDispersion(d))}
