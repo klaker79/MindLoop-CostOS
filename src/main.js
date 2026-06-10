@@ -766,6 +766,9 @@ import './modules/busqueda/busqueda.js';
 // Side-effect import: attaches window.renderizarComidaPersonal.
 import './modules/comida-personal/comida-personal.js';
 
+// Side-effect import: recuento de inventario móvil (expone window.abrirRecuentoInventario).
+import './modules/inventario/recuento.js';
+
 // ============================================
 // MÓDULO: INTEGRACIONES 🔗
 // ============================================

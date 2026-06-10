@@ -1741,6 +1741,11 @@
               data-action="ver-historial-mermas" data-i18n="inventario:btn_waste_history">📋 Ver Historial
               Mermas</button>
             <button class="btn btn-secondary" data-action="exportar-inventario">📤 Export Excel</button>
+            <!-- 📋 Recuento: contador digital móvil. Oculto en escritorio (display:none);
+                 la media-query de recuento.js lo muestra solo en pantallas pequeñas. -->
+            <button id="btn-recuento-inventario" class="btn"
+              style="display:none; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white;"
+              onclick="window.abrirRecuentoInventario()" data-i18n="recuento:btn_open">📋 Recuento</button>
             <!-- "ℹ️ Cómo funcionan" se inyecta automáticamente por info-modal.js
                  si hay entry para "inventario" en src/i18n/locales/{lang}/info-content.json -->
             <!-- "🎬 Ver tutorial" se inyecta automáticamente por help-modal.js
