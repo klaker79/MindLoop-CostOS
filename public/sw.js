@@ -129,7 +129,8 @@
 // BUMP v140: Preview EN VIVO del precio por unidad en el formulario de ingrediente. Mientras rellenas precio/unidad/formato/cantidad por formato, muestra "→ La app usará X €/unidad" y avisa si la combinación es incoherente (cpf>1 sin nombre, o cpf>1 con unidad contable tipo 'unidad'/'botella' que casi siempre debería ser g/ml). Caza el bug mermelada al vuelo. Cálculo puro testeado en precio-unidad-preview.js.
 // BUMP v141: "Añadir ingrediente" dentro de Editar Pedido ahora es consciente del formato. Si el ingrediente tiene formato (BOTE), pide cantidad en BOTE y precio €/BOTE (como Nuevo Pedido), no en gramos. Convierte a base al añadir; el resto del modal ya pintaba en formato. Coherencia total entre pedir, editar y añadir.
 // BUMP v142: Etiqueta de unidad junto a la cantidad en recetas. Cada fila de ingrediente muestra su unidad base (g/kg/l/ml…) al lado del campo de cantidad, para no teclear a ciegas (evita el lío 0.02 vs 20). Se actualiza al elegir ingrediente. Solo display, no toca el cálculo de coste.
-const CACHE_NAME = 'mindloop-costos-v142';
+// BUMP v143: Fix botón Guardar ingrediente que se quedaba GRIS tras un guardado bloqueado por validación (no se rehabilitaba). + Afinado el aviso del preview: "1 CAJA = 6 botella" (vino por caja) ya NO marca falso positivo; solo avisa con unidad genérica 'unidad'.
+const CACHE_NAME = 'mindloop-costos-v143';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
