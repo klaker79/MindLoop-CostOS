@@ -130,7 +130,8 @@
 // BUMP v141: "Añadir ingrediente" dentro de Editar Pedido ahora es consciente del formato. Si el ingrediente tiene formato (BOTE), pide cantidad en BOTE y precio €/BOTE (como Nuevo Pedido), no en gramos. Convierte a base al añadir; el resto del modal ya pintaba en formato. Coherencia total entre pedir, editar y añadir.
 // BUMP v142: Etiqueta de unidad junto a la cantidad en recetas. Cada fila de ingrediente muestra su unidad base (g/kg/l/ml…) al lado del campo de cantidad, para no teclear a ciegas (evita el lío 0.02 vs 20). Se actualiza al elegir ingrediente. Solo display, no toca el cálculo de coste.
 // BUMP v143: Fix botón Guardar ingrediente que se quedaba GRIS tras un guardado bloqueado por validación (no se rehabilitaba). + Afinado el aviso del preview: "1 CAJA = 6 botella" (vino por caja) ya NO marca falso positivo; solo avisa con unidad genérica 'unidad'.
-const CACHE_NAME = 'mindloop-costos-v143';
+// BUMP v144: Editar/Recibir muestran formato (CAJA/BOTE) SOLO si la cantidad son formatos enteros; si hay reparto de personal o sueltas (10 botellas, 2 botellas) lo muestran en unidad base, no en fracciones de caja (0,333 CAJA). El campo de comida personal SIEMPRE en unidad base (botellas). Cifras/stock idénticos: solo cambia el display. Helper esCantidadEnteraEnFormato testeado.
+const CACHE_NAME = 'mindloop-costos-v144';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

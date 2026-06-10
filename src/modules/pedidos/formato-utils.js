@@ -51,6 +51,21 @@ export function formatoDesdeBase(cantidadBase, precioBase, cpf) {
 }
 
 /**
+ * ¿La cantidad base equivale a un número ENTERO de formatos? (ej. 1500 g con
+ * cpf 750 = 2 botes exactos → true; 10 botellas con cpf 6 = 1,67 cajas → false).
+ *
+ * Se usa para decidir si mostrar una línea en formato (CAJA) o en unidad base
+ * (botella): si NO es entero (reparto de personal, botellas sueltas…), mostrar
+ * en formato daría fracciones confusas (0,333 CAJA) → mejor en base.
+ */
+export function esCantidadEnteraEnFormato(cantidadBase, cpf) {
+    const k = cpfSeguro(cpf);
+    if (k <= 1) return false;
+    const enFormato = (parseFloat(cantidadBase) || 0) / k;
+    return Math.abs(enFormato - Math.round(enFormato)) < 1e-6;
+}
+
+/**
  * Inversa de formatoDesdeBase: pasa lo que teclea el usuario en FORMATO a
  * UNIDAD BASE para guardarlo (así el food cost sigue calculándose en base).
  * Ej: 1 bote a 3 €/bote, cpf=750 → 750 g a 0,004 €/g.

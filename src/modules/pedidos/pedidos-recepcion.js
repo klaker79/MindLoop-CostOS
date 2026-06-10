@@ -14,7 +14,7 @@
 
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpers.js';
-import { formatoDesdeBase } from './formato-utils.js';
+import { formatoDesdeBase, esCantidadEnteraEnFormato } from './formato-utils.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 
 /**
@@ -188,7 +188,10 @@ function renderItemsRecepcionModal(ped) {
         // 📦 Mostrar en FORMATO de compra (bote, caja…) como el resto de la app.
         // SOLO display: cantidadRecibida/precioReal siguen en base internamente,
         // el delta de stock no cambia → imposible inflar inventario por esto.
-        const { cpf, formatoNombre, usaFormato } = ctxFormato(ing);
+        const { cpf, formatoNombre } = ctxFormato(ing);
+        // Formato solo si la cantidad pedida son cajas/botes ENTEROS; si no
+        // (reparto de personal, sueltas), en base (botella) para no ver 0,333 CAJA.
+        const usaFormato = cpf > 1 && !!formatoNombre && esCantidadEnteraEnFormato(cantPedida, cpf);
         const unidadLabel = usaFormato ? formatoNombre : unidad;
         const cantPedidaShown = usaFormato ? formatoDesdeBase(cantPedida, 0, cpf).cantidad : cantPedida;
         const cantRecibidaShown = usaFormato ? formatoDesdeBase(cantRecibida, 0, cpf).cantidad : cantRecibida;
@@ -197,8 +200,11 @@ function renderItemsRecepcionModal(ped) {
         const precioPedTxt = usaFormato ? `${cm(precioPedShown)}/${escapeHTML(formatoNombre)}` : cm(precioPed);
         const precioRealTxt = usaFormato ? `${cm(precioRealShown)}/${escapeHTML(formatoNombre)}` : cm(precioReal);
         const hintBase = usaFormato ? `<div style="font-size:10px;color:#94a3b8;">= ${escapeHTML(formatQuantity(cantPedida))} ${escapeHTML(unidad)}</div>` : '';
-        const recOnchange = `window.actualizarItemRecepcion(${idx}, 'cantidad', this.value, ${cpf})`;
-        const precioOnchange = `window.actualizarItemRecepcion(${idx}, 'precio', this.value, ${cpf})`;
+        // En modo base (usaFormato=false) NO se debe convertir al teclear → cpf=1,
+        // si no, multiplicaría el valor base por cpf e inflaría el stock.
+        const cpfInput = usaFormato ? cpf : 1;
+        const recOnchange = `window.actualizarItemRecepcion(${idx}, 'cantidad', this.value, ${cpfInput})`;
+        const precioOnchange = `window.actualizarItemRecepcion(${idx}, 'precio', this.value, ${cpfInput})`;
 
         // 🍽️ Líneas de comida personal: fila en modo LECTURA (gris, badge), sin
         // inputs ni estado. Cuenta en el total pero NO toca stock ni food cost.
