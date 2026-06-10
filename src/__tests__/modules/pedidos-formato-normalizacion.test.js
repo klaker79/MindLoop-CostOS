@@ -102,4 +102,27 @@ describe('formatoDesdeBase / baseDesdeFormato — display del modal de edición'
         expect(f.cantidad).toBe(2);
         expect(f.precio).toBe(10);
     });
+
+    // ⛔ INVARIANTE ANTI-INFLACIÓN DE RECEPCIÓN ⛔
+    // El modal de recibir muestra botes pero el stock se suma en BASE. Si el
+    // usuario teclea "2 botes", lo que se guarda como cantidadRecibida (y por
+    // tanto el delta que va a stock) DEBE ser 1500 g, nunca 2. Multiplicar de
+    // nuevo por cpf al sumar stock = bug de inflación (histórico 2026-04-15).
+    test('recepción: teclear 2 botes → cantidadRecibida base = 1500 (no 2, no infla)', () => {
+        const cpf = 750;
+        const tecleado = 2; // botes
+        const { cantidad: cantidadRecibidaBase } = baseDesdeFormato(tecleado, 0, cpf);
+        expect(cantidadRecibidaBase).toBe(1500);
+        // el delta a stock ES cantidadRecibidaBase, sin más multiplicaciones
+        const deltaStock = cantidadRecibidaBase;
+        expect(deltaStock).toBe(1500);
+        expect(deltaStock).not.toBe(tecleado * cpf * cpf); // jamás ×cpf dos veces
+    });
+
+    test('recepción: precio 3 €/bote → precioReal base = 0,004 €/g (food cost sano)', () => {
+        const { precio } = baseDesdeFormato(0, 3, 750);
+        expect(precio).toBeCloseTo(0.004, 6);
+        // subtotal de la línea: 1500 g × 0,004 €/g = 6 € (2 botes a 3 €)
+        expect(1500 * precio).toBeCloseTo(6, 6);
+    });
 });
