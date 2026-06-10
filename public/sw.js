@@ -118,7 +118,8 @@
 // BUMP v121: Omnes Dispersión cambia de filtro estadístico a filtro semántico. Backend excluye categorías de extras (pincho, aperitivo, tapa, extra, guarnición, aceite, bebidas, suministros, base) ANTES del cálculo. Sin "forzar" números: el ratio refleja exactamente lo que el cliente entiende como "plato normal". Iker 2026-06-09 — el filtro estadístico camuflaba como outliers cosas que sí son platos legítimos (BOGAVANTE de carta especial, menú degustación), eso era engañoso.
 
 // BUMP v126: Comida de Personal opt-in (apagado por defecto). Flag por restaurante (comida_personal_activa). Oculta la casilla 🍽️ en pedidos (nuevo + editar) y la pestaña del menú cuando está off. Interruptor en Configuración (solo admin).
-const CACHE_NAME = 'mindloop-costos-v126';
+// BUMP v127: Fix Nuevo Pedido con comida personal — al llevar líneas personal, el pedido NO pasa por el carrito (que fusiona por ingrediente y perdía el split + el flag); se crea directo como 'pendiente'. Fix parpadeo del modal Editar al marcar la casilla 🍽️ (toggle inline, sin re-render completo).
+const CACHE_NAME = 'mindloop-costos-v127';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

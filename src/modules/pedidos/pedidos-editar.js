@@ -144,10 +144,10 @@ function renderizarModalEditarPedido() {
                 <td style="padding: 8px; white-space: nowrap;">
                     ${(window.comidaPersonalActiva === true || it.personal) ? `
                     <label title="${escapeHTML(t('pedidos:personal_tooltip'))}" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#64748b;margin-right:8px;">
-                        <input type="checkbox" ${it.personal ? 'checked' : ''} onchange="window.togglePersonalEdicion(${idx}, this.checked)" style="cursor:pointer;accent-color:#8b5cf6;width:15px;height:15px;">
+                        <input type="checkbox" ${it.personal ? 'checked' : ''} onchange="window.togglePersonalEdicion(${idx}, this.checked); const q=this.closest('tr').querySelector('.personal-qty-edit'); if(q){ q.style.display=this.checked?'inline-block':'none'; if(!this.checked) q.value=''; }" style="cursor:pointer;accent-color:#8b5cf6;width:15px;height:15px;">
                         🍽️ ${escapeHTML(t('pedidos:personal_label'))}
                     </label>
-                    ${it.personal ? `<input type="number" step="0.01" min="0" value="${it.personalQty ?? ''}" onchange="window.setPersonalQtyEdicion(${idx}, this.value)" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))}" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" style="width:58px;padding:4px;border:1px solid #8b5cf6;border-radius:4px;text-align:center;margin-right:8px;">` : ''}` : ''}
+                    <input type="number" step="0.01" min="0" class="personal-qty-edit" value="${it.personalQty ?? ''}" onchange="window.setPersonalQtyEdicion(${idx}, this.value)" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))}" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" style="display:${it.personal ? 'inline-block' : 'none'};width:58px;padding:4px;border:1px solid #8b5cf6;border-radius:4px;text-align:center;margin-right:8px;">` : ''}
                     <button type="button" onclick="window.eliminarItemEdicion(${idx})"
                         style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer;">🗑️</button>
                 </td>
@@ -286,7 +286,8 @@ export function togglePersonalEdicion(idx, checked) {
     if (!state || !state.items[idx]) return;
     state.items[idx].personal = !!checked;
     if (!checked) state.items[idx].personalQty = null; // al desmarcar, limpiar reparto
-    renderizarModalEditarPedido();
+    // NO re-render: el input de cantidad se muestra/oculta inline en el onchange
+    // del checkbox (evita el parpadeo del modal al re-pintar todo el innerHTML).
 }
 
 // 🍽️ Cantidad para personal (reparto de la línea). Vacío/0 = toda la línea es personal.
