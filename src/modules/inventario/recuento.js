@@ -198,13 +198,20 @@ function renderRecuento() {
       </div>`;
 }
 
-/** Construye los ajustes (mismo formato que confirmarInventarioMasivo) y los datos del resumen. */
-function calcularAjustes() {
-    const items = ingredientesParaContar();
+/**
+ * Lógica PURA de reconciliación (testeable, sin DOM ni globals).
+ * Dado los items (con stockSistema + precio) y los conteos {id: numero}, decide:
+ *   - real < sistema  → MERMA ("Ajuste de inventario"), cantidad = sistema-real
+ *   - real ≥ sistema  → SUBIDA (consolidateStock al valor contado)
+ *   - real ≈ sistema  → igual (no se toca)
+ *   - no contado      → se ignora
+ * Cada ingrediente cae en UNA sola vía (nunca dos) → sin doble conteo.
+ * Mismo criterio que el import Excel (confirmarInventarioMasivo).
+ */
+export function calcularAjustesDesde(items, conteos, fechaNota = '') {
     const mermas = [];
     const subidas = [];
     let igual = 0;
-    const hoy = new Date().toLocaleDateString('es-ES');
 
     for (const it of items) {
         const real = conteos[it.id];
@@ -220,7 +227,7 @@ function calcularAjustes() {
                 unidad: it.unidad,
                 valorPerdida: +(cantidad * it.precio).toFixed(2),
                 motivo: 'Ajuste de inventario',
-                nota: `Recuento — ${hoy}`,
+                nota: `Recuento — ${fechaNota}`,
                 _de: sistema, _a: real
             });
         } else {
@@ -228,6 +235,11 @@ function calcularAjustes() {
         }
     }
     return { mermas, subidas, igual };
+}
+
+/** Construye los ajustes desde el estado actual del recuento (items + conteos del módulo). */
+function calcularAjustes() {
+    return calcularAjustesDesde(ingredientesParaContar(), conteos, new Date().toLocaleDateString('es-ES'));
 }
 
 export function revisarRecuento() {
