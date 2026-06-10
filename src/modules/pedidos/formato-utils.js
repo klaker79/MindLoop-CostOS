@@ -27,3 +27,38 @@ export function normalizarLineasABase(lineas) {
         return { ...l, precio_unitario: precioBase, precio: precioBase };
     });
 }
+
+/**
+ * cpf "seguro": sólo se considera formato cuando cantidad_por_formato > 1.
+ * (cpf=1 o vacío → el ingrediente se compra/edita en unidad base.)
+ */
+function cpfSeguro(cpf) {
+    const k = parseFloat(cpf);
+    return k > 1 ? k : 1;
+}
+
+/**
+ * Pasa una línea de UNIDAD BASE a FORMATO para mostrarla al usuario.
+ * Ej: 750 g a 0,004 €/g, cpf=750 (bote) → 1 bote a 3 €/bote.
+ * La cantidad se DIVIDE por cpf y el precio se MULTIPLICA por cpf.
+ */
+export function formatoDesdeBase(cantidadBase, precioBase, cpf) {
+    const k = cpfSeguro(cpf);
+    return {
+        cantidad: (parseFloat(cantidadBase) || 0) / k,
+        precio: (parseFloat(precioBase) || 0) * k,
+    };
+}
+
+/**
+ * Inversa de formatoDesdeBase: pasa lo que teclea el usuario en FORMATO a
+ * UNIDAD BASE para guardarlo (así el food cost sigue calculándose en base).
+ * Ej: 1 bote a 3 €/bote, cpf=750 → 750 g a 0,004 €/g.
+ */
+export function baseDesdeFormato(cantidadFormato, precioFormato, cpf) {
+    const k = cpfSeguro(cpf);
+    return {
+        cantidad: (parseFloat(cantidadFormato) || 0) * k,
+        precio: (parseFloat(precioFormato) || 0) / k,
+    };
+}

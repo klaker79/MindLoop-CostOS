@@ -7,7 +7,7 @@
  * cualquier `cantidad × precio_unitario` daba 750×3 = 2250 € y corrompía el food cost.
  * normalizarLineasABase divide el precio por `multiplicador` (cpf) → €/gramo.
  */
-import { normalizarLineasABase } from '@modules/pedidos/formato-utils.js';
+import { normalizarLineasABase, formatoDesdeBase, baseDesdeFormato } from '@modules/pedidos/formato-utils.js';
 
 describe('normalizarLineasABase — €/formato → €/unidad-base', () => {
     test('línea con formato (multiplicador 750): precio €/bote → €/gramo', () => {
@@ -63,5 +63,43 @@ describe('normalizarLineasABase — €/formato → €/unidad-base', () => {
         expect(out[0].precio_unitario).toBeCloseTo(0.004, 6);
         expect(out[1].precio_unitario).toBe(5);
         expect(out[2].importe).toBe(-2);
+    });
+});
+
+describe('formatoDesdeBase / baseDesdeFormato — display del modal de edición', () => {
+    test('base → formato: 750 g a 0,004 €/g, cpf 750 → 1 bote a 3 €/bote', () => {
+        const { cantidad, precio } = formatoDesdeBase(750, 0.004, 750);
+        expect(cantidad).toBeCloseTo(1, 6);
+        expect(precio).toBeCloseTo(3, 6);
+    });
+
+    test('formato → base: 1 bote a 3 €/bote, cpf 750 → 750 g a 0,004 €/g', () => {
+        const { cantidad, precio } = baseDesdeFormato(1, 3, 750);
+        expect(cantidad).toBeCloseTo(750, 6);
+        expect(precio).toBeCloseTo(0.004, 6);
+    });
+
+    test('round-trip base→formato→base no pierde precisión', () => {
+        const cpf = 750;
+        const f = formatoDesdeBase(1500, 0.004, cpf); // 2 botes
+        const b = baseDesdeFormato(f.cantidad, f.precio, cpf);
+        expect(b.cantidad).toBeCloseTo(1500, 6);
+        expect(b.precio).toBeCloseTo(0.004, 6);
+    });
+
+    test('cpf <= 1 (sin formato): no convierte, queda en base', () => {
+        const f = formatoDesdeBase(4, 5, 1);
+        expect(f.cantidad).toBe(4);
+        expect(f.precio).toBe(5);
+        const b = baseDesdeFormato(4, 5, 1);
+        expect(b.cantidad).toBe(4);
+        expect(b.precio).toBe(5);
+    });
+
+    test('cpf fraccionado (0,5 kg por bote = cpf<1) se trata como base (no rompe)', () => {
+        // cpf<1 no se considera formato (cpfSeguro→1): el editor lo edita en base.
+        const f = formatoDesdeBase(2, 10, 0.5);
+        expect(f.cantidad).toBe(2);
+        expect(f.precio).toBe(10);
     });
 });
