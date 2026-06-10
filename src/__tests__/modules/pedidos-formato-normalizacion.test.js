@@ -7,7 +7,7 @@
  * cualquier `cantidad × precio_unitario` daba 750×3 = 2250 € y corrompía el food cost.
  * normalizarLineasABase divide el precio por `multiplicador` (cpf) → €/gramo.
  */
-import { normalizarLineasABase, formatoDesdeBase, baseDesdeFormato } from '@modules/pedidos/formato-utils.js';
+import { normalizarLineasABase, formatoDesdeBase, baseDesdeFormato, esCantidadEnteraEnFormato } from '@modules/pedidos/formato-utils.js';
 
 describe('normalizarLineasABase — €/formato → €/unidad-base', () => {
     test('línea con formato (multiplicador 750): precio €/bote → €/gramo', () => {
@@ -124,5 +124,24 @@ describe('formatoDesdeBase / baseDesdeFormato — display del modal de edición'
         expect(precio).toBeCloseTo(0.004, 6);
         // subtotal de la línea: 1500 g × 0,004 €/g = 6 € (2 botes a 3 €)
         expect(1500 * precio).toBeCloseTo(6, 6);
+    });
+});
+
+describe('esCantidadEnteraEnFormato — mostrar formato solo si son formatos enteros', () => {
+    test('múltiplo exacto → true (1500 g, cpf 750 = 2 botes)', () => {
+        expect(esCantidadEnteraEnFormato(1500, 750)).toBe(true);
+        expect(esCantidadEnteraEnFormato(750, 750)).toBe(true);
+        expect(esCantidadEnteraEnFormato(12, 6)).toBe(true); // 2 cajas
+    });
+
+    test('no múltiplo → false (reparto: 10 botellas con cpf 6 = 1,67 cajas)', () => {
+        expect(esCantidadEnteraEnFormato(10, 6)).toBe(false);
+        expect(esCantidadEnteraEnFormato(2, 6)).toBe(false);  // 2 botellas personal
+        expect(esCantidadEnteraEnFormato(800, 750)).toBe(false);
+    });
+
+    test('cpf <= 1 → false (no hay formato)', () => {
+        expect(esCantidadEnteraEnFormato(5, 1)).toBe(false);
+        expect(esCantidadEnteraEnFormato(5, 0)).toBe(false);
     });
 });

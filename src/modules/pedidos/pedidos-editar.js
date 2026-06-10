@@ -10,7 +10,7 @@
 import { escapeHTML, cm, formatQuantity } from '../../utils/helpers.js';
 import { validarDesvioPrecio } from '../../utils/precio-validator.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
-import { formatoDesdeBase } from './formato-utils.js';
+import { formatoDesdeBase, esCantidadEnteraEnFormato } from './formato-utils.js';
 import { t } from '@/i18n/index.js';
 
 /**
@@ -157,7 +157,10 @@ function renderizarModalEditarPedido() {
         const cpfRaw = parseFloat(ing?.cantidad_por_formato);
         const cpf = cpfRaw > 1 ? cpfRaw : 1;
         const formatoNombre = ing?.formato_compra;
-        const usaFormato = cpf > 1 && !!formatoNombre;
+        // Mostrar en formato (CAJA/BOTE) SOLO si la cantidad equivale a formatos
+        // enteros. Si no (reparto de personal, botellas sueltas), mostrar en base
+        // (botella) para no enseñar fracciones confusas (0,333 CAJA).
+        const usaFormato = cpf > 1 && !!formatoNombre && esCantidadEnteraEnFormato(it.cantidad, cpf);
         const fmt = usaFormato ? formatoDesdeBase(it.cantidad, it.precio_unitario, cpf) : null;
         const cantShown = usaFormato ? fmt.cantidad : it.cantidad;
         const precioShown = usaFormato ? fmt.precio : it.precio_unitario;
@@ -167,12 +170,10 @@ function renderizarModalEditarPedido() {
         const precioOnchange = usaFormato
             ? `window.actualizarItemEdicionFmt(${idx}, 'precio_unitario', this.value, ${cpf})`
             : `window.actualizarItemEdicion(${idx}, 'precio_unitario', this.value)`;
-        const personalQtyShown = usaFormato
-            ? (it.personalQty !== null && it.personalQty !== undefined ? formatoDesdeBase(it.personalQty, 0, cpf).cantidad : '')
-            : (it.personalQty ?? '');
-        const personalQtyOnchange = usaFormato
-            ? `window.setPersonalQtyEdicionFmt(${idx}, this.value, ${cpf})`
-            : `window.setPersonalQtyEdicion(${idx}, this.value)`;
+        // 🍽️ El reparto de personal SIEMPRE en unidad base (botellas): se apartan
+        // botellas sueltas, nunca "0,333 cajas". Por eso no se convierte a formato.
+        const personalQtyShown = (it.personalQty ?? '');
+        const personalQtyOnchange = `window.setPersonalQtyEdicion(${idx}, this.value)`;
         return `
             <tr data-idx="${idx}" style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 8px;"><strong>${escapeHTML(nombre)}</strong></td>
@@ -193,10 +194,10 @@ function renderizarModalEditarPedido() {
                 <td style="padding: 8px; white-space: nowrap;">
                     ${(window.comidaPersonalActiva === true || it.personal) ? `
                     <label title="${escapeHTML(t('pedidos:personal_tooltip'))}" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#64748b;margin-right:8px;">
-                        <input type="checkbox" ${it.personal ? 'checked' : ''} onchange="window.togglePersonalEdicion(${idx}, this.checked); const q=this.closest('tr').querySelector('.personal-qty-edit'); if(q){ q.style.display=this.checked?'inline-block':'none'; if(!this.checked) q.value=''; }" style="cursor:pointer;accent-color:#8b5cf6;width:15px;height:15px;">
+                        <input type="checkbox" ${it.personal ? 'checked' : ''} onchange="window.togglePersonalEdicion(${idx}, this.checked); const q=this.closest('tr').querySelector('.personal-qty-edit'); if(q){ q.style.display=this.checked?'inline-block':'none'; if(!this.checked) q.value=''; } const ul=this.closest('tr').querySelector('.personal-qty-unidad'); if(ul){ ul.style.display=this.checked?'inline':'none'; }" style="cursor:pointer;accent-color:#8b5cf6;width:15px;height:15px;">
                         🍽️ ${escapeHTML(t('pedidos:personal_label'))}
                     </label>
-                    <input type="number" step="0.01" min="0" class="personal-qty-edit" value="${personalQtyShown}" onchange="${personalQtyOnchange}" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))}" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" style="display:${it.personal ? 'inline-block' : 'none'};width:58px;padding:4px;border:1px solid #8b5cf6;border-radius:4px;text-align:center;margin-right:8px;">` : ''}
+                    <input type="number" step="0.01" min="0" class="personal-qty-edit" value="${personalQtyShown}" onchange="${personalQtyOnchange}" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))} (en ${escapeHTML(unidad)})" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" style="display:${it.personal ? 'inline-block' : 'none'};width:50px;padding:4px;border:1px solid #8b5cf6;border-radius:4px;text-align:center;margin-right:3px;"><small class="personal-qty-unidad" style="color:#8b5cf6;font-size:10px;margin-right:8px;display:${it.personal ? 'inline' : 'none'};">${escapeHTML(unidad)}</small>` : ''}
                     <button type="button" onclick="window.eliminarItemEdicion(${idx})"
                         style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer;">🗑️</button>
                 </td>
