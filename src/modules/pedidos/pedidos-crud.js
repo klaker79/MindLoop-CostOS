@@ -10,6 +10,7 @@
 
 import { t } from '@/i18n/index.js';
 import { cm } from '../../utils/helpers.js';
+import { normalizarLineasABase } from './formato-utils.js';
 
 // Guard anti-doble-click: evita que guardarPedido se ejecute dos veces seguidas.
 // Se resetea siempre en el finally para no dejar bloqueado el botón.
@@ -113,8 +114,11 @@ export async function guardarPedido(event) {
 
       // (la conversión a unidad base se hace en pushLinea, por porción)
 
-      // 💰 El precio del ingrediente YA está en unidad base (€/botella, €/kg)
-      // NO hay que dividir, el precio ya es el correcto
+      // ⚠️ `precioFinal` es el precio TECLEADO. Para compra por FORMATO es €/formato
+      // (ej. 3 €/bote). El carrito normaliza esto a €/unidad-base al confirmar
+      // (precio/cantidad_por_formato). Pero los caminos DIRECTOS (compra mercado y
+      // pedido-con-personal que NO pasan por el carrito) usan estas líneas tal cual,
+      // así que se normalizan justo antes de crear el pedido (ver normalizarLineasABase).
       const precioUnitarioBase = precioFinal;
 
       // Empuja una línea con la cantidad TECLEADA `qty` (en unidades de formato si aplica).
@@ -131,7 +135,7 @@ export async function guardarPedido(event) {
           multiplicador: formatoMult,
           precio_unitario: precioUnitarioBase,
           precio: precioUnitarioBase,
-          precioFormato: usandoFormato ? precioFinal * formatoMult : null,
+          precioFormato: usandoFormato ? precioFinal : null,
         });
       };
       // 🍽️ Si está marcada personal con una cantidad parcial (0 < q < total),
@@ -171,7 +175,7 @@ export async function guardarPedido(event) {
       proveedor_id: proveedorId,
       fecha: document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
       estado: 'recibido', // Se marca directamente como recibido
-      ingredientes: ingredientesPedido,
+      ingredientes: normalizarLineasABase(ingredientesPedido),
       total: window.calcularTotalPedido(),
       es_compra_mercado: true,
       detalle_mercado: puestoMercado,
@@ -194,7 +198,7 @@ export async function guardarPedido(event) {
         proveedor_id: proveedorId,
         fecha: document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
         estado: 'pendiente',
-        ingredientes: ingredientesPedido,
+        ingredientes: normalizarLineasABase(ingredientesPedido),
         total: window.calcularTotalPedido(),
       };
       // Cae al bloque try de abajo (createPedido). esCompraMercado=false → sin stock.
