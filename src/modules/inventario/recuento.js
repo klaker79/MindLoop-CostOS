@@ -81,6 +81,12 @@ export function abrirRecuentoInventario() {
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'recuento-overlay';
+        // Listener delegado (sobrevive a los re-render de innerHTML): los chips de
+        // familia pasan su valor por dataset, nunca por JS inline.
+        overlay.addEventListener('click', (e) => {
+            const chip = e.target.closest('.recuento-chip');
+            if (chip) filtrarRecuentoFamilia(chip.dataset.familia || 'todas');
+        });
         document.body.appendChild(overlay);
     }
     renderRecuento();
@@ -135,10 +141,12 @@ function renderRecuento() {
     const hechos = visibles.filter(i => Number.isFinite(conteos[i.id])).length;
     const pct = visibles.length ? Math.round(hechos / visibles.length * 100) : 0;
 
+    // Chips por familia: data-familia (HTML-escapado) + listener delegado en el
+    // overlay. NO se construye JS inline con datos → sin riesgo de XSS por familia.
     const chips = ['todas', ...familias].map(f => {
         const activo = f === familiaSel;
         const label = f === 'todas' ? t('recuento:all_families') : f;
-        return `<button onclick="window.filtrarRecuentoFamilia('${escapeHTML(f).replace(/'/g, '')}')"
+        return `<button type="button" class="recuento-chip" data-familia="${escapeHTML(f)}"
             style="border:1px solid ${activo ? '#0284c7' : '#cbd5e1'};background:${activo ? '#0284c7' : '#fff'};
             color:${activo ? '#fff' : '#475569'};border-radius:999px;padding:6px 14px;font-size:13px;
             font-weight:600;white-space:nowrap;cursor:pointer;text-transform:capitalize;">${escapeHTML(label)}</button>`;
