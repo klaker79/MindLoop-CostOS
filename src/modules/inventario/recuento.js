@@ -114,6 +114,9 @@ export function setConteo(id, valor) {
     // Actualizar solo el contador de progreso y la marca de la fila, sin re-render.
     const items = ingredientesParaContar();
     const visibles = familiaSel === 'todas' ? items : items.filter(i => i.familia === familiaSel);
+    // Contador del botón "Revisar (N)" — total contado en TODO el recuento.
+    const revisarCount = document.getElementById('recuento-revisar-count');
+    if (revisarCount) revisarCount.textContent = String(contadosCount());
     const prog = document.getElementById('recuento-progreso');
     if (prog) {
         const hechos = visibles.filter(i => Number.isFinite(conteos[i.id])).length;
@@ -190,7 +193,7 @@ function renderRecuento() {
         </div>
         <div style="padding:12px 16px;border-top:1px solid #e2e8f0;display:flex;gap:10px;">
           <button onclick="window.guardarYSeguirRecuento()" style="flex:1;padding:14px;border:1.5px solid #cbd5e1;background:#fff;color:#475569;border-radius:12px;font-weight:600;font-size:15px;cursor:pointer;">${t('recuento:save_continue')}</button>
-          <button onclick="window.revisarRecuento()" style="flex:1;padding:14px;border:none;background:#0284c7;color:#fff;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;">${t('recuento:review')} (${contadosCount()})</button>
+          <button onclick="window.revisarRecuento()" style="flex:1;padding:14px;border:none;background:#0284c7;color:#fff;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;">${t('recuento:review')} (<span id="recuento-revisar-count">${contadosCount()}</span>)</button>
         </div>
       </div>`;
 }
