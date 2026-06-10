@@ -10,9 +10,11 @@
  * mostrarlo mientras el usuario rellena el formulario y cazar el error al vuelo.
  */
 
-// Unidades "contables" donde un cpf>1 casi siempre significa que la unidad base
-// está mal (debería ser g/ml/kg/l). Un bote de 750 g mal puesto como 750 'unidad'.
-const UNIDADES_DISCRETAS = ['unidad', 'botella', 'docena'];
+// Unidad genérica "unidad" donde un cpf>1 casi siempre significa que la unidad
+// base está mal (debería ser g/ml/kg/l): un bote de 750 g mal puesto como 750
+// 'unidad'. NO se incluye 'botella' ni 'docena' porque "1 CAJA = 6 botella" es
+// una config perfectamente válida (vino por caja) y avisar ahí es falso positivo.
+const UNIDADES_DISCRETAS = ['unidad'];
 
 /**
  * @param {{precio:any, cantidadPorFormato:any, formato:any, unidad:any}} input

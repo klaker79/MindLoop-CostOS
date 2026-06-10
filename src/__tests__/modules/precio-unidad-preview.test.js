@@ -41,9 +41,10 @@ describe('calcularPreviewPrecioUnidad', () => {
         expect(r.level).toBe('sospechoso');
     });
 
-    test('botella/docena con cpf>1 también sospechoso', () => {
-        expect(calcularPreviewPrecioUnidad({ precio: 8, cantidadPorFormato: 6, formato: 'CAJA', unidad: 'botella' }).level).toBe('sospechoso');
-        expect(calcularPreviewPrecioUnidad({ precio: 12, cantidadPorFormato: 12, formato: 'CAJA', unidad: 'docena' }).level).toBe('sospechoso');
+    // "1 CAJA = 6 botella" (vino por caja) es config VÁLIDA → no debe avisar.
+    test('botella/docena con cpf>1 NO es sospechoso (caja de botellas es legítimo)', () => {
+        expect(calcularPreviewPrecioUnidad({ precio: 60, cantidadPorFormato: 6, formato: 'CAJA', unidad: 'botella' }).level).toBe('ok');
+        expect(calcularPreviewPrecioUnidad({ precio: 12, cantidadPorFormato: 12, formato: 'CAJA', unidad: 'docena' }).level).toBe('ok');
     });
 
     test('cpf=1 (o vacío) no divide y no es sospechoso', () => {

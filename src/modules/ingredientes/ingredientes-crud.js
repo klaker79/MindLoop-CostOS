@@ -61,6 +61,9 @@ export async function guardarIngrediente(event) {
     if (!validation.valid) {
         showValidationErrors(validation.errors);
         _guardandoIngrediente = false;
+        // 🔒 FIX: rehabilitar el botón al fallar la validación. Antes se quedaba
+        // disabled (gris) tras un guardado bloqueado y solo se recuperaba recargando.
+        if (submitBtn) submitBtn.disabled = false;
         return;
     }
 
