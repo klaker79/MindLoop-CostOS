@@ -119,7 +119,8 @@
 
 // BUMP v126: Comida de Personal opt-in (apagado por defecto). Flag por restaurante (comida_personal_activa). Oculta la casilla 🍽️ en pedidos (nuevo + editar) y la pestaña del menú cuando está off. Interruptor en Configuración (solo admin).
 // BUMP v127: Fix Nuevo Pedido con comida personal — al llevar líneas personal, el pedido NO pasa por el carrito (que fusiona por ingrediente y perdía el split + el flag); se crea directo como 'pendiente'. Fix parpadeo del modal Editar al marcar la casilla 🍽️ (toggle inline, sin re-render completo).
-const CACHE_NAME = 'mindloop-costos-v127';
+// BUMP v128: Editar Pedido muestra el reparto en UNA fila (cantidad total + casilla personal con su cantidad), en vez de dos líneas. Al guardar se vuelve a partir en producción + personal.
+const CACHE_NAME = 'mindloop-costos-v128';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
