@@ -35,6 +35,10 @@ export function renderKpiCambiosPrecio() {
         const preciosPorIngrediente = {};
         pedidosRecibidos.slice(0, 30).forEach(pedido => {
             (pedido.ingredientes || []).forEach(item => {
+                // 🍽️ Saltar líneas de comida personal: su precio no es precio de
+                // compra del restaurante (no entra en precio medio ni food cost),
+                // no debe aparecer como "cambio de precio".
+                if (item.personal === true) return;
                 const ingId = item.ingredienteId || item.ingrediente_id;
                 const precio = parseFloat(item.precioReal || item.precio_unitario || item.precio || 0);
                 const fecha = pedido.fecha;

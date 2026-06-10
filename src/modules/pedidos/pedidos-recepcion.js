@@ -61,6 +61,9 @@ export function marcarPedidoRecibido(id) {
     // 🔒 Excluir items de tipo 'ajuste' (envases/bonificaciones) — solo afectan al total, no al stock
     if (!ped.itemsRecepcion) {
         ped.itemsRecepcion = (ped.ingredientes || [])
+            // Solo se excluyen los 'ajuste' (envases). Las líneas de comida personal
+            // SÍ se muestran (en modo lectura) para que el usuario las vea y el total
+            // cuadre; el stock las salta aparte (filtro !item.personal en el confirm).
             .filter(item => item.tipo !== 'ajuste')
             .map(item => {
                 const precio = parseFloat(item.precio_unitario || item.precio || 0);
@@ -166,6 +169,23 @@ function renderItemsRecepcionModal(ped) {
 
         totalOriginal += subtotalOriginal;
         totalRecibido += subtotalRecibido;
+
+        // 🍽️ Líneas de comida personal: fila en modo LECTURA (gris, badge), sin
+        // inputs ni estado. Cuenta en el total pero NO toca stock ni food cost.
+        if (item.personal === true) {
+            html += `
+          <tr style="background:#faf5ff;">
+            <td>${escapeHTML(nombre)} <span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#7c3aed;background:#ede9fe;border-radius:6px;padding:2px 7px;white-space:nowrap;">🍽️ ${escapeHTML(t('pedidos:personal_label'))}</span></td>
+            <td>${cantPedida} ${unidad}</td>
+            <td><span style="color:#94a3b8;">${cantPedida} ${unidad}</span></td>
+            <td>${cm(precioPed)}</td>
+            <td><span style="color:#94a3b8;">${cm(precioReal)}</span></td>
+            <td><strong>${cm(subtotalRecibido)}</strong></td>
+            <td><span style="font-size:11px;color:#7c3aed;font-weight:600;">no toca stock</span></td>
+          </tr>
+        `;
+            return;
+        }
 
         html += `
           <tr>
@@ -356,6 +376,9 @@ export async function confirmarRecepcionPedido() {
             return {
                 ingredienteId: item.ingredienteId,
                 ingrediente_id: item.ingredienteId,
+                // 🍽️ preservar la marca personal en el confirm (si no, recepción la
+                // borraría y la línea volvería a contar en food cost/stock).
+                personal: item.personal === true,
                 cantidad: parseFloat(item.cantidad || 0),
                 cantidadRecibida: cantRecibida,
                 precioUnitario: parseFloat(item.precioUnitario || 0),
@@ -386,7 +409,7 @@ export async function confirmarRecepcionPedido() {
         // (cantidadReal = cantidadValue * formatoMult cuando se creó el pedido).
         // NO multiplicar otra vez — causaba multiplicación doble (bug 2026-04-15).
         const adjustments = ingredientesActualizados
-            .filter(item => item.estado !== 'no-entregado' && parseFloat(item.cantidadRecibida) > 0)
+            .filter(item => item.estado !== 'no-entregado' && !item.personal && parseFloat(item.cantidadRecibida) > 0)
             .map(item => ({
                 id: item.ingredienteId,
                 delta: parseFloat(item.cantidadRecibida)

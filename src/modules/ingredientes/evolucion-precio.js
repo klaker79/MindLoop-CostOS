@@ -176,11 +176,15 @@ function obtenerHistorialPrecios(ingredienteId) {
             ? pedido.ingredientes
             : (Array.isArray(pedido.items) ? pedido.items : []);
 
+        // 🍽️ Ignorar líneas de comida personal: su precio no es precio de compra
+        // del restaurante, no debe aparecer en la evolución de precio del ingrediente.
         const item = items.find(i =>
-            i.ingrediente_id === ingredienteId ||
-            i.ingredienteId === ingredienteId ||
-            parseInt(i.ingrediente_id) === ingredienteId ||
-            parseInt(i.ingredienteId) === ingredienteId
+            i.personal !== true && (
+                i.ingrediente_id === ingredienteId ||
+                i.ingredienteId === ingredienteId ||
+                parseInt(i.ingrediente_id) === ingredienteId ||
+                parseInt(i.ingredienteId) === ingredienteId
+            )
         );
 
         if (item) {

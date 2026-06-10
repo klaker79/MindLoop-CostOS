@@ -219,6 +219,10 @@
             <span class="nav-item-icon">📋</span>
             <span class="nav-item-text" data-i18n="common:nav_pedidos">Pedidos</span>
           </button>
+          <button class="nav-item" data-tab="comida-personal">
+            <span class="nav-item-icon">🍽️</span>
+            <span class="nav-item-text" data-i18n="comida_personal:nav_title">Comida Personal</span>
+          </button>
           <button class="nav-item" data-tab="ventas">
             <span class="nav-item-icon">💰</span>
             <span class="nav-item-text" data-i18n="common:nav_ventas">Ventas</span>
@@ -1869,6 +1873,19 @@
           </div>
         </div>
 
+        <!-- TAB: COMIDA PERSONAL (gasto de comida del equipo, fuera del food cost/stock) -->
+        <div id="tab-comida-personal" class="tab-content">
+          <div class="top-bar">
+            <div>
+              <h2 data-i18n="comida_personal:title">🍽️ Comida Personal</h2>
+              <p data-i18n="comida_personal:description" style="color:#64748b;margin:4px 0 0;">Gasto en comida del equipo. No afecta al food cost ni al stock del restaurante.</p>
+            </div>
+          </div>
+          <div id="comida-personal-container" class="main-card" style="padding:20px;">
+            <!-- Populated by src/modules/comida-personal/comida-personal.js -->
+          </div>
+        </div>
+
         <!-- TAB: DIARIO (Tracking de Costes/Ventas por Día) -->
         <div id="tab-diario" class="tab-content">
           <div class="desktop-only-banner" aria-live="polite">
@@ -2234,6 +2251,15 @@
                 <p style="font-size:0.9em; margin-top:5px;"><span data-i18n="settings:restaurant_id_label">ID
                     Restaurante:</span> <span id="config-restaurante-id">...</span>
                 </p>
+              </div>
+            </div>
+
+            <!-- Tarjeta: Comida de Personal (opt-in) -->
+            <div class="card"
+              style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+              <h3 style="margin:0 0 6px 0;" data-i18n="comida_personal:settings_title">🍽️ Comida de Personal</h3>
+              <div id="config-comida-personal" style="margin-top:10px;">
+                <p style="color:#94a3b8;">…</p>
               </div>
             </div>
 

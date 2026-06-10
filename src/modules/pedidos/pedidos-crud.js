@@ -80,6 +80,11 @@ export async function guardarPedido(event) {
     const cantidadInput = item.querySelector('.cantidad-input');
     const precioInput = item.querySelector('.precio-input');
     const formatoSelect = item.querySelector('select[id$="-formato-select"]');
+    // 🍽️ Comida de personal: si la línea está marcada, NO cuenta en food cost,
+    // stock ni P&L (el backend la salta igual que las líneas de tipo 'ajuste').
+    const esPersonal = !!item.querySelector('.personal-input')?.checked;
+    // 🍽️ Reparto opcional: cantidad para personal (vacío = toda la línea).
+    const personalQtyRaw = parseFloat(item.querySelector('.personal-qty')?.value);
 
     if (select && select.value && cantidadInput && cantidadInput.value) {
       const ingId = parseInt(select.value);
@@ -106,25 +111,37 @@ export async function guardarPedido(event) {
         usandoFormato = formatoUsado === 'formato' && formatoMult && formatoMult !== 1;
       }
 
-      // Cantidad real en unidad base para stock
-      const cantidadReal = usandoFormato ? cantidadValue * formatoMult : cantidadValue;
+      // (la conversión a unidad base se hace en pushLinea, por porción)
 
       // 💰 El precio del ingrediente YA está en unidad base (€/botella, €/kg)
       // NO hay que dividir, el precio ya es el correcto
       const precioUnitarioBase = precioFinal;
 
-      ingredientesPedido.push({
-        ingredienteId: ingId,
-        ingrediente_id: ingId,
-        cantidad: cantidadReal,
-        cantidadOriginal: cantidadValue,
-        cantidadFormatos: usandoFormato ? cantidadValue : null,
-        formatoUsado: formatoUsado,
-        multiplicador: formatoMult,
-        precio_unitario: precioUnitarioBase,
-        precio: precioUnitarioBase,
-        precioFormato: usandoFormato ? precioFinal * formatoMult : null,
-      });
+      // Empuja una línea con la cantidad TECLEADA `qty` (en unidades de formato si aplica).
+      // La conversión a unidades base usa el MISMO multiplicador para cada parte.
+      const pushLinea = (qty, isPersonal) => {
+        ingredientesPedido.push({
+          ingredienteId: ingId,
+          ingrediente_id: ingId,
+          personal: isPersonal,
+          cantidad: usandoFormato ? qty * formatoMult : qty,
+          cantidadOriginal: qty,
+          cantidadFormatos: usandoFormato ? qty : null,
+          formatoUsado: formatoUsado,
+          multiplicador: formatoMult,
+          precio_unitario: precioUnitarioBase,
+          precio: precioUnitarioBase,
+          precioFormato: usandoFormato ? precioFinal * formatoMult : null,
+        });
+      };
+      // 🍽️ Si está marcada personal con una cantidad parcial (0 < q < total),
+      // se parte en dos líneas: producción + personal. Si no, una sola línea.
+      if (esPersonal && Number.isFinite(personalQtyRaw) && personalQtyRaw > 0 && personalQtyRaw < cantidadValue) {
+        pushLinea(Math.round((cantidadValue - personalQtyRaw) * 10000) / 10000, false);
+        pushLinea(personalQtyRaw, true);
+      } else {
+        pushLinea(cantidadValue, esPersonal);
+      }
     }
   });
 
@@ -166,31 +183,48 @@ export async function guardarPedido(event) {
       return;
     }
 
-    // 🛒 NUEVO: Añadir ingredientes al carrito en lugar de crear pedido directamente
-    ingredientesPedido.forEach(item => {
-      const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
-      if (ing && typeof window.agregarAlCarrito === 'function') {
-        // 🆕 Pasar precio y flag de si es unitario (compra por botella vs caja)
-        const esUnidadSuelta = item.formatoUsado === 'unidad';
-        window.agregarAlCarrito(
-          item.ingredienteId,
-          item.cantidad,
-          proveedorId,
-          item.precio_unitario,  // Precio (unitario si es botella, formato si es caja)
-          esUnidadSuelta         // true = compra por botella, false = compra por caja
-        );
+    // 🍽️ Si el pedido lleva líneas de comida personal, NO pasa por el carrito:
+    // el carrito fusiona por ingrediente (perdería el reparto producción/personal)
+    // y no arrastra el flag `personal`. Se crea directo como 'pendiente', igual que
+    // hace el carrito al confirmar (NO toca stock hasta que se reciba el pedido).
+    const tienePersonal = ingredientesPedido.some(it => it.personal === true);
+    if (tienePersonal) {
+      pedido = {
+        proveedorId: proveedorId,
+        proveedor_id: proveedorId,
+        fecha: document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
+        estado: 'pendiente',
+        ingredientes: ingredientesPedido,
+        total: window.calcularTotalPedido(),
+      };
+      // Cae al bloque try de abajo (createPedido). esCompraMercado=false → sin stock.
+    } else {
+      // 🛒 Pedido normal → añadir ingredientes al carrito
+      ingredientesPedido.forEach(item => {
+        const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
+        if (ing && typeof window.agregarAlCarrito === 'function') {
+          // 🆕 Pasar precio y flag de si es unitario (compra por botella vs caja)
+          const esUnidadSuelta = item.formatoUsado === 'unidad';
+          window.agregarAlCarrito(
+            item.ingredienteId,
+            item.cantidad,
+            proveedorId,
+            item.precio_unitario,  // Precio (unitario si es botella, formato si es caja)
+            esUnidadSuelta         // true = compra por botella, false = compra por caja
+          );
+        }
+      });
+
+      // Cerrar formulario y mostrar el carrito
+      window.cerrarFormularioPedido();
+      window.showToast(`🛒 ${t('pedidos:items_added_to_cart', { count: ingredientesPedido.length })}`, 'success');
+
+      // Abrir el carrito automáticamente
+      if (typeof window.abrirCarrito === 'function') {
+        setTimeout(() => window.abrirCarrito(), 300);
       }
-    });
-
-    // Cerrar formulario y mostrar el carrito
-    window.cerrarFormularioPedido();
-    window.showToast(`🛒 ${t('pedidos:items_added_to_cart', { count: ingredientesPedido.length })}`, 'success');
-
-    // Abrir el carrito automáticamente
-    if (typeof window.abrirCarrito === 'function') {
-      setTimeout(() => window.abrirCarrito(), 300);
+      return; // No continuar con la creación directa
     }
-    return; // No continuar con la creación directa
   }
 
   isCreatingOrder = true;

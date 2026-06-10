@@ -2458,7 +2458,20 @@
                                 const provNombre = proveedoresMap[provId] || 'Sin proveedor';
                                 const fechaPedido = new Date(p.fecha_recepcion || p.fecha);
                                 if (fechaPedido.getMonth() === ahora.getMonth() && fechaPedido.getFullYear() === ano) {
-                                    const total = parseFloat(p.total) || 0;
+                                    // 🍽️ Restar el coste de las líneas de comida personal:
+                                    // no son gasto del restaurante (van a su pestaña aparte).
+                                    let lineas = p.ingredientes;
+                                    if (typeof lineas === 'string') { try { lineas = JSON.parse(lineas); } catch (_e) { lineas = []; } }
+                                    let costePersonal = 0;
+                                    if (Array.isArray(lineas)) {
+                                        lineas.forEach(l => {
+                                            if (l.personal !== true || l.estado === 'no-entregado') return;
+                                            const cant = parseFloat(l.cantidadRecibida ?? l.cantidad) || 0;
+                                            const precio = parseFloat(l.precioReal ?? l.precioUnitario ?? l.precio_unitario) || 0;
+                                            costePersonal += cant * precio;
+                                        });
+                                    }
+                                    const total = (parseFloat(p.total) || 0) - costePersonal;
                                     gastoProveedor[provNombre] = (gastoProveedor[provNombre] || 0) + total;
                                 }
                             });

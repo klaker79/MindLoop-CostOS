@@ -1,4 +1,8 @@
 {
+  "personal_label": "Personal",
+  "personal_tooltip": "Marcar como comida de personal: no cuenta en el food cost ni en el stock",
+  "personal_qty_ph": "cant.",
+  "personal_qty_tooltip": "Cantidad para personal (vacío = toda la línea). Ej: pides 5, pones 3 → 3 personal y 2 producción.",
   "title": "Pedidos",
   "need_suppliers_first": "Primero añade proveedores",
   "form_title_new": "Nuevo Pedido",
