@@ -246,6 +246,58 @@ describe('validation.js — validateIngrediente (real import)', () => {
         expect(result.valid).toBe(false);
     });
 
+    // 🔒 Coherencia formato ↔ cantidad por formato (bug mermelada 2026-06-10).
+    // cantidad_por_formato > 1 SIN nombre de formato = estado ambiguo prohibido:
+    // el precio se dividiría por esa cantidad por debajo (3 €/bote ÷ 750 = 0,004).
+    test('cantidad_por_formato > 1 SIN nombre de formato es RECHAZADO', () => {
+        const result = validateIngrediente({
+            nombre: 'Mermelada',
+            unidad: 'unidad',
+            precio: 3,
+            familia: 'alimento',
+            stock_minimo: 1,
+            cantidad_por_formato: 750 // sin formato_compra → ambiguo
+        });
+        expect(result.valid).toBe(false);
+        expect(result.errors.some(e => /nombre del formato/i.test(e))).toBe(true);
+    });
+
+    test('cantidad_por_formato > 1 CON nombre de formato es válido', () => {
+        const result = validateIngrediente({
+            nombre: 'Mermelada',
+            unidad: 'g',
+            precio: 3,
+            familia: 'alimento',
+            stock_minimo: 1,
+            formato_compra: 'BOTE',
+            cantidad_por_formato: 750
+        });
+        expect(result.valid).toBe(true);
+    });
+
+    test('por unidad (sin cantidad por formato ni nombre) es válido', () => {
+        const result = validateIngrediente({
+            nombre: 'Mermelada tarro',
+            unidad: 'unidad',
+            precio: 3,
+            familia: 'alimento',
+            stock_minimo: 1
+        });
+        expect(result.valid).toBe(true);
+    });
+
+    test('cantidad_por_formato = 1 sin nombre es válido (no divide, no ambiguo)', () => {
+        const result = validateIngrediente({
+            nombre: 'Huevos',
+            unidad: 'unidad',
+            precio: 0.3,
+            familia: 'alimento',
+            stock_minimo: 1,
+            cantidad_por_formato: 1
+        });
+        expect(result.valid).toBe(true);
+    });
+
     test('sanitized data is clean', () => {
         const result = validateIngrediente({
             nombre: '  Tomate  ',

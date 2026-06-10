@@ -125,7 +125,8 @@
 // BUMP v131: Recuento de inventario (contador digital móvil). Pantalla nueva aislada en Inventario; botón solo visible en móvil (escritorio intacto). Reconcilia reutilizando createMermas + consolidateStock (mismo camino que el import Excel). Backend sin cambios.
 // BUMP v137: Modal Editar Pedido consciente del formato. Líneas con formato de compra (ej. BOTE 750 g) se muestran/editan en formato (1 bote, 3 €/bote) en vez de unidad base (750 g, 0,004 €/g). El dato se sigue guardando en base (food cost intacto). Conversión pura testeada en formato-utils.js.
 // BUMP v138: Modal Recibir Pedido consciente del formato (misma técnica que Editar). PEDIDO/RECIBIDO/PRECIOS se muestran en formato (1 bote, 3 €/bote) en vez de base (750 g, 0,004). CRÍTICO: cantidadRecibida/precioReal siguen en BASE internamente → el delta de stock NO cambia → imposible inflar inventario. Test de invariante anti-inflación añadido.
-const CACHE_NAME = 'mindloop-costos-v138';
+// BUMP v139: Guard de coherencia en alta/edición de ingrediente. Prohíbe guardar "cantidad por formato > 1" SIN nombre de formato (estado ambiguo que dividía el precio por debajo: 3 €/bote ÷ 750 = 0,004 → bug mermelada). Mensaje claro pidiendo el nombre del formato. NO toca datos existentes ni la regla de precio global.
+const CACHE_NAME = 'mindloop-costos-v139';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
