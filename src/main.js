@@ -544,7 +544,28 @@ function safeNumber(value, defaultValue = 0) {
     return isNaN(num) || !isFinite(num) ? defaultValue : num;
 }
 
+// CSS móvil del Historial de Mermas: la tabla (7 columnas) no cabe en el teléfono,
+// así que en ≤820px se apila en tarjetas (una merma = una ficha con etiquetas) y se
+// compactan las 3 tarjetas de resumen. En escritorio NO aplica (media query).
+function inyectarCssMermasMovil() {
+    if (typeof document === 'undefined' || document.getElementById('mermas-mobile-css')) return;
+    const st = document.createElement('style');
+    st.id = 'mermas-mobile-css';
+    st.textContent = `@media (max-width:820px){
+      #mermas-resumen{gap:8px !important;}
+      #mermas-resumen>div{padding:10px 6px !important;}
+      #mermas-resumen>div>div:first-child{font-size:16px !important;}
+      #modal-historial-mermas thead{display:none;}
+      #modal-historial-mermas table,#modal-historial-mermas tbody,#modal-historial-mermas tr,#modal-historial-mermas td{display:block;width:auto;}
+      #modal-historial-mermas tr{border:1px solid #e2e8f0 !important;border-radius:10px;padding:8px 12px;margin:0 0 10px;}
+      #modal-historial-mermas td{padding:5px 0 !important;display:flex;justify-content:space-between;gap:12px;text-align:right;border:none !important;}
+      #modal-historial-mermas td::before{content:attr(data-label);font-weight:600;color:#64748b;text-align:left;white-space:nowrap;}
+    }`;
+    document.head.appendChild(st);
+}
+
 window.cargarHistorialMermas = async function () {
+    inyectarCssMermasMovil();
     const mes = document.getElementById('mermas-mes')?.value;
     const ano = document.getElementById('mermas-ano')?.value;
     const tbody = document.getElementById('tabla-historial-mermas-body');
@@ -593,13 +614,15 @@ window.cargarHistorialMermas = async function () {
             const motivoSafe = escapeHTMLMain(motivo);
             const nota = escapeHTMLMain(m.nota || '-');
 
+            // data-label: en móvil la tabla se apila en tarjetas (CSS mermas-mobile-css)
+            // y cada celda muestra su etiqueta. En escritorio no se ve (media query).
             html += `<tr style="border-bottom: 1px solid #f1f5f9;" data-merma-id="${m.id}">
-                <td style="padding: 10px;">${fecha}</td>
-                <td style="padding: 10px;"><strong>${ingredienteNombre}</strong></td>
-                <td style="padding: 10px;">${cantidad} ${unidad}</td>
-                <td style="padding: 10px; color: #ef4444; font-weight: 600;">${Helpers.cm(valor)}</td>
-                <td style="padding: 10px;"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${motivoSafe}</span></td>
-                <td style="padding: 10px; color: #64748b; font-size: 12px;">${nota}</td>
+                <td data-label="Fecha" style="padding: 10px;">${fecha}</td>
+                <td data-label="Ingrediente" style="padding: 10px;"><strong>${ingredienteNombre}</strong></td>
+                <td data-label="Cantidad" style="padding: 10px;">${cantidad} ${unidad}</td>
+                <td data-label="Valor" style="padding: 10px; color: #ef4444; font-weight: 600;">${Helpers.cm(valor)}</td>
+                <td data-label="Motivo" style="padding: 10px;"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${motivoSafe}</span></td>
+                <td data-label="Nota" style="padding: 10px; color: #64748b; font-size: 12px;">${nota}</td>
                 <td style="padding: 10px; text-align: center;">
                     <button onclick="window.eliminarMerma(${m.id})" 
                         style="background: #fee2e2; color: #dc2626; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px;"
