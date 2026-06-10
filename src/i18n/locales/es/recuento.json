@@ -1,0 +1,22 @@
+{
+  "btn_open": "📋 Recuento",
+  "title": "Recuento de inventario",
+  "all_families": "Todas",
+  "system_was": "eran",
+  "counted": "contado",
+  "counted_plural": "contados",
+  "empty": "No hay ingredientes en esta familia",
+  "save_continue": "Guardar y seguir",
+  "saved_partial": "Recuento guardado, puedes seguir luego",
+  "review": "Revisar",
+  "nothing_to_apply": "Aún no has contado nada",
+  "summary_title": "Así queda tu inventario",
+  "go_up": "suben",
+  "go_down": "bajan",
+  "unchanged": "igual",
+  "down_as_waste": "Las bajadas se guardan como ajuste de inventario",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "done": "Inventario actualizado",
+  "error": "Error al guardar el recuento"
+}

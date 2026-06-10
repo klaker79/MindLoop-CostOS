@@ -122,7 +122,8 @@
 // BUMP v128: Editar Pedido muestra el reparto en UNA fila (cantidad total + casilla personal con su cantidad), en vez de dos líneas. Al guardar se vuelve a partir en producción + personal.
 // BUMP v129: Aislamiento comida personal en vistas de gasto. El gasto personal ya no se cuela en: Top Proveedores fallback (app-core), KPI Cambios de Precio, ni la evolución de precio del ingrediente. (El grueso del aislamiento es backend.)
 // BUMP v130: Modal Detalles del Pedido (icono 👁️) muestra el badge 🍽️ Personal en las líneas de comida personal.
-const CACHE_NAME = 'mindloop-costos-v130';
+// BUMP v131: Recuento de inventario (contador digital móvil). Pantalla nueva aislada en Inventario; botón solo visible en móvil (escritorio intacto). Reconcilia reutilizando createMermas + consolidateStock (mismo camino que el import Excel). Backend sin cambios.
+const CACHE_NAME = 'mindloop-costos-v131';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
