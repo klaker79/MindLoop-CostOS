@@ -302,7 +302,18 @@ export async function confirmarRecuento() {
 if (typeof document !== 'undefined' && !document.getElementById('recuento-css')) {
     const st = document.createElement('style');
     st.id = 'recuento-css';
-    st.textContent = '@media (max-width: 820px){ #btn-recuento-inventario{ display:inline-flex !important; } }';
+    // En móvil: el Recuento es la acción principal (botón grande, a todo el ancho) y
+    // se ocultan "Actualizar inventario masivo" y "Export Excel" (necesitan ordenador).
+    // En escritorio nada de esto aplica → la barra de Inventario queda idéntica.
+    st.textContent = `
+      @media (max-width: 820px){
+        #btn-recuento-inventario{
+          display:block !important; width:100%; box-sizing:border-box;
+          font-size:16px; font-weight:700; padding:16px; text-align:center; margin-top:4px;
+        }
+        .inventario-action-bar [data-action="mostrar-modal-inventario-masivo"],
+        .inventario-action-bar [data-action="exportar-inventario"]{ display:none !important; }
+      }`;
     document.head.appendChild(st);
 }
 
