@@ -131,7 +131,8 @@
 // BUMP v142: Etiqueta de unidad junto a la cantidad en recetas. Cada fila de ingrediente muestra su unidad base (g/kg/l/ml…) al lado del campo de cantidad, para no teclear a ciegas (evita el lío 0.02 vs 20). Se actualiza al elegir ingrediente. Solo display, no toca el cálculo de coste.
 // BUMP v143: Fix botón Guardar ingrediente que se quedaba GRIS tras un guardado bloqueado por validación (no se rehabilitaba). + Afinado el aviso del preview: "1 CAJA = 6 botella" (vino por caja) ya NO marca falso positivo; solo avisa con unidad genérica 'unidad'.
 // BUMP v144: Editar/Recibir muestran formato (CAJA/BOTE) SOLO si la cantidad son formatos enteros; si hay reparto de personal o sueltas (10 botellas, 2 botellas) lo muestran en unidad base, no en fracciones de caja (0,333 CAJA). El campo de comida personal SIEMPRE en unidad base (botellas). Cifras/stock idénticos: solo cambia el display. Helper esCantidadEnteraEnFormato testeado.
-const CACHE_NAME = 'mindloop-costos-v144';
+// BUMP v145: Pestaña Comida Personal con buscador (producto/proveedor/fecha) y columnas ordenables (clic en cabecera ordena asc/desc, flecha en la activa). Aviso "mostrando N de M · €" al buscar. i18n es/en/zh. Solo UI de esa pestaña.
+const CACHE_NAME = 'mindloop-costos-v145';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
