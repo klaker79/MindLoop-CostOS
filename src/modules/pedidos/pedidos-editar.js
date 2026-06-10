@@ -280,14 +280,24 @@ function renderizarModalEditarPedido() {
                             return ingredientesDisponibles.map(ing => {
                                 // Precio unitario canónico (precio_medio_compra > precio_medio > precio/cpf)
                                 const precioUnitOpt = getIngredientUnitPrice(invMap.get(ing.id), ing);
-                                return `<option value="${ing.id}" data-precio="${precioUnitOpt.toFixed(4)}">${escapeHTML(ing.nombre)} (${cm(precioUnitOpt)}/${escapeHTML(ing.unidad || 'ud')})</option>`;
+                                // 📦 Si el ingrediente tiene formato (BOTE, CAJA…), mostrar y
+                                // pedir en formato (3 €/BOTE) como en Nuevo Pedido, no en base.
+                                const cpfRaw = parseFloat(ing.cantidad_por_formato);
+                                const cpf = cpfRaw > 1 ? cpfRaw : 1;
+                                const usaFormato = cpf > 1 && !!ing.formato_compra;
+                                const precioMostrar = usaFormato ? precioUnitOpt * cpf : precioUnitOpt;
+                                const unidadMostrar = usaFormato ? ing.formato_compra : (ing.unidad || 'ud');
+                                const dataFmt = usaFormato ? `data-cpf="${cpf}" data-formato="${escapeHTML(ing.formato_compra)}"` : 'data-cpf="1"';
+                                return `<option value="${ing.id}" data-precio="${precioMostrar.toFixed(4)}" ${dataFmt} data-unidad="${escapeHTML(unidadMostrar)}">${escapeHTML(ing.nombre)} (${cm(precioMostrar)}/${escapeHTML(unidadMostrar)})</option>`;
                             }).join('');
                         })()}
                     </select>
                     <input type="number" step="0.01" min="0" id="input-nueva-cant-edit" placeholder="Cantidad"
-                        style="width: 100px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
-                    <input type="number" step="0.0001" min="0" id="input-nuevo-precio-edit" placeholder="Precio unit."
-                        style="width: 110px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+                        style="width: 90px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+                    <span id="add-edit-unidad-label" style="font-size: 11px; color: #64748b; min-width: 36px;"></span>
+                    <input type="number" step="0.0001" min="0" id="input-nuevo-precio-edit" placeholder="Precio"
+                        style="width: 90px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+                    <span id="add-edit-precio-label" style="font-size: 11px; color: #64748b; white-space: nowrap;"></span>
                     <button type="button" onclick="window.agregarItemEdicion()"
                         style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; cursor: pointer;">${t('pedidos:edit_btn_add')}</button>
                 </div>
@@ -410,6 +420,16 @@ export function actualizarIvaPedidoEdicion(valor) {
 export function autocompletarPrecioEdicion(select) {
     const opt = select?.selectedOptions?.[0];
     const precio = parseFloat(opt?.dataset?.precio);
+    const unidad = opt?.dataset?.unidad || '';
+    const moneda = window.currentUser?.moneda || '€';
+
+    // Etiquetas dinámicas: cantidad en formato (BOTE) y precio €/BOTE, igual que
+    // en Nuevo Pedido, para que añadir aquí no pida gramos cuando se pide en botes.
+    const cantLabel = document.getElementById('add-edit-unidad-label');
+    if (cantLabel) cantLabel.textContent = unidad || '';
+    const precioLabel = document.getElementById('add-edit-precio-label');
+    if (precioLabel) precioLabel.textContent = unidad ? `${moneda}/${unidad}` : '';
+
     const input = document.getElementById('input-nuevo-precio-edit');
     if (!input || !(precio > 0)) return;
     const valorActual = parseFloat(input.value);
@@ -422,29 +442,37 @@ export function agregarItemEdicion() {
     const state = window._editandoPedido;
     if (!state) return;
 
-    const ingId = parseInt(document.getElementById('select-nuevo-ing-edit')?.value);
+    const select = document.getElementById('select-nuevo-ing-edit');
+    const ingId = parseInt(select?.value);
     const cantidad = parseFloat(document.getElementById('input-nueva-cant-edit')?.value);
-    let precio = parseFloat(document.getElementById('input-nuevo-precio-edit')?.value);
+    const precioTecleado = parseFloat(document.getElementById('input-nuevo-precio-edit')?.value);
 
     if (!ingId || !cantidad || cantidad <= 0) {
         window.showToast?.('Selecciona ingrediente y cantidad válida', 'warning');
         return;
     }
 
-    // Fallback: si el usuario no rellenó el precio, usar el precio unitario canónico
-    // (precio_medio_compra > precio_medio > precio/cpf) del ingrediente.
-    if (!precio || precio <= 0) {
+    // 📦 Formato del ingrediente (del <option>): si tiene formato, lo tecleado está
+    // en FORMATO (botes, €/bote) y hay que convertir a unidad BASE, porque el estado
+    // y el guardado van siempre en base. cantidad: formato × cpf. precio: €/formato ÷ cpf.
+    const opt = select?.selectedOptions?.[0];
+    const cpfRaw = parseFloat(opt?.dataset?.cpf);
+    const cpf = cpfRaw > 1 ? cpfRaw : 1;
+
+    let precioBase;
+    if (precioTecleado > 0) {
+        precioBase = precioTecleado / cpf; // €/formato → €/base (cpf=1 → sin cambio)
+    } else {
+        // Fallback: precio unitario canónico (ya en €/base).
         const ing = (window.ingredientes || []).find(i => i.id === ingId);
-        if (ing) {
-            const invItem = (window.inventarioCompleto || []).find(i => i.id === ingId);
-            precio = getIngredientUnitPrice(invItem, ing);
-        }
+        const invItem = (window.inventarioCompleto || []).find(i => i.id === ingId);
+        precioBase = ing ? getIngredientUnitPrice(invItem, ing) : 0;
     }
 
     state.items.push({
         ingredienteId: ingId,
-        cantidad,
-        precio_unitario: precio || 0
+        cantidad: cantidad * cpf, // formato → base (cpf=1 → sin cambio)
+        precio_unitario: precioBase || 0
     });
     renderizarModalEditarPedido();
 }

@@ -127,7 +127,8 @@
 // BUMP v138: Modal Recibir Pedido consciente del formato (misma técnica que Editar). PEDIDO/RECIBIDO/PRECIOS se muestran en formato (1 bote, 3 €/bote) en vez de base (750 g, 0,004). CRÍTICO: cantidadRecibida/precioReal siguen en BASE internamente → el delta de stock NO cambia → imposible inflar inventario. Test de invariante anti-inflación añadido.
 // BUMP v139: Guard de coherencia en alta/edición de ingrediente. Prohíbe guardar "cantidad por formato > 1" SIN nombre de formato (estado ambiguo que dividía el precio por debajo: 3 €/bote ÷ 750 = 0,004 → bug mermelada). Mensaje claro pidiendo el nombre del formato. NO toca datos existentes ni la regla de precio global.
 // BUMP v140: Preview EN VIVO del precio por unidad en el formulario de ingrediente. Mientras rellenas precio/unidad/formato/cantidad por formato, muestra "→ La app usará X €/unidad" y avisa si la combinación es incoherente (cpf>1 sin nombre, o cpf>1 con unidad contable tipo 'unidad'/'botella' que casi siempre debería ser g/ml). Caza el bug mermelada al vuelo. Cálculo puro testeado en precio-unidad-preview.js.
-const CACHE_NAME = 'mindloop-costos-v140';
+// BUMP v141: "Añadir ingrediente" dentro de Editar Pedido ahora es consciente del formato. Si el ingrediente tiene formato (BOTE), pide cantidad en BOTE y precio €/BOTE (como Nuevo Pedido), no en gramos. Convierte a base al añadir; el resto del modal ya pintaba en formato. Coherencia total entre pedir, editar y añadir.
+const CACHE_NAME = 'mindloop-costos-v141';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
