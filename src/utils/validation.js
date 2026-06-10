@@ -179,15 +179,28 @@ export function validateIngrediente(data) {
     }
 
     // Formato compra (opcional)
-    if (data.formato_compra) {
-        sanitized.formato_compra = data.formato_compra.trim();
+    const formatoNombre = (data.formato_compra || '').trim();
+    if (formatoNombre) {
+        sanitized.formato_compra = formatoNombre;
     }
 
     // Cantidad por formato (> 0 si se especifica)
+    let cpfValue;
     if (data.cantidad_por_formato !== undefined && data.cantidad_por_formato !== '') {
         const cant = isPositive(data.cantidad_por_formato, 'Cantidad por formato');
         if (!cant.valid) errors.push(cant.error);
-        else sanitized.cantidad_por_formato = cant.value;
+        else { sanitized.cantidad_por_formato = cant.value; cpfValue = cant.value; }
+    }
+
+    // 🔒 Coherencia formato ↔ cantidad por formato (bug mermelada 2026-06-10).
+    // `precio` se guarda como €/FORMATO y TODA la app calcula el precio unitario
+    // como precio / cantidad_por_formato. Si hay cantidad_por_formato > 1 SIN
+    // nombre de formato, el ingrediente queda ambiguo: parece "por unidad" (en
+    // pedidos no sale selector de formato) pero el precio se divide igualmente
+    // por debajo → precios absurdos (3 €/bote ÷ 750 = 0,004 €/g). Exigir el
+    // nombre del formato cuando hay cantidad > 1 para que el estado sea inequívoco.
+    if (cpfValue > 1 && !formatoNombre) {
+        errors.push('Si indicas "cantidad por formato", ponle también el nombre del formato (ej. BOTE, CAJA, SACO). Si compras por unidad, deja vacía la cantidad por formato.');
     }
 
     return {
