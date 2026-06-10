@@ -97,7 +97,7 @@ export function verDetallesPedido(pedidoId) {
 
             ingredientesHtml += `
               <tr style="border-bottom: 1px solid #F1F5F9;">
-                <td style="padding: 12px;"><strong>${escapeHTML(nombreIng)}</strong></td>
+                <td style="padding: 12px;"><strong>${escapeHTML(nombreIng)}</strong>${item.personal === true ? ` <span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#7c3aed;background:#ede9fe;border-radius:6px;padding:2px 7px;white-space:nowrap;">🍽️ ${escapeHTML(t('pedidos:personal_label'))}</span>` : ''}</td>
                 <td style="padding: 12px; text-align: center;">
                   ${cantidadDisplay}
                   ${esRecibido && Math.abs(varianzaCant) > 0.01 ? `<br><small style="color:${varianzaCant > 0 ? '#10B981' : '#EF4444'};">→ ${cantRecibida.toFixed(2)} (${varianzaCant > 0 ? '+' : ''}${varianzaCant.toFixed(2)})</small>` : ''}
