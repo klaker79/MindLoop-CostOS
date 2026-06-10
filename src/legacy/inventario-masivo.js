@@ -2821,6 +2821,27 @@ async function renderizarTablaPLDiario() {
         console.warn('No se pudieron cargar mermas para el P&L:', err.message);
     }
 
+    // 🍽️ Comida de personal por día (líneas `personal` de los pedidos).
+    // Es GASTO operativo: resta al beneficio neto, pero NO es food cost (COSTES
+    // PROD intactos) ni compras. Mismo COALESCE cantidad/precio que el backend
+    // (personalCostExpr) para que el total cuadre con el chat / informe / pestaña.
+    const comidaPersonalPorDia = {};
+    dias.forEach(dia => { comidaPersonalPorDia[dia] = 0; });
+    (window.pedidos || []).forEach(ped => {
+        if (ped.deleted_at) return;
+        const fecha = String(ped.fecha || '').substring(0, 10);
+        if (comidaPersonalPorDia[fecha] === undefined) return;
+        let lineas = ped.ingredientes;
+        if (typeof lineas === 'string') { try { lineas = JSON.parse(lineas); } catch (_e) { lineas = []; } }
+        if (!Array.isArray(lineas)) return;
+        lineas.forEach(l => {
+            if (l.personal !== true || l.estado === 'no-entregado') return;
+            const cant = parseFloat(l.cantidadRecibida ?? l.cantidad) || 0;
+            const precio = parseFloat(l.precioReal ?? l.precioUnitario ?? l.precio_unitario) || 0;
+            comidaPersonalPorDia[fecha] += cant * precio;
+        });
+    });
+
     // ═══════════════════════════════════════════════════════════
     // 📊 TABLA P&L - CUENTA DE RESULTADOS
     // ═══════════════════════════════════════════════════════════
@@ -2899,6 +2920,19 @@ async function renderizarTablaPLDiario() {
         html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">−${cm(totalMermas)}</td></tr>`;
     }
 
+    // ── FILA: COMIDA DE PERSONAL DEL DÍA (🍽️) ──
+    // Gasto operativo aparte (resta al beneficio). Solo se muestra si hay gasto.
+    let totalComidaPersonal = 0;
+    dias.forEach(dia => { totalComidaPersonal += comidaPersonalPorDia[dia] || 0; });
+    if (totalComidaPersonal > 0) {
+        html += `<tr style="background: #f3e8ff;"><td style="position: sticky; left: 0; background: #f3e8ff; padding: 16px; font-weight: 600; color: #6b21a8; border-bottom: 1px solid #e9d5ff;" title="Gasto en comida del equipo. No es food cost ni compra del restaurante.">${window.t('balance:pl_staff_meals') || '🍽️ COMIDA PERSONAL'}</td>`;
+        dias.forEach(dia => {
+            const val = comidaPersonalPorDia[dia] || 0;
+            html += `<td style="text-align: center; padding: 16px 8px; color: #7c3aed; border-bottom: 1px solid #e9d5ff;">${val > 0 ? '−' + cm(val) : cm(0)}</td>`;
+        });
+        html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">−${cm(totalComidaPersonal)}</td></tr>`;
+    }
+
     // ── FILA: GASTOS FIJOS / DÍA ──
     // 🔧 FIX: antes se multiplicaba por dias.length (sólo días con movimiento), lo que
     // infravaloraba el gasto mensual real. El alquiler y personal se pagan todos los días
@@ -2930,12 +2964,13 @@ async function renderizarTablaPLDiario() {
     dias.forEach(dia => {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
         const mermaDia = mermasPorDia[dia] || 0;
-        const beneficioNeto = margenDia - mermaDia - gastosFijosDia;
+        const personalDia = comidaPersonalPorDia[dia] || 0;
+        const beneficioNeto = margenDia - mermaDia - personalDia - gastosFijosDia;
         const color = beneficioNeto >= 0 ? '#1e3a5f' : '#dc2626';
         const bg = beneficioNeto >= 0 ? '#dbeafe' : '#fee2e2';
         html += `<td style="text-align: center; padding: 18px 8px; font-weight: 700; font-size: 14px; color: ${color}; background: ${bg}; border-bottom: 2px solid #93c5fd;">${cm(beneficioNeto)}</td>`;
     });
-    const totalBeneficioNeto = totalMargenBruto - totalMermas - totalGastosFijosMostrados;
+    const totalBeneficioNeto = totalMargenBruto - totalMermas - totalComidaPersonal - totalGastosFijosMostrados;
     // 🎨 Tonos legibles sobre fondo navy oscuro (rediseño 2026-05-26).
     // Antes: #22c55e (verde fluo) / #ef4444 (rojo fuerte) — ilegibles
     // sobre navy.
