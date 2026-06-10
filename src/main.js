@@ -281,6 +281,7 @@ window.exportarInventario = function () {
 window.guardarIngrediente = IngredientesCRUD.guardarIngrediente;
 window.editarIngrediente = IngredientesCRUD.editarIngrediente;
 window.eliminarIngrediente = IngredientesCRUD.eliminarIngrediente;
+window.actualizarPreviewPrecioUnidad = IngredientesCRUD.actualizarPreviewPrecioUnidad;
 
 // Proveedores por ingrediente
 window.gestionarProveedoresIngrediente = IngredientesProveedores.gestionarProveedoresIngrediente;
