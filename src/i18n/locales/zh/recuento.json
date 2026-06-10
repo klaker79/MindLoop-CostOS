@@ -1,0 +1,22 @@
+{
+  "btn_open": "📋 盘点",
+  "title": "库存盘点",
+  "all_families": "全部",
+  "system_was": "系统",
+  "counted": "已盘",
+  "counted_plural": "已盘",
+  "empty": "该分类下没有食材",
+  "save_continue": "保存并继续",
+  "saved_partial": "盘点已保存，可稍后继续",
+  "review": "查看",
+  "nothing_to_apply": "你还没有盘点任何项目",
+  "summary_title": "库存结果如下",
+  "go_up": "增加",
+  "go_down": "减少",
+  "unchanged": "不变",
+  "down_as_waste": "减少的部分将记为库存调整",
+  "cancel": "取消",
+  "confirm": "确认",
+  "done": "库存已更新",
+  "error": "保存盘点时出错"
+}
