@@ -57,6 +57,28 @@ export function abrirModalEditarPedido(id) {
         }
     });
 
+    // 🍽️ Fusionar el reparto en UNA sola fila: un pedido dividido se guarda como
+    // dos líneas (producción + personal) del mismo ingrediente. Para editarlo, se
+    // muestran como una fila con la cantidad TOTAL y la cantidad personal en su
+    // casilla. Al guardar, guardarEdicionPedido vuelve a partirla en dos líneas.
+    const mergedItems = [];
+    items.filter(it => !it.personal).forEach(it => mergedItems.push({ ...it, personalQty: null }));
+    items.filter(it => it.personal).forEach(it => {
+        const prod = mergedItems.find(m => !m.personal
+            && m.ingredienteId === it.ingredienteId
+            && m.precio_unitario === it.precio_unitario);
+        if (prod) {
+            // Hay parte de producción → fila única con reparto parcial.
+            prod.personal = true;
+            prod.personalQty = it.cantidad;
+            prod.cantidad = Math.round((prod.cantidad + it.cantidad) * 10000) / 10000;
+        } else {
+            // Línea totalmente personal (sin parte de producción): casilla marcada,
+            // sin reparto (toda la línea es personal).
+            mergedItems.push({ ...it, personalQty: null });
+        }
+    });
+
     // IVA habitual del proveedor — display visual para cuadrar contra albarán.
     // No se persiste en BD (igual que en Nuevo Pedido y Recepción).
     const prov = (window.proveedores || []).find(p => p.id === pedido.proveedor_id);
@@ -66,7 +88,7 @@ export function abrirModalEditarPedido(id) {
     window._editandoPedido = {
         id,
         proveedor_id: pedido.proveedor_id,
-        items,
+        items: mergedItems,
         ajusteImporte,
         ajusteDescripcion,
         ivaPct: ivaInicial
