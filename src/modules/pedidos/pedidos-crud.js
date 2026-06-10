@@ -183,31 +183,48 @@ export async function guardarPedido(event) {
       return;
     }
 
-    // 🛒 NUEVO: Añadir ingredientes al carrito en lugar de crear pedido directamente
-    ingredientesPedido.forEach(item => {
-      const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
-      if (ing && typeof window.agregarAlCarrito === 'function') {
-        // 🆕 Pasar precio y flag de si es unitario (compra por botella vs caja)
-        const esUnidadSuelta = item.formatoUsado === 'unidad';
-        window.agregarAlCarrito(
-          item.ingredienteId,
-          item.cantidad,
-          proveedorId,
-          item.precio_unitario,  // Precio (unitario si es botella, formato si es caja)
-          esUnidadSuelta         // true = compra por botella, false = compra por caja
-        );
+    // 🍽️ Si el pedido lleva líneas de comida personal, NO pasa por el carrito:
+    // el carrito fusiona por ingrediente (perdería el reparto producción/personal)
+    // y no arrastra el flag `personal`. Se crea directo como 'pendiente', igual que
+    // hace el carrito al confirmar (NO toca stock hasta que se reciba el pedido).
+    const tienePersonal = ingredientesPedido.some(it => it.personal === true);
+    if (tienePersonal) {
+      pedido = {
+        proveedorId: proveedorId,
+        proveedor_id: proveedorId,
+        fecha: document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
+        estado: 'pendiente',
+        ingredientes: ingredientesPedido,
+        total: window.calcularTotalPedido(),
+      };
+      // Cae al bloque try de abajo (createPedido). esCompraMercado=false → sin stock.
+    } else {
+      // 🛒 Pedido normal → añadir ingredientes al carrito
+      ingredientesPedido.forEach(item => {
+        const ing = (window.ingredientes || []).find(i => i.id === item.ingredienteId);
+        if (ing && typeof window.agregarAlCarrito === 'function') {
+          // 🆕 Pasar precio y flag de si es unitario (compra por botella vs caja)
+          const esUnidadSuelta = item.formatoUsado === 'unidad';
+          window.agregarAlCarrito(
+            item.ingredienteId,
+            item.cantidad,
+            proveedorId,
+            item.precio_unitario,  // Precio (unitario si es botella, formato si es caja)
+            esUnidadSuelta         // true = compra por botella, false = compra por caja
+          );
+        }
+      });
+
+      // Cerrar formulario y mostrar el carrito
+      window.cerrarFormularioPedido();
+      window.showToast(`🛒 ${t('pedidos:items_added_to_cart', { count: ingredientesPedido.length })}`, 'success');
+
+      // Abrir el carrito automáticamente
+      if (typeof window.abrirCarrito === 'function') {
+        setTimeout(() => window.abrirCarrito(), 300);
       }
-    });
-
-    // Cerrar formulario y mostrar el carrito
-    window.cerrarFormularioPedido();
-    window.showToast(`🛒 ${t('pedidos:items_added_to_cart', { count: ingredientesPedido.length })}`, 'success');
-
-    // Abrir el carrito automáticamente
-    if (typeof window.abrirCarrito === 'function') {
-      setTimeout(() => window.abrirCarrito(), 300);
+      return; // No continuar con la creación directa
     }
-    return; // No continuar con la creación directa
   }
 
   isCreatingOrder = true;
