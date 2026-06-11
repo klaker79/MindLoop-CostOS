@@ -1,6 +1,7 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, getDateLocale } from '../../utils/helpers.js';
 import { construirAvisos } from './omnes-avisos.js';
+import { filtrarVisibles, dismissAviso } from './omnes-dismiss.js';
 
 /**
  * 🦉 Omnes — Feed de avisos proactivos (antes "Inteligencia").
@@ -104,6 +105,7 @@ const INTEL_STYLES = `
 
 .omnes-feed { display: flex; flex-direction: column; gap: 12px; max-width: 920px; }
 .omnes-card {
+    position: relative;
     display: flex; align-items: flex-start; gap: 16px;
     padding: 16px 18px;
     border-radius: 16px;
@@ -112,6 +114,19 @@ const INTEL_STYLES = `
     border-left: 4px solid #64748b;
     transition: transform .12s ease, box-shadow .12s ease;
 }
+.omnes-card-dismiss {
+    position: absolute;
+    top: 8px; right: 10px;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 13px; line-height: 1;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 6px;
+    z-index: 2;
+}
+.omnes-card-dismiss:hover { color: #e2e8f0; background: rgba(255,255,255,0.08); }
 .omnes-card:hover { transform: translateY(-1px); box-shadow: 0 14px 40px -22px rgba(0,0,0,0.9); }
 .omnes-card.critico { border-left-color: #ef4444; }
 .omnes-card.atencion { border-left-color: #f97316; }
@@ -184,7 +199,8 @@ function renderAvisoCard(a) {
         ? `<button class="omnes-card-cta" onclick="window.omnesIr('${a.cta.tipo}', ${a.cta.id})">${a.cta.label} →</button>`
         : '';
     return `
-        <div class="omnes-card ${a.nivel}">
+        <div class="omnes-card ${a.nivel}" data-aviso-id="${escapeHTML(a.id)}">
+            <button class="omnes-card-dismiss" title="${escapeHTML(t('inteligencia:omnes_dismiss'))}" aria-label="${escapeHTML(t('inteligencia:omnes_dismiss'))}" onclick="event.stopPropagation(); window.omnesDescartar('${escapeHTML(a.id)}')">✕</button>
             <div class="omnes-card-icon">${a.icono || '🦉'}</div>
             <div class="omnes-card-body">
                 ${label}
@@ -233,18 +249,12 @@ async function renderizarInteligencia() {
         console.error('[Omnes] error construyendo avisos:', err);
     }
 
+    avisos = filtrarVisibles(avisos); // quitar los que el usuario descartó (tenant-scoped, TTL 7d)
     setBadgeOmnes(avisos.length); // mantener el contador del sidebar en sync
 
     const nCrit = avisos.filter(a => a.nivel === 'critico').length;
     const nAten = avisos.filter(a => a.nivel === 'atencion').length;
     const time = new Date().toLocaleTimeString(getDateLocale(), { hour: '2-digit', minute: '2-digit' });
-
-    const chips = avisos.length === 0
-        ? `<span class="omnes-chip ok">✅ ${escapeHTML(t('inteligencia:omnes_chip_ok'))}</span>`
-        : `
-            ${nCrit ? `<span class="omnes-chip crit">🔴 ${t('inteligencia:omnes_chip_crit', { count: nCrit })}</span>` : ''}
-            ${nAten ? `<span class="omnes-chip aten">🟠 ${t('inteligencia:omnes_chip_aten', { count: nAten })}</span>` : ''}
-        `;
 
     const feed = avisos.length === 0
         ? renderEmpty()
@@ -257,7 +267,7 @@ async function renderizarInteligencia() {
                 <div class="omnes-hero-text">
                     <h1>${escapeHTML(t('inteligencia:omnes_title'))}</h1>
                     <div class="omnes-tagline">${escapeHTML(t('inteligencia:omnes_tagline'))}</div>
-                    <div class="omnes-summary" style="margin-top:12px;">${chips}</div>
+                    <div class="omnes-summary" id="omnes-chips" style="margin-top:12px;">${chipsHTML(nCrit, nAten)}</div>
                     <div class="omnes-updated">${escapeHTML(t('inteligencia:updated_at', { time }))}</div>
                 </div>
                 <div class="omnes-hero-actions">
@@ -266,6 +276,18 @@ async function renderizarInteligencia() {
             </div>
             ${feed}
         </div>
+    `;
+}
+
+// Chips de resumen (crítico / a vigilar / todo en orden). Reutilizable para
+// repintar tras descartar un aviso sin recargar toda la pestaña.
+function chipsHTML(nCrit, nAten) {
+    if (nCrit + nAten === 0) {
+        return `<span class="omnes-chip ok">✅ ${escapeHTML(t('inteligencia:omnes_chip_ok'))}</span>`;
+    }
+    return `
+        ${nCrit ? `<span class="omnes-chip crit">🔴 ${t('inteligencia:omnes_chip_crit', { count: nCrit })}</span>` : ''}
+        ${nAten ? `<span class="omnes-chip aten">🟠 ${t('inteligencia:omnes_chip_aten', { count: nAten })}</span>` : ''}
     `;
 }
 
@@ -304,7 +326,7 @@ async function refrescarBadgeOmnes() {
             ingredientes: window.ingredientes,
             pedidos: window.pedidos,
         });
-        setBadgeOmnes(avisos.length);
+        setBadgeOmnes(filtrarVisibles(avisos).length);
     } catch (err) {
         console.error('[Omnes] error refrescando badge:', err);
     } finally {
@@ -315,6 +337,35 @@ async function refrescarBadgeOmnes() {
 // Recalcular el badge cada vez que se recargan los datos (mismo evento que el dashboard).
 window.addEventListener('dashboard:refresh', refrescarBadgeOmnes);
 window.refrescarBadgeOmnes = refrescarBadgeOmnes;
+
+/**
+ * El usuario descarta un aviso: lo persiste (tenant-scoped, TTL 7d), quita la
+ * tarjeta del DOM y recalcula chips + badge desde lo que queda visible — sin
+ * recargar la pestaña (no salta el scroll ni re-fetchea).
+ */
+window.omnesDescartar = function (id) {
+    dismissAviso(id);
+    const safeId = (window.CSS && window.CSS.escape) ? window.CSS.escape(id) : id;
+    const card = document.querySelector(`.omnes-card[data-aviso-id="${safeId}"]`);
+    if (card) card.remove();
+
+    const feedEl = document.querySelector('.omnes-feed');
+    const quedan = feedEl ? feedEl.querySelectorAll('.omnes-card').length : 0;
+
+    // Repintar chips de resumen
+    const chipsEl = document.getElementById('omnes-chips');
+    if (chipsEl) {
+        const nCrit = document.querySelectorAll('.omnes-card.critico').length;
+        const nAten = document.querySelectorAll('.omnes-card.atencion').length;
+        chipsEl.innerHTML = chipsHTML(nCrit, nAten);
+    }
+    setBadgeOmnes(quedan);
+
+    // Si no queda ninguno, mostrar el estado vacío en lugar del feed
+    if (feedEl && quedan === 0) {
+        feedEl.outerHTML = renderEmpty();
+    }
+};
 
 /**
  * Deep-link desde un aviso al item concreto (no solo a la pestaña).
