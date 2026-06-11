@@ -282,6 +282,7 @@ window.guardarIngrediente = IngredientesCRUD.guardarIngrediente;
 window.editarIngrediente = IngredientesCRUD.editarIngrediente;
 window.eliminarIngrediente = IngredientesCRUD.eliminarIngrediente;
 window.actualizarPreviewPrecioUnidad = IngredientesCRUD.actualizarPreviewPrecioUnidad;
+window.sugerirAlergenosPorNombre = IngredientesCRUD.sugerirAlergenosPorNombre;
 
 // Proveedores por ingrediente
 window.gestionarProveedoresIngrediente = IngredientesProveedores.gestionarProveedoresIngrediente;
