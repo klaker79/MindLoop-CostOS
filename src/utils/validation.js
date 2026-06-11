@@ -10,6 +10,8 @@
  * @version 1.0.0
  */
 
+import { ALERGENOS_CODES } from '../modules/ingredientes/alergenos.js';
+
 /**
  * Resultado de validación
  * @typedef {Object} ValidationResult
@@ -201,6 +203,13 @@ export function validateIngrediente(data) {
     // nombre del formato cuando hay cantidad > 1 para que el estado sea inequívoco.
     if (cpfValue > 1 && !formatoNombre) {
         errors.push('Si indicas "cantidad por formato", ponle también el nombre del formato (ej. BOTE, CAJA, SACO). Si compras por unidad, deja vacía la cantidad por formato.');
+    }
+
+    // Alérgenos (opcional): si viene array, sanear a códigos válidos (los 14 UE).
+    // Si no viene, no se toca (el backend conserva el valor actual).
+    if (Array.isArray(data.alergenos)) {
+        sanitized.alergenos = data.alergenos
+            .filter(c => typeof c === 'string' && ALERGENOS_CODES.has(c));
     }
 
     return {

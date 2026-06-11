@@ -54,6 +54,8 @@ export async function guardarIngrediente(event) {
         cantidad_por_formato: getInputValue('ing-cantidad-formato')
             ? parseFloat(getInputValue('ing-cantidad-formato'))
             : undefined,
+        // 🆕 Alérgenos UE: array de códigos de los checkboxes marcados.
+        alergenos: Array.from(document.querySelectorAll('.ing-alergeno:checked')).map(c => c.value),
     };
 
     // 🆕 Validación centralizada (reemplaza validación manual)
@@ -357,6 +359,12 @@ export function editarIngrediente(id) {
     if (cantFormatoEl) cantFormatoEl.value = ing.cantidad_por_formato !== null && ing.cantidad_por_formato !== undefined
         ? ing.cantidad_por_formato
         : '';
+
+    // 🆕 Cargar alérgenos: limpiar todos y marcar los presentes en ing.alergenos.
+    const alergenosIng = Array.isArray(ing.alergenos) ? ing.alergenos : [];
+    document.querySelectorAll('.ing-alergeno').forEach(chk => {
+        chk.checked = alergenosIng.includes(chk.value);
+    });
 
     // Refrescar el preview de precio por unidad con los datos cargados.
     actualizarPreviewPrecioUnidad();

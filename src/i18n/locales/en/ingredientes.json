@@ -137,6 +137,7 @@
   "form_label_stock": "Current stock",
   "form_label_stock_min": "Minimum stock",
   "form_label_yield": "Yield / Usable portion (%)",
+  "form_label_allergens": "Allergens (EU)",
   "form_yield_all_waste": "0% (All waste)",
   "form_yield_all_useful": "100% (All usable)",
   "form_yield_hint": "Define what percentage of the product you actually use.",

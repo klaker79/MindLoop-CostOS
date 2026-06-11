@@ -969,6 +969,58 @@
                     ⚠️ Al cambiar este rendimiento, todas las recetas que usen este ingrediente verán el nuevo % aplicado tanto en su coste teórico como en el descuento de stock al vender.
                   </p>
                 </div>
+
+                <!-- ALÉRGENOS (UE) — 14 de declaración obligatoria -->
+                <div class="form-group"
+                  style="grid-column: span 2; margin-top: 10px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                  <label style="margin: 0 0 10px; display: block; color: #334155; font-weight: 600;">
+                    🌡️ <span data-i18n="ingredientes:form_label_allergens">Alérgenos (UE)</span>
+                  </label>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="gluten"> 🌾 <span data-i18n="alergenos:gluten">Gluten</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="crustaceos"> 🦐 <span data-i18n="alergenos:crustaceos">Crustáceos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="huevos"> 🥚 <span data-i18n="alergenos:huevos">Huevos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="pescado"> 🐟 <span data-i18n="alergenos:pescado">Pescado</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="cacahuetes"> 🥜 <span data-i18n="alergenos:cacahuetes">Cacahuetes</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="soja"> 🫛 <span data-i18n="alergenos:soja">Soja</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="lacteos"> 🥛 <span data-i18n="alergenos:lacteos">Lácteos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="frutos_cascara"> 🌰 <span data-i18n="alergenos:frutos_cascara">Frutos de cáscara</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="apio"> 🥬 <span data-i18n="alergenos:apio">Apio</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="mostaza"> 🟡 <span data-i18n="alergenos:mostaza">Mostaza</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="sesamo"> ⚫ <span data-i18n="alergenos:sesamo">Sésamo</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="sulfitos"> 🍷 <span data-i18n="alergenos:sulfitos">Sulfitos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="altramuces"> 🌱 <span data-i18n="alergenos:altramuces">Altramuces</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="moluscos"> 🐚 <span data-i18n="alergenos:moluscos">Moluscos</span>
+                    </label>
+                  </div>
+                </div>
               </div>
               <div class="form-actions">
                 <button type="button" class="btn btn-secondary" data-action="cerrar-form-ingrediente"
