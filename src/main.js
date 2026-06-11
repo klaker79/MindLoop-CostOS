@@ -244,6 +244,8 @@ window.proyeccionConsumo = Helpers.proyeccionConsumo;
 import * as IngredientesUI from './modules/ingredientes/ingredientes-ui.js';
 import * as IngredientesCRUD from './modules/ingredientes/ingredientes-crud.js';
 import * as IngredientesProveedores from './modules/ingredientes/ingredientes-proveedores.js';
+// Side-effect: registra window.abrirDeteccionAlergenosBatch (botón "✨ Detectar alérgenos").
+import './modules/ingredientes/alergenos-batch.js';
 
 // UI
 window.renderizarIngredientes = IngredientesUI.renderizarIngredientes;
