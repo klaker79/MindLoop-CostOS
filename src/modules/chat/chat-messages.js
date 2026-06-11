@@ -29,6 +29,16 @@ let isWaitingResponse = false;
 let clearClickCount = 0;
 let clearClickTimer = null;
 
+// Avatar del bot = búho azul real. Si la foto falla, cae al emoji 🦉.
+const OMNES_AVATAR_IMG = `<img src="/images/omnes.png" alt="Omnes" onerror="this.parentElement.textContent='🦉'">`;
+// Avatar de un mensaje según el tipo. extraStyle permite forzar tamaño (typing 28px).
+function avatarMensaje(type, extraStyle = '') {
+    const style = extraStyle ? ` style="${extraStyle}"` : '';
+    return type === 'bot'
+        ? `<div class="chat-message-avatar bot-omnes"${style}>${OMNES_AVATAR_IMG}</div>`
+        : `<div class="chat-message-avatar"${style}>👤</div>`;
+}
+
 /**
  * Añade un mensaje. Si `type==='bot'` y no es bienvenida, inserta botón PDF
  * (que invoca `window.exportMessageToPDF` — registrado por chat-pdf.js).
@@ -59,7 +69,7 @@ export function addMessage(type, text, save = true) {
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${type}`;
     messageEl.innerHTML = `
-        <div class="chat-message-avatar">${type === 'bot' ? '🦉' : '👤'}</div>
+        ${avatarMensaje(type)}
         <div>
             <div class="chat-message-content">${parseMarkdown(text)}</div>
             <div class="chat-message-time">${time} ${pdfButton}</div>
@@ -87,7 +97,7 @@ function addMessageWithAction(type, text, actionData) {
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${type}`;
     messageEl.innerHTML = `
-        <div class="chat-message-avatar">🦉</div>
+        ${avatarMensaje('bot')}
         <div>
             <div class="chat-message-content">${parseMarkdown(text)}</div>
             <div class="chat-action-buttons" id="${actionId}" style="margin-top: 12px; display: flex; gap: 8px;">
@@ -147,7 +157,7 @@ export function showTyping() {
     typingEl.id = 'chat-typing';
     typingEl.className = 'chat-typing';
     typingEl.innerHTML = `
-        <div class="chat-message-avatar" style="width:28px;height:28px;font-size:12px;">🦉</div>
+        ${avatarMensaje('bot', 'width:28px;height:28px;font-size:12px;')}
         <div class="chat-typing-dots">
             <div class="chat-typing-dot"></div>
             <div class="chat-typing-dot"></div>
@@ -306,7 +316,7 @@ export function renderChatHistory() {
         }
 
         messageEl.innerHTML = `
-            <div class="chat-message-avatar">${msg.type === 'bot' ? '🦉' : '👤'}</div>
+            ${avatarMensaje(msg.type)}
             <div>
                 <div class="chat-message-content">${parseMarkdown(msg.text)}</div>
                 <div class="chat-message-time">${time} ${pdfButton}</div>
