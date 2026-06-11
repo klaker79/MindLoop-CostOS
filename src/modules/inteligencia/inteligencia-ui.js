@@ -178,10 +178,10 @@ const OWL_FALLBACK = `onerror="this.replaceWith(Object.assign(document.createEle
 function renderAvisoCard(a) {
     // a.titulo / a.texto / a.cta.label vienen de t(): i18next ya escapa los valores
     // interpolados (escapeValue:true) → son HTML seguro. Volver a escaparlos haría
-    // doble escape (&amp; → &amp;amp;). a.cta.tab es un literal fijo del propio código.
+    // doble escape (&amp; → &amp;amp;). a.cta.tipo es un literal fijo y a.cta.id un número.
     const label = a.titulo ? `<div class="omnes-card-label">${a.titulo}</div>` : '';
     const cta = a.cta
-        ? `<button class="omnes-card-cta" onclick="window.cambiarTab && window.cambiarTab('${a.cta.tab}')">${a.cta.label} →</button>`
+        ? `<button class="omnes-card-cta" onclick="window.omnesIr('${a.cta.tipo}', ${a.cta.id})">${a.cta.label} →</button>`
         : '';
     return `
         <div class="omnes-card ${a.nivel}">
@@ -266,5 +266,26 @@ async function renderizarInteligencia() {
         </div>
     `;
 }
+
+/**
+ * Deep-link desde un aviso al item concreto (no solo a la pestaña).
+ *   receta      → abre la ficha de la receta para ajustar el precio
+ *   ingrediente → abre la ficha del ingrediente
+ *   pedido      → cambia a Pedidos y añade el ingrediente al carrito
+ */
+window.omnesIr = function (tipo, id) {
+    const itemId = Number(id);
+    if (!Number.isFinite(itemId)) return;
+    if (tipo === 'receta') {
+        window.cambiarTab?.('recetas');
+        if (typeof window.editarReceta === 'function') window.editarReceta(itemId);
+    } else if (tipo === 'ingrediente') {
+        window.cambiarTab?.('ingredientes');
+        if (typeof window.editarIngrediente === 'function') window.editarIngrediente(itemId);
+    } else if (tipo === 'pedido') {
+        window.cambiarTab?.('pedidos');
+        if (typeof window.agregarAlCarrito === 'function') window.agregarAlCarrito(itemId, 1);
+    }
+};
 
 window.renderizarInteligencia = renderizarInteligencia;

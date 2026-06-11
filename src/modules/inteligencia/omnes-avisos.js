@@ -61,7 +61,7 @@ export function calcularSubidasPrecio(pedidos, ingMap, umbralPct = UMBRALES.subi
         if (!ing || !(anterior > 0)) return;
         const pct = ((ultimo - anterior) / anterior) * 100;
         if (pct >= umbralPct) {
-            subidas.push({ nombre: ing.nombre, anterior, ultimo, pct, unidad: ing.unidad || '' });
+            subidas.push({ id: ing.id, nombre: ing.nombre, anterior, ultimo, pct, unidad: ing.unidad || '' });
         }
     });
     return subidas.sort((a, b) => b.pct - a.pct);
@@ -82,7 +82,7 @@ export function calcularStockCritico(ingredientes) {
         const min = parseFloat(i.stock_minimo) || parseFloat(i.stockMinimo) || 0;
         const incluir = stock === 0 || (min > 0 && stock <= min);
         if (incluir) {
-            out.push({ nombre: i.nombre, stock, min, unidad: i.unidad || '', cero: stock <= 0 });
+            out.push({ id: i.id, nombre: i.nombre, stock, min, unidad: i.unidad || '', cero: stock <= 0 });
         }
     });
     // Primero los que están a 0, luego el resto.
@@ -117,6 +117,14 @@ export async function construirAvisos(deps) {
 
     const avisos = [];
 
+    // CTA con deep-link: tipo + id del item concreto. Solo se adjunta si hay id válido
+    // (si no, la tarjeta se muestra sin botón en vez de llevar a ningún sitio).
+    //   'receta'      → abre la ficha de la receta (window.editarReceta)
+    //   'ingrediente' → abre la ficha del ingrediente (window.editarIngrediente)
+    //   'pedido'      → añade el ingrediente al carrito de pedidos (window.agregarAlCarrito)
+    const mkCta = (tipo, id, label) =>
+        Number.isFinite(Number(id)) ? { label, tipo, id: Number(id) } : null;
+
     // 1) 🔴 Recetas que no rentan (food cost alto + precio sugerido)
     const recetasProblema = (price && Array.isArray(price.recetas_problema)) ? price.recetas_problema : [];
     recetasProblema.slice(0, max).forEach((r, i) => {
@@ -126,7 +134,7 @@ export async function construirAvisos(deps) {
             icono: '📉',
             titulo: t('inteligencia:omnes_t_receta_no_renta'),
             texto: t('inteligencia:omnes_x_receta_no_renta', { nombre: r.nombre, fc: r.food_cost, precio: cm(r.precio_sugerido) }),
-            cta: { label: t('inteligencia:omnes_cta_ajustar_precio'), tab: 'recetas' },
+            cta: mkCta('receta', r.id, t('inteligencia:omnes_cta_ajustar_precio')),
         });
     });
 
@@ -140,7 +148,7 @@ export async function construirAvisos(deps) {
             texto: s.cero
                 ? t('inteligencia:omnes_x_stock_cero', { nombre: s.nombre })
                 : t('inteligencia:omnes_x_stock_bajo', { nombre: s.nombre, stock: fmtCant(s.stock), unidad: s.unidad, min: fmtCant(s.min) }),
-            cta: { label: t('inteligencia:omnes_cta_pedir'), tab: 'pedidos' },
+            cta: mkCta('pedido', s.id, t('inteligencia:omnes_cta_pedir')),
         });
     });
 
@@ -155,7 +163,7 @@ export async function construirAvisos(deps) {
                 nombre: p.nombre, pct: p.pct.toFixed(0),
                 antes: cm(p.anterior), ahora: cm(p.ultimo), unidad: p.unidad,
             }),
-            cta: { label: t('inteligencia:omnes_cta_ver_ingrediente'), tab: 'ingredientes' },
+            cta: mkCta('ingrediente', p.id, t('inteligencia:omnes_cta_ver_ingrediente')),
         });
     });
 
@@ -171,6 +179,7 @@ export async function construirAvisos(deps) {
                 stock: fmtCant(f.stock_actual), unidad: f.unidad, nombre: f.nombre,
                 dias: f.dias_desde_compra || 0,
             }),
+            cta: mkCta('ingrediente', f.id, t('inteligencia:omnes_cta_ver_ingrediente')),
         });
     });
 
@@ -185,6 +194,7 @@ export async function construirAvisos(deps) {
                 nombre: o.nombre, stock: fmtCant(o.stock_actual), unidad: o.unidad,
                 dias: Math.round(o.dias_stock || 0),
             }),
+            cta: mkCta('ingrediente', o.id, t('inteligencia:omnes_cta_ver_ingrediente')),
         });
     });
 
