@@ -133,7 +133,8 @@
 // BUMP v144: Editar/Recibir muestran formato (CAJA/BOTE) SOLO si la cantidad son formatos enteros; si hay reparto de personal o sueltas (10 botellas, 2 botellas) lo muestran en unidad base, no en fracciones de caja (0,333 CAJA). El campo de comida personal SIEMPRE en unidad base (botellas). Cifras/stock idénticos: solo cambia el display. Helper esCantidadEnteraEnFormato testeado.
 // BUMP v145: Pestaña Comida Personal con buscador (producto/proveedor/fecha) y columnas ordenables (clic en cabecera ordena asc/desc, flecha en la activa). Aviso "mostrando N de M · €" al buscar. i18n es/en/zh. Solo UI de esa pestaña.
 // BUMP v146: Chat reenmaquetado como OMNES ("tu chef financiero"). Nombre, avatar búho (/images/omnes-avatar.png con fallback 🦉), subtítulo y saludo nuevos, avatares de mensajes 🦉. i18n es/en/zh. Identidad/voz de Omnes va en el system prompt del backend (repo lacaleta-api). Mismo motor y tools.
-const CACHE_NAME = 'mindloop-costos-v146';
+// BUMP v147: Avatar real de Omnes (public/images/omnes.png, el búho-chef) cableado en la cabecera del chat.
+const CACHE_NAME = 'mindloop-costos-v147';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
