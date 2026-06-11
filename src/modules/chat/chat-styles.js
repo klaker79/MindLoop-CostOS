@@ -21,29 +21,39 @@ export function createChatStyles() {
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            background: #fff;
             border: none;
             cursor: pointer;
             box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 9999;
         }
-        
+
         .chat-fab:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 30px rgba(124, 58, 237, 0.5);
         }
-        
+
+        .chat-fab-owl {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 4px;
+            box-sizing: border-box;
+            display: block;
+        }
+
         .chat-fab svg {
             width: 28px;
             height: 28px;
             fill: white;
             transition: transform 0.3s;
         }
-        
+
         .chat-fab.active svg {
             transform: rotate(90deg);
         }

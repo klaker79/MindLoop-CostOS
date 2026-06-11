@@ -144,7 +144,8 @@
 // BUMP v157: Botón ✕ en cada aviso de Omnes para descartarlo. Descartes en localStorage PREFIJADO por restauranteId (aislamiento multi-tenant) con CADUCIDAD 7 días (reaparece si sigue vigente). Ids de aviso estables por item. Quita la tarjeta y recalcula chips+badge sin recargar. Lógica testeada (omnes-dismiss.js, 4 tests).
 // BUMP v158: Descarte de avisos vía listener delegado + data-dismiss-id (en vez de onclick inline con dato interpolado) — fix defensa XSS del security review.
 // BUMP v159: Feed de Omnes reorganizado por SECCIONES (Recetas que no rentan / Stock crítico / Frescura / Subidas de precio / Sobrestock), cada una con cabecera (icono+título+contador) y plegable. Tarjetas más limpias (sin etiqueta repetida, la sección la lleva). Cada aviso trae `categoria`. i18n omnes_sec_* (es/en/zh).
-const CACHE_NAME = 'mindloop-costos-v159';
+// BUMP v160: Logo del sidebar (CostOS) y burbuja flotante del chat = búho azul (/images/omnes.png) en círculo blanco con object-fit:contain. FAB preparado para animación (basta cambiar el src a un GIF/WebP animado). Fallback a 🦉 si la imagen falla.
+const CACHE_NAME = 'mindloop-costos-v160';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
