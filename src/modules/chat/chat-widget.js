@@ -108,7 +108,7 @@ function createChatHTML() {
         <!-- Chat Window -->
         <div class="chat-window" id="chat-window">
             <div class="chat-header">
-                <div class="chat-header-avatar"><img src="/images/omnes-avatar.png" alt="Omnes" onerror="this.parentElement.textContent='🦉'" style="width:100%;height:100%;object-fit:contain;border-radius:50%;"></div>
+                <div class="chat-header-avatar"><img src="/images/omnes.png" alt="Omnes" onerror="this.parentElement.textContent='🦉'" style="width:100%;height:100%;object-fit:contain;border-radius:50%;background:#fff;"></div>
                 <div class="chat-header-info">
                     <h3>${CHAT_CONFIG.botName}</h3>
                     <p>${t('chat:subtitle')}</p>

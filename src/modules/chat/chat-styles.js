@@ -104,12 +104,15 @@ export function createChatStyles() {
         .chat-header-avatar {
             width: 45px;
             height: 45px;
-            background: rgba(255,255,255,0.2);
+            background: #fff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 22px;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
         }
         
         .chat-header-info h3 {
