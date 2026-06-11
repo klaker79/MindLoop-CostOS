@@ -135,7 +135,8 @@
 // BUMP v146: Chat reenmaquetado como OMNES ("tu chef financiero"). Nombre, avatar búho (/images/omnes-avatar.png con fallback 🦉), subtítulo y saludo nuevos, avatares de mensajes 🦉. i18n es/en/zh. Identidad/voz de Omnes va en el system prompt del backend (repo lacaleta-api). Mismo motor y tools.
 // BUMP v148: Alérgenos UE (14) por ingrediente — selector en el form, guardado en BD (col alergenos JSONB, backend), y la receta los HEREDA (unión recursiva de ingredientes + subrecetas). Se muestran en la Ficha de Costes y su PDF. Módulo puro src/modules/ingredientes/alergenos.js + i18n es/en/zh.
 // BUMP v150: Auto-sugerencia de alérgenos por NOMBRE del ingrediente (diccionario hostelería ES, match por palabra + plurales, guardas anti-falsos-positivos "leche de coco"/"panga"). Al teclear el nombre se pre-marcan los alérgenos probables (solo hasta que el usuario los toque a mano); siempre confirma él. Módulo puro alergenos-deteccion.js (11 tests).
-const CACHE_NAME = 'mindloop-costos-v150';
+// BUMP v151: Botón "✨ Detectar alérgenos" en Ingredientes → modal que revisa TODOS los ingredientes con alérgenos nuevos detectados por nombre (pre-marcados), confirmas y se guardan en bloque. Solo AÑADE, nunca quita (health-safe). Ideal onboarding masivo.
+const CACHE_NAME = 'mindloop-costos-v151';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
