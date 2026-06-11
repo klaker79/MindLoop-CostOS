@@ -233,6 +233,8 @@ async function renderizarInteligencia() {
         console.error('[Omnes] error construyendo avisos:', err);
     }
 
+    setBadgeOmnes(avisos.length); // mantener el contador del sidebar en sync
+
     const nCrit = avisos.filter(a => a.nivel === 'critico').length;
     const nAten = avisos.filter(a => a.nivel === 'atencion').length;
     const time = new Date().toLocaleTimeString(getDateLocale(), { hour: '2-digit', minute: '2-digit' });
@@ -266,6 +268,53 @@ async function renderizarInteligencia() {
         </div>
     `;
 }
+
+// ========== BADGE DEL SIDEBAR (contador de avisos) ==========
+// Pinta un contador rojo en la pestaña Omnes (sidebar + tab horizontal) para que
+// se vean los avisos pendientes sin entrar. Reusa el MISMO cálculo del feed.
+const OMNES_COUNT_STYLE = 'background:#ef4444;color:#fff;border-radius:999px;min-width:18px;height:18px;padding:0 5px;font-size:11px;font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center;margin-left:6px;';
+
+function setBadgeOmnes(n) {
+    document.querySelectorAll('[data-tab="inteligencia"]').forEach(btn => {
+        let b = btn.querySelector('.omnes-count');
+        if (n > 0) {
+            if (!b) {
+                b = document.createElement('span');
+                b.className = 'omnes-count';
+                b.style.cssText = OMNES_COUNT_STYLE;
+                btn.appendChild(b);
+            }
+            b.textContent = n > 9 ? '9+' : String(n);
+            b.style.display = 'inline-flex';
+            b.title = n === 1 ? '1 aviso de Omnes' : `${n} avisos de Omnes`;
+        } else if (b) {
+            b.style.display = 'none';
+        }
+    });
+}
+
+let _omnesBadgeRunning = false;
+async function refrescarBadgeOmnes() {
+    if (_omnesBadgeRunning) return;
+    if (typeof window === 'undefined' || !window.authToken) return; // sin sesión, nada que contar
+    _omnesBadgeRunning = true;
+    try {
+        const avisos = await construirAvisos({
+            fetchIntelligence,
+            ingredientes: window.ingredientes,
+            pedidos: window.pedidos,
+        });
+        setBadgeOmnes(avisos.length);
+    } catch (err) {
+        console.error('[Omnes] error refrescando badge:', err);
+    } finally {
+        _omnesBadgeRunning = false;
+    }
+}
+
+// Recalcular el badge cada vez que se recargan los datos (mismo evento que el dashboard).
+window.addEventListener('dashboard:refresh', refrescarBadgeOmnes);
+window.refrescarBadgeOmnes = refrescarBadgeOmnes;
 
 /**
  * Deep-link desde un aviso al item concreto (no solo a la pestaña).

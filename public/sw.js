@@ -138,7 +138,8 @@
 // BUMP v151: Botón "✨ Detectar alérgenos" en Ingredientes → modal que revisa TODOS los ingredientes con alérgenos nuevos detectados por nombre (pre-marcados), confirmas y se guardan en bloque. Solo AÑADE, nunca quita (health-safe). Ideal onboarding masivo.
 // BUMP v152: Pestaña "Inteligencia" → renombrada "Omnes" (icono 🦉, foto del búho /images/omnes.png). Reconstruida como FEED de avisos proactivos DETERMINISTAS (reglas con umbral, sin IA por tarjeta → sin ruido): recetas no rentables, stock crítico, subidas de precio, frescura y sobrestock. Voz de Omnes vía i18n (es/en/zh). Lógica en omnes-avisos.js (testeada).
 // BUMP v153: Avisos Omnes con DEEP-LINK al item concreto (no solo a la pestaña). window.omnesIr(tipo,id): receta→editarReceta (abre ficha para ajustar PVP), ingrediente→editarIngrediente (frescura/sobrestock/subida precio), pedido→agregarAlCarrito (stock crítico). El id viaja en cada aviso (endpoints ya devuelven id; stock/precio desde window.ingredientes).
-const CACHE_NAME = 'mindloop-costos-v153';
+// BUMP v154: Contador de avisos en el sidebar/tab de Omnes (badge rojo "5", "9+"). Se recalcula en cada dashboard:refresh con el mismo construirAvisos del feed (guard anti-concurrencia, solo con sesión). Permite ver avisos pendientes sin entrar en la pestaña.
+const CACHE_NAME = 'mindloop-costos-v154';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
