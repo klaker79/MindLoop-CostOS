@@ -10,7 +10,7 @@
   "nav_inventario": "Inventario",
   "nav_dashboard": "Diario",
   "nav_analisis": "Análisis",
-  "nav_inteligencia": "Inteligencia",
+  "nav_inteligencia": "Omnes",
   "nav_horarios": "Horarios",
   "nav_configuracion": "Configuración",
   "nav_section_operations": "Operaciones",
@@ -117,7 +117,7 @@
   "tab_inventario_text": "📦 Inventario",
   "tab_diario": "📈 Diario",
   "tab_analisis": "📊 Análisis",
-  "tab_inteligencia": "🧠 Inteligencia",
+  "tab_inteligencia": "🦉 Omnes",
   "tab_horarios": "🕐 Horarios",
   "tab_configuracion": "⚙️ Config",
 
