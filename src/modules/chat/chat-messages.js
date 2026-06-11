@@ -59,7 +59,7 @@ export function addMessage(type, text, save = true) {
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${type}`;
     messageEl.innerHTML = `
-        <div class="chat-message-avatar">${type === 'bot' ? '🤖' : '👤'}</div>
+        <div class="chat-message-avatar">${type === 'bot' ? '🦉' : '👤'}</div>
         <div>
             <div class="chat-message-content">${parseMarkdown(text)}</div>
             <div class="chat-message-time">${time} ${pdfButton}</div>
@@ -87,7 +87,7 @@ function addMessageWithAction(type, text, actionData) {
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${type}`;
     messageEl.innerHTML = `
-        <div class="chat-message-avatar">🤖</div>
+        <div class="chat-message-avatar">🦉</div>
         <div>
             <div class="chat-message-content">${parseMarkdown(text)}</div>
             <div class="chat-action-buttons" id="${actionId}" style="margin-top: 12px; display: flex; gap: 8px;">
@@ -147,7 +147,7 @@ export function showTyping() {
     typingEl.id = 'chat-typing';
     typingEl.className = 'chat-typing';
     typingEl.innerHTML = `
-        <div class="chat-message-avatar" style="width:28px;height:28px;font-size:12px;">🤖</div>
+        <div class="chat-message-avatar" style="width:28px;height:28px;font-size:12px;">🦉</div>
         <div class="chat-typing-dots">
             <div class="chat-typing-dot"></div>
             <div class="chat-typing-dot"></div>
@@ -306,7 +306,7 @@ export function renderChatHistory() {
         }
 
         messageEl.innerHTML = `
-            <div class="chat-message-avatar">${msg.type === 'bot' ? '🤖' : '👤'}</div>
+            <div class="chat-message-avatar">${msg.type === 'bot' ? '🦉' : '👤'}</div>
             <div>
                 <div class="chat-message-content">${parseMarkdown(msg.text)}</div>
                 <div class="chat-message-time">${time} ${pdfButton}</div>
