@@ -7,7 +7,35 @@ import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
 import { escapeHTML, formatQuantity } from '../../utils/helpers.js';
 import { calcularPreviewPrecioUnidad } from './precio-unidad-preview.js';
+import { detectarAlergenos } from './alergenos-deteccion.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
+
+// 🆕 En cuanto el usuario toca un checkbox de alérgeno a mano, dejamos de
+// auto-sugerir por el nombre (no le pisamos su decisión). Listener delegado
+// único (los checkboxes son estáticos en index.html). Un cambio PROGRAMÁTICO
+// (chk.checked = x) NO dispara 'change', así que esto solo se activa con clic.
+if (typeof document !== 'undefined') {
+    document.addEventListener('change', (e) => {
+        if (e.target?.classList?.contains('ing-alergeno')) window._alergenosManual = true;
+    });
+}
+
+/**
+ * Pre-marca los alérgenos sugeridos según el NOMBRE del ingrediente. Solo
+ * mientras el usuario no haya tocado los checkboxes a mano (window._alergenosManual).
+ * SOLO sugerencia — el usuario confirma. Llamada con oninput desde #ing-nombre.
+ */
+export function sugerirAlergenosPorNombre() {
+    if (window._alergenosManual) return;
+    const nombre = getInputValue('ing-nombre');
+    const sugeridos = detectarAlergenos(nombre);
+    const set = new Set(sugeridos);
+    document.querySelectorAll('.ing-alergeno').forEach(chk => {
+        chk.checked = set.has(chk.value); // programático → no marca _alergenosManual
+    });
+    const hint = getElement('ing-alergenos-hint');
+    if (hint) hint.style.display = sugeridos.length ? 'block' : 'none';
+}
 // 🆕 Zustand store para gestión de estado
 import ingredientStore from '../../stores/ingredientStore.js';
 // 🆕 Validación centralizada
@@ -365,6 +393,11 @@ export function editarIngrediente(id) {
     document.querySelectorAll('.ing-alergeno').forEach(chk => {
         chk.checked = alergenosIng.includes(chk.value);
     });
+    // En edición ya hay alérgenos guardados → NO auto-sugerir por el nombre
+    // (no pisar lo que el usuario validó antes). El hint se oculta.
+    window._alergenosManual = true;
+    const hintEdit = getElement('ing-alergenos-hint');
+    if (hintEdit) hintEdit.style.display = 'none';
 
     // Refrescar el preview de precio por unidad con los datos cargados.
     actualizarPreviewPrecioUnidad();

@@ -122,6 +122,7 @@
   "form_label_stock_min": "最低库存",
   "form_label_yield": "出品率 / 可用部分 (%)",
   "form_label_allergens": "过敏原（欧盟）",
+  "allergens_suggested": "已根据名称预选。请核对并确认——过敏原信息由您负责。",
   "form_yield_all_waste": "0%（全部废弃）",
   "form_yield_all_useful": "100%（全部可用）",
   "form_yield_hint": "定义产品的实际可用百分比。",

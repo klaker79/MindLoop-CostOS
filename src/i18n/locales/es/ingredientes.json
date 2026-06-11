@@ -138,6 +138,7 @@
   "form_label_stock_min": "Stock mínimo",
   "form_label_yield": "Rendimiento / Aprovechamiento (%)",
   "form_label_allergens": "Alérgenos (UE)",
+  "allergens_suggested": "Pre-marcados por el nombre. Revisa y confirma — la información de alérgenos es tu responsabilidad.",
   "form_yield_all_waste": "0% (Todo merma)",
   "form_yield_all_useful": "100% (Todo útil)",
   "form_yield_hint": "Define qué porcentaje del producto realmente usas.",

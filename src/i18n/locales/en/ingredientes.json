@@ -138,6 +138,7 @@
   "form_label_stock_min": "Minimum stock",
   "form_label_yield": "Yield / Usable portion (%)",
   "form_label_allergens": "Allergens (EU)",
+  "allergens_suggested": "Pre-checked from the name. Review and confirm — allergen information is your responsibility.",
   "form_yield_all_waste": "0% (All waste)",
   "form_yield_all_useful": "100% (All usable)",
   "form_yield_hint": "Define what percentage of the product you actually use.",
