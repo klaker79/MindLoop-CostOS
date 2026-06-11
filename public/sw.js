@@ -137,7 +137,8 @@
 // BUMP v150: Auto-sugerencia de alérgenos por NOMBRE del ingrediente (diccionario hostelería ES, match por palabra + plurales, guardas anti-falsos-positivos "leche de coco"/"panga"). Al teclear el nombre se pre-marcan los alérgenos probables (solo hasta que el usuario los toque a mano); siempre confirma él. Módulo puro alergenos-deteccion.js (11 tests).
 // BUMP v151: Botón "✨ Detectar alérgenos" en Ingredientes → modal que revisa TODOS los ingredientes con alérgenos nuevos detectados por nombre (pre-marcados), confirmas y se guardan en bloque. Solo AÑADE, nunca quita (health-safe). Ideal onboarding masivo.
 // BUMP v152: Pestaña "Inteligencia" → renombrada "Omnes" (icono 🦉, foto del búho /images/omnes.png). Reconstruida como FEED de avisos proactivos DETERMINISTAS (reglas con umbral, sin IA por tarjeta → sin ruido): recetas no rentables, stock crítico, subidas de precio, frescura y sobrestock. Voz de Omnes vía i18n (es/en/zh). Lógica en omnes-avisos.js (testeada).
-const CACHE_NAME = 'mindloop-costos-v152';
+// BUMP v153: Avisos Omnes con DEEP-LINK al item concreto (no solo a la pestaña). window.omnesIr(tipo,id): receta→editarReceta (abre ficha para ajustar PVP), ingrediente→editarIngrediente (frescura/sobrestock/subida precio), pedido→agregarAlCarrito (stock crítico). El id viaja en cada aviso (endpoints ya devuelven id; stock/precio desde window.ingredientes).
+const CACHE_NAME = 'mindloop-costos-v153';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
