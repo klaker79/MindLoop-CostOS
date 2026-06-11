@@ -41,11 +41,58 @@ export function createChatStyles() {
         .chat-fab-owl {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            padding: 4px;
-            box-sizing: border-box;
+            object-fit: cover;
             display: block;
         }
+
+        /* Globo de invitación junto al FAB */
+        .chat-fab-bubble {
+            position: fixed;
+            bottom: 40px;
+            right: 96px;
+            max-width: 230px;
+            background: #fff;
+            color: #1e293b;
+            padding: 11px 30px 11px 15px;
+            border-radius: 14px;
+            box-shadow: 0 10px 34px rgba(0,0,0,0.28);
+            font-size: 0.86rem;
+            font-weight: 600;
+            line-height: 1.3;
+            opacity: 0;
+            transform: translateX(10px) scale(0.95);
+            pointer-events: none;
+            transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+            z-index: 9999;
+        }
+        .chat-fab-bubble.show {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .chat-fab-bubble::after {
+            content: '';
+            position: absolute;
+            right: -7px;
+            bottom: 16px;
+            border: 7px solid transparent;
+            border-left-color: #fff;
+            border-right: 0;
+        }
+        .chat-fab-bubble-x {
+            position: absolute;
+            top: 5px;
+            right: 7px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 11px;
+            line-height: 1;
+            padding: 2px;
+        }
+        .chat-fab-bubble-x:hover { color: #475569; }
 
         .chat-fab svg {
             width: 28px;
@@ -657,6 +704,7 @@ export function createChatStyles() {
                 right: 16px;
                 bottom: 16px;
             }
+            .chat-fab-bubble { display: none; }
         }
     `;
     document.head.appendChild(style);
