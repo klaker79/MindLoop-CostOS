@@ -41,6 +41,11 @@
   "omnes_empty_title": "Todo en orden",
   "omnes_empty_sub": "Omnes no ve nada urgente ahora mismo. Sigue así.",
   "omnes_dismiss": "Quitar aviso",
+  "omnes_sec_recetas": "Recetas que no rentan",
+  "omnes_sec_stock": "Stock crítico",
+  "omnes_sec_frescura": "Frescura",
+  "omnes_sec_precio": "Subidas de precio",
+  "omnes_sec_sobrestock": "Sobrestock",
 
   "omnes_t_receta_no_renta": "Receta que no renta",
   "omnes_x_receta_no_renta": "«{{nombre}}» va al {{fc}}% de food cost. Súbela a {{precio}} o quítala de la carta.",

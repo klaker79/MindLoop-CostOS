@@ -130,6 +130,7 @@ export async function construirAvisos(deps) {
     recetasProblema.slice(0, max).forEach((r, i) => {
         avisos.push({
             id: `receta-${r.id ?? i}`,
+            categoria: 'recetas',
             nivel: 'critico',
             icono: '📉',
             titulo: t('inteligencia:omnes_t_receta_no_renta'),
@@ -142,6 +143,7 @@ export async function construirAvisos(deps) {
     calcularStockCritico(ingredientes).slice(0, max).forEach((s) => {
         avisos.push({
             id: `stock-${s.id}`,
+            categoria: 'stock',
             nivel: s.cero ? 'critico' : 'atencion',
             icono: '📦',
             titulo: t('inteligencia:omnes_t_stock_critico'),
@@ -156,6 +158,7 @@ export async function construirAvisos(deps) {
     calcularSubidasPrecio(pedidos, ingMap).slice(0, max).forEach((p) => {
         avisos.push({
             id: `precio-${p.id}`,
+            categoria: 'precio',
             nivel: 'atencion',
             icono: '📈',
             titulo: t('inteligencia:omnes_t_precio_sube'),
@@ -172,6 +175,7 @@ export async function construirAvisos(deps) {
         const critico = f.urgencia === 'critico';
         avisos.push({
             id: `fresh-${f.id ?? i}`,
+            categoria: 'frescura',
             nivel: critico ? 'critico' : 'atencion',
             icono: '🧊',
             titulo: t('inteligencia:omnes_t_frescura'),
@@ -187,6 +191,7 @@ export async function construirAvisos(deps) {
     (Array.isArray(over) ? over : []).slice(0, max).forEach((o, i) => {
         avisos.push({
             id: `over-${o.id ?? i}`,
+            categoria: 'sobrestock',
             nivel: 'atencion',
             icono: '🗄️',
             titulo: t('inteligencia:omnes_t_sobrestock'),
