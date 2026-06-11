@@ -99,9 +99,15 @@ function createChatHTML() {
     chatContainer.innerHTML = `
         <!-- Chat FAB Button -->
         <button class="chat-fab" id="chat-fab" title="${t('chat:fab_title')}">
-            <img class="chat-fab-owl" src="/images/omnes.png" alt="Omnes" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🦉',style:'font-size:30px;line-height:1'}))">
+            <video class="chat-fab-owl" autoplay loop muted playsinline disablepictureinpicture poster="/images/omnes.png">
+                <source src="/images/omnes-fab.mp4" type="video/mp4">
+            </video>
             <span class="notification-dot"></span>
         </button>
+        <div class="chat-fab-bubble" id="chat-fab-bubble" role="button" tabindex="0">
+            <span class="chat-fab-bubble-text">${t('chat:fab_invite')}</span>
+            <button class="chat-fab-bubble-x" id="chat-fab-bubble-x" type="button" aria-label="${t('chat:fab_invite_close')}">✕</button>
+        </div>
 
         <!-- Chat Window -->
         <div class="chat-window" id="chat-window">
@@ -177,6 +183,16 @@ function bindChatEvents() {
 
     fab.addEventListener('click', () => toggleChat());
     closeBtn.addEventListener('click', () => toggleChat(false));
+
+    // Globo de invitación junto al FAB: aparece a los ~1,8s, se cierra con la ✕,
+    // y al pulsarlo abre el chat.
+    const bubble = document.getElementById('chat-fab-bubble');
+    const bubbleX = document.getElementById('chat-fab-bubble-x');
+    if (bubble) {
+        setTimeout(() => { if (!isChatOpen) bubble.classList.add('show'); }, 1800);
+        bubble.addEventListener('click', () => toggleChat(true));
+        if (bubbleX) bubbleX.addEventListener('click', (e) => { e.stopPropagation(); bubble.classList.remove('show'); });
+    }
 
     document.getElementById('chat-clear').addEventListener('click', () => clearChat());
 
@@ -296,6 +312,7 @@ function toggleChat(forceState) {
     fab.classList.toggle('active', isChatOpen);
 
     if (isChatOpen) {
+        document.getElementById('chat-fab-bubble')?.classList.remove('show');
         fab.querySelector('.notification-dot').style.display = 'none';
         document.getElementById('chat-input').focus();
     }

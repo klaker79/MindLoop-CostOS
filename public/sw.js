@@ -145,7 +145,8 @@
 // BUMP v158: Descarte de avisos vía listener delegado + data-dismiss-id (en vez de onclick inline con dato interpolado) — fix defensa XSS del security review.
 // BUMP v159: Feed de Omnes reorganizado por SECCIONES (Recetas que no rentan / Stock crítico / Frescura / Subidas de precio / Sobrestock), cada una con cabecera (icono+título+contador) y plegable. Tarjetas más limpias (sin etiqueta repetida, la sección la lleva). Cada aviso trae `categoria`. i18n omnes_sec_* (es/en/zh).
 // BUMP v160: Logo del sidebar (CostOS) y burbuja flotante del chat = búho azul (/images/omnes.png) en círculo blanco con object-fit:contain. FAB preparado para animación (basta cambiar el src a un GIF/WebP animado). Fallback a 🦉 si la imagen falla.
-const CACHE_NAME = 'mindloop-costos-v160';
+// BUMP v161: Burbuja del chat = búho azul EN MOVIMIENTO (video /images/omnes-fab.mp4, autoplay+loop+muted, 163KB comprimido desde 8.9MB). Globo de invitación "Pregúntame lo que quieras" junto al FAB (aparece a 1.8s, se cierra con ✕, click abre el chat). i18n fab_invite (es/en/zh).
+const CACHE_NAME = 'mindloop-costos-v161';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

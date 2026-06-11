@@ -55,3 +55,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# Vídeo fuente sin comprimir del FAB Omnes (usar omnes-fab.mp4 comprimido)
+public/images/VIDEO OMNES.mp4
