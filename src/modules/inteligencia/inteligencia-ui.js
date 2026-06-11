@@ -200,7 +200,7 @@ function renderAvisoCard(a) {
         : '';
     return `
         <div class="omnes-card ${a.nivel}" data-aviso-id="${escapeHTML(a.id)}">
-            <button class="omnes-card-dismiss" title="${escapeHTML(t('inteligencia:omnes_dismiss'))}" aria-label="${escapeHTML(t('inteligencia:omnes_dismiss'))}" onclick="event.stopPropagation(); window.omnesDescartar('${escapeHTML(a.id)}')">✕</button>
+            <button class="omnes-card-dismiss" type="button" data-dismiss-id="${escapeHTML(a.id)}" title="${escapeHTML(t('inteligencia:omnes_dismiss'))}" aria-label="${escapeHTML(t('inteligencia:omnes_dismiss'))}">✕</button>
             <div class="omnes-card-icon">${a.icono || '🦉'}</div>
             <div class="omnes-card-body">
                 ${label}
@@ -337,6 +337,15 @@ async function refrescarBadgeOmnes() {
 // Recalcular el badge cada vez que se recargan los datos (mismo evento que el dashboard).
 window.addEventListener('dashboard:refresh', refrescarBadgeOmnes);
 window.refrescarBadgeOmnes = refrescarBadgeOmnes;
+
+// Listener delegado para descartar avisos (data-attribute en vez de onclick inline,
+// para no construir JS a partir de datos interpolados — defensa contra XSS).
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.omnes-card-dismiss');
+    if (!btn) return;
+    e.stopPropagation();
+    window.omnesDescartar(btn.dataset.dismissId);
+});
 
 /**
  * El usuario descarta un aviso: lo persiste (tenant-scoped, TTL 7d), quita la
