@@ -15,6 +15,7 @@ import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
 import { getIngredientUnitPrice, getIngredientNominalPrice } from '../../utils/cost-calculator.js';
 import { getInvMap, getIngMap } from './recetas-crud.js';
+import { ALERGENOS, getAlergenosReceta } from '../ingredientes/alergenos.js';
 
 function calcularDesglose(receta, modo, recetas, ingMap, invMap, ingredientes) {
     const desglose = [];
@@ -117,10 +118,16 @@ export async function verEscandallo(recetaId) {
 
     const precioVenta = parseFloat(receta.precio_venta || 0);
 
+    // Alérgenos heredados: unión recursiva de los alérgenos de cada ingrediente
+    // (y subrecetas). ingMap ya mapea id->ingrediente con su campo .alergenos.
+    const recetasMap = new Map((recetas || []).map(r => [r.id, r]));
+    const alergenos = getAlergenosReceta(receta, ingMap, recetasMap);
+
     window._escandalloActual = {
         receta,
         real,
-        precioVenta
+        precioVenta,
+        alergenos
     };
 
     let modal = document.getElementById('modal-escandallo');
@@ -168,7 +175,7 @@ export async function verEscandallo(recetaId) {
 async function renderContenido() {
     const data = window._escandalloActual;
     if (!data) return;
-    const { receta, real, precioVenta } = data;
+    const { receta, real, precioVenta, alergenos = [] } = data;
     const { desglose, costeTotal } = real;
 
     const margenEuros = precioVenta - costeTotal;
@@ -206,6 +213,25 @@ async function renderContenido() {
     const foodCostRealColor = foodCostReal <= EXCELLENT_MAX ? '#059669' : foodCostReal <= TARGET_MAX ? '#10B981' : foodCostReal <= WATCH_MAX ? '#F59E0B' : '#EF4444';
     const precioIdeal = esBebida ? precioSugerido45 : precioSugerido35;
     const precioIdealLabel = esBebida ? '45%' : '35%';
+
+    // Alérgenos heredados → chips emoji + nombre (o "sin alérgenos declarados")
+    const alergenosMap = new Map(ALERGENOS.map(a => [a.code, a]));
+    const alergenosChips = (alergenos && alergenos.length)
+        ? alergenos.map(code => {
+            const meta = alergenosMap.get(code);
+            const emoji = meta ? meta.emoji : '';
+            const nombre = escapeHTML(t('alergenos:' + code));
+            return `<span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.08); border: 1px solid #475569; border-radius: 999px; padding: 3px 10px; font-size: 12px; color: #E2E8F0;"><span style="font-size: 14px;">${emoji}</span>${nombre}</span>`;
+        }).join('')
+        : `<span style="font-size: 12px; color: #94A3B8; font-style: italic;">${escapeHTML(t('recetas:escandallo_sin_alergenos'))}</span>`;
+    const alergenosRow = `
+                <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #475569;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 14px;">⚠️</span>
+                        <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #F8FAFC;">${escapeHTML(t('recetas:escandallo_alergenos'))}</span>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">${alergenosChips}</div>
+                </div>`;
 
     const resumenEl = document.getElementById('escandallo-resumen');
     if (resumenEl) {
@@ -259,6 +285,7 @@ async function renderContenido() {
                     <span style="color: #94A3B8; padding-top: 6px; cursor: help;" title="${escapeHTML(t('recetas:escandallo_fc_real_tooltip', { pct: MARGEN_ERROR_PCT }))}">${escapeHTML(t('recetas:escandallo_fc_real'))} <span style="display: inline-block; width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 50%; background: #475569; color: #F8FAFC; font-size: 11px; font-weight: 700; margin-left: 4px;">?</span></span>
                     <span style="text-align: right; font-weight: 700; padding-top: 6px; color: ${foodCostRealColor};" title="${escapeHTML(t('recetas:escandallo_fc_real_tooltip', { pct: MARGEN_ERROR_PCT }))}">${foodCostReal.toFixed(1)}%</span>
                 </div>
+                ${alergenosRow}
             </div>
         `;
     }
@@ -370,7 +397,7 @@ export async function exportarPDFEscandallo() {
     const data = window._escandalloActual;
     if (!data) return;
 
-    const { receta, desglose, costeTotal, precioVenta, margenEuros, foodCost } = data;
+    const { receta, desglose, costeTotal, precioVenta, margenEuros, foodCost, alergenos = [] } = data;
 
     await loadPDF();
     const jsPDF = window.jsPDF;
@@ -477,7 +504,24 @@ export async function exportarPDFEscandallo() {
     doc.text(`${cm(costeTotal)}`, 153, tableY + 5.5);
     doc.text('100%', 178, tableY + 5.5);
 
-    tableY += 15;
+    tableY += 14;
+
+    // ── Sección ALÉRGENOS (heredados, texto sin emoji por compatibilidad jsPDF) ──
+    doc.setTextColor(30, 41, 59);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(t('recetas:escandallo_alergenos').toUpperCase(), 14, tableY + 5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(71, 85, 105);
+    const alergenosTexto = (alergenos && alergenos.length)
+        ? alergenos.map(code => t('alergenos:' + code)).join(', ')
+        : t('recetas:escandallo_sin_alergenos');
+    const alergenosLines = doc.splitTextToSize(alergenosTexto, pageWidth - 28);
+    doc.text(alergenosLines, 14, tableY + 11);
+
+    tableY += 11 + alergenosLines.length * 5 + 4;
 
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
