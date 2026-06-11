@@ -494,9 +494,9 @@ import * as Horarios from './modules/horarios/horarios.js';
 window.initHorarios = Horarios.initHorarios;
 
 // ============================================
-// MÓDULO: INTELIGENCIA 🧠 (Predictive Dashboard)
+// MÓDULO: OMNES 🦉 (feed de avisos proactivos, antes "Inteligencia")
 // ============================================
-// Self-registering: sets window.renderizarInteligencia + window.loadPurchasePlan
+// Self-registering: sets window.renderizarInteligencia (id de pestaña sigue siendo "inteligencia")
 import './modules/inteligencia/inteligencia-ui.js';
 
 // ============================================
