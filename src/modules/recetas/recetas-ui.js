@@ -331,6 +331,19 @@ export function calcularCosteReceta() {
                 foodCostSpan.textContent = foodCost.toFixed(1) + '%';
                 foodCostSpan.style.color = getColor(foodCost);
             }
+        } else {
+            // Sin PVP (típico en recetas BASE/preparaciones, que no se venden) no se
+            // puede calcular food cost ni margen. Resetear a "—" — si no, los spans
+            // conservan el valor de la receta vista ANTES y enseñan un % engañoso
+            // que no cambia con la cantidad (bug detectado por Iker 2026-06-11).
+            const sinPvp = (el) => {
+                if (!el) return;
+                el.textContent = '—';
+                el.style.color = '#cbd5e1';
+                el.title = 'Sin precio de venta (PVP). No aplica a recetas base.';
+            };
+            sinPvp(foodCostSpan);
+            sinPvp(margenSpan);
         }
     }
 
