@@ -130,6 +130,7 @@ export async function construirAvisos(deps) {
     recetasProblema.slice(0, max).forEach((r, i) => {
         avisos.push({
             id: `receta-${r.id ?? i}`,
+            categoria: 'recetas',
             nivel: 'critico',
             icono: '📉',
             titulo: t('inteligencia:omnes_t_receta_no_renta'),
@@ -139,9 +140,10 @@ export async function construirAvisos(deps) {
     });
 
     // 2) 🔴/🟠 Stock crítico
-    calcularStockCritico(ingredientes).slice(0, max).forEach((s, i) => {
+    calcularStockCritico(ingredientes).slice(0, max).forEach((s) => {
         avisos.push({
-            id: `stock-${i}`,
+            id: `stock-${s.id}`,
+            categoria: 'stock',
             nivel: s.cero ? 'critico' : 'atencion',
             icono: '📦',
             titulo: t('inteligencia:omnes_t_stock_critico'),
@@ -153,9 +155,10 @@ export async function construirAvisos(deps) {
     });
 
     // 3) 🟠 Subidas de precio en la última compra
-    calcularSubidasPrecio(pedidos, ingMap).slice(0, max).forEach((p, i) => {
+    calcularSubidasPrecio(pedidos, ingMap).slice(0, max).forEach((p) => {
         avisos.push({
-            id: `precio-${i}`,
+            id: `precio-${p.id}`,
+            categoria: 'precio',
             nivel: 'atencion',
             icono: '📈',
             titulo: t('inteligencia:omnes_t_precio_sube'),
@@ -171,7 +174,8 @@ export async function construirAvisos(deps) {
     (Array.isArray(fresh) ? fresh : []).slice(0, max).forEach((f, i) => {
         const critico = f.urgencia === 'critico';
         avisos.push({
-            id: `fresh-${i}`,
+            id: `fresh-${f.id ?? i}`,
+            categoria: 'frescura',
             nivel: critico ? 'critico' : 'atencion',
             icono: '🧊',
             titulo: t('inteligencia:omnes_t_frescura'),
@@ -186,7 +190,8 @@ export async function construirAvisos(deps) {
     // 5) 🟠 Sobrestock
     (Array.isArray(over) ? over : []).slice(0, max).forEach((o, i) => {
         avisos.push({
-            id: `over-${i}`,
+            id: `over-${o.id ?? i}`,
+            categoria: 'sobrestock',
             nivel: 'atencion',
             icono: '🗄️',
             titulo: t('inteligencia:omnes_t_sobrestock'),

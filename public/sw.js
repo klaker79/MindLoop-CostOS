@@ -141,7 +141,10 @@
 // BUMP v154: Contador de avisos en el sidebar/tab de Omnes (badge rojo "5", "9+"). Se recalcula en cada dashboard:refresh con el mismo construirAvisos del feed (guard anti-concurrencia, solo con sesión). Permite ver avisos pendientes sin entrar en la pestaña.
 // BUMP v155: Avatar del chat Omnes = búho azul real (/images/omnes.png) en círculo blanco con object-fit:contain (se ve entero: gorro + varilla). Antes apuntaba a omnes-avatar.png (inexistente) y caía al emoji. Fondo blanco + overflow hidden + sombra.
 // BUMP v156: La foto del búho azul también en los avatares de CADA mensaje del bot (y el indicador de escribiendo), no solo en la cabecera. Helper avatarMensaje() con fallback a emoji 🦉. Círculo blanco, object-fit:contain.
-const CACHE_NAME = 'mindloop-costos-v156';
+// BUMP v157: Botón ✕ en cada aviso de Omnes para descartarlo. Descartes en localStorage PREFIJADO por restauranteId (aislamiento multi-tenant) con CADUCIDAD 7 días (reaparece si sigue vigente). Ids de aviso estables por item. Quita la tarjeta y recalcula chips+badge sin recargar. Lógica testeada (omnes-dismiss.js, 4 tests).
+// BUMP v158: Descarte de avisos vía listener delegado + data-dismiss-id (en vez de onclick inline con dato interpolado) — fix defensa XSS del security review.
+// BUMP v159: Feed de Omnes reorganizado por SECCIONES (Recetas que no rentan / Stock crítico / Frescura / Subidas de precio / Sobrestock), cada una con cabecera (icono+título+contador) y plegable. Tarjetas más limpias (sin etiqueta repetida, la sección la lleva). Cada aviso trae `categoria`. i18n omnes_sec_* (es/en/zh).
+const CACHE_NAME = 'mindloop-costos-v159';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
