@@ -146,7 +146,8 @@
 // BUMP v159: Feed de Omnes reorganizado por SECCIONES (Recetas que no rentan / Stock crítico / Frescura / Subidas de precio / Sobrestock), cada una con cabecera (icono+título+contador) y plegable. Tarjetas más limpias (sin etiqueta repetida, la sección la lleva). Cada aviso trae `categoria`. i18n omnes_sec_* (es/en/zh).
 // BUMP v160: Logo del sidebar (CostOS) y burbuja flotante del chat = búho azul (/images/omnes.png) en círculo blanco con object-fit:contain. FAB preparado para animación (basta cambiar el src a un GIF/WebP animado). Fallback a 🦉 si la imagen falla.
 // BUMP v161: Burbuja del chat = búho azul EN MOVIMIENTO (video /images/omnes-fab.mp4, autoplay+loop+muted, 163KB comprimido desde 8.9MB). Globo de invitación "Pregúntame lo que quieras" junto al FAB (aparece a 1.8s, se cierra con ✕, click abre el chat). i18n fab_invite (es/en/zh).
-const CACHE_NAME = 'mindloop-costos-v161';
+// BUMP v162: Precio → UN SOLO PLAN de 90€/mes (chat incluido). Antes 95€ + add-on chat 30€ y modal Self/Pro. PLAN_PRICE_EUR 95→90; paywall muestra un único plan 90€ (retirado Pro 185€ del overlay); comentarios actualizados. El gating no cambia (chat ya estaba incluido desde 8-jun).
+const CACHE_NAME = 'mindloop-costos-v162';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
