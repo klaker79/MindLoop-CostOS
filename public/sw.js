@@ -139,7 +139,9 @@
 // BUMP v152: Pestaña "Inteligencia" → renombrada "Omnes" (icono 🦉, foto del búho /images/omnes.png). Reconstruida como FEED de avisos proactivos DETERMINISTAS (reglas con umbral, sin IA por tarjeta → sin ruido): recetas no rentables, stock crítico, subidas de precio, frescura y sobrestock. Voz de Omnes vía i18n (es/en/zh). Lógica en omnes-avisos.js (testeada).
 // BUMP v153: Avisos Omnes con DEEP-LINK al item concreto (no solo a la pestaña). window.omnesIr(tipo,id): receta→editarReceta (abre ficha para ajustar PVP), ingrediente→editarIngrediente (frescura/sobrestock/subida precio), pedido→agregarAlCarrito (stock crítico). El id viaja en cada aviso (endpoints ya devuelven id; stock/precio desde window.ingredientes).
 // BUMP v154: Contador de avisos en el sidebar/tab de Omnes (badge rojo "5", "9+"). Se recalcula en cada dashboard:refresh con el mismo construirAvisos del feed (guard anti-concurrencia, solo con sesión). Permite ver avisos pendientes sin entrar en la pestaña.
-const CACHE_NAME = 'mindloop-costos-v154';
+// BUMP v155: Avatar del chat Omnes = búho azul real (/images/omnes.png) en círculo blanco con object-fit:contain (se ve entero: gorro + varilla). Antes apuntaba a omnes-avatar.png (inexistente) y caía al emoji. Fondo blanco + overflow hidden + sombra.
+// BUMP v156: La foto del búho azul también en los avatares de CADA mensaje del bot (y el indicador de escribiendo), no solo en la cabecera. Helper avatarMensaje() con fallback a emoji 🦉. Círculo blanco, object-fit:contain.
+const CACHE_NAME = 'mindloop-costos-v156';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
