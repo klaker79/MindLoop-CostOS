@@ -5,8 +5,37 @@
 
 import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
-import { escapeHTML } from '../../utils/helpers.js';
+import { escapeHTML, formatQuantity } from '../../utils/helpers.js';
+import { calcularPreviewPrecioUnidad } from './precio-unidad-preview.js';
+import { detectarAlergenos } from './alergenos-deteccion.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
+
+// 🆕 En cuanto el usuario toca un checkbox de alérgeno a mano, dejamos de
+// auto-sugerir por el nombre (no le pisamos su decisión). Listener delegado
+// único (los checkboxes son estáticos en index.html). Un cambio PROGRAMÁTICO
+// (chk.checked = x) NO dispara 'change', así que esto solo se activa con clic.
+if (typeof document !== 'undefined') {
+    document.addEventListener('change', (e) => {
+        if (e.target?.classList?.contains('ing-alergeno')) window._alergenosManual = true;
+    });
+}
+
+/**
+ * Pre-marca los alérgenos sugeridos según el NOMBRE del ingrediente. Solo
+ * mientras el usuario no haya tocado los checkboxes a mano (window._alergenosManual).
+ * SOLO sugerencia — el usuario confirma. Llamada con oninput desde #ing-nombre.
+ */
+export function sugerirAlergenosPorNombre() {
+    if (window._alergenosManual) return;
+    const nombre = getInputValue('ing-nombre');
+    const sugeridos = detectarAlergenos(nombre);
+    const set = new Set(sugeridos);
+    document.querySelectorAll('.ing-alergeno').forEach(chk => {
+        chk.checked = set.has(chk.value); // programático → no marca _alergenosManual
+    });
+    const hint = getElement('ing-alergenos-hint');
+    if (hint) hint.style.display = sugeridos.length ? 'block' : 'none';
+}
 // 🆕 Zustand store para gestión de estado
 import ingredientStore from '../../stores/ingredientStore.js';
 // 🆕 Validación centralizada
@@ -53,6 +82,8 @@ export async function guardarIngrediente(event) {
         cantidad_por_formato: getInputValue('ing-cantidad-formato')
             ? parseFloat(getInputValue('ing-cantidad-formato'))
             : undefined,
+        // 🆕 Alérgenos UE: array de códigos de los checkboxes marcados.
+        alergenos: Array.from(document.querySelectorAll('.ing-alergeno:checked')).map(c => c.value),
     };
 
     // 🆕 Validación centralizada (reemplaza validación manual)
@@ -60,6 +91,9 @@ export async function guardarIngrediente(event) {
     if (!validation.valid) {
         showValidationErrors(validation.errors);
         _guardandoIngrediente = false;
+        // 🔒 FIX: rehabilitar el botón al fallar la validación. Antes se quedaba
+        // disabled (gris) tras un guardado bloqueado y solo se recuperaba recargando.
+        if (submitBtn) submitBtn.disabled = false;
         return;
     }
 
@@ -353,6 +387,72 @@ export function editarIngrediente(id) {
     if (cantFormatoEl) cantFormatoEl.value = ing.cantidad_por_formato !== null && ing.cantidad_por_formato !== undefined
         ? ing.cantidad_por_formato
         : '';
+
+    // 🆕 Cargar alérgenos: limpiar todos y marcar los presentes en ing.alergenos.
+    const alergenosIng = Array.isArray(ing.alergenos) ? ing.alergenos : [];
+    document.querySelectorAll('.ing-alergeno').forEach(chk => {
+        chk.checked = alergenosIng.includes(chk.value);
+    });
+    // En edición ya hay alérgenos guardados → NO auto-sugerir por el nombre
+    // (no pisar lo que el usuario validó antes). El hint se oculta.
+    window._alergenosManual = true;
+    const hintEdit = getElement('ing-alergenos-hint');
+    if (hintEdit) hintEdit.style.display = 'none';
+
+    // Refrescar el preview de precio por unidad con los datos cargados.
+    actualizarPreviewPrecioUnidad();
+}
+
+/**
+ * Pinta en vivo, bajo el formato, qué precio por unidad base usará la app y avisa
+ * si la combinación es incoherente (cpf>1 sin nombre de formato, o cpf>1 con una
+ * unidad "contable" tipo 'unidad'/'botella' que casi siempre debería ser g/ml).
+ * Evita el bug mermelada (unidad=unidad + 750 por formato → 0,004 €/unidad).
+ * Lógica de cálculo aislada y testeada en precio-unidad-preview.js.
+ */
+export function actualizarPreviewPrecioUnidad() {
+    const el = getElement('ing-precio-unidad-preview');
+    if (!el) return;
+
+    const r = calcularPreviewPrecioUnidad({
+        precio: getInputValue('ing-precio'),
+        cantidadPorFormato: getInputValue('ing-cantidad-formato'),
+        formato: getInputValue('ing-formato-compra'),
+        unidad: getInputValue('ing-unidad'),
+    });
+
+    if (!r.visible) {
+        el.style.display = 'none';
+        el.innerHTML = '';
+        return;
+    }
+
+    const moneda = window.currentUser?.moneda || '€';
+    const u = escapeHTML(r.unidad);
+    const nombreFormato = escapeHTML(r.formato || 'formato');
+
+    let html = '';
+    if (r.cpf > 1) {
+        html += `<div>Compras <strong>1 ${nombreFormato}</strong> = <strong>${escapeHTML(formatQuantity(r.cpf))} ${u}</strong> por <strong>${r.precio.toFixed(2)} ${escapeHTML(moneda)}</strong></div>`;
+    }
+    html += `<div style="margin-top:4px;">→ La app usará <strong>${escapeHTML(formatQuantity(r.unitPrice))} ${escapeHTML(moneda)}/${u}</strong> para el coste / food cost</div>`;
+
+    let bg = '#ecfdf5';
+    let border = '#10b981';
+    if (r.level === 'falta_nombre') {
+        bg = '#fef2f2';
+        border = '#ef4444';
+        html += `<div style="margin-top:6px;font-weight:600;color:#b91c1c;">⚠️ Pon el nombre del formato (ej. BOTE, CAJA) o deja vacía la cantidad por formato si compras por unidad.</div>`;
+    } else if (r.level === 'sospechoso') {
+        bg = '#fffbeb';
+        border = '#f59e0b';
+        html += `<div style="margin-top:6px;font-weight:600;color:#92400e;">⚠️ Estás diciendo que <strong>1 ${nombreFormato} = ${escapeHTML(formatQuantity(r.cpf))} ${u}</strong>. Si en realidad es peso/volumen (ej. un bote de 750 g), cambia la <strong>Unidad</strong> a g / ml / kg / l.</div>`;
+    }
+
+    el.style.display = 'block';
+    el.style.background = bg;
+    el.style.borderLeft = `3px solid ${border}`;
+    el.innerHTML = html;
 }
 
 /**

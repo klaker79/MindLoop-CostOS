@@ -28,5 +28,35 @@
   "day_short_wed": "Mié",
   "day_short_thu": "Jue",
   "day_short_fri": "Vie",
-  "day_short_sat": "Sáb"
+  "day_short_sat": "Sáb",
+
+  "omnes_title": "Omnes",
+  "omnes_tagline": "Omnes lo ve todo. Tú decides.",
+  "omnes_loading": "Omnes está revisando tu negocio…",
+  "omnes_chip_ok": "Todo en orden",
+  "omnes_chip_crit_one": "{{count}} crítico",
+  "omnes_chip_crit_other": "{{count}} críticos",
+  "omnes_chip_aten_one": "{{count}} a vigilar",
+  "omnes_chip_aten_other": "{{count}} a vigilar",
+  "omnes_empty_title": "Todo en orden",
+  "omnes_empty_sub": "Omnes no ve nada urgente ahora mismo. Sigue así.",
+
+  "omnes_t_receta_no_renta": "Receta que no renta",
+  "omnes_x_receta_no_renta": "«{{nombre}}» va al {{fc}}% de food cost. Súbela a {{precio}} o quítala de la carta.",
+  "omnes_cta_ajustar_precio": "Ajustar precio",
+
+  "omnes_t_stock_critico": "Stock crítico",
+  "omnes_x_stock_cero": "Te has quedado sin «{{nombre}}». Pídelo ya.",
+  "omnes_x_stock_bajo": "Quedan {{stock}} {{unidad}} de «{{nombre}}» (mínimo {{min}}). Toca reponer.",
+  "omnes_cta_pedir": "Hacer pedido",
+
+  "omnes_t_precio_sube": "Te ha subido un precio",
+  "omnes_x_precio_sube": "«{{nombre}}» subió un {{pct}}% en tu última compra: de {{antes}} a {{ahora}}/{{unidad}}. Vigílalo.",
+  "omnes_cta_ver_ingrediente": "Ver ingrediente",
+
+  "omnes_t_frescura": "Frescura",
+  "omnes_x_frescura": "{{stock}} {{unidad}} de «{{nombre}}» llevan {{dias}} días en cámara. Úsalo antes de que se pierda.",
+
+  "omnes_t_sobrestock": "Te sobra producto",
+  "omnes_x_sobrestock": "Tienes {{stock}} {{unidad}} de «{{nombre}}», unos {{dias}} días de stock. No vuelvas a pedirlo aún."
 }

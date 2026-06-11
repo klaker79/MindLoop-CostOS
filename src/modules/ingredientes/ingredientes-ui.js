@@ -390,6 +390,14 @@ export function mostrarFormularioIngrediente() {
         const input = getElement('ing-nombre');
         if (input) input.focus();
     }
+    // Refrescar (oculta) el preview de precio por unidad: en alta nueva el precio
+    // está vacío, así que se esconde hasta que el usuario empiece a rellenar.
+    window.actualizarPreviewPrecioUnidad?.();
+    // 🆕 Alta nueva: reactivar auto-sugerencia de alérgenos por nombre (resetea el
+    // flag de "tocado a mano") y ocultar la pista hasta que se teclee un nombre.
+    window._alergenosManual = false;
+    const hintAl = getElement('ing-alergenos-hint');
+    if (hintAl) hintAl.style.display = 'none';
     // Engancha el listener del slider de rendimiento. Sin esto, mover la barra
     // no actualiza el hidden #ing-rendimiento y al guardar siempre se manda 100%
     // (el listener solo estaba enganchado en cerrarFormularioIngrediente, que

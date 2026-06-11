@@ -76,6 +76,8 @@
   "escandallo_pvp": "PVP (IVA incl.)",
   "escandallo_fc_real": "Food Cost real (con error)",
   "escandallo_fc_real_tooltip": "Aparecen dos Food Cost porque miden cosas distintas:\n\n• El Food Cost del cabecero (arriba) usa el coste de ingredientes tal cual sale del escandallo, sobre el PVP sin IVA. Es lo que pagas HOY de media.\n\n• Este Food Cost (con error) suma un colchón del {{pct}}% al coste para cubrir mermas, derrames, errores de receta y subidas puntuales. Es el que se usa para FIJAR PRECIOS con seguridad — si vendes a este FC, tienes margen aunque la realidad varíe.",
+  "escandallo_alergenos": "Alérgenos",
+  "escandallo_sin_alergenos": "Sin alérgenos declarados",
   "escandallo_toggle_label": "Modo de precio",
   "escandallo_toggle_real": "Real (compras)",
   "escandallo_toggle_nominal": "Nominal (configurado)",

@@ -244,6 +244,8 @@ window.proyeccionConsumo = Helpers.proyeccionConsumo;
 import * as IngredientesUI from './modules/ingredientes/ingredientes-ui.js';
 import * as IngredientesCRUD from './modules/ingredientes/ingredientes-crud.js';
 import * as IngredientesProveedores from './modules/ingredientes/ingredientes-proveedores.js';
+// Side-effect: registra window.abrirDeteccionAlergenosBatch (botón "✨ Detectar alérgenos").
+import './modules/ingredientes/alergenos-batch.js';
 
 // UI
 window.renderizarIngredientes = IngredientesUI.renderizarIngredientes;
@@ -281,6 +283,8 @@ window.exportarInventario = function () {
 window.guardarIngrediente = IngredientesCRUD.guardarIngrediente;
 window.editarIngrediente = IngredientesCRUD.editarIngrediente;
 window.eliminarIngrediente = IngredientesCRUD.eliminarIngrediente;
+window.actualizarPreviewPrecioUnidad = IngredientesCRUD.actualizarPreviewPrecioUnidad;
+window.sugerirAlergenosPorNombre = IngredientesCRUD.sugerirAlergenosPorNombre;
 
 // Proveedores por ingrediente
 window.gestionarProveedoresIngrediente = IngredientesProveedores.gestionarProveedoresIngrediente;
@@ -490,9 +494,9 @@ import * as Horarios from './modules/horarios/horarios.js';
 window.initHorarios = Horarios.initHorarios;
 
 // ============================================
-// MÓDULO: INTELIGENCIA 🧠 (Predictive Dashboard)
+// MÓDULO: OMNES 🦉 (feed de avisos proactivos, antes "Inteligencia")
 // ============================================
-// Self-registering: sets window.renderizarInteligencia + window.loadPurchasePlan
+// Self-registering: sets window.renderizarInteligencia (id de pestaña sigue siendo "inteligencia")
 import './modules/inteligencia/inteligencia-ui.js';
 
 // ============================================

@@ -104,12 +104,15 @@ export function createChatStyles() {
         .chat-header-avatar {
             width: 45px;
             height: 45px;
-            background: rgba(255,255,255,0.2);
+            background: #fff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 22px;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
         }
         
         .chat-header-info h3 {
@@ -206,6 +209,21 @@ export function createChatStyles() {
         
         .chat-message.user .chat-message-avatar {
             background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        }
+
+        /* Avatar del bot con la foto del búho azul: círculo blanco, foto entera */
+        .chat-message-avatar.bot-omnes {
+            background: #fff;
+            overflow: hidden;
+            padding: 2px;
+            box-sizing: border-box;
+        }
+        .chat-message-avatar.bot-omnes img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+            display: block;
         }
         
         .chat-message-content {

@@ -250,8 +250,8 @@
             <span class="nav-item-text" data-i18n="common:nav_analisis">Análisis</span>
           </button>
           <button class="nav-item" data-tab="inteligencia">
-            <span class="nav-item-icon">🧠</span>
-            <span class="nav-item-text" data-i18n="common:nav_inteligencia">Inteligencia</span>
+            <span class="nav-item-icon">🦉</span>
+            <span class="nav-item-text" data-i18n="common:nav_inteligencia">Omnes</span>
             <span class="nav-item-badge intel">IA</span>
           </button>
         </div>
@@ -781,8 +781,8 @@
           Análisis</button>
         <button id="tab-btn-inteligencia" class="tab" data-tab="inteligencia"
           style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none;"
-          data-i18n="common:tab_inteligencia">🧠
-          Inteligencia</button>
+          data-i18n="common:tab_inteligencia">🦉
+          Omnes</button>
         <button id="tab-btn-horarios" class="tab" data-tab="horarios" data-i18n="common:tab_horarios">👥
           Horarios</button>
         <button id="tab-btn-configuracion" class="tab" data-tab="configuracion" data-i18n="common:tab_configuracion">⚙️
@@ -803,6 +803,9 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-ingrediente" data-i18n="ingredientes:btn_new">➕
                 Añadir Ingrediente</button>
+              <button type="button" class="btn btn-secondary" onclick="window.abrirDeteccionAlergenosBatch?.()"
+                      title="Detecta y rellena los alérgenos de tus ingredientes automáticamente">
+                ✨ <span data-i18n="ingredientes:btn_detect_allergens">Detectar alérgenos</span></button>
               <!-- Carpeta Excel (UX 2026-06-08 rev2): icono carpeta visible
                    que al pulsarse despliega Importar / Exportar / Plantilla
                    con una mini-descripción de cada opción. -->
@@ -856,7 +859,7 @@
               <div class="form-grid">
                 <div class="form-group">
                   <label data-i18n="common:label_name_required">Nombre *</label>
-                  <input type="text" id="ing-nombre" required>
+                  <input type="text" id="ing-nombre" required oninput="window.sugerirAlergenosPorNombre?.()">
                 </div>
                 <div class="form-group">
                   <label data-i18n="common:label_supplier">Proveedor</label>
@@ -866,14 +869,14 @@
                 </div>
                 <div class="form-group">
                   <label data-i18n="common:label_price">Precio (€)</label>
-                  <input type="number" id="ing-precio" step="0.01" min="0">
+                  <input type="number" id="ing-precio" step="0.01" min="0" oninput="window.actualizarPreviewPrecioUnidad?.()">
                   <small id="ing-precio-hint" style="display: block; margin-top: 6px; padding: 8px 10px; background: #f0f9ff; border-left: 3px solid #0284c7; border-radius: 4px; color: #0369a1; font-size: 12px; line-height: 1.4;">
                     💡 La app recalcula este precio automáticamente tras cada pedido recibido (precio medio de compras × cantidad por formato). Si lo editas a mano, el siguiente pedido lo sobreescribirá.
                   </small>
                 </div>
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_label_unit">Unidad</label>
-                  <select id="ing-unidad">
+                  <select id="ing-unidad" onchange="window.actualizarPreviewPrecioUnidad?.()">
                     <option value="kg">kg</option>
                     <option value="g">g</option>
                     <option value="l">L</option>
@@ -908,13 +911,23 @@
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_format_label">Formato</label>
                   <input type="text" id="ing-formato-compra" placeholder="ej: bote, garrafa, caja..."
-                    data-i18n-placeholder="ingredientes:form_format_placeholder">
+                    data-i18n-placeholder="ingredientes:form_format_placeholder"
+                    oninput="window.actualizarPreviewPrecioUnidad?.()">
                 </div>
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_format_quantity">Cantidad por formato</label>
                   <input type="number" id="ing-cantidad-formato" step="0.01" min="0"
                     placeholder="ej: 0.65 (kg), 10 (L)..."
-                    data-i18n-placeholder="ingredientes:form_format_qty_placeholder">
+                    data-i18n-placeholder="ingredientes:form_format_qty_placeholder"
+                    oninput="window.actualizarPreviewPrecioUnidad?.()">
+                </div>
+
+                <!-- 🔍 Preview en vivo del precio por unidad base. Evita configs
+                     incoherentes (ej. unidad=unidad + 750 por formato → 0,004 €/unidad,
+                     bug mermelada 2026-06-10): el usuario VE el precio resultante y la
+                     advertencia mientras rellena. Lo pinta window.actualizarPreviewPrecioUnidad. -->
+                <div class="form-group" id="ing-precio-unidad-preview"
+                  style="grid-column: span 2; display: none; margin-top: 4px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5;">
                 </div>
 
                 <div class="form-group">
@@ -958,6 +971,61 @@
                   <p id="ing-rendimiento-warning" style="display: none; font-size: 12px; color: #92400e; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px; padding: 8px 10px; margin-top: 8px; line-height: 1.4;">
                     ⚠️ Al cambiar este rendimiento, todas las recetas que usen este ingrediente verán el nuevo % aplicado tanto en su coste teórico como en el descuento de stock al vender.
                   </p>
+                </div>
+
+                <!-- ALÉRGENOS (UE) — 14 de declaración obligatoria -->
+                <div class="form-group"
+                  style="grid-column: span 2; margin-top: 10px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                  <label style="margin: 0 0 6px; display: block; color: #334155; font-weight: 600;">
+                    🌡️ <span data-i18n="ingredientes:form_label_allergens">Alérgenos (UE)</span>
+                  </label>
+                  <small id="ing-alergenos-hint" style="display: none; margin: 0 0 10px; padding: 6px 10px; background: #ecfdf5; border-left: 3px solid #10b981; border-radius: 4px; color: #047857; font-size: 12px; line-height: 1.4;">
+                    ✨ <span data-i18n="ingredientes:allergens_suggested">Pre-marcados por el nombre. Revisa y confirma — la información de alérgenos es tu responsabilidad.</span>
+                  </small>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="gluten"> 🌾 <span data-i18n="alergenos:gluten">Gluten</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="crustaceos"> 🦐 <span data-i18n="alergenos:crustaceos">Crustáceos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="huevos"> 🥚 <span data-i18n="alergenos:huevos">Huevos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="pescado"> 🐟 <span data-i18n="alergenos:pescado">Pescado</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="cacahuetes"> 🥜 <span data-i18n="alergenos:cacahuetes">Cacahuetes</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="soja"> 🫛 <span data-i18n="alergenos:soja">Soja</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="lacteos"> 🥛 <span data-i18n="alergenos:lacteos">Lácteos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="frutos_cascara"> 🌰 <span data-i18n="alergenos:frutos_cascara">Frutos de cáscara</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="apio"> 🥬 <span data-i18n="alergenos:apio">Apio</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="mostaza"> 🟡 <span data-i18n="alergenos:mostaza">Mostaza</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="sesamo"> ⚫ <span data-i18n="alergenos:sesamo">Sésamo</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="sulfitos"> 🍷 <span data-i18n="alergenos:sulfitos">Sulfitos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="altramuces"> 🌱 <span data-i18n="alergenos:altramuces">Altramuces</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="moluscos"> 🐚 <span data-i18n="alergenos:moluscos">Moluscos</span>
+                    </label>
+                  </div>
                 </div>
               </div>
               <div class="form-actions">

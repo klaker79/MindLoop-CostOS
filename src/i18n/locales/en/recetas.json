@@ -76,6 +76,8 @@
   "escandallo_pvp": "Sale price (VAT incl.)",
   "escandallo_fc_real": "Real food cost (with margin)",
   "escandallo_fc_real_tooltip": "Two Food Cost values appear because they measure different things:\n\n• The Food Cost in the header uses ingredient cost as-is from the recipe, over PVP excluding VAT. It's what you actually pay on average TODAY.\n\n• This Food Cost (with margin) adds a {{pct}}% buffer to the cost to cover waste, spills, recipe errors and price spikes. Use THIS one to SET PRICES safely — selling at this FC keeps your margin even if reality fluctuates.",
+  "escandallo_alergenos": "Allergens",
+  "escandallo_sin_alergenos": "No allergens declared",
   "escandallo_toggle_label": "Price mode",
   "escandallo_toggle_real": "Real (purchases)",
   "escandallo_toggle_nominal": "Nominal (configured)",

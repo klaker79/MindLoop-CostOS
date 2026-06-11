@@ -131,6 +131,14 @@ export function agregarIngredienteReceta(initialValue = '') {
         });
     }
 
+    // Unidad del ingrediente preseleccionado (si edita una receta existente), para
+    // pintar "g"/"kg"/… junto a la cantidad. Las recetas-base (rec_X) no tienen
+    // unidad base (van por ración) → se deja el icono 📏.
+    const ingInicial = initialValue && !String(initialValue).startsWith('rec_')
+        ? (window.ingredientes || []).find(i => i.id === parseInt(initialValue))
+        : null;
+    const unidadInicial = ingInicial ? (ingInicial.unidad || '') : '';
+
     item.innerHTML = `
         <div style="flex: 2; position: relative;">
             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none;">🥬</span>
@@ -157,6 +165,8 @@ export function agregarIngredienteReceta(initialValue = '') {
                 if (ing && rendInput) {
                     rendInput.value = ing.rendimiento !== undefined && ing.rendimiento !== null ? ing.rendimiento : 100;
                 }
+                const lbl = row.querySelector('.receta-unidad-label');
+                if (lbl) lbl.textContent = ing ? (ing.unidad || '') : '📏';
                 window.calcularCosteReceta();
             ">
                 ${optionsHtml}
@@ -165,9 +175,9 @@ export function agregarIngredienteReceta(initialValue = '') {
         <div style="flex: 1.5; position: relative;">
             <input type="number" step="0.001" min="0" placeholder="${t('recetas:placeholder_quantity')}"
                 class="receta-cantidad receta-input-no-spin"
-                style="width: 100%; padding: 12px 38px 12px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;"
+                style="width: 100%; padding: 12px 48px 12px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;"
                 onchange="window.calcularCosteReceta()">
-            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #94a3b8; pointer-events: none; line-height: 1;">📏</span>
+            <span class="receta-unidad-label" title="Unidad en la que tecleas la cantidad de este ingrediente" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 600; color: #64748b; pointer-events: none; line-height: 1; max-width: 38px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(unidadInicial) || '📏'}</span>
         </div>
 
         <!-- MERMA / RENDIMIENTO EN RECETA -->

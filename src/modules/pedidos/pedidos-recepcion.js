@@ -13,8 +13,23 @@
  */
 
 import { t } from '@/i18n/index.js';
-import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpers.js';
+import { formatoDesdeBase, esCantidadEnteraEnFormato } from './formato-utils.js';
 import ingredientStore from '../../stores/ingredientStore.js';
+
+/**
+ * Contexto de formato de un ingrediente para mostrar la recepción en formato
+ * de compra (bote, caja…) en vez de unidad base. cpf>1 + formato_compra = hay
+ * formato. El dato interno (cantidadRecibida/precioReal) SIEMPRE queda en base;
+ * esto es SOLO para mostrar/editar. Así el delta de stock no cambia y no se
+ * puede inflar inventario.
+ */
+function ctxFormato(ing) {
+    const cpfRaw = parseFloat(ing?.cantidad_por_formato);
+    const cpf = cpfRaw > 1 ? cpfRaw : 1;
+    const formatoNombre = ing?.formato_compra;
+    return { cpf, formatoNombre, usaFormato: cpf > 1 && !!formatoNombre };
+}
 
 // 🔒 Guard anti-doble-click: si una recepción está en curso, el siguiente clic no hace nada.
 // Evita duplicar stock cuando el usuario pulsa "Confirmar" dos veces rápido.
@@ -170,16 +185,37 @@ function renderItemsRecepcionModal(ped) {
         totalOriginal += subtotalOriginal;
         totalRecibido += subtotalRecibido;
 
+        // 📦 Mostrar en FORMATO de compra (bote, caja…) como el resto de la app.
+        // SOLO display: cantidadRecibida/precioReal siguen en base internamente,
+        // el delta de stock no cambia → imposible inflar inventario por esto.
+        const { cpf, formatoNombre } = ctxFormato(ing);
+        // Formato solo si la cantidad pedida son cajas/botes ENTEROS; si no
+        // (reparto de personal, sueltas), en base (botella) para no ver 0,333 CAJA.
+        const usaFormato = cpf > 1 && !!formatoNombre && esCantidadEnteraEnFormato(cantPedida, cpf);
+        const unidadLabel = usaFormato ? formatoNombre : unidad;
+        const cantPedidaShown = usaFormato ? formatoDesdeBase(cantPedida, 0, cpf).cantidad : cantPedida;
+        const cantRecibidaShown = usaFormato ? formatoDesdeBase(cantRecibida, 0, cpf).cantidad : cantRecibida;
+        const precioPedShown = usaFormato ? formatoDesdeBase(0, precioPed, cpf).precio : precioPed;
+        const precioRealShown = usaFormato ? formatoDesdeBase(0, precioReal, cpf).precio : precioReal;
+        const precioPedTxt = usaFormato ? `${cm(precioPedShown)}/${escapeHTML(formatoNombre)}` : cm(precioPed);
+        const precioRealTxt = usaFormato ? `${cm(precioRealShown)}/${escapeHTML(formatoNombre)}` : cm(precioReal);
+        const hintBase = usaFormato ? `<div style="font-size:10px;color:#94a3b8;">= ${escapeHTML(formatQuantity(cantPedida))} ${escapeHTML(unidad)}</div>` : '';
+        // En modo base (usaFormato=false) NO se debe convertir al teclear → cpf=1,
+        // si no, multiplicaría el valor base por cpf e inflaría el stock.
+        const cpfInput = usaFormato ? cpf : 1;
+        const recOnchange = `window.actualizarItemRecepcion(${idx}, 'cantidad', this.value, ${cpfInput})`;
+        const precioOnchange = `window.actualizarItemRecepcion(${idx}, 'precio', this.value, ${cpfInput})`;
+
         // 🍽️ Líneas de comida personal: fila en modo LECTURA (gris, badge), sin
         // inputs ni estado. Cuenta en el total pero NO toca stock ni food cost.
         if (item.personal === true) {
             html += `
           <tr style="background:#faf5ff;">
             <td>${escapeHTML(nombre)} <span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#7c3aed;background:#ede9fe;border-radius:6px;padding:2px 7px;white-space:nowrap;">🍽️ ${escapeHTML(t('pedidos:personal_label'))}</span></td>
-            <td>${cantPedida} ${unidad}</td>
-            <td><span style="color:#94a3b8;">${cantPedida} ${unidad}</span></td>
-            <td>${cm(precioPed)}</td>
-            <td><span style="color:#94a3b8;">${cm(precioReal)}</span></td>
+            <td>${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}</td>
+            <td><span style="color:#94a3b8;">${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}</span></td>
+            <td>${precioPedTxt}</td>
+            <td><span style="color:#94a3b8;">${precioRealTxt}</span></td>
             <td><strong>${cm(subtotalRecibido)}</strong></td>
             <td><span style="font-size:11px;color:#7c3aed;font-weight:600;">no toca stock</span></td>
           </tr>
@@ -190,27 +226,27 @@ function renderItemsRecepcionModal(ped) {
         html += `
           <tr>
             <td>${escapeHTML(nombre)}</td>
-            <td>${cantPedida} ${unidad}</td>
+            <td>${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}${hintBase}</td>
             <td>
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
-                : `<input type="number" step="0.01" min="0" value="${cantRecibida}" 
+                : `<input type="number" step="0.01" min="0" value="${cantRecibidaShown}"
                     style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;"
-                    oninput="window.actualizarItemRecepcion(${idx}, 'cantidad', this.value)">`
+                    oninput="${recOnchange}"> <small style="color:#64748b;">${escapeHTML(unidadLabel)}</small>`
             }
             </td>
-            <td>${cm(precioPed)}</td>
+            <td>${precioPedTxt}</td>
             <td>
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
-                : `<input type="number" step="0.01" min="0" value="${precioReal}"
+                : `<input type="number" step="0.01" min="0" value="${usaFormato ? precioRealShown.toFixed(2) : precioReal}"
                     style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;"
-                    oninput="window.actualizarItemRecepcion(${idx}, 'precio', this.value)">`
+                    oninput="${precioOnchange}">${usaFormato ? ` <small style="color:#64748b;white-space:nowrap;">/${escapeHTML(formatoNombre)}</small>` : ''}`
             }
             </td>
             <td><strong id="subtotal-item-${idx}">${cm(subtotalRecibido)}</strong></td>
             <td>
-              <select onchange="window.cambiarEstadoItem(${idx}, this.value)" 
+              <select onchange="window.cambiarEstadoItem(${idx}, this.value)"
                 style="padding:5px;border:1px solid #ddd;border-radius:4px;">
                 <option value="consolidado" ${item.estado === 'consolidado' ? 'selected' : ''}>✅ OK</option>
                 <option value="varianza" ${item.estado === 'varianza' ? 'selected' : ''}>⚠️ Varianza</option>
@@ -245,22 +281,28 @@ function renderItemsRecepcionModal(ped) {
 /**
  * Actualiza un item de recepción y recalcula totales SIN perder el foco
  */
-export function actualizarItemRecepcion(idx, tipo, valor) {
+export function actualizarItemRecepcion(idx, tipo, valor, cpf) {
     const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
     if (!ped || !ped.itemsRecepcion) return;
 
     const item = ped.itemsRecepcion[idx];
     if (!item) return;
 
+    // 📦 El input puede venir en FORMATO (botes). Se convierte a unidad BASE
+    // antes de guardar en el item, porque el delta de stock y los totales se
+    // calculan SIEMPRE en base. cantidad: formato × cpf. precio: €/formato ÷ cpf.
+    // cpf<=1 (sin formato) → k=1, comportamiento idéntico al de antes.
+    const k = parseFloat(cpf) > 1 ? parseFloat(cpf) : 1;
+
     if (tipo === 'cantidad') {
-        item.cantidadRecibida = parseFloat(valor) || 0;
-        // Auto-detectar varianza
+        item.cantidadRecibida = (parseFloat(valor) || 0) * k;
+        // Auto-detectar varianza (ambos lados en base)
         if (Math.abs(item.cantidadRecibida - item.cantidad) > 0.01) {
             item.estado = 'varianza';
         }
     } else if (tipo === 'precio') {
-        item.precioReal = parseFloat(valor) || 0;
-        // Auto-detectar varianza
+        item.precioReal = (parseFloat(valor) || 0) / k;
+        // Auto-detectar varianza (ambos lados en base)
         if (Math.abs(item.precioReal - item.precioUnitario) > 0.01) {
             item.estado = 'varianza';
         }
