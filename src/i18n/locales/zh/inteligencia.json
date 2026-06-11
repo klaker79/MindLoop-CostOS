@@ -41,6 +41,11 @@
   "omnes_empty_title": "一切正常",
   "omnes_empty_sub": "Omnes 目前没有发现紧急情况。继续保持。",
   "omnes_dismiss": "忽略提醒",
+  "omnes_sec_recetas": "不赚钱的菜品",
+  "omnes_sec_stock": "库存紧急",
+  "omnes_sec_frescura": "新鲜度",
+  "omnes_sec_precio": "价格上涨",
+  "omnes_sec_sobrestock": "库存过剩",
 
   "omnes_t_receta_no_renta": "不赚钱的菜品",
   "omnes_x_receta_no_renta": "「{{nombre}}」食材成本率高达 {{fc}}%。请提价到 {{precio}} 或下架。",

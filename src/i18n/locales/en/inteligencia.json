@@ -41,6 +41,11 @@
   "omnes_empty_title": "All clear",
   "omnes_empty_sub": "Omnes sees nothing urgent right now. Keep it up.",
   "omnes_dismiss": "Dismiss alert",
+  "omnes_sec_recetas": "Unprofitable recipes",
+  "omnes_sec_stock": "Critical stock",
+  "omnes_sec_frescura": "Freshness",
+  "omnes_sec_precio": "Price increases",
+  "omnes_sec_sobrestock": "Overstock",
 
   "omnes_t_receta_no_renta": "Recipe not paying off",
   "omnes_x_receta_no_renta": "“{{nombre}}” is running at {{fc}}% food cost. Raise it to {{precio}} or take it off the menu.",

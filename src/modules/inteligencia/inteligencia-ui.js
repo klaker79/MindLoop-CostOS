@@ -103,49 +103,59 @@ const INTEL_STYLES = `
 .omnes-chip.aten { background: rgba(249,115,22,0.15); color: #fdba74; border-color: rgba(249,115,22,0.4); }
 .omnes-chip.ok { background: rgba(34,197,94,0.15); color: #86efac; border-color: rgba(34,197,94,0.4); }
 
-.omnes-feed { display: flex; flex-direction: column; gap: 12px; max-width: 920px; }
+.omnes-feed { display: flex; flex-direction: column; gap: 24px; max-width: 940px; }
+
+/* Sección (grupo de avisos del mismo tipo) */
+.omnes-sec { display: flex; flex-direction: column; gap: 10px; }
+.omnes-sec-head {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; user-select: none;
+    padding: 2px;
+}
+.omnes-sec-ic {
+    width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 10px; font-size: 17px;
+    display: flex; align-items: center; justify-content: center;
+}
+.omnes-sec-title {
+    font-size: 0.78rem; font-weight: 800; letter-spacing: 1px;
+    text-transform: uppercase; color: #cbd5e1;
+}
+.omnes-sec-count {
+    font-size: 0.72rem; font-weight: 700; color: #94a3b8;
+    background: rgba(148,163,184,0.14);
+    padding: 2px 9px; border-radius: 999px;
+}
+.omnes-sec-chevron { margin-left: auto; color: #64748b; font-size: 12px; transition: transform .18s ease; }
+.omnes-sec.collapsed .omnes-sec-chevron { transform: rotate(-90deg); }
+.omnes-sec-body { display: flex; flex-direction: column; gap: 10px; }
+.omnes-sec.collapsed .omnes-sec-body { display: none; }
+
+/* Tarjeta de aviso */
 .omnes-card {
     position: relative;
-    display: flex; align-items: flex-start; gap: 16px;
-    padding: 16px 18px;
-    border-radius: 16px;
-    background: rgba(30,41,59,0.72);
-    border: 1px solid rgba(99,102,241,0.15);
-    border-left: 4px solid #64748b;
-    transition: transform .12s ease, box-shadow .12s ease;
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px 14px 18px;
+    border-radius: 14px;
+    background: rgba(30,41,59,0.66);
+    border: 1px solid rgba(148,163,184,0.10);
+    border-left: 3px solid #64748b;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
+.omnes-card:hover { transform: translateY(-1px); background: rgba(30,41,59,0.9); box-shadow: 0 14px 40px -24px rgba(0,0,0,0.9); }
+.omnes-card.critico { border-left-color: #ef4444; }
+.omnes-card.atencion { border-left-color: #f59e0b; }
+.omnes-card.oportunidad { border-left-color: #22c55e; }
 .omnes-card-dismiss {
     position: absolute;
-    top: 8px; right: 10px;
-    background: transparent;
-    border: none;
-    color: #64748b;
-    font-size: 13px; line-height: 1;
-    cursor: pointer;
-    padding: 3px 6px;
-    border-radius: 6px;
-    z-index: 2;
+    top: 7px; right: 8px;
+    background: transparent; border: none;
+    color: #64748b; font-size: 12px; line-height: 1;
+    cursor: pointer; padding: 3px 6px; border-radius: 6px; z-index: 2;
 }
 .omnes-card-dismiss:hover { color: #e2e8f0; background: rgba(255,255,255,0.08); }
-.omnes-card:hover { transform: translateY(-1px); box-shadow: 0 14px 40px -22px rgba(0,0,0,0.9); }
-.omnes-card.critico { border-left-color: #ef4444; }
-.omnes-card.atencion { border-left-color: #f97316; }
-.omnes-card.oportunidad { border-left-color: #22c55e; }
-.omnes-card-icon {
-    width: 44px; height: 44px; flex-shrink: 0;
-    border-radius: 12px; font-size: 22px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(15,23,42,0.7);
-}
-.omnes-card-body { flex: 1; min-width: 0; }
-.omnes-card-label {
-    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.8px;
-    text-transform: uppercase; margin-bottom: 3px;
-}
-.omnes-card.critico .omnes-card-label { color: #f87171; }
-.omnes-card.atencion .omnes-card-label { color: #fb923c; }
-.omnes-card.oportunidad .omnes-card-label { color: #4ade80; }
-.omnes-card-text { font-size: 0.95rem; color: #e2e8f0; line-height: 1.45; }
+.omnes-card-body { flex: 1; min-width: 0; padding-right: 14px; }
+.omnes-card-text { font-size: 0.92rem; color: #e2e8f0; line-height: 1.45; }
 .omnes-card-cta {
     flex-shrink: 0; align-self: center;
     background: rgba(99,102,241,0.18);
@@ -190,25 +200,53 @@ const OWL_SRC = '/images/omnes.png';
 const OWL_FALLBACK = `onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🦉',style:'font-size:64px;line-height:1'}))"`;
 
 // ========== RENDER ==========
+// Secciones del feed (orden fijo de arriba a abajo). Cada aviso trae `categoria`.
+const SECCIONES = [
+    { cat: 'recetas',    emoji: '📉', bg: 'rgba(239,68,68,0.16)',  titleKey: 'omnes_sec_recetas' },
+    { cat: 'stock',      emoji: '📦', bg: 'rgba(245,158,11,0.16)', titleKey: 'omnes_sec_stock' },
+    { cat: 'frescura',   emoji: '🧊', bg: 'rgba(34,211,238,0.16)', titleKey: 'omnes_sec_frescura' },
+    { cat: 'precio',     emoji: '📈', bg: 'rgba(168,85,247,0.16)', titleKey: 'omnes_sec_precio' },
+    { cat: 'sobrestock', emoji: '🗄️', bg: 'rgba(100,116,139,0.18)', titleKey: 'omnes_sec_sobrestock' },
+];
+
 function renderAvisoCard(a) {
-    // a.titulo / a.texto / a.cta.label vienen de t(): i18next ya escapa los valores
-    // interpolados (escapeValue:true) → son HTML seguro. Volver a escaparlos haría
-    // doble escape (&amp; → &amp;amp;). a.cta.tipo es un literal fijo y a.cta.id un número.
-    const label = a.titulo ? `<div class="omnes-card-label">${a.titulo}</div>` : '';
+    // a.texto / a.cta.label vienen de t(): i18next ya escapa los valores interpolados
+    // (escapeValue:true) → HTML seguro. a.cta.tipo es literal fijo y a.cta.id un número.
     const cta = a.cta
         ? `<button class="omnes-card-cta" onclick="window.omnesIr('${a.cta.tipo}', ${a.cta.id})">${a.cta.label} →</button>`
         : '';
     return `
-        <div class="omnes-card ${a.nivel}" data-aviso-id="${escapeHTML(a.id)}">
+        <div class="omnes-card ${a.nivel}" data-aviso-id="${escapeHTML(a.id)}" data-cat="${escapeHTML(a.categoria || '')}">
             <button class="omnes-card-dismiss" type="button" data-dismiss-id="${escapeHTML(a.id)}" title="${escapeHTML(t('inteligencia:omnes_dismiss'))}" aria-label="${escapeHTML(t('inteligencia:omnes_dismiss'))}">✕</button>
-            <div class="omnes-card-icon">${a.icono || '🦉'}</div>
-            <div class="omnes-card-body">
-                ${label}
-                <div class="omnes-card-text">${a.texto}</div>
-            </div>
+            <div class="omnes-card-body"><div class="omnes-card-text">${a.texto}</div></div>
             ${cta}
         </div>
     `;
+}
+
+function renderSeccion(sec, avisosCat) {
+    return `
+        <section class="omnes-sec" data-cat="${sec.cat}">
+            <header class="omnes-sec-head" data-sec-toggle>
+                <span class="omnes-sec-ic" style="background:${sec.bg};">${sec.emoji}</span>
+                <span class="omnes-sec-title">${escapeHTML(t('inteligencia:' + sec.titleKey))}</span>
+                <span class="omnes-sec-count">${avisosCat.length}</span>
+                <span class="omnes-sec-chevron">▾</span>
+            </header>
+            <div class="omnes-sec-body">${avisosCat.map(renderAvisoCard).join('')}</div>
+        </section>
+    `;
+}
+
+// Agrupa los avisos por categoría y los pinta en secciones (orden de SECCIONES).
+function renderFeed(avisos) {
+    const porCat = {};
+    avisos.forEach(a => { (porCat[a.categoria] = porCat[a.categoria] || []).push(a); });
+    const secs = SECCIONES
+        .filter(s => porCat[s.cat] && porCat[s.cat].length)
+        .map(s => renderSeccion(s, porCat[s.cat]))
+        .join('');
+    return `<div class="omnes-feed">${secs}</div>`;
 }
 
 function renderEmpty() {
@@ -258,7 +296,7 @@ async function renderizarInteligencia() {
 
     const feed = avisos.length === 0
         ? renderEmpty()
-        : `<div class="omnes-feed">${avisos.map(renderAvisoCard).join('')}</div>`;
+        : renderFeed(avisos);
 
     container.innerHTML = `
         <div class="omnes-wrap">
@@ -347,6 +385,13 @@ document.addEventListener('click', (e) => {
     window.omnesDescartar(btn.dataset.dismissId);
 });
 
+// Listener delegado para plegar/desplegar una sección al pulsar su cabecera.
+document.addEventListener('click', (e) => {
+    const head = e.target.closest('.omnes-sec-head');
+    if (!head) return;
+    head.closest('.omnes-sec')?.classList.toggle('collapsed');
+});
+
 /**
  * El usuario descarta un aviso: lo persiste (tenant-scoped, TTL 7d), quita la
  * tarjeta del DOM y recalcula chips + badge desde lo que queda visible — sin
@@ -356,12 +401,24 @@ window.omnesDescartar = function (id) {
     dismissAviso(id);
     const safeId = (window.CSS && window.CSS.escape) ? window.CSS.escape(id) : id;
     const card = document.querySelector(`.omnes-card[data-aviso-id="${safeId}"]`);
+    const sec = card ? card.closest('.omnes-sec') : null;
     if (card) card.remove();
+
+    // Actualizar el contador de la sección, y quitarla si quedó vacía.
+    if (sec) {
+        const restantes = sec.querySelectorAll('.omnes-card').length;
+        if (restantes === 0) {
+            sec.remove();
+        } else {
+            const cnt = sec.querySelector('.omnes-sec-count');
+            if (cnt) cnt.textContent = String(restantes);
+        }
+    }
 
     const feedEl = document.querySelector('.omnes-feed');
     const quedan = feedEl ? feedEl.querySelectorAll('.omnes-card').length : 0;
 
-    // Repintar chips de resumen
+    // Repintar chips de resumen del hero
     const chipsEl = document.getElementById('omnes-chips');
     if (chipsEl) {
         const nCrit = document.querySelectorAll('.omnes-card.critico').length;
