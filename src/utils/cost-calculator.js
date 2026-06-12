@@ -22,15 +22,18 @@
  * @returns {number} Unit price (always >= 0)
  */
 export function getIngredientUnitPrice(invItem, ing) {
-    if (invItem?.precio_medio_compra) {
-        return parseFloat(invItem.precio_medio_compra);
-    }
-    if (invItem?.precio_medio) {
-        return parseFloat(invItem.precio_medio);
-    }
-    if (ing?.precio) {
-        const precioFormato = parseFloat(ing.precio);
-        const cpf = parseFloat(ing.cantidad_por_formato) || 1;
+    // 🔒 AUDITORÍA 2026-06-12 (M1): comparar con > 0 en vez de truthy, igual que
+    // getBackendIngredientUnitPrice (businessHelpers.js). La API devuelve NUMERIC
+    // como string: "0.0000" es truthy, así que el check anterior devolvía 0€ en
+    // vez de caer al siguiente nivel de la cascada (el backend sí caía → FE y BE
+    // podían dar precios distintos para el mismo ingrediente).
+    const pmc = parseFloat(invItem?.precio_medio_compra);
+    if (pmc > 0) return pmc;
+    const pm = parseFloat(invItem?.precio_medio);
+    if (pm > 0) return pm;
+    const precioFormato = parseFloat(ing?.precio);
+    if (precioFormato > 0) {
+        const cpf = parseFloat(ing?.cantidad_por_formato) || 1;
         return precioFormato / cpf;
     }
     return 0;

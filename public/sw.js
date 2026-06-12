@@ -148,7 +148,8 @@
 // BUMP v161: Burbuja del chat = búho azul EN MOVIMIENTO (video /images/omnes-fab.mp4, autoplay+loop+muted, 163KB comprimido desde 8.9MB). Globo de invitación "Pregúntame lo que quieras" junto al FAB (aparece a 1.8s, se cierra con ✕, click abre el chat). i18n fab_invite (es/en/zh).
 // BUMP v162: Precio → UN SOLO PLAN de 90€/mes (chat incluido). Antes 95€ + add-on chat 30€ y modal Self/Pro. PLAN_PRICE_EUR 95→90; paywall muestra un único plan 90€ (retirado Pro 185€ del overlay); comentarios actualizados. El gating no cambia (chat ya estaba incluido desde 8-jun).
 // BUMP v163: AUDITORÍA — Cost Tracker y P&L del tab Balance migrados a calcularCosteRecetaCompleto() (la canónica de la tabla Recetas). Cierra: subrecetas que aportaban 0 al coste en ambos, copas contadas como botellas en el P&L (factor_variante), y fallback de rendimiento divergente. Ahora escandallo = tabla Recetas = Cost Tracker = P&L.
-const CACHE_NAME = 'mindloop-costos-v163';
+// BUMP v164: AUDITORÍA Lote 2 — getIngredientUnitPrice compara >0 (no truthy): "0.0000" de la API ya no devuelve 0€ sino que cae al siguiente nivel (igual que el backend). Anti-ciclo en calcularCosteRecetaCompleto con copia de set por rama (auto-referencia corta a 0 como BE; diamantes legítimos suman). El selector de preparaciones base excluye la receta en edición (no puede contenerse a sí misma).
+const CACHE_NAME = 'mindloop-costos-v164';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

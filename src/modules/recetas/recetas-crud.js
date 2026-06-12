@@ -102,6 +102,11 @@ export function editarReceta(id) {
     const rec = (window.recetas || []).find(r => r.id === id);
     if (!rec) return;
 
+    // 🔒 AUDITORÍA 2026-06-12 (M4): fijar el id ANTES de pintar las líneas, para
+    // que el selector de preparaciones base pueda excluir esta misma receta
+    // (anti auto-referencia) también en las filas que se renderizan al abrir.
+    window.editandoRecetaId = id;
+
     document.getElementById('rec-nombre').value = rec.nombre;
     document.getElementById('rec-codigo').value = rec.codigo || '';
     document.getElementById('rec-categoria').value = rec.categoria;
@@ -146,7 +151,6 @@ export function editarReceta(id) {
     });
 
     window.calcularCosteReceta();
-    window.editandoRecetaId = id;
     document.getElementById('form-title-receta').textContent = t('recetas:form_title_edit');
     document.getElementById('btn-text-receta').textContent = t('recetas:btn_save');
     window.mostrarFormularioReceta();
@@ -214,8 +218,18 @@ export function getIngMap() {
     return _ingMapCache;
 }
 
-export function calcularCosteRecetaCompleto(receta, _depth = 0) {
+export function calcularCosteRecetaCompleto(receta, _depth = 0, _visited = null) {
     if (!receta || !receta.ingredientes || _depth > 5) return 0;
+
+    // 🔒 AUDITORÍA 2026-06-12 (M4): cortar CICLOS a 0 en la primera repetición,
+    // igual que el backend (businessHelpers.js `visited.has → return 0`). Antes
+    // una receta auto-referenciada sumaba hasta 5 niveles anidados (coste inflado
+    // geométricamente) y FE/BE daban números distintos para el mismo dato corrupto.
+    const visited = _visited || new Set();
+    if (receta.id !== null && receta.id !== undefined) {
+        if (visited.has(receta.id)) return 0;
+        visited.add(receta.id);
+    }
 
     // ⚡ OPTIMIZACIÓN: Usar Maps O(1) en lugar de .find() O(n)
     const invMap = getInvMap();
@@ -229,8 +243,11 @@ export function calcularCosteRecetaCompleto(receta, _depth = 0) {
             const recetaId = item.ingredienteId - 100000;
             const recetaBase = recetasMap.get(recetaId);
             if (recetaBase) {
-                // Calcular coste recursivamente (evitar recursión infinita)
-                const costeRecetaBase = calcularCosteRecetaCompleto(recetaBase, _depth + 1);
+                // Calcular coste recursivamente. Anti-ciclo con COPIA del set por
+                // rama (igual que el backend `new Set(visited)`): un "diamante"
+                // legítimo (dos subrecetas que usan la misma base) suma bien;
+                // solo el ciclo real (A contiene A) corta a 0.
+                const costeRecetaBase = calcularCosteRecetaCompleto(recetaBase, _depth + 1, new Set(visited));
                 return total + costeRecetaBase * item.cantidad;
             }
             return total;
