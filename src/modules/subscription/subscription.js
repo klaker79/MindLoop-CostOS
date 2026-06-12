@@ -1,9 +1,9 @@
 /**
  * Módulo de Suscripción — MindLoop CostOS (single-plan model)
  *
- * Pricing tras 2026-05-10:
- *   - Plan base MindLoop CostOS: 95€/mes (Polar, ver subscription.routes.js)
- *   - Add-on Chat IA: +30€/mes (Polar, ver chat-addon-card.js)
+ * Pricing tras 2026-06-12: UN SOLO PLAN.
+ *   - Plan único MindLoop CostOS: 90€/mes (Polar, ver subscription.routes.js).
+ *     Chat IA INCLUIDO (ya no hay add-on de 30€; el gating se colapsó el 8-jun).
  *
  * Este módulo:
  *   - Lee /stripe/subscription-status (legacy path, devuelve plan_status desde
@@ -11,7 +11,7 @@
  *   - Pinta la tarjeta "Plan MindLoop" en Settings con dos estados:
  *       · activo  → "Activo" + botón "Gestionar suscripción" (portal Polar)
  *       · inactivo (trial/pending_payment/expired/canceled) → CTA
- *         "Suscribirse · 95€/mes" que abre checkout Polar
+ *         "Suscribirse · 90€/mes" que abre checkout Polar
  *   - Maneja el retorno desde Polar (?subscription=success) con toast + refresh.
  *   - Pinta la tarjeta del Chat IA add-on (delegado a chat-addon-card.js).
  */
@@ -22,7 +22,7 @@ import { api } from '../../api/client.js';
 import { renderChatAddonCard } from './chat-addon-card.js';
 
 const API_BASE = getApiUrl();
-const PLAN_PRICE_EUR = 95;
+const PLAN_PRICE_EUR = 90;
 
 function getAuthHeaders() {
     const headers = { 'Content-Type': 'application/json' };

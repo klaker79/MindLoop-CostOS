@@ -10,9 +10,9 @@
  * o contactar.
  *
  * URLs de pasarela configurables vía Vite env vars:
- *   VITE_POLAR_CHECKOUT_URL_SELF  → link directo a checkout Self 95€/mes
- *   VITE_POLAR_CHECKOUT_URL_PRO   → link directo a checkout Pro 185€/mes
+ *   VITE_POLAR_CHECKOUT_URL_SELF  → link directo a checkout del plan único 90€/mes
  *   VITE_CONTACT_FALLBACK_URL     → fallback WhatsApp/email cuando Polar no listo
+ * (Plan único 2026-06-12: 90€/mes, chat incluido. Se retiró el plan Pro del paywall.)
  *
  * Si las env vars no están definidas, el botón cae al fallback de contacto.
  * Así el deploy funciona desde el día 1 aunque Polar todavía no esté listo
@@ -89,9 +89,8 @@ function showSubscriptionModal(detail) {
 
     const reason = detail?.reason || 'no_subscription';
     const urlSelf = getEnv('VITE_POLAR_CHECKOUT_URL_SELF');
-    const urlPro = getEnv('VITE_POLAR_CHECKOUT_URL_PRO');
     const urlFallback = getEnv('VITE_CONTACT_FALLBACK_URL') || 'mailto:iker@mindloop.cloud';
-    const polarReady = !!(urlSelf && urlPro);
+    const polarReady = !!urlSelf;
 
     const overlay = document.createElement('div');
     overlay.id = MODAL_ID;
@@ -106,10 +105,7 @@ function showSubscriptionModal(detail) {
     const planBlock = polarReady
         ? `
             <a href="${escapeHTML(urlSelf)}" style="display: block; padding: 16px 20px; background: linear-gradient(135deg, #7c3aed, #6366f1); color: white; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 15px; text-align: center;">
-                Suscribirme a CostOS Self — 95€/mes
-            </a>
-            <a href="${escapeHTML(urlPro)}" style="display: block; padding: 14px 20px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); color: white; border-radius: 12px; font-weight: 600; text-decoration: none; font-size: 14px; text-align: center;">
-                Quiero CostOS Pro con onboarding — 185€/mes
+                Suscribirme a CostOS — 90€/mes
             </a>
             <a href="${escapeHTML(urlFallback)}" style="display: block; padding: 10px; color: #94a3b8; text-decoration: none; font-size: 13px; text-align: center;">
                 ¿Tienes dudas? Hablar conmigo →
@@ -120,7 +116,7 @@ function showSubscriptionModal(detail) {
                 Hablar con Iker para suscribirme
             </a>
             <p style="margin: 8px 0 0; font-size: 12px; color: #64748b; text-align: center; line-height: 1.5;">
-                CostOS Self 95€/mes · Pro con onboarding 185€/mes (tarifa fundador para los 10 primeros)
+                CostOS — 90€/mes, todo incluido (tarifa fundador para los 10 primeros)
             </p>
           `;
 

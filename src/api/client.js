@@ -449,10 +449,9 @@ export const api = {
         return response.text();
     },
 
-    // Chat add-on (suscripción opcional +30€/mes con cap mensual).
-    // El alta y la baja pasan por Polar (Merchant of Record). El frontend
-    // pide una checkout session, redirige al cliente, y el flag se setea
-    // desde el webhook firmado tras el cobro real.
+    // Chat IA: INCLUIDO en el plan único (90€/mes). El add-on de 30€ ya no se
+    // ofrece; estos endpoints quedan por compatibilidad/auditoría. La cuota
+    // mensual de consultas la gestiona chatAddonGate en backend.
     chatStatus: () => apiClient.get('/chat-status'),
     createChatAddonCheckout: () => apiClient.post('/chat-addon/checkout-session', {}),
     openChatAddonPortal: () => apiClient.post('/chat-addon/customer-portal', {}),
@@ -463,7 +462,7 @@ export const api = {
     getHealthCheck: () => apiClient.post('/chat/health-check', {}),
     getHealthCheckStatus: () => apiClient.get('/chat/health-check/status'),
 
-    // Plan base MindLoop CostOS (95€/mes vía Polar).
+    // Plan único MindLoop CostOS (90€/mes vía Polar, chat incluido).
     // Mismo patrón que el add-on: backend devuelve URL Polar para checkout
     // o customer portal; el flag plan_status se actualiza via webhook.
     createBasePlanCheckout: () => apiClient.post('/subscription/checkout-base', {}),

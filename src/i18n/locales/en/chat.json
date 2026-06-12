@@ -64,6 +64,8 @@
   "no_response": "No response available.",
   "pdf_subtitle": "Business Intelligence Report",
   "fab_title": "Omnes · Your financial chef",
+  "fab_invite": "Ask me anything 🦉",
+  "fab_invite_close": "Close",
   "btn_speak": "Speak",
 
   "toggle_voice_title": "Toggle voice on/off",
