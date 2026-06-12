@@ -5,7 +5,7 @@
 
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
-import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
+import { calcularCosteRecetaCompleto } from './recetas-crud.js';
 import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 
 /**
@@ -174,45 +174,20 @@ function actualizarDatosCostTracker() {
 
     let html = '';
 
-    // Ordenar por food cost (de más a menos problemático)
-    // ⚡ OPTIMIZACIÓN: Crear Maps O(1) en lugar de .find() O(n) 
-    const inventarioMap = new Map(inventario.map(i => [i.id, i]));
-    const ingredientesMap = new Map(ingredientes.map(i => [i.id, i]));
-
     // Filtrar recetas: solo mostrar las que tienen precio de venta
     const recetasVendibles = recetas.filter(r => parseFloat(r.precio_venta) > 0);
 
     const recetasConCoste = recetasVendibles.map(receta => {
-        let costeActual = 0;
-
-        // Los ingredientes ya vienen como array (verificado con browser debug)
+        // 🔒 AUDITORÍA 2026-06-12 (C2): usar la función canónica en vez del bucle
+        // inline. El bucle antiguo ignoraba las subrecetas (ingredienteId>100000
+        // → precio 0) → una receta con preparación base mostraba aquí un coste
+        // MENOR que en la tabla Recetas y el escandallo. calcularCosteRecetaCompleto
+        // expande subrecetas, aplica rendimiento y el precio canónico, y ya
+        // devuelve el coste POR PORCIÓN.
         const recetaIngredientes = Array.isArray(receta.ingredientes)
             ? receta.ingredientes
             : [];
-
-        recetaIngredientes.forEach(item => {
-            const ingId = item.ingredienteId || item.ingrediente_id;
-            // ⚡ Búsqueda O(1) con Map
-            const invItem = inventarioMap.get(ingId);
-            const ing = ingredientesMap.get(ingId);
-
-            // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
-            const precio = getIngredientUnitPrice(invItem, ing);
-
-            // Aplicar rendimiento (merma)
-            let rendimiento = parseFloat(item.rendimiento);
-            if (!rendimiento) {
-                rendimiento = ing?.rendimiento ? parseFloat(ing.rendimiento) : 100;
-            }
-            const factorRendimiento = rendimiento / 100;
-            const precioConRendimiento = factorRendimiento > 0 ? (precio / factorRendimiento) : precio;
-
-            costeActual += precioConRendimiento * parseFloat(item.cantidad || 0);
-        });
-
-        // Dividir por porciones para obtener coste POR PORCIÓN
-        const porciones = parseInt(receta.porciones) || 1;
-        const costePorPorcion = costeActual / porciones;
+        const costePorPorcion = calcularCosteRecetaCompleto(receta);
 
         // precio_venta viene como string "20.00"
         const precioVenta = parseFloat(receta.precio_venta) || 0;
