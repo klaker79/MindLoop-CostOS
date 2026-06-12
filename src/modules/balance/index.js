@@ -5,7 +5,7 @@
  */
 
 import { showToast } from '../../ui/toast.js';
-import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
+import { calcularCosteRecetaCompleto } from '../recetas/recetas-crud.js';
 import { t } from '@/i18n/index.js';
 import { cm } from '../../utils/helpers.js';
 
@@ -28,35 +28,22 @@ export async function renderizarBalance() {
         const ingresos = ventasMes.reduce((sum, v) => sum + parseFloat(v.total), 0);
 
         // Calcular COGS
+        // 🔒 AUDITORÍA 2026-06-12 (C3): migrado a calcularCosteRecetaCompleto()
+        // (la misma función que usa la tabla Recetas). El bucle inline anterior
+        // tenía TRES desviaciones: ① ignoraba factor_variante (una copa de vino
+        // computaba el COGS de la botella entera), ② saltaba las subrecetas
+        // (ingredienteId>100000 → aportaban 0), y ③ usaba un fallback de
+        // rendimiento distinto al resto de la app (pisaba el 100 explícito).
+        // Resultado: el margen de esta pestaña no cuadraba con Diario ni Recetas.
         const recetasMap = new Map((window.recetas || []).map(r => [r.id, r]));
-        const ingredientesMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
-        const inventarioMap = new Map((window.inventarioCompleto || []).map(i => [i.id, i]));
 
         let cogs = 0;
         ventasMes.forEach(venta => {
             const receta = recetasMap.get(venta.receta_id);
             if (receta && receta.ingredientes) {
-                const porciones = Math.max(1, parseInt(receta.porciones) || 1);
-                const costeReceta = receta.ingredientes.reduce((sum, item) => {
-                    const ing = ingredientesMap.get(item.ingredienteId);
-                    if (!ing) return sum;
-                    // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
-                    const invItem = inventarioMap.get(item.ingredienteId);
-                    const precioUnitario = getIngredientUnitPrice(invItem, ing);
-                    // Rendimiento: priorizar el de la receta, fallback al ingrediente base
-                    let rendimientoVal = parseFloat(item.rendimiento);
-                    if (!rendimientoVal || rendimientoVal === 100) {
-                        if (ing?.rendimiento) {
-                            rendimientoVal = parseFloat(ing.rendimiento);
-                        } else {
-                            rendimientoVal = 100;
-                        }
-                    }
-                    const rendimiento = rendimientoVal / 100;
-                    const factorRendimiento = rendimiento > 0 ? (1 / rendimiento) : 1;
-                    return sum + (precioUnitario * item.cantidad * factorRendimiento);
-                }, 0);
-                cogs += (costeReceta / porciones) * venta.cantidad;
+                const costePorPorcion = calcularCosteRecetaCompleto(receta);
+                const factorVariante = parseFloat(venta.factor_variante) || 1;
+                cogs += costePorPorcion * venta.cantidad * factorVariante;
             }
         });
 
