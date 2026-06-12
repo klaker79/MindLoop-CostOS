@@ -65,24 +65,27 @@ export function abrirDeteccionAlergenosBatch() {
         </tr>`).join('');
 
     modal.innerHTML = `
-        <div class="modal-content" style="max-width:760px;max-height:90vh;overflow-y:auto;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="modal-content" style="max-width:760px;display:flex;flex-direction:column;max-height:85vh;overflow:hidden;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0;">
                 <h3 style="margin:0;">✨ ${escapeHTML(t('ingredientes:detect_title') || 'Detectar alérgenos')}</h3>
                 <button onclick="window.cerrarDeteccionAlergenosBatch()" style="background:none;border:none;font-size:24px;cursor:pointer;">✕</button>
             </div>
-            <p style="margin:0 0 12px;color:#64748b;font-size:13px;">
+            <p style="margin:0 0 12px;color:#64748b;font-size:13px;flex-shrink:0;">
                 ${escapeHTML(t('ingredientes:detect_review_hint') || 'Hemos detectado alérgenos en estos ingredientes por su nombre. Revisa, desmarca lo que no aplique y guarda. Solo se AÑADEN — la información de alérgenos es tu responsabilidad.')}
             </p>
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:16px;">
+            <!-- 🔧 Fix scroll (2026-06-12): la LISTA scrollea por dentro (flex:1 +
+                 overflow-y:auto + min-height:0) y cabecera/botones quedan siempre
+                 visibles. Antes la tabla quedaba cortada sin scroll con 75 items. -->
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:16px;flex:1 1 auto;min-height:0;overflow-y:auto;">
                 <table style="width:100%;border-collapse:collapse;">
-                    <thead><tr style="background:#f1f5f9;">
-                        <th style="text-align:left;padding:10px 8px;">${escapeHTML(t('ingredientes:title') || 'Ingrediente')}</th>
-                        <th style="text-align:left;padding:10px 8px;">${escapeHTML(t('ingredientes:form_label_allergens') || 'Alérgenos (UE)')}</th>
+                    <thead><tr style="background:#f1f5f9;position:sticky;top:0;z-index:1;">
+                        <th style="text-align:left;padding:10px 8px;background:#f1f5f9;">${escapeHTML(t('ingredientes:title') || 'Ingrediente')}</th>
+                        <th style="text-align:left;padding:10px 8px;background:#f1f5f9;">${escapeHTML(t('ingredientes:form_label_allergens') || 'Alérgenos (UE)')}</th>
                     </tr></thead>
                     <tbody>${filasHtml}</tbody>
                 </table>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0;">
                 <span style="font-size:13px;color:#64748b;">${filas.length} ${escapeHTML(t('ingredientes:title') || 'ingredientes')}</span>
                 <div style="display:flex;gap:10px;">
                     <button type="button" onclick="window.cerrarDeteccionAlergenosBatch()" style="background:#e5e7eb;color:#374151;border:none;border-radius:6px;padding:10px 20px;cursor:pointer;">${escapeHTML(t('common:cancel') || 'Cancelar')}</button>
