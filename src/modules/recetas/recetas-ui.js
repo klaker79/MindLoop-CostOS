@@ -116,8 +116,12 @@ export function agregarIngredienteReceta(initialValue = '') {
     });
 
     // 🧪 Añadir recetas base como ingredientes seleccionables
+    // 🔒 AUDITORÍA 2026-06-12 (M4): excluir la receta que se está EDITANDO para
+    // que no pueda contenerse a sí misma (ciclo: coste corrupto y FE/BE divergían).
+    const recetaEnEdicionId = window.editandoRecetaId || null;
     const recetasBase = (window.recetas || []).filter(r =>
-        r.categoria?.toLowerCase() === 'base' || r.categoria?.toLowerCase() === 'preparación base'
+        (r.categoria?.toLowerCase() === 'base' || r.categoria?.toLowerCase() === 'preparación base') &&
+        r.id !== recetaEnEdicionId
     );
 
     if (recetasBase.length > 0) {
