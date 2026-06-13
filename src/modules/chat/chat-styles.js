@@ -127,8 +127,12 @@ export function createChatStyles() {
             position: fixed;
             bottom: 100px;
             right: 24px;
-            width: 450px;
-            height: 550px;
+            /* 🔧 Responsive (2026-06-13): antes 450×550 FIJO → en pantallas
+               pequeñas o con escalado del SO (Windows 125-150%) se veía enorme
+               o se salía. Con min()/viewport se ve igual en Mac/Windows/móvil
+               sin tocar nada de la lógica del chat. */
+            width: min(450px, calc(100vw - 32px));
+            height: min(550px, calc(100vh - 140px));
             background: #ffffff;
             border-radius: 20px;
             box-shadow: 0 10px 50px rgba(0, 0, 0, 0.15);
