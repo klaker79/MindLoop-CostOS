@@ -151,7 +151,8 @@
 // BUMP v164: AUDITORÍA Lote 2 — getIngredientUnitPrice compara >0 (no truthy): "0.0000" de la API ya no devuelve 0€ sino que cae al siguiente nivel (igual que el backend). Anti-ciclo en calcularCosteRecetaCompleto con copia de set por rama (auto-referencia corta a 0 como BE; diamantes legítimos suman). El selector de preparaciones base excluye la receta en edición (no puede contenerse a sí misma).
 // BUMP v165: Modal "Detectar alérgenos" — la lista scrollea por dentro (flex column + overflow-y en la tabla, cabecera sticky) y el título + botones Guardar/Cancelar quedan siempre visibles. Antes con 75 ingredientes la tabla se cortaba sin scroll.
 // BUMP v166: Ventana del chat responsive — width/height min(fijo, viewport) en vez de 450×550 fijo. Se ve igual en Mac/Windows/móvil sin importar el escalado del SO; las tablas del chat (que ya scrollean en horizontal) se ven bien al converger ambas máquinas a esta versión. Solo CSS, sin lógica.
-const CACHE_NAME = 'mindloop-costos-v166';
+// BUMP v167: Tablas del chat — las celdas envuelven por PALABRAS (white-space:normal + word-break:normal + overflow-wrap:break-word), ya no parten cada palabra letra a letra en vertical en columnas estrechas. Antes heredaban word-break:break-word del contenedor del mensaje.
+const CACHE_NAME = 'mindloop-costos-v167';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

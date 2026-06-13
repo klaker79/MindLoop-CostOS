@@ -330,13 +330,21 @@ export function createChatStyles() {
             font-size: 10px;
             background: #f8fafc;
             border-radius: 8px;
-            white-space: nowrap;
+            table-layout: auto;
         }
-        
+
         .chat-table th, .chat-table td {
             padding: 6px 8px;
             text-align: left;
             border-bottom: 1px solid #e2e8f0;
+            /* 🔧 Fix 2026-06-13: las celdas heredaban word-break:break-word del
+               contenedor del mensaje y, en columna estrecha, partían cada palabra
+               LETRA A LETRA en vertical ("PEIXIÑO"→"PEIXIÑ/O"). Aquí: envolver por
+               PALABRAS (salto en espacios), nunca a mitad de palabra. */
+            white-space: normal;
+            word-break: normal;
+            overflow-wrap: break-word;
+            vertical-align: top;
         }
         
         .chat-table th {
