@@ -324,14 +324,13 @@ export function createChatStyles() {
             border-radius: 3px;
         }
         
-        /* 🔧 FIX RAÍZ 2026-06-13 (v169): las tablas del chat se machacaban (texto en
-           VERTICAL) porque styles/theme-editorial.css y main.css tienen reglas
-           GLOBALES con !important sobre TODA tabla (`table tbody td { padding:14px
-           !important }`, `table { min-width:800px }`, etc.). En el panel del chat
-           (~390px) ese padding/min-width gigante aplasta las columnas. Mis reglas
-           .chat-table perdían la guerra de cascada porque las globales llevan
-           !important. Solución: .chat-table también con !important para ganar
-           SIEMPRE. La tabla toma su ancho natural y el wrapper hace scroll-x. */
+        /* 🔧 FIX RAIZ 2026-06-13 (v169): las tablas del chat se machacaban (texto en
+           VERTICAL) porque theme-editorial.css y main.css tienen reglas GLOBALES
+           con !important sobre TODA tabla (table tbody td padding 14px !important,
+           table min-width 800px, etc.). En el panel del chat (~390px) ese padding
+           y min-width gigantes aplastan las columnas. Mis reglas .chat-table
+           perdian la cascada por NO llevar !important. Solucion: .chat-table con
+           !important para ganar SIEMPRE. Ancho natural + el wrapper hace scroll-x. */
         .chat-table {
             width: auto !important;
             min-width: 0 !important;
