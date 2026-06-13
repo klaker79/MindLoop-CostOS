@@ -308,10 +308,10 @@ export function createChatStyles() {
         
         /* Markdown Tables in Chat */
         .chat-table-wrapper {
-            overflow-x: auto;
-            margin: 8px 0;
+            overflow-x: auto !important;
+            margin: 8px 0 !important;
             border-radius: 8px;
-            max-width: 100%;
+            max-width: 100% !important;
             -webkit-overflow-scrolling: touch;
         }
         
@@ -324,35 +324,44 @@ export function createChatStyles() {
             border-radius: 3px;
         }
         
-        /* 🔧 Fix 2026-06-13 (v168): la tabla iba a width:100% → en el chat estrecho
-           NO desbordaba, sino que APLASTABA las columnas a 1-2 caracteres y el
-           texto se partía letra a letra en vertical. Solución correcta: la tabla
-           toma su ancho NATURAL (max-content) y el wrapper (.chat-table-wrapper,
-           overflow-x:auto) hace scroll horizontal. Las celdas nunca parten. */
+        /* 🔧 FIX RAÍZ 2026-06-13 (v169): las tablas del chat se machacaban (texto en
+           VERTICAL) porque styles/theme-editorial.css y main.css tienen reglas
+           GLOBALES con !important sobre TODA tabla (`table tbody td { padding:14px
+           !important }`, `table { min-width:800px }`, etc.). En el panel del chat
+           (~390px) ese padding/min-width gigante aplasta las columnas. Mis reglas
+           .chat-table perdían la guerra de cascada porque las globales llevan
+           !important. Solución: .chat-table también con !important para ganar
+           SIEMPRE. La tabla toma su ancho natural y el wrapper hace scroll-x. */
         .chat-table {
-            width: max-content;
-            min-width: 100%;
-            border-collapse: collapse;
-            font-size: 10px;
-            background: #f8fafc;
-            border-radius: 8px;
+            width: auto !important;
+            min-width: 0 !important;
+            border-collapse: collapse !important;
+            font-size: 11px !important;
+            background: #f8fafc !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+            margin: 0 !important;
         }
 
         .chat-table th, .chat-table td {
-            padding: 6px 10px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-            white-space: nowrap;
-            word-break: normal;
-            overflow-wrap: normal;
-            vertical-align: top;
+            padding: 6px 10px !important;
+            text-align: left !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            white-space: nowrap !important;
+            word-break: normal !important;
+            overflow-wrap: normal !important;
+            vertical-align: top !important;
+            font-size: 11px !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+            min-width: 0 !important;
         }
-        
+
         .chat-table th {
-            background: #7c3aed;
-            color: white;
-            font-weight: 600;
-            font-size: 9px;
+            background: #7c3aed !important;
+            color: white !important;
+            font-weight: 600 !important;
+            font-size: 10px !important;
         }
         
         .chat-table tr:last-child td {

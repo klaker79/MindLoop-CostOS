@@ -153,7 +153,8 @@
 // BUMP v166: Ventana del chat responsive — width/height min(fijo, viewport) en vez de 450×550 fijo. Se ve igual en Mac/Windows/móvil sin importar el escalado del SO; las tablas del chat (que ya scrollean en horizontal) se ven bien al converger ambas máquinas a esta versión. Solo CSS, sin lógica.
 // BUMP v167: Tablas del chat — las celdas envuelven por PALABRAS (white-space:normal + word-break:normal + overflow-wrap:break-word), ya no parten cada palabra letra a letra en vertical en columnas estrechas. Antes heredaban word-break:break-word del contenedor del mensaje.
 // BUMP v168: Tablas del chat — FIX DEFINITIVO. La tabla iba a width:100% y se APLASTABA (columnas de 1-2 chars, texto en vertical). Ahora width:max-content + min-width:100% + celdas nowrap → la tabla toma su ancho natural y el wrapper hace scroll horizontal. Nunca más letras en vertical.
-const CACHE_NAME = 'mindloop-costos-v168';
+// BUMP v169: FIX RAÍZ tablas del chat. La causa real (3 intentos perdidos): theme-editorial.css/main.css tienen reglas GLOBALES con !important sobre toda tabla (padding 14-16px, min-width:800px) que machacaban las columnas del chat en su panel estrecho → texto en vertical. Mis reglas .chat-table perdían por no llevar !important. Ahora .chat-table + celdas con !important ganan SIEMPRE: ancho natural + scroll-x, padding 6px, nunca parte.
+const CACHE_NAME = 'mindloop-costos-v169';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
