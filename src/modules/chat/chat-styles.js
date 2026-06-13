@@ -324,26 +324,27 @@ export function createChatStyles() {
             border-radius: 3px;
         }
         
+        /* 🔧 Fix 2026-06-13 (v168): la tabla iba a width:100% → en el chat estrecho
+           NO desbordaba, sino que APLASTABA las columnas a 1-2 caracteres y el
+           texto se partía letra a letra en vertical. Solución correcta: la tabla
+           toma su ancho NATURAL (max-content) y el wrapper (.chat-table-wrapper,
+           overflow-x:auto) hace scroll horizontal. Las celdas nunca parten. */
         .chat-table {
-            width: 100%;
+            width: max-content;
+            min-width: 100%;
             border-collapse: collapse;
             font-size: 10px;
             background: #f8fafc;
             border-radius: 8px;
-            table-layout: auto;
         }
 
         .chat-table th, .chat-table td {
-            padding: 6px 8px;
+            padding: 6px 10px;
             text-align: left;
             border-bottom: 1px solid #e2e8f0;
-            /* 🔧 Fix 2026-06-13: las celdas heredaban word-break:break-word del
-               contenedor del mensaje y, en columna estrecha, partían cada palabra
-               LETRA A LETRA en vertical ("PEIXIÑO"→"PEIXIÑ/O"). Aquí: envolver por
-               PALABRAS (salto en espacios), nunca a mitad de palabra. */
-            white-space: normal;
+            white-space: nowrap;
             word-break: normal;
-            overflow-wrap: break-word;
+            overflow-wrap: normal;
             vertical-align: top;
         }
         
