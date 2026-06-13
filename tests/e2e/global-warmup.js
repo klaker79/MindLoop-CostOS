@@ -21,12 +21,14 @@ import { request } from '@playwright/test';
 const STAGING_URL = process.env.STAGING_URL || 'https://staging.mindloop.cloud';
 const STAGING_API_URL = process.env.STAGING_API_URL || 'https://staging-api.mindloop.cloud';
 
-// Ventana total de espera por URL (cubre un redeploy de Dokploy, que puede
-// tardar 1-2 min). perTryMs = timeout de cada intento; gapMs = pausa entre
-// intentos fallidos para repartir los reintentos a lo largo de la ventana
-// (si staging falla rápido con connection-refused, sin pausa haríamos cientos
-// de intentos inútiles).
-const MAX_WAIT_MS = 180_000;
+// Ventana total de espera por URL (cubre un redeploy de Dokploy).
+// 2026-06-13: subido 180s → 300s. El build del Dockerfile de staging-api +
+// arranque puede pasar de 3 min; con 180s el warmup se rendía y los tests
+// corrían contra el contenedor aún reiniciando (falso rojo recurrente en cada
+// PR que sigue a un merge a develop, que es justo lo que dispara el redeploy).
+// perTryMs = timeout de cada intento; gapMs = pausa entre intentos fallidos
+// para repartir los reintentos a lo largo de la ventana.
+const MAX_WAIT_MS = 300_000;
 const PER_TRY_MS = 10_000;
 const GAP_MS = 5_000;
 
