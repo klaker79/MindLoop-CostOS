@@ -430,13 +430,13 @@ export const api = {
     // Chat (Claude API backend). Returns plain text (multi-tenant via JWT).
     // En error, el caller necesita acceder al body JSON (resets_at en 429,
     // mensaje en 403) — por eso no se delega en handleResponse genérico.
-    chat: async (message, lang = 'es', sessionId = null) => {
+    chat: async (message, lang = 'es', sessionId = null, history = []) => {
         const url = `${API_BASE}/chat`;
         const response = await fetch(url, {
             method: 'POST',
             ...defaultConfig,
             headers: { ...defaultConfig.headers, ...getAuthHeaders() },
-            body: JSON.stringify({ message, lang, sessionId })
+            body: JSON.stringify({ message, lang, sessionId, history })
         });
         if (!response.ok) {
             let body = null;

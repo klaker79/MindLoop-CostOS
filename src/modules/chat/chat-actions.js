@@ -67,6 +67,14 @@ export async function executeAction(actionData) {
         const field = parts[3];
         const value = parts[4];
 
+        // Blindaje: toda acción referencia una entidad por nombre (parts[2]).
+        // Un nombre vacío hace que `.includes('')` matchee la PRIMERA entidad y
+        // se ejecute la acción sobre la equivocada. Rechazamos antes de tocar nada.
+        if (!action || !entity || typeof name !== 'string' || !name.trim()) {
+            logger.error('Acción del chat inválida (falta tipo/entidad/nombre):', actionData);
+            return false;
+        }
+
         if (action === 'update' && entity === 'ingrediente') {
             const ing = window.ingredientes?.find(i =>
                 i.nombre.toLowerCase().includes(name.toLowerCase())

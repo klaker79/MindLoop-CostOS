@@ -20,6 +20,7 @@ import { isTtsEnabled, toggleTts, speakResponse } from './chat-actions.js';
 import {
     addMessage,
     sendMessage,
+    askOmnes,
     renderChatHistory,
     updateQuickButtons,
     clearChat
@@ -74,6 +75,12 @@ function mountWidget() {
         }
         const input = document.getElementById('chat-input');
         if (input) input.placeholder = CHAT_CONFIG.placeholderText;
+        // El globo de invitación del FAB tenía el texto fijado al montar; sin
+        // esto se quedaba en el idioma anterior (visible en tenants en inglés).
+        const bubbleText = document.querySelector('.chat-fab-bubble-text');
+        if (bubbleText) bubbleText.textContent = t('chat:fab_invite');
+        const bubbleX = document.getElementById('chat-fab-bubble-x');
+        if (bubbleX) bubbleX.setAttribute('aria-label', t('chat:fab_invite_close'));
         updateQuickButtons();
         clearChatHistory();
     });
@@ -503,3 +510,5 @@ window.initChatWidget = initChatWidget;
 window.clearChatHistory = clearChatHistory;
 window.toggleChat = toggleChat;
 window.updateChatUsageBadge = updateUsageBadge;
+// Deep-link desde el feed de avisos ("Pregúntale a Omnes"): abre el chat con la pregunta.
+window.preguntarAOmnes = askOmnes;

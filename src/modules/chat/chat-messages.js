@@ -24,6 +24,7 @@ import { getCurrentTab, getCurrentTabContext } from './chat-context.js';
 import { executeAction } from './chat-actions.js';
 import { showActionConfirmModal } from './chat-action-preview.js';
 import { CHAT_CONFIG, getSessionId, getMessages, pushMessage, resetHistory } from './chat-state.js';
+import { mapHistoryForBackend } from './chat-history.js';
 
 let isWaitingResponse = false;
 let clearClickCount = 0;
@@ -174,6 +175,20 @@ export function hideTyping() {
 }
 
 /**
+ * Abre el chat y manda una pregunta ya redactada (deep-link desde el feed de
+ * avisos: "Pregúntale a Omnes"). Si el widget no está montado (add-on no activo)
+ * devuelve false sin romper nada.
+ */
+export function askOmnes(text) {
+    const input = document.getElementById('chat-input');
+    if (!input || !text) return false;
+    if (typeof window.toggleChat === 'function') window.toggleChat(true);
+    input.value = text;
+    sendMessage();
+    return true;
+}
+
+/**
  * Envía el mensaje actual del input al backend (Claude o n8n según
  * appConfig.chat.backend). Si la respuesta trae `[ACTION:...]`, separa la
  * acción del texto visible y pinta los botones de confirmación.
@@ -184,6 +199,10 @@ export async function sendMessage() {
     const message = input.value.trim();
 
     if (!message || isWaitingResponse) return;
+
+    // Capturar el historial reciente ANTES de añadir el mensaje actual
+    // (el backend lo añade por su cuenta). Da memoria conversacional al búho.
+    const priorHistory = mapHistoryForBackend(getMessages());
 
     addMessage('user', message);
     input.value = '';
@@ -202,7 +221,7 @@ export async function sendMessage() {
 
         if (appConfig.chat.backend === 'claude') {
             // Claude API (multi-tenant vía JWT). El backend saca contexto con tools.
-            data = await api.chat(message, lang, getSessionId());
+            data = await api.chat(message, lang, getSessionId(), priorHistory);
         } else {
             // Legacy: webhook n8n con payload completo de contexto de pestaña.
             const tabContext = getCurrentTabContext();
