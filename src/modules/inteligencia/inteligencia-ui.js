@@ -1,6 +1,6 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, getDateLocale } from '../../utils/helpers.js';
-import { construirAvisos } from './omnes-avisos.js';
+import { construirAvisos, buildOmnesQuestion } from './omnes-avisos.js';
 import { filtrarVisibles, dismissAviso } from './omnes-dismiss.js';
 
 /**
@@ -166,6 +166,16 @@ const INTEL_STYLES = `
     white-space: nowrap;
 }
 .omnes-card-cta:hover { background: rgba(99,102,241,0.32); color: #fff; }
+.omnes-card-actions { flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.omnes-card-ask {
+    background: rgba(56,189,248,0.12);
+    color: #7dd3fc;
+    border: 1px solid rgba(56,189,248,0.35);
+    padding: 7px 12px; border-radius: 10px;
+    cursor: pointer; font-weight: 600; font-size: 0.8rem;
+    white-space: nowrap;
+}
+.omnes-card-ask:hover { background: rgba(56,189,248,0.26); color: #fff; }
 
 .omnes-empty {
     text-align: center; padding: 60px 24px;
@@ -190,7 +200,8 @@ const INTEL_STYLES = `
     .omnes-hero { flex-direction: column; text-align: center; }
     .omnes-hero-actions { align-items: center; }
     .omnes-card { flex-wrap: wrap; }
-    .omnes-card-cta { width: 100%; }
+    .omnes-card-actions { width: 100%; flex-direction: row; }
+    .omnes-card-cta, .omnes-card-ask { flex: 1; }
 }
 </style>
 `;
@@ -209,17 +220,33 @@ const SECCIONES = [
     { cat: 'sobrestock', emoji: '🗄️', bg: 'rgba(100,116,139,0.18)', titleKey: 'omnes_sec_sobrestock' },
 ];
 
+// Frases i18n para "Pregúntale a Omnes" (resueltas al pintar, no en módulo).
+function frasesOmnes() {
+    return {
+        prefix: t('inteligencia:omnes_ask_prefix'),
+        recetas: t('inteligencia:omnes_ask_recetas'),
+        stock: t('inteligencia:omnes_ask_stock'),
+        precio: t('inteligencia:omnes_ask_precio'),
+        frescura: t('inteligencia:omnes_ask_frescura'),
+        sobrestock: t('inteligencia:omnes_ask_sobrestock'),
+        default: t('inteligencia:omnes_ask_default'),
+    };
+}
+
 function renderAvisoCard(a) {
     // a.texto / a.cta.label vienen de t(): i18next ya escapa los valores interpolados
     // (escapeValue:true) → HTML seguro. a.cta.tipo es literal fijo y a.cta.id un número.
     const cta = a.cta
         ? `<button class="omnes-card-cta" onclick="window.omnesIr('${a.cta.tipo}', ${a.cta.id})">${a.cta.label} →</button>`
         : '';
+    // "Pregúntale a Omnes": deep-link al chat con una pregunta sobre este aviso.
+    const pregunta = buildOmnesQuestion(a, frasesOmnes());
+    const ask = `<button class="omnes-card-ask" type="button" data-omnes-ask="${escapeHTML(pregunta)}" title="${escapeHTML(t('inteligencia:omnes_ask_btn'))}">🦉 ${escapeHTML(t('inteligencia:omnes_ask_btn'))}</button>`;
     return `
         <div class="omnes-card ${a.nivel}" data-aviso-id="${escapeHTML(a.id)}" data-cat="${escapeHTML(a.categoria || '')}">
             <button class="omnes-card-dismiss" type="button" data-dismiss-id="${escapeHTML(a.id)}" title="${escapeHTML(t('inteligencia:omnes_dismiss'))}" aria-label="${escapeHTML(t('inteligencia:omnes_dismiss'))}">✕</button>
             <div class="omnes-card-body"><div class="omnes-card-text">${a.texto}</div></div>
-            ${cta}
+            <div class="omnes-card-actions">${cta}${ask}</div>
         </div>
     `;
 }
@@ -390,6 +417,18 @@ document.addEventListener('click', (e) => {
     const head = e.target.closest('.omnes-sec-head');
     if (!head) return;
     head.closest('.omnes-sec')?.classList.toggle('collapsed');
+});
+
+// Listener delegado para "Pregúntale a Omnes": abre el chat con la pregunta del aviso.
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.omnes-card-ask');
+    if (!btn) return;
+    e.stopPropagation();
+    const q = btn.dataset.omnesAsk || '';
+    if (typeof window.preguntarAOmnes === 'function') {
+        const ok = window.preguntarAOmnes(q);
+        if (!ok) window.showToast?.(t('inteligencia:omnes_ask_unavailable'), 'info');
+    }
 });
 
 /**
