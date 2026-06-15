@@ -30,6 +30,18 @@ describe('limpiarTextoAviso', () => {
         expect(limpiarTextoAviso(null)).toBe('');
         expect(limpiarTextoAviso(undefined)).toBe('');
     });
+
+    test('sanitización completa: decodificar entidades NO debe reintroducir etiquetas', () => {
+        // &lt;script&gt; al decodificar se vuelve <script>; el resultado final
+        // NO debe contener "<script" (CodeQL: incomplete multi-character sanitization).
+        const out = limpiarTextoAviso('hola &lt;script&gt;alert(1)&lt;/script&gt; mundo');
+        expect(out).not.toContain('<script');
+        expect(out).not.toContain('</script');
+    });
+
+    test('sanitización completa: tags anidados/partidos no sobreviven', () => {
+        expect(limpiarTextoAviso('a <scr<script>ipt> b')).not.toContain('<script');
+    });
 });
 
 describe('buildOmnesQuestion', () => {
