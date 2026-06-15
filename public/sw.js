@@ -156,7 +156,8 @@
 // BUMP v169: FIX RAÍZ tablas del chat. La causa real (3 intentos perdidos): theme-editorial.css/main.css tienen reglas GLOBALES con !important sobre toda tabla (padding 14-16px, min-width:800px) que machacaban las columnas del chat en su panel estrecho → texto en vertical. Mis reglas .chat-table perdían por no llevar !important. Ahora .chat-table + celdas con !important ganan SIEMPRE: ancho natural + scroll-x, padding 6px, nunca parte.
 // BUMP v170: Memoria conversacional del búho (envía historial reciente a Claude) + globo FAB i18n al cambiar idioma + executeAction rechaza acciones sin nombre (evitaba pisar la 1ª entidad) + listener ESC del modal de confirmación deja de quedar huérfano.
 // BUMP v171: visibilidad de Omnes — botón "Pregúntale a Omnes" en cada tarjeta del feed de avisos (abre el chat con la pregunta del aviso) + welcome del chat con poderes con nombre (Coach/Diagnóstico/Informe).
-const CACHE_NAME = 'mindloop-costos-v171';
+// BUMP v172: fix "Pregúntale a Omnes" — la pregunta se truncaba en la 1ª comilla (escapeHTML no escapa "). Ahora data-omnes-ask va con encodeURIComponent y se decodifica al pulsar (igual que data-action del chat).
+const CACHE_NAME = 'mindloop-costos-v172';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
