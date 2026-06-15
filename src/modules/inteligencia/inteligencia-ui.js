@@ -241,7 +241,10 @@ function renderAvisoCard(a) {
         : '';
     // "Pregúntale a Omnes": deep-link al chat con una pregunta sobre este aviso.
     const pregunta = buildOmnesQuestion(a, frasesOmnes());
-    const ask = `<button class="omnes-card-ask" type="button" data-omnes-ask="${escapeHTML(pregunta)}" title="${escapeHTML(t('inteligencia:omnes_ask_btn'))}">🦉 ${escapeHTML(t('inteligencia:omnes_ask_btn'))}</button>`;
+    // encodeURIComponent: la pregunta lleva comillas (Sobre este aviso: "..."),
+    // que romperían el atributo data-* si solo se escapara HTML. Se decodifica
+    // al pulsar. Mismo patrón que data-action en los botones del chat.
+    const ask = `<button class="omnes-card-ask" type="button" data-omnes-ask="${encodeURIComponent(pregunta)}" title="${escapeHTML(t('inteligencia:omnes_ask_btn'))}">🦉 ${escapeHTML(t('inteligencia:omnes_ask_btn'))}</button>`;
     return `
         <div class="omnes-card ${a.nivel}" data-aviso-id="${escapeHTML(a.id)}" data-cat="${escapeHTML(a.categoria || '')}">
             <button class="omnes-card-dismiss" type="button" data-dismiss-id="${escapeHTML(a.id)}" title="${escapeHTML(t('inteligencia:omnes_dismiss'))}" aria-label="${escapeHTML(t('inteligencia:omnes_dismiss'))}">✕</button>
@@ -424,7 +427,8 @@ document.addEventListener('click', (e) => {
     const btn = e.target.closest('.omnes-card-ask');
     if (!btn) return;
     e.stopPropagation();
-    const q = btn.dataset.omnesAsk || '';
+    let q = '';
+    try { q = decodeURIComponent(btn.dataset.omnesAsk || ''); } catch { q = btn.dataset.omnesAsk || ''; }
     if (typeof window.preguntarAOmnes === 'function') {
         const ok = window.preguntarAOmnes(q);
         if (!ok) window.showToast?.(t('inteligencia:omnes_ask_unavailable'), 'info');
