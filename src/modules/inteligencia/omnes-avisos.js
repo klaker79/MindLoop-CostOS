@@ -100,22 +100,16 @@ export function calcularStockCritico(ingredientes) {
  */
 export function limpiarTextoAviso(texto) {
     if (typeof texto !== 'string') return '';
-    // 1) Decodificar entidades PRIMERO (si quedara para el final, podría
-    //    reintroducir etiquetas: &lt;script&gt; → <script>).
-    let s = texto
-        .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n))    // numéricas (&#39; &#37;)
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#x27;|&apos;/g, "'")
-        .replace(/&nbsp;/g, ' ');
-    // 2) Quitar etiquetas al final y REPETIR hasta estable (sanitización
-    //    completa: maneja tags partidos como <scr<script>ipt> — CodeQL).
-    let prev;
-    do { prev = s; s = s.replace(/<[^>]*>/g, ''); } while (s !== prev);
-    // 3) Por si quedó algún '<' suelto sin cerrar, lo retiramos (este texto va
-    //    al input del chat como texto plano; nunca se inyecta como HTML).
+    let s = texto;
+    // Quitar etiquetas con el parser del navegador (NO con regex de tags: ese
+    // patrón lo marca CodeQL como "incomplete multi-character sanitization").
+    // textContent decodifica además las entidades HTML del aviso.
+    if (typeof window !== 'undefined' && window.DOMParser) {
+        s = new window.DOMParser().parseFromString(s, 'text/html').body.textContent || '';
+    }
+    // Texto plano para el input del chat: fuera cualquier '<'/'>' residual
+    // (garantiza que no quede ninguna secuencia tipo "<script"). Nunca se
+    // inyecta como HTML, pero así la sanitización es total y verificable.
     return s.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
 }
 
