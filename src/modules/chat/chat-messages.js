@@ -174,6 +174,20 @@ export function hideTyping() {
 }
 
 /**
+ * Abre el chat y manda una pregunta ya redactada (deep-link desde el feed de
+ * avisos: "Pregúntale a Omnes"). Si el widget no está montado (add-on no activo)
+ * devuelve false sin romper nada.
+ */
+export function askOmnes(text) {
+    const input = document.getElementById('chat-input');
+    if (!input || !text) return false;
+    if (typeof window.toggleChat === 'function') window.toggleChat(true);
+    input.value = text;
+    sendMessage();
+    return true;
+}
+
+/**
  * Envía el mensaje actual del input al backend (Claude o n8n según
  * appConfig.chat.backend). Si la respuesta trae `[ACTION:...]`, separa la
  * acción del texto visible y pinta los botones de confirmación.

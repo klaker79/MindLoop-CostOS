@@ -90,6 +90,42 @@ export function calcularStockCritico(ingredientes) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// "PREGÚNTALE A OMNES" — convierte un aviso en una pregunta de chat
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * El texto del aviso viene de t() con escapeValue (entidades HTML) y puede
+ * llevar etiquetas. Para meterlo en el input del chat lo dejamos en texto plano:
+ * quita tags, decodifica entidades comunes + numéricas, y colapsa espacios.
+ */
+export function limpiarTextoAviso(texto) {
+    if (typeof texto !== 'string') return '';
+    return texto
+        .replace(/<[^>]*>/g, '')                                   // tags
+        .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n))    // entidades numéricas (&#39; &#37;)
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#x27;|&apos;/g, "'")
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+/**
+ * Construye la pregunta que se manda al chat al pulsar "Pregúntale a Omnes".
+ * @param {object} aviso  - { categoria, texto }
+ * @param {object} frases - textos i18n: { prefix, recetas, stock, precio, frescura, sobrestock, default }
+ */
+export function buildOmnesQuestion(aviso, frases) {
+    const f = frases || {};
+    const texto = limpiarTextoAviso(aviso && aviso.texto);
+    const seguimiento = f[aviso && aviso.categoria] || f.default || '';
+    return `${f.prefix || ''}"${texto}". ${seguimiento}`.trim();
+}
+
+// ─────────────────────────────────────────────────────────────
 // CONSTRUCCIÓN DEL FEED (async — junta señales y arma los avisos)
 // ─────────────────────────────────────────────────────────────
 

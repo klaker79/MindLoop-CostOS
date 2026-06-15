@@ -20,6 +20,7 @@ import { isTtsEnabled, toggleTts, speakResponse } from './chat-actions.js';
 import {
     addMessage,
     sendMessage,
+    askOmnes,
     renderChatHistory,
     updateQuickButtons,
     clearChat
@@ -503,3 +504,5 @@ window.initChatWidget = initChatWidget;
 window.clearChatHistory = clearChatHistory;
 window.toggleChat = toggleChat;
 window.updateChatUsageBadge = updateUsageBadge;
+// Deep-link desde el feed de avisos ("Pregúntale a Omnes"): abre el chat con la pregunta.
+window.preguntarAOmnes = askOmnes;
