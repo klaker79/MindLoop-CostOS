@@ -137,8 +137,11 @@ export function showActionConfirmModal(actionData) {
             return;
         }
 
-        // Si ya hay un modal abierto, lo cerramos antes
+        // Si ya hay un modal abierto, lo cerramos antes. Importante: liberar
+        // también su listener de ESC para que no quede huérfano (su referencia
+        // se perdería al reasignar escListener y nunca se podría remover).
         document.getElementById(MODAL_ID)?.remove();
+        unbindEsc();
 
         const overlay = document.createElement('div');
         overlay.id = MODAL_ID;

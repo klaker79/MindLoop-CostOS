@@ -24,6 +24,7 @@ import { getCurrentTab, getCurrentTabContext } from './chat-context.js';
 import { executeAction } from './chat-actions.js';
 import { showActionConfirmModal } from './chat-action-preview.js';
 import { CHAT_CONFIG, getSessionId, getMessages, pushMessage, resetHistory } from './chat-state.js';
+import { mapHistoryForBackend } from './chat-history.js';
 
 let isWaitingResponse = false;
 let clearClickCount = 0;
@@ -185,6 +186,10 @@ export async function sendMessage() {
 
     if (!message || isWaitingResponse) return;
 
+    // Capturar el historial reciente ANTES de añadir el mensaje actual
+    // (el backend lo añade por su cuenta). Da memoria conversacional al búho.
+    const priorHistory = mapHistoryForBackend(getMessages());
+
     addMessage('user', message);
     input.value = '';
     input.style.height = 'auto';
@@ -202,7 +207,7 @@ export async function sendMessage() {
 
         if (appConfig.chat.backend === 'claude') {
             // Claude API (multi-tenant vía JWT). El backend saca contexto con tools.
-            data = await api.chat(message, lang, getSessionId());
+            data = await api.chat(message, lang, getSessionId(), priorHistory);
         } else {
             // Legacy: webhook n8n con payload completo de contexto de pestaña.
             const tabContext = getCurrentTabContext();

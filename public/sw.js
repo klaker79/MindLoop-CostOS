@@ -154,7 +154,8 @@
 // BUMP v167: Tablas del chat — las celdas envuelven por PALABRAS (white-space:normal + word-break:normal + overflow-wrap:break-word), ya no parten cada palabra letra a letra en vertical en columnas estrechas. Antes heredaban word-break:break-word del contenedor del mensaje.
 // BUMP v168: Tablas del chat — FIX DEFINITIVO. La tabla iba a width:100% y se APLASTABA (columnas de 1-2 chars, texto en vertical). Ahora width:max-content + min-width:100% + celdas nowrap → la tabla toma su ancho natural y el wrapper hace scroll horizontal. Nunca más letras en vertical.
 // BUMP v169: FIX RAÍZ tablas del chat. La causa real (3 intentos perdidos): theme-editorial.css/main.css tienen reglas GLOBALES con !important sobre toda tabla (padding 14-16px, min-width:800px) que machacaban las columnas del chat en su panel estrecho → texto en vertical. Mis reglas .chat-table perdían por no llevar !important. Ahora .chat-table + celdas con !important ganan SIEMPRE: ancho natural + scroll-x, padding 6px, nunca parte.
-const CACHE_NAME = 'mindloop-costos-v169';
+// BUMP v170: Memoria conversacional del búho (envía historial reciente a Claude) + globo FAB i18n al cambiar idioma + executeAction rechaza acciones sin nombre (evitaba pisar la 1ª entidad) + listener ESC del modal de confirmación deja de quedar huérfano.
+const CACHE_NAME = 'mindloop-costos-v170';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
