@@ -20,9 +20,6 @@ const ROOTS = ['src/modules', 'src/stores'];
 
 // Excepciones DOCUMENTADAS (cada una con su porqué):
 const WHITELIST = new Set([
-    // Réplica inline de la cascada canónica (equivalente verificado en auditoría
-    // 2026-06-12; candidata a refactor de 1 línea, no a copiar como patrón).
-    'src/modules/inventario/recuento.js',
     // Texto del manual del usuario (HTML estático, no es código de cálculo).
     'src/modules/docs/dossier-v24.js',
 ]);

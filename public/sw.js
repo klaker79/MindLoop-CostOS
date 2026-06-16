@@ -158,7 +158,14 @@
 // BUMP v171: visibilidad de Omnes — botón "Pregúntale a Omnes" en cada tarjeta del feed de avisos (abre el chat con la pregunta del aviso) + welcome del chat con poderes con nombre (Coach/Diagnóstico/Informe).
 // BUMP v172: fix "Pregúntale a Omnes" — la pregunta se truncaba en la 1ª comilla (escapeHTML no escapa "). Ahora data-omnes-ask va con encodeURIComponent y se decodifica al pulsar (igual que data-action del chat).
 // BUMP v173: el chat se monta también al entrar (enterApp) — antes en el login el token se seteaba tras el primer intento (chat-status 401) y había que refrescar para ver el búho.
-const CACHE_NAME = 'mindloop-costos-v173';
+// BUMP v174: precio fijado manual por ingrediente — checkbox "Fijar precio" en la ficha; getIngredientUnitPrice respeta el override (coste usa el precio manual, no la media de compras). Backend: columna precio_fijado + todas las queries de coste la traen.
+// BUMP v175: guard anti-dedazo al recibir pedido — si un precio se desvía >70% de la media/configurado, avisa antes de que entre en la media de compras (no bloquea: confirmar o corregir).
+// BUMP v176: mismo guard anti-dedazo al EDITAR la ficha del ingrediente (protege el fallback y el pin de un precio mal tecleado).
+// BUMP v177: el preview verde de la ficha dice la verdad — si el ingrediente tiene media de compras y no está fijado, el coste usa la media (no el precio configurado). Antes el verde prometía el configurado y contradecía al aviso azul.
+// BUMP v178: el aviso "qué precio usa el coste" se sube pegado al PRECIO (antes despistaba abajo en Formato). El aviso de coherencia del formato se queda en su sección y solo aparece si hay algo que decir.
+// BUMP v179: el guard anti-dedazo de la ficha solo salta si el precio tecleado se va a usar de verdad (fijado o sin media). Si no está fijado y hay media, el precio es inerte → no avisar (caso TOMATE: 6 vs media 3,125 = +92% era ruido por un número que ni se usa).
+// BUMP v180: recuento de inventario usa getIngredientUnitPrice (respeta el precio fijado 📌) en vez de cascada inline → un ingrediente fijado se valora igual en inventario que en el food cost. Sale de la whitelist anti-drift.
+const CACHE_NAME = 'mindloop-costos-v180';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

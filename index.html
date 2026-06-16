@@ -871,8 +871,17 @@
                   <label data-i18n="common:label_price">Precio (€)</label>
                   <input type="number" id="ing-precio" step="0.01" min="0" oninput="window.actualizarPreviewPrecioUnidad?.()">
                   <small id="ing-precio-hint" style="display: block; margin-top: 6px; padding: 8px 10px; background: #f0f9ff; border-left: 3px solid #0284c7; border-radius: 4px; color: #0369a1; font-size: 12px; line-height: 1.4;">
-                    💡 La app recalcula este precio automáticamente tras cada pedido recibido (precio medio de compras × cantidad por formato). Si lo editas a mano, el siguiente pedido lo sobreescribirá.
+                    💡 La app recalcula este precio automáticamente tras cada pedido recibido (precio medio de compras × cantidad por formato). Si lo editas a mano, el siguiente pedido lo sobreescribirá — salvo que marques "Fijar precio".
                   </small>
+                  <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:13px; cursor:pointer;">
+                    <input type="checkbox" id="ing-precio-fijado" style="width:auto; margin:0;" onchange="window.actualizarPreviewPrecioUnidad?.()">
+                    <span>📌 Fijar este precio (no recalcular con las compras)</span>
+                  </label>
+                  <!-- Qué precio usa REALMENTE el coste / food cost (media vs fijado vs
+                       configurado). Va aquí, pegado al precio, no abajo en Formato. -->
+                  <div id="ing-precio-coste-preview"
+                    style="display: none; margin-top: 8px; padding: 8px 10px; border-radius: 6px; font-size: 12px; line-height: 1.4;">
+                  </div>
                 </div>
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_label_unit">Unidad</label>

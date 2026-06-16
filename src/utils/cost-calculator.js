@@ -22,6 +22,22 @@
  * @returns {number} Unit price (always >= 0)
  */
 export function getIngredientUnitPrice(invItem, ing) {
+    // OVERRIDE manual (precio_fijado): si el usuario fijó el precio, el coste usa el
+    // precio manual (precio/cpf) e IGNORA la media de compras. Mismo criterio que el
+    // backend (getBackendIngredientUnitPrice). Si el precio manual no es válido, cae
+    // a la cascada normal. Flag false/ausente → comportamiento de siempre.
+    const fijado = invItem?.precio_fijado ?? ing?.precio_fijado;
+    if (fijado === true || fijado === 'true' || fijado === 't') {
+        // Precio manual por unidad = precio/cpf. Si no hay precio crudo en el objeto,
+        // usar precio_medio (inventarioCompleto ya lo expone como precio/cpf).
+        const precioManual = parseFloat(ing?.precio ?? invItem?.precio);
+        if (precioManual > 0) {
+            const cpfManual = parseFloat(ing?.cantidad_por_formato ?? invItem?.cantidad_por_formato) || 1;
+            return precioManual / cpfManual;
+        }
+        const pmManual = parseFloat(invItem?.precio_medio);
+        if (pmManual > 0) return pmManual;
+    }
     // 🔒 AUDITORÍA 2026-06-12 (M1): comparar con > 0 en vez de truthy, igual que
     // getBackendIngredientUnitPrice (businessHelpers.js). La API devuelve NUMERIC
     // como string: "0.0000" es truthy, así que el check anterior devolvía 0€ en
@@ -58,6 +74,31 @@ export function getIngredientNominalPrice(ing) {
     const precioFormato = parseFloat(ing.precio);
     const cpf = parseFloat(ing.cantidad_por_formato) || 1;
     return precioFormato / cpf;
+}
+
+/**
+ * Umbral por defecto de desviación de precio (±70%) para el guard de recepción.
+ * Un dedazo típico es ×10 o /10 (muy por encima del 70%); una subida real de
+ * proveedor suele quedar por debajo, así que no cría lobos.
+ */
+export const UMBRAL_DESVIACION_PRECIO = 0.70;
+
+/**
+ * Detecta si un precio tecleado se desvía demasiado del precio de referencia
+ * del ingrediente — para avisar ANTES de que entre en la media de compras y la
+ * distorsione. NO bloquea: solo informa para que el usuario confirme o corrija.
+ *
+ * @param {number} precioNuevo - Precio unitario tecleado en la recepción.
+ * @param {number} precioRef - Precio de referencia (media de compras o configurado).
+ * @param {number} umbral - Desviación relativa a partir de la cual avisar (default 0.70).
+ * @returns {{sospechoso: boolean, pct: number}} pct = desviación con signo (%).
+ */
+export function precioDesviacionSospechosa(precioNuevo, precioRef, umbral = UMBRAL_DESVIACION_PRECIO) {
+    const nuevo = parseFloat(precioNuevo);
+    const ref = parseFloat(precioRef);
+    if (!(nuevo > 0) || !(ref > 0)) return { sospechoso: false, pct: 0 };
+    const desviacion = (nuevo - ref) / ref;
+    return { sospechoso: Math.abs(desviacion) >= umbral, pct: Math.round(desviacion * 100) };
 }
 
 /**

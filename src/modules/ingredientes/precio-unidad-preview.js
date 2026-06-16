@@ -41,3 +41,32 @@ export function calcularPreviewPrecioUnidad({ precio, cantidadPorFormato, format
 
     return { visible: true, precio: p, cpf, formato: nombreFormato, unidad: u, unitPrice, level };
 }
+
+/**
+ * Decide QUÉ precio por unidad usará realmente la app para el coste / food cost,
+ * y de qué FUENTE sale, para que el preview verde diga la verdad.
+ *
+ * El número efectivo lo calcula SIEMPRE el llamador con getIngredientUnitPrice
+ * (única fuente de verdad — no leemos la media a mano aquí). Esta función solo
+ * clasifica la fuente comparando ese efectivo con el precio configurado:
+ *   - fijado (📌)         → el coste usa el precio configurado (ignora la media)
+ *   - efectivo ≠ config   → manda la media de compras (por eso difieren)
+ *   - efectivo ≈ config   → no hay media relevante, usa el configurado
+ *
+ * Antes el preview prometía SIEMPRE el precio configurado, aunque el coste
+ * usara la media → contradecía el aviso azul ("Actualmente: X de media").
+ *
+ * @param {{efectivo:any, precioConfigUnit:any, fijado:any}} input
+ * @returns {{efectivo:number, fuente:'fijado'|'media'|'config'}}
+ */
+export function describirPrecioCoste({ efectivo, precioConfigUnit, fijado } = {}) {
+    const ef = parseFloat(efectivo) || 0;
+    const cfg = parseFloat(precioConfigUnit) || 0;
+    const estaFijado = fijado === true || fijado === 'true' || fijado === 't';
+    if (estaFijado && cfg > 0) return { efectivo: cfg, fuente: 'fijado' };
+    // Si lo que usa la app difiere del configurado, es porque manda la media.
+    if (ef > 0 && cfg > 0 && Math.abs(ef - cfg) / cfg > 0.001) {
+        return { efectivo: ef, fuente: 'media' };
+    }
+    return { efectivo: ef || cfg, fuente: 'config' };
+}

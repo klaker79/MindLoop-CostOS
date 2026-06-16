@@ -5,8 +5,9 @@
 
 import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
-import { escapeHTML, formatQuantity } from '../../utils/helpers.js';
-import { calcularPreviewPrecioUnidad } from './precio-unidad-preview.js';
+import { escapeHTML, formatQuantity, cm } from '../../utils/helpers.js';
+import { getIngredientUnitPrice, getIngredientNominalPrice, precioDesviacionSospechosa } from '../../utils/cost-calculator.js';
+import { calcularPreviewPrecioUnidad, describirPrecioCoste } from './precio-unidad-preview.js';
 import { detectarAlergenos } from './alergenos-deteccion.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
 
@@ -84,6 +85,9 @@ export async function guardarIngrediente(event) {
             : undefined,
         // 🆕 Alérgenos UE: array de códigos de los checkboxes marcados.
         alergenos: Array.from(document.querySelectorAll('.ing-alergeno:checked')).map(c => c.value),
+        // 🆕 Precio fijado manual: si está marcado, el coste usa el precio tecleado y
+        // las recepciones de pedidos NO lo sobreescriben con la media de compras.
+        precio_fijado: document.getElementById('ing-precio-fijado')?.checked === true,
     };
 
     // 🆕 Validación centralizada (reemplaza validación manual)
@@ -127,6 +131,47 @@ export async function guardarIngrediente(event) {
                 `¿Quieres crear uno NUEVO igualmente?`
             );
             if (!continuar) {
+                _guardandoIngrediente = false;
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+        }
+    }
+
+    // 🛡️ Guard anti-dedazo en la ficha: al EDITAR, si el precio por unidad tecleado
+    // se desvía mucho del precio efectivo actual del ingrediente, avisar (error de
+    // tecleo o pin equivocado). Solo al editar (hay referencia). Reusa el mismo
+    // helper que la recepción; referencia vía getIngredientUnitPrice (anti-drift).
+    //
+    // OJO: solo avisamos si el precio tecleado SE VA A USAR de verdad para el coste:
+    //  - lo fijas (📌) → se usa el pin, o
+    //  - no hay media de compras → se usa el fallback (precio/cpf).
+    // Si NO está fijado y hay media, lo que teclees es inerte (la media manda y el
+    // próximo pedido lo sobreescribe) → avisar sería ruido (caso TOMATE: 6 vs media
+    // 3,125 = +92% por un número que ni se usa). describirPrecioCoste clasifica la
+    // fuente; si es 'media', el precio tecleado no cuenta → no molestamos.
+    const editandoId_dev = window.editandoIngredienteId;
+    if (editandoId_dev !== null && editandoId_dev !== undefined) {
+        const ingActual = (window.ingredientes || []).find(i => i.id === editandoId_dev);
+        const invActual = (window.inventarioCompleto || []).find(i => i.id === editandoId_dev);
+        const ref = getIngredientUnitPrice(invActual, ingActual);
+        const cpf = parseFloat(ingrediente.cantidad_por_formato ?? ingActual?.cantidad_por_formato) || 1;
+        const precioUnit = (parseFloat(ingrediente.precio) || 0) / cpf;
+        const fijadoNuevo = ingrediente.precio_fijado === true || ingrediente.precio_fijado === 'true';
+        const { fuente } = describirPrecioCoste({
+            efectivo: ref,
+            precioConfigUnit: getIngredientNominalPrice(ingActual),
+            fijado: fijadoNuevo,
+        });
+        const seVaAUsar = fuente !== 'media';
+        const chk = precioDesviacionSospechosa(precioUnit, ref);
+        if (seVaAUsar && chk.sospechoso) {
+            const signo = chk.pct > 0 ? '+' : '';
+            const ok = window.confirm(
+                `⚠️ El precio que pones (${cm(precioUnit)}/ud) se desvía ${signo}${chk.pct}% del precio actual del ingrediente (${cm(ref)}/ud).\n\n` +
+                '¿Es correcto?\n\nAceptar = guardar · Cancelar = corregir'
+            );
+            if (!ok) {
                 _guardandoIngrediente = false;
                 if (submitBtn) submitBtn.disabled = false;
                 return;
@@ -320,6 +365,10 @@ export function editarIngrediente(id) {
     const precioEl = getElement('ing-precio');
     if (precioEl) precioEl.value = ing.precio || '';
 
+    // Prefill del checkbox "Fijar precio" desde el ingrediente.
+    const fijadoEl = getElement('ing-precio-fijado');
+    if (fijadoEl) fijadoEl.checked = (ing.precio_fijado === true || ing.precio_fijado === 'true' || ing.precio_fijado === 't');
+
     // Enriquecer el hint del precio con el PMC actual del ingrediente.
     // El backend recalcula `ing.precio = PMC × cpf` tras cada pedido recibido
     // (businessHelpers.recalcularPrecioPonderado), así que precio / cpf = PMC.
@@ -411,8 +460,12 @@ export function editarIngrediente(id) {
  * Lógica de cálculo aislada y testeada en precio-unidad-preview.js.
  */
 export function actualizarPreviewPrecioUnidad() {
-    const el = getElement('ing-precio-unidad-preview');
-    if (!el) return;
+    // Dos avisos separados para que cada uno esté donde toca:
+    //  - costeEl: QUÉ precio usa el coste (media/fijado/config) → pegado al PRECIO.
+    //  - formatoEl: coherencia del FORMATO (bug mermelada) → en la sección Formato.
+    const costeEl = getElement('ing-precio-coste-preview');
+    const formatoEl = getElement('ing-precio-unidad-preview');
+    if (!costeEl && !formatoEl) return;
 
     const r = calcularPreviewPrecioUnidad({
         precio: getInputValue('ing-precio'),
@@ -421,9 +474,11 @@ export function actualizarPreviewPrecioUnidad() {
         unidad: getInputValue('ing-unidad'),
     });
 
+    const ocultar = (el) => { if (el) { el.style.display = 'none'; el.innerHTML = ''; } };
+
     if (!r.visible) {
-        el.style.display = 'none';
-        el.innerHTML = '';
+        ocultar(costeEl);
+        ocultar(formatoEl);
         return;
     }
 
@@ -431,28 +486,64 @@ export function actualizarPreviewPrecioUnidad() {
     const u = escapeHTML(r.unidad);
     const nombreFormato = escapeHTML(r.formato || 'formato');
 
-    let html = '';
-    if (r.cpf > 1) {
-        html += `<div>Compras <strong>1 ${nombreFormato}</strong> = <strong>${escapeHTML(formatQuantity(r.cpf))} ${u}</strong> por <strong>${r.precio.toFixed(2)} ${escapeHTML(moneda)}</strong></div>`;
+    // ── Aviso de COSTE (pegado al precio) ──────────────────────────────────
+    // Qué precio usará REALMENTE la app. El número lo da la única fuente de
+    // verdad (getIngredientUnitPrice); aquí solo clasificamos la fuente.
+    if (costeEl) {
+        const fijado = getElement('ing-precio-fijado')?.checked === true;
+        const invEdit = (window.inventarioCompleto || []).find(i => i.id === window.editandoIngredienteId) || null;
+        const ingForm = { precio: r.precio, cantidad_por_formato: r.cpf, precio_fijado: fijado };
+        const efectivoApp = getIngredientUnitPrice(invEdit, ingForm);
+        const { efectivo, fuente } = describirPrecioCoste({
+            efectivo: efectivoApp,
+            precioConfigUnit: r.unitPrice,
+            fijado,
+        });
+        const valEfectivo = `<strong>${escapeHTML(formatQuantity(efectivo))} ${escapeHTML(moneda)}/${u}</strong>`;
+        let coste;
+        if (fuente === 'media') {
+            const valCfg = `${escapeHTML(formatQuantity(r.unitPrice))} ${escapeHTML(moneda)}/${u}`;
+            coste = `→ Para el coste / food cost la app usará la <strong>media de compras</strong>: ${valEfectivo}. El precio configurado (${valCfg}) es de referencia; el próximo pedido recibido lo recalcula.`;
+        } else if (fuente === 'fijado') {
+            coste = `→ La app usará ${valEfectivo} para el coste / food cost (📌 precio fijado, ignora la media de compras).`;
+        } else {
+            coste = `→ La app usará ${valEfectivo} para el coste / food cost`;
+        }
+        costeEl.style.display = 'block';
+        costeEl.style.background = '#ecfdf5';
+        costeEl.style.borderLeft = '3px solid #10b981';
+        costeEl.style.color = '#065f46';
+        costeEl.innerHTML = coste;
     }
-    html += `<div style="margin-top:4px;">→ La app usará <strong>${escapeHTML(formatQuantity(r.unitPrice))} ${escapeHTML(moneda)}/${u}</strong> para el coste / food cost</div>`;
 
-    let bg = '#ecfdf5';
-    let border = '#10b981';
-    if (r.level === 'falta_nombre') {
-        bg = '#fef2f2';
-        border = '#ef4444';
-        html += `<div style="margin-top:6px;font-weight:600;color:#b91c1c;">⚠️ Pon el nombre del formato (ej. BOTE, CAJA) o deja vacía la cantidad por formato si compras por unidad.</div>`;
-    } else if (r.level === 'sospechoso') {
-        bg = '#fffbeb';
-        border = '#f59e0b';
-        html += `<div style="margin-top:6px;font-weight:600;color:#92400e;">⚠️ Estás diciendo que <strong>1 ${nombreFormato} = ${escapeHTML(formatQuantity(r.cpf))} ${u}</strong>. Si en realidad es peso/volumen (ej. un bote de 750 g), cambia la <strong>Unidad</strong> a g / ml / kg / l.</div>`;
+    // ── Aviso de FORMATO (en la sección de formato) ────────────────────────
+    // Solo se muestra si hay algo que decir del formato: equivalencia (cpf>1) o
+    // una incoherencia (falta nombre / unidad sospechosa). Si no, se oculta.
+    if (formatoEl) {
+        let html = '';
+        if (r.cpf > 1) {
+            html += `<div>Compras <strong>1 ${nombreFormato}</strong> = <strong>${escapeHTML(formatQuantity(r.cpf))} ${u}</strong> por <strong>${r.precio.toFixed(2)} ${escapeHTML(moneda)}</strong></div>`;
+        }
+        let bg = '#ecfdf5';
+        let border = '#10b981';
+        if (r.level === 'falta_nombre') {
+            bg = '#fef2f2';
+            border = '#ef4444';
+            html += `<div style="margin-top:6px;font-weight:600;color:#b91c1c;">⚠️ Pon el nombre del formato (ej. BOTE, CAJA) o deja vacía la cantidad por formato si compras por unidad.</div>`;
+        } else if (r.level === 'sospechoso') {
+            bg = '#fffbeb';
+            border = '#f59e0b';
+            html += `<div style="margin-top:6px;font-weight:600;color:#92400e;">⚠️ Estás diciendo que <strong>1 ${nombreFormato} = ${escapeHTML(formatQuantity(r.cpf))} ${u}</strong>. Si en realidad es peso/volumen (ej. un bote de 750 g), cambia la <strong>Unidad</strong> a g / ml / kg / l.</div>`;
+        }
+        if (html) {
+            formatoEl.style.display = 'block';
+            formatoEl.style.background = bg;
+            formatoEl.style.borderLeft = `3px solid ${border}`;
+            formatoEl.innerHTML = html;
+        } else {
+            ocultar(formatoEl);
+        }
     }
-
-    el.style.display = 'block';
-    el.style.background = bg;
-    el.style.borderLeft = `3px solid ${border}`;
-    el.innerHTML = html;
 }
 
 /**
