@@ -6,7 +6,7 @@
 import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
 import { escapeHTML, formatQuantity, cm } from '../../utils/helpers.js';
-import { getIngredientUnitPrice, precioDesviacionSospechosa } from '../../utils/cost-calculator.js';
+import { getIngredientUnitPrice, getIngredientNominalPrice, precioDesviacionSospechosa } from '../../utils/cost-calculator.js';
 import { calcularPreviewPrecioUnidad, describirPrecioCoste } from './precio-unidad-preview.js';
 import { detectarAlergenos } from './alergenos-deteccion.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
@@ -142,6 +142,14 @@ export async function guardarIngrediente(event) {
     // se desvía mucho del precio efectivo actual del ingrediente, avisar (error de
     // tecleo o pin equivocado). Solo al editar (hay referencia). Reusa el mismo
     // helper que la recepción; referencia vía getIngredientUnitPrice (anti-drift).
+    //
+    // OJO: solo avisamos si el precio tecleado SE VA A USAR de verdad para el coste:
+    //  - lo fijas (📌) → se usa el pin, o
+    //  - no hay media de compras → se usa el fallback (precio/cpf).
+    // Si NO está fijado y hay media, lo que teclees es inerte (la media manda y el
+    // próximo pedido lo sobreescribe) → avisar sería ruido (caso TOMATE: 6 vs media
+    // 3,125 = +92% por un número que ni se usa). describirPrecioCoste clasifica la
+    // fuente; si es 'media', el precio tecleado no cuenta → no molestamos.
     const editandoId_dev = window.editandoIngredienteId;
     if (editandoId_dev !== null && editandoId_dev !== undefined) {
         const ingActual = (window.ingredientes || []).find(i => i.id === editandoId_dev);
@@ -149,8 +157,15 @@ export async function guardarIngrediente(event) {
         const ref = getIngredientUnitPrice(invActual, ingActual);
         const cpf = parseFloat(ingrediente.cantidad_por_formato ?? ingActual?.cantidad_por_formato) || 1;
         const precioUnit = (parseFloat(ingrediente.precio) || 0) / cpf;
+        const fijadoNuevo = ingrediente.precio_fijado === true || ingrediente.precio_fijado === 'true';
+        const { fuente } = describirPrecioCoste({
+            efectivo: ref,
+            precioConfigUnit: getIngredientNominalPrice(ingActual),
+            fijado: fijadoNuevo,
+        });
+        const seVaAUsar = fuente !== 'media';
         const chk = precioDesviacionSospechosa(precioUnit, ref);
-        if (chk.sospechoso) {
+        if (seVaAUsar && chk.sospechoso) {
             const signo = chk.pct > 0 ? '+' : '';
             const ok = window.confirm(
                 `⚠️ El precio que pones (${cm(precioUnit)}/ud) se desvía ${signo}${chk.pct}% del precio actual del ingrediente (${cm(ref)}/ud).\n\n` +
