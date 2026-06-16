@@ -16,6 +16,7 @@ import { t } from '@/i18n/index.js';
 import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpers.js';
 import { formatoDesdeBase, esCantidadEnteraEnFormato } from './formato-utils.js';
 import ingredientStore from '../../stores/ingredientStore.js';
+import { precioDesviacionSospechosa, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
 /**
  * Contexto de formato de un ingrediente para mostrar la recepción en formato
@@ -392,6 +393,42 @@ export async function confirmarRecepcionPedido() {
 
     const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
     if (!ped || !ped.itemsRecepcion) return;
+
+    // 🛡️ Guard anti-dedazo: avisar si algún precio recibido se desvía mucho de la
+    // referencia del ingrediente (media de compras > configurado). NO bloquea: el
+    // usuario confirma una subida real o vuelve a corregir. Evita que un precio mal
+    // tecleado entre en la media de compras y reviente el food cost. Se ejecuta
+    // ANTES de marcar isConfirmingReception → si cancela, no queda nada a medias.
+    {
+        const invMap = new Map((window.inventarioCompleto || []).map(i => [i.id, i]));
+        const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+        const sospechosos = [];
+        for (const item of ped.itemsRecepcion) {
+            if (item.estado === 'no-entregado') continue;
+            const precioNuevo = parseFloat(item.precioReal || item.precioUnitario || 0);
+            if (!(precioNuevo > 0)) continue;
+            const ingId = item.ingredienteId || item.ingrediente_id;
+            const inv = invMap.get(ingId);
+            const ing = ingMap.get(ingId);
+            // Referencia = precio unitario canónico (media de compras > configurado),
+            // vía el helper único. Si no hay referencia (>0) no se puede comparar.
+            const ref = getIngredientUnitPrice(inv, ing);
+            const chk = precioDesviacionSospechosa(precioNuevo, ref);
+            if (chk.sospechoso) {
+                const nombre = ing ? ing.nombre : `Ingrediente ${ingId}`;
+                const signo = chk.pct > 0 ? '+' : '';
+                sospechosos.push(`• ${nombre}: ${cm(precioNuevo)} (${signo}${chk.pct}% vs ${cm(ref)})`);
+            }
+        }
+        if (sospechosos.length > 0) {
+            const msg = '⚠️ Estos precios se desvían mucho de lo habitual y entrarán en la media de compras:\n\n'
+                + sospechosos.join('\n')
+                + '\n\n¿Son correctos?\n\nAceptar = guardar igualmente · Cancelar = volver y corregir';
+            if (!window.confirm(msg)) {
+                return; // el usuario vuelve a corregir; no se ha tocado nada
+            }
+        }
+    }
 
     isConfirmingReception = true;
     const btnConfirmar = document.querySelector('#modal-recibir-pedido button[onclick*="confirmarRecepcionPedido"]');
