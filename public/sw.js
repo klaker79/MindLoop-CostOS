@@ -163,7 +163,8 @@
 // BUMP v176: mismo guard anti-dedazo al EDITAR la ficha del ingrediente (protege el fallback y el pin de un precio mal tecleado).
 // BUMP v177: el preview verde de la ficha dice la verdad — si el ingrediente tiene media de compras y no está fijado, el coste usa la media (no el precio configurado). Antes el verde prometía el configurado y contradecía al aviso azul.
 // BUMP v178: el aviso "qué precio usa el coste" se sube pegado al PRECIO (antes despistaba abajo en Formato). El aviso de coherencia del formato se queda en su sección y solo aparece si hay algo que decir.
-const CACHE_NAME = 'mindloop-costos-v178';
+// BUMP v179: el guard anti-dedazo de la ficha solo salta si el precio tecleado se va a usar de verdad (fijado o sin media). Si no está fijado y hay media, el precio es inerte → no avisar (caso TOMATE: 6 vs media 3,125 = +92% era ruido por un número que ni se usa).
+const CACHE_NAME = 'mindloop-costos-v179';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
