@@ -84,6 +84,9 @@ export async function guardarIngrediente(event) {
             : undefined,
         // 🆕 Alérgenos UE: array de códigos de los checkboxes marcados.
         alergenos: Array.from(document.querySelectorAll('.ing-alergeno:checked')).map(c => c.value),
+        // 🆕 Precio fijado manual: si está marcado, el coste usa el precio tecleado y
+        // las recepciones de pedidos NO lo sobreescriben con la media de compras.
+        precio_fijado: document.getElementById('ing-precio-fijado')?.checked === true,
     };
 
     // 🆕 Validación centralizada (reemplaza validación manual)
@@ -319,6 +322,10 @@ export function editarIngrediente(id) {
 
     const precioEl = getElement('ing-precio');
     if (precioEl) precioEl.value = ing.precio || '';
+
+    // Prefill del checkbox "Fijar precio" desde el ingrediente.
+    const fijadoEl = getElement('ing-precio-fijado');
+    if (fijadoEl) fijadoEl.checked = (ing.precio_fijado === true || ing.precio_fijado === 'true' || ing.precio_fijado === 't');
 
     // Enriquecer el hint del precio con el PMC actual del ingrediente.
     // El backend recalcula `ing.precio = PMC × cpf` tras cada pedido recibido
