@@ -2,7 +2,7 @@
  * Preview de precio por unidad base al configurar un ingrediente.
  * Caza configuraciones incoherentes antes de guardar (bug mermelada 2026-06-10).
  */
-import { calcularPreviewPrecioUnidad } from '@modules/ingredientes/precio-unidad-preview.js';
+import { calcularPreviewPrecioUnidad, describirPrecioCoste } from '@modules/ingredientes/precio-unidad-preview.js';
 
 describe('calcularPreviewPrecioUnidad', () => {
     test('sin precio → no visible', () => {
@@ -60,5 +60,42 @@ describe('calcularPreviewPrecioUnidad', () => {
         });
         expect(r.unitPrice).toBe(4);
         expect(r.level).toBe('ok');
+    });
+});
+
+describe('describirPrecioCoste — qué precio usa el coste de verdad', () => {
+    // EL CASO BONITO: configurado 100, pero el efectivo (getIngredientUnitPrice)
+    // es 20 porque manda la media → fuente 'media'.
+    test('efectivo ≠ configurado → manda la MEDIA de compras', () => {
+        const r = describirPrecioCoste({ efectivo: 20, precioConfigUnit: 100, fijado: false });
+        expect(r.fuente).toBe('media');
+        expect(r.efectivo).toBe(20);
+    });
+
+    test('fijado → usa el precio CONFIGURADO (ignora la media)', () => {
+        const r = describirPrecioCoste({ efectivo: 100, precioConfigUnit: 100, fijado: true });
+        expect(r.fuente).toBe('fijado');
+        expect(r.efectivo).toBe(100);
+    });
+
+    test('fijado acepta "true"/"t" (string desde la API)', () => {
+        expect(describirPrecioCoste({ efectivo: 100, precioConfigUnit: 100, fijado: 'true' }).fuente).toBe('fijado');
+        expect(describirPrecioCoste({ efectivo: 100, precioConfigUnit: 100, fijado: 't' }).fuente).toBe('fijado');
+    });
+
+    test('efectivo ≈ configurado (sin media relevante) → usa el configurado', () => {
+        const r = describirPrecioCoste({ efectivo: 8, precioConfigUnit: 8, fijado: false });
+        expect(r.fuente).toBe('config');
+        expect(r.efectivo).toBe(8);
+    });
+
+    test('ingrediente nuevo (efectivo cae al configurado) → config', () => {
+        const r = describirPrecioCoste({ efectivo: 8, precioConfigUnit: 8, fijado: false });
+        expect(r.fuente).toBe('config');
+    });
+
+    test('diferencia mínima (<0,1%) no se considera media → config', () => {
+        const r = describirPrecioCoste({ efectivo: 8.001, precioConfigUnit: 8, fijado: false });
+        expect(r.fuente).toBe('config');
     });
 });

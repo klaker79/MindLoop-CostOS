@@ -874,7 +874,7 @@
                     💡 La app recalcula este precio automáticamente tras cada pedido recibido (precio medio de compras × cantidad por formato). Si lo editas a mano, el siguiente pedido lo sobreescribirá — salvo que marques "Fijar precio".
                   </small>
                   <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:13px; cursor:pointer;">
-                    <input type="checkbox" id="ing-precio-fijado" style="width:auto; margin:0;">
+                    <input type="checkbox" id="ing-precio-fijado" style="width:auto; margin:0;" onchange="window.actualizarPreviewPrecioUnidad?.()">
                     <span>📌 Fijar este precio (no recalcular con las compras)</span>
                   </label>
                 </div>

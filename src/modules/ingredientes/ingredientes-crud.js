@@ -7,7 +7,7 @@ import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
 import { escapeHTML, formatQuantity, cm } from '../../utils/helpers.js';
 import { getIngredientUnitPrice, precioDesviacionSospechosa } from '../../utils/cost-calculator.js';
-import { calcularPreviewPrecioUnidad } from './precio-unidad-preview.js';
+import { calcularPreviewPrecioUnidad, describirPrecioCoste } from './precio-unidad-preview.js';
 import { detectarAlergenos } from './alergenos-deteccion.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
 
@@ -469,7 +469,27 @@ export function actualizarPreviewPrecioUnidad() {
     if (r.cpf > 1) {
         html += `<div>Compras <strong>1 ${nombreFormato}</strong> = <strong>${escapeHTML(formatQuantity(r.cpf))} ${u}</strong> por <strong>${r.precio.toFixed(2)} ${escapeHTML(moneda)}</strong></div>`;
     }
-    html += `<div style="margin-top:4px;">→ La app usará <strong>${escapeHTML(formatQuantity(r.unitPrice))} ${escapeHTML(moneda)}/${u}</strong> para el coste / food cost</div>`;
+    // Qué precio usará REALMENTE la app para el coste. El número lo da la única
+    // fuente de verdad (getIngredientUnitPrice); aquí solo clasificamos la fuente.
+    // Sin esto, el verde prometía el precio configurado aunque el coste use la media.
+    const fijado = getElement('ing-precio-fijado')?.checked === true;
+    const invEdit = (window.inventarioCompleto || []).find(i => i.id === window.editandoIngredienteId) || null;
+    const ingForm = { precio: r.precio, cantidad_por_formato: r.cpf, precio_fijado: fijado };
+    const efectivoApp = getIngredientUnitPrice(invEdit, ingForm);
+    const { efectivo, fuente } = describirPrecioCoste({
+        efectivo: efectivoApp,
+        precioConfigUnit: r.unitPrice,
+        fijado,
+    });
+    const valEfectivo = `<strong>${escapeHTML(formatQuantity(efectivo))} ${escapeHTML(moneda)}/${u}</strong>`;
+    if (fuente === 'media') {
+        const valCfg = `${escapeHTML(formatQuantity(r.unitPrice))} ${escapeHTML(moneda)}/${u}`;
+        html += `<div style="margin-top:4px;">→ Para el coste / food cost la app usará la <strong>media de compras</strong>: ${valEfectivo}. El precio configurado (${valCfg}) es de referencia; el próximo pedido recibido lo recalcula.</div>`;
+    } else if (fuente === 'fijado') {
+        html += `<div style="margin-top:4px;">→ La app usará ${valEfectivo} para el coste / food cost (📌 precio fijado, ignora la media de compras).</div>`;
+    } else {
+        html += `<div style="margin-top:4px;">→ La app usará ${valEfectivo} para el coste / food cost</div>`;
+    }
 
     let bg = '#ecfdf5';
     let border = '#10b981';

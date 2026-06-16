@@ -161,7 +161,8 @@
 // BUMP v174: precio fijado manual por ingrediente — checkbox "Fijar precio" en la ficha; getIngredientUnitPrice respeta el override (coste usa el precio manual, no la media de compras). Backend: columna precio_fijado + todas las queries de coste la traen.
 // BUMP v175: guard anti-dedazo al recibir pedido — si un precio se desvía >70% de la media/configurado, avisa antes de que entre en la media de compras (no bloquea: confirmar o corregir).
 // BUMP v176: mismo guard anti-dedazo al EDITAR la ficha del ingrediente (protege el fallback y el pin de un precio mal tecleado).
-const CACHE_NAME = 'mindloop-costos-v176';
+// BUMP v177: el preview verde de la ficha dice la verdad — si el ingrediente tiene media de compras y no está fijado, el coste usa la media (no el precio configurado). Antes el verde prometía el configurado y contradecía al aviso azul.
+const CACHE_NAME = 'mindloop-costos-v177';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
