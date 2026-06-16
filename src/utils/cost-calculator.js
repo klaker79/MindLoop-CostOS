@@ -77,6 +77,31 @@ export function getIngredientNominalPrice(ing) {
 }
 
 /**
+ * Umbral por defecto de desviación de precio (±70%) para el guard de recepción.
+ * Un dedazo típico es ×10 o /10 (muy por encima del 70%); una subida real de
+ * proveedor suele quedar por debajo, así que no cría lobos.
+ */
+export const UMBRAL_DESVIACION_PRECIO = 0.70;
+
+/**
+ * Detecta si un precio tecleado se desvía demasiado del precio de referencia
+ * del ingrediente — para avisar ANTES de que entre en la media de compras y la
+ * distorsione. NO bloquea: solo informa para que el usuario confirme o corrija.
+ *
+ * @param {number} precioNuevo - Precio unitario tecleado en la recepción.
+ * @param {number} precioRef - Precio de referencia (media de compras o configurado).
+ * @param {number} umbral - Desviación relativa a partir de la cual avisar (default 0.70).
+ * @returns {{sospechoso: boolean, pct: number}} pct = desviación con signo (%).
+ */
+export function precioDesviacionSospechosa(precioNuevo, precioRef, umbral = UMBRAL_DESVIACION_PRECIO) {
+    const nuevo = parseFloat(precioNuevo);
+    const ref = parseFloat(precioRef);
+    if (!(nuevo > 0) || !(ref > 0)) return { sospechoso: false, pct: 0 };
+    const desviacion = (nuevo - ref) / ref;
+    return { sospechoso: Math.abs(desviacion) >= umbral, pct: Math.round(desviacion * 100) };
+}
+
+/**
  * Calculates the real cost of an ingredient usage based on price, quantity and yield.
  * Formula: (Price / (Yield / 100)) * Quantity
  *
