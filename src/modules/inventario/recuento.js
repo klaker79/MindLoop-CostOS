@@ -13,6 +13,7 @@
  */
 import { t } from '@/i18n/index.js';
 import { escapeHTML, formatQuantity, cm } from '../../utils/helpers.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
 // Conteos en curso: { [ingredienteId]: numero }. Persistido en localStorage
 // (tenant-scoped) para poder "guardar y seguir luego".
@@ -46,13 +47,11 @@ function ingredientesParaContar() {
     return (window.ingredientes || [])
         .map(ing => {
             const inv = invMap.get(ing.id) || {};
-            // Precio unitario (€/unidad-base) con la prioridad estándar de la app,
-            // idéntica a confirmarInventarioMasivo.
-            let precio = parseFloat(inv.precio_medio_compra) || 0;
-            if (!precio) precio = parseFloat(inv.precio_medio) || 0;
-            if (!precio && ing.precio && ing.cantidad_por_formato > 0) {
-                precio = parseFloat(ing.precio) / parseFloat(ing.cantidad_por_formato);
-            }
+            // Precio unitario (€/unidad-base) con la cascada canónica única de la app
+            // (getIngredientUnitPrice): respeta el precio fijado (📌) y luego media de
+            // compras → precio_medio → precio/cpf. Así un ingrediente fijado se valora
+            // igual aquí que en el food cost (antes esta cascada inline lo ignoraba).
+            const precio = getIngredientUnitPrice(inv, ing);
             return {
                 id: ing.id,
                 nombre: ing.nombre || `#${ing.id}`,
