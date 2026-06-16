@@ -5,7 +5,8 @@
 
 import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
-import { escapeHTML, formatQuantity } from '../../utils/helpers.js';
+import { escapeHTML, formatQuantity, cm } from '../../utils/helpers.js';
+import { getIngredientUnitPrice, precioDesviacionSospechosa } from '../../utils/cost-calculator.js';
 import { calcularPreviewPrecioUnidad } from './precio-unidad-preview.js';
 import { detectarAlergenos } from './alergenos-deteccion.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
@@ -130,6 +131,32 @@ export async function guardarIngrediente(event) {
                 `¿Quieres crear uno NUEVO igualmente?`
             );
             if (!continuar) {
+                _guardandoIngrediente = false;
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+        }
+    }
+
+    // 🛡️ Guard anti-dedazo en la ficha: al EDITAR, si el precio por unidad tecleado
+    // se desvía mucho del precio efectivo actual del ingrediente, avisar (error de
+    // tecleo o pin equivocado). Solo al editar (hay referencia). Reusa el mismo
+    // helper que la recepción; referencia vía getIngredientUnitPrice (anti-drift).
+    const editandoId_dev = window.editandoIngredienteId;
+    if (editandoId_dev !== null && editandoId_dev !== undefined) {
+        const ingActual = (window.ingredientes || []).find(i => i.id === editandoId_dev);
+        const invActual = (window.inventarioCompleto || []).find(i => i.id === editandoId_dev);
+        const ref = getIngredientUnitPrice(invActual, ingActual);
+        const cpf = parseFloat(ingrediente.cantidad_por_formato ?? ingActual?.cantidad_por_formato) || 1;
+        const precioUnit = (parseFloat(ingrediente.precio) || 0) / cpf;
+        const chk = precioDesviacionSospechosa(precioUnit, ref);
+        if (chk.sospechoso) {
+            const signo = chk.pct > 0 ? '+' : '';
+            const ok = window.confirm(
+                `⚠️ El precio que pones (${cm(precioUnit)}/ud) se desvía ${signo}${chk.pct}% del precio actual del ingrediente (${cm(ref)}/ud).\n\n` +
+                '¿Es correcto?\n\nAceptar = guardar · Cancelar = corregir'
+            );
+            if (!ok) {
                 _guardandoIngrediente = false;
                 if (submitBtn) submitBtn.disabled = false;
                 return;
