@@ -22,6 +22,22 @@
  * @returns {number} Unit price (always >= 0)
  */
 export function getIngredientUnitPrice(invItem, ing) {
+    // OVERRIDE manual (precio_fijado): si el usuario fijó el precio, el coste usa el
+    // precio manual (precio/cpf) e IGNORA la media de compras. Mismo criterio que el
+    // backend (getBackendIngredientUnitPrice). Si el precio manual no es válido, cae
+    // a la cascada normal. Flag false/ausente → comportamiento de siempre.
+    const fijado = invItem?.precio_fijado ?? ing?.precio_fijado;
+    if (fijado === true || fijado === 'true' || fijado === 't') {
+        // Precio manual por unidad = precio/cpf. Si no hay precio crudo en el objeto,
+        // usar precio_medio (inventarioCompleto ya lo expone como precio/cpf).
+        const precioManual = parseFloat(ing?.precio ?? invItem?.precio);
+        if (precioManual > 0) {
+            const cpfManual = parseFloat(ing?.cantidad_por_formato ?? invItem?.cantidad_por_formato) || 1;
+            return precioManual / cpfManual;
+        }
+        const pmManual = parseFloat(invItem?.precio_medio);
+        if (pmManual > 0) return pmManual;
+    }
     // 🔒 AUDITORÍA 2026-06-12 (M1): comparar con > 0 en vez de truthy, igual que
     // getBackendIngredientUnitPrice (businessHelpers.js). La API devuelve NUMERIC
     // como string: "0.0000" es truthy, así que el check anterior devolvía 0€ en

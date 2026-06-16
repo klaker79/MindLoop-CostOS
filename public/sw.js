@@ -158,7 +158,8 @@
 // BUMP v171: visibilidad de Omnes — botón "Pregúntale a Omnes" en cada tarjeta del feed de avisos (abre el chat con la pregunta del aviso) + welcome del chat con poderes con nombre (Coach/Diagnóstico/Informe).
 // BUMP v172: fix "Pregúntale a Omnes" — la pregunta se truncaba en la 1ª comilla (escapeHTML no escapa "). Ahora data-omnes-ask va con encodeURIComponent y se decodifica al pulsar (igual que data-action del chat).
 // BUMP v173: el chat se monta también al entrar (enterApp) — antes en el login el token se seteaba tras el primer intento (chat-status 401) y había que refrescar para ver el búho.
-const CACHE_NAME = 'mindloop-costos-v173';
+// BUMP v174: precio fijado manual por ingrediente — checkbox "Fijar precio" en la ficha; getIngredientUnitPrice respeta el override (coste usa el precio manual, no la media de compras). Backend: columna precio_fijado + todas las queries de coste la traen.
+const CACHE_NAME = 'mindloop-costos-v174';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
