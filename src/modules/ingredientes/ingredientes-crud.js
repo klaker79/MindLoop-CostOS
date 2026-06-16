@@ -445,8 +445,12 @@ export function editarIngrediente(id) {
  * Lógica de cálculo aislada y testeada en precio-unidad-preview.js.
  */
 export function actualizarPreviewPrecioUnidad() {
-    const el = getElement('ing-precio-unidad-preview');
-    if (!el) return;
+    // Dos avisos separados para que cada uno esté donde toca:
+    //  - costeEl: QUÉ precio usa el coste (media/fijado/config) → pegado al PRECIO.
+    //  - formatoEl: coherencia del FORMATO (bug mermelada) → en la sección Formato.
+    const costeEl = getElement('ing-precio-coste-preview');
+    const formatoEl = getElement('ing-precio-unidad-preview');
+    if (!costeEl && !formatoEl) return;
 
     const r = calcularPreviewPrecioUnidad({
         precio: getInputValue('ing-precio'),
@@ -455,9 +459,11 @@ export function actualizarPreviewPrecioUnidad() {
         unidad: getInputValue('ing-unidad'),
     });
 
+    const ocultar = (el) => { if (el) { el.style.display = 'none'; el.innerHTML = ''; } };
+
     if (!r.visible) {
-        el.style.display = 'none';
-        el.innerHTML = '';
+        ocultar(costeEl);
+        ocultar(formatoEl);
         return;
     }
 
@@ -465,48 +471,64 @@ export function actualizarPreviewPrecioUnidad() {
     const u = escapeHTML(r.unidad);
     const nombreFormato = escapeHTML(r.formato || 'formato');
 
-    let html = '';
-    if (r.cpf > 1) {
-        html += `<div>Compras <strong>1 ${nombreFormato}</strong> = <strong>${escapeHTML(formatQuantity(r.cpf))} ${u}</strong> por <strong>${r.precio.toFixed(2)} ${escapeHTML(moneda)}</strong></div>`;
-    }
-    // Qué precio usará REALMENTE la app para el coste. El número lo da la única
-    // fuente de verdad (getIngredientUnitPrice); aquí solo clasificamos la fuente.
-    // Sin esto, el verde prometía el precio configurado aunque el coste use la media.
-    const fijado = getElement('ing-precio-fijado')?.checked === true;
-    const invEdit = (window.inventarioCompleto || []).find(i => i.id === window.editandoIngredienteId) || null;
-    const ingForm = { precio: r.precio, cantidad_por_formato: r.cpf, precio_fijado: fijado };
-    const efectivoApp = getIngredientUnitPrice(invEdit, ingForm);
-    const { efectivo, fuente } = describirPrecioCoste({
-        efectivo: efectivoApp,
-        precioConfigUnit: r.unitPrice,
-        fijado,
-    });
-    const valEfectivo = `<strong>${escapeHTML(formatQuantity(efectivo))} ${escapeHTML(moneda)}/${u}</strong>`;
-    if (fuente === 'media') {
-        const valCfg = `${escapeHTML(formatQuantity(r.unitPrice))} ${escapeHTML(moneda)}/${u}`;
-        html += `<div style="margin-top:4px;">→ Para el coste / food cost la app usará la <strong>media de compras</strong>: ${valEfectivo}. El precio configurado (${valCfg}) es de referencia; el próximo pedido recibido lo recalcula.</div>`;
-    } else if (fuente === 'fijado') {
-        html += `<div style="margin-top:4px;">→ La app usará ${valEfectivo} para el coste / food cost (📌 precio fijado, ignora la media de compras).</div>`;
-    } else {
-        html += `<div style="margin-top:4px;">→ La app usará ${valEfectivo} para el coste / food cost</div>`;
-    }
-
-    let bg = '#ecfdf5';
-    let border = '#10b981';
-    if (r.level === 'falta_nombre') {
-        bg = '#fef2f2';
-        border = '#ef4444';
-        html += `<div style="margin-top:6px;font-weight:600;color:#b91c1c;">⚠️ Pon el nombre del formato (ej. BOTE, CAJA) o deja vacía la cantidad por formato si compras por unidad.</div>`;
-    } else if (r.level === 'sospechoso') {
-        bg = '#fffbeb';
-        border = '#f59e0b';
-        html += `<div style="margin-top:6px;font-weight:600;color:#92400e;">⚠️ Estás diciendo que <strong>1 ${nombreFormato} = ${escapeHTML(formatQuantity(r.cpf))} ${u}</strong>. Si en realidad es peso/volumen (ej. un bote de 750 g), cambia la <strong>Unidad</strong> a g / ml / kg / l.</div>`;
+    // ── Aviso de COSTE (pegado al precio) ──────────────────────────────────
+    // Qué precio usará REALMENTE la app. El número lo da la única fuente de
+    // verdad (getIngredientUnitPrice); aquí solo clasificamos la fuente.
+    if (costeEl) {
+        const fijado = getElement('ing-precio-fijado')?.checked === true;
+        const invEdit = (window.inventarioCompleto || []).find(i => i.id === window.editandoIngredienteId) || null;
+        const ingForm = { precio: r.precio, cantidad_por_formato: r.cpf, precio_fijado: fijado };
+        const efectivoApp = getIngredientUnitPrice(invEdit, ingForm);
+        const { efectivo, fuente } = describirPrecioCoste({
+            efectivo: efectivoApp,
+            precioConfigUnit: r.unitPrice,
+            fijado,
+        });
+        const valEfectivo = `<strong>${escapeHTML(formatQuantity(efectivo))} ${escapeHTML(moneda)}/${u}</strong>`;
+        let coste;
+        if (fuente === 'media') {
+            const valCfg = `${escapeHTML(formatQuantity(r.unitPrice))} ${escapeHTML(moneda)}/${u}`;
+            coste = `→ Para el coste / food cost la app usará la <strong>media de compras</strong>: ${valEfectivo}. El precio configurado (${valCfg}) es de referencia; el próximo pedido recibido lo recalcula.`;
+        } else if (fuente === 'fijado') {
+            coste = `→ La app usará ${valEfectivo} para el coste / food cost (📌 precio fijado, ignora la media de compras).`;
+        } else {
+            coste = `→ La app usará ${valEfectivo} para el coste / food cost`;
+        }
+        costeEl.style.display = 'block';
+        costeEl.style.background = '#ecfdf5';
+        costeEl.style.borderLeft = '3px solid #10b981';
+        costeEl.style.color = '#065f46';
+        costeEl.innerHTML = coste;
     }
 
-    el.style.display = 'block';
-    el.style.background = bg;
-    el.style.borderLeft = `3px solid ${border}`;
-    el.innerHTML = html;
+    // ── Aviso de FORMATO (en la sección de formato) ────────────────────────
+    // Solo se muestra si hay algo que decir del formato: equivalencia (cpf>1) o
+    // una incoherencia (falta nombre / unidad sospechosa). Si no, se oculta.
+    if (formatoEl) {
+        let html = '';
+        if (r.cpf > 1) {
+            html += `<div>Compras <strong>1 ${nombreFormato}</strong> = <strong>${escapeHTML(formatQuantity(r.cpf))} ${u}</strong> por <strong>${r.precio.toFixed(2)} ${escapeHTML(moneda)}</strong></div>`;
+        }
+        let bg = '#ecfdf5';
+        let border = '#10b981';
+        if (r.level === 'falta_nombre') {
+            bg = '#fef2f2';
+            border = '#ef4444';
+            html += `<div style="margin-top:6px;font-weight:600;color:#b91c1c;">⚠️ Pon el nombre del formato (ej. BOTE, CAJA) o deja vacía la cantidad por formato si compras por unidad.</div>`;
+        } else if (r.level === 'sospechoso') {
+            bg = '#fffbeb';
+            border = '#f59e0b';
+            html += `<div style="margin-top:6px;font-weight:600;color:#92400e;">⚠️ Estás diciendo que <strong>1 ${nombreFormato} = ${escapeHTML(formatQuantity(r.cpf))} ${u}</strong>. Si en realidad es peso/volumen (ej. un bote de 750 g), cambia la <strong>Unidad</strong> a g / ml / kg / l.</div>`;
+        }
+        if (html) {
+            formatoEl.style.display = 'block';
+            formatoEl.style.background = bg;
+            formatoEl.style.borderLeft = `3px solid ${border}`;
+            formatoEl.innerHTML = html;
+        } else {
+            ocultar(formatoEl);
+        }
+    }
 }
 
 /**
