@@ -165,7 +165,8 @@
 // BUMP v178: el aviso "qué precio usa el coste" se sube pegado al PRECIO (antes despistaba abajo en Formato). El aviso de coherencia del formato se queda en su sección y solo aparece si hay algo que decir.
 // BUMP v179: el guard anti-dedazo de la ficha solo salta si el precio tecleado se va a usar de verdad (fijado o sin media). Si no está fijado y hay media, el precio es inerte → no avisar (caso TOMATE: 6 vs media 3,125 = +92% era ruido por un número que ni se usa).
 // BUMP v180: recuento de inventario usa getIngredientUnitPrice (respeta el precio fijado 📌) en vez de cascada inline → un ingrediente fijado se valora igual en inventario que en el food cost. Sale de la whitelist anti-drift.
-const CACHE_NAME = 'mindloop-costos-v180';
+// BUMP v181: limpieza — i18n de la pestaña "Inteligencia" reescrito para describir el feed real de Omnes (avisos por categoría + Pregúntale a Omnes + descartar), antes describía paneles que ya no existen. Borrado módulo huérfano alertas-sistema.js.
+const CACHE_NAME = 'mindloop-costos-v181';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
