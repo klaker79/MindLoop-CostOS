@@ -289,27 +289,27 @@
     ]
   },
   "inteligencia": {
-    "title": "ℹ️ Inteligencia — guía rápida",
-    "lead": "Dos paneles que vigilan tu negocio sin que tengas que pedírselo: stock fresco a punto de caducar y recetas con margen bajo.",
+    "title": "ℹ️ Omnes — guía rápida",
+    "lead": "El feed de avisos de Omnes, tu chef financiero: vigila tu negocio y te muestra solo lo que necesita tu atención, agrupado por tipo.",
     "blocks": [
       {
-        "title": "🧊 Frescura del Stock",
-        "body": "Lista de productos frescos por usar antes de que caduquen. Se calcula con la fecha de última compra y el patrón de consumo histórico. Aparecen marcados como \"📋 Usar hoy\" o \"⚠️ Revisar\" según urgencia. Evita tirar comida.",
+        "title": "🦉 Avisos proactivos",
+        "body": "Omnes revisa tus datos y te muestra solo lo accionable, en tarjetas agrupadas por tipo: 📉 recetas con margen bajo, 📦 stock por debajo del mínimo, 🧊 productos frescos a usar, 📈 ingredientes que han subido de precio y 🗄️ exceso de stock. Cada aviso sale con su nivel (crítico o atención).",
         "color": "blue"
       },
       {
-        "title": "💰 Revisión de Precios",
-        "body": "Recetas con margen bajo o food cost alto. Son tus platos en alerta: o pagas más de lo razonable por sus ingredientes (renegocia con proveedor), o tienes que subir el precio de venta. La app te muestra el coste actual, el food cost % y un precio sugerido.",
+        "title": "🦉 Pregúntale a Omnes",
+        "body": "Cada aviso lleva un botón \"Pregúntale a Omnes\" que abre el chat con la pregunta ya escrita sobre ese punto concreto, para que profundices o te proponga la solución al instante.",
         "color": "amber"
       },
       {
-        "title": "🔄 Actualización en directo",
-        "body": "Los paneles se refrescan cada vez que entras a la pestaña. El botón \"Actualizar\" fuerza recálculo si has metido datos recientes y quieres verlos al instante (ej. acabas de subir el TPV del día).",
+        "title": "✕ Descartar",
+        "body": "Si un aviso ya no te interesa, descártalo con la ✕. Desaparece de tu feed (solo en tu restaurante) y deja sitio a lo que importa.",
         "color": "blue"
       },
       {
         "title": "💡 Consejo",
-        "body": "Revisa esta pestaña los lunes por la mañana junto con el Diario. En 2 minutos sabes qué producto hay que usar hoy y qué receta hay que ajustar este mes. Es tu \"cuadro de mando rápido\" antes de empezar la semana.",
+        "body": "Échale un vistazo al empezar la semana: en un minuto ves qué receta ajustar, qué reponer y qué producto usar hoy. Y lo que no entiendas, se lo preguntas a Omnes desde el propio aviso.",
         "color": "green"
       }
     ]
