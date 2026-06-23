@@ -33,10 +33,18 @@ function escapeHTML(str) {
     })[char] || char);
 }
 
+// Null-safe para togglear la clase 'active' sin reventar si el elemento no está
+// en el DOM (regla DOM Safety de CLAUDE.md). Evita el TypeError de Sentry
+// "Cannot read properties of null (reading 'classList')".
+function setClaseInventario(id, accion) {
+    const el = document.getElementById(id);
+    if (el) el.classList[accion]('active');
+}
+
 let datosInventarioMasivo = [];
 
 window.mostrarModalInventarioMasivo = function () {
-    document.getElementById('modal-inventario-masivo').classList.add('active');
+    setClaseInventario('modal-inventario-masivo', 'add');
     document.getElementById('preview-inventario-masivo').style.display = 'none';
     document.getElementById('file-inventario-masivo').value = '';
 };
@@ -45,14 +53,14 @@ window.procesarArchivoInventario = async function (input) {
     const file = input.files[0];
     if (!file) return;
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     try {
         const data = await leerArchivoInventario(file);
         datosInventarioMasivo = await validarDatosInventario(data);
         mostrarPreviewInventario(datosInventarioMasivo);
     } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         showToast('Error procesando archivo: ' + error.message, 'error');
     }
 };
@@ -377,7 +385,7 @@ window.descargarPlantillaBebidas = async function () {
 };
 
 function mostrarPreviewInventario(datos) {
-    document.getElementById('loading-overlay').classList.remove('active');
+    setClaseInventario('loading-overlay', 'remove');
 
     const validos = datos.filter(d => d.valido).length;
     const invalidos = datos.filter(d => !d.valido).length;
@@ -549,7 +557,7 @@ window.confirmarInventarioMasivo = async function () {
         return;
     }
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     try {
         // 1. Registrar mermas (cada una descuenta stock_actual en backend).
@@ -562,23 +570,23 @@ window.confirmarInventarioMasivo = async function () {
             await window.api.consolidateStock([], [], ajustesPositivos);
         }
 
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         const resumen = mermasDetectadas.length > 0
             ? `✓ ${datosValidos.length} ingredientes (${mermasDetectadas.length} merma(s) registradas)`
             : `✓ ${datosValidos.length} ingredientes actualizados`;
         window.showToast(resumen, 'success');
 
-        document.getElementById('modal-inventario-masivo').classList.remove('active');
+        setClaseInventario('modal-inventario-masivo', 'remove');
         await window.cargarDatos();
         await window.renderizarInventario();
     } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast('Error actualizando inventario: ' + error.message, 'error');
     }
 };
 
 window.cancelarInventarioMasivo = function () {
-    document.getElementById('modal-inventario-masivo').classList.remove('active');
+    setClaseInventario('modal-inventario-masivo', 'remove');
     datosInventarioMasivo = [];
 };
 
@@ -586,7 +594,7 @@ window.cancelarInventarioMasivo = function () {
 let datosImportarIngredientes = [];
 
 window.mostrarModalImportarIngredientes = function () {
-    document.getElementById('modal-importar-ingredientes').classList.add('active');
+    setClaseInventario('modal-importar-ingredientes', 'add');
     document.getElementById('preview-importar-ingredientes').style.display = 'none';
     document.getElementById('file-importar-ingredientes').value = '';
     datosImportarIngredientes = [];
@@ -596,15 +604,15 @@ window.procesarArchivoIngredientes = async function (input) {
     const file = input.files[0];
     if (!file) return;
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     try {
         const data = await leerArchivoGenerico(file);
         datosImportarIngredientes = validarDatosIngredientes(data);
         mostrarPreviewIngredientes(datosImportarIngredientes);
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
     } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast('Error procesando archivo: ' + error.message, 'error');
     }
 };
@@ -834,7 +842,7 @@ window.confirmarImportarIngredientes = async function () {
         return;
     }
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     // 🔗 Crear (o asegurar) la fila en ingredientes_proveedores (pivot).
     // El form manual de editar ingrediente llama a este endpoint tras guardar;
@@ -904,13 +912,13 @@ window.confirmarImportarIngredientes = async function () {
             }
         }
 
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         const partesToast = [];
         if (importados) partesToast.push(`✓ ${importados} creados`);
         if (actualizados) partesToast.push(`✏️ ${actualizados} con proveedor actualizado`);
         if (saltados) partesToast.push(`${saltados} saltados`);
         window.showToast(partesToast.join(' · ') || '✓ Importación completada', 'success');
-        document.getElementById('modal-importar-ingredientes').classList.remove('active');
+        setClaseInventario('modal-importar-ingredientes', 'remove');
         // 2026-06-08: antes solo se llamaba a renderizarIngredientes() — que pinta
         // la lista desde window.ingredientes (state en memoria). Como esa lista NO
         // se actualizaba tras los POST, los ingredientes recién creados no aparecían
@@ -930,13 +938,13 @@ window.confirmarImportarIngredientes = async function () {
             alert(resumen);
         }
     } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast('Error importando: ' + error.message, 'error');
     }
 };
 
 window.cancelarImportarIngredientes = function () {
-    document.getElementById('modal-importar-ingredientes').classList.remove('active');
+    setClaseInventario('modal-importar-ingredientes', 'remove');
     datosImportarIngredientes = [];
 };
 
@@ -944,7 +952,7 @@ window.cancelarImportarIngredientes = function () {
 let datosImportarRecetas = [];
 
 window.mostrarModalImportarRecetas = function () {
-    document.getElementById('modal-importar-recetas').classList.add('active');
+    setClaseInventario('modal-importar-recetas', 'add');
     document.getElementById('preview-importar-recetas').style.display = 'none';
     document.getElementById('file-importar-recetas').value = '';
     datosImportarRecetas = [];
@@ -954,15 +962,15 @@ window.procesarArchivoRecetas = async function (input) {
     const file = input.files[0];
     if (!file) return;
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     try {
         const data = await leerArchivoGenerico(file);
         datosImportarRecetas = validarDatosRecetas(data);
         mostrarPreviewRecetas(datosImportarRecetas);
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
     } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast('Error procesando archivo: ' + error.message, 'error');
     }
 };
@@ -1198,7 +1206,7 @@ window.confirmarImportarRecetas = async function () {
         (window.recetas || []).map(r => [String(r.nombre || '').trim().toLowerCase(), r])
     );
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     const creadas = [];
     const actualizadas = [];
@@ -1245,8 +1253,8 @@ window.confirmarImportarRecetas = async function () {
     // reconoce las recetas y las actualiza en vez de duplicarlas.
     await window.cargarDatos();
     window.renderizarRecetas();
-    document.getElementById('loading-overlay').classList.remove('active');
-    document.getElementById('modal-importar-recetas').classList.remove('active');
+    setClaseInventario('loading-overlay', 'remove');
+    setClaseInventario('modal-importar-recetas', 'remove');
 
     const totalSinEmparejar = datosValidos.reduce((s, d) => s + (d.sinEmparejar ? d.sinEmparejar.length : 0), 0);
     const tipo = (creadas.length || actualizadas.length) ? 'success' : 'error';
@@ -1262,7 +1270,7 @@ window.confirmarImportarRecetas = async function () {
 };
 
 window.cancelarImportarRecetas = function () {
-    document.getElementById('modal-importar-recetas').classList.remove('active');
+    setClaseInventario('modal-importar-recetas', 'remove');
     datosImportarRecetas = [];
 };
 
@@ -1494,7 +1502,7 @@ window.exportarProveedores = async function () {
 let datosImportarProveedores = [];
 
 window.mostrarModalImportarProveedores = function () {
-    document.getElementById('modal-importar-proveedores').classList.add('active');
+    setClaseInventario('modal-importar-proveedores', 'add');
     document.getElementById('preview-importar-proveedores').style.display = 'none';
     document.getElementById('file-importar-proveedores').value = '';
     datosImportarProveedores = [];
@@ -1503,7 +1511,7 @@ window.mostrarModalImportarProveedores = function () {
 window.procesarArchivoProveedores = async function (input) {
     const file = input.files[0];
     if (!file) return;
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
     try {
         const data = await leerArchivoGenerico(file);
         datosImportarProveedores = validarDatosProveedores(data);
@@ -1511,7 +1519,7 @@ window.procesarArchivoProveedores = async function (input) {
     } catch (error) {
         window.showToast('Error procesando archivo: ' + error.message, 'error');
     } finally {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
     }
 };
 
@@ -1616,7 +1624,7 @@ window.confirmarImportarProveedores = async function () {
         (window.proveedores || []).map(p => [String(p.nombre || '').trim().toLowerCase(), p])
     );
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
     const creados = [];
     const actualizados = [];
     const errores = [];
@@ -1655,8 +1663,8 @@ window.confirmarImportarProveedores = async function () {
 
     await window.cargarDatos();
     if (typeof window.renderizarProveedores === 'function') window.renderizarProveedores();
-    document.getElementById('loading-overlay').classList.remove('active');
-    document.getElementById('modal-importar-proveedores').classList.remove('active');
+    setClaseInventario('loading-overlay', 'remove');
+    setClaseInventario('modal-importar-proveedores', 'remove');
 
     const tipo = (creados.length || actualizados.length) ? 'success' : 'error';
     if (errores.length === 0) {
@@ -1668,7 +1676,7 @@ window.confirmarImportarProveedores = async function () {
 };
 
 window.cancelarImportarProveedores = function () {
-    document.getElementById('modal-importar-proveedores').classList.remove('active');
+    setClaseInventario('modal-importar-proveedores', 'remove');
     datosImportarProveedores = [];
 };
 
@@ -1676,7 +1684,7 @@ window.cancelarImportarProveedores = function () {
 let datosImportarVentas = [];
 
 window.mostrarModalImportarVentas = function () {
-    document.getElementById('modal-importar-ventas').classList.add('active');
+    setClaseInventario('modal-importar-ventas', 'add');
     document.getElementById('preview-importar-ventas').style.display = 'none';
     document.getElementById('file-importar-ventas').value = '';
     // Resetear fecha al abrir (vacío = fecha actual al importar)
@@ -1689,7 +1697,7 @@ window.procesarArchivoVentas = async function (input) {
     const file = input.files[0];
     if (!file) return;
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     try {
         // Detectar si es PDF
@@ -1789,7 +1797,7 @@ window.procesarArchivoVentas = async function (input) {
             });
 
             mostrarPreviewVentas(datosImportarVentas);
-            document.getElementById('loading-overlay').classList.remove('active');
+            setClaseInventario('loading-overlay', 'remove');
             window.showToast(`✓ PDF procesado: ${result.totalVentas} ventas encontradas`, 'success');
 
         } else {
@@ -1797,10 +1805,10 @@ window.procesarArchivoVentas = async function (input) {
             const data = await leerArchivoGenerico(file);
             datosImportarVentas = validarDatosVentas(data);
             mostrarPreviewVentas(datosImportarVentas);
-            document.getElementById('loading-overlay').classList.remove('active');
+            setClaseInventario('loading-overlay', 'remove');
         }
     } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast('Error procesando archivo: ' + error.message, 'error');
     }
 };
@@ -1963,7 +1971,7 @@ window.confirmarImportarVentas = async function () {
         return;
     }
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     try {
         let importados = 0;
@@ -1999,9 +2007,9 @@ window.confirmarImportarVentas = async function () {
             importados++;
         }
 
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast(`✓ ${importados} ventas importadas correctamente`, 'success');
-        document.getElementById('modal-importar-ventas').classList.remove('active');
+        setClaseInventario('modal-importar-ventas', 'remove');
 
         // ⚡ Invalidar caché para forzar reload con datos frescos
         window._ventasCache = null;
@@ -2009,13 +2017,13 @@ window.confirmarImportarVentas = async function () {
         window.actualizarKPIs();
         window.actualizarDashboardExpandido();
     } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast('Error importando ventas: ' + error.message, 'error');
     }
 };
 
 window.cancelarImportarVentas = function () {
-    document.getElementById('modal-importar-ventas').classList.remove('active');
+    setClaseInventario('modal-importar-ventas', 'remove');
     datosImportarVentas = [];
 };
 
@@ -2023,7 +2031,7 @@ window.cancelarImportarVentas = function () {
 let datosImportarPedidos = [];
 
 window.mostrarModalImportarPedidos = function () {
-    document.getElementById('modal-importar-pedidos').classList.add('active');
+    setClaseInventario('modal-importar-pedidos', 'add');
     document.getElementById('preview-importar-pedidos').style.display = 'none';
     document.getElementById('file-importar-pedidos').value = '';
     datosImportarPedidos = [];
@@ -2033,15 +2041,15 @@ window.procesarArchivoPedidos = async function (input) {
     const file = input.files[0];
     if (!file) return;
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     try {
         const data = await leerArchivoGenerico(file);
         datosImportarPedidos = validarDatosPedidos(data);
         mostrarPreviewPedidos(datosImportarPedidos);
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
     } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast('Error procesando archivo: ' + error.message, 'error');
     }
 };
@@ -2175,7 +2183,7 @@ window.confirmarImportarPedidos = async function () {
         return;
     }
 
-    document.getElementById('loading-overlay').classList.add('active');
+    setClaseInventario('loading-overlay', 'add');
 
     try {
         let importados = 0;
@@ -2262,22 +2270,22 @@ window.confirmarImportarPedidos = async function () {
             importados++;
         }
 
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast(`✓ ${importados} pedidos importados correctamente`, 'success');
-        document.getElementById('modal-importar-pedidos').classList.remove('active');
+        setClaseInventario('modal-importar-pedidos', 'remove');
 
         // Actualizar UI
         await window.renderizarIngredientes(); // Stock actualizado
         await window.renderizarPedidos();
         // await window.renderizarBalance(); // P&L actualizado - DESACTIVADO
     } catch (error) {
-        document.getElementById('loading-overlay').classList.remove('active');
+        setClaseInventario('loading-overlay', 'remove');
         window.showToast('Error importando pedidos: ' + error.message, 'error');
     }
 };
 
 window.cancelarImportarPedidos = function () {
-    document.getElementById('modal-importar-pedidos').classList.remove('active');
+    setClaseInventario('modal-importar-pedidos', 'remove');
     datosImportarPedidos = [];
 };
 
