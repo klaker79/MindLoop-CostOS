@@ -391,6 +391,17 @@ export const api = {
     updateGastoFijo: (id, concepto, monto) => apiClient.put(`/gastos-fijos/${id}`, { concepto, monto_mensual: monto }),
     deleteGastoFijo: (id) => apiClient.delete(`/gastos-fijos/${id}`),
 
+    // Personal extra (pagos a extras por horas) — mismo patrón que gastos-fijos
+    getPersonalExtra: (desde, hasta) => {
+        const params = [];
+        if (desde) params.push(`desde=${desde}`);
+        if (hasta) params.push(`hasta=${hasta}`);
+        return apiClient.get(`/personal-extra${params.length ? '?' + params.join('&') : ''}`);
+    },
+    crearPersonalExtra: (data) => apiClient.post('/personal-extra', data),
+    actualizarPersonalExtra: (id, data) => apiClient.put(`/personal-extra/${id}`, data),
+    borrarPersonalExtra: (id) => apiClient.delete(`/personal-extra/${id}`),
+
     // Mermas
     getMermas: (mes, ano) => {
         const params = [];
