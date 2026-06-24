@@ -2884,6 +2884,16 @@ async function renderizarTablaPLDiario() {
         console.warn('No se pudo cargar personal extra para el P&L:', err.message);
     }
 
+    // 🔗 ÚNICA FUENTE DE VERDAD: exponer los mapas por día (clave YYYY-MM-DD) para
+    // que el widget lateral "Beneficio Neto por Día" (modales.js) reste EXACTAMENTE
+    // los mismos componentes que esta tabla y el beneficio neto diario cuadre en
+    // ambos. Se setean antes de que renderizarBeneficioNetoDiario() corra (se llama
+    // justo después de esta función).
+    window.plMermasPorDia = mermasPorDia;
+    window.plComidaPersonalPorDia = comidaPersonalPorDia;
+    window.plPersonalExtraPorDia = personalExtraPorDia;
+    window.plGastosFijosDia = gastosFijosDia;
+
     // ═══════════════════════════════════════════════════════════
     // 📊 TABLA P&L - CUENTA DE RESULTADOS
     // ═══════════════════════════════════════════════════════════
