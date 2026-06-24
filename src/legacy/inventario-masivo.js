@@ -2850,6 +2850,40 @@ async function renderizarTablaPLDiario() {
         });
     });
 
+    // 👷 Personal extra por día (pagos a extras por horas, tabla personal_extra).
+    // Gasto operativo aparte: resta al beneficio neto, pero NO es food cost ni
+    // compra. Mismo importe que el chat (resumen_pyg) y el informe mensual para
+    // que el beneficio cuadre en TODOS los sitios.
+    // Igual criterio que la fila de gastos fijos: el total cubre TODO el periodo
+    // activo (mes completo o semana filtrada) aunque ese día no tenga ventas — un
+    // extra se paga aunque no haya TPV ese día, así que NO se limita a `dias`
+    // (que son solo los días con movimiento de ventas). Si se limitara, los extras
+    // de días sin ventas se perderían del total y el beneficio no cuadraría.
+    const personalExtraPorDia = {};
+    let totalPersonalExtra = 0;
+    try {
+        const mmPE = String(mesSeleccionado).padStart(2, '0');
+        let _dPE = 1, _hPE = diasEnMes;
+        if (window.diarioSemanaActiva && window.diarioSemanaActiva !== 'todas') {
+            const _s = parseInt(window.diarioSemanaActiva);
+            _dPE = (_s - 1) * 7 + 1;
+            _hPE = Math.min(_s * 7, diasEnMes);
+        }
+        const desdePE = `${anoSeleccionado}-${mmPE}-${String(_dPE).padStart(2, '0')}`;
+        const hastaPE = `${anoSeleccionado}-${mmPE}-${String(_hPE).padStart(2, '0')}`;
+        const extras = await window.api.getPersonalExtra(desdePE, hastaPE);
+        if (Array.isArray(extras)) {
+            extras.forEach(e => {
+                const fecha = String(e.fecha || '').substring(0, 10);
+                const val = parseFloat(e.total) || 0;
+                personalExtraPorDia[fecha] = (personalExtraPorDia[fecha] || 0) + val;
+                totalPersonalExtra += val;
+            });
+        }
+    } catch (err) {
+        console.warn('No se pudo cargar personal extra para el P&L:', err.message);
+    }
+
     // ═══════════════════════════════════════════════════════════
     // 📊 TABLA P&L - CUENTA DE RESULTADOS
     // ═══════════════════════════════════════════════════════════
@@ -2941,6 +2975,20 @@ async function renderizarTablaPLDiario() {
         html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">−${cm(totalComidaPersonal)}</td></tr>`;
     }
 
+    // ── FILA: PERSONAL EXTRA DEL DÍA (👷) ──
+    // Pagos a extras por horas. Gasto operativo aparte (resta al beneficio).
+    // `totalPersonalExtra` ya viene calculado del loader (cubre todo el periodo,
+    // incluidos días sin ventas). Las celdas por día muestran el importe de los
+    // días visibles; el TOTAL puede ser mayor (igual que la fila de gastos fijos).
+    if (totalPersonalExtra > 0) {
+        html += `<tr style="background: #e0f2fe;"><td style="position: sticky; left: 0; background: #e0f2fe; padding: 16px; font-weight: 600; color: #075985; border-bottom: 1px solid #bae6fd;" title="Pagos a extras por horas. No es food cost ni compra del restaurante.">${window.t('balance:pl_extra_staff') || '👷 PERSONAL EXTRA'}</td>`;
+        dias.forEach(dia => {
+            const val = personalExtraPorDia[dia] || 0;
+            html += `<td style="text-align: center; padding: 16px 8px; color: #0284c7; border-bottom: 1px solid #bae6fd;">${val > 0 ? '−' + cm(val) : cm(0)}</td>`;
+        });
+        html += `<td style="text-align: center; background: #1e3a5f; color: white; font-weight: 700; padding: 16px;">−${cm(totalPersonalExtra)}</td></tr>`;
+    }
+
     // ── FILA: GASTOS FIJOS / DÍA ──
     // 🔧 FIX: antes se multiplicaba por dias.length (sólo días con movimiento), lo que
     // infravaloraba el gasto mensual real. El alquiler y personal se pagan todos los días
@@ -2973,12 +3021,13 @@ async function renderizarTablaPLDiario() {
         const margenDia = totalesPorDia[dia].ingresos - totalesPorDia[dia].costes;
         const mermaDia = mermasPorDia[dia] || 0;
         const personalDia = comidaPersonalPorDia[dia] || 0;
-        const beneficioNeto = margenDia - mermaDia - personalDia - gastosFijosDia;
+        const extraDia = personalExtraPorDia[dia] || 0;
+        const beneficioNeto = margenDia - mermaDia - personalDia - extraDia - gastosFijosDia;
         const color = beneficioNeto >= 0 ? '#1e3a5f' : '#dc2626';
         const bg = beneficioNeto >= 0 ? '#dbeafe' : '#fee2e2';
         html += `<td style="text-align: center; padding: 18px 8px; font-weight: 700; font-size: 14px; color: ${color}; background: ${bg}; border-bottom: 2px solid #93c5fd;">${cm(beneficioNeto)}</td>`;
     });
-    const totalBeneficioNeto = totalMargenBruto - totalMermas - totalComidaPersonal - totalGastosFijosMostrados;
+    const totalBeneficioNeto = totalMargenBruto - totalMermas - totalComidaPersonal - totalPersonalExtra - totalGastosFijosMostrados;
     // 🎨 Tonos legibles sobre fondo navy oscuro (rediseño 2026-05-26).
     // Antes: #22c55e (verde fluo) / #ef4444 (rojo fuerte) — ilegibles
     // sobre navy.
