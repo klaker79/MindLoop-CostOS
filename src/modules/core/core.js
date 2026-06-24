@@ -8,6 +8,7 @@ import { getApiUrl } from '../../config/app-config.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 import { initializeStores } from '../../stores/index.js';
 import { t } from '@/i18n/index.js';
+import { renderPersonalExtra } from '../balance/personal-extra.js';
 
 const API_BASE = getApiUrl();
 
@@ -212,6 +213,10 @@ export function cambiarTab(tab) {
             break;
         case 'diario':
             window.cargarValoresGastosFijos?.();
+            {
+                const contExtra = document.getElementById('personal-extra-list');
+                if (contExtra) renderPersonalExtra(contExtra);
+            }
             break;
         case 'analisis':
             window.renderizarAnalisis?.();

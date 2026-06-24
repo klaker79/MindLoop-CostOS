@@ -8,6 +8,20 @@ import { showToast } from '../../ui/toast.js';
 import { calcularCosteRecetaCompleto } from '../recetas/recetas-crud.js';
 import { t } from '@/i18n/index.js';
 import { cm } from '../../utils/helpers.js';
+import { renderPersonalExtra } from './personal-extra.js';
+
+/** Devuelve {desde, hasta} del mes actual en YYYY-MM-DD (mismo rango que el P&L). */
+function rangoMesActual() {
+    const ahora = new Date();
+    const ymd = (d) => {
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${d.getFullYear()}-${m}-${day}`;
+    };
+    const desde = ymd(new Date(ahora.getFullYear(), ahora.getMonth(), 1));
+    const hasta = ymd(new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0));
+    return { desde, hasta };
+}
 
 // === BALANCE / P&L UNIFICADO ===
 export async function renderizarBalance() {
@@ -15,6 +29,13 @@ export async function renderizarBalance() {
         // 1. Render dynamic fixed-expenses widget (each restaurant has its own categories)
         if (typeof window.renderizarGastosFijosDinamicos === 'function') {
             await window.renderizarGastosFijosDinamicos();
+        }
+
+        // 1b. Personal extra (por horas) — justo debajo de los gastos fijos,
+        // con el MISMO rango (mes actual) que usa el P&L.
+        const contenedorExtra = document.getElementById('personal-extra-list');
+        if (contenedorExtra) {
+            await renderPersonalExtra(contenedorExtra, rangoMesActual());
         }
 
         // 2. Obtener Datos Reales
