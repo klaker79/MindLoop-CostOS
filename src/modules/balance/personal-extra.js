@@ -29,9 +29,19 @@ function calcularSubtotal(filas) {
     return (filas || []).reduce((s, f) => s + (parseFloat(f.total) || 0), 0);
 }
 
+/** Fecha a YYYY-MM-DD (el backend la devuelve como ISO completo: 2026-06-24T00:00:00.000Z). */
+function fmtFecha(f) {
+    return String(f || '').slice(0, 10);
+}
+
+/** Número con 2 decimales (coma), SIN símbolo de moneda — para las horas. */
+function num2(n) {
+    return (Number(n) || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function rowHtml(fila) {
     const id = fila.id;
-    const fecha = fila.fecha || '';
+    const fecha = fmtFecha(fila.fecha);
     const nombre = fila.nombre || '';
     const horas = parseFloat(fila.horas) || 0;
     const precioHora = parseFloat(fila.precio_hora) || 0;
@@ -39,9 +49,9 @@ function rowHtml(fila) {
     return `
         <div class="pe-row" data-pe-id="${id}"
              style="display: grid; grid-template-columns: 100px 1fr 70px 80px 90px 32px; gap: 10px; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;">
-            <span style="color: white; font-size: 13px;">${escapeHTML(fecha)}</span>
+            <span style="color: white; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(fecha)}</span>
             <span style="color: white; font-size: 14px; font-weight: 500; word-break: break-word;">${escapeHTML(nombre) || '—'}</span>
-            <span style="color: rgba(255,255,255,0.9); font-size: 13px; text-align: right;">${cm(horas, 2)}</span>
+            <span style="color: rgba(255,255,255,0.9); font-size: 13px; text-align: right;">${num2(horas)}</span>
             <span style="color: rgba(255,255,255,0.9); font-size: 13px; text-align: right;">${cm(precioHora, 2)}</span>
             <span style="color: white; font-size: 14px; font-weight: 700; text-align: right;">${cm(total, 2)}</span>
             <button type="button" class="pe-delete-btn" data-pe-id="${id}" title="Eliminar"
