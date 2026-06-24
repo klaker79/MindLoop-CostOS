@@ -401,13 +401,22 @@ async function renderizarBeneficioNetoDiario() {
         const ingresos = diaData.ingresos || 0;
         const costos = diaData.costos || 0;
 
-        // Siempre restamos gastos fijos (enfoque contable real)
-        const beneficioNeto = ingresos - costos - gastosFijosDia;
+        // 🔗 Mismos componentes que la tabla P&L (única fuente de verdad): además
+        // de los gastos fijos, restamos mermas, comida de personal y personal extra
+        // del día, para que el beneficio neto diario cuadre con la Cuenta de
+        // Resultados. Los mapas (clave YYYY-MM-DD) los expone renderizarTablaPLDiario.
+        const _ymd = `${ano}-${String(mes).padStart(2, '0')}-${String(diaNum).padStart(2, '0')}`;
+        const mermaDia = (window.plMermasPorDia && window.plMermasPorDia[_ymd]) || 0;
+        const comidaDia = (window.plComidaPersonalPorDia && window.plComidaPersonalPorDia[_ymd]) || 0;
+        const extraDia = (window.plPersonalExtraPorDia && window.plPersonalExtraPorDia[_ymd]) || 0;
+
+        // Siempre restamos gastos fijos + gastos operativos del día (enfoque contable real)
+        const beneficioNeto = ingresos - costos - mermaDia - comidaDia - extraDia - gastosFijosDia;
         beneficioRealTotal += beneficioNeto;
 
         if (tieneActividad) {
-            acumulado += ingresos - costos - gastosFijosDia;
-            sumaTotal += ingresos - costos - gastosFijosDia;
+            acumulado += beneficioNeto;
+            sumaTotal += beneficioNeto;
             diasConDatos++;
         } else {
             diasSinActividad++;
@@ -421,10 +430,11 @@ async function renderizarBeneficioNetoDiario() {
         const colorAcumulado = beneficioRealTotal >= 0 ? '#10b981' : '#ef4444';
 
         if (!tieneActividad) {
-            // Día cerrado - muestra el coste fijo que se resta
+            // Día cerrado - muestra el neto del día (gastos fijos + cualquier gasto
+            // operativo de ese día: mermas, comida personal o personal extra).
             icono = '🔘';
             estiloFecha = 'color: #9ca3af; font-size: 13px;';
-            beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">-${cm(gastosFijosDia)}</span>`;
+            beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">${cm(beneficioNeto)}</span>`;
         } else if (beneficioNeto >= 0) {
             icono = '✅';
             estiloFecha = 'color: #10b981; font-size: 13px;';
