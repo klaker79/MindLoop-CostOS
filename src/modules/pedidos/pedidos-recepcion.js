@@ -53,12 +53,19 @@ export function marcarPedidoRecibido(id) {
     const provSpan = document.getElementById('modal-rec-proveedor');
     if (provSpan) provSpan.textContent = prov ? prov.nombre : 'Sin proveedor';
 
-    // Autorelleno IVA del albarán desde el proveedor (Migration 013, 2026-06-06).
-    // Si el proveedor no tiene iva_pct configurado, dejamos vacío (placeholder 0).
-    // El IVA es SOLO display — no se envía al backend ni afecta a precio_medio_compra.
+    // 🧾 Autorelleno IVA del albarán (Migración 015): prioriza el IVA que viaja
+    // CON el pedido (puesto al crear/editar) → IVA habitual del proveedor → vacío.
+    // El IVA se persiste pero NO afecta a precio_medio_compra ni al food cost;
+    // `total` sigue siendo la BASE sin IVA.
     const ivaInput = document.getElementById('modal-rec-iva-pct');
     if (ivaInput) {
-        ivaInput.value = (prov && prov.iva_pct !== null && prov.iva_pct !== undefined) ? prov.iva_pct : '';
+        if (ped.iva_pct !== null && ped.iva_pct !== undefined) {
+            ivaInput.value = ped.iva_pct;
+        } else if (prov && prov.iva_pct !== null && prov.iva_pct !== undefined) {
+            ivaInput.value = prov.iva_pct;
+        } else {
+            ivaInput.value = '';
+        }
         // Listener idempotente: removemos cualquier anterior antes de añadir.
         ivaInput.oninput = () => actualizarTotalConIva();
     }
@@ -588,7 +595,16 @@ export async function confirmarRecepcionPedido() {
             // gasto no reflejaba descuentos/variaciones al recibir. (2026-06-27)
             total: totalRecibido,
             total_recibido: totalRecibido,
-            totalRecibido: totalRecibido
+            totalRecibido: totalRecibido,
+            // 🧾 IVA del albarán (Migración 015): persistir el valor del modal de
+            // recepción (puede haberlo ajustado el camarero). Si está vacío, null →
+            // el backend (COALESCE) conserva el que ya tenía el pedido. NO toca total.
+            iva_pct: (() => {
+                const el = document.getElementById('modal-rec-iva-pct');
+                if (!el || el.value === '') return (ped.iva_pct ?? null);
+                const v = parseFloat(el.value);
+                return Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : (ped.iva_pct ?? null);
+            })()
         });
 
         // ℹ️ Diario (precios_compra_diarios) se registra automáticamente en el backend

@@ -88,6 +88,13 @@
   "detail_total_original": "Total Original",
   "detail_total_received": "Total Recibido",
   "detail_total_order": "Total del Pedido:",
+  "detail_base": "Base imponible",
+  "detail_iva": "IVA ({{pct}}%)",
+  "detail_total_with_iva": "Total con IVA",
+  "cart_base": "Base imponible",
+  "cart_iva_label": "IVA",
+  "cart_total_with_iva": "Total con IVA",
+  "cart_iva_hint": "El IVA es solo para cuadrar con la factura. No afecta al food cost ni a la rentabilidad (se recupera en tu declaración).",
 
   "scanner_items_detected": "{{total}} productos detectados de {{supplier}} ({{matched}} asignados, {{unmatched}} por revisar)",
   "scanner_items_detected_no_supplier": "{{total}} productos detectados ({{matched}} asignados, {{unmatched}} por revisar)",
