@@ -77,3 +77,23 @@ export function baseDesdeFormato(cantidadFormato, precioFormato, cpf) {
         precio: (parseFloat(precioFormato) || 0) / k,
     };
 }
+
+/**
+ * Factor para cuadrar el COSTE de un pedido con el total real del albarán
+ * (descuentos/bonificaciones). base = Σ (cantidadRecibida × precioReal) de las
+ * líneas que cuentan como coste; factor = totalAlbaran / base. Multiplicar cada
+ * precioReal por el factor reparte el descuento proporcionalmente, así el coste
+ * registrado (precios_compra_diarios) refleja lo que se paga de verdad.
+ * Devuelve 1 (no cambia nada) si no se puede calcular.
+ * @param {Array<{cantidadRecibida:number, precioReal:number}>} itemsEntregados
+ * @param {number} totalAlbaran
+ * @returns {number}
+ */
+export function calcularFactorAlbaran(itemsEntregados, totalAlbaran) {
+    const total = parseFloat(totalAlbaran);
+    if (!(total > 0)) return 1;
+    const base = (itemsEntregados || []).reduce(
+        (s, it) => s + (parseFloat(it.cantidadRecibida) || 0) * (parseFloat(it.precioReal) || 0), 0);
+    if (!(base > 0)) return 1;
+    return total / base;
+}
