@@ -2811,6 +2811,35 @@
             </div>
           </div>
 
+          <!-- Bloque "Total del albarán" (2026-06-27): reparte el descuento/
+               bonificación entre los productos para que el COSTE refleje lo que
+               se paga de verdad. El camarero teclea las líneas como vienen y el
+               total del albarán → la app baja el precio de cada línea. Evita el
+               error de meter el precio bruto + el descuento como "ajuste" (que
+               no bajaba el coste). Ver memoria descuentos_albaran_recepcion. -->
+          <div
+            style="background: #ecfdf5; border: 1px solid #10b981; padding: 12px 15px; border-radius: 8px; margin-bottom: 14px;">
+            <div style="display: grid; grid-template-columns: 1fr 180px auto; gap: 15px; align-items: center;">
+              <div>
+                <strong style="color: #065f46; font-size: 13px;" data-i18n="pedidos:reception_albaran_total_label">
+                  💶 Total del albarán (lo que pagas por el género)
+                </strong>
+                <p style="margin: 4px 0 0; font-size: 11px; color: #065f46;" data-i18n="pedidos:reception_albaran_total_hint">
+                  ¿Te hicieron descuento o bonificación? Ponlo aquí y pulsa "Cuadrar": la app reparte el descuento y baja el coste de cada producto. (El "ajuste" déjalo solo para envases retornables.)
+                </p>
+              </div>
+              <div>
+                <input type="number" id="modal-rec-total-albaran" min="0" step="0.01" placeholder="0.00"
+                       style="width: 100%; padding: 8px 10px; border: 1px solid #10b981; border-radius: 6px; font-size: 16px; font-weight: bold; text-align: center;">
+              </div>
+              <div>
+                <button class="btn btn-secondary" type="button" onclick="window.cuadrarConTotalAlbaran && window.cuadrarConTotalAlbaran()"
+                        style="white-space: nowrap;" data-i18n="pedidos:reception_albaran_apply">Cuadrar precios</button>
+              </div>
+            </div>
+            <div id="modal-rec-albaran-feedback" style="margin-top: 8px; font-size: 12px; color: #065f46;"></div>
+          </div>
+
           <!-- Bloque IVA del albarán (Migration 013, 2026-06-06).
                Solo display — no se persiste. El cliente lo usa para cuadrar
                el total recibido con el albarán físico que viene con IVA aparte. -->
@@ -3548,7 +3577,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260529-recetas-1export-1import"></script>
+  <script type="module" src="./src/main.js?v=20260627-descuento-albaran"></script>
 </body>
 
 </html>
