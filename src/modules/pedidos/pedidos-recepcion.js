@@ -14,7 +14,7 @@
 
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpers.js';
-import { formatoDesdeBase, esCantidadEnteraEnFormato, calcularFactorAlbaran } from './formato-utils.js';
+import { formatoDesdeBase, esCantidadEnteraEnFormato } from './formato-utils.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 import { precioDesviacionSospechosa, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
@@ -438,14 +438,6 @@ export async function confirmarRecepcionPedido() {
         btnConfirmar.style.cursor = 'not-allowed';
     }
 
-    // 🔒 A prueba de despistes: si el camarero escribió el "Total del albarán"
-    // pero olvidó pulsar "Cuadrar", lo aplicamos ahora antes de guardar. Es
-    // idempotente (si ya cuadró, el factor ≈ 1 y no cambia nada).
-    const totalAlbaranInput = document.getElementById('modal-rec-total-albaran');
-    if (totalAlbaranInput && parseFloat(totalAlbaranInput.value) > 0) {
-        cuadrarConTotalAlbaran();
-    }
-
     window.showLoading();
 
     try {
@@ -588,6 +580,13 @@ export async function confirmarRecepcionPedido() {
             estado: 'recibido',
             ingredientes: ingredientesActualizados, // ← IMPORTANTE: Esto guarda precioReal
             fecha_recepcion: fechaOriginal,
+            // 💶 El GASTO del P&L (informe mensual, chat P&L, compras) usa pedidos.total.
+            // Al recibir, total pasa a ser lo REALMENTE recibido (precio real × cantidad
+            // recibida + ajustes/envases), no lo que se pidió → el gasto refleja lo que
+            // pagas de verdad, en línea con el coste (precio_medio_compra sale del mismo
+            // precioReal). Antes total se quedaba con el valor del pedido original y el
+            // gasto no reflejaba descuentos/variaciones al recibir. (2026-06-27)
+            total: totalRecibido,
             total_recibido: totalRecibido,
             totalRecibido: totalRecibido
         });
@@ -620,44 +619,6 @@ export async function confirmarRecepcionPedido() {
     }
 }
 
-/**
- * Reparte el descuento/bonificación del albarán entre las líneas de género:
- * lee el "Total del albarán", calcula el factor y baja el precioReal de cada
- * línea entregada (no comida personal). Re-renderiza la tabla. El "ajuste"
- * (envases) NO entra aquí. Idempotente: cuadrar dos veces con el mismo total
- * no acumula (la 2ª vez el factor ≈ 1).
- */
-export function cuadrarConTotalAlbaran() {
-    const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
-    const input = document.getElementById('modal-rec-total-albaran');
-    const fb = document.getElementById('modal-rec-albaran-feedback');
-    if (!ped || !ped.itemsRecepcion || !input) return;
-
-    const totalAlbaran = parseFloat(input.value);
-    if (!(totalAlbaran > 0)) { if (fb) fb.textContent = ''; return; }
-
-    const entregados = ped.itemsRecepcion.filter(it => it.estado !== 'no-entregado' && it.personal !== true);
-    const base = entregados.reduce((s, it) => s + (parseFloat(it.cantidadRecibida) || 0) * (parseFloat(it.precioReal) || 0), 0);
-    const factor = calcularFactorAlbaran(entregados, totalAlbaran);
-
-    // Guardrail: descuento/recargo absurdo (>50%) → no aplicar, pedir revisión.
-    if (factor < 0.5 || factor > 1.5) {
-        if (fb) fb.innerHTML = `<span style="color:#b91c1c;">⚠️ El total (${cm(totalAlbaran)}) se aleja demasiado de las líneas (${cm(base)}). Revisa el dato antes de cuadrar.</span>`;
-        return;
-    }
-
-    entregados.forEach(it => { it.precioReal = (parseFloat(it.precioReal) || 0) * factor; });
-    renderItemsRecepcionModal(ped);
-    actualizarTotalConIva();
-
-    const descuento = base - totalAlbaran;
-    if (fb) {
-        fb.innerHTML = descuento > 0.01
-            ? `✅ Descuento de <strong>${cm(descuento)}</strong> repartido. Coste cuadrado a <strong>${cm(totalAlbaran)}</strong>.`
-            : `✅ Coste cuadrado a <strong>${cm(totalAlbaran)}</strong>.`;
-    }
-}
-
 // Exponer al window para compatibilidad con onclick en HTML
 if (typeof window !== 'undefined') {
     window.marcarPedidoRecibido = marcarPedidoRecibido;
@@ -665,5 +626,4 @@ if (typeof window !== 'undefined') {
     window.cambiarEstadoItem = cambiarEstadoItem;
     window.cerrarModalRecibirPedido = cerrarModalRecibirPedido;
     window.confirmarRecepcionPedido = confirmarRecepcionPedido;
-    window.cuadrarConTotalAlbaran = cuadrarConTotalAlbaran;
 }

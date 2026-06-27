@@ -307,7 +307,7 @@ function renderizarModalEditarPedido() {
             <div style="background: #fffbeb; padding: 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #fde68a;">
                 <h4 style="margin: 0 0 10px 0;">💸 ${t('pedidos:edit_adjustment_title')} <small style="color: #92400e; font-weight: 400;">${t('pedidos:edit_adjustment_hint')}</small></h4>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <input type="number" step="0.01" id="input-ajuste-importe" placeholder="0.00 (negativo para descuento)"
+                    <input type="number" step="0.01" id="input-ajuste-importe" placeholder="0.00 (envases/portes)"
                         value="${ajuste !== 0 ? ajuste.toFixed(2) : ''}"
                         onchange="window.actualizarAjustePedido('importe', this.value)"
                         style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
