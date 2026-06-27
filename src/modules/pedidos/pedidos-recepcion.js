@@ -580,6 +580,13 @@ export async function confirmarRecepcionPedido() {
             estado: 'recibido',
             ingredientes: ingredientesActualizados, // ← IMPORTANTE: Esto guarda precioReal
             fecha_recepcion: fechaOriginal,
+            // 💶 El GASTO del P&L (informe mensual, chat P&L, compras) usa pedidos.total.
+            // Al recibir, total pasa a ser lo REALMENTE recibido (precio real × cantidad
+            // recibida + ajustes/envases), no lo que se pidió → el gasto refleja lo que
+            // pagas de verdad, en línea con el coste (precio_medio_compra sale del mismo
+            // precioReal). Antes total se quedaba con el valor del pedido original y el
+            // gasto no reflejaba descuentos/variaciones al recibir. (2026-06-27)
+            total: totalRecibido,
             total_recibido: totalRecibido,
             totalRecibido: totalRecibido
         });
