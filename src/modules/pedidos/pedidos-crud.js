@@ -158,6 +158,17 @@ export async function guardarPedido(event) {
   // distribuidores formales, no compras de mercado físico.
   const esCompraMercado = proveedor && /\bmercado\b/i.test(proveedor.nombre);
 
+  // 🧾 IVA del albarán tecleado en el formulario (Migración 015). Es solo
+  // display/tesorería para cuadrar con la factura: NO entra en `total` (base)
+  // ni en food cost/stock. null si el campo está vacío.
+  const leerIvaPedido = () => {
+    const el = document.getElementById('ped-iva');
+    if (!el || el.value === '') return null;
+    const v = parseFloat(el.value);
+    return (Number.isFinite(v) && v >= 0) ? Math.min(100, v) : null;
+  };
+  const ivaPedido = leerIvaPedido();
+
   let pedido;
 
   // Datos del puesto del mercado (si aplica)
@@ -177,6 +188,7 @@ export async function guardarPedido(event) {
       estado: 'recibido', // Se marca directamente como recibido
       ingredientes: normalizarLineasABase(ingredientesPedido),
       total: window.calcularTotalPedido(),
+      iva_pct: ivaPedido,
       es_compra_mercado: true,
       detalle_mercado: puestoMercado,
     };
@@ -200,6 +212,7 @@ export async function guardarPedido(event) {
         estado: 'pendiente',
         ingredientes: normalizarLineasABase(ingredientesPedido),
         total: window.calcularTotalPedido(),
+        iva_pct: ivaPedido,
       };
       // Cae al bloque try de abajo (createPedido). esCompraMercado=false → sin stock.
     } else {

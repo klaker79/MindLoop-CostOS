@@ -143,6 +143,20 @@ export function verDetallesPedido(pedidoId) {
         ? `<p style="margin: 5px 0 0; color: #10b981; font-size: 13px;">📍 ${escapeHTML(ped.detalle_mercado)}</p>`
         : '';
 
+    // 🧾 Desglose IVA (Migración 015). Solo display/tesorería: la base es el
+    // total del pedido (lo recibido si está recibido, lo pedido si pendiente),
+    // que NO incluye IVA. El IVA es informativo para cuadrar con la factura;
+    // NO afecta a food cost ni al gasto del P&L (esos usan la base).
+    const ivaPctDet = (ped.iva_pct !== null && ped.iva_pct !== undefined) ? parseFloat(ped.iva_pct) : 0;
+    const baseIvaDet = esRecibido ? totalRecibido : parseFloat(ped.total || totalOriginal || 0);
+    const ivaImporteDet = baseIvaDet * (ivaPctDet / 100);
+    const ivaHtml = (ivaPctDet > 0) ? `
+      <div style="margin-top: 15px; padding: 14px 20px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px;">
+        <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">${t('pedidos:detail_base')}</span><strong>${cm(baseIvaDet)}</strong></div>
+        <div style="display:flex; justify-content:space-between; margin-top:6px;"><span style="color:#92400e; font-weight:600;">${t('pedidos:detail_iva', { pct: ivaPctDet })}</span><strong style="color:#92400e;">${cm(ivaImporteDet)}</strong></div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px; border-top:1px solid #fde68a; padding-top:8px;"><strong>${t('pedidos:detail_total_with_iva')}</strong><strong style="font-size:18px; color:#059669;">${cm(baseIvaDet + ivaImporteDet)}</strong></div>
+      </div>` : '';
+
     const html = `
       <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
         <div>
@@ -195,6 +209,7 @@ export function verDetallesPedido(pedidoId) {
       </div>
       `
         }
+      ${ivaHtml}
     `;
 
     const contenedor = document.getElementById('modal-ver-pedido-contenido');

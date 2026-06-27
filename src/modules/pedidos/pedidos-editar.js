@@ -80,10 +80,13 @@ export function abrirModalEditarPedido(id) {
         }
     });
 
-    // IVA habitual del proveedor — display visual para cuadrar contra albarán.
-    // No se persiste en BD (igual que en Nuevo Pedido y Recepción).
+    // 🧾 IVA del albarán (Migración 015): ahora SÍ se persiste por pedido.
+    // Prioridad: el IVA guardado en el pedido → IVA habitual del proveedor → 0.
+    // Es solo display/tesorería: NO entra en `total` (base) ni en food cost.
     const prov = (window.proveedores || []).find(p => p.id === pedido.proveedor_id);
-    const ivaInicial = (prov && prov.iva_pct !== null && prov.iva_pct !== undefined) ? prov.iva_pct : 0;
+    const ivaInicial = (pedido.iva_pct !== null && pedido.iva_pct !== undefined)
+        ? parseFloat(pedido.iva_pct)
+        : ((prov && prov.iva_pct !== null && prov.iva_pct !== undefined) ? parseFloat(prov.iva_pct) : 0);
 
     // Estado temporal del modal
     window._editandoPedido = {
@@ -528,11 +531,17 @@ export async function guardarEdicionPedido() {
 
     try {
         window.showLoading?.();
+        // 🧾 IVA del albarán (Migración 015): se persiste por pedido. NO entra en
+        // `total` (base) — solo display/tesorería. null si vacío.
+        const ivaPctPersist = (state.ivaPct !== null && state.ivaPct !== undefined && state.ivaPct !== '' && isFinite(state.ivaPct))
+            ? Math.min(100, Math.max(0, parseFloat(state.ivaPct)))
+            : null;
         // PUT al backend con estado 'pendiente' para que NO escriba en Diario
         await window.api.updatePedido(state.id, {
             estado: 'pendiente',
             ingredientes: ingredientesPayload,
-            total
+            total,
+            iva_pct: ivaPctPersist
         });
 
         cerrarModalEditarPedido();
