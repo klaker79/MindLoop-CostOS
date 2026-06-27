@@ -35,7 +35,7 @@ export function mostrarFormularioPedido() {
             (a.nombre || '').localeCompare(b.nombre || '')
         );
         const options = proveedoresOrdenados.map(prov =>
-            `<option value="${prov.id}">${prov.nombre}</option>`
+            `<option value="${prov.id}">${escapeHTML(prov.nombre)}</option>`
         ).join('');
         select.innerHTML = `<option value="">${t('pedidos:form_select_supplier')}</option>` + options;
 
