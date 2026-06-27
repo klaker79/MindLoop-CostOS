@@ -169,6 +169,18 @@ export async function guardarPedido(event) {
   };
   const ivaPedido = leerIvaPedido();
 
+  // 💶 Total BASE (sin IVA) = Σ (cantidad × precio_unitario) sobre las líneas YA
+  // normalizadas a unidad-base. ⚠️ NO usar window.calcularTotalPedido() para el
+  // `total` persistido: esa función devuelve el total CON IVA (es para el display
+  // del formulario) y contaminaría pedidos.total → gasto/P&L (bug detectado en la
+  // auditoría 2026-06-27). El IVA viaja SIEMPRE aparte en `iva_pct`. Esto deja los
+  // caminos directos (mercado/personal) coherentes con el carrito y la recepción.
+  const ingredientesNorm = normalizarLineasABase(ingredientesPedido);
+  const totalBasePedido = ingredientesNorm.reduce(
+    (sum, it) => sum + ((parseFloat(it.cantidad) || 0) * (parseFloat(it.precio_unitario) || 0)),
+    0
+  );
+
   let pedido;
 
   // Datos del puesto del mercado (si aplica)
@@ -186,8 +198,8 @@ export async function guardarPedido(event) {
       proveedor_id: proveedorId,
       fecha: document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
       estado: 'recibido', // Se marca directamente como recibido
-      ingredientes: normalizarLineasABase(ingredientesPedido),
-      total: window.calcularTotalPedido(),
+      ingredientes: ingredientesNorm,
+      total: totalBasePedido,
       iva_pct: ivaPedido,
       es_compra_mercado: true,
       detalle_mercado: puestoMercado,
@@ -210,8 +222,8 @@ export async function guardarPedido(event) {
         proveedor_id: proveedorId,
         fecha: document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
         estado: 'pendiente',
-        ingredientes: normalizarLineasABase(ingredientesPedido),
-        total: window.calcularTotalPedido(),
+        ingredientes: ingredientesNorm,
+        total: totalBasePedido,
         iva_pct: ivaPedido,
       };
       // Cae al bloque try de abajo (createPedido). esCompraMercado=false → sin stock.
