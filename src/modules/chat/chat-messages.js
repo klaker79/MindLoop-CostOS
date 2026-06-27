@@ -258,13 +258,15 @@ export async function sendMessage() {
         }
     } catch (error) {
         hideTyping();
-        logger.error('Chat error:', error);
-        // Mensajes específicos del add-on (gate del backend):
-        // 403 CHAT_NOT_ACTIVATED — el tenant desactivó el add-on durante la sesión.
-        // 429 CHAT_QUOTA_EXCEEDED — agotó las 300 consultas del mes.
+        // 🔭 Logging consciente para Sentry: los fallos ESPERADOS/transitorios (cuota,
+        // add-on no activado, sesión caducada) van como WARN → NO se reportan a Sentry,
+        // evitan ruido. Solo los fallos INESPERADOS (5xx, red, timeout) van a
+        // logger.error → Sentry, y con el OBJETO error real (status + stacktrace), no
+        // un string vacío. (Antes todo iba a logger.error('Chat error:') sin detalle.)
         const status = error?.status;
         const data = error?.data;
         if (status === 429 && data?.error === 'CHAT_QUOTA_EXCEEDED') {
+            logger.warn('Chat: cuota mensual agotada (429)');
             const reset = data.resets_at ? new Date(data.resets_at) : null;
             const fmt = reset
                 ? reset.toLocaleDateString(getDateLocale(), { day: '2-digit', month: 'long' })
@@ -276,12 +278,20 @@ export async function sendMessage() {
             );
             blockAfterResponse = true;
         } else if (status === 403 && data?.error === 'CHAT_NOT_ACTIVATED') {
+            logger.warn('Chat: add-on Asistente IA no activado (403)');
             addMessage('bot',
                 'El add-on Asistente IA no está activado. Actívalo en **Configuración → Asistente IA** para volver a usar el chat.',
                 false
             );
             blockAfterResponse = true;
+        } else if (status === 401) {
+            // Sesión caducada / token perdido (p.ej. tras un hard refresh). Es esperado
+            // y se resuelve recargando → NO es un bug, no debe ir a Sentry.
+            logger.warn('Chat: sesión caducada o sin token (401) — recargar para re-autenticar');
+            addMessage('bot', CHAT_CONFIG.errorMessage);
         } else {
+            // Fallo inesperado (5xx, red, timeout...) → SÍ a Sentry, con el error real.
+            logger.error(`Chat request failed (status ${status ?? 'sin respuesta'})`, error);
             addMessage('bot', CHAT_CONFIG.errorMessage);
         }
     } finally {

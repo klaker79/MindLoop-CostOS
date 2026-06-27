@@ -85,9 +85,18 @@ export const logger = {
             const formatted = formatMessage('ERROR', args);
             console.error('%c' + formatted[0], STYLES.ERROR, ...formatted.slice(1));
 
-            // Enviar a sistema de error tracking si está configurado
+            // Enviar a Sentry. Capturamos el OBJETO Error (con stacktrace) si lo hay,
+            // no el primer arg a secas: antes `captureException(args[0])` mandaba el
+            // string del mensaje (p.ej. "Chat error:") y Sentry se quedaba SIN stack ni
+            // causa. El texto del mensaje se adjunta como contexto extra.
             if (window.Sentry) {
-                window.Sentry.captureException(args[0]);
+                const errArg = args.find(a => a instanceof Error);
+                const msgArg = args.find(a => typeof a === 'string');
+                if (errArg) {
+                    window.Sentry.captureException(errArg, msgArg ? { extra: { context: msgArg } } : undefined);
+                } else {
+                    window.Sentry.captureException(args[0]);
+                }
             }
         }
     },
