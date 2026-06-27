@@ -88,6 +88,13 @@
   "detail_total_original": "Original Total",
   "detail_total_received": "Received Total",
   "detail_total_order": "Order Total:",
+  "detail_base": "Tax base",
+  "detail_iva": "VAT ({{pct}}%)",
+  "detail_total_with_iva": "Total with VAT",
+  "cart_base": "Tax base",
+  "cart_iva_label": "VAT",
+  "cart_total_with_iva": "Total with VAT",
+  "cart_iva_hint": "VAT is only to reconcile with the invoice. It does not affect food cost or profitability (you reclaim it in your tax return).",
 
   "scanner_items_detected": "{{total}} items detected from {{supplier}} ({{matched}} assigned, {{unmatched}} to review)",
   "scanner_items_detected_no_supplier": "{{total}} items detected ({{matched}} assigned, {{unmatched}} to review)",
