@@ -2054,6 +2054,20 @@ window.procesarArchivoPedidos = async function (input) {
     }
 };
 
+// 🔧 Anti-fragmentación (auditoría 2026-06-27 HIGH-2): normaliza nombres de
+// ingrediente para emparejar de forma robusta (insensible a acentos, mayúsculas
+// y espacios) al importar pedidos. NO fusiona nada por su cuenta: solo enlaza por
+// coincidencia EXACTA normalizada (segura) y AVISA de posibles duplicados cuando
+// comparten el primer término. El backend además rechaza nombres exactos duplicados.
+function normalizarNombreIngrediente(s) {
+    return String(s || '')
+        .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+        .toLowerCase().trim().replace(/\s+/g, ' ');
+}
+function primerTokenIngrediente(s) {
+    return normalizarNombreIngrediente(s).split(' ')[0] || '';
+}
+
 function validarDatosPedidos(data) {
     return data.map(row => {
         // Mapeo flexible de columnas
@@ -2077,13 +2091,26 @@ function validarDatosPedidos(data) {
             row['Total'] || row['total'] || row['TOTAL'] || row['Importe'] || 0
         );
 
-        // Intentar vincular con ingrediente existente
+        // Vincular con ingrediente existente. Match EXACTO normalizado (insensible a
+        // acentos/mayúsculas/espacios) → "Limón" enlaza con "limon" sin riesgo. Si no
+        // hay exacto pero comparte el primer término (≥4 letras) con uno existente, se
+        // marca como POSIBLE DUPLICADO para que el usuario decida (no se autocrea a
+        // ciegas). El backend además rechaza nombres exactos duplicados (HIGH-1).
         let ingredienteEncontrado = null;
+        let posibleDuplicado = null;
         if (ingredienteNombre) {
-            const nombreNorm = ingredienteNombre.toLowerCase().trim();
-            ingredienteEncontrado = window.ingredientes.find(
-                i => i.nombre.toLowerCase().trim() === nombreNorm
+            const norm = normalizarNombreIngrediente(ingredienteNombre);
+            ingredienteEncontrado = (window.ingredientes || []).find(
+                i => normalizarNombreIngrediente(i.nombre) === norm
             );
+            if (!ingredienteEncontrado) {
+                const tn = primerTokenIngrediente(ingredienteNombre);
+                if (tn.length >= 4) {
+                    posibleDuplicado = (window.ingredientes || []).find(
+                        i => primerTokenIngrediente(i.nombre) === tn
+                    ) || null;
+                }
+            }
         }
 
         // Validación: warning si no encuentra ingrediente en importación
@@ -2101,12 +2128,17 @@ function validarDatosPedidos(data) {
             precio: isNaN(precio) ? 0 : precio,
             total: isNaN(total) ? 0 : total,
             ingredienteId: ingredienteEncontrado ? ingredienteEncontrado.id : null,
-            ingredienteUnidad: ingredienteEncontrado ? ingredienteEncontrado.unidad : 'unidad',
+            ingredienteUnidad: ingredienteEncontrado
+                ? ingredienteEncontrado.unidad
+                : (posibleDuplicado ? posibleDuplicado.unidad : 'unidad'),
+            posibleDuplicadoNombre: (!ingredienteEncontrado && posibleDuplicado) ? posibleDuplicado.nombre : null,
             valido: valido,
             error: !valido
                 ? 'Datos incompletos'
                 : !ingredienteEncontrado
-                    ? '⚠️ Nuevo ingrediente (se creará)'
+                    ? (posibleDuplicado
+                        ? `⚠️ ¿Es "${posibleDuplicado.nombre}"? Se creará NUEVO`
+                        : '⚠️ Nuevo ingrediente (se creará)')
                     : null,
         };
     });
@@ -2116,13 +2148,15 @@ function mostrarPreviewPedidos(datos) {
     const validos = datos.filter(d => d.valido).length;
     const vinculados = datos.filter(d => d.ingredienteId).length;
     const nuevos = validos - vinculados;
+    const posiblesDup = datos.filter(d => d.valido && !d.ingredienteId && d.posibleDuplicadoNombre).length;
 
     let html = `
         <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-          <strong>Resumen:</strong> 
+          <strong>Resumen:</strong>
           <span style="color: #10b981;">✓ ${validos} registros válidos</span>
           <span style="color: #3b82f6; margin-left: 10px;">🔗 ${vinculados} vinculados</span>
           ${nuevos > 0 ? `<span style="color: #f59e0b; margin-left: 10px;">✨ ${nuevos} nuevos ingredientes</span>` : ''}
+          ${posiblesDup > 0 ? `<span style="color: #b45309; margin-left: 10px; font-weight:600;">⚠️ ${posiblesDup} posible(s) duplicado(s) — revisa antes de importar</span>` : ''}
         </div>
         <table style="width: 100%; font-size: 13px;">
           <thead>
@@ -2139,19 +2173,22 @@ function mostrarPreviewPedidos(datos) {
 
     datos.forEach(item => {
         const icon = item.valido ? '✓' : '✗';
-        const bgColor = item.valido ? (item.ingredienteId ? '#f0fdf4' : '#fffbeb') : '#fef2f2';
+        const esPosibleDup = item.valido && !item.ingredienteId && item.posibleDuplicadoNombre;
+        const bgColor = !item.valido ? '#fef2f2' : (item.ingredienteId ? '#f0fdf4' : (esPosibleDup ? '#fef3c7' : '#fffbeb'));
         const iconColor = item.valido ? '#10b981' : '#ef4444';
 
         html += `
           <tr style="background: ${bgColor};">
             <td style="padding: 10px;"><span style="color: ${iconColor};">${icon}</span></td>
-            <td style="padding: 10px;">${item.fecha}</td>
-            <td style="padding: 10px;">${item.proveedor}</td>
+            <td style="padding: 10px;">${escapeHTML(String(item.fecha))}</td>
+            <td style="padding: 10px;">${escapeHTML(item.proveedor)}</td>
             <td style="padding: 10px;">
-              ${item.ingredienteNombre}
-              ${!item.ingredienteId ? '<br><span style="font-size:11px; color:#f59e0b;">(Se creará nuevo)</span>' : ''}
+              ${escapeHTML(item.ingredienteNombre)}
+              ${esPosibleDup
+                ? `<br><span style="font-size:11px; color:#b45309; font-weight:600;">⚠️ ¿Es "${escapeHTML(item.posibleDuplicadoNombre)}"? Se creará NUEVO</span>`
+                : (!item.ingredienteId ? '<br><span style="font-size:11px; color:#f59e0b;">(Se creará nuevo)</span>' : '')}
             </td>
-            <td style="padding: 10px; text-align: right;">${item.cantidad} ${item.ingredienteUnidad}</td>
+            <td style="padding: 10px; text-align: right;">${item.cantidad} ${escapeHTML(item.ingredienteUnidad)}</td>
             <td style="padding: 10px; text-align: right;">${cm(item.total)}</td>
           </tr>`;
     });
