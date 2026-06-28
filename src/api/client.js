@@ -383,6 +383,8 @@ export const api = {
 
     // Balance / P&L
     getBalance: (mes, ano) => apiClient.get(`/balance/mes?month=${ano}-${String(mes).padStart(2, '0')}`),
+    // 🧾 IVA soportado del periodo (informativo, SEPARADO de la P&L). Migración 015.
+    getIvaSoportado: (mes, ano) => apiClient.get(`/balance/iva-soportado?mes=${mes}&ano=${ano}`),
 
     // Gastos Fijos
     getGastosFijos: () => apiClient.get('/gastos-fijos'),

@@ -548,8 +548,31 @@ async function renderizarBeneficioNetoDiario() {
         </div>
     ` : '';
 
+    // 🧾 IVA soportado del periodo — tarjeta INFORMATIVA, SEPARADA del resultado.
+    // El IVA soportado se recupera en la declaración → NO es coste ni gasto, NO entra
+    // en el beneficio neto. Solo se muestra para el gestor/declaración. Additivo y a
+    // prueba de fallos (si el endpoint falla, no rompe el P&L).
+    let ivaSoportadoHTML = '';
+    try {
+        const ivaData = await window.api.getIvaSoportado(mes, ano);
+        const ivaSop = parseFloat(ivaData?.iva_soportado) || 0;
+        if (ivaSop > 0) {
+            ivaSoportadoHTML = `
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 14px; border-radius: 10px; margin-bottom: 10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+              <div>
+                <div style="font-weight:600; color:#1e40af; font-size:13px;">🧾 ${window.t('balance:iva_soportado_title')}</div>
+                <div style="font-size:11px; color:#64748b; margin-top:2px;">${window.t('balance:iva_soportado_hint')}</div>
+              </div>
+              <strong style="font-size:18px; color:#1e40af; white-space:nowrap;">${cm(ivaSop)}</strong>
+            </div>
+          </div>`;
+        }
+    } catch (e) { /* informativo: si falla, no rompe el P&L */ }
+
     const headerHTML = `
         ${puntoEquilibrioHTML}
+        ${ivaSoportadoHTML}
         <div style="background: ${finalBg}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
           <div style="text-align: center; font-size: 13px; color: ${finalColor}; font-weight: 600; margin-bottom: 8px;">
             ${finalIcon} ${window.t('balance:net_profit_operating')} <strong>${cm(acumulado)}</strong>

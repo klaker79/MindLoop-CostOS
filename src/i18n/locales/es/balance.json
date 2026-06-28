@@ -168,6 +168,8 @@
   "net_profit_projection": "🎯 Proyección mes",
   "net_profit_of": "de",
   "breakeven_title": "🎯 Punto de Equilibrio Mensual",
+  "iva_soportado_title": "IVA soportado del periodo",
+  "iva_soportado_hint": "Suma del IVA de tus compras recibidas. Informativo para tu gestor — NO entra en el beneficio (el IVA se recupera).",
   "breakeven_dishes": "platos",
   "breakeven_margin_dish": "Margen/plato:",
   "breakeven_missing": "Te faltan <strong>{{count}} platos</strong> (~{{amount}}€ en ventas)",
