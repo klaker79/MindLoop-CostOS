@@ -2809,6 +2809,37 @@
             </div>
           </div>
 
+          <!-- Bloque Bonificación del albarán (Migración 016, 2026-06-28).
+               A diferencia del IVA/envases, la bonificación SÍ baja el coste real:
+               al confirmar se reparte entre las líneas (baja su PRECIO REAL). El
+               camarero teclea el bruto en cada línea + la bonificación del albarán,
+               sin restar a mano. -->
+          <div
+            style="background: #ecfdf5; border: 1px solid #6ee7b7; padding: 12px 15px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 200px 1fr; gap: 15px; align-items: center;">
+              <div>
+                <strong style="color: #047857; font-size: 13px;" data-i18n="pedidos:reception_bonif_label">
+                  Bonificación del albarán (€):
+                </strong>
+                <p style="margin: 4px 0 0; font-size: 11px; color: #047857;"
+                   data-i18n="pedidos:reception_bonif_hint">
+                  Descuento del proveedor. SÍ baja el coste real (se reparte entre las líneas).
+                </p>
+              </div>
+              <div>
+                <input type="number" id="modal-rec-bonificacion" min="0" step="0.01"
+                       placeholder="0"
+                       style="width: 100%; padding: 8px 10px; border: 1px solid #10b981; border-radius: 6px; font-size: 16px; font-weight: bold; text-align: center;">
+              </div>
+              <div style="text-align: right;">
+                <strong style="color: #047857; font-size: 13px;" data-i18n="pedidos:reception_base_neta">
+                  Base (sin IVA):
+                </strong><br>
+                <span style="font-size: 18px; font-weight: bold; color: #059669;" id="modal-rec-resumen-base-neta">0.00 €</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Bloque IVA del albarán (Migration 013, 2026-06-06).
                Solo display — no se persiste. El cliente lo usa para cuadrar
                el total recibido con el albarán físico que viene con IVA aparte. -->
@@ -3546,7 +3577,7 @@
   <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260628-chat-error-logging"></script>
+  <script type="module" src="./src/main.js?v=20260628-bonificacion-albaran"></script>
 </body>
 
 </html>

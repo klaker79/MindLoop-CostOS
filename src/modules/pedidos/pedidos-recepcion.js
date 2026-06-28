@@ -70,6 +70,17 @@ export function marcarPedidoRecibido(id) {
         ivaInput.oninput = () => actualizarTotalConIva();
     }
 
+    // 💸 Autorelleno bonificación del albarán (Migración 016): el importe que viaja
+    // con el pedido (puesto al recibir/editar) → vacío. Al teclearla, recalcula la
+    // base neta y el total con IVA.
+    const bonifInput = document.getElementById('modal-rec-bonificacion');
+    if (bonifInput) {
+        bonifInput.value = (ped.bonificacion !== null && ped.bonificacion !== undefined && parseFloat(ped.bonificacion) > 0)
+            ? ped.bonificacion
+            : '';
+        bonifInput.oninput = () => actualizarTotalConIva();
+    }
+
     const fechaSpan = document.getElementById('modal-rec-fecha');
     if (fechaSpan) {
         const fechaStr = typeof ped.fecha === 'string' && ped.fecha.length === 10 ? ped.fecha + 'T12:00:00' : ped.fecha;
@@ -147,17 +158,24 @@ function parseMonedaLocale(str) {
 
 export function actualizarTotalConIva() {
     const ivaInput = document.getElementById('modal-rec-iva-pct');
+    const bonifInput = document.getElementById('modal-rec-bonificacion');
     const resumenRec = document.getElementById('modal-rec-resumen-recibido');
+    const resumenBase = document.getElementById('modal-rec-resumen-base-neta');
     const resumenConIva = document.getElementById('modal-rec-resumen-con-iva');
     if (!resumenConIva) return;
-    // Re-parseamos el total recibido desde el DOM para no tener que cablear
-    // el valor desde 3 sitios. Soporta separadores de miles europeos.
+    // Re-parseamos el total recibido (BRUTO: Σ líneas + ajustes) desde el DOM.
+    // Soporta separadores de miles europeos.
     const totalRecibido = parseMonedaLocale(resumenRec?.textContent);
+    // 💸 Bonificación: descuento real → baja la base. Clamp a [0, totalRecibido]
+    // (no permitir base negativa).
+    const bonif = bonifInput ? Math.max(0, parseFloat(bonifInput.value) || 0) : 0;
+    const baseNeta = Math.max(0, totalRecibido - bonif);
+    if (resumenBase) resumenBase.textContent = cm(baseNeta);
     const ivaPct = ivaInput ? (parseFloat(ivaInput.value) || 0) : 0;
     // Clamp defensivo aunque el constraint backend ya lo cubre.
     const ivaClamped = Math.min(100, Math.max(0, ivaPct));
-    const totalConIva = totalRecibido * (1 + ivaClamped / 100);
-    // cm() respeta la moneda del tenant (RM/€/...).
+    // El IVA se aplica sobre la base NETA (tras bonificación). cm() respeta la moneda.
+    const totalConIva = baseNeta * (1 + ivaClamped / 100);
     resumenConIva.textContent = cm(totalConIva);
 }
 
@@ -450,10 +468,28 @@ export async function confirmarRecepcionPedido() {
     try {
         let totalRecibido = 0;
 
-        // Preparar ingredientes con precioReal actualizado
+        // 💸 Bonificación del albarán (Migración 016): descuento del proveedor que SÍ
+        // baja el COSTE real. Se reparte proporcionalmente entre las líneas de género
+        // bajando su precioReal → ese precio neto va a precios_compra_diarios (food
+        // cost) y al total. Así el camarero teclea el BRUTO en cada línea + la
+        // bonificación del albarán, sin restar a mano. (Envases/ajustes NO se prorratean.)
+        const bonifInput = document.getElementById('modal-rec-bonificacion');
+        const bonificacion = bonifInput ? Math.max(0, parseFloat(bonifInput.value) || 0) : 0;
+        const baseBrutaGenero = ped.itemsRecepcion.reduce((s, item) => {
+            if (item.estado === 'no-entregado') return s;
+            const cant = parseFloat(item.cantidadRecibida || 0);
+            const pr = parseFloat(item.precioReal || item.precioUnitario || 0);
+            return s + cant * pr;
+        }, 0);
+        // Clamp: la bonificación no puede dejar la base en negativo.
+        const bonifAplicada = Math.min(bonificacion, baseBrutaGenero);
+        const factorBonif = baseBrutaGenero > 0 ? (baseBrutaGenero - bonifAplicada) / baseBrutaGenero : 1;
+
+        // Preparar ingredientes con precioReal actualizado (ya con la bonificación
+        // repartida: precioReal neto = precioReal bruto × factorBonif).
         const ingredientesActualizados = ped.itemsRecepcion.map(item => {
             const cantRecibida = item.estado === 'no-entregado' ? 0 : parseFloat(item.cantidadRecibida || 0);
-            const precioReal = parseFloat(item.precioReal || item.precioUnitario || 0);
+            const precioReal = parseFloat(item.precioReal || item.precioUnitario || 0) * factorBonif;
 
             if (item.estado !== 'no-entregado') {
                 totalRecibido += cantRecibida * precioReal;
@@ -604,7 +640,10 @@ export async function confirmarRecepcionPedido() {
                 if (!el || el.value === '') return (ped.iva_pct ?? null);
                 const v = parseFloat(el.value);
                 return Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : (ped.iva_pct ?? null);
-            })()
+            })(),
+            // 💸 Bonificación del albarán (Migración 016): persistir el importe para
+            // mostrarlo/cuadrar. El efecto en el coste YA va dentro de precioReal/total.
+            bonificacion: bonifAplicada > 0 ? bonifAplicada : (ped.bonificacion ?? null)
         });
 
         // ℹ️ Diario (precios_compra_diarios) se registra automáticamente en el backend
