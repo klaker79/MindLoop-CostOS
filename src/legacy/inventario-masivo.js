@@ -3098,10 +3098,14 @@ async function renderizarTablaPLDiario() {
     try {
         const ivaData = await window.api.getIvaSoportado(mesSeleccionado, anoSeleccionado);
         const ivaSop = parseFloat(ivaData?.iva_soportado) || 0;
+        const baseImponible = parseFloat(ivaData?.base_imponible) || 0;
         if (ivaSop > 0) {
             ivaSoportadoLinea = `
                 <div style="margin-top: 8px; font-size: 12px; color: #92400e;" title="${window.t('balance:iva_soportado_hint')}">
                     🧾 ${window.t('balance:iva_soportado_title')}: <strong style="color: #b45309;">${cm(ivaSop)}</strong>
+                    <div style="font-size: 11px; color: #a16207; margin-top: 1px;">
+                        ${window.t('balance:iva_base_hint', { base: cm(baseImponible) })}
+                    </div>
                 </div>`;
         }
     } catch (e) { /* informativo: si falla, no rompe la vista */ }
