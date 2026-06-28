@@ -3091,6 +3091,21 @@ async function renderizarTablaPLDiario() {
     let totalCompras = 0;
     dias.forEach(dia => { totalCompras += comprasPorDia[dia] || 0; });
 
+    // 🧾 IVA soportado del periodo — sub-línea INFORMATIVA del bloque de compras (su
+    // sitio natural: es el IVA DE estas compras). Se recupera en la declaración, NO es
+    // coste ni entra en el P&L. A prueba de fallos: si el endpoint falla, no se muestra.
+    let ivaSoportadoLinea = '';
+    try {
+        const ivaData = await window.api.getIvaSoportado(mesSeleccionado, anoSeleccionado);
+        const ivaSop = parseFloat(ivaData?.iva_soportado) || 0;
+        if (ivaSop > 0) {
+            ivaSoportadoLinea = `
+                <div style="margin-top: 8px; font-size: 12px; color: #92400e;" title="${window.t('balance:iva_soportado_hint')}">
+                    🧾 ${window.t('balance:iva_soportado_title')}: <strong style="color: #b45309;">${cm(ivaSop)}</strong>
+                </div>`;
+        }
+    } catch (e) { /* informativo: si falla, no rompe la vista */ }
+
     html += `
     <div style="margin-top: 24px; padding: 20px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-radius: 12px; border: 1px solid #fcd34d;">
         <h4 style="margin: 0 0 16px 0; color: #92400e; font-size: 15px; display: flex; align-items: center; gap: 8px;">
@@ -3101,6 +3116,7 @@ async function renderizarTablaPLDiario() {
             <div style="flex: 1; min-width: 200px;">
                 <div style="font-size: 12px; color: #92400e; margin-bottom: 4px;">${window.t('balance:cashflow_total')}</div>
                 <div style="font-size: 28px; font-weight: 700; color: #d97706;">${cm(totalCompras)}</div>
+                ${ivaSoportadoLinea}
             </div>
             <div style="flex: 2; min-width: 300px;">
                 <div style="font-size: 12px; color: #92400e; margin-bottom: 8px;">${window.t('balance:cashflow_breakdown')}</div>
