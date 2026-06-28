@@ -88,6 +88,12 @@ export function abrirModalEditarPedido(id) {
         ? parseFloat(pedido.iva_pct)
         : ((prov && prov.iva_pct !== null && prov.iva_pct !== undefined) ? parseFloat(prov.iva_pct) : 0);
 
+    // 💸 Bonificación del albarán (Migración 016): el descuento que viaja con el
+    // pedido (puesto al editar/recibir). Por defecto 0 si no hay.
+    const bonifInicial = (pedido.bonificacion !== null && pedido.bonificacion !== undefined)
+        ? parseFloat(pedido.bonificacion)
+        : 0;
+
     // Estado temporal del modal
     window._editandoPedido = {
         id,
@@ -95,7 +101,8 @@ export function abrirModalEditarPedido(id) {
         items: mergedItems,
         ajusteImporte,
         ajusteDescripcion,
-        ivaPct: ivaInicial
+        ivaPct: ivaInicial,
+        bonificacion: bonifInicial
     };
 
     renderizarModalEditarPedido();
@@ -211,9 +218,15 @@ function renderizarModalEditarPedido() {
 
     const subtotalItems = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
     const ajuste = parseFloat(state.ajusteImporte) || 0;
-    const totalPedido = subtotalItems + ajuste;
+    // 💸 Bonificación del albarán (Migración 016): descuento del proveedor que baja la
+    // BASE (y el coste real al recibir, donde se reparte a las líneas). baseNeta =
+    // subtotal bruto − bonificación. Clamp a [0, subtotal] (no deja base negativa).
+    const bonificacion = Math.min(Math.max(0, parseFloat(state.bonificacion) || 0), subtotalItems);
+    const baseNeta = subtotalItems - bonificacion;
+    const totalPedido = baseNeta + ajuste;
     const ivaPct = Math.min(100, Math.max(0, parseFloat(state.ivaPct) || 0));
-    const ivaImporte = totalPedido * (ivaPct / 100);
+    // IVA sobre la base neta (género tras bonificación); envases/portes exentos.
+    const ivaImporte = baseNeta * (ivaPct / 100);
     const totalConIva = totalPedido + ivaImporte;
 
     modal.innerHTML = `
@@ -240,6 +253,11 @@ function renderizarModalEditarPedido() {
                         <td style="padding: 8px 10px; text-align: right; color: #64748b;">${cm(subtotalItems)}</td>
                         <td></td>
                     </tr>
+                    ${bonificacion > 0 ? `<tr style="background: #fef2f2;">
+                        <td colspan="3" style="padding: 8px 10px; text-align: right; color: #b91c1c;">${t('pedidos:edit_bonif_row')}</td>
+                        <td style="padding: 8px 10px; text-align: right; color: #b91c1c;">- ${cm(bonificacion)}</td>
+                        <td></td>
+                    </tr>` : ''}
                     ${ajuste !== 0 ? `<tr style="background: #f8fafc;">
                         <td colspan="3" style="padding: 8px 10px; text-align: right; color: ${ajuste < 0 ? '#dc2626' : '#0891b2'};">Ajuste${state.ajusteDescripcion ? ` (${escapeHTML(state.ajusteDescripcion)})` : ''}:</td>
                         <td style="padding: 8px 10px; text-align: right; color: ${ajuste < 0 ? '#dc2626' : '#0891b2'};">${ajuste >= 0 ? '+' : ''}${cm(ajuste)}</td>
@@ -262,6 +280,16 @@ function renderizarModalEditarPedido() {
                     </tr>` : ''}
                 </tfoot>
             </table>
+
+            <div style="background: #fef2f2; padding: 12px 14px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #fca5a5;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <label style="font-size: 12px; font-weight: 600; color: #b91c1c;">${t('pedidos:edit_bonif_label')}</label>
+                    <input type="number" step="0.01" min="0" value="${bonificacion > 0 ? bonificacion : ''}" placeholder="0"
+                        onchange="window.actualizarBonificacionPedido(this.value)"
+                        style="width: 100px; padding: 8px; border: 2px solid #fca5a5; border-radius: 6px; text-align: center; font-weight: 600;" />
+                    <small style="color: #b91c1c; font-size: 12px;">${t('pedidos:edit_bonif_hint')}</small>
+                </div>
+            </div>
 
             <div style="background: #ecfdf5; padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #86efac;">
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
@@ -415,6 +443,15 @@ export function actualizarIvaPedidoEdicion(valor) {
     renderizarModalEditarPedido();
 }
 
+// 💸 Bonificación del albarán (Migración 016): descuento que baja la base y el coste.
+export function actualizarBonificacionPedido(valor) {
+    const state = window._editandoPedido;
+    if (!state) return;
+    const n = parseFloat(valor);
+    state.bonificacion = Number.isFinite(n) && n > 0 ? n : 0;
+    renderizarModalEditarPedido();
+}
+
 /**
  * Autocompleta el campo "Precio unit." del formulario "Añadir ingrediente"
  * cuando el usuario elige un ingrediente del select. Lee el precio unitario
@@ -497,7 +534,10 @@ export async function guardarEdicionPedido() {
 
     const subtotalItems = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
     const ajuste = parseFloat(state.ajusteImporte) || 0;
-    const total = subtotalItems + ajuste;
+    // 💸 Bonificación (Migración 016): baja la base → total = (subtotal − bonif) + ajuste.
+    // El coste por línea se ajusta de verdad al RECIBIR (prorrateo). Aquí solo el total.
+    const bonificacionEdit = Math.min(Math.max(0, parseFloat(state.bonificacion) || 0), subtotalItems);
+    const total = (subtotalItems - bonificacionEdit) + ajuste;
 
     // 🍽️ Reparto: si una línea personal tiene personalQty parcial (0 < q < cantidad),
     // se parte en DOS líneas (producción + personal). Así el dato sigue siendo líneas
@@ -541,7 +581,9 @@ export async function guardarEdicionPedido() {
             estado: 'pendiente',
             ingredientes: ingredientesPayload,
             total,
-            iva_pct: ivaPctPersist
+            iva_pct: ivaPctPersist,
+            // 💸 Bonificación del albarán (Migración 016): persiste por pedido. null si 0.
+            bonificacion: bonificacionEdit > 0 ? bonificacionEdit : null
         });
 
         cerrarModalEditarPedido();
@@ -569,6 +611,7 @@ if (typeof window !== 'undefined') {
     window.autocompletarPrecioEdicion = autocompletarPrecioEdicion;
     window.actualizarAjustePedido = actualizarAjustePedido;
     window.actualizarIvaPedidoEdicion = actualizarIvaPedidoEdicion;
+    window.actualizarBonificacionPedido = actualizarBonificacionPedido;
     window.cerrarModalEditarPedido = cerrarModalEditarPedido;
     window.guardarEdicionPedido = guardarEdicionPedido;
 }
