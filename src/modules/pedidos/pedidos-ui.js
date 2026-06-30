@@ -242,10 +242,25 @@ window.seleccionarIngredienteParaPedido = async function (ingredienteId) {
     }
 
     // Seleccionar el proveedor en el dropdown (select nativo HTML5).
+    // El dispatch de 'change' dispara cargarIngredientesPedido → agregarIngredientePedido,
+    // que crea sincrónicamente la primera fila vacía del carrito.
     const selectProveedor = document.getElementById('ped-proveedor');
     if (selectProveedor) {
         selectProveedor.value = proveedorSeleccionado.id;
         selectProveedor.dispatchEvent(new Event('change'));
+    }
+
+    // Autoseleccionar el ingrediente buscado en la primera fila del carrito (ex-PR #490).
+    // Antes la app solo seleccionaba el proveedor y el desplegable del ingrediente
+    // quedaba vacío → el cliente confundía variedades del mismo proveedor (p.ej.
+    // Estrella Galicia normal vs 1906 — incidente La Nave 5 2026-06-01).
+    const primeraFila = document.querySelector('#lista-ingredientes-pedido .ingrediente-item');
+    if (primeraFila) {
+        const selectIng = primeraFila.querySelector('select');
+        if (selectIng && Array.from(selectIng.options).some(o => o.value === String(ing.id))) {
+            selectIng.value = String(ing.id);
+            selectIng.dispatchEvent(new Event('change'));
+        }
     }
 
     window.showToast(t('pedidos:supplier_selected', { name: proveedorSeleccionado.nombre }), 'success');
