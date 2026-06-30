@@ -1273,3 +1273,16 @@ input[type="number"] {
     -webkit-appearance: none;
     margin: 0;
 }
+
+/* --- TomSelect .item: sin borde decorativo (ex-PR #347) ---
+   El CSS por defecto de tom-select pinta border + background alrededor del
+   .item (el chip del valor seleccionado) dentro del .ts-control. En
+   single-select queda como "una caja dentro de otra", visualmente confusa.
+   Lo aplanamos para que parezca texto plano sobre el control. */
+.ts-wrapper .ts-control > .item {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+}
