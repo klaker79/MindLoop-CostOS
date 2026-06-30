@@ -166,7 +166,8 @@ describe('validation.js — validateIngrediente (real import)', () => {
             nombre: 'Tomate',
             unidad: 'kg',
             precio: 2.50,
-            familia: 'alimento'
+            familia: 'alimento',
+            stock_minimo: 5
         });
         expect(result.valid).toBe(true);
         expect(result.errors).toHaveLength(0);
@@ -207,7 +208,8 @@ describe('validation.js — validateIngrediente (real import)', () => {
             nombre: 'Agua del grifo',
             unidad: 'l',
             precio: 0,
-            familia: 'alimento'
+            familia: 'alimento',
+            stock_minimo: 2
         });
         expect(result.valid).toBe(true);
     });
@@ -244,16 +246,107 @@ describe('validation.js — validateIngrediente (real import)', () => {
         expect(result.valid).toBe(false);
     });
 
+    // 🔒 Coherencia formato ↔ cantidad por formato (bug mermelada 2026-06-10).
+    // cantidad_por_formato > 1 SIN nombre de formato = estado ambiguo prohibido:
+    // el precio se dividiría por esa cantidad por debajo (3 €/bote ÷ 750 = 0,004).
+    test('cantidad_por_formato > 1 SIN nombre de formato es RECHAZADO', () => {
+        const result = validateIngrediente({
+            nombre: 'Mermelada',
+            unidad: 'unidad',
+            precio: 3,
+            familia: 'alimento',
+            stock_minimo: 1,
+            cantidad_por_formato: 750 // sin formato_compra → ambiguo
+        });
+        expect(result.valid).toBe(false);
+        expect(result.errors.some(e => /nombre del formato/i.test(e))).toBe(true);
+    });
+
+    test('cantidad_por_formato > 1 CON nombre de formato es válido', () => {
+        const result = validateIngrediente({
+            nombre: 'Mermelada',
+            unidad: 'g',
+            precio: 3,
+            familia: 'alimento',
+            stock_minimo: 1,
+            formato_compra: 'BOTE',
+            cantidad_por_formato: 750
+        });
+        expect(result.valid).toBe(true);
+    });
+
+    test('por unidad (sin cantidad por formato ni nombre) es válido', () => {
+        const result = validateIngrediente({
+            nombre: 'Mermelada tarro',
+            unidad: 'unidad',
+            precio: 3,
+            familia: 'alimento',
+            stock_minimo: 1
+        });
+        expect(result.valid).toBe(true);
+    });
+
+    test('cantidad_por_formato = 1 sin nombre es válido (no divide, no ambiguo)', () => {
+        const result = validateIngrediente({
+            nombre: 'Huevos',
+            unidad: 'unidad',
+            precio: 0.3,
+            familia: 'alimento',
+            stock_minimo: 1,
+            cantidad_por_formato: 1
+        });
+        expect(result.valid).toBe(true);
+    });
+
     test('sanitized data is clean', () => {
         const result = validateIngrediente({
             nombre: '  Tomate  ',
             unidad: 'kg',
             precio: '2.50',
-            familia: 'alimento'
+            familia: 'alimento',
+            stock_minimo: 3
         });
         expect(result.valid).toBe(true);
         // Sanitized should have trimmed name
         expect(result.sanitized.nombre).not.toMatch(/^\s/);
+    });
+
+    // Stock mínimo OBLIGATORIO (> 0): el Smart Order calcula la reposición como
+    // (stock_minimo × 2) − stock_actual. Con stock_minimo ausente o 0 nunca
+    // propone reponer → la función queda inservible (reportado por Iker 2026-05-29).
+    test('missing stock_minimo fails (Smart Order needs it)', () => {
+        const result = validateIngrediente({
+            nombre: 'Tomate',
+            unidad: 'kg',
+            precio: 2.50,
+            familia: 'alimento'
+            // sin stock_minimo
+        });
+        expect(result.valid).toBe(false);
+        expect(result.errors.some(e => e.toLowerCase().includes('mínimo'))).toBe(true);
+    });
+
+    test('zero stock_minimo fails', () => {
+        const result = validateIngrediente({
+            nombre: 'Tomate',
+            unidad: 'kg',
+            precio: 2.50,
+            familia: 'alimento',
+            stock_minimo: 0
+        });
+        expect(result.valid).toBe(false);
+    });
+
+    test('positive decimal stock_minimo (<1) passes (any value > 0)', () => {
+        const result = validateIngrediente({
+            nombre: 'Azafrán',
+            unidad: 'kg',
+            precio: 5000,
+            familia: 'alimento',
+            stock_minimo: 0.5
+        });
+        expect(result.valid).toBe(true);
+        expect(result.sanitized.stock_minimo).toBe(0.5);
     });
 });
 

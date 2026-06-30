@@ -216,16 +216,11 @@ export async function mountInfoModal() {
     Object.keys(content).forEach(injectInfoButton);
 }
 
-// Re-inyectar botones y contenido cuando cambia el idioma. Limpia los
-// botones existentes (que tienen label del idioma anterior) y vuelve a
-// inyectarlos con el label del nuevo idioma.
 if (typeof window !== 'undefined') {
     window.addEventListener('languageChanged', async () => {
         _contentCache = null;
         _contentLang = null;
-        // Quitar los botones existentes (todos con clase BTN_CLASS).
         document.querySelectorAll(`.${BTN_CLASS}`).forEach(b => b.remove());
-        // Re-inyectar con el nuevo idioma.
         const content = await loadInfoContent();
         Object.keys(content).forEach(injectInfoButton);
     });

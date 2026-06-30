@@ -1,8 +1,13 @@
 import { t } from '@/i18n/index.js';
-import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
+import { escapeHTML, getDateLocale } from '../../utils/helpers.js';
+import { construirAvisos, buildOmnesQuestion } from './omnes-avisos.js';
+import { filtrarVisibles, dismissAviso } from './omnes-dismiss.js';
 
 /**
- * 🧠 Inteligencia - Dashboard Predictivo
+ * 🦉 Omnes — Feed de avisos proactivos (antes "Inteligencia").
+ *
+ * Omnes pone la voz; el sistema pone los números. Todos los avisos son
+ * DETERMINISTAS (reglas con umbral sobre datos reales) → sin ruido ni errores.
  */
 
 // ========== API ==========
@@ -32,222 +37,256 @@ async function fetchIntelligence(endpoint) {
 // ========== ESTILOS ==========
 const INTEL_STYLES = `
 <style id="intel-styles">
-.intel-dashboard {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+.omnes-wrap {
+    background: radial-gradient(1200px 600px at 50% -10%, #1e1b4b 0%, #0f172a 45%, #0b1120 100%);
     min-height: 100vh;
-    padding: 24px;
+    padding: 28px 24px 60px;
     color: #e2e8f0;
 }
-.intel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-.intel-title {
+.omnes-hero {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 22px;
+    padding: 26px 28px;
+    margin-bottom: 26px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(56,189,248,0.06));
+    border: 1px solid rgba(129,140,248,0.25);
+    box-shadow: 0 20px 60px -30px rgba(99,102,241,0.7);
+    position: relative;
+    overflow: hidden;
 }
-.intel-title h1 {
-    font-size: 2rem;
-    background: linear-gradient(135deg, #38bdf8, #818cf8);
+.omnes-hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(400px 200px at 12% 30%, rgba(129,140,248,0.25), transparent 70%);
+    pointer-events: none;
+}
+.omnes-owl {
+    width: 104px; height: 104px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 3px solid rgba(129,140,248,0.55);
+    box-shadow: 0 0 0 6px rgba(99,102,241,0.12), 0 12px 36px -8px rgba(99,102,241,0.8);
+    background: #0b1120;
+}
+.omnes-hero-text { z-index: 1; flex: 1; min-width: 0; }
+.omnes-hero-text h1 {
+    margin: 0;
+    font-size: 2.3rem;
+    line-height: 1.05;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #c7d2fe, #818cf8 55%, #38bdf8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin: 0;
 }
-.intel-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-}
-.intel-panel {
-    background: rgba(30,41,59,0.9);
-    border-radius: 16px;
-    padding: 20px;
-    border: 1px solid rgba(99,102,241,0.2);
-}
-.intel-panel-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-.intel-panel-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-}
-.panel-fresh .intel-panel-icon { background: linear-gradient(135deg, #f97316, #ea580c); }
-.panel-buy .intel-panel-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.panel-stop .intel-panel-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
-.panel-price .intel-panel-icon { background: linear-gradient(135deg, #22c55e, #16a34a); }
-.panel-waste .intel-panel-icon { background: linear-gradient(135deg, #dc2626, #991b1b); }
-.intel-panel-title { font-weight: 700; color: #f1f5f9; }
-.intel-panel-sub { font-size: 0.75rem; color: #94a3b8; }
-.intel-list {
-    max-height: 280px;
-    overflow-y: auto;
-}
-.intel-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    background: rgba(15,23,42,0.6);
-    border-radius: 8px;
-    margin-bottom: 8px;
-}
-.intel-item-name { font-weight: 600; font-size: 0.9rem; }
-.intel-item-detail { font-size: 0.75rem; color: #94a3b8; }
-.intel-badge {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 700;
-}
-.badge-danger { background: #ef4444; }
-.badge-warn { background: #f97316; }
-.badge-ok { background: #22c55e; }
-.intel-empty {
-    text-align: center;
-    padding: 32px;
-    color: #64748b;
-}
-.intel-empty-icon { font-size: 40px; margin-bottom: 8px; }
-.intel-btn {
+.omnes-tagline { color: #a5b4fc; font-size: 0.95rem; margin-top: 4px; font-weight: 500; }
+.omnes-updated { color: #64748b; font-size: 0.75rem; margin-top: 8px; }
+.omnes-hero-actions { z-index: 1; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+.omnes-refresh {
     background: linear-gradient(135deg, #6366f1, #4f46e5);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
+    color: #fff; border: none;
+    padding: 9px 16px; border-radius: 10px;
+    cursor: pointer; font-weight: 600; font-size: 0.85rem;
+    white-space: nowrap;
 }
-.intel-days { display: flex; gap: 6px; margin-bottom: 12px; }
-.intel-day-btn {
-    padding: 6px 12px;
-    border: 1px solid rgba(99,102,241,0.3);
-    background: transparent;
+.omnes-refresh:hover { filter: brightness(1.1); }
+.omnes-summary { display: flex; gap: 10px; flex-wrap: wrap; }
+.omnes-chip {
+    padding: 6px 13px; border-radius: 999px;
+    font-size: 0.8rem; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid transparent;
+}
+.omnes-chip.crit { background: rgba(239,68,68,0.15); color: #fca5a5; border-color: rgba(239,68,68,0.4); }
+.omnes-chip.aten { background: rgba(249,115,22,0.15); color: #fdba74; border-color: rgba(249,115,22,0.4); }
+.omnes-chip.ok { background: rgba(34,197,94,0.15); color: #86efac; border-color: rgba(34,197,94,0.4); }
+
+.omnes-feed { display: flex; flex-direction: column; gap: 24px; max-width: 940px; }
+
+/* Sección (grupo de avisos del mismo tipo) */
+.omnes-sec { display: flex; flex-direction: column; gap: 10px; }
+.omnes-sec-head {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; user-select: none;
+    padding: 2px;
+}
+.omnes-sec-ic {
+    width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 10px; font-size: 17px;
+    display: flex; align-items: center; justify-content: center;
+}
+.omnes-sec-title {
+    font-size: 0.78rem; font-weight: 800; letter-spacing: 1px;
+    text-transform: uppercase; color: #cbd5e1;
+}
+.omnes-sec-count {
+    font-size: 0.72rem; font-weight: 700; color: #94a3b8;
+    background: rgba(148,163,184,0.14);
+    padding: 2px 9px; border-radius: 999px;
+}
+.omnes-sec-chevron { margin-left: auto; color: #64748b; font-size: 12px; transition: transform .18s ease; }
+.omnes-sec.collapsed .omnes-sec-chevron { transform: rotate(-90deg); }
+.omnes-sec-body { display: flex; flex-direction: column; gap: 10px; }
+.omnes-sec.collapsed .omnes-sec-body { display: none; }
+
+/* Tarjeta de aviso */
+.omnes-card {
+    position: relative;
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px 14px 18px;
+    border-radius: 14px;
+    background: rgba(30,41,59,0.66);
+    border: 1px solid rgba(148,163,184,0.10);
+    border-left: 3px solid #64748b;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.omnes-card:hover { transform: translateY(-1px); background: rgba(30,41,59,0.9); box-shadow: 0 14px 40px -24px rgba(0,0,0,0.9); }
+.omnes-card.critico { border-left-color: #ef4444; }
+.omnes-card.atencion { border-left-color: #f59e0b; }
+.omnes-card.oportunidad { border-left-color: #22c55e; }
+.omnes-card-dismiss {
+    position: absolute;
+    top: 7px; right: 8px;
+    background: transparent; border: none;
+    color: #64748b; font-size: 12px; line-height: 1;
+    cursor: pointer; padding: 3px 6px; border-radius: 6px; z-index: 2;
+}
+.omnes-card-dismiss:hover { color: #e2e8f0; background: rgba(255,255,255,0.08); }
+.omnes-card-body { flex: 1; min-width: 0; padding-right: 14px; }
+.omnes-card-text { font-size: 0.92rem; color: #e2e8f0; line-height: 1.45; }
+.omnes-card-cta {
+    flex-shrink: 0; align-self: center;
+    background: rgba(99,102,241,0.18);
+    color: #c7d2fe;
+    border: 1px solid rgba(129,140,248,0.35);
+    padding: 8px 14px; border-radius: 10px;
+    cursor: pointer; font-weight: 600; font-size: 0.82rem;
+    white-space: nowrap;
+}
+.omnes-card-cta:hover { background: rgba(99,102,241,0.32); color: #fff; }
+.omnes-card-actions { flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.omnes-card-ask {
+    background: rgba(56,189,248,0.12);
+    color: #7dd3fc;
+    border: 1px solid rgba(56,189,248,0.35);
+    padding: 7px 12px; border-radius: 10px;
+    cursor: pointer; font-weight: 600; font-size: 0.8rem;
+    white-space: nowrap;
+}
+.omnes-card-ask:hover { background: rgba(56,189,248,0.26); color: #fff; }
+
+.omnes-empty {
+    text-align: center; padding: 60px 24px;
+    max-width: 520px; margin: 0 auto;
     color: #94a3b8;
-    border-radius: 6px;
-    cursor: pointer;
 }
-.intel-day-btn.active {
-    background: #3b82f6;
-    color: white;
-    border-color: transparent;
+.omnes-empty-owl {
+    width: 88px; height: 88px; border-radius: 50%;
+    object-fit: cover; margin-bottom: 16px; opacity: 0.9;
+    border: 2px solid rgba(34,197,94,0.4);
+}
+.omnes-empty h2 { color: #86efac; margin: 0 0 6px; font-size: 1.4rem; }
+.omnes-loading { text-align: center; padding: 70px 20px; color: #94a3b8; }
+.omnes-loading-owl {
+    width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+    margin-bottom: 16px; animation: omnesPulse 1.4s ease-in-out infinite;
+    border: 2px solid rgba(129,140,248,0.5);
+}
+@keyframes omnesPulse { 0%,100% { opacity: .55; transform: scale(.97);} 50% { opacity: 1; transform: scale(1.03);} }
+
+@media (max-width: 640px) {
+    .omnes-hero { flex-direction: column; text-align: center; }
+    .omnes-hero-actions { align-items: center; }
+    .omnes-card { flex-wrap: wrap; }
+    .omnes-card-actions { width: 100%; flex-direction: row; }
+    .omnes-card-cta, .omnes-card-ask { flex: 1; }
 }
 </style>
 `;
 
-// ========== RENDER PANELS ==========
-function renderFreshness(data) {
-    if (!data || data.length === 0) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">✅</div><div>${t('inteligencia:empty_fresh')}</div></div>`;
-    }
-    return `<div class="intel-list">${data.slice(0, 8).map(a => `
-        <div class="intel-item">
-            <div>
-                <div class="intel-item-name">${escapeHTML(a.nombre)}</div>
-                <div class="intel-item-detail">${a.stock_actual} ${a.unidad} · ${t('inteligencia:label_days_since', { days: a.dias_desde_compra || 0 })}</div>
-            </div>
-            <span class="intel-badge ${a.urgencia === 'critico' ? 'badge-danger' : 'badge-warn'}">
-                ${a.urgencia === 'critico' ? '⚠️ ' + t('inteligencia:badge_review') : '📋 ' + t('inteligencia:badge_use_today')}
-            </span>
-        </div>
-    `).join('')}</div>`;
+const OWL_SRC = '/images/omnes.png';
+// Si la foto no carga, degradamos a emoji 🦉 (mismo patrón que el avatar del chat).
+const OWL_FALLBACK = `onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'🦉',style:'font-size:64px;line-height:1'}))"`;
+
+// ========== RENDER ==========
+// Secciones del feed (orden fijo de arriba a abajo). Cada aviso trae `categoria`.
+const SECCIONES = [
+    { cat: 'recetas',    emoji: '📉', bg: 'rgba(239,68,68,0.16)',  titleKey: 'omnes_sec_recetas' },
+    { cat: 'stock',      emoji: '📦', bg: 'rgba(245,158,11,0.16)', titleKey: 'omnes_sec_stock' },
+    { cat: 'frescura',   emoji: '🧊', bg: 'rgba(34,211,238,0.16)', titleKey: 'omnes_sec_frescura' },
+    { cat: 'precio',     emoji: '📈', bg: 'rgba(168,85,247,0.16)', titleKey: 'omnes_sec_precio' },
+    { cat: 'sobrestock', emoji: '🗄️', bg: 'rgba(100,116,139,0.18)', titleKey: 'omnes_sec_sobrestock' },
+];
+
+// Frases i18n para "Pregúntale a Omnes" (resueltas al pintar, no en módulo).
+function frasesOmnes() {
+    return {
+        prefix: t('inteligencia:omnes_ask_prefix'),
+        recetas: t('inteligencia:omnes_ask_recetas'),
+        stock: t('inteligencia:omnes_ask_stock'),
+        precio: t('inteligencia:omnes_ask_precio'),
+        frescura: t('inteligencia:omnes_ask_frescura'),
+        sobrestock: t('inteligencia:omnes_ask_sobrestock'),
+        default: t('inteligencia:omnes_ask_default'),
+    };
 }
 
-function renderPurchase(data, day) {
-    const DIAS = [t('inteligencia:day_short_sun'), t('inteligencia:day_short_mon'), t('inteligencia:day_short_tue'), t('inteligencia:day_short_wed'), t('inteligencia:day_short_thu'), t('inteligencia:day_short_fri'), t('inteligencia:day_short_sat')];
-    const dayBtns = `<div class="intel-days">${DIAS.map((d, i) => `
-        <button class="intel-day-btn ${i === day ? 'active' : ''}" onclick="window.loadPurchasePlan(${i})">${d}</button>
-    `).join('')}</div>`;
-
-    if (!data || !data.sugerencias || data.sugerencias.length === 0) {
-        return dayBtns + `<div class="intel-empty"><div class="intel-empty-icon">📦</div><div>${t('inteligencia:label_stock_sufficient', { day: data?.dia_objetivo || '' })}</div></div>`;
-    }
-    return dayBtns + `<div class="intel-list">${data.sugerencias.slice(0, 6).map(s => `
-        <div class="intel-item">
-            <div>
-                <div class="intel-item-name">${escapeHTML(s.nombre)}</div>
-                <div class="intel-item-detail">Stock: ${parseFloat(s.stock_actual).toFixed(1)} ${s.unidad}</div>
-            </div>
-            <span class="intel-badge badge-warn">+${parseFloat(s.sugerencia_pedido).toFixed(1)}</span>
-        </div>
-    `).join('')}</div>`;
-}
-
-function renderOverstock(data) {
-    if (!data || data.length === 0) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">👍</div><div>${t('inteligencia:empty_optimal')}</div></div>`;
-    }
-    return `<div class="intel-list">${data.slice(0, 8).map(i => `
-        <div class="intel-item">
-            <div>
-                <div class="intel-item-name">${escapeHTML(i.nombre)}</div>
-                <div class="intel-item-detail">${parseFloat(i.stock_actual).toFixed(1)} ${i.unidad}</div>
-            </div>
-            <span class="intel-badge badge-warn">📦 ${t('inteligencia:label_days_stock', { days: Math.round(i.dias_stock) })}</span>
-        </div>
-    `).join('')}</div>`;
-}
-
-function renderPricing(data) {
-    if (!data || !data.recetas_problema || data.recetas_problema.length === 0) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">💰</div><div>${t('inteligencia:empty_profitable')}</div></div>`;
-    }
-    return `<div class="intel-list">${data.recetas_problema.slice(0, 6).map(r => `
-        <div class="intel-item">
-            <div>
-                <div class="intel-item-name">${escapeHTML(r.nombre)}</div>
-                <div class="intel-item-detail">Coste: ${cm(r.coste)} · Actual: ${cm(r.precio_actual)}</div>
-            </div>
-            <span class="intel-badge badge-danger">${r.food_cost}% → ${cm(r.precio_sugerido)}</span>
-        </div>
-    `).join('')}</div>`;
-}
-
-function renderWaste(data) {
-    if (!data || !data.mes_actual) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">📊</div><div>${t('inteligencia:empty_no_waste_data')}</div></div>`;
-    }
-    const total = parseFloat(data.mes_actual.total_perdida || 0);
-    const variacion = data.comparacion?.variacion || 0;
-    const topProductos = data.top_productos || [];
-
-    if (total === 0 && topProductos.length === 0) {
-        return `<div class="intel-empty"><div class="intel-empty-icon">✅</div><div>${t('inteligencia:empty_no_losses')}</div></div>`;
-    }
-
-    let html = `
-        <div style="text-align:center;margin-bottom:16px;">
-            <div style="font-size:2.5rem;font-weight:700;color:#ef4444;">${cm(total)}</div>
-            <div style="color:#94a3b8;font-size:0.85rem;">${t('inteligencia:label_losses_this_month')}</div>
-            ${variacion !== 0 ? `<div style="color:${variacion > 0 ? '#ef4444' : '#22c55e'};font-size:0.8rem;margin-top:4px;">${variacion > 0 ? '↑' : '↓'} ${Math.abs(variacion)}% ${t('inteligencia:label_vs_prev_month')}</div>` : ''}
+function renderAvisoCard(a) {
+    // a.texto / a.cta.label vienen de t(): i18next ya escapa los valores interpolados
+    // (escapeValue:true) → HTML seguro. a.cta.tipo es literal fijo y a.cta.id un número.
+    const cta = a.cta
+        ? `<button class="omnes-card-cta" onclick="window.omnesIr('${a.cta.tipo}', ${a.cta.id})">${a.cta.label} →</button>`
+        : '';
+    // "Pregúntale a Omnes": deep-link al chat con una pregunta sobre este aviso.
+    const pregunta = buildOmnesQuestion(a, frasesOmnes());
+    // encodeURIComponent: la pregunta lleva comillas (Sobre este aviso: "..."),
+    // que romperían el atributo data-* si solo se escapara HTML. Se decodifica
+    // al pulsar. Mismo patrón que data-action en los botones del chat.
+    const ask = `<button class="omnes-card-ask" type="button" data-omnes-ask="${encodeURIComponent(pregunta)}" title="${escapeHTML(t('inteligencia:omnes_ask_btn'))}">🦉 ${escapeHTML(t('inteligencia:omnes_ask_btn'))}</button>`;
+    return `
+        <div class="omnes-card ${a.nivel}" data-aviso-id="${escapeHTML(a.id)}" data-cat="${escapeHTML(a.categoria || '')}">
+            <button class="omnes-card-dismiss" type="button" data-dismiss-id="${escapeHTML(a.id)}" title="${escapeHTML(t('inteligencia:omnes_dismiss'))}" aria-label="${escapeHTML(t('inteligencia:omnes_dismiss'))}">✕</button>
+            <div class="omnes-card-body"><div class="omnes-card-text">${a.texto}</div></div>
+            <div class="omnes-card-actions">${cta}${ask}</div>
         </div>
     `;
+}
 
-    if (topProductos.length > 0) {
-        html += `<div class="intel-list">`;
-        topProductos.forEach(p => {
-            html += `
-                <div class="intel-item">
-                    <div>
-                        <div class="intel-item-name">${escapeHTML(p.nombre)}</div>
-                        <div class="intel-item-detail">${parseFloat(p.cantidad_total).toFixed(2)} ${t('inteligencia:label_discarded')} (${p.veces}x)</div>
-                    </div>
-                    <span class="intel-badge badge-danger">${cm(parseFloat(p.perdida_total))}</span>
-                </div>
-            `;
-        });
-        html += `</div>`;
-    }
-    return html;
+function renderSeccion(sec, avisosCat) {
+    return `
+        <section class="omnes-sec" data-cat="${sec.cat}">
+            <header class="omnes-sec-head" data-sec-toggle>
+                <span class="omnes-sec-ic" style="background:${sec.bg};">${sec.emoji}</span>
+                <span class="omnes-sec-title">${escapeHTML(t('inteligencia:' + sec.titleKey))}</span>
+                <span class="omnes-sec-count">${avisosCat.length}</span>
+                <span class="omnes-sec-chevron">▾</span>
+            </header>
+            <div class="omnes-sec-body">${avisosCat.map(renderAvisoCard).join('')}</div>
+        </section>
+    `;
+}
+
+// Agrupa los avisos por categoría y los pinta en secciones (orden de SECCIONES).
+function renderFeed(avisos) {
+    const porCat = {};
+    avisos.forEach(a => { (porCat[a.categoria] = porCat[a.categoria] || []).push(a); });
+    const secs = SECCIONES
+        .filter(s => porCat[s.cat] && porCat[s.cat].length)
+        .map(s => renderSeccion(s, porCat[s.cat]))
+        .join('');
+    return `<div class="omnes-feed">${secs}</div>`;
+}
+
+function renderEmpty() {
+    return `
+        <div class="omnes-empty">
+            <img class="omnes-empty-owl" src="${OWL_SRC}" alt="Omnes" ${OWL_FALLBACK}>
+            <h2>${escapeHTML(t('inteligencia:omnes_empty_title'))}</h2>
+            <div>${escapeHTML(t('inteligencia:omnes_empty_sub'))}</div>
+        </div>
+    `;
 }
 
 // ========== MAIN ==========
@@ -259,53 +298,203 @@ async function renderizarInteligencia() {
         document.head.insertAdjacentHTML('beforeend', INTEL_STYLES);
     }
 
-    container.innerHTML = `<div class="intel-dashboard"><div style="text-align:center;padding:60px;"><div style="font-size:40px;">⏳</div><div style="color:#64748b;">${t('inteligencia:loading')}</div></div></div>`;
+    container.innerHTML = `
+        <div class="omnes-wrap">
+            <div class="omnes-loading">
+                <img class="omnes-loading-owl" src="${OWL_SRC}" alt="Omnes" ${OWL_FALLBACK}>
+                <div>${escapeHTML(t('inteligencia:omnes_loading'))}</div>
+            </div>
+        </div>`;
 
-    // El endpoint /intelligence/waste-stats no existe en el backend. Mientras no se
-    // implemente, omitimos el panel para no mostrar un hueco vacío y no gastar un round-trip
-    // que siempre falla.
-    const [fresh, price] = await Promise.all([
-        fetchIntelligence('freshness'),
-        fetchIntelligence('price-check')
-    ]);
+    let avisos = [];
+    try {
+        avisos = await construirAvisos({
+            fetchIntelligence,
+            ingredientes: window.ingredientes,
+            pedidos: window.pedidos,
+        });
+    } catch (err) {
+        console.error('[Omnes] error construyendo avisos:', err);
+    }
 
-    // 🔒 Auditoría Capa 7 (S9): locale dinámico
+    avisos = filtrarVisibles(avisos); // quitar los que el usuario descartó (tenant-scoped, TTL 7d)
+    setBadgeOmnes(avisos.length); // mantener el contador del sidebar en sync
+
+    const nCrit = avisos.filter(a => a.nivel === 'critico').length;
+    const nAten = avisos.filter(a => a.nivel === 'atencion').length;
     const time = new Date().toLocaleTimeString(getDateLocale(), { hour: '2-digit', minute: '2-digit' });
 
+    const feed = avisos.length === 0
+        ? renderEmpty()
+        : renderFeed(avisos);
+
     container.innerHTML = `
-        <div class="intel-dashboard">
-            <div class="intel-header">
-                <div class="intel-title">
-                    <span style="font-size:40px;">🧠</span>
-                    <div><h1>${t('inteligencia:title')}</h1><div style="color:#64748b;font-size:0.8rem;">${t('inteligencia:updated_at', { time })}</div></div>
+        <div class="omnes-wrap">
+            <div class="omnes-hero">
+                <img class="omnes-owl" src="${OWL_SRC}" alt="Omnes" ${OWL_FALLBACK}>
+                <div class="omnes-hero-text">
+                    <h1>${escapeHTML(t('inteligencia:omnes_title'))}</h1>
+                    <div class="omnes-tagline">${escapeHTML(t('inteligencia:omnes_tagline'))}</div>
+                    <div class="omnes-summary" id="omnes-chips" style="margin-top:12px;">${chipsHTML(nCrit, nAten)}</div>
+                    <div class="omnes-updated">${escapeHTML(t('inteligencia:updated_at', { time }))}</div>
                 </div>
-                <button class="intel-btn" onclick="window.renderizarInteligencia()">🔄 ${t('inteligencia:btn_refresh')}</button>
-            </div>
-            <div class="intel-grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="intel-panel panel-fresh">
-                    <div class="intel-panel-header">
-                        <div class="intel-panel-icon">🧊</div>
-                        <div><div class="intel-panel-title">${t('inteligencia:panel_freshness_title')}</div><div class="intel-panel-sub">${t('inteligencia:panel_freshness_sub')}</div></div>
-                    </div>
-                    ${renderFreshness(fresh)}
-                </div>
-                <div class="intel-panel panel-price">
-                    <div class="intel-panel-header">
-                        <div class="intel-panel-icon">💰</div>
-                        <div><div class="intel-panel-title">${t('inteligencia:panel_pricing_title')}</div><div class="intel-panel-sub">${t('inteligencia:panel_pricing_sub')}</div></div>
-                    </div>
-                    ${renderPricing(price)}
+                <div class="omnes-hero-actions">
+                    <button class="omnes-refresh" onclick="window.renderizarInteligencia()">🔄 ${escapeHTML(t('inteligencia:btn_refresh'))}</button>
                 </div>
             </div>
+            ${feed}
         </div>
     `;
 }
 
-window.loadPurchasePlan = async function (day) {
-    const data = await fetchIntelligence(`purchase-plan?day=${day}`);
-    const content = document.getElementById('purchase-content');
-    if (content) content.innerHTML = renderPurchase(data, day);
-    window._purchaseDay = day;
+// Chips de resumen (crítico / a vigilar / todo en orden). Reutilizable para
+// repintar tras descartar un aviso sin recargar toda la pestaña.
+function chipsHTML(nCrit, nAten) {
+    if (nCrit + nAten === 0) {
+        return `<span class="omnes-chip ok">✅ ${escapeHTML(t('inteligencia:omnes_chip_ok'))}</span>`;
+    }
+    return `
+        ${nCrit ? `<span class="omnes-chip crit">🔴 ${t('inteligencia:omnes_chip_crit', { count: nCrit })}</span>` : ''}
+        ${nAten ? `<span class="omnes-chip aten">🟠 ${t('inteligencia:omnes_chip_aten', { count: nAten })}</span>` : ''}
+    `;
+}
+
+// ========== BADGE DEL SIDEBAR (contador de avisos) ==========
+// Pinta un contador rojo en la pestaña Omnes (sidebar + tab horizontal) para que
+// se vean los avisos pendientes sin entrar. Reusa el MISMO cálculo del feed.
+const OMNES_COUNT_STYLE = 'background:#ef4444;color:#fff;border-radius:999px;min-width:18px;height:18px;padding:0 5px;font-size:11px;font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center;margin-left:6px;';
+
+function setBadgeOmnes(n) {
+    document.querySelectorAll('[data-tab="inteligencia"]').forEach(btn => {
+        let b = btn.querySelector('.omnes-count');
+        if (n > 0) {
+            if (!b) {
+                b = document.createElement('span');
+                b.className = 'omnes-count';
+                b.style.cssText = OMNES_COUNT_STYLE;
+                btn.appendChild(b);
+            }
+            b.textContent = n > 9 ? '9+' : String(n);
+            b.style.display = 'inline-flex';
+            b.title = n === 1 ? '1 aviso de Omnes' : `${n} avisos de Omnes`;
+        } else if (b) {
+            b.style.display = 'none';
+        }
+    });
+}
+
+let _omnesBadgeRunning = false;
+async function refrescarBadgeOmnes() {
+    if (_omnesBadgeRunning) return;
+    if (typeof window === 'undefined' || !window.authToken) return; // sin sesión, nada que contar
+    _omnesBadgeRunning = true;
+    try {
+        const avisos = await construirAvisos({
+            fetchIntelligence,
+            ingredientes: window.ingredientes,
+            pedidos: window.pedidos,
+        });
+        setBadgeOmnes(filtrarVisibles(avisos).length);
+    } catch (err) {
+        console.error('[Omnes] error refrescando badge:', err);
+    } finally {
+        _omnesBadgeRunning = false;
+    }
+}
+
+// Recalcular el badge cada vez que se recargan los datos (mismo evento que el dashboard).
+window.addEventListener('dashboard:refresh', refrescarBadgeOmnes);
+window.refrescarBadgeOmnes = refrescarBadgeOmnes;
+
+// Listener delegado para descartar avisos (data-attribute en vez de onclick inline,
+// para no construir JS a partir de datos interpolados — defensa contra XSS).
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.omnes-card-dismiss');
+    if (!btn) return;
+    e.stopPropagation();
+    window.omnesDescartar(btn.dataset.dismissId);
+});
+
+// Listener delegado para plegar/desplegar una sección al pulsar su cabecera.
+document.addEventListener('click', (e) => {
+    const head = e.target.closest('.omnes-sec-head');
+    if (!head) return;
+    head.closest('.omnes-sec')?.classList.toggle('collapsed');
+});
+
+// Listener delegado para "Pregúntale a Omnes": abre el chat con la pregunta del aviso.
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.omnes-card-ask');
+    if (!btn) return;
+    e.stopPropagation();
+    let q = '';
+    try { q = decodeURIComponent(btn.dataset.omnesAsk || ''); } catch { q = btn.dataset.omnesAsk || ''; }
+    if (typeof window.preguntarAOmnes === 'function') {
+        const ok = window.preguntarAOmnes(q);
+        if (!ok) window.showToast?.(t('inteligencia:omnes_ask_unavailable'), 'info');
+    }
+});
+
+/**
+ * El usuario descarta un aviso: lo persiste (tenant-scoped, TTL 7d), quita la
+ * tarjeta del DOM y recalcula chips + badge desde lo que queda visible — sin
+ * recargar la pestaña (no salta el scroll ni re-fetchea).
+ */
+window.omnesDescartar = function (id) {
+    dismissAviso(id);
+    const safeId = (window.CSS && window.CSS.escape) ? window.CSS.escape(id) : id;
+    const card = document.querySelector(`.omnes-card[data-aviso-id="${safeId}"]`);
+    const sec = card ? card.closest('.omnes-sec') : null;
+    if (card) card.remove();
+
+    // Actualizar el contador de la sección, y quitarla si quedó vacía.
+    if (sec) {
+        const restantes = sec.querySelectorAll('.omnes-card').length;
+        if (restantes === 0) {
+            sec.remove();
+        } else {
+            const cnt = sec.querySelector('.omnes-sec-count');
+            if (cnt) cnt.textContent = String(restantes);
+        }
+    }
+
+    const feedEl = document.querySelector('.omnes-feed');
+    const quedan = feedEl ? feedEl.querySelectorAll('.omnes-card').length : 0;
+
+    // Repintar chips de resumen del hero
+    const chipsEl = document.getElementById('omnes-chips');
+    if (chipsEl) {
+        const nCrit = document.querySelectorAll('.omnes-card.critico').length;
+        const nAten = document.querySelectorAll('.omnes-card.atencion').length;
+        chipsEl.innerHTML = chipsHTML(nCrit, nAten);
+    }
+    setBadgeOmnes(quedan);
+
+    // Si no queda ninguno, mostrar el estado vacío en lugar del feed
+    if (feedEl && quedan === 0) {
+        feedEl.outerHTML = renderEmpty();
+    }
+};
+
+/**
+ * Deep-link desde un aviso al item concreto (no solo a la pestaña).
+ *   receta      → abre la ficha de la receta para ajustar el precio
+ *   ingrediente → abre la ficha del ingrediente
+ *   pedido      → cambia a Pedidos y añade el ingrediente al carrito
+ */
+window.omnesIr = function (tipo, id) {
+    const itemId = Number(id);
+    if (!Number.isFinite(itemId)) return;
+    if (tipo === 'receta') {
+        window.cambiarTab?.('recetas');
+        if (typeof window.editarReceta === 'function') window.editarReceta(itemId);
+    } else if (tipo === 'ingrediente') {
+        window.cambiarTab?.('ingredientes');
+        if (typeof window.editarIngrediente === 'function') window.editarIngrediente(itemId);
+    } else if (tipo === 'pedido') {
+        window.cambiarTab?.('pedidos');
+        if (typeof window.agregarAlCarrito === 'function') window.agregarAlCarrito(itemId, 1);
+    }
 };
 
 window.renderizarInteligencia = renderizarInteligencia;

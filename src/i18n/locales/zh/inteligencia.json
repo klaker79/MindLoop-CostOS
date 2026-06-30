@@ -28,5 +28,50 @@
   "day_short_wed": "三",
   "day_short_thu": "四",
   "day_short_fri": "五",
-  "day_short_sat": "六"
+  "day_short_sat": "六",
+
+  "omnes_title": "Omnes",
+  "omnes_tagline": "Omnes 洞察一切，由你做主。",
+  "omnes_loading": "Omnes 正在检查你的业务…",
+  "omnes_chip_ok": "一切正常",
+  "omnes_chip_crit_one": "{{count}} 项紧急",
+  "omnes_chip_crit_other": "{{count}} 项紧急",
+  "omnes_chip_aten_one": "{{count}} 项关注",
+  "omnes_chip_aten_other": "{{count}} 项关注",
+  "omnes_empty_title": "一切正常",
+  "omnes_empty_sub": "Omnes 目前没有发现紧急情况。继续保持。",
+  "omnes_dismiss": "忽略提醒",
+  "omnes_ask_btn": "问问 Omnes",
+  "omnes_ask_unavailable": "打开 Omnes 助手来提问。",
+  "omnes_ask_prefix": "关于此提醒：",
+  "omnes_ask_recetas": "为什么不赚钱？建议定价是多少？",
+  "omnes_ask_stock": "我应该订多少？",
+  "omnes_ask_precio": "为什么涨价了？我能做什么？",
+  "omnes_ask_frescura": "我该怎么做才不会损失它？",
+  "omnes_ask_sobrestock": "如何减少这些库存？",
+  "omnes_ask_default": "请解释一下并给我一个方案。",
+  "omnes_sec_recetas": "不赚钱的菜品",
+  "omnes_sec_stock": "库存紧急",
+  "omnes_sec_frescura": "新鲜度",
+  "omnes_sec_precio": "价格上涨",
+  "omnes_sec_sobrestock": "库存过剩",
+
+  "omnes_t_receta_no_renta": "不赚钱的菜品",
+  "omnes_x_receta_no_renta": "「{{nombre}}」食材成本率高达 {{fc}}%。请提价到 {{precio}} 或下架。",
+  "omnes_cta_ajustar_precio": "调整价格",
+
+  "omnes_t_stock_critico": "库存紧急",
+  "omnes_x_stock_cero": "「{{nombre}}」已用完，请立即下单。",
+  "omnes_x_stock_bajo": "「{{nombre}}」仅剩 {{stock}} {{unidad}}（最低 {{min}}）。该补货了。",
+  "omnes_cta_pedir": "去下单",
+
+  "omnes_t_precio_sube": "有价格上涨",
+  "omnes_x_precio_sube": "「{{nombre}}」上次采购上涨了 {{pct}}%：从 {{antes}} 涨到 {{ahora}}/{{unidad}}。请留意。",
+  "omnes_cta_ver_ingrediente": "查看食材",
+
+  "omnes_t_frescura": "新鲜度",
+  "omnes_x_frescura": "「{{nombre}}」有 {{stock}} {{unidad}} 已存放 {{dias}} 天。请尽快使用以免损耗。",
+
+  "omnes_t_sobrestock": "库存过剩",
+  "omnes_x_sobrestock": "「{{nombre}}」有 {{stock}} {{unidad}}，约 {{dias}} 天的库存量。暂时不要再订购。"
 }

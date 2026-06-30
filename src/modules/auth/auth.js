@@ -823,6 +823,14 @@ function enterApp() {
     } else if (typeof window.cargarDatos === 'function') {
         window.cargarDatos();
     }
+
+    // Montar el chat AQUÍ: al cargar la página se intenta antes de tener token
+    // (login en la misma carga → chat-status 401 → no se montaba y había que
+    // refrescar). En enterApp el token ya está puesto. initChatWidget es
+    // idempotente (guard isMounted), así que llamarlo de más no duplica nada.
+    if (typeof window.initChatWidget === 'function') {
+        window.initChatWidget();
+    }
 }
 
 function updateSidebarRestaurant() {

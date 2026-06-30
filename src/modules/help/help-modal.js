@@ -194,6 +194,9 @@ function injectButtonInTab(tabKey) {
     // Evitar duplicados al re-montar.
     if (topBar.querySelector(`.${BTN_CLASS}`)) return;
 
+    // 2026-06-08 (rev): el dropdown "? Ayuda" no encajaba estéticamente con
+    // la app. Iker pidió mantener los 2 botones originales ("🎬 Ver tutorial"
+    // y "ℹ️ Cómo funcionan") como botones planos a la derecha.
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `btn btn-secondary ${BTN_CLASS}`;
@@ -202,42 +205,33 @@ function injectButtonInTab(tabKey) {
     btn.innerHTML = '🎬 Ver tutorial';
     btn.addEventListener('click', () => openTabHelp(tabKey));
 
-    // Localizar el contenedor de acciones del top-bar. Cuatro casos:
-    //   1) Pestañas tipo Ingredientes/Recetas: ya hay un <div> con flex-gap
-    //      que aloja "Añadir", "Importar", "Exportar". Añadimos al final.
-    //   2) Pestañas tipo Proveedores: el botón principal "+ Añadir X" está
-    //      SUELTO directamente bajo .top-bar (sin wrapper). Si añadimos
-    //      otro botón al lado, .top-bar (justify-content: space-between)
-    //      los separa visualmente. Para evitarlo, envolvemos el botón
-    //      principal y el nuevo "Ver tutorial" en un <div> compartido,
-    //      así .top-bar solo ve 2 elementos (título + grupo de botones)
-    //      y los 2 botones quedan pegados.
-    //   3) Pestañas tipo Inventario: los botones de acción viven en un
-    //      <div> HERMANO (no dentro del .top-bar) — el primer div sibling
-    //      después del top-bar que contiene buttons. Inyectamos ahí para
-    //      que el "Ver tutorial" quede a la altura del resto de botones.
-    //   4) Pestañas sin botones de acción: append al final del top-bar.
+    // El "btn" plano es lo que se inyecta. Mantenemos `injectable` como alias
+    // por compat con la lógica de injection de abajo.
+    const injectable = btn;
+
+    // Mismos 4 casos de antes (Ingredientes/Recetas → div flex existente;
+    // Proveedores → botones sueltos; Inventario → div hermano; etc).
     const directDivs = Array.from(topBar.children).filter(c => c.tagName === 'DIV');
     const directButtons = Array.from(topBar.children).filter(c => c.tagName === 'BUTTON');
 
     if (directButtons.length > 0) {
-        // Caso 2: agrupar botón(es) suelto(s) + el nuevo en un wrapper.
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'display: flex; gap: 10px; align-items: center;';
-        directButtons.forEach(b => wrapper.appendChild(b));
-        wrapper.appendChild(btn);
-        topBar.appendChild(wrapper);
+        // Caso 2: agrupar botón(es) suelto(s) + el nuevo en un grupo.
+        const group = document.createElement('div');
+        group.style.cssText = 'display: flex; gap: 10px; align-items: center;';
+        directButtons.forEach(b => group.appendChild(b));
+        group.appendChild(injectable);
+        topBar.appendChild(group);
     } else if (directDivs.length > 1) {
         // Caso 1: usar el wrapper de acciones existente.
-        directDivs[directDivs.length - 1].appendChild(btn);
+        directDivs[directDivs.length - 1].appendChild(injectable);
     } else {
         // Caso 3: buscar div hermano siguiente con botones (patrón Inventario).
         const siblingActions = tabContent.querySelector('.top-bar + div');
         if (siblingActions && siblingActions.querySelector('button')) {
-            siblingActions.appendChild(btn);
+            siblingActions.appendChild(injectable);
         } else {
             // Caso 4: append simple al top-bar.
-            topBar.appendChild(btn);
+            topBar.appendChild(injectable);
         }
     }
 }

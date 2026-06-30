@@ -39,7 +39,8 @@ const actionHandlers = {
     'mostrar-form-receta': () => window.mostrarFormularioReceta?.(),
     'cerrar-form-receta': () => window.cerrarFormularioReceta?.(),
     'importar-recetas': () => window.mostrarModalImportarRecetas?.(),
-    'exportar-recetas': () => window.exportarRecetas?.(),
+    'descargar-plantilla-recetas': () => window.descargarPlantillaRecetas?.(),
+    'descargar-plantilla-escandallo': () => window.descargarPlantillaEscandallo?.(),
     'agregar-ingrediente-receta': () => window.agregarIngredienteReceta?.(),
     'cancelar-importar-recetas': () => window.cancelarImportarRecetas?.(),
     'confirmar-importar-recetas': () => window.confirmarImportarRecetas?.(),
@@ -47,6 +48,12 @@ const actionHandlers = {
 
     // Proveedores
     'mostrar-form-proveedor': () => window.mostrarFormularioProveedor?.(),
+    'descargar-plantilla-proveedores': () => window.descargarPlantillaProveedores?.(),
+    'importar-proveedores': () => window.mostrarModalImportarProveedores?.(),
+    'exportar-proveedores': () => window.exportarProveedores?.(),
+    'cancelar-importar-proveedores': () => window.cancelarImportarProveedores?.(),
+    'confirmar-importar-proveedores': () => window.confirmarImportarProveedores?.(),
+    'cerrar-modal-importar-proveedores': () => closeModal('modal-importar-proveedores'),
     'cerrar-form-proveedor': () => window.cerrarFormularioProveedor?.(),
     'cerrar-modal-proveedor': () => window.cerrarModalVerProveedor?.(),
 
@@ -91,8 +98,6 @@ const actionHandlers = {
     'exportar-diario-excel': () => window.exportarDiarioExcel?.(),
 
     // Producción
-    'cerrar-modal-producir': () => window.cerrarModalProducir?.(),
-    'confirmar-produccion': () => window.confirmarProduccion?.(),
 
     // Mermas
     'confirmar-mermas': () => window.confirmarMermasFinal?.(),

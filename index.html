@@ -43,8 +43,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" media="print" onload="this.media='all'">
+  <!-- 🎨 Fuente display editorial Fraunces (Fase A — rediseño visual) -->
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'">
   <noscript>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap"
       rel="stylesheet">
   </noscript>
 
@@ -52,8 +57,12 @@
   <!-- Chart.js, XLSX, jsPDF ahora se cargan desde node_modules -->
   <!-- Esto mejora seguridad y control de versiones -->
 
-  <link rel="stylesheet" href="styles/main.css?v=20260415-sprint1">
+  <link rel="stylesheet" href="styles/main.css?v=20260612-omnes-logo">
   <link rel="stylesheet" href="styles/polish.css?v=20260511-dropdown-zindex">
+  <!-- 🎨 Tema visual rediseñado (Fase A — tokens fundacionales).
+       Carga al final → prioridad sobre main.css y polish.css.
+       100% aditivo. Para revertir: borrar este archivo + esta línea. -->
+  <link rel="stylesheet" href="styles/theme-editorial.css?v=20260526-navy-fase-k2">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -177,7 +186,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <a href="#" class="sidebar-brand">
-          <div class="sidebar-brand-icon">🍽️</div>
+          <div class="sidebar-brand-icon"><img class="sidebar-brand-owl" src="/images/omnes.png" alt="Omnes" onerror="this.parentElement.textContent='🦉'"></div>
           <div class="sidebar-brand-text">
             <span class="sidebar-brand-name">CostOS</span>
             <span class="sidebar-brand-tagline">Restaurant Intelligence</span>
@@ -210,6 +219,10 @@
             <span class="nav-item-icon">📋</span>
             <span class="nav-item-text" data-i18n="common:nav_pedidos">Pedidos</span>
           </button>
+          <button class="nav-item" data-tab="comida-personal">
+            <span class="nav-item-icon">🍽️</span>
+            <span class="nav-item-text" data-i18n="comida_personal:nav_title">Comida Personal</span>
+          </button>
           <button class="nav-item" data-tab="ventas">
             <span class="nav-item-icon">💰</span>
             <span class="nav-item-text" data-i18n="common:nav_ventas">Ventas</span>
@@ -237,8 +250,8 @@
             <span class="nav-item-text" data-i18n="common:nav_analisis">Análisis</span>
           </button>
           <button class="nav-item" data-tab="inteligencia">
-            <span class="nav-item-icon">🧠</span>
-            <span class="nav-item-text" data-i18n="common:nav_inteligencia">Inteligencia</span>
+            <span class="nav-item-icon">🦉</span>
+            <span class="nav-item-text" data-i18n="common:nav_inteligencia">Omnes</span>
             <span class="nav-item-badge intel">IA</span>
           </button>
         </div>
@@ -642,7 +655,10 @@
                   <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;" data-i18n="dashboard:forecast_subtitle">
                     Estimación de ingresos</p>
                 </div>
-                <span id="forecast-total" style="font-size: 22px; font-weight: 800; color: #8B5CF6;">0</span>
+                <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                  <span id="forecast-total" style="font-size: 22px; font-weight: 800; color: #8B5CF6;">0</span>
+                  <span id="forecast-rango" style="font-size: 10px; color: #94a3b8; margin-top: 2px;"></span>
+                </div>
               </div>
               <div id="forecast-tabs" style="display: flex; gap: 6px; margin-bottom: 12px;">
                 <button class="forecast-period-tab active" data-period="7"
@@ -765,8 +781,8 @@
           Análisis</button>
         <button id="tab-btn-inteligencia" class="tab" data-tab="inteligencia"
           style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none;"
-          data-i18n="common:tab_inteligencia">🧠
-          Inteligencia</button>
+          data-i18n="common:tab_inteligencia">🦉
+          Omnes</button>
         <button id="tab-btn-horarios" class="tab" data-tab="horarios" data-i18n="common:tab_horarios">👥
           Horarios</button>
         <button id="tab-btn-configuracion" class="tab" data-tab="configuracion" data-i18n="common:tab_configuracion">⚙️
@@ -787,11 +803,42 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-ingrediente" data-i18n="ingredientes:btn_new">➕
                 Añadir Ingrediente</button>
-              <button class="btn btn-secondary" data-action="importar-ingredientes"
-                data-i18n="common:btn_import_excel">📤 Importar
-                Excel</button>
-              <button class="btn btn-secondary" data-action="exportar-ingredientes"
-                data-i18n="common:btn_export_excel">📥 Exportar Excel</button>
+              <button type="button" class="btn btn-secondary" onclick="window.abrirDeteccionAlergenosBatch?.()"
+                      title="Detecta y rellena los alérgenos de tus ingredientes automáticamente">
+                ✨ <span data-i18n="ingredientes:btn_detect_allergens">Detectar alérgenos</span></button>
+              <!-- Carpeta Excel (UX 2026-06-08 rev2): icono carpeta visible
+                   que al pulsarse despliega Importar / Exportar / Plantilla
+                   con una mini-descripción de cada opción. -->
+              <div class="ad-wrapper">
+                <button type="button" class="btn btn-secondary ad-trigger ad-folder-trigger"
+                        title="Importar y exportar Excel">
+                  <span class="ad-folder-icon">📂</span>
+                  <span class="ad-folder-label">Excel</span>
+                </button>
+                <div class="ad-menu ad-menu--rich" role="menu">
+                  <a role="menuitem" href="/templates/plantilla-ingredientes.csv" download>
+                    <span class="ad-icon">📥</span>
+                    <span class="ad-text">
+                      <strong>Descargar plantilla</strong>
+                      <small>CSV de ejemplo con ingredientes ya rellenados. Edítalo en Excel y úsalo como punto de partida.</small>
+                    </span>
+                  </a>
+                  <button type="button" role="menuitem" data-action="importar-ingredientes">
+                    <span class="ad-icon">📤</span>
+                    <span class="ad-text">
+                      <strong>Importar desde Excel</strong>
+                      <small>Sube tu lista en lote desde un archivo Excel o CSV.</small>
+                    </span>
+                  </button>
+                  <button type="button" role="menuitem" data-action="exportar-ingredientes">
+                    <span class="ad-icon">💾</span>
+                    <span class="ad-text">
+                      <strong>Exportar mis datos</strong>
+                      <small>Descarga toda tu lista actual en Excel para editar fuera de la app.</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="search-box">
@@ -812,7 +859,7 @@
               <div class="form-grid">
                 <div class="form-group">
                   <label data-i18n="common:label_name_required">Nombre *</label>
-                  <input type="text" id="ing-nombre" required>
+                  <input type="text" id="ing-nombre" required oninput="window.sugerirAlergenosPorNombre?.()">
                 </div>
                 <div class="form-group">
                   <label data-i18n="common:label_supplier">Proveedor</label>
@@ -822,11 +869,23 @@
                 </div>
                 <div class="form-group">
                   <label data-i18n="common:label_price">Precio (€)</label>
-                  <input type="number" id="ing-precio" step="0.01" min="0">
+                  <input type="number" id="ing-precio" step="0.01" min="0" oninput="window.actualizarPreviewPrecioUnidad?.()">
+                  <small id="ing-precio-hint" style="display: block; margin-top: 6px; padding: 8px 10px; background: #f0f9ff; border-left: 3px solid #0284c7; border-radius: 4px; color: #0369a1; font-size: 12px; line-height: 1.4;">
+                    💡 La app recalcula este precio automáticamente tras cada pedido recibido (precio medio de compras × cantidad por formato). Si lo editas a mano, el siguiente pedido lo sobreescribirá — salvo que marques "Fijar precio".
+                  </small>
+                  <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:13px; cursor:pointer;">
+                    <input type="checkbox" id="ing-precio-fijado" style="width:auto; margin:0;" onchange="window.actualizarPreviewPrecioUnidad?.()">
+                    <span>📌 Fijar este precio (no recalcular con las compras)</span>
+                  </label>
+                  <!-- Qué precio usa REALMENTE el coste / food cost (media vs fijado vs
+                       configurado). Va aquí, pegado al precio, no abajo en Formato. -->
+                  <div id="ing-precio-coste-preview"
+                    style="display: none; margin-top: 8px; padding: 8px 10px; border-radius: 6px; font-size: 12px; line-height: 1.4;">
+                  </div>
                 </div>
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_label_unit">Unidad</label>
-                  <select id="ing-unidad">
+                  <select id="ing-unidad" onchange="window.actualizarPreviewPrecioUnidad?.()">
                     <option value="kg">kg</option>
                     <option value="g">g</option>
                     <option value="l">L</option>
@@ -852,7 +911,7 @@
                      → cuánto tengo en stock. -->
                 <div class="form-group"
                   style="grid-column: span 2; margin-top: 10px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
-                  <label style="font-weight: 600; color: #7c3aed;" data-i18n="ingredientes:form_format_title">📦 Formato
+                  <label style="font-weight: 600; color: #1e3a5f;" data-i18n="ingredientes:form_format_title">📦 Formato
                     de compra (opcional)</label>
                   <p style="font-size: 12px; color: #64748b; margin: 5px 0 10px;"
                     data-i18n="ingredientes:form_format_hint">Facilita los pedidos indicando cómo
@@ -861,13 +920,23 @@
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_format_label">Formato</label>
                   <input type="text" id="ing-formato-compra" placeholder="ej: bote, garrafa, caja..."
-                    data-i18n-placeholder="ingredientes:form_format_placeholder">
+                    data-i18n-placeholder="ingredientes:form_format_placeholder"
+                    oninput="window.actualizarPreviewPrecioUnidad?.()">
                 </div>
                 <div class="form-group">
                   <label data-i18n="ingredientes:form_format_quantity">Cantidad por formato</label>
                   <input type="number" id="ing-cantidad-formato" step="0.01" min="0"
                     placeholder="ej: 0.65 (kg), 10 (L)..."
-                    data-i18n-placeholder="ingredientes:form_format_qty_placeholder">
+                    data-i18n-placeholder="ingredientes:form_format_qty_placeholder"
+                    oninput="window.actualizarPreviewPrecioUnidad?.()">
+                </div>
+
+                <!-- 🔍 Preview en vivo del precio por unidad base. Evita configs
+                     incoherentes (ej. unidad=unidad + 750 por formato → 0,004 €/unidad,
+                     bug mermelada 2026-06-10): el usuario VE el precio resultante y la
+                     advertencia mientras rellena. Lo pinta window.actualizarPreviewPrecioUnidad. -->
+                <div class="form-group" id="ing-precio-unidad-preview"
+                  style="grid-column: span 2; display: none; margin-top: 4px; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5;">
                 </div>
 
                 <div class="form-group">
@@ -875,10 +944,12 @@
                   <input type="number" id="ing-stockActual" step="0.01" min="0">
                 </div>
                 <div class="form-group">
-                  <label data-i18n="ingredientes:form_label_stock_min">Stock mínimo</label>
-                  <!-- min=1: stock_minimo=0 hacía que Smart Order multiplicara su
-                       cálculo por 0 y nunca propusiera reposición. Ver fix 2026-05-07. -->
-                  <input type="number" id="ing-stockMinimo" step="0.01" min="1">
+                  <label><span data-i18n="ingredientes:form_label_stock_min">Stock mínimo</span> *</label>
+                  <!-- OBLIGATORIO (>0): el Smart Order calcula la reposición como
+                       (stock_minimo × 2) − stock_actual. Con 0 o vacío nunca propone
+                       reponer. `required` + min>0 obligan a un valor válido. Ver fix
+                       2026-05-29 (antes min=1, relajado a >0 a petición de Iker). -->
+                  <input type="number" id="ing-stockMinimo" step="0.01" min="0.01" required>
                 </div>
 
                 <!-- RENDIMIENTO / MERMA (Moved to bottom with Slider) -->
@@ -889,13 +960,13 @@
                       data-i18n="ingredientes:form_label_yield">Rendimiento / Aprovechamiento
                       (%)</label>
                     <span id="ing-rendimiento-val"
-                      style="font-weight: bold; color: #7c3aed; font-size: 1.1em;">100%</span>
+                      style="font-weight: bold; color: #4a6b3e; font-size: 1.1em;">100%</span>
                   </div>
                   <div style="display: flex; gap: 15px; align-items: center;">
                     <span style="font-size: 12px; color: #ef4444;" data-i18n="ingredientes:form_yield_all_waste">0%
                       (Todo merma)</span>
                     <input type="range" id="ing-rendimiento-slider" min="1" max="100" value="100" step="1"
-                      style="flex: 1; accent-color: #7c3aed; cursor: pointer;">
+                      style="flex: 1; accent-color: #4a6b3e; cursor: pointer;">
                     <span style="font-size: 12px; color: #10b981;" data-i18n="ingredientes:form_yield_all_useful">100%
                       (Todo útil)</span>
                   </div>
@@ -906,6 +977,64 @@
                     ℹ️ Define qué porcentaje del producto realmente usas. <br>
                     Ej: Si compras 1kg de carne y limpias 200g de grasa, el rendimiento es <strong>80%</strong>.
                   </p>
+                  <p id="ing-rendimiento-warning" style="display: none; font-size: 12px; color: #92400e; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px; padding: 8px 10px; margin-top: 8px; line-height: 1.4;">
+                    ⚠️ Al cambiar este rendimiento, todas las recetas que usen este ingrediente verán el nuevo % aplicado tanto en su coste teórico como en el descuento de stock al vender.
+                  </p>
+                </div>
+
+                <!-- ALÉRGENOS (UE) — 14 de declaración obligatoria -->
+                <div class="form-group"
+                  style="grid-column: span 2; margin-top: 10px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                  <label style="margin: 0 0 6px; display: block; color: #334155; font-weight: 600;">
+                    🌡️ <span data-i18n="ingredientes:form_label_allergens">Alérgenos (UE)</span>
+                  </label>
+                  <small id="ing-alergenos-hint" style="display: none; margin: 0 0 10px; padding: 6px 10px; background: #ecfdf5; border-left: 3px solid #10b981; border-radius: 4px; color: #047857; font-size: 12px; line-height: 1.4;">
+                    ✨ <span data-i18n="ingredientes:allergens_suggested">Pre-marcados por el nombre. Revisa y confirma — la información de alérgenos es tu responsabilidad.</span>
+                  </small>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="gluten"> 🌾 <span data-i18n="alergenos:gluten">Gluten</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="crustaceos"> 🦐 <span data-i18n="alergenos:crustaceos">Crustáceos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="huevos"> 🥚 <span data-i18n="alergenos:huevos">Huevos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="pescado"> 🐟 <span data-i18n="alergenos:pescado">Pescado</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="cacahuetes"> 🥜 <span data-i18n="alergenos:cacahuetes">Cacahuetes</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="soja"> 🫛 <span data-i18n="alergenos:soja">Soja</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="lacteos"> 🥛 <span data-i18n="alergenos:lacteos">Lácteos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="frutos_cascara"> 🌰 <span data-i18n="alergenos:frutos_cascara">Frutos de cáscara</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="apio"> 🥬 <span data-i18n="alergenos:apio">Apio</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="mostaza"> 🟡 <span data-i18n="alergenos:mostaza">Mostaza</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="sesamo"> ⚫ <span data-i18n="alergenos:sesamo">Sésamo</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="sulfitos"> 🍷 <span data-i18n="alergenos:sulfitos">Sulfitos</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="altramuces"> 🌱 <span data-i18n="alergenos:altramuces">Altramuces</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer;">
+                      <input type="checkbox" class="ing-alergeno" value="moluscos"> 🐚 <span data-i18n="alergenos:moluscos">Moluscos</span>
+                    </label>
+                  </div>
                 </div>
               </div>
               <div class="form-actions">
@@ -930,10 +1059,37 @@
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-primary" data-action="mostrar-form-receta" data-i18n="recetas:btn_new">➕ Nueva
                 Receta</button>
-              <button class="btn btn-secondary" data-action="importar-recetas" data-i18n="common:btn_import_excel">📤
-                Importar Excel</button>
-              <button class="btn btn-secondary" data-action="exportar-recetas" data-i18n="common:btn_export_excel">📥
-                Exportar Excel</button>
+              <!-- Carpeta Excel (UX 2026-06-08 rev2): icono carpeta visible. -->
+              <div class="ad-wrapper">
+                <button type="button" class="btn btn-secondary ad-trigger ad-folder-trigger"
+                        title="Importar y exportar Excel">
+                  <span class="ad-folder-icon">📂</span>
+                  <span class="ad-folder-label">Excel</span>
+                </button>
+                <div class="ad-menu ad-menu--rich" role="menu">
+                  <button type="button" role="menuitem" data-action="descargar-plantilla-recetas">
+                    <span class="ad-icon">📥</span>
+                    <span class="ad-text">
+                      <strong>Descargar plantilla</strong>
+                      <small>Excel de ejemplo con recetas y escandallo ya rellenados. Edítalo y úsalo como punto de partida.</small>
+                    </span>
+                  </button>
+                  <button type="button" role="menuitem" data-action="importar-recetas">
+                    <span class="ad-icon">📤</span>
+                    <span class="ad-text">
+                      <strong>Importar desde Excel</strong>
+                      <small>Sube tus recetas en lote desde un archivo Excel o CSV.</small>
+                    </span>
+                  </button>
+                  <button type="button" role="menuitem" data-action="descargar-plantilla-escandallo">
+                    <span class="ad-icon">💾</span>
+                    <span class="ad-text">
+                      <strong>Exportar mis recetas</strong>
+                      <small>Descarga todas tus recetas en Excel para editar fuera de la app.</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
               <button class="btn" onclick="window.mostrarCostTracker()"
                 style="background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white;">📊 <span
                   data-i18n="recetas:btn_cost_tracking">Seguimiento Costes</span></button>
@@ -1157,8 +1313,41 @@
               <h2 data-i18n="proveedores:title">Proveedores</h2>
               <p data-i18n="proveedores:description">Gestiona tus proveedores</p>
             </div>
-            <button class="btn btn-primary" data-action="mostrar-form-proveedor" data-i18n="proveedores:btn_new">+
-              Añadir Proveedor</button>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-primary" data-action="mostrar-form-proveedor" data-i18n="proveedores:btn_new">+
+                Añadir Proveedor</button>
+              <!-- Carpeta Excel (UX 2026-06-08). 3 opciones: plantilla / import / export. -->
+              <div class="ad-wrapper">
+                <button type="button" class="btn btn-secondary ad-trigger ad-folder-trigger"
+                        title="Importar y exportar Excel">
+                  <span class="ad-folder-icon">📂</span>
+                  <span class="ad-folder-label">Excel</span>
+                </button>
+                <div class="ad-menu ad-menu--rich" role="menu">
+                  <button type="button" role="menuitem" data-action="descargar-plantilla-proveedores">
+                    <span class="ad-icon">📥</span>
+                    <span class="ad-text">
+                      <strong>Descargar plantilla</strong>
+                      <small>Excel de ejemplo con proveedores ya rellenados. Edítalo y úsalo como punto de partida.</small>
+                    </span>
+                  </button>
+                  <button type="button" role="menuitem" data-action="importar-proveedores">
+                    <span class="ad-icon">📤</span>
+                    <span class="ad-text">
+                      <strong>Importar desde Excel</strong>
+                      <small>Sube tus proveedores en lote desde un archivo Excel o CSV.</small>
+                    </span>
+                  </button>
+                  <button type="button" role="menuitem" data-action="exportar-proveedores">
+                    <span class="ad-icon">💾</span>
+                    <span class="ad-text">
+                      <strong>Exportar mis proveedores</strong>
+                      <small>Descarga toda tu lista actual en Excel para editar fuera de la app.</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="search-box">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1191,6 +1380,12 @@
                 <div class="form-group">
                   <label data-i18n="common:label_email">Email</label>
                   <input type="email" id="prov-email">
+                </div>
+                <div class="form-group">
+                  <label data-i18n="proveedores:form_label_iva">IVA habitual (%)</label>
+                  <input type="number" id="prov-iva-pct" min="0" max="100" step="0.01"
+                    placeholder="ej. 10"
+                    title="IVA típico del proveedor para cuadrar el albarán al recibir. No afecta a precios ni a food cost.">
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
                   <label data-i18n="proveedores:form_label_address">Dirección</label>
@@ -1338,7 +1533,7 @@
                     <label data-i18n="pedidos:form_iva_label"
                       style="font-size: 12px; font-weight: 600; color: #047857; display: block; margin-bottom: 4px;">IVA
                       %</label>
-                    <input type="number" id="ped-iva" placeholder="0" step="0.5" min="0" max="21" value="0"
+                    <input type="number" id="ped-iva" placeholder="0" step="0.5" min="0" max="100" value="0"
                       style="width: 70px; padding: 10px; border: 2px solid #86efac; border-radius: 8px; text-align: center; font-weight: 600; font-size: 16px;"
                       oninput="window.calcularTotalPedido()">
                   </div>
@@ -1348,13 +1543,11 @@
                     <div style="display: flex; justify-content: flex-end; gap: 15px; font-size: 14px; color: #059669;">
                       <span><span data-i18n="pedidos:form_subtotal">Subtotal</span>: <strong
                           id="total-pedido-subtotal">0.00</strong></span>
-                      <span><span data-i18n="pedidos:form_iva_amount">IVA</span>: <strong id="total-pedido-iva">0.00
-                          €</strong></span>
+                      <span><span data-i18n="pedidos:form_iva_amount">IVA</span>: <strong id="total-pedido-iva">0.00</strong></span>
                     </div>
                     <div style="margin-top: 8px;">
                       <span style="font-size: 13px; color: #047857;" data-i18n="pedidos:form_total">Total:</span>
-                      <strong id="total-pedido-value" style="font-size: 28px; color: #059669; margin-left: 10px;">0.00
-                        €</strong>
+                      <strong id="total-pedido-value" style="font-size: 28px; color: #059669; margin-left: 10px;">0.00</strong>
                     </div>
                   </div>
                 </div>
@@ -1374,6 +1567,11 @@
 
         <!-- TAB: ANÁLISIS -->
         <div id="tab-analisis" class="tab-content">
+          <div class="desktop-only-banner" aria-live="polite">
+            <div class="desktop-only-banner__icon">💻</div>
+            <h3 data-i18n="common:mobile_only_banner_title">Mejor en ordenador</h3>
+            <p data-i18n="common:mobile_only_banner_hint">Esta sección está pensada para pantalla grande. Abre la app en el portátil o sobremesa para verla bien.</p>
+          </div>
           <div class="chart-container">
             <div class="chart-header">
               <h3 data-i18n="dashboard:analysis_revenue_vs_expenses">📊 Ingresos vs Gastos</h3>
@@ -1618,6 +1816,11 @@
               data-action="ver-historial-mermas" data-i18n="inventario:btn_waste_history">📋 Ver Historial
               Mermas</button>
             <button class="btn btn-secondary" data-action="exportar-inventario">📤 Export Excel</button>
+            <!-- 📋 Recuento: contador digital móvil. Oculto en escritorio (display:none);
+                 la media-query de recuento.js lo muestra solo en pantallas pequeñas. -->
+            <button id="btn-recuento-inventario" class="btn"
+              style="display:none; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white;"
+              onclick="window.abrirRecuentoInventario()" data-i18n="recuento:btn_open">📋 Recuento</button>
             <!-- "ℹ️ Cómo funcionan" se inyecta automáticamente por info-modal.js
                  si hay entry para "inventario" en src/i18n/locales/{lang}/info-content.json -->
             <!-- "🎬 Ver tutorial" se inyecta automáticamente por help-modal.js
@@ -1750,8 +1953,26 @@
           </div>
         </div>
 
+        <!-- TAB: COMIDA PERSONAL (gasto de comida del equipo, fuera del food cost/stock) -->
+        <div id="tab-comida-personal" class="tab-content">
+          <div class="top-bar">
+            <div>
+              <h2 data-i18n="comida_personal:title">🍽️ Comida Personal</h2>
+              <p data-i18n="comida_personal:description" style="color:#64748b;margin:4px 0 0;">Gasto en comida del equipo. No afecta al food cost ni al stock del restaurante.</p>
+            </div>
+          </div>
+          <div id="comida-personal-container" class="main-card" style="padding:20px;">
+            <!-- Populated by src/modules/comida-personal/comida-personal.js -->
+          </div>
+        </div>
+
         <!-- TAB: DIARIO (Tracking de Costes/Ventas por Día) -->
         <div id="tab-diario" class="tab-content">
+          <div class="desktop-only-banner" aria-live="polite">
+            <div class="desktop-only-banner__icon">💻</div>
+            <h3 data-i18n="common:mobile_only_banner_title">Mejor en ordenador</h3>
+            <p data-i18n="common:mobile_only_banner_hint">Esta sección está pensada para pantalla grande. Abre la app en el portátil o sobremesa para verla bien.</p>
+          </div>
           <div class="top-bar">
             <div>
               <h2 data-i18n="balance:diario_title">📈 Control Diario</h2>
@@ -1816,7 +2037,7 @@
           <div style="margin-top: 30px;">
             <!-- Estilos botones de semana + modo compacto para "Todo el mes" -->
             <style>
-              .btn-semana.active { background: #7C3AED !important; color: white !important; }
+              .btn-semana.active { background: #1e3a5f !important; color: white !important; border-color: #1e3a5f !important; }
 
               /* Modo compacto: cuando está "Todo el mes", apretar celdas para que quepan los 31 días */
               body.diario-mes-completo #tabla-compras-diarias th,
@@ -1927,6 +2148,9 @@
                 Se guardan automáticamente y aparecen en el P&L Diario</span>
             </div>
           </div>
+
+          <!-- 🧑‍🍳 PERSONAL EXTRA (POR HORAS) — rellenado por src/modules/balance/personal-extra.js -->
+          <div id="personal-extra-list"></div>
 
           <!-- Resumen Rápido -->
           <div class="stats-grid" id="diario-resumen">
@@ -2044,6 +2268,11 @@
 
         <!-- TAB: INTELIGENCIA -->
         <div id="tab-inteligencia" class="tab-content">
+          <div class="desktop-only-banner" aria-live="polite">
+            <div class="desktop-only-banner__icon">💻</div>
+            <h3 data-i18n="common:mobile_only_banner_title">Mejor en ordenador</h3>
+            <p data-i18n="common:mobile_only_banner_hint">Esta sección está pensada para pantalla grande. Abre la app en el portátil o sobremesa para verla bien.</p>
+          </div>
           <div id="content-inteligencia">
             <div style="text-align: center; padding: 60px; color: #64748b;">
               <div style="font-size: 48px;">⏳</div>
@@ -2105,6 +2334,15 @@
                 <p style="font-size:0.9em; margin-top:5px;"><span data-i18n="settings:restaurant_id_label">ID
                     Restaurante:</span> <span id="config-restaurante-id">...</span>
                 </p>
+              </div>
+            </div>
+
+            <!-- Tarjeta: Comida de Personal (opt-in) -->
+            <div class="card"
+              style="background:white; padding:20px; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+              <h3 style="margin:0 0 6px 0;" data-i18n="comida_personal:settings_title">🍽️ Comida de Personal</h3>
+              <div id="config-comida-personal" style="margin-top:10px;">
+                <p style="color:#94a3b8;">…</p>
               </div>
             </div>
 
@@ -2261,28 +2499,6 @@
       </div>
 
       <!-- Modales (simplificados) -->
-      <div id="modal-producir" class="modal">
-        <div class="modal-content">
-          <h3 data-i18n="recetas:produce_title">Producir platos</h3>
-          <p style="margin-bottom: 20px;" data-i18n-html="recetas:produce_how_many_html">¿Cuántas unidades de <strong
-              id="modal-plato-nombre"></strong>?</p>
-          <div class="form-group">
-            <label data-i18n="common:label_quantity">Cantidad</label>
-            <input type="number" id="modal-cantidad" min="1" value="1" style="width:100%;padding:10px;"
-              oninput="window.actualizarDetalleDescuento()">
-          </div>
-          <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 6px;">
-            <strong data-i18n="recetas:produce_stock_deduction">⚠️ Descuento de stock:</strong>
-            <div id="modal-descuento-detalle" style="margin-top: 10px;"></div>
-          </div>
-          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-            <button class="btn btn-secondary" data-action="cerrar-modal-producir"
-              data-i18n="common:btn_cancel">Cancelar</button>
-            <button class="btn btn-success" data-action="confirmar-produccion"
-              data-i18n="recetas:produce_confirm">Confirmar</button>
-          </div>
-        </div>
-      </div>
 
       <!-- Modal Empleado -->
       <div id="modal-empleado"
@@ -2574,7 +2790,7 @@
           </div>
 
           <div
-            style="background: #f0fdf4; border: 2px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            style="background: #f0fdf4; border: 2px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 12px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
               <div>
                 <strong style="color: #666;" data-i18n="pedidos:reception_total_original">Total Original:</strong><br>
@@ -2589,6 +2805,66 @@
               <div>
                 <strong style="color: #666;" data-i18n="pedidos:reception_variance">Varianza:</strong><br>
                 <span style="font-size: 20px; font-weight: bold;" id="modal-rec-resumen-varianza">0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque Bonificación del albarán (Migración 016, 2026-06-28).
+               A diferencia del IVA/envases, la bonificación SÍ baja el coste real:
+               al confirmar se reparte entre las líneas (baja su PRECIO REAL). El
+               camarero teclea el bruto en cada línea + la bonificación del albarán,
+               sin restar a mano. -->
+          <div
+            style="background: #ecfdf5; border: 1px solid #6ee7b7; padding: 12px 15px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 200px 1fr; gap: 15px; align-items: center;">
+              <div>
+                <strong style="color: #047857; font-size: 13px;" data-i18n="pedidos:reception_bonif_label">
+                  Bonificación del albarán (€):
+                </strong>
+                <p style="margin: 4px 0 0; font-size: 11px; color: #047857;"
+                   data-i18n="pedidos:reception_bonif_hint">
+                  Descuento del proveedor. SÍ baja el coste real (se reparte entre las líneas).
+                </p>
+              </div>
+              <div>
+                <input type="number" id="modal-rec-bonificacion" min="0" step="0.01"
+                       placeholder="0"
+                       style="width: 100%; padding: 8px 10px; border: 1px solid #10b981; border-radius: 6px; font-size: 16px; font-weight: bold; text-align: center;">
+              </div>
+              <div style="text-align: right;">
+                <strong style="color: #047857; font-size: 13px;" data-i18n="pedidos:reception_base_neta">
+                  Base (sin IVA):
+                </strong><br>
+                <span style="font-size: 18px; font-weight: bold; color: #059669;" id="modal-rec-resumen-base-neta">0.00 €</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque IVA del albarán (Migration 013, 2026-06-06).
+               Solo display — no se persiste. El cliente lo usa para cuadrar
+               el total recibido con el albarán físico que viene con IVA aparte. -->
+          <div
+            style="background: #fef9c3; border: 1px solid #facc15; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 200px 1fr; gap: 15px; align-items: center;">
+              <div>
+                <strong style="color: #92400e; font-size: 13px;" data-i18n="pedidos:reception_iva_label">
+                  IVA del albarán (%):
+                </strong>
+                <p style="margin: 4px 0 0; font-size: 11px; color: #92400e;"
+                   data-i18n="pedidos:reception_iva_hint">
+                  Solo para cuadrar con el albarán físico. No afecta precios ni food cost.
+                </p>
+              </div>
+              <div>
+                <input type="number" id="modal-rec-iva-pct" min="0" max="100" step="0.01"
+                       placeholder="0"
+                       style="width: 100%; padding: 8px 10px; border: 1px solid #d4a017; border-radius: 6px; font-size: 16px; font-weight: bold; text-align: center;">
+              </div>
+              <div style="text-align: right;">
+                <strong style="color: #92400e; font-size: 13px;" data-i18n="pedidos:reception_total_with_iva">
+                  Total con IVA:
+                </strong><br>
+                <span style="font-size: 22px; font-weight: bold; color: #b45309;" id="modal-rec-resumen-con-iva">0.00 €</span>
               </div>
             </div>
           </div>
@@ -2695,7 +2971,7 @@
 
       <!-- Modal: Historial de Mermas -->
       <div id="modal-historial-mermas" class="modal">
-        <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
           <span class="close" data-action="cerrar-modal-historial-mermas">&times;</span>
           <h2 style="color: #8B5CF6; display: flex; align-items: center; gap: 10px;"
             data-i18n="inventario:history_title">📋 Historial de Mermas/Pérdidas
@@ -2996,10 +3272,15 @@
 
           <div style="margin: 20px 0;">
             <p style="color: #64748b; margin-bottom: 15px;" data-i18n="recetas:import_columns_hint">
-              Upload an Excel (.xlsx) or CSV file with the columns: <strong>Name</strong>,
-              <strong>Category</strong>,
-              <strong>Sale Price</strong>, <strong>Portions</strong>
+              Sube un Excel con las columnas: <strong>Receta</strong>, <strong>Categoría</strong>,
+              <strong>Precio Venta</strong>, <strong>Porciones</strong>, <strong>Ingrediente</strong>,
+              <strong>Cantidad</strong>, <strong>Rendimiento</strong> (una fila por línea del escandallo).
             </p>
+
+            <div style="margin-bottom: 15px; font-size: 13px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;"
+              data-i18n="recetas:import_export_hint">
+              💡 ¿No tienes el archivo? Pulsa <strong>"📥 Exportar Excel"</strong> para bajar tus recetas en este formato, edítalas y vuelve a subirlas aquí.
+            </div>
 
             <div
               style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
@@ -3027,6 +3308,50 @@
               <button class="btn btn-primary" data-action="confirmar-importar-recetas"
                 id="btn-confirmar-importar-recetas" data-i18n="recetas:import_confirm_btn">✓
                 Importar Recetas</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Importar Proveedores -->
+      <div id="modal-importar-proveedores" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+          <span class="close" data-action="cerrar-modal-importar-proveedores">&times;</span>
+          <h2>📤 Importar Proveedores desde Excel</h2>
+
+          <div style="margin: 20px 0;">
+            <p style="color: #64748b; margin-bottom: 15px;">
+              Sube un Excel o CSV con las columnas: <strong>Nombre</strong>, <strong>Contacto</strong>,
+              <strong>Teléfono</strong>, <strong>Email</strong>, <strong>CIF</strong>,
+              <strong>IVA (%)</strong>, <strong>Código</strong>, <strong>Dirección</strong>, <strong>Notas</strong>.
+              Solo <strong>Nombre</strong> es obligatorio.
+            </p>
+
+            <div style="margin-bottom: 15px; font-size: 13px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+              💡 ¿No tienes el archivo? Pulsa <strong>"Descargar plantilla"</strong> en el menú 📂 Excel para empezar con un ejemplo rellenado.
+            </div>
+
+            <div
+              style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 30px; text-align: center; background: #f8fafc;">
+              <input type="file" id="file-importar-proveedores" accept=".xlsx,.csv" style="display: none;"
+                onchange="window.procesarArchivoProveedores(this)">
+              <label for="file-importar-proveedores" style="cursor: pointer;">
+                <div style="font-size: 48px; margin-bottom: 10px;">📁</div>
+                <div style="font-size: 16px; color: #475569; font-weight: 500;">Haz clic para seleccionar archivo</div>
+                <div style="font-size: 14px; color: #94a3b8; margin-top: 5px;">Excel (.xlsx) o CSV</div>
+              </label>
+            </div>
+          </div>
+
+          <div id="preview-importar-proveedores" style="display: none; margin-top: 20px;">
+            <h3>Vista Previa de Proveedores</h3>
+            <div id="preview-proveedores-container"
+              style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+              <button class="btn btn-secondary" data-action="cancelar-importar-proveedores">Cancelar</button>
+              <button class="btn btn-primary" data-action="confirmar-importar-proveedores"
+                id="btn-confirmar-importar-proveedores">✓ Importar Proveedores</button>
             </div>
           </div>
         </div>
@@ -3139,7 +3464,7 @@
       </div>
       </script>
     </div>
-    <script src="src/legacy/inventario-masivo.js?v=20260416-sprint2"></script>
+    <script src="src/legacy/inventario-masivo.js?v=20260628-iva-base"></script>
 
     <!-- CARRITO DE PEDIDOS - El código está en src/modules/pedidos/pedidos-cart.js -->
 
@@ -3249,10 +3574,10 @@
   </div> <!-- /app-content -->
 
   <!-- Modal CSS: extraído a styles/modals.css -->
-  <script src="src/legacy/modales.js?v=20260415-sprint1"></script>
+  <script src="src/legacy/modales.js?v=20260628-iva-cashflow"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260510-remove-plans-gating"></script>
+  <script type="module" src="./src/main.js?v=20260628-iva-soportado"></script>
 </body>
 
 </html>

@@ -8,6 +8,7 @@ import { getApiUrl } from '../../config/app-config.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 import { initializeStores } from '../../stores/index.js';
 import { t } from '@/i18n/index.js';
+import { renderPersonalExtra } from '../balance/personal-extra.js';
 
 const API_BASE = getApiUrl();
 
@@ -93,6 +94,14 @@ async function _cargarDatosInternal() {
 
         // 🍷 Variantes de recetas (botella/copa)
         window.recetasVariantes = Array.isArray(recetasVariantes) ? recetasVariantes : [];
+
+        // 🍽️ Opt-in "Comida de Personal" (por restaurante, apagado por defecto).
+        // No bloquea la carga principal: aplica el gating (casilla + pestaña) en cuanto llega.
+        fetch(API_BASE + '/restaurant/comida-personal', fetchOptions)
+            .then((r) => (r.ok ? r.json() : { activa: false }))
+            .then((d) => { window.comidaPersonalActiva = d?.activa === true; })
+            .catch(() => { window.comidaPersonalActiva = false; })
+            .finally(() => window.aplicarGatingComidaPersonal?.());
 
         // ⚡ Actualizar mapas de búsqueda optimizados
         if (window.dataMaps?.update) {
@@ -190,6 +199,9 @@ export function cambiarTab(tab) {
         case 'pedidos':
             window.renderizarPedidos?.();
             break;
+        case 'comida-personal':
+            window.renderizarComidaPersonal?.();
+            break;
         case 'ventas':
             window.renderizarVentas?.();
             break;
@@ -201,6 +213,10 @@ export function cambiarTab(tab) {
             break;
         case 'diario':
             window.cargarValoresGastosFijos?.();
+            {
+                const contExtra = document.getElementById('personal-extra-list');
+                if (contExtra) renderPersonalExtra(contExtra);
+            }
             break;
         case 'analisis':
             window.renderizarAnalisis?.();
@@ -216,6 +232,12 @@ export function cambiarTab(tab) {
             window.loadSubscriptionStatus?.();
             break;
     }
+
+    // Onboarding spotlight: tras cambiar de tab, re-abrir el modal si aún
+    // hay pasos pendientes. Delay para que la pestaña destino se haya
+    // renderizado y el modal sepa "ya estás en el paso pendiente".
+    // El propio componente respeta cooldown post-cierre para no parpadear.
+    setTimeout(() => window.refreshOnboardingSpotlight?.(), 350);
 }
 
 /**

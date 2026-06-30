@@ -1,5 +1,6 @@
 import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpers.js';
 import { validarDesvioPrecio } from '../../utils/precio-validator.js';
+import { renderRequirementBanner, removeRequirementBanner } from '../../components/domain/RequirementBanner.js';
 import { t } from '@/i18n/index.js';
 /**
  * Pedidos UI Module
@@ -34,7 +35,7 @@ export function mostrarFormularioPedido() {
             (a.nombre || '').localeCompare(b.nombre || '')
         );
         const options = proveedoresOrdenados.map(prov =>
-            `<option value="${prov.id}">${prov.nombre}</option>`
+            `<option value="${prov.id}">${escapeHTML(prov.nombre)}</option>`
         ).join('');
         select.innerHTML = `<option value="">${t('pedidos:form_select_supplier')}</option>` + options;
 
@@ -267,6 +268,16 @@ export function cargarIngredientesPedido() {
     const proveedor = window.proveedores.find(p => p.id === proveedorId);
     const esCompraMercado = proveedor && proveedor.nombre.toLowerCase().includes('mercado');
 
+    // 🆕 Autorelleno IVA habitual del proveedor (Migration 013 ya alimentaba el
+    // modal de recepción; aquí lo extendemos al modal de NUEVO pedido). Si el
+    // proveedor no tiene iva_pct configurado, dejamos 0 (placeholder).
+    const ivaInput = document.getElementById('ped-iva');
+    if (ivaInput && proveedor) {
+        const ivaHabitual = (proveedor.iva_pct !== null && proveedor.iva_pct !== undefined) ? proveedor.iva_pct : 0;
+        ivaInput.value = ivaHabitual;
+        if (typeof window.calcularTotalPedido === 'function') window.calcularTotalPedido();
+    }
+
     // 🏪 Para compras del mercado: mostrar TODOS los ingredientes
     if (esCompraMercado) {
         if ((window.ingredientes || []).length === 0) {
@@ -335,7 +346,7 @@ export function agregarIngredientePedido() {
     div.style.cssText =
         'display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; flex-wrap: wrap; width: 100%; box-sizing: border-box;';
 
-    let opciones = `<option value="">${t('pedidos:form_select_supplier')}</option>`;
+    let opciones = `<option value="">${t('pedidos:form_select_ingredient')}</option>`;
     // Orden alfabético en el desplegable para que sea más fácil encontrar el ingrediente
     const ingredientesOrdenados = [...ingredientesDisponibles].sort((a, b) =>
         (a.nombre || '').localeCompare(b.nombre || '', undefined, { sensitivity: 'base' })
@@ -345,7 +356,17 @@ export function agregarIngredientePedido() {
         const formatoInfo = ing.formato_compra && ing.cantidad_por_formato
             ? `data-formato="${escapeHTML(ing.formato_compra)}" data-cantidad-formato="${escapeHTML(String(ing.cantidad_por_formato))}"`
             : '';
-        opciones += `<option value="${ing.id}" ${formatoInfo} data-unidad="${escapeHTML(ing.unidad || 'ud')}" data-precio="${parseFloat(ing.precio || 0)}">${escapeHTML(ing.nombre)} (${cm(parseFloat(ing.precio || 0))}/${escapeHTML(ing.unidad || 'ud')})</option>`;
+        // Label del dropdown: mostrar SIEMPRE €/unidad-base para que el cliente
+        // pueda comparar con el escandallo (que también va en unidades base).
+        // Si el ingrediente tiene formato (CAJA 6 botellas, GARRAFA 5 l...), el
+        // `ing.precio` es el precio del FORMATO; dividimos por cpf para obtener
+        // el precio real por unidad base. Antes mostraba "80€/botella" cuando
+        // realmente era 80€/CAJA — engañaba al cliente (Iker, 2026-06-08).
+        const precioFormato = parseFloat(ing.precio || 0);
+        const cpf = parseFloat(ing.cantidad_por_formato) > 0 ? parseFloat(ing.cantidad_por_formato) : 1;
+        const precioPorUnidadBase = precioFormato / cpf;
+        const unidadBase = ing.unidad || 'ud';
+        opciones += `<option value="${ing.id}" ${formatoInfo} data-unidad="${escapeHTML(unidadBase)}" data-precio="${precioFormato}">${escapeHTML(ing.nombre)} (${cm(precioPorUnidadBase)}/${escapeHTML(unidadBase)})</option>`;
     });
 
     // Para compras del mercado: mostrar campo de precio editable
@@ -364,6 +385,12 @@ export function agregarIngredientePedido() {
       <span class="precio-unidad-label" style="font-size: 11px; color: #64748b; align-self: center; min-width: 55px;"></span>
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">${cm(0)}</span>
       <span id="${rowId}-conversion" style="font-size: 12px; color: #64748b; min-width: 110px; text-align: center;"></span>
+      ${window.comidaPersonalActiva === true ? `
+      <label class="personal-check" title="${escapeHTML(t('pedidos:personal_tooltip'))}" style="display: flex; align-items: center; gap: 5px; font-size: 11px; color: #64748b; cursor: pointer; user-select: none; align-self: center; white-space: nowrap;">
+        <input type="checkbox" class="personal-input" onchange="this.closest('.ingrediente-item').querySelector('.personal-qty').style.display=this.checked?'inline-block':'none'" style="cursor: pointer; accent-color: #8b5cf6; width: 15px; height: 15px;">
+        🍽️ ${escapeHTML(t('pedidos:personal_label'))}
+      </label>
+      <input type="number" step="0.01" min="0" class="personal-qty" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))}" style="display: none; width: 58px; padding: 6px; border: 1px solid #8b5cf6; border-radius: 6px; text-align: center; align-self: center;">` : ''}
       <button type="button" onclick="this.parentElement.remove(); window.calcularTotalPedido()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">×</button>
       <div id="${rowId}-precio-warning" style="display: none; flex-basis: 100%; margin-top: 6px; padding: 8px 12px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; color: #92400e; font-size: 12px; font-weight: 600;"></div>
     `;
@@ -726,6 +753,21 @@ export function renderizarPedidos() {
     const filtro = document.getElementById('filtro-estado-pedido')?.value || 'todos';
     const busqueda = (document.getElementById('busqueda-pedidos')?.value || '').trim().toLowerCase();
 
+    // 🚦 Gating suave: sin proveedores no puedes crear pedidos. Banner ámbar arriba
+    // del tab. Se quita solo cuando hay >=1 proveedor.
+    const tabPedidos = document.getElementById('tab-pedidos');
+    const totalProveedores = (window.proveedores || []).length;
+    if (tabPedidos && totalProveedores === 0) {
+        renderRequirementBanner(tabPedidos, {
+            id: 'gating-pedidos-sin-proveedores',
+            message: 'Necesitas al menos un proveedor para registrar pedidos. Crea uno desde la pestaña Proveedores.',
+            ctaLabel: 'Ir a Proveedores',
+            ctaTab: 'proveedores'
+        });
+    } else {
+        removeRequirementBanner('gating-pedidos-sin-proveedores');
+    }
+
     let pedidosFiltrados = window.pedidos || [];
     if (filtro !== 'todos') {
         pedidosFiltrados = pedidosFiltrados.filter(p => p.estado === filtro);
@@ -771,33 +813,40 @@ export function renderizarPedidos() {
         const fecha = new Date(fechaStr).toLocaleDateString(getDateLocale());
         const esCompraMercado = ped.es_compra_mercado;
 
+        // 📱 Labels para vista móvil (tarjetas) — usan las MISMAS strings que el <thead>.
+        // Si data-label se ignora en desktop no afecta a nada; en móvil el CSS lo muestra.
+        const lblDate = t('pedidos:col_date');
+        const lblSupplier = t('pedidos:col_supplier');
+        const lblStatus = t('pedidos:col_status');
+        const lblActions = t('ingredientes:col_actions');
+
         html += '<tr>';
-        html += `<td>#${ped.id}</td>`;
-        html += `<td>${fecha}</td>`;
+        html += `<td data-label="ID">#${ped.id}</td>`;
+        html += `<td data-label="${lblDate}">${fecha}</td>`;
 
         // Proveedor + detalle mercado
         if (esCompraMercado && ped.detalle_mercado) {
-            html += `<td>${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}<br><small style="color:#10b981;">📍 ${escapeHTML(ped.detalle_mercado)}</small></td>`;
+            html += `<td data-label="${lblSupplier}">${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}<br><small style="color:#10b981;">📍 ${escapeHTML(ped.detalle_mercado)}</small></td>`;
         } else {
-            html += `<td>${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}</td>`;
+            html += `<td data-label="${lblSupplier}">${escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'))}</td>`;
         }
 
         // Items: descripción para mercado, count para normal
         if (esCompraMercado && ped.descripcion_mercado) {
-            html += `<td><small style="color:#64748b;">${escapeHTML(ped.descripcion_mercado)}</small></td>`;
+            html += `<td data-label="Items"><small style="color:#64748b;">${escapeHTML(ped.descripcion_mercado)}</small></td>`;
         } else {
-            html += `<td>${ped.ingredientes?.length || 0}</td>`;
+            html += `<td data-label="Items">${ped.ingredientes?.length || 0}</td>`;
         }
 
         // 🔧 FIX: Mostrar total_recibido si el pedido está recibido, si no el total original
         const totalMostrar = ped.estado === 'recibido' && ped.total_recibido ? ped.total_recibido : ped.total;
-        html += `<td>${cm(parseFloat(totalMostrar || 0))}</td>`;
+        html += `<td data-label="Total">${cm(parseFloat(totalMostrar || 0))}</td>`;
 
         const estadoClass = ped.estado === 'recibido' ? 'badge-success' : 'badge-warning';
         const estadoTexto = ped.estado === 'recibido' ? t('pedidos:status_received') : t('pedidos:status_pending');
-        html += `<td><span class="badge ${estadoClass}">${estadoTexto}</span></td>`;
+        html += `<td data-label="${lblStatus}"><span class="badge ${estadoClass}">${estadoTexto}</span></td>`;
 
-        html += `<td><div class="actions">`;
+        html += `<td data-label="${lblActions}"><div class="actions">`;
         html += `<button type="button" class="icon-btn view" onclick="window.verDetallesPedido(${ped.id})" title="${t('pedidos:btn_view_details')}">👁️</button>`;
 
         if (ped.estado === 'pendiente') {

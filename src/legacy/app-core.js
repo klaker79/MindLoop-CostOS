@@ -592,7 +592,21 @@
             const res = await fetchWithCreds(getApiBase() + '/analysis/menu-engineering', {
                 headers: getAuthHeaders(),
             });
-            if (!res.ok) throw new Error('Error al obtener ingeniería de menú');
+            if (!res.ok) {
+                // 🆕 2026-06-08: propagar trial expirado para que la UI lo pueda mostrar
+                // con un overlay claro. Antes el catch superior solo hacía console.error
+                // y dejaba al usuario con cards en 0 sin entender nada.
+                if (res.status === 403) {
+                    let body = {};
+                    try { body = await res.json(); } catch (_e) { /* body vacio */ }
+                    const err = new Error(body.error || 'Plan no permite acceso');
+                    err.status = 403;
+                    err.trial_expired = !!body.trial_expired;
+                    err.upgrade_url = body.upgrade_url || '/planes';
+                    throw err;
+                }
+                throw new Error('Error al obtener ingeniería de menú');
+            }
             return await res.json();
         },
 
@@ -946,12 +960,30 @@
         try {
             const menuAnalysisRaw = await api.getMenuEngineering(); // Nueva llamada a la API
 
-            // 🔧 FILTRO: Excluir bebidas de la ingeniería de menú (solo platos de comida)
-            // El backend ya filtra, pero doble protección en frontend
-            const menuAnalysis = menuAnalysisRaw.filter(item => {
-                const cat = (item.categoria || '').toLowerCase();
-                return cat !== 'bebidas' && cat !== 'bebida';
-            });
+            // 🔧 FILTRO categoría:
+            //   - Ranking de Rentabilidad (datosRecetas): toggle Alimentos/Bebidas/Todo,
+            //     default 'alimentos'. Iker pidió poder ver bebidas también (Bug 2026-06-08).
+            //   - Matriz BCG (menuAnalysis): SIEMPRE solo alimentos.
+            //     La metodología de Menu Engineering (Kasavana-Smith / BCG) es para platos
+            //     comparables entre sí. Mezclar bebidas (volumen alto, margen distinto,
+            //     se piden por categoría no por plato) distorsiona el cuadrante. Iker
+            //     lo confirmó: "En ingeniería de menús sólo van alimentos".
+            //   - Base SIEMPRE excluida en ambos (subproductos no vendibles).
+            const filtro = window.analisisCategoriaFilter || 'alimentos';
+            const pasaFiltro = (cat) => {
+                const c = String(cat || '').toLowerCase();
+                if (c === 'base') return false; // subproductos: nunca
+                if (filtro === 'todo') return true;
+                const esBebida = (c === 'bebidas' || c === 'bebida');
+                return filtro === 'bebidas' ? esBebida : !esBebida;
+            };
+            // BCG: filtro fijo a alimentos, NO depende del toggle.
+            const esAlimentoVendible = (cat) => {
+                const c = String(cat || '').toLowerCase();
+                return c !== 'base' && c !== 'bebidas' && c !== 'bebida';
+            };
+
+            const menuAnalysis = menuAnalysisRaw.filter(item => esAlimentoVendible(item.categoria));
 
             let totalMargen = 0;
             let totalCoste = 0;
@@ -964,11 +996,7 @@
                 return { ...rec, coste, margen, margenPct };
             });
 
-            // 🔧 FILTRO: Solo platos de comida para tabla de rentabilidad
-            const datosRecetas = datosRecetasRaw.filter(rec => {
-                const cat = (rec.categoria || '').toLowerCase();
-                return cat !== 'bebidas' && cat !== 'bebida';
-            });
+            const datosRecetas = datosRecetasRaw.filter(rec => pasaFiltro(rec.categoria));
 
             const margenPromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.margenPct, 0) / datosRecetas.length).toFixed(1) : '0';
             const costePromedio = datosRecetas.length > 0 ? (datosRecetas.reduce((sum, r) => sum + r.coste, 0) / datosRecetas.length).toFixed(2) : '0';
@@ -987,8 +1015,27 @@
 
             // RENDERIZAR INGENIERÍA DE MENÚ (Matriz BCG)
             renderMenuEngineeringUI(menuAnalysis);
+
+            // Hook al módulo nuevo (rediseño 2026-06-05): monta el dashboard
+            // sintético + filtro periodo arriba del BCG. Si el módulo no se
+            // cargó (caché vieja), no falla — try/catch lo protege.
+            try {
+                if (typeof window.mlAnalisisOnRender === 'function') {
+                    window.mlAnalisisOnRender(menuAnalysis);
+                }
+            } catch (e) {
+                console.warn('[analisis-v2] hook falló (no bloqueante):', e?.message);
+            }
         } catch (error) {
             console.error('Error renderizando análisis:', error);
+            // 🔒 2026-06-08: el overlay específico de Análisis fue retirado.
+            // Ahora el modal de "trial caducado / suscríbete" es GLOBAL — lo
+            // dispara automáticamente el interceptor de api/client.js cuando el
+            // backend responde 403 SUBSCRIPTION_REQUIRED desde cualquier endpoint.
+            // Aquí solo nos queda el log + dejar de renderizar.
+            if (error?.status === 403) {
+                // El modal global se está mostrando, no hace falta más
+            }
         }
     };
 
@@ -1669,6 +1716,39 @@
         // Estado de paginación
         window.rentabilidadPage = window.rentabilidadPage || 1;
 
+        // Toggle de categoría (Alimentos / Bebidas / Todo) — afecta a esta tabla
+        // Y a la matriz BCG (ambas comparten window.analisisCategoriaFilter).
+        // Botones renderizados dinámicamente en el contenedor #toggle-categoria-analisis,
+        // que se inyecta si no existe (idempotente). Iker 2026-06-08.
+        const T = window.t || ((k, def) => def || k);
+        const filtroActual = window.analisisCategoriaFilter || 'alimentos';
+        const opciones = [
+            { key: 'alimentos', label: T('dashboard:analysis_filter_food', '🍽️ Alimentos') },
+            { key: 'bebidas',   label: T('dashboard:analysis_filter_drinks', '🍷 Bebidas') },
+            { key: 'todo',      label: T('dashboard:analysis_filter_all', '🌐 Todo') },
+        ];
+        const contenedor = document.getElementById('tabla-rentabilidad');
+        let toggleEl = document.getElementById('toggle-categoria-analisis');
+        if (!toggleEl && contenedor) {
+            toggleEl = document.createElement('div');
+            toggleEl.id = 'toggle-categoria-analisis';
+            toggleEl.style.cssText = 'display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;';
+            contenedor.parentElement.insertBefore(toggleEl, contenedor);
+        }
+        if (toggleEl) {
+            toggleEl.innerHTML = opciones.map(opt => {
+                const active = opt.key === filtroActual;
+                const bg = active ? '#1e40af' : '#f1f5f9';
+                const color = active ? '#ffffff' : '#475569';
+                const border = active ? '#1e40af' : '#cbd5e1';
+                return `<button type="button"
+                    onclick="window.cambiarFiltroAnalisisCategoria('${opt.key}')"
+                    style="padding: 8px 16px; border-radius: 999px; border: 1px solid ${border}; background: ${bg}; color: ${color}; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+                    ${escapeHTML(opt.label)}
+                </button>`;
+            }).join('');
+        }
+
         // Función para renderizar página
         window.renderRentabilidadPage = function (page = 1) {
             const totalPages = Math.ceil(ordenados.length / ITEMS_PER_PAGE);
@@ -1697,8 +1777,17 @@
                 html += `<td>${cm(parseFloat(rec.coste || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.precio_venta || 0))}</td>`;
                 html += `<td>${cm(parseFloat(rec.margen || 0))}</td>`;
-                // 🔒 Auditoría Capa 7 (S7 / A5-C1): margen ≥67% verde, 62-66% amarillo, <62% rojo (>= en vez de >)
-                html += `<td><span class="badge ${rec.margenPct >= 67 ? 'badge-success' : rec.margenPct >= 62 ? 'badge-warning' : 'badge-danger'}">${parseFloat(rec.margenPct || 0).toFixed(1)}%</span></td>`;
+                // Threshold por categoría — bebidas tienen target distinto que alimentos
+                // (food cost ~30-35% vs wine cost ~45%, → margen mín ≥62 vs ≥55).
+                // Iker 2026-06-08: el badge de un vino al 58% antes salía rojo cuando
+                // realmente está bien para su categoría.
+                const cat = String(rec.categoria || '').toLowerCase();
+                const esBebida = cat === 'bebidas' || cat === 'bebida';
+                const thrSuccess = esBebida ? 55 : 67;
+                const thrWarning = esBebida ? 50 : 62;
+                const pct = parseFloat(rec.margenPct || 0);
+                const badgeClass = pct >= thrSuccess ? 'badge-success' : pct >= thrWarning ? 'badge-warning' : 'badge-danger';
+                html += `<td><span class="badge ${badgeClass}" title="${esBebida ? 'Target bebidas: ≥55% verde' : 'Target alimentos: ≥67% verde'}">${pct.toFixed(1)}%</span></td>`;
                 html += '</tr>';
             });
 
@@ -1723,6 +1812,20 @@
         // Renderizar primera página
         window.renderRentabilidadPage(window.rentabilidadPage);
     }
+
+    // Cambia el filtro de categoría del análisis y re-renderiza ranking + BCG.
+    // Whitelist defensiva: solo aceptamos los 3 valores conocidos. Iker 2026-06-08.
+    window.cambiarFiltroAnalisisCategoria = function (filtro) {
+        const validos = ['alimentos', 'bebidas', 'todo'];
+        if (!validos.includes(filtro)) return;
+        if (window.analisisCategoriaFilter === filtro) return;
+        window.analisisCategoriaFilter = filtro;
+        // Reset paginación: el orden cambia con el nuevo conjunto
+        window.rentabilidadPage = 1;
+        if (typeof window.renderizarAnalisis === 'function') {
+            window.renderizarAnalisis();
+        }
+    };
 
     // ========== INVENTARIO ==========
     // Cache para persistir valores de stock introducidos por el usuario
@@ -1844,10 +1947,21 @@
                     ? cachedValue
                     : (ing.stock_real !== null ? parseFloat(ing.stock_real).toFixed(2) : '');
 
+                // 📱 Labels para vista móvil (tarjetas) — usan las MISMAS traducciones que el <thead>.
+                const _tLbl = window.t || (k => k);
+                const lblSt = _tLbl('inventario:col_status');
+                const lblIg = _tLbl('inventario:col_ingredient');
+                const lblVt = _tLbl('inventario:col_virtual_stock');
+                const lblRl = _tLbl('inventario:col_real_stock');
+                const lblDf = _tLbl('inventario:col_difference');
+                const lblAp = _tLbl('inventario:col_avg_price');
+                const lblSv = _tLbl('inventario:col_stock_value');
+                const lblUn = _tLbl('inventario:col_unit');
+
                 html += '<tr>';
-                html += `<td><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
-                html += `<td><strong>${escapeHTML(ing.nombre)}</strong></td>`;
-                html += `<td><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${translateUnit(ing.unidad)}</small></span></td>`;
+                html += `<td data-label="${lblSt}"><span class="stock-indicator ${estadoClass}"></span>${estadoIcon}</td>`;
+                html += `<td data-label="${lblIg}"><strong>${escapeHTML(ing.nombre)}</strong></td>`;
+                html += `<td data-label="${lblVt}"><span class="stock-value">${parseFloat(ing.stock_virtual || 0).toFixed(2)} <small style="color:#64748b;">${translateUnit(ing.unidad)}</small></span></td>`;
 
                 // Input con evento ONINPUT para cálculo dinámico y guardar en cache
                 // Mostrar siempre el botón de conversión 📦
@@ -1876,7 +1990,7 @@
                         title="${btnTitle}">📦</button>
                    </div>`;
 
-                html += `<td>${formatoHelper}</td>`;
+                html += `<td data-label="${lblRl}">${formatoHelper}</td>`;
 
                 // Celda de Diferencia con ID único para actualizar
                 let diffDisplay = '-';
@@ -1892,9 +2006,9 @@
                     else if (d > 0) diffColor = '#10b981'; // Positivo (Sobra) -> Verde
                 }
 
-                html += `<td id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
+                html += `<td data-label="${lblDf}" id="diff-cell-${ing.id}" style="color:${diffColor}; font-weight:bold;">${diffDisplay}</td>`;
 
-                html += `<td>${cm(precioMedio)}/${translateUnit(ing.unidad)}</td>`;
+                html += `<td data-label="${lblAp}">${cm(precioMedio)}/${translateUnit(ing.unidad)}</td>`;
 
                 // Valor Stock: Por defecto usa Virtual. Si hay Real guardado, usa Real.
                 const cantidadParaValor =
@@ -1903,8 +2017,8 @@
                         : parseFloat(ing.stock_virtual || 0);
                 const valorStockCalc = cantidadParaValor * precioMedio;
 
-                html += `<td id="val-cell-${ing.id}"><strong>${cm(valorStockCalc)}</strong></td>`;
-                html += `<td>${translateUnit(ing.unidad)}</td>`;
+                html += `<td data-label="${lblSv}" id="val-cell-${ing.id}"><strong>${cm(valorStockCalc)}</strong></td>`;
+                html += `<td data-label="${lblUn}">${translateUnit(ing.unidad)}</td>`;
                 html += '</tr>';
             });
 
@@ -2344,7 +2458,20 @@
                                 const provNombre = proveedoresMap[provId] || 'Sin proveedor';
                                 const fechaPedido = new Date(p.fecha_recepcion || p.fecha);
                                 if (fechaPedido.getMonth() === ahora.getMonth() && fechaPedido.getFullYear() === ano) {
-                                    const total = parseFloat(p.total) || 0;
+                                    // 🍽️ Restar el coste de las líneas de comida personal:
+                                    // no son gasto del restaurante (van a su pestaña aparte).
+                                    let lineas = p.ingredientes;
+                                    if (typeof lineas === 'string') { try { lineas = JSON.parse(lineas); } catch (_e) { lineas = []; } }
+                                    let costePersonal = 0;
+                                    if (Array.isArray(lineas)) {
+                                        lineas.forEach(l => {
+                                            if (l.personal !== true || l.estado === 'no-entregado') return;
+                                            const cant = parseFloat(l.cantidadRecibida ?? l.cantidad) || 0;
+                                            const precio = parseFloat(l.precioReal ?? l.precioUnitario ?? l.precio_unitario) || 0;
+                                            costePersonal += cant * precio;
+                                        });
+                                    }
+                                    const total = (parseFloat(p.total) || 0) - costePersonal;
                                     gastoProveedor[provNombre] = (gastoProveedor[provNombre] || 0) + total;
                                 }
                             });
@@ -2361,11 +2488,19 @@
                     if (provTotalEl) provTotalEl.textContent = cm(totalMes);
 
                     if (provOrdenados.length > 0) {
+                        // 🎨 Paleta editorial sobria (Fase A — rediseño visual 2026-05-26,
+                        // rev. navy 2026-05-26). Sustituye los 8 gradients chillones originales
+                        // por tonos navy + tierra + ocre + grises. Distinguibles entre sí pero
+                        // sin gritar y coherente con el accent navy del tema.
                         const colores = [
-                            ['#6366F1', '#818CF8'], ['#8B5CF6', '#A78BFA'],
-                            ['#3B82F6', '#60A5FA'], ['#0EA5E9', '#38BDF8'],
-                            ['#10B981', '#34D399'], ['#F59E0B', '#FBBF24'],
-                            ['#EF4444', '#F87171'], ['#EC4899', '#F472B6']
+                            ['#1e3a5f', '#3b5d85'], // azul navy editorial (accent)
+                            ['#7a5c3a', '#9c7a55'], // marrón/tierra cálido
+                            ['#4a5b6c', '#6c7c8c'], // gris azulado sobrio
+                            ['#3b5d85', '#5d80a8'], // azul navy claro
+                            ['#8a6e3e', '#a98759'], // ocre
+                            ['#5a4a3a', '#7a6555'], // marrón oscuro
+                            ['#3a4a5a', '#5a6b7c'], // gris navy
+                            ['#2d4666', '#4d6a8e']  // navy alternativo sobrio
                         ];
                         provBarrasEl.innerHTML = provOrdenados.map(([nombre, total], i) => {
                             const pct = Math.max(8, (total / maxGasto) * 100);

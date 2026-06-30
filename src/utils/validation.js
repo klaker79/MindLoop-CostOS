@@ -10,6 +10,8 @@
  * @version 1.0.0
  */
 
+import { ALERGENOS_CODES } from '../modules/ingredientes/alergenos.js';
+
 /**
  * Resultado de validación
  * @typedef {Object} ValidationResult
@@ -153,14 +155,18 @@ export function validateIngrediente(data) {
         else sanitized.stock_actual = stock.value;
     }
 
-    // Stock mínimo (> 0). Smart Order calcula la cantidad a reponer multiplicando
-    // por stock_minimo: con valor 0 el cálculo siempre da 0 unidades a comprar y
-    // el ingrediente queda excluido en silencio (reportado por Iker 2026-05-07).
-    // Para "no quiero reposición automática" la vía correcta es desactivar el
-    // ingrediente (activo=FALSE), no dejar stock_minimo=0.
-    if (data.stock_minimo !== undefined && data.stock_minimo !== '') {
+    // Stock mínimo OBLIGATORIO (> 0). El Smart Order calcula la reposición como
+    // (stock_minimo × 2) − stock_actual: con stock_minimo ausente o 0 el cálculo
+    // da 0 y el ingrediente nunca se propone para reponer — la función queda
+    // inservible (reportado por Iker 2026-05-07 y 2026-05-29). Para "no quiero
+    // reposición automática" la vía correcta es desactivar el ingrediente
+    // (activo=FALSE), no dejarlo sin stock mínimo.
+    const stockMinReq = isRequired(data.stock_minimo, 'Stock mínimo');
+    if (!stockMinReq.valid) {
+        errors.push('Stock mínimo es obligatorio y debe ser mayor que 0 (lo usa el Smart Order para calcular la reposición)');
+    } else {
         const stockMin = isPositive(data.stock_minimo, 'Stock mínimo');
-        if (!stockMin.valid) errors.push(stockMin.error);
+        if (!stockMin.valid) errors.push('Stock mínimo debe ser mayor que 0 (lo usa el Smart Order para calcular la reposición)');
         else sanitized.stock_minimo = stockMin.value;
     }
 
@@ -175,15 +181,35 @@ export function validateIngrediente(data) {
     }
 
     // Formato compra (opcional)
-    if (data.formato_compra) {
-        sanitized.formato_compra = data.formato_compra.trim();
+    const formatoNombre = (data.formato_compra || '').trim();
+    if (formatoNombre) {
+        sanitized.formato_compra = formatoNombre;
     }
 
     // Cantidad por formato (> 0 si se especifica)
+    let cpfValue;
     if (data.cantidad_por_formato !== undefined && data.cantidad_por_formato !== '') {
         const cant = isPositive(data.cantidad_por_formato, 'Cantidad por formato');
         if (!cant.valid) errors.push(cant.error);
-        else sanitized.cantidad_por_formato = cant.value;
+        else { sanitized.cantidad_por_formato = cant.value; cpfValue = cant.value; }
+    }
+
+    // 🔒 Coherencia formato ↔ cantidad por formato (bug mermelada 2026-06-10).
+    // `precio` se guarda como €/FORMATO y TODA la app calcula el precio unitario
+    // como precio / cantidad_por_formato. Si hay cantidad_por_formato > 1 SIN
+    // nombre de formato, el ingrediente queda ambiguo: parece "por unidad" (en
+    // pedidos no sale selector de formato) pero el precio se divide igualmente
+    // por debajo → precios absurdos (3 €/bote ÷ 750 = 0,004 €/g). Exigir el
+    // nombre del formato cuando hay cantidad > 1 para que el estado sea inequívoco.
+    if (cpfValue > 1 && !formatoNombre) {
+        errors.push('Si indicas "cantidad por formato", ponle también el nombre del formato (ej. BOTE, CAJA, SACO). Si compras por unidad, deja vacía la cantidad por formato.');
+    }
+
+    // Alérgenos (opcional): si viene array, sanear a códigos válidos (los 14 UE).
+    // Si no viene, no se toca (el backend conserva el valor actual).
+    if (Array.isArray(data.alergenos)) {
+        sanitized.alergenos = data.alergenos
+            .filter(c => typeof c === 'string' && ALERGENOS_CODES.has(c));
     }
 
     return {

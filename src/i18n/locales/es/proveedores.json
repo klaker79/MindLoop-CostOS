@@ -31,5 +31,6 @@
   "form_label_phone": "Teléfono",
   "form_label_address": "Dirección",
   "form_label_notes": "Notas",
+  "form_label_iva": "IVA habitual (%)",
   "form_supplies_title": "Ingredientes vinculados"
 }

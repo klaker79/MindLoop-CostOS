@@ -2,6 +2,9 @@ import { escapeHTML, cm } from '../../utils/helpers.js';
 import { calculateIngredientCost, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 import { t } from '@/i18n/index.js';
+import { renderEmptyStateOnboarding } from '../../components/domain/EmptyStateOnboarding.js';
+import { renderRequirementBanner, removeRequirementBanner } from '../../components/domain/RequirementBanner.js';
+import { HELP_VIDEOS } from '../help/help-config.js';
 /**
  * Recetas UI Module
  * Funciones de interfaz de usuario para recetas
@@ -100,15 +103,25 @@ export function agregarIngredienteReceta(initialValue = '') {
     let optionsHtml = `<option value=""${initialValue ? '' : ' selected'}>${t('recetas:select_ingredient')}</option>`;
 
     // Ingredientes normales
+    // Mostrar SIEMPRE €/unidad-base (PMC real). Si tiene formato (CAJA 6 btl,
+    // GARRAFA 5 l), ing.precio es el precio del FORMATO → dividir por cpf.
+    // Igual fix que pedidos-ui (2026-06-08): así el label coincide con el
+    // coste de producción que muestra la receta más abajo.
     ingredientesOrdenados.forEach(ing => {
-        const precio = parseFloat(ing.precio || 0).toFixed(2);
+        const precioFormato = parseFloat(ing.precio || 0);
+        const cpf = parseFloat(ing.cantidad_por_formato) > 0 ? parseFloat(ing.cantidad_por_formato) : 1;
+        const precio = (precioFormato / cpf).toFixed(2);
         const unidad = ing.unidad || 'ud';
         optionsHtml += `<option value="${ing.id}"${sel(ing.id)}>${escapeHTML(ing.nombre)} (${cm(precio)}/${escapeHTML(unidad)})</option>`;
     });
 
     // 🧪 Añadir recetas base como ingredientes seleccionables
+    // 🔒 AUDITORÍA 2026-06-12 (M4): excluir la receta que se está EDITANDO para
+    // que no pueda contenerse a sí misma (ciclo: coste corrupto y FE/BE divergían).
+    const recetaEnEdicionId = window.editandoRecetaId || null;
     const recetasBase = (window.recetas || []).filter(r =>
-        r.categoria?.toLowerCase() === 'base' || r.categoria?.toLowerCase() === 'preparación base'
+        (r.categoria?.toLowerCase() === 'base' || r.categoria?.toLowerCase() === 'preparación base') &&
+        r.id !== recetaEnEdicionId
     );
 
     if (recetasBase.length > 0) {
@@ -121,6 +134,14 @@ export function agregarIngredienteReceta(initialValue = '') {
             optionsHtml += `<option value="rec_${rec.id}" data-es-receta="true"${sel(`rec_${rec.id}`)}>🧪 ${escapeHTML(rec.nombre)} (${cm(coste)})</option>`;
         });
     }
+
+    // Unidad del ingrediente preseleccionado (si edita una receta existente), para
+    // pintar "g"/"kg"/… junto a la cantidad. Las recetas-base (rec_X) no tienen
+    // unidad base (van por ración) → se deja el icono 📏.
+    const ingInicial = initialValue && !String(initialValue).startsWith('rec_')
+        ? (window.ingredientes || []).find(i => i.id === parseInt(initialValue))
+        : null;
+    const unidadInicial = ingInicial ? (ingInicial.unidad || '') : '';
 
     item.innerHTML = `
         <div style="flex: 2; position: relative;">
@@ -148,26 +169,28 @@ export function agregarIngredienteReceta(initialValue = '') {
                 if (ing && rendInput) {
                     rendInput.value = ing.rendimiento !== undefined && ing.rendimiento !== null ? ing.rendimiento : 100;
                 }
+                const lbl = row.querySelector('.receta-unidad-label');
+                if (lbl) lbl.textContent = ing ? (ing.unidad || '') : '📏';
                 window.calcularCosteReceta();
             ">
                 ${optionsHtml}
             </select>
         </div>
         <div style="flex: 1.5; position: relative;">
-            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #94a3b8; pointer-events: none;">📏</span>
             <input type="number" step="0.001" min="0" placeholder="${t('recetas:placeholder_quantity')}"
-                class="receta-cantidad"
-                style="width: 100%; padding: 12px 12px 12px 35px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;" 
+                class="receta-cantidad receta-input-no-spin"
+                style="width: 100%; padding: 12px 48px 12px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;"
                 onchange="window.calcularCosteReceta()">
+            <span class="receta-unidad-label" title="Unidad en la que tecleas la cantidad de este ingrediente" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 600; color: #64748b; pointer-events: none; line-height: 1; max-width: 38px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(unidadInicial) || '📏'}</span>
         </div>
-        
+
         <!-- MERMA / RENDIMIENTO EN RECETA -->
         <div style="flex: 1; position: relative;" title="% Rendimiento (Merma)">
-            <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #64748b; pointer-events: none;">%</span>
             <input type="number" step="1" min="1" max="100" placeholder="${t('recetas:placeholder_yield')}" value="100"
-                class="receta-rendimiento"
-                style="width: 100%; padding: 12px 8px 12px 25px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fffbeb;" 
+                class="receta-rendimiento receta-input-no-spin"
+                style="width: 100%; padding: 12px 30px 12px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fffbeb;"
                 onchange="window.calcularCosteReceta()">
+            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: #64748b; pointer-events: none; line-height: 1;">%</span>
         </div>
         <span class="receta-coste-linea" title="Coste de este ingrediente (cantidad × precio / rendimiento)" style="
             min-width: 72px;
@@ -343,20 +366,23 @@ window.filtrarRecetasPorCategoria = function (categoria) {
 
     // Actualizar estilos de botones
     const botones = document.querySelectorAll('#filtros-recetas .filter-btn');
+    // 🎨 Paleta editorial (Fase E rediseño 2026-05-26):
+    // - Alimentos → verde sobrio  Bebidas → marrón tierra  Base → navy
+    // Mantiene paridad con los filtros de Ingredientes y resto del tema.
     botones.forEach(btn => {
         const btnCategoria = btn.dataset.filter;
         if (btnCategoria === categoria) {
             btn.classList.add('active');
             btn.style.background = btnCategoria === 'todas' ? '#f1f5f9' :
-                btnCategoria === 'alimentos' ? '#22c55e' :
-                    btnCategoria === 'base' ? '#7c3aed' : '#3b82f6';
+                btnCategoria === 'alimentos' ? '#4a6b3e' :
+                    btnCategoria === 'base' ? '#1e3a5f' : '#7a5c3a';
             btn.style.color = btnCategoria === 'todas' ? '#475569' : 'white';
         } else {
             btn.classList.remove('active');
             btn.style.background = 'white';
-            btn.style.color = btnCategoria === 'alimentos' ? '#22c55e' :
-                btnCategoria === 'bebida' ? '#3b82f6' :
-                    btnCategoria === 'base' ? '#7c3aed' : '#475569';
+            btn.style.color = btnCategoria === 'alimentos' ? '#4a6b3e' :
+                btnCategoria === 'bebida' ? '#7a5c3a' :
+                    btnCategoria === 'base' ? '#1e3a5f' : '#475569';
         }
     });
 
@@ -415,6 +441,22 @@ export async function renderizarRecetas() {
     const container = document.getElementById('tabla-recetas');
     if (!container) return;
 
+    // 🚦 Gating suave: si el cliente no tiene ingredientes, no puede crear recetas
+    // útiles (escandallo vacío). Banner ámbar arriba del tab indicando que vaya a
+    // Ingredientes primero. Se quita solo cuando hay >=1 ingrediente.
+    const tabRecetas = document.getElementById('tab-recetas');
+    const totalIngredientes = (window.ingredientes || []).length;
+    if (tabRecetas && totalIngredientes === 0) {
+        renderRequirementBanner(tabRecetas, {
+            id: 'gating-recetas-sin-ingredientes',
+            message: 'Necesitas crear al menos un ingrediente antes de hacer recetas. Sin ingredientes, el escandallo y el food cost no se pueden calcular.',
+            ctaLabel: 'Ir a Ingredientes',
+            ctaTab: 'ingredientes'
+        });
+    } else {
+        removeRequirementBanner('gating-recetas-sin-ingredientes');
+    }
+
     // === PAGINACIÓN ===
     const ITEMS_PER_PAGE = 25;
     const totalItems = filtradas.length;
@@ -429,12 +471,41 @@ export async function renderizarRecetas() {
     const recetasPagina = filtradas.slice(startIndex, endIndex);
 
     if (filtradas.length === 0) {
-        container.innerHTML = `
+        // Cliente NUEVO sin recetas, sin filtros → empty state onboarding con video + CTAs.
+        // Si hay búsqueda/filtro activos, mantiene el empty state básico.
+        const esClienteNuevo = !busqueda && filtroRecetaCategoria === 'todas' && (window.recetas || []).length === 0;
+        if (esClienteNuevo) {
+            container.innerHTML = renderEmptyStateOnboarding({
+                icon: '👨‍🍳',
+                title: t('recetas:onb_title', { defaultValue: 'Crea tus recetas' }),
+                subtitle: t('recetas:onb_subtitle', {
+                    defaultValue: 'Tu escandallo y food cost se calculan automáticamente. Mira el video y empieza por la receta más vendida.'
+                }),
+                videoId: HELP_VIDEOS?.recetas?.videos?.[0]?.videoId || null,
+                primaryCta: {
+                    label: t('recetas:onb_cta_import', { defaultValue: '📥 Importar desde Excel' }),
+                    onclick: 'window.mostrarModalImportarRecetas?.()'
+                },
+                secondaryCta: {
+                    label: t('recetas:onb_cta_manual', { defaultValue: '✏️ Crear receta' }),
+                    onclick: 'window.mostrarFormularioReceta?.()'
+                },
+                templateDownload: {
+                    url: '/templates/plantilla-recetas.csv',
+                    label: '📥 Descargar plantilla de ejemplo (CSV)'
+                },
+                tertiaryHelp: t('recetas:onb_help', {
+                    defaultValue: 'Necesitas tener ingredientes antes. Si no los tienes, ve a la pestaña Ingredientes primero.'
+                })
+            });
+        } else {
+            container.innerHTML = `
       <div class="empty-state">
         <div class="icon">👨‍🍳</div>
         <h3>${busqueda || filtroRecetaCategoria !== 'todas' ? t('recetas:empty_not_found') : t('recetas:empty_none_yet')}</h3>
       </div>
     `;
+        }
         document.getElementById('resumen-recetas').style.display = 'none';
     } else {
         let html = '<table><thead><tr>';
@@ -478,15 +549,22 @@ export async function renderizarRecetas() {
             const categoriaBadge = esBase ? 'badge-purple' : esBebida ? 'badge-info' : 'badge-success';
             html += `<td><span class="badge ${categoriaBadge}">${escapeHTML(rec.categoria)}</span></td>`;
             html += `<td>${cm(coste)}</td>`;
-            html += `<td>${cm(rec.precio_venta || 0)}</td>`;
-            html += `<td><span class="badge ${badgeClass}">${cm(margen)} (${pct}%)</span></td>`;
+            // Subproductos base no se venden → no tiene sentido PVP ni margen.
+            // Mostrar "—" con badge gris para no engañar con "0% rojo". Iker 2026-06-08.
+            if (esBase) {
+                html += `<td><span style="color:#94a3b8;" title="Los subproductos no se venden al cliente">—</span></td>`;
+                html += `<td><span class="badge" style="background:#e2e8f0;color:#475569;">N/A</span></td>`;
+            } else {
+                html += `<td>${cm(rec.precio_venta || 0)}</td>`;
+                html += `<td><span class="badge ${badgeClass}">${cm(margen)} (${pct}%)</span></td>`;
+            }
             html += `<td><div class="actions">`;
             html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="${t('recetas:btn_view_escandallo')}">📊</button>`;
+            html += `<button class="icon-btn" onclick="window.exportarEscandalloReceta(${rec.id})" title="${t('recetas:export_escandallo_btn')}">📋</button>`;
             // Botón de variantes solo para bebidas (botella/copa)
             if (rec.categoria?.toLowerCase() === 'bebidas' || rec.categoria?.toLowerCase() === 'bebida') {
                 html += `<button class="icon-btn" onclick="window.gestionarVariantesReceta(${rec.id})" title="${t('recetas:btn_variants')}" style="color: #7C3AED;">🍷</button>`;
             }
-            html += `<button class="icon-btn produce" onclick="window.abrirModalProducir(${rec.id})">⬇️</button>`;
             html += `<button class="icon-btn edit" onclick="window.editarReceta(${rec.id})">✏️</button>`;
             html += `<button class="icon-btn delete" onclick="window.eliminarReceta(${rec.id})">🗑️</button>`;
             html += '</div></td>';
@@ -522,9 +600,6 @@ export async function renderizarRecetas() {
               <div>${t('recetas:summary_total', { count: recetas.length })}</div>
               <div>${t('recetas:summary_filtered', { count: filtradas.length })}</div>
               <div>${t('recetas:summary_showing', { count: `${startIndex + 1}-${Math.min(endIndex, totalItems)}` })}</div>
-              <button onclick="window.mostrarCostTracker()" style="margin-left: auto; background: linear-gradient(135deg, #7C3AED, #5B21B6); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                📊 ${t('recetas:btn_cost_tracking')}
-              </button>
             `;
             resumenEl.style.display = 'flex';
         }
@@ -534,80 +609,6 @@ export async function renderizarRecetas() {
 /**
  * Exporta recetas a Excel
  */
-export function exportarRecetas() {
-    const recetas = Array.isArray(window.recetas) ? window.recetas : [];
-    const ingredientes = Array.isArray(window.ingredientes) ? window.ingredientes : [];
-
-    // ⚡ OPTIMIZACIÓN: Crear Maps O(1) una vez
-    const ingredientesMap = new Map(ingredientes.map(i => [i.id, i]));
-    const inventarioMap = new Map((window.inventarioCompleto || []).map(inv => [inv.id, inv]));
-
-    // Pre-calcular coste de cada receta UNA SOLA VEZ
-    const costesCalculados = new Map();
-    recetas.forEach(rec => {
-        const porciones = parseInt(rec.porciones) || 1;
-        const costeLote = (rec.ingredientes || []).reduce((sum, item) => {
-            const ing = ingredientesMap.get(item.ingredienteId);
-            if (!ing) return sum;
-
-            // 💰 Precio unitario: función centralizada (precio_medio_compra > precio_medio > precio/cpf)
-            const invItem = inventarioMap.get(item.ingredienteId);
-            const precioUnitario = getIngredientUnitPrice(invItem, ing);
-
-            // Rendimiento: priorizar el de la receta, fallback al ingrediente base
-            let rendimiento = parseFloat(item.rendimiento);
-            if (!rendimiento) {
-                rendimiento = ing?.rendimiento ? parseFloat(ing.rendimiento) : 100;
-            }
-            const factorRendimiento = rendimiento / 100;
-            const costeReal = factorRendimiento > 0 ? (precioUnitario / factorRendimiento) : precioUnitario;
-
-            return sum + (costeReal * parseFloat(item.cantidad));
-        }, 0);
-        costesCalculados.set(rec.id, costeLote / porciones);
-    });
-
-    const columnas = [
-        { header: 'ID', key: 'id' },
-        { header: t('recetas:export_col_code'), value: rec => rec.codigo || `REC-${String(rec.id).padStart(4, '0')}` },
-        { header: t('recetas:export_col_name'), key: 'nombre' },
-        { header: t('recetas:export_col_category'), key: 'categoria' },
-        { header: t('recetas:export_col_sale_price'), value: rec => parseFloat(rec.precio_venta || 0).toFixed(2) },
-        {
-            header: t('recetas:export_col_cost'),
-            value: rec => costesCalculados.get(rec.id).toFixed(2),
-        },
-        {
-            header: t('recetas:export_col_margin_eur'),
-            value: rec => {
-                const coste = costesCalculados.get(rec.id);
-                return (parseFloat(rec.precio_venta || 0) - coste).toFixed(2);
-            },
-        },
-        {
-            header: t('recetas:export_col_margin_pct'),
-            value: rec => {
-                const coste = costesCalculados.get(rec.id);
-                const margen =
-                    rec.precio_venta > 0
-                        ? ((parseFloat(rec.precio_venta) - coste) / parseFloat(rec.precio_venta)) *
-                        100
-                        : 0;
-                return margen.toFixed(1) + '%';
-            },
-        },
-        { header: t('recetas:export_col_servings'), key: 'porciones' },
-        { header: t('recetas:export_col_num_ingredients'), value: rec => (rec.ingredientes || []).length },
-    ];
-
-    if (
-        typeof window.exportarAExcel === 'function' &&
-        typeof window.getRestaurantNameForFile === 'function'
-    ) {
-        window.exportarAExcel(recetas, `Recetas_${window.getRestaurantNameForFile()}`, columnas);
-    }
-}
-
 /**
  * 🧮 Simulador de Precio: actualiza precio sugerido en tiempo real
  * Lee el coste actual del panel y el food cost deseado del slider/input.

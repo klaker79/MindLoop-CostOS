@@ -12,6 +12,7 @@
 
 import { apiClient } from '../../../api/client.js';
 import { rangoPeriodo } from '../_shared.js';
+import { FOOD_COST_THRESHOLDS } from '../../../utils/food-cost-thresholds.js';
 import { t } from '@/i18n/index.js';
 
 export async function actualizarMargenReal(periodo) {
@@ -37,13 +38,14 @@ export async function actualizarMargenReal(periodo) {
         const foodCost = parseFloat(foodData.food_cost_pct) || 0;
         const bevCost = parseFloat(bevData.food_cost_pct) || 0;
 
+        const { EXCELLENT_MAX, TARGET_MAX, WATCH_MAX } = FOOD_COST_THRESHOLDS;
         margenEl.textContent = Math.round(foodCost) + '%';
-        margenEl.style.color = foodCost <= 30 ? '#059669' : foodCost <= 35 ? '#0EA5E9' : foodCost <= 40 ? '#D97706' : '#DC2626';
+        margenEl.style.color = foodCost <= EXCELLENT_MAX ? '#059669' : foodCost <= TARGET_MAX ? '#0EA5E9' : foodCost <= WATCH_MAX ? '#D97706' : '#DC2626';
 
         if (fcBar) {
             const barWidth = Math.min(foodCost, 50) * 2;
             fcBar.style.width = barWidth + '%';
-            fcBar.style.background = foodCost <= 30 ? '#059669' : foodCost <= 35 ? '#0EA5E9' : foodCost <= 40 ? '#D97706' : '#DC2626';
+            fcBar.style.background = foodCost <= EXCELLENT_MAX ? '#059669' : foodCost <= TARGET_MAX ? '#0EA5E9' : foodCost <= WATCH_MAX ? '#D97706' : '#DC2626';
         }
 
         if (fcDetail) {

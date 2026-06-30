@@ -7,6 +7,8 @@
 import { loadKPIDashboard } from '../../components/domain/KPIDashboard.js';
 import { renderQuickActions } from '../../components/domain/QuickActions.js';
 import { renderOnboardingBanner } from '../../components/domain/OnboardingBanner.js';
+import { renderOnboardingChecklist } from '../../components/domain/OnboardingChecklist.js';
+import { renderOnboardingSpotlight } from '../../components/domain/OnboardingSpotlight.js';
 
 import { showSkeletonIn, isDataLoaded } from './_shared.js';
 import { inicializarFechaActual } from './kpis/fecha-actual.js';
@@ -33,15 +35,19 @@ let periodoVistaActual = 'semana';
 export function cambiarPeriodoVista(periodo) {
     periodoVistaActual = periodo;
 
-    // Actualizar botones activos
+    // Actualizar botones activos. Usar clases (no style inline) para que
+    // el CSS del tema editorial (Fase E.1) pueda pintar navy en el activo.
+    // Antes hardcodeaba style.background = '#0ea5e9' (azul cielo) pero
+    // chocaba con .periodo-btn { background: white !important } del tema.
     document.querySelectorAll('.periodo-btn').forEach(btn => {
         if (btn.dataset.periodo === periodo) {
-            btn.style.background = '#0ea5e9';
-            btn.style.color = 'white';
+            btn.classList.add('active');
         } else {
-            btn.style.background = 'white';
-            btn.style.color = '#0369a1';
+            btn.classList.remove('active');
         }
+        // Limpiar inline styles antiguos por si quedan de cargas previas.
+        btn.style.background = '';
+        btn.style.color = '';
     });
 
     // Actualizar KPIs según período
@@ -53,6 +59,25 @@ export function cambiarPeriodoVista(periodo) {
  * Actualiza todos los KPIs del dashboard
  */
 export async function actualizarKPIs() {
+    // Onboarding (cliente nuevo): se renderiza ANTES del guard de datos cargados.
+    // Spotlight modal centrado + widget pequeño fallback (post-skip).
+    // Para un tenant nuevo isDataLoaded() es false y sin esto el widget jamás
+    // aparecía — justo el caso que más lo necesita.
+    try {
+        const dashboardContentEarly = document.querySelector('.dashboard-content') ||
+            document.querySelector('#dashboard') ||
+            document.querySelector('.main-content') ||
+            document.querySelector('main');
+        if (dashboardContentEarly) {
+            renderOnboardingChecklist(dashboardContentEarly);
+        }
+        // Modal grande spotlight (Iker 2026-06-03): mas visible que el widget.
+        // Se auto-suprime si el cliente lo skipea (sessionStorage) o si onboarding ya completado.
+        renderOnboardingSpotlight();
+    } catch (e) {
+        console.log('Onboarding widgets no disponibles:', e.message);
+    }
+
     // 💀 Si no hay datos aún, mostrar skeletons y salir
     if (!isDataLoaded()) {
         showSkeletonIn(document.getElementById('kpi-ingresos'));
@@ -97,6 +122,9 @@ export async function actualizarKPIs() {
             document.querySelector('main');
         if (dashboardContent) {
             renderOnboardingBanner(dashboardContent);
+            // Checklist persistente 4 pasos (proveedores -> ingredientes -> recetas -> pedidos)
+            // Se inserta arriba del todo hasta que el tenant complete los 4 pasos.
+            renderOnboardingChecklist(dashboardContent);
         }
     } catch (e) {
         console.log('Onboarding banner no disponible:', e.message);

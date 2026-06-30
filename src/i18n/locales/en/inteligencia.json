@@ -28,5 +28,50 @@
   "day_short_wed": "Wed",
   "day_short_thu": "Thu",
   "day_short_fri": "Fri",
-  "day_short_sat": "Sat"
+  "day_short_sat": "Sat",
+
+  "omnes_title": "Omnes",
+  "omnes_tagline": "Omnes sees everything. You decide.",
+  "omnes_loading": "Omnes is reviewing your business…",
+  "omnes_chip_ok": "All clear",
+  "omnes_chip_crit_one": "{{count}} critical",
+  "omnes_chip_crit_other": "{{count}} critical",
+  "omnes_chip_aten_one": "{{count}} to watch",
+  "omnes_chip_aten_other": "{{count}} to watch",
+  "omnes_empty_title": "All clear",
+  "omnes_empty_sub": "Omnes sees nothing urgent right now. Keep it up.",
+  "omnes_dismiss": "Dismiss alert",
+  "omnes_ask_btn": "Ask Omnes",
+  "omnes_ask_unavailable": "Open the Omnes assistant to ask.",
+  "omnes_ask_prefix": "About this alert: ",
+  "omnes_ask_recetas": "Why isn't it profitable and what price do you suggest?",
+  "omnes_ask_stock": "How much should I order?",
+  "omnes_ask_precio": "Why did it go up and what can I do?",
+  "omnes_ask_frescura": "What should I do so I don't lose it?",
+  "omnes_ask_sobrestock": "How do I reduce this stock?",
+  "omnes_ask_default": "Explain it and give me a plan.",
+  "omnes_sec_recetas": "Unprofitable recipes",
+  "omnes_sec_stock": "Critical stock",
+  "omnes_sec_frescura": "Freshness",
+  "omnes_sec_precio": "Price increases",
+  "omnes_sec_sobrestock": "Overstock",
+
+  "omnes_t_receta_no_renta": "Recipe not paying off",
+  "omnes_x_receta_no_renta": "“{{nombre}}” is running at {{fc}}% food cost. Raise it to {{precio}} or take it off the menu.",
+  "omnes_cta_ajustar_precio": "Adjust price",
+
+  "omnes_t_stock_critico": "Critical stock",
+  "omnes_x_stock_cero": "You've run out of “{{nombre}}”. Order it now.",
+  "omnes_x_stock_bajo": "{{stock}} {{unidad}} of “{{nombre}}” left (minimum {{min}}). Time to restock.",
+  "omnes_cta_pedir": "Place order",
+
+  "omnes_t_precio_sube": "A price went up",
+  "omnes_x_precio_sube": "“{{nombre}}” rose {{pct}}% on your last purchase: from {{antes}} to {{ahora}}/{{unidad}}. Keep an eye on it.",
+  "omnes_cta_ver_ingrediente": "View ingredient",
+
+  "omnes_t_frescura": "Freshness",
+  "omnes_x_frescura": "{{stock}} {{unidad}} of “{{nombre}}” has been in storage for {{dias}} days. Use it before it's lost.",
+
+  "omnes_t_sobrestock": "Overstock",
+  "omnes_x_sobrestock": "You have {{stock}} {{unidad}} of “{{nombre}}”, about {{dias}} days of stock. Don't reorder it yet."
 }
