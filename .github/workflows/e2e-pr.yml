@@ -24,8 +24,17 @@ concurrency:
   group: e2e-pr-${{ github.ref }}
   cancel-in-progress: true
 
+# Permisos mínimos necesarios (CodeQL alert "Workflow does not contain permissions").
+permissions:
+  contents: read
+
 jobs:
   e2e:
+    # Skipear E2E para PRs de Dependabot: GitHub no expone secrets normales
+    # del repo a PRs creados por bots (decisión de seguridad de GH desde 2021),
+    # así que Playwright no puede loguear contra staging y siempre falla.
+    # El nightly E2E (e2e-nightly.yml) detecta regresiones reales esa noche.
+    if: github.actor != 'dependabot[bot]'
     name: Playwright E2E against staging.mindloop.cloud
     runs-on: ubuntu-latest
     timeout-minutes: 15

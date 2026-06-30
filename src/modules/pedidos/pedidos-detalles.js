@@ -97,7 +97,7 @@ export function verDetallesPedido(pedidoId) {
 
             ingredientesHtml += `
               <tr style="border-bottom: 1px solid #F1F5F9;">
-                <td style="padding: 12px;"><strong>${escapeHTML(nombreIng)}</strong></td>
+                <td style="padding: 12px;"><strong>${escapeHTML(nombreIng)}</strong>${item.personal === true ? ` <span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#7c3aed;background:#ede9fe;border-radius:6px;padding:2px 7px;white-space:nowrap;">🍽️ ${escapeHTML(t('pedidos:personal_label'))}</span>` : ''}</td>
                 <td style="padding: 12px; text-align: center;">
                   ${cantidadDisplay}
                   ${esRecibido && Math.abs(varianzaCant) > 0.01 ? `<br><small style="color:${varianzaCant > 0 ? '#10B981' : '#EF4444'};">→ ${cantRecibida.toFixed(2)} (${varianzaCant > 0 ? '+' : ''}${varianzaCant.toFixed(2)})</small>` : ''}
@@ -142,6 +142,28 @@ export function verDetallesPedido(pedidoId) {
     const detalleMercadoHtml = ped.detalle_mercado
         ? `<p style="margin: 5px 0 0; color: #10b981; font-size: 13px;">📍 ${escapeHTML(ped.detalle_mercado)}</p>`
         : '';
+
+    // 🧾 Desglose IVA (Migración 015). Solo display/tesorería: la base es el
+    // total del pedido (lo recibido si está recibido, lo pedido si pendiente),
+    // que NO incluye IVA. El IVA es informativo para cuadrar con la factura;
+    // NO afecta a food cost ni al gasto del P&L (esos usan la base).
+    const ivaPctDet = (ped.iva_pct !== null && ped.iva_pct !== undefined) ? parseFloat(ped.iva_pct) : 0;
+    const baseIvaDet = esRecibido ? totalRecibido : parseFloat(ped.total || totalOriginal || 0);
+    const ivaImporteDet = baseIvaDet * (ivaPctDet / 100);
+    // 💸 Bonificación del albarán (Migración 016): informativa. Ya viene aplicada al
+    // coste de las líneas (precioReal neto) y al total; aquí solo se muestra para cuadrar.
+    const bonifDet = (ped.bonificacion !== null && ped.bonificacion !== undefined) ? parseFloat(ped.bonificacion) : 0;
+    const bonifHtml = (bonifDet > 0) ? `
+      <div style="margin-top: 15px; padding: 12px 20px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 12px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="color:#b91c1c; font-weight:600;">${t('pedidos:detail_bonif')}</span>
+        <strong style="color:#b91c1c;">- ${cm(bonifDet)}</strong>
+      </div>` : '';
+    const ivaHtml = (ivaPctDet > 0) ? `
+      <div style="margin-top: 15px; padding: 14px 20px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px;">
+        <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">${t('pedidos:detail_base')}</span><strong>${cm(baseIvaDet)}</strong></div>
+        <div style="display:flex; justify-content:space-between; margin-top:6px;"><span style="color:#92400e; font-weight:600;">${t('pedidos:detail_iva', { pct: ivaPctDet })}</span><strong style="color:#92400e;">${cm(ivaImporteDet)}</strong></div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px; border-top:1px solid #fde68a; padding-top:8px;"><strong>${t('pedidos:detail_total_with_iva')}</strong><strong style="font-size:18px; color:#059669;">${cm(baseIvaDet + ivaImporteDet)}</strong></div>
+      </div>` : '';
 
     const html = `
       <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
@@ -195,6 +217,8 @@ export function verDetallesPedido(pedidoId) {
       </div>
       `
         }
+      ${bonifHtml}
+      ${ivaHtml}
     `;
 
     const contenedor = document.getElementById('modal-ver-pedido-contenido');

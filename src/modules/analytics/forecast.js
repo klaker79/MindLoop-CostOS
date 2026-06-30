@@ -34,6 +34,9 @@ export function calcularForecast(ventas, dias = 7) {
     // Calculate week comparison (this week vs last week)
     const comparativaSemana = calcularComparativaSemana(ventasPorDia);
 
+    // Calculate 4-week-vs-4-week trend (medium-term direction)
+    const tendencia = calcularTendencia4S(ventasPorDia);
+
     // Generate forecast
     const predicciones = [];
     const hoy = new Date();
@@ -45,8 +48,8 @@ export function calcularForecast(ventas, dias = 7) {
         const diaSemana = fechaFutura.getDay();
         const factorDia = patronSemanal[diaSemana] || 1;
 
-        // Predicted value = moving average * day pattern factor
-        const prediccion = Math.round(mediaMovil * factorDia);
+        // Predicted value = moving average * day pattern factor * trend factor
+        const prediccion = Math.round(mediaMovil * factorDia * tendencia.factor);
 
         predicciones.push({
             fecha: fechaFutura.toISOString().split('T')[0],
@@ -63,14 +66,110 @@ export function calcularForecast(ventas, dias = 7) {
     // Total forecast
     const totalPrediccion = predicciones.reduce((sum, p) => sum + p.prediccion, 0);
 
+    // Confidence interval (band ± σ × √N) around the total
+    const horquilla = calcularHorquillaTotal(predicciones, ventasPorDia);
+
     return {
         predicciones,
         chartData,
         totalPrediccion,
         mediaMovil,
         confianza: calcularConfianza(ventasPorDia),
-        comparativaSemana
+        comparativaSemana,
+        tendencia,
+        horquilla
     };
+}
+
+/**
+ * Calculates a confidence band (min/max) around the total prediction using the
+ * daily standard deviation over the last 30 days. The total band scales with √N
+ * because daily noise is independent (assumed).
+ *
+ * Returns sigmaDiario=null when fewer than 7 days of data are available — not
+ * enough to estimate variability honestly.
+ */
+export function calcularHorquillaTotal(predicciones, ventasPorDia) {
+    if (!predicciones || predicciones.length === 0) {
+        return { min: 0, max: 0, sigmaDiario: 0 };
+    }
+
+    const fechas = Object.keys(ventasPorDia || {}).sort();
+    if (fechas.length < 7) {
+        return { min: null, max: null, sigmaDiario: null };
+    }
+
+    // Use last 30 days (or whatever is available) for σ
+    const ultimos = fechas.slice(-30).map(f => ventasPorDia[f]);
+    const media = ultimos.reduce((a, b) => a + b, 0) / ultimos.length;
+    const varianza = ultimos.reduce((acc, v) => acc + (v - media) ** 2, 0) / ultimos.length;
+    const sigmaDiario = Math.sqrt(varianza);
+
+    const total = predicciones.reduce((sum, p) => sum + p.prediccion, 0);
+    const banda = Math.round(sigmaDiario * Math.sqrt(predicciones.length));
+
+    return {
+        min: Math.max(0, Math.round(total - banda)),
+        max: Math.round(total + banda),
+        sigmaDiario: Math.round(sigmaDiario)
+    };
+}
+
+/**
+ * Compares the last 4 weeks (days 0..27) with the 4 weeks before (days 28..55)
+ * and returns a multiplicative factor to apply to the daily prediction.
+ *
+ * Capped at [0.7, 1.4] to stay defensive against outliers. Requires ≥56 days
+ * of data and a non-zero prior period to be applicable; otherwise factor=1.
+ */
+export function calcularTendencia4S(ventasPorDia) {
+    const fechas = Object.keys(ventasPorDia || {}).sort();
+    if (fechas.length < 56) {
+        return { factor: 1, porcentaje: 0, direccion: 'estable', aplicable: false };
+    }
+
+    // Las claves YYYY-MM-DD vienen de .toISOString() (UTC). Trabajamos también
+    // en UTC con timestamps numéricos para eliminar cualquier ambigüedad de
+    // timezone. Bug detectado en code review: el primer intento parseaba en
+    // local y el filtro descalibraba un día en tenants con offset (Stefania KL).
+    const DIA_MS = 24 * 60 * 60 * 1000;
+    const parseFechaUTCms = (s) => {
+        const [y, m, d] = s.split('-').map(Number);
+        return Date.UTC(y, m - 1, d);
+    };
+
+    // Ventanas estrictamente de 28 días cada una, sin solapar.
+    // Reciente:  [hoy-27 .. hoy]      (28 días incluyendo hoy)
+    // Anterior:  [hoy-55 .. hoy-28]   (28 días anteriores)
+    const ahora = new Date();
+    const hoyMs = Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), ahora.getUTCDate());
+    const limiteRecienteMs = hoyMs - 27 * DIA_MS;
+    const limiteAnteriorMs = hoyMs - 55 * DIA_MS;
+
+    let sumaReciente = 0;
+    let sumaAnterior = 0;
+    fechas.forEach(f => {
+        const dMs = parseFechaUTCms(f);
+        if (dMs >= limiteRecienteMs && dMs <= hoyMs) sumaReciente += ventasPorDia[f];
+        else if (dMs >= limiteAnteriorMs && dMs < limiteRecienteMs) sumaAnterior += ventasPorDia[f];
+    });
+
+    if (sumaAnterior <= 0) {
+        return { factor: 1, porcentaje: 0, direccion: 'estable', aplicable: false };
+    }
+
+    const ratio = sumaReciente / sumaAnterior;
+    const factor = Math.max(0.7, Math.min(1.4, ratio));
+    // El porcentaje mostrado al usuario debe reflejar el factor REALMENTE
+    // aplicado (capped), no el ratio bruto. Si las ventas se multiplican por
+    // 5 mostrar "↑500%" engaña porque la predicción solo aplicó ×1.4.
+    const porcentaje = Math.round((factor - 1) * 100);
+
+    let direccion = 'estable';
+    if (porcentaje > 3) direccion = 'up';
+    else if (porcentaje < -3) direccion = 'down';
+
+    return { factor, porcentaje, direccion, aplicable: true };
 }
 
 /**
@@ -331,17 +430,18 @@ export async function renderForecastChart(containerId, chartData) {
     const canvas = ctx.canvas || ctx;
     const chartCtx = canvas.getContext ? canvas.getContext('2d') : ctx;
 
-    // Green gradient for actual sales
-    const greenGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
-    greenGradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
-    greenGradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.12)');
-    greenGradient.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
+    // 🎨 Paleta editorial Fase D (2026-05-26, rev. navy):
+    // - Ventas reales: azul navy editorial (en lugar de verde fluo)
+    // - Proyección: marrón tierra cálido (mantiene, diferencia bien del navy)
+    const navyGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
+    navyGradient.addColorStop(0, 'rgba(30, 58, 95, 0.32)');
+    navyGradient.addColorStop(0.5, 'rgba(30, 58, 95, 0.10)');
+    navyGradient.addColorStop(1, 'rgba(30, 58, 95, 0.02)');
 
-    // Purple gradient for forecast
-    const purpleGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
-    purpleGradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
-    purpleGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.1)');
-    purpleGradient.addColorStop(1, 'rgba(139, 92, 246, 0.01)');
+    const tierraGradient = chartCtx.createLinearGradient(0, 0, 0, canvas.height || 80);
+    tierraGradient.addColorStop(0, 'rgba(122, 92, 58, 0.28)');
+    tierraGradient.addColorStop(0.5, 'rgba(122, 92, 58, 0.09)');
+    tierraGradient.addColorStop(1, 'rgba(122, 92, 58, 0.01)');
 
     window._forecastChart = new Chart(ctx, {
         type: 'line',
@@ -351,36 +451,36 @@ export async function renderForecastChart(containerId, chartData) {
                 {
                     label: t('dashboard:forecast_chart_actual'),
                     data: chartData.historico,
-                    borderColor: '#10B981',
-                    backgroundColor: greenGradient,
+                    borderColor: '#1e3a5f',
+                    backgroundColor: navyGradient,
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 5,
                     pointHoverRadius: 8,
-                    pointBackgroundColor: '#10B981',
+                    pointBackgroundColor: '#1e3a5f',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
                     pointHoverBorderWidth: 3,
-                    pointHoverBackgroundColor: '#10B981',
+                    pointHoverBackgroundColor: '#1e3a5f',
                     pointHoverBorderColor: '#ffffff'
                 },
                 {
                     label: t('dashboard:forecast_chart_projection'),
                     data: chartData.forecast,
-                    borderColor: '#8B5CF6',
-                    backgroundColor: purpleGradient,
+                    borderColor: '#7a5c3a',
+                    backgroundColor: tierraGradient,
                     borderWidth: 2.5,
                     borderDash: [6, 4],
                     fill: true,
                     tension: 0.4,
                     pointRadius: 5,
                     pointHoverRadius: 8,
-                    pointBackgroundColor: '#8B5CF6',
+                    pointBackgroundColor: '#7a5c3a',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
                     pointHoverBorderWidth: 3,
-                    pointHoverBackgroundColor: '#8B5CF6',
+                    pointHoverBackgroundColor: '#7a5c3a',
                     pointHoverBorderColor: '#ffffff',
                     pointStyle: 'rectRounded'
                 }

@@ -289,27 +289,27 @@
     ]
   },
   "inteligencia": {
-    "title": "ℹ️ Intelligence — quick guide",
-    "lead": "Two panels that monitor your business without being asked: stock approaching expiry, and recipes with thin margin.",
+    "title": "ℹ️ Omnes — quick guide",
+    "lead": "Omnes's alert feed, your financial chef: it watches your business and surfaces only what needs your attention, grouped by type.",
     "blocks": [
       {
-        "title": "🧊 Stock Freshness",
-        "body": "List of fresh products to use before they expire. Computed from last purchase date and historical consumption pattern. Items appear flagged \"📋 Use today\" or \"⚠️ Review\" by urgency. Prevents food waste.",
+        "title": "🦉 Proactive alerts",
+        "body": "Omnes reviews your data and shows only what's actionable, in cards grouped by type: 📉 recipes with thin margin, 📦 stock below minimum, 🧊 fresh products to use, 📈 ingredients that went up in price, and 🗄️ excess stock. Each alert comes with its level (critical or watch).",
         "color": "blue"
       },
       {
-        "title": "💰 Price Review",
-        "body": "Recipes with thin margin or high food cost. These are your dishes on alert: either you pay too much for their ingredients (renegotiate with supplier) or you have to raise the sale price. The app shows current cost, food cost % and a suggested price.",
+        "title": "🦉 Ask Omnes",
+        "body": "Every alert has an \"Ask Omnes\" button that opens the chat with the question already written about that specific point, so you can dig deeper or get the fix instantly.",
         "color": "amber"
       },
       {
-        "title": "🔄 Live update",
-        "body": "Panels refresh every time you enter the tab. The \"Refresh\" button forces recompute if you just loaded recent data and want to see it instantly (e.g. just imported the day's POS).",
+        "title": "✕ Dismiss",
+        "body": "If an alert no longer matters, dismiss it with the ✕. It disappears from your feed (only for your restaurant) and makes room for what counts.",
         "color": "blue"
       },
       {
         "title": "💡 Tip",
-        "body": "Check this tab on Monday mornings together with the Diary. In 2 minutes you know what product to use today and what recipe needs adjusting this month. It's your \"quick dashboard\" before starting the week.",
+        "body": "Glance at it when starting the week: in a minute you see what recipe to adjust, what to reorder and what product to use today. And whatever you don't understand, ask Omnes right from the alert.",
         "color": "green"
       }
     ]

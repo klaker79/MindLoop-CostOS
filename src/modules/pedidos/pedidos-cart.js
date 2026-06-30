@@ -11,6 +11,9 @@ import { tenantKey } from '../../utils/tenant-storage.js';
 let carrito = [];
 let carritoProveedorId = null;
 let carritoFecha = null;
+// 🧾 IVA del albarán para el carrito (Migración 015). Solo display/tesorería:
+// NO entra en el `total` (base) que se manda al backend ni en food cost/stock.
+let carritoIvaPct = null;
 
 // Guard anti-doble-click: evita que confirmarCarrito se ejecute dos veces seguidas
 // y cree pedidos duplicados si el usuario hace doble click en el botón de confirmar.
@@ -37,11 +40,13 @@ function initCarrito() {
             carrito = data.items || [];
             carritoProveedorId = data.proveedorId || null;
             carritoFecha = data.fecha || null;
+            carritoIvaPct = (data.ivaPct !== undefined) ? data.ivaPct : null;
         }
     } catch (e) {
         console.error('Error cargando carrito:', e);
         carrito = [];
         carritoProveedorId = null;
+        carritoIvaPct = null;
     }
     actualizarBadgeCarrito();
 }
@@ -59,6 +64,7 @@ function guardarCarrito() {
         items: carrito,
         proveedorId: carritoProveedorId,
         fecha: carritoFecha,
+        ivaPct: carritoIvaPct,
         updatedAt: new Date().toISOString()
     }));
     actualizarBadgeCarrito();
@@ -140,9 +146,17 @@ window.agregarAlCarrito = async function (ingredienteId, cantidad = 1, proveedor
         precioFormato = parseFloat(ing.precio || 0);
     }
 
-    // Si el carrito está vacío, establecer el proveedor
+    // Si el carrito está vacío, establecer el proveedor + IVA del albarán.
+    // 🧾 IVA (Migración 015): prioriza lo tecleado en el formulario (#ped-iva);
+    // si no, el IVA habitual del proveedor. Solo display/tesorería.
     if (carrito.length === 0) {
         carritoProveedorId = provId;
+        const ivaInput = document.getElementById('ped-iva');
+        const ivaForm = (ivaInput && ivaInput.value !== '') ? parseFloat(ivaInput.value) : NaN;
+        const prov = (window.proveedores || []).find(p => p.id === provId);
+        const ivaProv = (prov && prov.iva_pct !== null && prov.iva_pct !== undefined) ? parseFloat(prov.iva_pct) : NaN;
+        carritoIvaPct = Number.isFinite(ivaForm) ? Math.min(100, Math.max(0, ivaForm))
+            : (Number.isFinite(ivaProv) ? ivaProv : null);
     }
     // Si el proveedor es diferente, avisar
     else if (carritoProveedorId && provId && carritoProveedorId !== provId) {
@@ -184,6 +198,7 @@ window.eliminarDelCarrito = function (ingredienteId) {
     carrito = carrito.filter(item => item.ingredienteId !== ingredienteId);
     if (carrito.length === 0) {
         carritoProveedorId = null;
+        carritoIvaPct = null;
     }
     guardarCarrito();
     renderizarCarrito();
@@ -213,6 +228,7 @@ window.vaciarCarrito = function () {
 
     carrito = [];
     carritoProveedorId = null;
+    carritoIvaPct = null;
     guardarCarrito();
     renderizarCarrito();
     window.showToast(t('pedidos:cart_emptied'), 'info');
@@ -354,9 +370,53 @@ function renderizarCarrito() {
         html += `</tbody></table></div>`;
     });
 
+    // 🧾 Resumen IVA (Migración 015): Base + IVA (editable) + Total con IVA.
+    // El IVA es solo display/tesorería; el `total` que se manda al backend sigue
+    // siendo la BASE (ver confirmarCarrito). NO toca food cost ni stock.
+    const ivaPct = (carritoIvaPct !== null && carritoIvaPct !== undefined && isFinite(carritoIvaPct)) ? parseFloat(carritoIvaPct) : 0;
+    const ivaImporte = total * (ivaPct / 100);
+    const totalConIva = total + ivaImporte;
+    html += `
+      <div style="margin-top: 16px; padding: 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="color:#64748b;">${t('pedidos:cart_base')}</span>
+          <strong>${cm(total)}</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="color:#92400e; font-weight:600;">${t('pedidos:cart_iva_label')}</span>
+          <span style="display:flex; align-items:center; gap:6px;">
+            <input type="number" min="0" max="100" step="0.01" value="${ivaPct !== 0 ? ivaPct : ''}" placeholder="0"
+              onchange="window.actualizarIvaCarrito(this.value)"
+              style="width:80px; padding:6px; border:1px solid #cbd5e1; border-radius:6px; text-align:right;" /> %
+            <strong style="min-width:80px; text-align:right; color:#92400e;">${cm(ivaImporte)}</strong>
+          </span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #fde68a; padding-top:8px;">
+          <span style="font-weight:700;">${t('pedidos:cart_total_with_iva')}</span>
+          <strong style="font-size:18px; color:#059669;">${cm(totalConIva)}</strong>
+        </div>
+        <p style="margin:8px 0 0 0; color:#64748b; font-size:11px;">${t('pedidos:cart_iva_hint')}</p>
+      </div>
+    `;
+
     contenedor.innerHTML = html;
-    document.getElementById('carrito-total').textContent = cm(total);
+    document.getElementById('carrito-total').textContent = cm(totalConIva);
 }
+
+/**
+ * Actualiza el IVA del carrito (solo display/tesorería). NO toca el total base
+ * que se manda al backend ni el food cost.
+ */
+window.actualizarIvaCarrito = function (valor) {
+    if (valor === '' || valor === null || valor === undefined) {
+        carritoIvaPct = null;
+    } else {
+        const v = parseFloat(valor);
+        carritoIvaPct = Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : null;
+    }
+    guardarCarrito();
+    renderizarCarrito();
+};
 
 /**
  * Confirma el carrito y crea los pedidos
@@ -434,7 +494,11 @@ window.confirmarCarrito = async function () {
                 fecha: carritoFecha || document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
                 estado: 'pendiente',
                 ingredientes: ingredientes,
-                total: total
+                total: total,
+                // 🧾 IVA del albarán (Migración 015). Si el carrito mezcla varios
+                // proveedores, todos heredan el mismo IVA (caso raro; el flujo normal
+                // es un proveedor por carrito). NO entra en `total` (base).
+                iva_pct: carritoIvaPct
             };
 
             await window.api.createPedido(pedido);
@@ -445,6 +509,7 @@ window.confirmarCarrito = async function () {
         carrito = [];
         carritoProveedorId = null;
         carritoFecha = null;
+        carritoIvaPct = null;
         guardarCarrito();
 
         // Recargar datos

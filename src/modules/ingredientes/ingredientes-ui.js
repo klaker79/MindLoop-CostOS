@@ -10,6 +10,8 @@ import { getElement, setElementHTML, hideElement, showElement } from '../../util
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
+import { renderEmptyStateOnboarding } from '../../components/domain/EmptyStateOnboarding.js';
+import { HELP_VIDEOS } from '../help/help-config.js';
 
 
 // Variables para paginación y filtros
@@ -184,15 +186,47 @@ export function renderizarIngredientes() {
     const paginados = filtrados.slice(inicio, fin);
 
     if (filtrados.length === 0) {
-        container.innerHTML =
-            renderizarFiltrosCategorias() +
-            `
+        // Cliente NUEVO sin ingredientes, sin filtros aplicados → empty state onboarding
+        // con video tutorial + CTAs grandes (en vez del cartel sosín de antes).
+        // Si hay búsqueda o filtro de categoría, mantiene el empty state básico.
+        const esClienteNuevo = !busqueda && filtroCategoria === 'todas' && ingredientes.length === 0;
+        if (esClienteNuevo) {
+            container.innerHTML =
+                renderizarFiltrosCategorias() +
+                renderEmptyStateOnboarding({
+                    icon: '🥕',
+                    title: t('ingredientes:onb_title', { defaultValue: 'Empieza con tus ingredientes' }),
+                    subtitle: t('ingredientes:onb_subtitle', {
+                        defaultValue: 'Es el primer paso. Mira el video y elige cómo añadirlos: por Excel o uno a uno.'
+                    }),
+                    videoId: HELP_VIDEOS?.ingredientes?.videos?.[0]?.videoId || null,
+                    primaryCta: {
+                        label: t('ingredientes:onb_cta_import', { defaultValue: '📥 Importar desde Excel' }),
+                        onclick: 'window.mostrarModalImportarIngredientes?.()'
+                    },
+                    secondaryCta: {
+                        label: t('ingredientes:onb_cta_manual', { defaultValue: '✏️ Añadir manual' }),
+                        onclick: 'window.mostrarFormularioIngrediente?.()'
+                    },
+                    templateDownload: {
+                        url: '/templates/plantilla-ingredientes.csv',
+                        label: '📥 Descargar plantilla de ejemplo (CSV)'
+                    },
+                    tertiaryHelp: t('ingredientes:onb_help', {
+                        defaultValue: '¿Dudas? Escríbenos por WhatsApp y te ayudamos al instante.'
+                    })
+                });
+        } else {
+            container.innerHTML =
+                renderizarFiltrosCategorias() +
+                `
       <div class="empty-state">
         <div class="icon">📦</div>
         <h3>${busqueda || filtroCategoria !== 'todas' ? t('ingredientes:empty_not_found') : t('ingredientes:empty_none_yet')}</h3>
         <p>${busqueda ? t('ingredientes:empty_try_another') : filtroCategoria !== 'todas' ? t('ingredientes:empty_no_in_category') : t('ingredientes:empty_add_first')}</p>
       </div>
     `;
+        }
         const resumen = getElement('resumen-ingredientes');
         if (resumen) resumen.style.display = 'none';
     } else {
@@ -270,18 +304,27 @@ export function renderizarIngredientes() {
                 ? `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, true)" title="${t('ingredientes:btn_activate_title')}" style="color: #22c55e;">✅</button>`
                 : `<button class="icon-btn" onclick="window.toggleIngredienteActivo(${ing.id}, false)" title="${t('ingredientes:btn_deactivate_title')}" style="color: #f59e0b;">⏸️</button>`;
 
+            // 📱 Labels para vista móvil (tarjetas) — usan las MISMAS traducciones que el <thead>.
+            const lblIng = t('ingredientes:col_ingredient');
+            const lblFam = t('ingredientes:col_family');
+            const lblSup = t('ingredientes:col_supplier');
+            const lblPri = t('ingredientes:col_price');
+            const lblSto = t('ingredientes:col_stock');
+            const lblMin = t('ingredientes:col_stock_min');
+            const lblAct = t('ingredientes:col_actions');
+
             return `<tr style="${rowStyle}">
-                <td><strong>${escapeHTML(ing.nombre)}</strong>${esInactivo ? `<br><small style="color:#ef4444;">⚠️ ${t('ingredientes:badge_inactive')}</small>` : ''}</td>
-                <td><span class="badge ${familiaBadge}">${familiaLabel}</span></td>
-                <td>${escapeHTML(nombreProv)}</td>
-                <td title="${tooltipText}" style="cursor: help;">${precioHtml}</td>
-                <td>${ing.stock_actual
+                <td data-label="${lblIng}"><strong>${escapeHTML(ing.nombre)}</strong>${esInactivo ? `<br><small style="color:#ef4444;">⚠️ ${t('ingredientes:badge_inactive')}</small>` : ''}</td>
+                <td data-label="${lblFam}"><span class="badge ${familiaBadge}">${familiaLabel}</span></td>
+                <td data-label="${lblSup}">${escapeHTML(nombreProv)}</td>
+                <td data-label="${lblPri}" title="${tooltipText}" style="cursor: help;">${precioHtml}</td>
+                <td data-label="${lblSto}">${ing.stock_actual
                     ? `<span class="stock-badge ${stockBajo ? 'stock-low' : 'stock-ok'}">${ing.stock_actual} ${escapeHTML(ing.unidad)}</span>${stockBajo && ing.stock_minimo ? ' ⚠️' : ''}`
                     : '-'
                 }
                 </td>
-                <td>${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + escapeHTML(ing.unidad) : '-'}</td>
-                <td>
+                <td data-label="${lblMin}">${ing.stock_minimo ? parseFloat(ing.stock_minimo) + ' ' + escapeHTML(ing.unidad) : '-'}</td>
+                <td data-label="${lblAct}">
                     <button class="icon-btn" onclick="window.agregarAlCarrito(${ing.id}, 1)" title="${t('ingredientes:btn_add_to_cart_title')}" style="color: #f97316;">🛒</button>
                     <button class="icon-btn" onclick="window.verEvolucionPrecio(${ing.id})" title="${t('ingredientes:btn_price_evolution_title')}" style="color: #3b82f6;">📈</button>
                     <button class="icon-btn" onclick="window.gestionarProveedoresIngrediente(${ing.id})" title="${t('ingredientes:btn_manage_suppliers_title')}" style="color: #8b5cf6;">🏢</button>
@@ -347,6 +390,14 @@ export function mostrarFormularioIngrediente() {
         const input = getElement('ing-nombre');
         if (input) input.focus();
     }
+    // Refrescar (oculta) el preview de precio por unidad: en alta nueva el precio
+    // está vacío, así que se esconde hasta que el usuario empiece a rellenar.
+    window.actualizarPreviewPrecioUnidad?.();
+    // 🆕 Alta nueva: reactivar auto-sugerencia de alérgenos por nombre (resetea el
+    // flag de "tocado a mano") y ocultar la pista hasta que se teclee un nombre.
+    window._alergenosManual = false;
+    const hintAl = getElement('ing-alergenos-hint');
+    if (hintAl) hintAl.style.display = 'none';
     // Engancha el listener del slider de rendimiento. Sin esto, mover la barra
     // no actualiza el hidden #ing-rendimiento y al guardar siempre se manda 100%
     // (el listener solo estaba enganchado en cerrarFormularioIngrediente, que
@@ -405,10 +456,27 @@ export function setupYieldSlider() {
                 }
             };
 
+            // Aviso de propagación (2026-06-08): si el usuario está EDITANDO
+            // un ingrediente existente y mueve el slider del rendimiento, el
+            // cambio impactará a todas las recetas que lo usan (coste teórico
+            // + descuento de stock). Solo mostramos el aviso si:
+            //   - está editando (no creando)
+            //   - el nuevo valor difiere del original al abrir el form
+            const warningEl = document.getElementById('ing-rendimiento-warning');
+            const estaEditando = window.editandoIngredienteId !== null && window.editandoIngredienteId !== undefined;
+            const valorInicial = parseInt(sliderEl.value) || 100;
+
+            const refrescarWarning = (val) => {
+                if (!warningEl) return;
+                const cambiado = estaEditando && parseInt(val) !== valorInicial;
+                warningEl.style.display = cambiado ? 'block' : 'none';
+            };
+
             // Eliminar listeners anteriores
             sliderEl.oninput = function () {
                 rendimientoEl.value = this.value;
                 updateSliderVisuals(this.value);
+                refrescarWarning(this.value);
             };
 
             rendimientoEl.onchange = function () {
@@ -417,10 +485,12 @@ export function setupYieldSlider() {
                 this.value = val;
                 sliderEl.value = val;
                 updateSliderVisuals(val);
+                refrescarWarning(val);
             };
 
-            // Inicializar visual
+            // Inicializar visual + reset warning oculto
             updateSliderVisuals(sliderEl.value);
+            if (warningEl) warningEl.style.display = 'none';
         }
     }, 100);
 }
@@ -458,20 +528,27 @@ export function exportarIngredientes() {
         return;
     }
 
+    // 2026-06-08: columnas alineadas con el importador para round-trip completo.
+    // Antes faltaban Cantidad por formato / Formato / Rendimiento / Familia → si el
+    // cliente exportaba + editaba + re-importaba perdía el formato de compra y los
+    // ingredientes quedaban con cpf=1 (precio unitario inflado × N → food cost falso).
     const columnas = [
-        { header: t('ingredientes:export_col_name'), key: 'nombre' },
-        { header: t('ingredientes:export_col_category'), key: 'categoria' },
+        { header: 'Nombre', key: 'nombre' },
+        { header: 'Precio', value: ing => parseFloat(ing.precio || 0).toFixed(2) },
+        { header: 'Unidad', key: 'unidad' },
+        { header: 'Cantidad por formato', value: ing => ing.cantidad_por_formato || '' },
+        { header: 'Formato', value: ing => ing.formato_compra || '' },
+        { header: 'Rendimiento (%)', value: ing => ing.rendimiento || 100 },
+        { header: 'Stock Actual', value: ing => parseFloat(ing.stock_actual || 0).toFixed(2) },
+        { header: 'Stock Mínimo', value: ing => parseFloat(ing.stock_minimo || 0).toFixed(2) },
+        { header: 'Familia', value: ing => ing.familia || 'alimento' },
         {
-            header: t('ingredientes:export_col_supplier'),
+            header: 'Proveedor',
             value: ing => {
                 const prov = (window.proveedores || []).find(p => p.id === ing.proveedor_id);
-                return prov ? prov.nombre : t('ingredientes:no_supplier');
+                return prov ? prov.nombre : '';
             },
         },
-        { header: t('ingredientes:export_col_price'), value: ing => parseFloat(ing.precio || 0).toFixed(2) },
-        { header: t('ingredientes:export_col_unit'), key: 'unidad' },
-        { header: t('ingredientes:export_col_stock_actual'), value: ing => parseFloat(ing.stock_actual || 0).toFixed(2) },
-        { header: t('ingredientes:export_col_stock_min'), value: ing => parseFloat(ing.stock_minimo || 0).toFixed(2) },
     ];
 
     window.exportarAExcel(window.ingredientes || [], 'Ingredientes_CostOS', columnas);

@@ -24,8 +24,10 @@ test.describe('Smoke — home y backend', () => {
 
     test('el backend staging responde con JSON en /', async ({ request }) => {
         const apiUrl = process.env.STAGING_API_URL || 'https://staging-api.mindloop.cloud';
-        // 20s para tolerar cold start del worker (Dokploy puede escalar a 0 fuera de horario)
-        const res = await request.get(apiUrl + '/', { timeout: 20_000 });
+        // 45s para tolerar cold start del worker (Dokploy puede escalar a 0 fuera
+        // de horario). El globalSetup (global-warmup.js) ya intenta despertarlo
+        // antes, así que esto es solo un techo de seguridad si sigue frío.
+        const res = await request.get(apiUrl + '/', { timeout: 45_000 });
         expect(res.status()).toBe(200);
 
         const body = await res.json();

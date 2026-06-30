@@ -20,7 +20,7 @@ export const CHAT_CONFIG = {
     webhookUrl: appConfig.chat.webhookUrl,
     get botName() { return t('chat:bot_name') || appConfig.chat.botName || 'CostOS Assistant'; },
     get welcomeMessage() {
-        return `${t('chat:welcome')}\n\n• 📊 ${t('chat:welcome_food_cost')}\n• 💰 ${t('chat:welcome_costs')}\n• 📦 ${t('chat:welcome_stock')}\n• 📈 ${t('chat:welcome_margins')}\n• 🏪 ${t('chat:welcome_suppliers')}\n\n${t('chat:welcome_cta')}`;
+        return `${t('chat:welcome')}\n\n• 📊 ${t('chat:welcome_food_cost')}\n• 💰 ${t('chat:welcome_costs')}\n• 📦 ${t('chat:welcome_stock')}\n• 📈 ${t('chat:welcome_margins')}\n• 🏪 ${t('chat:welcome_suppliers')}\n\n${t('chat:welcome_powers')}\n• 🩺 ${t('chat:welcome_power_coach')}\n• 🔍 ${t('chat:welcome_power_diag')}\n• 📊 ${t('chat:welcome_power_informe')}\n\n${t('chat:welcome_cta')}`;
     },
     get placeholderText() { return t('chat:placeholder'); },
     get errorMessage() { return t('chat:error_generic'); },

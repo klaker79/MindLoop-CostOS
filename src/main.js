@@ -80,6 +80,7 @@ import './styles/components/kpi-dashboard.css';
 import './styles/components/cost-breakdown.css';
 import './styles/components/quick-actions.css';
 import './styles/components/skeleton.css';
+import './styles/components/action-dropdown.css';
 
 // ============================================
 // 💀 SKELETON LOADING — Remove placeholders when data arrives
@@ -173,9 +174,22 @@ import { mountHelpModal } from './modules/help/help-modal.js';
 // entrada en el JSON. Sin entrada → sin botón.
 import { mountInfoModal } from './modules/help/info-modal.js';
 
+// Componente UI reutilizable: botón con menú desplegable (patrón Notion/Linear).
+// Usado en Ingredientes/Recetas/Proveedores para agrupar Import/Plantilla/Export
+// bajo un único botón limpio. Iker 2026-06-08.
+import { mountActionDropdowns } from './components/ui/action-dropdown.js';
+
+// 🔒 Subscription modal — escucha el evento global 'subscription:required' que
+// dispara api/client.js cuando el backend responde 403 SUBSCRIPTION_REQUIRED
+// (trial caducado o sin plan activo). Overlay full-screen con CTA Polar.
+// Iker 2026-06-08.
+import { mountSubscriptionModal } from './modules/subscription/subscription-modal.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     mountHelpModal();
     mountInfoModal();
+    mountActionDropdowns();
+    mountSubscriptionModal();
 });
 
 // Parser flexible de inventario. El módulo es ESM, pero
@@ -184,6 +198,15 @@ document.addEventListener('DOMContentLoaded', () => {
 import * as inventarioFlexible from './modules/inventario/flexible-parser.js';
 if (typeof window !== 'undefined') {
     window.__inventarioFlexible = inventarioFlexible;
+}
+
+// 🆕 Parsers extraídos del Excel de import (escandallo + ingredientes).
+// Tienen tests defensivos en src/__tests__/utils/. El legacy los consume
+// vía window.__importParsers para mantener la regla legacy-no-esm.
+import * as escandalloParser from './utils/escandallo-parser.js';
+import * as ingredientesParser from './utils/ingredientes-parser.js';
+if (typeof window !== 'undefined') {
+    window.__importParsers = Object.assign({}, escandalloParser, ingredientesParser);
 }
 
 // Sales Forecast (predicción)
@@ -221,6 +244,8 @@ window.proyeccionConsumo = Helpers.proyeccionConsumo;
 import * as IngredientesUI from './modules/ingredientes/ingredientes-ui.js';
 import * as IngredientesCRUD from './modules/ingredientes/ingredientes-crud.js';
 import * as IngredientesProveedores from './modules/ingredientes/ingredientes-proveedores.js';
+// Side-effect: registra window.abrirDeteccionAlergenosBatch (botón "✨ Detectar alérgenos").
+import './modules/ingredientes/alergenos-batch.js';
 
 // UI
 window.renderizarIngredientes = IngredientesUI.renderizarIngredientes;
@@ -258,6 +283,8 @@ window.exportarInventario = function () {
 window.guardarIngrediente = IngredientesCRUD.guardarIngrediente;
 window.editarIngrediente = IngredientesCRUD.editarIngrediente;
 window.eliminarIngrediente = IngredientesCRUD.eliminarIngrediente;
+window.actualizarPreviewPrecioUnidad = IngredientesCRUD.actualizarPreviewPrecioUnidad;
+window.sugerirAlergenosPorNombre = IngredientesCRUD.sugerirAlergenosPorNombre;
 
 // Proveedores por ingrediente
 window.gestionarProveedoresIngrediente = IngredientesProveedores.gestionarProveedoresIngrediente;
@@ -279,7 +306,6 @@ window.mostrarFormularioReceta = RecetasUI.mostrarFormularioReceta;
 window.cerrarFormularioReceta = RecetasUI.cerrarFormularioReceta;
 window.agregarIngredienteReceta = RecetasUI.agregarIngredienteReceta;
 window.calcularCosteReceta = RecetasUI.calcularCosteReceta;
-window.exportarRecetas = RecetasUI.exportarRecetas;
 window.actualizarPrecioSugerido = RecetasUI.actualizarPrecioSugerido;
 window.aplicarPrecioSugerido = RecetasUI.aplicarPrecioSugerido;
 
@@ -288,12 +314,6 @@ window.guardarReceta = RecetasCRUD.guardarReceta;
 window.editarReceta = RecetasCRUD.editarReceta;
 window.eliminarReceta = RecetasCRUD.eliminarReceta;
 window.calcularCosteRecetaCompleto = RecetasCRUD.calcularCosteRecetaCompleto;
-
-// Producción
-window.abrirModalProducir = RecetasCRUD.abrirModalProducir;
-window.cerrarModalProducir = RecetasCRUD.cerrarModalProducir;
-window.actualizarDetalleDescuento = RecetasCRUD.actualizarDetalleDescuento;
-window.confirmarProduccion = RecetasCRUD.confirmarProduccion;
 
 // Cost Tracker (seguimiento de costes)
 import * as CostTracker from './modules/recetas/cost-tracker.js?v=20260308-consistency';
@@ -373,6 +393,7 @@ window.cerrarModalVerPedido = PedidosCRUD.cerrarModalVerPedido;
 window.descargarPedidoPDF = PedidosCRUD.descargarPedidoPDF;
 window.actualizarItemRecepcion = PedidosCRUD.actualizarItemRecepcion;
 window.cambiarEstadoItem = PedidosCRUD.cambiarEstadoItem;
+window.actualizarTotalConIva = PedidosCRUD.actualizarTotalConIva;
 
 // ⚡ FIX W3: Documentación de módulos con auto-registro en window.*
 // Estos módulos registran sus funciones directamente (window.fn = ...) en vez de exportar+mapear aquí.
@@ -441,6 +462,14 @@ import * as Dashboard from './modules/dashboard/dashboard.js?v=20260308-purchase
 window.actualizarKPIs = Dashboard.actualizarKPIs;
 
 // ============================================
+// MÓDULO: ANÁLISIS — Ingeniería de Menú v2 (rediseño 2026-06-05)
+// ============================================
+// Por ahora aditivo: monta el dashboard sintético arriba del BCG legacy.
+// El legacy `renderizarAnalisis` llama a `window.mlAnalisisOnRender(data)`
+// tras pintar la matriz BCG. Si este módulo falla, el legacy sigue intacto.
+import './modules/analisis/analisis.js';
+
+// ============================================
 // MÓDULO: BALANCE / P&L 💰
 // ============================================
 import * as Balance from './modules/balance/index.js';
@@ -465,9 +494,9 @@ import * as Horarios from './modules/horarios/horarios.js';
 window.initHorarios = Horarios.initHorarios;
 
 // ============================================
-// MÓDULO: INTELIGENCIA 🧠 (Predictive Dashboard)
+// MÓDULO: OMNES 🦉 (feed de avisos proactivos, antes "Inteligencia")
 // ============================================
-// Self-registering: sets window.renderizarInteligencia + window.loadPurchasePlan
+// Self-registering: sets window.renderizarInteligencia (id de pestaña sigue siendo "inteligencia")
 import './modules/inteligencia/inteligencia-ui.js';
 
 // ============================================
@@ -519,7 +548,28 @@ function safeNumber(value, defaultValue = 0) {
     return isNaN(num) || !isFinite(num) ? defaultValue : num;
 }
 
+// CSS móvil del Historial de Mermas: la tabla (7 columnas) no cabe en el teléfono,
+// así que en ≤820px se apila en tarjetas (una merma = una ficha con etiquetas) y se
+// compactan las 3 tarjetas de resumen. En escritorio NO aplica (media query).
+function inyectarCssMermasMovil() {
+    if (typeof document === 'undefined' || document.getElementById('mermas-mobile-css')) return;
+    const st = document.createElement('style');
+    st.id = 'mermas-mobile-css';
+    st.textContent = `@media (max-width:820px){
+      #mermas-resumen{gap:8px !important;}
+      #mermas-resumen>div{padding:10px 6px !important;}
+      #mermas-resumen>div>div:first-child{font-size:16px !important;}
+      #modal-historial-mermas thead{display:none;}
+      #modal-historial-mermas table,#modal-historial-mermas tbody,#modal-historial-mermas tr,#modal-historial-mermas td{display:block;width:auto;}
+      #modal-historial-mermas tr{border:1px solid #e2e8f0 !important;border-radius:10px;padding:8px 12px;margin:0 0 10px;}
+      #modal-historial-mermas td{padding:5px 0 !important;display:flex;justify-content:space-between;gap:12px;text-align:right;border:none !important;}
+      #modal-historial-mermas td::before{content:attr(data-label);font-weight:600;color:#64748b;text-align:left;white-space:nowrap;}
+    }`;
+    document.head.appendChild(st);
+}
+
 window.cargarHistorialMermas = async function () {
+    inyectarCssMermasMovil();
     const mes = document.getElementById('mermas-mes')?.value;
     const ano = document.getElementById('mermas-ano')?.value;
     const tbody = document.getElementById('tabla-historial-mermas-body');
@@ -568,13 +618,15 @@ window.cargarHistorialMermas = async function () {
             const motivoSafe = escapeHTMLMain(motivo);
             const nota = escapeHTMLMain(m.nota || '-');
 
+            // data-label: en móvil la tabla se apila en tarjetas (CSS mermas-mobile-css)
+            // y cada celda muestra su etiqueta. En escritorio no se ve (media query).
             html += `<tr style="border-bottom: 1px solid #f1f5f9;" data-merma-id="${m.id}">
-                <td style="padding: 10px;">${fecha}</td>
-                <td style="padding: 10px;"><strong>${ingredienteNombre}</strong></td>
-                <td style="padding: 10px;">${cantidad} ${unidad}</td>
-                <td style="padding: 10px; color: #ef4444; font-weight: 600;">${Helpers.cm(valor)}</td>
-                <td style="padding: 10px;"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${motivoSafe}</span></td>
-                <td style="padding: 10px; color: #64748b; font-size: 12px;">${nota}</td>
+                <td data-label="Fecha" style="padding: 10px;">${fecha}</td>
+                <td data-label="Ingrediente" style="padding: 10px;"><strong>${ingredienteNombre}</strong></td>
+                <td data-label="Cantidad" style="padding: 10px;">${cantidad} ${unidad}</td>
+                <td data-label="Valor" style="padding: 10px; color: #ef4444; font-weight: 600;">${Helpers.cm(valor)}</td>
+                <td data-label="Motivo" style="padding: 10px;"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${motivoSafe}</span></td>
+                <td data-label="Nota" style="padding: 10px; color: #64748b; font-size: 12px;">${nota}</td>
                 <td style="padding: 10px; text-align: center;">
                     <button onclick="window.eliminarMerma(${m.id})" 
                         style="background: #fee2e2; color: #dc2626; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px;"
@@ -618,9 +670,14 @@ window.eliminarMerma = async function (id) {
 
         if (response?.success) {
             window.showToast?.('✅ Merma eliminada y stock restaurado', 'success');
-            // Recargar historial y datos
+            // Recargar historial + estado completo (Iker 2026-06-08): antes solo
+            // se refrescaba window.ingredientes, pero la pestaña Inventario lee
+            // de window.inventarioCompleto y se quedaba con datos viejos. Bug
+            // visible al borrar merma → P&L cuadraba pero Inventario no.
             await window.cargarHistorialMermas();
-            window.ingredientes = await window.api?.getIngredientes?.();
+            if (typeof window.cargarDatos === 'function') {
+                await window.cargarDatos();
+            }
             window.renderizarIngredientes?.();
             window.renderizarInventario?.();
         } else {
@@ -732,6 +789,12 @@ window.clearChatHistory = clearChatHistory;
 // Side-effect import: the module attaches window.renderizarBusqueda itself
 // so core.js cambiarTab('busqueda') can invoke it without further glue.
 import './modules/busqueda/busqueda.js';
+
+// Side-effect import: attaches window.renderizarComidaPersonal.
+import './modules/comida-personal/comida-personal.js';
+
+// Side-effect import: recuento de inventario móvil (expone window.abrirRecuentoInventario).
+import './modules/inventario/recuento.js';
 
 // ============================================
 // MÓDULO: INTEGRACIONES 🔗

@@ -7,9 +7,10 @@
  * Si el pedido ya está recibido, no se puede editar desde aquí.
  */
 
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, formatQuantity } from '../../utils/helpers.js';
 import { validarDesvioPrecio } from '../../utils/precio-validator.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
+import { formatoDesdeBase, esCantidadEnteraEnFormato } from './formato-utils.js';
 import { t } from '@/i18n/index.js';
 
 /**
@@ -49,18 +50,59 @@ export function abrirModalEditarPedido(id) {
             items.push({
                 ingredienteId: it.ingredienteId || it.ingrediente_id,
                 cantidad: parseFloat(it.cantidad) || 0,
-                precio_unitario: parseFloat(it.precio_unitario || it.precioUnitario || it.precio || 0)
+                precio_unitario: parseFloat(it.precio_unitario || it.precioUnitario || it.precio || 0),
+                // 🍽️ preservar la marca de comida personal al editar (si no, se
+                // perdería al guardar y la línea volvería a contar en food cost).
+                personal: it.personal === true
             });
         }
     });
+
+    // 🍽️ Fusionar el reparto en UNA sola fila: un pedido dividido se guarda como
+    // dos líneas (producción + personal) del mismo ingrediente. Para editarlo, se
+    // muestran como una fila con la cantidad TOTAL y la cantidad personal en su
+    // casilla. Al guardar, guardarEdicionPedido vuelve a partirla en dos líneas.
+    const mergedItems = [];
+    items.filter(it => !it.personal).forEach(it => mergedItems.push({ ...it, personalQty: null }));
+    items.filter(it => it.personal).forEach(it => {
+        const prod = mergedItems.find(m => !m.personal
+            && m.ingredienteId === it.ingredienteId
+            && m.precio_unitario === it.precio_unitario);
+        if (prod) {
+            // Hay parte de producción → fila única con reparto parcial.
+            prod.personal = true;
+            prod.personalQty = it.cantidad;
+            prod.cantidad = Math.round((prod.cantidad + it.cantidad) * 10000) / 10000;
+        } else {
+            // Línea totalmente personal (sin parte de producción): casilla marcada,
+            // sin reparto (toda la línea es personal).
+            mergedItems.push({ ...it, personalQty: null });
+        }
+    });
+
+    // 🧾 IVA del albarán (Migración 015): ahora SÍ se persiste por pedido.
+    // Prioridad: el IVA guardado en el pedido → IVA habitual del proveedor → 0.
+    // Es solo display/tesorería: NO entra en `total` (base) ni en food cost.
+    const prov = (window.proveedores || []).find(p => p.id === pedido.proveedor_id);
+    const ivaInicial = (pedido.iva_pct !== null && pedido.iva_pct !== undefined)
+        ? parseFloat(pedido.iva_pct)
+        : ((prov && prov.iva_pct !== null && prov.iva_pct !== undefined) ? parseFloat(prov.iva_pct) : 0);
+
+    // 💸 Bonificación del albarán (Migración 016): el descuento que viaja con el
+    // pedido (puesto al editar/recibir). Por defecto 0 si no hay.
+    const bonifInicial = (pedido.bonificacion !== null && pedido.bonificacion !== undefined)
+        ? parseFloat(pedido.bonificacion)
+        : 0;
 
     // Estado temporal del modal
     window._editandoPedido = {
         id,
         proveedor_id: pedido.proveedor_id,
-        items,
+        items: mergedItems,
         ajusteImporte,
-        ajusteDescripcion
+        ajusteDescripcion,
+        ivaPct: ivaInicial,
+        bonificacion: bonifInicial
     };
 
     renderizarModalEditarPedido();
@@ -80,6 +122,7 @@ function renderizarModalEditarPedido() {
 
     // Mapa completo para resolver nombres de items existentes (aunque sean de otro proveedor)
     const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+    const moneda = window.currentUser?.moneda || '€';
 
     // Filtrar ingredientes disponibles: solo los que el proveedor del pedido suministra
     // Fuentes:
@@ -117,22 +160,54 @@ function renderizarModalEditarPedido() {
         const avisoRow = aviso
             ? `<tr><td colspan="5" style="padding: 6px 8px;"><div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:6px 10px;color:#92400e;font-size:12px;font-weight:600;">${escapeHTML(aviso.mensaje)}</div></td></tr>`
             : '';
+
+        // 📦 Mostrar la línea en el FORMATO de compra (bote, caja…) como en Nuevo
+        // Pedido, no en unidad base. El dato sigue guardándose en base (food cost
+        // intacto); aquí sólo se traduce para mostrar/editar. cpf>1 = hay formato.
+        const cpfRaw = parseFloat(ing?.cantidad_por_formato);
+        const cpf = cpfRaw > 1 ? cpfRaw : 1;
+        const formatoNombre = ing?.formato_compra;
+        // Mostrar en formato (CAJA/BOTE) SOLO si la cantidad equivale a formatos
+        // enteros. Si no (reparto de personal, botellas sueltas), mostrar en base
+        // (botella) para no enseñar fracciones confusas (0,333 CAJA).
+        const usaFormato = cpf > 1 && !!formatoNombre && esCantidadEnteraEnFormato(it.cantidad, cpf);
+        const fmt = usaFormato ? formatoDesdeBase(it.cantidad, it.precio_unitario, cpf) : null;
+        const cantShown = usaFormato ? fmt.cantidad : it.cantidad;
+        const precioShown = usaFormato ? fmt.precio : it.precio_unitario;
+        const cantOnchange = usaFormato
+            ? `window.actualizarItemEdicionFmt(${idx}, 'cantidad', this.value, ${cpf})`
+            : `window.actualizarItemEdicion(${idx}, 'cantidad', this.value)`;
+        const precioOnchange = usaFormato
+            ? `window.actualizarItemEdicionFmt(${idx}, 'precio_unitario', this.value, ${cpf})`
+            : `window.actualizarItemEdicion(${idx}, 'precio_unitario', this.value)`;
+        // 🍽️ El reparto de personal SIEMPRE en unidad base (botellas): se apartan
+        // botellas sueltas, nunca "0,333 cajas". Por eso no se convierte a formato.
+        const personalQtyShown = (it.personalQty ?? '');
+        const personalQtyOnchange = `window.setPersonalQtyEdicion(${idx}, this.value)`;
         return `
             <tr data-idx="${idx}" style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 8px;"><strong>${escapeHTML(nombre)}</strong></td>
                 <td style="padding: 8px;">
-                    <input type="number" step="0.01" min="0" value="${it.cantidad}"
-                        onchange="window.actualizarItemEdicion(${idx}, 'cantidad', this.value)"
+                    <input type="number" step="0.01" min="0" value="${cantShown}"
+                        onchange="${cantOnchange}"
                         style="width: 80px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px;" />
-                    <small style="color: #64748b;">${escapeHTML(unidad)}</small>
+                    <small style="color: #64748b;">${escapeHTML(usaFormato ? formatoNombre : unidad)}</small>
+                    ${usaFormato ? `<div style="font-size:10px;color:#94a3b8;margin-top:2px;">= ${escapeHTML(formatQuantity(it.cantidad))} ${escapeHTML(unidad)}</div>` : ''}
                 </td>
                 <td style="padding: 8px;">
-                    <input type="number" step="0.01" min="0" value="${it.precio_unitario.toFixed(2)}"
-                        onchange="window.actualizarItemEdicion(${idx}, 'precio_unitario', this.value)"
+                    <input type="number" step="0.01" min="0" value="${precioShown.toFixed(2)}"
+                        onchange="${precioOnchange}"
                         style="width: 90px; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px;" />
+                    ${usaFormato ? `<small style="color:#64748b;white-space:nowrap;">${escapeHTML(moneda)}/${escapeHTML(formatoNombre)}</small>` : ''}
                 </td>
                 <td style="padding: 8px; text-align: right; font-weight: 600;">${cm(subtotal)}</td>
-                <td style="padding: 8px;">
+                <td style="padding: 8px; white-space: nowrap;">
+                    ${(window.comidaPersonalActiva === true || it.personal) ? `
+                    <label title="${escapeHTML(t('pedidos:personal_tooltip'))}" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#64748b;margin-right:8px;">
+                        <input type="checkbox" ${it.personal ? 'checked' : ''} onchange="window.togglePersonalEdicion(${idx}, this.checked); const q=this.closest('tr').querySelector('.personal-qty-edit'); if(q){ q.style.display=this.checked?'inline-block':'none'; if(!this.checked) q.value=''; } const ul=this.closest('tr').querySelector('.personal-qty-unidad'); if(ul){ ul.style.display=this.checked?'inline':'none'; }" style="cursor:pointer;accent-color:#8b5cf6;width:15px;height:15px;">
+                        🍽️ ${escapeHTML(t('pedidos:personal_label'))}
+                    </label>
+                    <input type="number" step="0.01" min="0" class="personal-qty-edit" value="${personalQtyShown}" onchange="${personalQtyOnchange}" title="${escapeHTML(t('pedidos:personal_qty_tooltip'))} (en ${escapeHTML(unidad)})" placeholder="${escapeHTML(t('pedidos:personal_qty_ph'))}" style="display:${it.personal ? 'inline-block' : 'none'};width:50px;padding:4px;border:1px solid #8b5cf6;border-radius:4px;text-align:center;margin-right:3px;"><small class="personal-qty-unidad" style="color:#8b5cf6;font-size:10px;margin-right:8px;display:${it.personal ? 'inline' : 'none'};">${escapeHTML(unidad)}</small>` : ''}
                     <button type="button" onclick="window.eliminarItemEdicion(${idx})"
                         style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer;">🗑️</button>
                 </td>
@@ -143,7 +218,16 @@ function renderizarModalEditarPedido() {
 
     const subtotalItems = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
     const ajuste = parseFloat(state.ajusteImporte) || 0;
-    const totalPedido = subtotalItems + ajuste;
+    // 💸 Bonificación del albarán (Migración 016): descuento del proveedor que baja la
+    // BASE (y el coste real al recibir, donde se reparte a las líneas). baseNeta =
+    // subtotal bruto − bonificación. Clamp a [0, subtotal] (no deja base negativa).
+    const bonificacion = Math.min(Math.max(0, parseFloat(state.bonificacion) || 0), subtotalItems);
+    const baseNeta = subtotalItems - bonificacion;
+    const totalPedido = baseNeta + ajuste;
+    const ivaPct = Math.min(100, Math.max(0, parseFloat(state.ivaPct) || 0));
+    // IVA sobre la base neta (género tras bonificación); envases/portes exentos.
+    const ivaImporte = baseNeta * (ivaPct / 100);
+    const totalConIva = totalPedido + ivaImporte;
 
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
@@ -169,6 +253,11 @@ function renderizarModalEditarPedido() {
                         <td style="padding: 8px 10px; text-align: right; color: #64748b;">${cm(subtotalItems)}</td>
                         <td></td>
                     </tr>
+                    ${bonificacion > 0 ? `<tr style="background: #fef2f2;">
+                        <td colspan="3" style="padding: 8px 10px; text-align: right; color: #b91c1c;">${t('pedidos:edit_bonif_row')}</td>
+                        <td style="padding: 8px 10px; text-align: right; color: #b91c1c;">- ${cm(bonificacion)}</td>
+                        <td></td>
+                    </tr>` : ''}
                     ${ajuste !== 0 ? `<tr style="background: #f8fafc;">
                         <td colspan="3" style="padding: 8px 10px; text-align: right; color: ${ajuste < 0 ? '#dc2626' : '#0891b2'};">Ajuste${state.ajusteDescripcion ? ` (${escapeHTML(state.ajusteDescripcion)})` : ''}:</td>
                         <td style="padding: 8px 10px; text-align: right; color: ${ajuste < 0 ? '#dc2626' : '#0891b2'};">${ajuste >= 0 ? '+' : ''}${cm(ajuste)}</td>
@@ -179,8 +268,38 @@ function renderizarModalEditarPedido() {
                         <td style="padding: 10px; text-align: right; font-weight: 700; color: #059669; font-size: 16px;">${cm(totalPedido)}</td>
                         <td></td>
                     </tr>
+                    ${ivaPct > 0 ? `<tr style="background: #ecfdf5;">
+                        <td colspan="3" style="padding: 10px; text-align: right; font-weight: 600; color: #047857;">+ IVA (${ivaPct}%):</td>
+                        <td style="padding: 10px; text-align: right; font-weight: 600; color: #047857;">${cm(ivaImporte)}</td>
+                        <td></td>
+                    </tr>
+                    <tr style="background: #d1fae5;">
+                        <td colspan="3" style="padding: 10px; text-align: right; font-weight: 700; color: #065f46;">Total con IVA:</td>
+                        <td style="padding: 10px; text-align: right; font-weight: 700; color: #065f46; font-size: 17px;">${cm(totalConIva)}</td>
+                        <td></td>
+                    </tr>` : ''}
                 </tfoot>
             </table>
+
+            <div style="background: #fef2f2; padding: 12px 14px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #fca5a5;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <label style="font-size: 12px; font-weight: 600; color: #b91c1c;">${t('pedidos:edit_bonif_label')}</label>
+                    <input type="number" step="0.01" min="0" value="${bonificacion > 0 ? bonificacion : ''}" placeholder="0"
+                        onchange="window.actualizarBonificacionPedido(this.value)"
+                        style="width: 100px; padding: 8px; border: 2px solid #fca5a5; border-radius: 6px; text-align: center; font-weight: 600;" />
+                    <small style="color: #b91c1c; font-size: 12px;">${t('pedidos:edit_bonif_hint')}</small>
+                </div>
+            </div>
+
+            <div style="background: #ecfdf5; padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #86efac;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <label style="font-size: 12px; font-weight: 600; color: #047857;">IVA del albarán (%)</label>
+                    <input type="number" step="0.5" min="0" max="100" value="${ivaPct}"
+                        onchange="window.actualizarIvaPedidoEdicion(this.value)"
+                        style="width: 80px; padding: 8px; border: 2px solid #86efac; border-radius: 6px; text-align: center; font-weight: 600;" />
+                    <small style="color: #047857; font-size: 12px;">Autorrellena del proveedor — solo display para cuadrar con el papel del albarán.</small>
+                </div>
+            </div>
 
             <div style="background: #f0f9ff; padding: 14px; border-radius: 8px; margin-bottom: 16px;">
                 <h4 style="margin: 0 0 10px 0;">➕ ${t('pedidos:edit_add_ingredient')}${nombreProveedor ? ` <small style="color: #64748b; font-weight: 400;">${t('pedidos:edit_add_ingredient_from', { supplier: escapeHTML(nombreProveedor) })}</small>` : ''}</h4>
@@ -193,14 +312,24 @@ function renderizarModalEditarPedido() {
                             return ingredientesDisponibles.map(ing => {
                                 // Precio unitario canónico (precio_medio_compra > precio_medio > precio/cpf)
                                 const precioUnitOpt = getIngredientUnitPrice(invMap.get(ing.id), ing);
-                                return `<option value="${ing.id}" data-precio="${precioUnitOpt.toFixed(4)}">${escapeHTML(ing.nombre)} (${cm(precioUnitOpt)}/${escapeHTML(ing.unidad || 'ud')})</option>`;
+                                // 📦 Si el ingrediente tiene formato (BOTE, CAJA…), mostrar y
+                                // pedir en formato (3 €/BOTE) como en Nuevo Pedido, no en base.
+                                const cpfRaw = parseFloat(ing.cantidad_por_formato);
+                                const cpf = cpfRaw > 1 ? cpfRaw : 1;
+                                const usaFormato = cpf > 1 && !!ing.formato_compra;
+                                const precioMostrar = usaFormato ? precioUnitOpt * cpf : precioUnitOpt;
+                                const unidadMostrar = usaFormato ? ing.formato_compra : (ing.unidad || 'ud');
+                                const dataFmt = usaFormato ? `data-cpf="${cpf}" data-formato="${escapeHTML(ing.formato_compra)}"` : 'data-cpf="1"';
+                                return `<option value="${ing.id}" data-precio="${precioMostrar.toFixed(4)}" ${dataFmt} data-unidad="${escapeHTML(unidadMostrar)}">${escapeHTML(ing.nombre)} (${cm(precioMostrar)}/${escapeHTML(unidadMostrar)})</option>`;
                             }).join('');
                         })()}
                     </select>
                     <input type="number" step="0.01" min="0" id="input-nueva-cant-edit" placeholder="Cantidad"
-                        style="width: 100px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
-                    <input type="number" step="0.0001" min="0" id="input-nuevo-precio-edit" placeholder="Precio unit."
-                        style="width: 110px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+                        style="width: 90px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+                    <span id="add-edit-unidad-label" style="font-size: 11px; color: #64748b; min-width: 36px;"></span>
+                    <input type="number" step="0.0001" min="0" id="input-nuevo-precio-edit" placeholder="Precio"
+                        style="width: 90px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
+                    <span id="add-edit-precio-label" style="font-size: 11px; color: #64748b; white-space: nowrap;"></span>
                     <button type="button" onclick="window.agregarItemEdicion()"
                         style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; cursor: pointer;">${t('pedidos:edit_btn_add')}</button>
                 </div>
@@ -209,7 +338,7 @@ function renderizarModalEditarPedido() {
             <div style="background: #fffbeb; padding: 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #fde68a;">
                 <h4 style="margin: 0 0 10px 0;">💸 ${t('pedidos:edit_adjustment_title')} <small style="color: #92400e; font-weight: 400;">${t('pedidos:edit_adjustment_hint')}</small></h4>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <input type="number" step="0.01" id="input-ajuste-importe" placeholder="0.00 (negativo para descuento)"
+                    <input type="number" step="0.01" id="input-ajuste-importe" placeholder="0.00 (envases/portes)"
                         value="${ajuste !== 0 ? ajuste.toFixed(2) : ''}"
                         onchange="window.actualizarAjustePedido('importe', this.value)"
                         style="width: 180px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;" />
@@ -241,6 +370,53 @@ export function actualizarItemEdicion(idx, campo, valor) {
     renderizarModalEditarPedido();
 }
 
+// 📦 Igual que actualizarItemEdicion pero el valor viene en unidades de FORMATO
+// (botes, cajas…). Se convierte a unidad BASE antes de guardar en el estado, que
+// SIEMPRE está en base — así el subtotal, el reparto personal y el guardado no
+// cambian. cantidad: formato × cpf. precio: €/formato ÷ cpf.
+export function actualizarItemEdicionFmt(idx, campo, valor, cpf) {
+    const state = window._editandoPedido;
+    if (!state || !state.items[idx]) return;
+    const k = parseFloat(cpf) > 1 ? parseFloat(cpf) : 1;
+    const num = parseFloat(valor) || 0;
+    if (campo === 'cantidad') {
+        state.items[idx].cantidad = num * k;
+    } else if (campo === 'precio_unitario') {
+        state.items[idx].precio_unitario = num / k;
+    }
+    renderizarModalEditarPedido();
+}
+
+// 🍽️ Toggle de "comida personal" por línea. Handler aparte de
+// actualizarItemEdicion porque aquel coacciona el valor a número (rompería el booleano).
+export function togglePersonalEdicion(idx, checked) {
+    const state = window._editandoPedido;
+    if (!state || !state.items[idx]) return;
+    state.items[idx].personal = !!checked;
+    if (!checked) state.items[idx].personalQty = null; // al desmarcar, limpiar reparto
+    // NO re-render: el input de cantidad se muestra/oculta inline en el onchange
+    // del checkbox (evita el parpadeo del modal al re-pintar todo el innerHTML).
+}
+
+// 🍽️ Cantidad para personal (reparto de la línea). Vacío/0 = toda la línea es personal.
+// No re-renderiza (no cambia el subtotal de la línea), para no perder el foco al teclear.
+export function setPersonalQtyEdicion(idx, valor) {
+    const state = window._editandoPedido;
+    if (!state || !state.items[idx]) return;
+    const q = parseFloat(valor);
+    state.items[idx].personalQty = (Number.isFinite(q) && q > 0) ? q : null;
+}
+
+// 📦 Igual que setPersonalQtyEdicion pero el valor viene en FORMATO → se guarda
+// en base (× cpf) para ser coherente con state.items[].cantidad (siempre base).
+export function setPersonalQtyEdicionFmt(idx, valor, cpf) {
+    const state = window._editandoPedido;
+    if (!state || !state.items[idx]) return;
+    const k = parseFloat(cpf) > 1 ? parseFloat(cpf) : 1;
+    const q = parseFloat(valor);
+    state.items[idx].personalQty = (Number.isFinite(q) && q > 0) ? q * k : null;
+}
+
 export function eliminarItemEdicion(idx) {
     const state = window._editandoPedido;
     if (!state) return;
@@ -259,6 +435,23 @@ export function actualizarAjustePedido(campo, valor) {
     renderizarModalEditarPedido();
 }
 
+export function actualizarIvaPedidoEdicion(valor) {
+    const state = window._editandoPedido;
+    if (!state) return;
+    const n = parseFloat(valor);
+    state.ivaPct = Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0;
+    renderizarModalEditarPedido();
+}
+
+// 💸 Bonificación del albarán (Migración 016): descuento que baja la base y el coste.
+export function actualizarBonificacionPedido(valor) {
+    const state = window._editandoPedido;
+    if (!state) return;
+    const n = parseFloat(valor);
+    state.bonificacion = Number.isFinite(n) && n > 0 ? n : 0;
+    renderizarModalEditarPedido();
+}
+
 /**
  * Autocompleta el campo "Precio unit." del formulario "Añadir ingrediente"
  * cuando el usuario elige un ingrediente del select. Lee el precio unitario
@@ -268,6 +461,16 @@ export function actualizarAjustePedido(campo, valor) {
 export function autocompletarPrecioEdicion(select) {
     const opt = select?.selectedOptions?.[0];
     const precio = parseFloat(opt?.dataset?.precio);
+    const unidad = opt?.dataset?.unidad || '';
+    const moneda = window.currentUser?.moneda || '€';
+
+    // Etiquetas dinámicas: cantidad en formato (BOTE) y precio €/BOTE, igual que
+    // en Nuevo Pedido, para que añadir aquí no pida gramos cuando se pide en botes.
+    const cantLabel = document.getElementById('add-edit-unidad-label');
+    if (cantLabel) cantLabel.textContent = unidad || '';
+    const precioLabel = document.getElementById('add-edit-precio-label');
+    if (precioLabel) precioLabel.textContent = unidad ? `${moneda}/${unidad}` : '';
+
     const input = document.getElementById('input-nuevo-precio-edit');
     if (!input || !(precio > 0)) return;
     const valorActual = parseFloat(input.value);
@@ -280,29 +483,37 @@ export function agregarItemEdicion() {
     const state = window._editandoPedido;
     if (!state) return;
 
-    const ingId = parseInt(document.getElementById('select-nuevo-ing-edit')?.value);
+    const select = document.getElementById('select-nuevo-ing-edit');
+    const ingId = parseInt(select?.value);
     const cantidad = parseFloat(document.getElementById('input-nueva-cant-edit')?.value);
-    let precio = parseFloat(document.getElementById('input-nuevo-precio-edit')?.value);
+    const precioTecleado = parseFloat(document.getElementById('input-nuevo-precio-edit')?.value);
 
     if (!ingId || !cantidad || cantidad <= 0) {
         window.showToast?.('Selecciona ingrediente y cantidad válida', 'warning');
         return;
     }
 
-    // Fallback: si el usuario no rellenó el precio, usar el precio unitario canónico
-    // (precio_medio_compra > precio_medio > precio/cpf) del ingrediente.
-    if (!precio || precio <= 0) {
+    // 📦 Formato del ingrediente (del <option>): si tiene formato, lo tecleado está
+    // en FORMATO (botes, €/bote) y hay que convertir a unidad BASE, porque el estado
+    // y el guardado van siempre en base. cantidad: formato × cpf. precio: €/formato ÷ cpf.
+    const opt = select?.selectedOptions?.[0];
+    const cpfRaw = parseFloat(opt?.dataset?.cpf);
+    const cpf = cpfRaw > 1 ? cpfRaw : 1;
+
+    let precioBase;
+    if (precioTecleado > 0) {
+        precioBase = precioTecleado / cpf; // €/formato → €/base (cpf=1 → sin cambio)
+    } else {
+        // Fallback: precio unitario canónico (ya en €/base).
         const ing = (window.ingredientes || []).find(i => i.id === ingId);
-        if (ing) {
-            const invItem = (window.inventarioCompleto || []).find(i => i.id === ingId);
-            precio = getIngredientUnitPrice(invItem, ing);
-        }
+        const invItem = (window.inventarioCompleto || []).find(i => i.id === ingId);
+        precioBase = ing ? getIngredientUnitPrice(invItem, ing) : 0;
     }
 
     state.items.push({
         ingredienteId: ingId,
-        cantidad,
-        precio_unitario: precio || 0
+        cantidad: cantidad * cpf, // formato → base (cpf=1 → sin cambio)
+        precio_unitario: precioBase || 0
     });
     renderizarModalEditarPedido();
 }
@@ -323,16 +534,31 @@ export async function guardarEdicionPedido() {
 
     const subtotalItems = state.items.reduce((sum, it) => sum + (it.cantidad * it.precio_unitario), 0);
     const ajuste = parseFloat(state.ajusteImporte) || 0;
-    const total = subtotalItems + ajuste;
+    // 💸 Bonificación (Migración 016): baja la base → total = (subtotal − bonif) + ajuste.
+    // El coste por línea se ajusta de verdad al RECIBIR (prorrateo). Aquí solo el total.
+    const bonificacionEdit = Math.min(Math.max(0, parseFloat(state.bonificacion) || 0), subtotalItems);
+    const total = (subtotalItems - bonificacionEdit) + ajuste;
 
-    const ingredientesPayload = state.items.map(it => ({
-        ingredienteId: it.ingredienteId,
-        ingrediente_id: it.ingredienteId,
-        cantidad: it.cantidad,
-        precio_unitario: it.precio_unitario,
-        precioUnitario: it.precio_unitario,
-        precio: it.precio_unitario
-    }));
+    // 🍽️ Reparto: si una línea personal tiene personalQty parcial (0 < q < cantidad),
+    // se parte en DOS líneas (producción + personal). Así el dato sigue siendo líneas
+    // binarias (limpio) y el aislamiento ya probado se aplica igual.
+    const ingredientesPayload = [];
+    state.items.forEach(it => {
+        const base = {
+            ingredienteId: it.ingredienteId,
+            ingrediente_id: it.ingredienteId,
+            precio_unitario: it.precio_unitario,
+            precioUnitario: it.precio_unitario,
+            precio: it.precio_unitario
+        };
+        const pq = parseFloat(it.personalQty);
+        if (it.personal === true && Number.isFinite(pq) && pq > 0 && pq < it.cantidad) {
+            ingredientesPayload.push({ ...base, personal: false, cantidad: Math.round((it.cantidad - pq) * 10000) / 10000 });
+            ingredientesPayload.push({ ...base, personal: true, cantidad: pq });
+        } else {
+            ingredientesPayload.push({ ...base, personal: it.personal === true, cantidad: it.cantidad });
+        }
+    });
 
     // Si hay ajuste, añadirlo como item especial al final del array
     if (ajuste !== 0 || state.ajusteDescripcion) {
@@ -345,11 +571,19 @@ export async function guardarEdicionPedido() {
 
     try {
         window.showLoading?.();
+        // 🧾 IVA del albarán (Migración 015): se persiste por pedido. NO entra en
+        // `total` (base) — solo display/tesorería. null si vacío.
+        const ivaPctPersist = (state.ivaPct !== null && state.ivaPct !== undefined && state.ivaPct !== '' && isFinite(state.ivaPct))
+            ? Math.min(100, Math.max(0, parseFloat(state.ivaPct)))
+            : null;
         // PUT al backend con estado 'pendiente' para que NO escriba en Diario
         await window.api.updatePedido(state.id, {
             estado: 'pendiente',
             ingredientes: ingredientesPayload,
-            total
+            total,
+            iva_pct: ivaPctPersist,
+            // 💸 Bonificación del albarán (Migración 016): persiste por pedido. null si 0.
+            bonificacion: bonificacionEdit > 0 ? bonificacionEdit : null
         });
 
         cerrarModalEditarPedido();
@@ -368,10 +602,16 @@ export async function guardarEdicionPedido() {
 if (typeof window !== 'undefined') {
     window.abrirModalEditarPedido = abrirModalEditarPedido;
     window.actualizarItemEdicion = actualizarItemEdicion;
+    window.actualizarItemEdicionFmt = actualizarItemEdicionFmt;
+    window.togglePersonalEdicion = togglePersonalEdicion;
+    window.setPersonalQtyEdicion = setPersonalQtyEdicion;
+    window.setPersonalQtyEdicionFmt = setPersonalQtyEdicionFmt;
     window.eliminarItemEdicion = eliminarItemEdicion;
     window.agregarItemEdicion = agregarItemEdicion;
     window.autocompletarPrecioEdicion = autocompletarPrecioEdicion;
     window.actualizarAjustePedido = actualizarAjustePedido;
+    window.actualizarIvaPedidoEdicion = actualizarIvaPedidoEdicion;
+    window.actualizarBonificacionPedido = actualizarBonificacionPedido;
     window.cerrarModalEditarPedido = cerrarModalEditarPedido;
     window.guardarEdicionPedido = guardarEdicionPedido;
 }

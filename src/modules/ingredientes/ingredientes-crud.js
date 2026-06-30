@@ -5,7 +5,38 @@
 
 import { showToast } from '../../ui/toast.js';
 import { getElement, getInputValue } from '../../utils/dom-helpers.js';
+import { escapeHTML, formatQuantity, cm } from '../../utils/helpers.js';
+import { getIngredientUnitPrice, getIngredientNominalPrice, precioDesviacionSospechosa } from '../../utils/cost-calculator.js';
+import { calcularPreviewPrecioUnidad, describirPrecioCoste } from './precio-unidad-preview.js';
+import { detectarAlergenos } from './alergenos-deteccion.js';
 import { setEditandoIngredienteId } from './ingredientes-ui.js';
+
+// 🆕 En cuanto el usuario toca un checkbox de alérgeno a mano, dejamos de
+// auto-sugerir por el nombre (no le pisamos su decisión). Listener delegado
+// único (los checkboxes son estáticos en index.html). Un cambio PROGRAMÁTICO
+// (chk.checked = x) NO dispara 'change', así que esto solo se activa con clic.
+if (typeof document !== 'undefined') {
+    document.addEventListener('change', (e) => {
+        if (e.target?.classList?.contains('ing-alergeno')) window._alergenosManual = true;
+    });
+}
+
+/**
+ * Pre-marca los alérgenos sugeridos según el NOMBRE del ingrediente. Solo
+ * mientras el usuario no haya tocado los checkboxes a mano (window._alergenosManual).
+ * SOLO sugerencia — el usuario confirma. Llamada con oninput desde #ing-nombre.
+ */
+export function sugerirAlergenosPorNombre() {
+    if (window._alergenosManual) return;
+    const nombre = getInputValue('ing-nombre');
+    const sugeridos = detectarAlergenos(nombre);
+    const set = new Set(sugeridos);
+    document.querySelectorAll('.ing-alergeno').forEach(chk => {
+        chk.checked = set.has(chk.value); // programático → no marca _alergenosManual
+    });
+    const hint = getElement('ing-alergenos-hint');
+    if (hint) hint.style.display = sugeridos.length ? 'block' : 'none';
+}
 // 🆕 Zustand store para gestión de estado
 import ingredientStore from '../../stores/ingredientStore.js';
 // 🆕 Validación centralizada
@@ -52,6 +83,11 @@ export async function guardarIngrediente(event) {
         cantidad_por_formato: getInputValue('ing-cantidad-formato')
             ? parseFloat(getInputValue('ing-cantidad-formato'))
             : undefined,
+        // 🆕 Alérgenos UE: array de códigos de los checkboxes marcados.
+        alergenos: Array.from(document.querySelectorAll('.ing-alergeno:checked')).map(c => c.value),
+        // 🆕 Precio fijado manual: si está marcado, el coste usa el precio tecleado y
+        // las recepciones de pedidos NO lo sobreescriben con la media de compras.
+        precio_fijado: document.getElementById('ing-precio-fijado')?.checked === true,
     };
 
     // 🆕 Validación centralizada (reemplaza validación manual)
@@ -59,9 +95,89 @@ export async function guardarIngrediente(event) {
     if (!validation.valid) {
         showValidationErrors(validation.errors);
         _guardandoIngrediente = false;
+        // 🔒 FIX: rehabilitar el botón al fallar la validación. Antes se quedaba
+        // disabled (gris) tras un guardado bloqueado y solo se recuperaba recargando.
+        if (submitBtn) submitBtn.disabled = false;
         return;
     }
 
+    // 🆕 Detección de duplicado por nombre (2026-06-08). Iker se chocó hoy con
+    // 2 PATATAS distintas: el descuento de stock se aplicó al ingrediente
+    // "fantasma" sin que el usuario se diese cuenta. Para prevenir el caso
+    // raíz, antes de CREAR (no editar) buscamos si ya hay un ingrediente con
+    // el mismo nombre normalizado (sin acentos, lowercase, trim). Si lo hay,
+    // confirmamos con el usuario antes de duplicar.
+    const editandoId_dup = window.editandoIngredienteId;
+    if (editandoId_dup === null || editandoId_dup === undefined) {
+        const normalizar = (s) => String(s || '')
+            .trim()
+            .toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const nombreNorm = normalizar(ingrediente.nombre);
+        const duplicado = (window.ingredientes || []).find(i =>
+            normalizar(i.nombre) === nombreNorm
+        );
+        if (duplicado) {
+            const proveedorMsg = duplicado.proveedor_nombre
+                ? ` (proveedor: ${duplicado.proveedor_nombre})`
+                : '';
+            const stockMsg = duplicado.stock_actual !== null && duplicado.stock_actual !== undefined
+                ? ` con stock ${parseFloat(duplicado.stock_actual)} ${duplicado.unidad || ''}`
+                : '';
+            const continuar = window.confirm(
+                `Ya existe un ingrediente llamado "${duplicado.nombre}"${proveedorMsg}${stockMsg}.\n\n` +
+                `Crear otro con el mismo nombre puede fragmentar tu stock y descuentos. ` +
+                `Si solo cambia el proveedor, te recomendamos editar el existente y añadir el nuevo proveedor desde su ficha.\n\n` +
+                `¿Quieres crear uno NUEVO igualmente?`
+            );
+            if (!continuar) {
+                _guardandoIngrediente = false;
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+        }
+    }
+
+    // 🛡️ Guard anti-dedazo en la ficha: al EDITAR, si el precio por unidad tecleado
+    // se desvía mucho del precio efectivo actual del ingrediente, avisar (error de
+    // tecleo o pin equivocado). Solo al editar (hay referencia). Reusa el mismo
+    // helper que la recepción; referencia vía getIngredientUnitPrice (anti-drift).
+    //
+    // OJO: solo avisamos si el precio tecleado SE VA A USAR de verdad para el coste:
+    //  - lo fijas (📌) → se usa el pin, o
+    //  - no hay media de compras → se usa el fallback (precio/cpf).
+    // Si NO está fijado y hay media, lo que teclees es inerte (la media manda y el
+    // próximo pedido lo sobreescribe) → avisar sería ruido (caso TOMATE: 6 vs media
+    // 3,125 = +92% por un número que ni se usa). describirPrecioCoste clasifica la
+    // fuente; si es 'media', el precio tecleado no cuenta → no molestamos.
+    const editandoId_dev = window.editandoIngredienteId;
+    if (editandoId_dev !== null && editandoId_dev !== undefined) {
+        const ingActual = (window.ingredientes || []).find(i => i.id === editandoId_dev);
+        const invActual = (window.inventarioCompleto || []).find(i => i.id === editandoId_dev);
+        const ref = getIngredientUnitPrice(invActual, ingActual);
+        const cpf = parseFloat(ingrediente.cantidad_por_formato ?? ingActual?.cantidad_por_formato) || 1;
+        const precioUnit = (parseFloat(ingrediente.precio) || 0) / cpf;
+        const fijadoNuevo = ingrediente.precio_fijado === true || ingrediente.precio_fijado === 'true';
+        const { fuente } = describirPrecioCoste({
+            efectivo: ref,
+            precioConfigUnit: getIngredientNominalPrice(ingActual),
+            fijado: fijadoNuevo,
+        });
+        const seVaAUsar = fuente !== 'media';
+        const chk = precioDesviacionSospechosa(precioUnit, ref);
+        if (seVaAUsar && chk.sospechoso) {
+            const signo = chk.pct > 0 ? '+' : '';
+            const ok = window.confirm(
+                `⚠️ El precio que pones (${cm(precioUnit)}/ud) se desvía ${signo}${chk.pct}% del precio actual del ingrediente (${cm(ref)}/ud).\n\n` +
+                '¿Es correcto?\n\nAceptar = guardar · Cancelar = corregir'
+            );
+            if (!ok) {
+                _guardandoIngrediente = false;
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+        }
+    }
 
     if (typeof window.showLoading === 'function') window.showLoading();
 
@@ -249,6 +365,33 @@ export function editarIngrediente(id) {
     const precioEl = getElement('ing-precio');
     if (precioEl) precioEl.value = ing.precio || '';
 
+    // Prefill del checkbox "Fijar precio" desde el ingrediente.
+    const fijadoEl = getElement('ing-precio-fijado');
+    if (fijadoEl) fijadoEl.checked = (ing.precio_fijado === true || ing.precio_fijado === 'true' || ing.precio_fijado === 't');
+
+    // Enriquecer el hint del precio con el PMC actual del ingrediente.
+    // El backend recalcula `ing.precio = PMC × cpf` tras cada pedido recibido
+    // (businessHelpers.recalcularPrecioPonderado), así que precio / cpf = PMC.
+    // Mostrarlo aquí le da al usuario transparencia: ve de dónde sale el número.
+    const hintEl = getElement('ing-precio-hint');
+    if (hintEl) {
+        const precio = parseFloat(ing.precio) || 0;
+        const cpf = parseFloat(ing.cantidad_por_formato) > 0 ? parseFloat(ing.cantidad_por_formato) : 1;
+        // ing.unidad y ing.formato_compra vienen de input del usuario → escapar antes de inyectar.
+        const unidadBase = escapeHTML(ing.unidad || 'ud');
+        const formato = escapeHTML(ing.formato_compra || '');
+        const pmc = precio / cpf;
+        let detalle = '';
+        if (precio > 0) {
+            if (formato && cpf > 1) {
+                detalle = ` Actualmente: <strong>${pmc.toFixed(2)}€/${unidadBase} × ${cpf} = ${precio.toFixed(2)}€/${formato}</strong>.`;
+            } else {
+                detalle = ` Actualmente: <strong>${precio.toFixed(2)}€/${unidadBase}</strong>.`;
+            }
+        }
+        hintEl.innerHTML = `💡 La app recalcula este precio automáticamente tras cada pedido recibido (precio medio de compras × cantidad por formato).${detalle} Si lo editas a mano, el siguiente pedido lo sobreescribirá.`;
+    }
+
     const unidadEl = getElement('ing-unidad');
     if (unidadEl) unidadEl.value = ing.unidad;
 
@@ -293,6 +436,114 @@ export function editarIngrediente(id) {
     if (cantFormatoEl) cantFormatoEl.value = ing.cantidad_por_formato !== null && ing.cantidad_por_formato !== undefined
         ? ing.cantidad_por_formato
         : '';
+
+    // 🆕 Cargar alérgenos: limpiar todos y marcar los presentes en ing.alergenos.
+    const alergenosIng = Array.isArray(ing.alergenos) ? ing.alergenos : [];
+    document.querySelectorAll('.ing-alergeno').forEach(chk => {
+        chk.checked = alergenosIng.includes(chk.value);
+    });
+    // En edición ya hay alérgenos guardados → NO auto-sugerir por el nombre
+    // (no pisar lo que el usuario validó antes). El hint se oculta.
+    window._alergenosManual = true;
+    const hintEdit = getElement('ing-alergenos-hint');
+    if (hintEdit) hintEdit.style.display = 'none';
+
+    // Refrescar el preview de precio por unidad con los datos cargados.
+    actualizarPreviewPrecioUnidad();
+}
+
+/**
+ * Pinta en vivo, bajo el formato, qué precio por unidad base usará la app y avisa
+ * si la combinación es incoherente (cpf>1 sin nombre de formato, o cpf>1 con una
+ * unidad "contable" tipo 'unidad'/'botella' que casi siempre debería ser g/ml).
+ * Evita el bug mermelada (unidad=unidad + 750 por formato → 0,004 €/unidad).
+ * Lógica de cálculo aislada y testeada en precio-unidad-preview.js.
+ */
+export function actualizarPreviewPrecioUnidad() {
+    // Dos avisos separados para que cada uno esté donde toca:
+    //  - costeEl: QUÉ precio usa el coste (media/fijado/config) → pegado al PRECIO.
+    //  - formatoEl: coherencia del FORMATO (bug mermelada) → en la sección Formato.
+    const costeEl = getElement('ing-precio-coste-preview');
+    const formatoEl = getElement('ing-precio-unidad-preview');
+    if (!costeEl && !formatoEl) return;
+
+    const r = calcularPreviewPrecioUnidad({
+        precio: getInputValue('ing-precio'),
+        cantidadPorFormato: getInputValue('ing-cantidad-formato'),
+        formato: getInputValue('ing-formato-compra'),
+        unidad: getInputValue('ing-unidad'),
+    });
+
+    const ocultar = (el) => { if (el) { el.style.display = 'none'; el.innerHTML = ''; } };
+
+    if (!r.visible) {
+        ocultar(costeEl);
+        ocultar(formatoEl);
+        return;
+    }
+
+    const moneda = window.currentUser?.moneda || '€';
+    const u = escapeHTML(r.unidad);
+    const nombreFormato = escapeHTML(r.formato || 'formato');
+
+    // ── Aviso de COSTE (pegado al precio) ──────────────────────────────────
+    // Qué precio usará REALMENTE la app. El número lo da la única fuente de
+    // verdad (getIngredientUnitPrice); aquí solo clasificamos la fuente.
+    if (costeEl) {
+        const fijado = getElement('ing-precio-fijado')?.checked === true;
+        const invEdit = (window.inventarioCompleto || []).find(i => i.id === window.editandoIngredienteId) || null;
+        const ingForm = { precio: r.precio, cantidad_por_formato: r.cpf, precio_fijado: fijado };
+        const efectivoApp = getIngredientUnitPrice(invEdit, ingForm);
+        const { efectivo, fuente } = describirPrecioCoste({
+            efectivo: efectivoApp,
+            precioConfigUnit: r.unitPrice,
+            fijado,
+        });
+        const valEfectivo = `<strong>${escapeHTML(formatQuantity(efectivo))} ${escapeHTML(moneda)}/${u}</strong>`;
+        let coste;
+        if (fuente === 'media') {
+            const valCfg = `${escapeHTML(formatQuantity(r.unitPrice))} ${escapeHTML(moneda)}/${u}`;
+            coste = `→ Para el coste / food cost la app usará la <strong>media de compras</strong>: ${valEfectivo}. El precio configurado (${valCfg}) es de referencia; el próximo pedido recibido lo recalcula.`;
+        } else if (fuente === 'fijado') {
+            coste = `→ La app usará ${valEfectivo} para el coste / food cost (📌 precio fijado, ignora la media de compras).`;
+        } else {
+            coste = `→ La app usará ${valEfectivo} para el coste / food cost`;
+        }
+        costeEl.style.display = 'block';
+        costeEl.style.background = '#ecfdf5';
+        costeEl.style.borderLeft = '3px solid #10b981';
+        costeEl.style.color = '#065f46';
+        costeEl.innerHTML = coste;
+    }
+
+    // ── Aviso de FORMATO (en la sección de formato) ────────────────────────
+    // Solo se muestra si hay algo que decir del formato: equivalencia (cpf>1) o
+    // una incoherencia (falta nombre / unidad sospechosa). Si no, se oculta.
+    if (formatoEl) {
+        let html = '';
+        if (r.cpf > 1) {
+            html += `<div>Compras <strong>1 ${nombreFormato}</strong> = <strong>${escapeHTML(formatQuantity(r.cpf))} ${u}</strong> por <strong>${r.precio.toFixed(2)} ${escapeHTML(moneda)}</strong></div>`;
+        }
+        let bg = '#ecfdf5';
+        let border = '#10b981';
+        if (r.level === 'falta_nombre') {
+            bg = '#fef2f2';
+            border = '#ef4444';
+            html += `<div style="margin-top:6px;font-weight:600;color:#b91c1c;">⚠️ Pon el nombre del formato (ej. BOTE, CAJA) o deja vacía la cantidad por formato si compras por unidad.</div>`;
+        } else if (r.level === 'sospechoso') {
+            bg = '#fffbeb';
+            border = '#f59e0b';
+            html += `<div style="margin-top:6px;font-weight:600;color:#92400e;">⚠️ Estás diciendo que <strong>1 ${nombreFormato} = ${escapeHTML(formatQuantity(r.cpf))} ${u}</strong>. Si en realidad es peso/volumen (ej. un bote de 750 g), cambia la <strong>Unidad</strong> a g / ml / kg / l.</div>`;
+        }
+        if (html) {
+            formatoEl.style.display = 'block';
+            formatoEl.style.background = bg;
+            formatoEl.style.borderLeft = `3px solid ${border}`;
+            formatoEl.innerHTML = html;
+        } else {
+            ocultar(formatoEl);
+        }
+    }
 }
 
 /**

@@ -99,14 +99,22 @@ export async function renderizarVentas() {
                 const totalDia = ventasDia.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
                 const fechaDisplay = new Date(fechaISO[isoKey]).toLocaleDateString(dateLocale);
 
-                html += `<tr style="background:#F8FAFC;"><td colspan="6" style="padding:12px 16px;font-weight:600;color:#1E293B;border-bottom:1px solid #E2E8F0;">${fechaDisplay} - ${t('common:label_total')}: ${cm(totalDia)}</td></tr>`;
+                // 📱 Clase distintiva en la fila de día agrupador (colspan=6) — el CSS móvil
+                // la usa para tratarla como cabecera de sección sin transformarla a card.
+                html += `<tr class="venta-dia-header" style="background:#F8FAFC;"><td colspan="6" style="padding:12px 16px;font-weight:600;color:#1E293B;border-bottom:1px solid #E2E8F0;">${fechaDisplay} - ${t('common:label_total')}: ${cm(totalDia)}</td></tr>`;
 
                 ventasDia.forEach(v => {
                     const hora = new Date(v.fecha).toLocaleTimeString(dateLocale, {
                         hour: '2-digit',
                         minute: '2-digit',
                     });
-                    html += `<tr><td style="padding:8px 16px 8px 32px;color:#64748B;">${fechaDisplay}</td><td style="padding:8px 16px;color:#64748B;">${hora}</td><td style="padding:8px 16px;color:#1E293B;">${escapeHTML(v.receta_nombre || '')}</td><td style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${cm(parseFloat(v.total))}</strong></td><td style="padding:8px 16px;text-align:center;"><button class="icon-btn delete" onclick="window.eliminarVenta(${v.id})" title="${t('common:btn_delete')}">🗑️</button></td></tr>`;
+                    // 📱 Labels para vista móvil + clase venta-row en la fila para CSS scoped.
+                    const lblFecha = t('ventas:col_date');
+                    const lblHora = t('ventas:col_time');
+                    const lblDesc = t('ventas:col_description');
+                    const lblQty = t('ventas:col_quantity');
+                    const lblTot = t('ventas:col_total_eur');
+                    html += `<tr class="venta-row"><td data-label="${lblFecha}" style="padding:8px 16px 8px 32px;color:#64748B;">${fechaDisplay}</td><td data-label="${lblHora}" style="padding:8px 16px;color:#64748B;">${hora}</td><td data-label="${lblDesc}" style="padding:8px 16px;color:#1E293B;">${escapeHTML(v.receta_nombre || '')}</td><td data-label="${lblQty}" style="padding:8px 16px;text-align:center;color:#64748B;">${v.cantidad}</td><td data-label="${lblTot}" style="padding:8px 16px;text-align:right;"><strong style="color:#1E293B;">${cm(parseFloat(v.total))}</strong></td><td style="padding:8px 16px;text-align:center;"><button class="icon-btn delete" onclick="window.eliminarVenta(${v.id})" title="${t('common:btn_delete')}">🗑️</button></td></tr>`;
                 });
             });
 

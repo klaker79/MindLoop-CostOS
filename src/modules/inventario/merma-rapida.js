@@ -36,7 +36,7 @@ export function mostrarModalMermaRapida() {
         const empleados = window.empleados || [];
         let html = `<option value="">${t('inventario:merma_select_responsible')}</option>`;
         empleados.forEach(emp => {
-            html += `<option value="${emp.id}">${emp.nombre}</option>`;
+            html += `<option value="${emp.id}">${escapeHTML(emp.nombre)}</option>`;
         });
         // Si no hay empleados, añadir opción manual
         if (empleados.length === 0) {

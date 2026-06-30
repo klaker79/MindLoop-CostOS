@@ -13,8 +13,24 @@
  */
 
 import { t } from '@/i18n/index.js';
-import { escapeHTML, cm, getDateLocale } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpers.js';
+import { formatoDesdeBase, esCantidadEnteraEnFormato } from './formato-utils.js';
 import ingredientStore from '../../stores/ingredientStore.js';
+import { precioDesviacionSospechosa, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
+
+/**
+ * Contexto de formato de un ingrediente para mostrar la recepción en formato
+ * de compra (bote, caja…) en vez de unidad base. cpf>1 + formato_compra = hay
+ * formato. El dato interno (cantidadRecibida/precioReal) SIEMPRE queda en base;
+ * esto es SOLO para mostrar/editar. Así el delta de stock no cambia y no se
+ * puede inflar inventario.
+ */
+function ctxFormato(ing) {
+    const cpfRaw = parseFloat(ing?.cantidad_por_formato);
+    const cpf = cpfRaw > 1 ? cpfRaw : 1;
+    const formatoNombre = ing?.formato_compra;
+    return { cpf, formatoNombre, usaFormato: cpf > 1 && !!formatoNombre };
+}
 
 // 🔒 Guard anti-doble-click: si una recepción está en curso, el siguiente clic no hace nada.
 // Evita duplicar stock cuando el usuario pulsa "Confirmar" dos veces rápido.
@@ -37,6 +53,34 @@ export function marcarPedidoRecibido(id) {
     const provSpan = document.getElementById('modal-rec-proveedor');
     if (provSpan) provSpan.textContent = prov ? prov.nombre : 'Sin proveedor';
 
+    // 🧾 Autorelleno IVA del albarán (Migración 015): prioriza el IVA que viaja
+    // CON el pedido (puesto al crear/editar) → IVA habitual del proveedor → vacío.
+    // El IVA se persiste pero NO afecta a precio_medio_compra ni al food cost;
+    // `total` sigue siendo la BASE sin IVA.
+    const ivaInput = document.getElementById('modal-rec-iva-pct');
+    if (ivaInput) {
+        if (ped.iva_pct !== null && ped.iva_pct !== undefined) {
+            ivaInput.value = ped.iva_pct;
+        } else if (prov && prov.iva_pct !== null && prov.iva_pct !== undefined) {
+            ivaInput.value = prov.iva_pct;
+        } else {
+            ivaInput.value = '';
+        }
+        // Listener idempotente: removemos cualquier anterior antes de añadir.
+        ivaInput.oninput = () => actualizarTotalConIva();
+    }
+
+    // 💸 Autorelleno bonificación del albarán (Migración 016): el importe que viaja
+    // con el pedido (puesto al recibir/editar) → vacío. Al teclearla, recalcula la
+    // base neta y el total con IVA.
+    const bonifInput = document.getElementById('modal-rec-bonificacion');
+    if (bonifInput) {
+        bonifInput.value = (ped.bonificacion !== null && ped.bonificacion !== undefined && parseFloat(ped.bonificacion) > 0)
+            ? ped.bonificacion
+            : '';
+        bonifInput.oninput = () => actualizarTotalConIva();
+    }
+
     const fechaSpan = document.getElementById('modal-rec-fecha');
     if (fechaSpan) {
         const fechaStr = typeof ped.fecha === 'string' && ped.fecha.length === 10 ? ped.fecha + 'T12:00:00' : ped.fecha;
@@ -51,6 +95,9 @@ export function marcarPedidoRecibido(id) {
     // 🔒 Excluir items de tipo 'ajuste' (envases/bonificaciones) — solo afectan al total, no al stock
     if (!ped.itemsRecepcion) {
         ped.itemsRecepcion = (ped.ingredientes || [])
+            // Solo se excluyen los 'ajuste' (envases). Las líneas de comida personal
+            // SÍ se muestran (en modo lectura) para que el usuario las vea y el total
+            // cuadre; el stock las salta aparte (filtro !item.personal en el confirm).
             .filter(item => item.tipo !== 'ajuste')
             .map(item => {
                 const precio = parseFloat(item.precio_unitario || item.precio || 0);
@@ -70,6 +117,66 @@ export function marcarPedidoRecibido(id) {
     // Mostrar modal
     const modal = document.getElementById('modal-recibir-pedido');
     if (modal) modal.classList.add('active');
+}
+
+/**
+ * Recalcula el "Total con IVA" del modal de recepción a partir del valor
+ * actual del input IVA y del totalRecibido ya renderizado. Solo es DISPLAY
+ * — no se envía al backend, no afecta a precio_medio_compra ni a ninguna
+ * fórmula crítica. Permite al cliente cuadrar el total con el albarán
+ * físico que viene con IVA aparte.
+ */
+/**
+ * Parsea un string formateado con cm() (ej. "1.234,56 €" o "1,234.56 RM")
+ * a número. Soporta los dos separadores europeos comunes:
+ *   - es/ca/pt: "1.234,56" → 1234.56 (punto miles, coma decimal)
+ *   - en/zh:    "1,234.56" → 1234.56 (coma miles, punto decimal)
+ * Si solo hay un separador, asume que es decimal.
+ */
+function parseMonedaLocale(str) {
+    if (!str) return 0;
+    const limpio = String(str).replace(/[^0-9.,-]/g, '');
+    if (!limpio) return 0;
+    const hasComma = limpio.includes(',');
+    const hasDot = limpio.includes('.');
+    if (hasComma && hasDot) {
+        // Detectar cuál es el decimal: el que aparece más tarde.
+        const idxComma = limpio.lastIndexOf(',');
+        const idxDot = limpio.lastIndexOf('.');
+        if (idxComma > idxDot) {
+            // coma decimal, punto miles
+            return parseFloat(limpio.replace(/\./g, '').replace(',', '.')) || 0;
+        }
+        // punto decimal, coma miles
+        return parseFloat(limpio.replace(/,/g, '')) || 0;
+    }
+    if (hasComma) {
+        return parseFloat(limpio.replace(',', '.')) || 0;
+    }
+    return parseFloat(limpio) || 0;
+}
+
+export function actualizarTotalConIva() {
+    const ivaInput = document.getElementById('modal-rec-iva-pct');
+    const bonifInput = document.getElementById('modal-rec-bonificacion');
+    const resumenRec = document.getElementById('modal-rec-resumen-recibido');
+    const resumenBase = document.getElementById('modal-rec-resumen-base-neta');
+    const resumenConIva = document.getElementById('modal-rec-resumen-con-iva');
+    if (!resumenConIva) return;
+    // Re-parseamos el total recibido (BRUTO: Σ líneas + ajustes) desde el DOM.
+    // Soporta separadores de miles europeos.
+    const totalRecibido = parseMonedaLocale(resumenRec?.textContent);
+    // 💸 Bonificación: descuento real → baja la base. Clamp a [0, totalRecibido]
+    // (no permitir base negativa).
+    const bonif = bonifInput ? Math.max(0, parseFloat(bonifInput.value) || 0) : 0;
+    const baseNeta = Math.max(0, totalRecibido - bonif);
+    if (resumenBase) resumenBase.textContent = cm(baseNeta);
+    const ivaPct = ivaInput ? (parseFloat(ivaInput.value) || 0) : 0;
+    // Clamp defensivo aunque el constraint backend ya lo cubre.
+    const ivaClamped = Math.min(100, Math.max(0, ivaPct));
+    // El IVA se aplica sobre la base NETA (tras bonificación). cm() respeta la moneda.
+    const totalConIva = baseNeta * (1 + ivaClamped / 100);
+    resumenConIva.textContent = cm(totalConIva);
 }
 
 /**
@@ -104,30 +211,68 @@ function renderItemsRecepcionModal(ped) {
         totalOriginal += subtotalOriginal;
         totalRecibido += subtotalRecibido;
 
+        // 📦 Mostrar en FORMATO de compra (bote, caja…) como el resto de la app.
+        // SOLO display: cantidadRecibida/precioReal siguen en base internamente,
+        // el delta de stock no cambia → imposible inflar inventario por esto.
+        const { cpf, formatoNombre } = ctxFormato(ing);
+        // Formato solo si la cantidad pedida son cajas/botes ENTEROS; si no
+        // (reparto de personal, sueltas), en base (botella) para no ver 0,333 CAJA.
+        const usaFormato = cpf > 1 && !!formatoNombre && esCantidadEnteraEnFormato(cantPedida, cpf);
+        const unidadLabel = usaFormato ? formatoNombre : unidad;
+        const cantPedidaShown = usaFormato ? formatoDesdeBase(cantPedida, 0, cpf).cantidad : cantPedida;
+        const cantRecibidaShown = usaFormato ? formatoDesdeBase(cantRecibida, 0, cpf).cantidad : cantRecibida;
+        const precioPedShown = usaFormato ? formatoDesdeBase(0, precioPed, cpf).precio : precioPed;
+        const precioRealShown = usaFormato ? formatoDesdeBase(0, precioReal, cpf).precio : precioReal;
+        const precioPedTxt = usaFormato ? `${cm(precioPedShown)}/${escapeHTML(formatoNombre)}` : cm(precioPed);
+        const precioRealTxt = usaFormato ? `${cm(precioRealShown)}/${escapeHTML(formatoNombre)}` : cm(precioReal);
+        const hintBase = usaFormato ? `<div style="font-size:10px;color:#94a3b8;">= ${escapeHTML(formatQuantity(cantPedida))} ${escapeHTML(unidad)}</div>` : '';
+        // En modo base (usaFormato=false) NO se debe convertir al teclear → cpf=1,
+        // si no, multiplicaría el valor base por cpf e inflaría el stock.
+        const cpfInput = usaFormato ? cpf : 1;
+        const recOnchange = `window.actualizarItemRecepcion(${idx}, 'cantidad', this.value, ${cpfInput})`;
+        const precioOnchange = `window.actualizarItemRecepcion(${idx}, 'precio', this.value, ${cpfInput})`;
+
+        // 🍽️ Líneas de comida personal: fila en modo LECTURA (gris, badge), sin
+        // inputs ni estado. Cuenta en el total pero NO toca stock ni food cost.
+        if (item.personal === true) {
+            html += `
+          <tr style="background:#faf5ff;">
+            <td>${escapeHTML(nombre)} <span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#7c3aed;background:#ede9fe;border-radius:6px;padding:2px 7px;white-space:nowrap;">🍽️ ${escapeHTML(t('pedidos:personal_label'))}</span></td>
+            <td>${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}</td>
+            <td><span style="color:#94a3b8;">${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}</span></td>
+            <td>${precioPedTxt}</td>
+            <td><span style="color:#94a3b8;">${precioRealTxt}</span></td>
+            <td><strong>${cm(subtotalRecibido)}</strong></td>
+            <td><span style="font-size:11px;color:#7c3aed;font-weight:600;">no toca stock</span></td>
+          </tr>
+        `;
+            return;
+        }
+
         html += `
           <tr>
             <td>${escapeHTML(nombre)}</td>
-            <td>${cantPedida} ${unidad}</td>
+            <td>${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}${hintBase}</td>
             <td>
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
-                : `<input type="number" step="0.01" min="0" value="${cantRecibida}" 
+                : `<input type="number" step="0.01" min="0" value="${cantRecibidaShown}"
                     style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;"
-                    oninput="window.actualizarItemRecepcion(${idx}, 'cantidad', this.value)">`
+                    oninput="${recOnchange}"> <small style="color:#64748b;">${escapeHTML(unidadLabel)}</small>`
             }
             </td>
-            <td>${cm(precioPed)}</td>
+            <td>${precioPedTxt}</td>
             <td>
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
-                : `<input type="number" step="0.01" min="0" value="${precioReal}"
+                : `<input type="number" step="0.01" min="0" value="${usaFormato ? precioRealShown.toFixed(2) : precioReal}"
                     style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;"
-                    oninput="window.actualizarItemRecepcion(${idx}, 'precio', this.value)">`
+                    oninput="${precioOnchange}">${usaFormato ? ` <small style="color:#64748b;white-space:nowrap;">/${escapeHTML(formatoNombre)}</small>` : ''}`
             }
             </td>
             <td><strong id="subtotal-item-${idx}">${cm(subtotalRecibido)}</strong></td>
             <td>
-              <select onchange="window.cambiarEstadoItem(${idx}, this.value)" 
+              <select onchange="window.cambiarEstadoItem(${idx}, this.value)"
                 style="padding:5px;border:1px solid #ddd;border-radius:4px;">
                 <option value="consolidado" ${item.estado === 'consolidado' ? 'selected' : ''}>✅ OK</option>
                 <option value="varianza" ${item.estado === 'varianza' ? 'selected' : ''}>⚠️ Varianza</option>
@@ -154,27 +299,36 @@ function renderItemsRecepcionModal(ped) {
         resumenVar.textContent = (varianza >= 0 ? '+' : '') + cm(varianza);
         resumenVar.style.color = varianza > 0 ? '#ef4444' : varianza < 0 ? '#10b981' : '#666';
     }
+
+    // Recalcula "Total con IVA" tras cualquier cambio en el total recibido.
+    actualizarTotalConIva();
 }
 
 /**
  * Actualiza un item de recepción y recalcula totales SIN perder el foco
  */
-export function actualizarItemRecepcion(idx, tipo, valor) {
+export function actualizarItemRecepcion(idx, tipo, valor, cpf) {
     const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
     if (!ped || !ped.itemsRecepcion) return;
 
     const item = ped.itemsRecepcion[idx];
     if (!item) return;
 
+    // 📦 El input puede venir en FORMATO (botes). Se convierte a unidad BASE
+    // antes de guardar en el item, porque el delta de stock y los totales se
+    // calculan SIEMPRE en base. cantidad: formato × cpf. precio: €/formato ÷ cpf.
+    // cpf<=1 (sin formato) → k=1, comportamiento idéntico al de antes.
+    const k = parseFloat(cpf) > 1 ? parseFloat(cpf) : 1;
+
     if (tipo === 'cantidad') {
-        item.cantidadRecibida = parseFloat(valor) || 0;
-        // Auto-detectar varianza
+        item.cantidadRecibida = (parseFloat(valor) || 0) * k;
+        // Auto-detectar varianza (ambos lados en base)
         if (Math.abs(item.cantidadRecibida - item.cantidad) > 0.01) {
             item.estado = 'varianza';
         }
     } else if (tipo === 'precio') {
-        item.precioReal = parseFloat(valor) || 0;
-        // Auto-detectar varianza
+        item.precioReal = (parseFloat(valor) || 0) / k;
+        // Auto-detectar varianza (ambos lados en base)
         if (Math.abs(item.precioReal - item.precioUnitario) > 0.01) {
             item.estado = 'varianza';
         }
@@ -226,6 +380,9 @@ function actualizarTotalesRecepcion(ped, idxActualizado) {
         resumenVar.textContent = (varianza >= 0 ? '+' : '') + cm(varianza);
         resumenVar.style.color = varianza > 0 ? '#ef4444' : varianza < 0 ? '#10b981' : '#666';
     }
+
+    // Recalcula "Total con IVA" tras cualquier cambio en el total recibido.
+    actualizarTotalConIva();
 }
 
 /**
@@ -262,6 +419,42 @@ export async function confirmarRecepcionPedido() {
     const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
     if (!ped || !ped.itemsRecepcion) return;
 
+    // 🛡️ Guard anti-dedazo: avisar si algún precio recibido se desvía mucho de la
+    // referencia del ingrediente (media de compras > configurado). NO bloquea: el
+    // usuario confirma una subida real o vuelve a corregir. Evita que un precio mal
+    // tecleado entre en la media de compras y reviente el food cost. Se ejecuta
+    // ANTES de marcar isConfirmingReception → si cancela, no queda nada a medias.
+    {
+        const invMap = new Map((window.inventarioCompleto || []).map(i => [i.id, i]));
+        const ingMap = new Map((window.ingredientes || []).map(i => [i.id, i]));
+        const sospechosos = [];
+        for (const item of ped.itemsRecepcion) {
+            if (item.estado === 'no-entregado') continue;
+            const precioNuevo = parseFloat(item.precioReal || item.precioUnitario || 0);
+            if (!(precioNuevo > 0)) continue;
+            const ingId = item.ingredienteId || item.ingrediente_id;
+            const inv = invMap.get(ingId);
+            const ing = ingMap.get(ingId);
+            // Referencia = precio unitario canónico (media de compras > configurado),
+            // vía el helper único. Si no hay referencia (>0) no se puede comparar.
+            const ref = getIngredientUnitPrice(inv, ing);
+            const chk = precioDesviacionSospechosa(precioNuevo, ref);
+            if (chk.sospechoso) {
+                const nombre = ing ? ing.nombre : `Ingrediente ${ingId}`;
+                const signo = chk.pct > 0 ? '+' : '';
+                sospechosos.push(`• ${nombre}: ${cm(precioNuevo)} (${signo}${chk.pct}% vs ${cm(ref)})`);
+            }
+        }
+        if (sospechosos.length > 0) {
+            const msg = '⚠️ Estos precios se desvían mucho de lo habitual y entrarán en la media de compras:\n\n'
+                + sospechosos.join('\n')
+                + '\n\n¿Son correctos?\n\nAceptar = guardar igualmente · Cancelar = volver y corregir';
+            if (!window.confirm(msg)) {
+                return; // el usuario vuelve a corregir; no se ha tocado nada
+            }
+        }
+    }
+
     isConfirmingReception = true;
     const btnConfirmar = document.querySelector('#modal-recibir-pedido button[onclick*="confirmarRecepcionPedido"]');
     if (btnConfirmar) {
@@ -275,10 +468,28 @@ export async function confirmarRecepcionPedido() {
     try {
         let totalRecibido = 0;
 
-        // Preparar ingredientes con precioReal actualizado
+        // 💸 Bonificación del albarán (Migración 016): descuento del proveedor que SÍ
+        // baja el COSTE real. Se reparte proporcionalmente entre las líneas de género
+        // bajando su precioReal → ese precio neto va a precios_compra_diarios (food
+        // cost) y al total. Así el camarero teclea el BRUTO en cada línea + la
+        // bonificación del albarán, sin restar a mano. (Envases/ajustes NO se prorratean.)
+        const bonifInput = document.getElementById('modal-rec-bonificacion');
+        const bonificacion = bonifInput ? Math.max(0, parseFloat(bonifInput.value) || 0) : 0;
+        const baseBrutaGenero = ped.itemsRecepcion.reduce((s, item) => {
+            if (item.estado === 'no-entregado') return s;
+            const cant = parseFloat(item.cantidadRecibida || 0);
+            const pr = parseFloat(item.precioReal || item.precioUnitario || 0);
+            return s + cant * pr;
+        }, 0);
+        // Clamp: la bonificación no puede dejar la base en negativo.
+        const bonifAplicada = Math.min(bonificacion, baseBrutaGenero);
+        const factorBonif = baseBrutaGenero > 0 ? (baseBrutaGenero - bonifAplicada) / baseBrutaGenero : 1;
+
+        // Preparar ingredientes con precioReal actualizado (ya con la bonificación
+        // repartida: precioReal neto = precioReal bruto × factorBonif).
         const ingredientesActualizados = ped.itemsRecepcion.map(item => {
             const cantRecibida = item.estado === 'no-entregado' ? 0 : parseFloat(item.cantidadRecibida || 0);
-            const precioReal = parseFloat(item.precioReal || item.precioUnitario || 0);
+            const precioReal = parseFloat(item.precioReal || item.precioUnitario || 0) * factorBonif;
 
             if (item.estado !== 'no-entregado') {
                 totalRecibido += cantRecibida * precioReal;
@@ -287,6 +498,9 @@ export async function confirmarRecepcionPedido() {
             return {
                 ingredienteId: item.ingredienteId,
                 ingrediente_id: item.ingredienteId,
+                // 🍽️ preservar la marca personal en el confirm (si no, recepción la
+                // borraría y la línea volvería a contar en food cost/stock).
+                personal: item.personal === true,
                 cantidad: parseFloat(item.cantidad || 0),
                 cantidadRecibida: cantRecibida,
                 precioUnitario: parseFloat(item.precioUnitario || 0),
@@ -317,7 +531,7 @@ export async function confirmarRecepcionPedido() {
         // (cantidadReal = cantidadValue * formatoMult cuando se creó el pedido).
         // NO multiplicar otra vez — causaba multiplicación doble (bug 2026-04-15).
         const adjustments = ingredientesActualizados
-            .filter(item => item.estado !== 'no-entregado' && parseFloat(item.cantidadRecibida) > 0)
+            .filter(item => item.estado !== 'no-entregado' && !item.personal && parseFloat(item.cantidadRecibida) > 0)
             .map(item => ({
                 id: item.ingredienteId,
                 delta: parseFloat(item.cantidadRecibida)
@@ -409,8 +623,27 @@ export async function confirmarRecepcionPedido() {
             estado: 'recibido',
             ingredientes: ingredientesActualizados, // ← IMPORTANTE: Esto guarda precioReal
             fecha_recepcion: fechaOriginal,
+            // 💶 El GASTO del P&L (informe mensual, chat P&L, compras) usa pedidos.total.
+            // Al recibir, total pasa a ser lo REALMENTE recibido (precio real × cantidad
+            // recibida + ajustes/envases), no lo que se pidió → el gasto refleja lo que
+            // pagas de verdad, en línea con el coste (precio_medio_compra sale del mismo
+            // precioReal). Antes total se quedaba con el valor del pedido original y el
+            // gasto no reflejaba descuentos/variaciones al recibir. (2026-06-27)
+            total: totalRecibido,
             total_recibido: totalRecibido,
-            totalRecibido: totalRecibido
+            totalRecibido: totalRecibido,
+            // 🧾 IVA del albarán (Migración 015): persistir el valor del modal de
+            // recepción (puede haberlo ajustado el camarero). Si está vacío, null →
+            // el backend (COALESCE) conserva el que ya tenía el pedido. NO toca total.
+            iva_pct: (() => {
+                const el = document.getElementById('modal-rec-iva-pct');
+                if (!el || el.value === '') return (ped.iva_pct ?? null);
+                const v = parseFloat(el.value);
+                return Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : (ped.iva_pct ?? null);
+            })(),
+            // 💸 Bonificación del albarán (Migración 016): persistir el importe para
+            // mostrarlo/cuadrar. El efecto en el coste YA va dentro de precioReal/total.
+            bonificacion: bonifAplicada > 0 ? bonifAplicada : (ped.bonificacion ?? null)
         });
 
         // ℹ️ Diario (precios_compra_diarios) se registra automáticamente en el backend

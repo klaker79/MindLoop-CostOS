@@ -6,6 +6,7 @@
 import { loadPDF } from '../../utils/lazy-vendors.js';
 import { t } from '@/i18n/index.js';
 import { cm, getDateLocale } from '../../utils/helpers.js';
+import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 
 /**
  * Genera PDF profesional de una receta con logo y formato premium
@@ -165,11 +166,11 @@ export async function generarPDFReceta(receta, ingredientes) {
     // Colores basados en Food Cost: ≤30% verde brillante, ≤35% verde, ≤40% amarillo, >40% rojo
     const foodCost = precioVenta > 0 ? (costoTotal / precioVenta) * 100 : 100;
     doc.setTextColor(
-        foodCost <= 30
+        foodCost <= FOOD_COST_THRESHOLDS.EXCELLENT_MAX
             ? [5, 150, 105]
-            : foodCost <= 35
+            : foodCost <= FOOD_COST_THRESHOLDS.TARGET_MAX
                 ? [16, 185, 129]
-                : foodCost <= 40
+                : foodCost <= FOOD_COST_THRESHOLDS.WATCH_MAX
                     ? [245, 158, 11]
                     : [239, 68, 68]
     );

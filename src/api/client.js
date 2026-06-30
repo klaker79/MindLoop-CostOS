@@ -73,6 +73,27 @@ async function handleResponse(response) {
             }
         }
 
+        // 🆕 2026-06-08: detectar 403 SUBSCRIPTION_REQUIRED (gating global del
+        // backend tras trial caducado o sin plan activo). Disparar evento global
+        // para que un único componente muestre overlay full-screen con CTA Polar.
+        // No bloquea el throw: la ruta que llamó también recibe el error, pero
+        // el overlay tapa toda la UI.
+        if (response.status === 403) {
+            try {
+                const bodyClone = await response.clone().json().catch(() => null);
+                if (bodyClone && bodyClone.error === 'SUBSCRIPTION_REQUIRED') {
+                    window.dispatchEvent(new CustomEvent('subscription:required', {
+                        detail: {
+                            reason: bodyClone.reason || 'no_subscription',
+                            trialEndedAt: bodyClone.trial_ended_at || null,
+                            plan: bodyClone.plan || null,
+                            planStatus: bodyClone.plan_status || null,
+                        }
+                    }));
+                }
+            } catch (_e) { /* nada */ }
+        }
+
         // 🔧 FIX BUG-5: Incluir .status para que callers puedan distinguir 4xx de 5xx
         const error = new Error(errorMessage);
         error.status = response.status;
@@ -254,8 +275,16 @@ export const api = {
     getIngrediente: (id) => apiClient.get(`/ingredients/${id}`),
     getIngredients: () => apiClient.get('/ingredients'),
     getIngredientsAll: () => apiClient.get('/ingredients?all=true'),
-    createIngrediente: (data) => apiClient.post('/ingredients', data),
-    createIngredient: (data) => apiClient.post('/ingredients', data),
+    createIngrediente: async (data) => {
+        const r = await apiClient.post('/ingredients', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
+    createIngredient: async (data) => {
+        const r = await apiClient.post('/ingredients', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
     updateIngrediente: (id, data) => apiClient.put(`/ingredients/${id}`, data),
     updateIngredient: (id, data) => apiClient.put(`/ingredients/${id}`, data),
     deleteIngrediente: (id) => apiClient.delete(`/ingredients/${id}`),
@@ -266,8 +295,16 @@ export const api = {
     getRecetas: () => apiClient.get('/recipes'),
     getReceta: (id) => apiClient.get(`/recipes/${id}`),
     getRecipes: () => apiClient.get('/recipes'),
-    createReceta: (data) => apiClient.post('/recipes', data),
-    createRecipe: (data) => apiClient.post('/recipes', data),
+    createReceta: async (data) => {
+        const r = await apiClient.post('/recipes', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
+    createRecipe: async (data) => {
+        const r = await apiClient.post('/recipes', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
     updateReceta: (id, data) => apiClient.put(`/recipes/${id}`, data),
     updateRecipe: (id, data) => apiClient.put(`/recipes/${id}`, data),
     deleteReceta: (id) => apiClient.delete(`/recipes/${id}`),
@@ -282,15 +319,44 @@ export const api = {
     getPedidos: () => apiClient.get('/orders'),
     getPedido: (id) => apiClient.get(`/orders/${id}`),
     getOrders: () => apiClient.get('/orders'),
-    createPedido: (data) => apiClient.post('/orders', data),
+    createPedido: async (data) => {
+        const r = await apiClient.post('/orders', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
     updatePedido: (id, data) => apiClient.put(`/orders/${id}`, data),
     deletePedido: (id) => apiClient.delete(`/orders/${id}`),
+
+    // Onboarding checklist (4 pasos: proveedores -> ingredientes -> recetas -> pedidos)
+    getOnboardingStatus: () => apiClient.get('/onboarding/status'),
+
+    // Análisis — Ingeniería de Menú y Principios de Omnes
+    // Periodo opcional via { desde, hasta } en formato YYYY-MM-DD.
+    // Sin periodo → backend usa el histórico completo (compat back).
+    getMenuEngineering: (opts) => {
+        const qs = new URLSearchParams();
+        if (opts?.desde) qs.set('desde', opts.desde);
+        if (opts?.hasta) qs.set('hasta', opts.hasta);
+        const query = qs.toString();
+        return apiClient.get(`/analysis/menu-engineering${query ? '?' + query : ''}`);
+    },
+    getOmnes: (opts) => {
+        const qs = new URLSearchParams();
+        if (opts?.desde) qs.set('desde', opts.desde);
+        if (opts?.hasta) qs.set('hasta', opts.hasta);
+        const query = qs.toString();
+        return apiClient.get(`/analysis/omnes${query ? '?' + query : ''}`);
+    },
 
     // Suppliers (antes: proveedores)
     getProveedores: () => apiClient.get('/suppliers'),
     getProveedor: (id) => apiClient.get(`/suppliers/${id}`),
     getSuppliers: () => apiClient.get('/suppliers'),
-    createProveedor: (data) => apiClient.post('/suppliers', data),
+    createProveedor: async (data) => {
+        const r = await apiClient.post('/suppliers', data);
+        setTimeout(() => window.refreshOnboardingSpotlight?.(), 600);
+        return r;
+    },
     updateProveedor: (id, data) => apiClient.put(`/suppliers/${id}`, data),
     deleteProveedor: (id) => apiClient.delete(`/suppliers/${id}`),
 
@@ -317,6 +383,8 @@ export const api = {
 
     // Balance / P&L
     getBalance: (mes, ano) => apiClient.get(`/balance/mes?month=${ano}-${String(mes).padStart(2, '0')}`),
+    // 🧾 IVA soportado del periodo (informativo, SEPARADO de la P&L). Migración 015.
+    getIvaSoportado: (mes, ano) => apiClient.get(`/balance/iva-soportado?mes=${mes}&ano=${ano}`),
 
     // Gastos Fijos
     getGastosFijos: () => apiClient.get('/gastos-fijos'),
@@ -324,6 +392,17 @@ export const api = {
     createGastoFijo: (concepto, monto) => apiClient.post('/gastos-fijos', { concepto, monto_mensual: monto }),
     updateGastoFijo: (id, concepto, monto) => apiClient.put(`/gastos-fijos/${id}`, { concepto, monto_mensual: monto }),
     deleteGastoFijo: (id) => apiClient.delete(`/gastos-fijos/${id}`),
+
+    // Personal extra (pagos a extras por horas) — mismo patrón que gastos-fijos
+    getPersonalExtra: (desde, hasta) => {
+        const params = [];
+        if (desde) params.push(`desde=${desde}`);
+        if (hasta) params.push(`hasta=${hasta}`);
+        return apiClient.get(`/personal-extra${params.length ? '?' + params.join('&') : ''}`);
+    },
+    crearPersonalExtra: (data) => apiClient.post('/personal-extra', data),
+    actualizarPersonalExtra: (id, data) => apiClient.put(`/personal-extra/${id}`, data),
+    borrarPersonalExtra: (id) => apiClient.delete(`/personal-extra/${id}`),
 
     // Mermas
     getMermas: (mes, ano) => {
@@ -364,13 +443,13 @@ export const api = {
     // Chat (Claude API backend). Returns plain text (multi-tenant via JWT).
     // En error, el caller necesita acceder al body JSON (resets_at en 429,
     // mensaje en 403) — por eso no se delega en handleResponse genérico.
-    chat: async (message, lang = 'es', sessionId = null) => {
+    chat: async (message, lang = 'es', sessionId = null, history = []) => {
         const url = `${API_BASE}/chat`;
         const response = await fetch(url, {
             method: 'POST',
             ...defaultConfig,
             headers: { ...defaultConfig.headers, ...getAuthHeaders() },
-            body: JSON.stringify({ message, lang, sessionId })
+            body: JSON.stringify({ message, lang, sessionId, history })
         });
         if (!response.ok) {
             let body = null;
@@ -383,13 +462,24 @@ export const api = {
         return response.text();
     },
 
-    // Chat add-on (suscripción opcional +30€/mes con cap mensual).
-    // El alta y la baja pasan por Polar (Merchant of Record). El frontend
-    // pide una checkout session, redirige al cliente, y el flag se setea
-    // desde el webhook firmado tras el cobro real.
+    // Chat IA: INCLUIDO en el plan único (90€/mes). El add-on de 30€ ya no se
+    // ofrece; estos endpoints quedan por compatibilidad/auditoría. La cuota
+    // mensual de consultas la gestiona chatAddonGate en backend.
     chatStatus: () => apiClient.get('/chat-status'),
     createChatAddonCheckout: () => apiClient.post('/chat-addon/checkout-session', {}),
     openChatAddonPortal: () => apiClient.post('/chat-addon/customer-portal', {}),
+
+    // Health Check semanal del Asistente IA (Coach).
+    // POST genera o devuelve el report cacheado de la semana ISO actual.
+    // GET status devuelve si hay report nuevo no leído (para badge "nuevo").
+    getHealthCheck: () => apiClient.post('/chat/health-check', {}),
+    getHealthCheckStatus: () => apiClient.get('/chat/health-check/status'),
+
+    // Plan único MindLoop CostOS (90€/mes vía Polar, chat incluido).
+    // Mismo patrón que el add-on: backend devuelve URL Polar para checkout
+    // o customer portal; el flag plan_status se actualiza via webhook.
+    createBasePlanCheckout: () => apiClient.post('/subscription/checkout-base', {}),
+    openSubscriptionPortal: () => apiClient.post('/subscription/customer-portal', {}),
 
     // Informe ejecutivo mensual (HTML listo para imprimir/guardar PDF).
     // Devuelve string con HTML completo. El caller lo abre en pestaña nueva.

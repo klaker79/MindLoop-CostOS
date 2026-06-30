@@ -10,7 +10,7 @@
   "nav_inventario": "Inventory",
   "nav_dashboard": "Daily",
   "nav_analisis": "Analysis",
-  "nav_inteligencia": "Intelligence",
+  "nav_inteligencia": "Omnes",
   "nav_horarios": "Schedules",
   "nav_configuracion": "Settings",
   "nav_section_operations": "Operations",
@@ -117,7 +117,7 @@
   "tab_inventario_text": "📦 Inventory",
   "tab_diario": "📈 Daily",
   "tab_analisis": "📊 Analysis",
-  "tab_inteligencia": "🧠 Intelligence",
+  "tab_inteligencia": "🦉 Omnes",
   "tab_horarios": "🕐 Schedules",
   "tab_configuracion": "⚙️ Settings",
 
@@ -140,5 +140,8 @@
   "label_completed": "Completed!",
   "label_recalculate_costs": "Recalculate Costs",
   "unit_botella": "Bottle",
-  "unit_pza": "Unit"
+  "unit_pza": "Unit",
+
+  "mobile_only_banner_title": "Better on desktop",
+  "mobile_only_banner_hint": "This section is designed for large screens. Open the app on a laptop or desktop for the full experience."
 }

@@ -21,29 +21,86 @@ export function createChatStyles() {
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            background: #fff;
             border: none;
             cursor: pointer;
             box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 9999;
         }
-        
+
         .chat-fab:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 30px rgba(124, 58, 237, 0.5);
         }
-        
+
+        .chat-fab-owl {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Globo de invitación junto al FAB */
+        .chat-fab-bubble {
+            position: fixed;
+            bottom: 40px;
+            right: 96px;
+            max-width: 230px;
+            background: #fff;
+            color: #1e293b;
+            padding: 11px 30px 11px 15px;
+            border-radius: 14px;
+            box-shadow: 0 10px 34px rgba(0,0,0,0.28);
+            font-size: 0.86rem;
+            font-weight: 600;
+            line-height: 1.3;
+            opacity: 0;
+            transform: translateX(10px) scale(0.95);
+            pointer-events: none;
+            transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+            z-index: 9999;
+        }
+        .chat-fab-bubble.show {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .chat-fab-bubble::after {
+            content: '';
+            position: absolute;
+            right: -7px;
+            bottom: 16px;
+            border: 7px solid transparent;
+            border-left-color: #fff;
+            border-right: 0;
+        }
+        .chat-fab-bubble-x {
+            position: absolute;
+            top: 5px;
+            right: 7px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 11px;
+            line-height: 1;
+            padding: 2px;
+        }
+        .chat-fab-bubble-x:hover { color: #475569; }
+
         .chat-fab svg {
             width: 28px;
             height: 28px;
             fill: white;
             transition: transform 0.3s;
         }
-        
+
         .chat-fab.active svg {
             transform: rotate(90deg);
         }
@@ -70,8 +127,12 @@ export function createChatStyles() {
             position: fixed;
             bottom: 100px;
             right: 24px;
-            width: 450px;
-            height: 550px;
+            /* 🔧 Responsive (2026-06-13): antes 450×550 FIJO → en pantallas
+               pequeñas o con escalado del SO (Windows 125-150%) se veía enorme
+               o se salía. Con min()/viewport se ve igual en Mac/Windows/móvil
+               sin tocar nada de la lógica del chat. */
+            width: min(450px, calc(100vw - 32px));
+            height: min(550px, calc(100vh - 140px));
             background: #ffffff;
             border-radius: 20px;
             box-shadow: 0 10px 50px rgba(0, 0, 0, 0.15);
@@ -104,12 +165,15 @@ export function createChatStyles() {
         .chat-header-avatar {
             width: 45px;
             height: 45px;
-            background: rgba(255,255,255,0.2);
+            background: #fff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 22px;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
         }
         
         .chat-header-info h3 {
@@ -207,6 +271,21 @@ export function createChatStyles() {
         .chat-message.user .chat-message-avatar {
             background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
         }
+
+        /* Avatar del bot con la foto del búho azul: círculo blanco, foto entera */
+        .chat-message-avatar.bot-omnes {
+            background: #fff;
+            overflow: hidden;
+            padding: 2px;
+            box-sizing: border-box;
+        }
+        .chat-message-avatar.bot-omnes img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+            display: block;
+        }
         
         .chat-message-content {
             background: white;
@@ -229,10 +308,10 @@ export function createChatStyles() {
         
         /* Markdown Tables in Chat */
         .chat-table-wrapper {
-            overflow-x: auto;
-            margin: 8px 0;
+            overflow-x: auto !important;
+            margin: 8px 0 !important;
             border-radius: 8px;
-            max-width: 100%;
+            max-width: 100% !important;
             -webkit-overflow-scrolling: touch;
         }
         
@@ -245,26 +324,43 @@ export function createChatStyles() {
             border-radius: 3px;
         }
         
+        /* 🔧 FIX RAIZ 2026-06-13 (v169): las tablas del chat se machacaban (texto en
+           VERTICAL) porque theme-editorial.css y main.css tienen reglas GLOBALES
+           con !important sobre TODA tabla (table tbody td padding 14px !important,
+           table min-width 800px, etc.). En el panel del chat (~390px) ese padding
+           y min-width gigantes aplastan las columnas. Mis reglas .chat-table
+           perdian la cascada por NO llevar !important. Solucion: .chat-table con
+           !important para ganar SIEMPRE. Ancho natural + el wrapper hace scroll-x. */
         .chat-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10px;
-            background: #f8fafc;
-            border-radius: 8px;
-            white-space: nowrap;
+            width: auto !important;
+            min-width: 0 !important;
+            border-collapse: collapse !important;
+            font-size: 11px !important;
+            background: #f8fafc !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+            margin: 0 !important;
         }
-        
+
         .chat-table th, .chat-table td {
-            padding: 6px 8px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 6px 10px !important;
+            text-align: left !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            white-space: nowrap !important;
+            word-break: normal !important;
+            overflow-wrap: normal !important;
+            vertical-align: top !important;
+            font-size: 11px !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+            min-width: 0 !important;
         }
-        
+
         .chat-table th {
-            background: #7c3aed;
-            color: white;
-            font-weight: 600;
-            font-size: 9px;
+            background: #7c3aed !important;
+            color: white !important;
+            font-weight: 600 !important;
+            font-size: 10px !important;
         }
         
         .chat-table tr:last-child td {
@@ -629,6 +725,7 @@ export function createChatStyles() {
                 right: 16px;
                 bottom: 16px;
             }
+            .chat-fab-bubble { display: none; }
         }
     `;
     document.head.appendChild(style);

@@ -1,0 +1,22 @@
+{
+  "btn_open": "📋 Count",
+  "title": "Stock count",
+  "all_families": "All",
+  "system_was": "was",
+  "counted": "counted",
+  "counted_plural": "counted",
+  "empty": "No ingredients in this family",
+  "save_continue": "Save & continue",
+  "saved_partial": "Count saved, you can continue later",
+  "review": "Review",
+  "nothing_to_apply": "You haven't counted anything yet",
+  "summary_title": "Here's your inventory",
+  "go_up": "up",
+  "go_down": "down",
+  "unchanged": "unchanged",
+  "down_as_waste": "Decreases are saved as an inventory adjustment",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "done": "Inventory updated",
+  "error": "Error saving the count"
+}

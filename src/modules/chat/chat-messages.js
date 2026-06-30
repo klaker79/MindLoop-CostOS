@@ -22,11 +22,23 @@ import { t } from '@/i18n/index.js';
 import { parseMarkdown } from './chat-markdown.js';
 import { getCurrentTab, getCurrentTabContext } from './chat-context.js';
 import { executeAction } from './chat-actions.js';
+import { showActionConfirmModal } from './chat-action-preview.js';
 import { CHAT_CONFIG, getSessionId, getMessages, pushMessage, resetHistory } from './chat-state.js';
+import { mapHistoryForBackend } from './chat-history.js';
 
 let isWaitingResponse = false;
 let clearClickCount = 0;
 let clearClickTimer = null;
+
+// Avatar del bot = búho azul real. Si la foto falla, cae al emoji 🦉.
+const OMNES_AVATAR_IMG = `<img src="/images/omnes.png" alt="Omnes" onerror="this.parentElement.textContent='🦉'">`;
+// Avatar de un mensaje según el tipo. extraStyle permite forzar tamaño (typing 28px).
+function avatarMensaje(type, extraStyle = '') {
+    const style = extraStyle ? ` style="${extraStyle}"` : '';
+    return type === 'bot'
+        ? `<div class="chat-message-avatar bot-omnes"${style}>${OMNES_AVATAR_IMG}</div>`
+        : `<div class="chat-message-avatar"${style}>👤</div>`;
+}
 
 /**
  * Añade un mensaje. Si `type==='bot'` y no es bienvenida, inserta botón PDF
@@ -58,7 +70,7 @@ export function addMessage(type, text, save = true) {
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${type}`;
     messageEl.innerHTML = `
-        <div class="chat-message-avatar">${type === 'bot' ? '🤖' : '👤'}</div>
+        ${avatarMensaje(type)}
         <div>
             <div class="chat-message-content">${parseMarkdown(text)}</div>
             <div class="chat-message-time">${time} ${pdfButton}</div>
@@ -86,7 +98,7 @@ function addMessageWithAction(type, text, actionData) {
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${type}`;
     messageEl.innerHTML = `
-        <div class="chat-message-avatar">🤖</div>
+        ${avatarMensaje('bot')}
         <div>
             <div class="chat-message-content">${parseMarkdown(text)}</div>
             <div class="chat-action-buttons" id="${actionId}" style="margin-top: 12px; display: flex; gap: 8px;">
@@ -111,6 +123,15 @@ function addMessageWithAction(type, text, actionData) {
     const buttonsContainer = document.getElementById(actionId);
 
     confirmBtn.addEventListener('click', async () => {
+        // Modal de validación previa (Iker 2026-06-06): el usuario ve qué
+        // valor se va a cambiar y de qué a qué antes de ejecutar. Si cancela
+        // ahí, los botones del mensaje vuelven a estar disponibles para
+        // que pueda revisar la sugerencia sin haber roto nada.
+        const aprobado = await showActionConfirmModal(actionData);
+        if (!aprobado) {
+            // Nada que hacer — los botones siguen visibles para reintentar.
+            return;
+        }
         buttonsContainer.innerHTML = `<span style="color: #f59e0b;">⏳ ${t('chat:action_executing')}</span>`;
         const success = await executeAction(actionData);
         if (success) {
@@ -137,7 +158,7 @@ export function showTyping() {
     typingEl.id = 'chat-typing';
     typingEl.className = 'chat-typing';
     typingEl.innerHTML = `
-        <div class="chat-message-avatar" style="width:28px;height:28px;font-size:12px;">🤖</div>
+        ${avatarMensaje('bot', 'width:28px;height:28px;font-size:12px;')}
         <div class="chat-typing-dots">
             <div class="chat-typing-dot"></div>
             <div class="chat-typing-dot"></div>
@@ -154,6 +175,20 @@ export function hideTyping() {
 }
 
 /**
+ * Abre el chat y manda una pregunta ya redactada (deep-link desde el feed de
+ * avisos: "Pregúntale a Omnes"). Si el widget no está montado (add-on no activo)
+ * devuelve false sin romper nada.
+ */
+export function askOmnes(text) {
+    const input = document.getElementById('chat-input');
+    if (!input || !text) return false;
+    if (typeof window.toggleChat === 'function') window.toggleChat(true);
+    input.value = text;
+    sendMessage();
+    return true;
+}
+
+/**
  * Envía el mensaje actual del input al backend (Claude o n8n según
  * appConfig.chat.backend). Si la respuesta trae `[ACTION:...]`, separa la
  * acción del texto visible y pinta los botones de confirmación.
@@ -164,6 +199,10 @@ export async function sendMessage() {
     const message = input.value.trim();
 
     if (!message || isWaitingResponse) return;
+
+    // Capturar el historial reciente ANTES de añadir el mensaje actual
+    // (el backend lo añade por su cuenta). Da memoria conversacional al búho.
+    const priorHistory = mapHistoryForBackend(getMessages());
 
     addMessage('user', message);
     input.value = '';
@@ -182,7 +221,7 @@ export async function sendMessage() {
 
         if (appConfig.chat.backend === 'claude') {
             // Claude API (multi-tenant vía JWT). El backend saca contexto con tools.
-            data = await api.chat(message, lang, getSessionId());
+            data = await api.chat(message, lang, getSessionId(), priorHistory);
         } else {
             // Legacy: webhook n8n con payload completo de contexto de pestaña.
             const tabContext = getCurrentTabContext();
@@ -219,13 +258,15 @@ export async function sendMessage() {
         }
     } catch (error) {
         hideTyping();
-        logger.error('Chat error:', error);
-        // Mensajes específicos del add-on (gate del backend):
-        // 403 CHAT_NOT_ACTIVATED — el tenant desactivó el add-on durante la sesión.
-        // 429 CHAT_QUOTA_EXCEEDED — agotó las 300 consultas del mes.
+        // 🔭 Logging consciente para Sentry: los fallos ESPERADOS/transitorios (cuota,
+        // add-on no activado, sesión caducada) van como WARN → NO se reportan a Sentry,
+        // evitan ruido. Solo los fallos INESPERADOS (5xx, red, timeout) van a
+        // logger.error → Sentry, y con el OBJETO error real (status + stacktrace), no
+        // un string vacío. (Antes todo iba a logger.error('Chat error:') sin detalle.)
         const status = error?.status;
         const data = error?.data;
         if (status === 429 && data?.error === 'CHAT_QUOTA_EXCEEDED') {
+            logger.warn('Chat: cuota mensual agotada (429)');
             const reset = data.resets_at ? new Date(data.resets_at) : null;
             const fmt = reset
                 ? reset.toLocaleDateString(getDateLocale(), { day: '2-digit', month: 'long' })
@@ -237,12 +278,20 @@ export async function sendMessage() {
             );
             blockAfterResponse = true;
         } else if (status === 403 && data?.error === 'CHAT_NOT_ACTIVATED') {
+            logger.warn('Chat: add-on Asistente IA no activado (403)');
             addMessage('bot',
                 'El add-on Asistente IA no está activado. Actívalo en **Configuración → Asistente IA** para volver a usar el chat.',
                 false
             );
             blockAfterResponse = true;
+        } else if (status === 401) {
+            // Sesión caducada / token perdido (p.ej. tras un hard refresh). Es esperado
+            // y se resuelve recargando → NO es un bug, no debe ir a Sentry.
+            logger.warn('Chat: sesión caducada o sin token (401) — recargar para re-autenticar');
+            addMessage('bot', CHAT_CONFIG.errorMessage);
         } else {
+            // Fallo inesperado (5xx, red, timeout...) → SÍ a Sentry, con el error real.
+            logger.error(`Chat request failed (status ${status ?? 'sin respuesta'})`, error);
             addMessage('bot', CHAT_CONFIG.errorMessage);
         }
     } finally {
@@ -296,7 +345,7 @@ export function renderChatHistory() {
         }
 
         messageEl.innerHTML = `
-            <div class="chat-message-avatar">${msg.type === 'bot' ? '🤖' : '👤'}</div>
+            ${avatarMensaje(msg.type)}
             <div>
                 <div class="chat-message-content">${parseMarkdown(msg.text)}</div>
                 <div class="chat-message-time">${time} ${pdfButton}</div>
@@ -312,12 +361,29 @@ export function renderChatHistory() {
 /**
  * Borra historial tras dos clicks en 2s (anti-accidental). El primero muestra
  * el hint de confirmación; el segundo resetea y pinta el welcome.
+ *
+ * Antes usaba window.showToast() global pero ese toast aparece arriba a la
+ * derecha y TAPA el botón de la papelera del chat header → imposible dar el
+ * segundo click. Ahora mostramos el hint INLINE dentro del chat-window
+ * (centro superior, debajo del header) para que no obstruya el botón.
  */
+function showChatHint(message) {
+    const chatWindow = document.querySelector('.chat-window');
+    if (!chatWindow) return;
+    // Quitar hint previo si existe
+    chatWindow.querySelector('.chat-inline-hint')?.remove();
+    const hint = document.createElement('div');
+    hint.className = 'chat-inline-hint';
+    hint.textContent = message;
+    chatWindow.appendChild(hint);
+    setTimeout(() => hint.remove(), 2200);
+}
+
 export function clearChat() {
     clearClickCount++;
 
     if (clearClickCount === 1) {
-        window.showToast?.(t('chat:clear_confirm_hint'), 'warning');
+        showChatHint(t('chat:clear_confirm_hint'));
         clearClickTimer = setTimeout(() => {
             clearClickCount = 0;
         }, 2000);

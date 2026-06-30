@@ -17,6 +17,11 @@ export async function guardarProveedor(event) {
 
     // La relación ingrediente↔proveedor se gestiona desde la pestaña Ingredientes
     // (refactor 2026-05-04). Aquí solo guardamos los datos básicos del proveedor.
+    // IVA habitual del proveedor (Migration 013, 2026-06-06):
+    // sólo display en modal de recepción. NULL si el campo está vacío
+    // — backend normaliza fuera de rango también.
+    const ivaPctRaw = document.getElementById('prov-iva-pct')?.value?.trim();
+    const ivaPct = ivaPctRaw === '' || ivaPctRaw === undefined ? null : Number(ivaPctRaw);
     const proveedor = {
         nombre: document.getElementById('prov-nombre').value,
         contacto: document.getElementById('prov-contacto').value || '',
@@ -24,6 +29,7 @@ export async function guardarProveedor(event) {
         email: document.getElementById('prov-email').value || '',
         direccion: document.getElementById('prov-direccion').value || '',
         notas: document.getElementById('prov-notas').value || '',
+        iva_pct: Number.isFinite(ivaPct) && ivaPct >= 0 && ivaPct <= 100 ? ivaPct : null,
     };
 
     // 🆕 Validación centralizada
@@ -79,6 +85,8 @@ export function editarProveedor(id) {
     document.getElementById('prov-email').value = prov.email || '';
     document.getElementById('prov-direccion').value = prov.direccion || '';
     document.getElementById('prov-notas').value = prov.notas || '';
+    const ivaInput = document.getElementById('prov-iva-pct');
+    if (ivaInput) ivaInput.value = prov.iva_pct ?? '';
 
     window.editandoProveedorId = id;
     window.cargarIngredientesProveedor(prov.ingredientes || [], id);

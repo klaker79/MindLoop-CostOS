@@ -1262,3 +1262,14 @@ input[type="number"] {
 [data-theme="dark"] .ts-dropdown {
     background: #1e293b !important;
 }
+
+/* Inputs del escandallo de receta sin spinner buttons (para que el icono
+   sufijo no choque con los controles nativos del navegador) */
+.receta-input-no-spin {
+    -moz-appearance: textfield;
+}
+.receta-input-no-spin::-webkit-inner-spin-button,
+.receta-input-no-spin::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
