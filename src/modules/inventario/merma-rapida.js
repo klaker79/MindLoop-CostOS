@@ -92,10 +92,10 @@ export function agregarLineaMerma() {
 
     const lineaHtml = `
     <div class="merma-linea" data-index="${index}" style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; margin-bottom: 8px;">
-        <div style="display: grid; grid-template-columns: 1fr 80px 110px 90px; gap: 8px; align-items: center;">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 80px 110px 90px; gap: 8px; align-items: center;">
             <!-- Producto -->
-            <select class="merma-producto" onchange="window.actualizarLineaMerma(${index})" 
-                style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+            <select class="merma-producto" onchange="window.actualizarLineaMerma(${index})"
+                style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; min-width: 0;">
                 ${getIngredientesOptionsHtml()}
             </select>
             
@@ -535,9 +535,9 @@ function agregarLineaMermaConDatos(merma) {
 
     const lineaHtml = `
     <div class="merma-linea" data-index="${index}" style="background: ${ingredienteEncontrado ? '#f0fdf4' : '#fef3c7'}; border: 1px solid ${ingredienteEncontrado ? '#86efac' : '#fde68a'}; border-radius: 6px; padding: 8px 10px; margin-bottom: 8px;">
-        <div style="display: grid; grid-template-columns: 1fr 80px 110px 90px; gap: 8px; align-items: center;">
-            <select class="merma-producto" onchange="window.actualizarLineaMerma(${index})" 
-                style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 80px 110px 90px; gap: 8px; align-items: center;">
+            <select class="merma-producto" onchange="window.actualizarLineaMerma(${index})"
+                style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; min-width: 0;">
                 ${getIngredientesOptionsHtml()}
             </select>
             
