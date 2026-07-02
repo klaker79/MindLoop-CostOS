@@ -9,6 +9,11 @@ export default {
         '**/src/**/*.test.js'
     ],
 
+    // Ignorar copias generadas por el build (dist/ contiene una copia de src
+    // → sin esto, un `npm run build` local hace fallar `npm test` con
+    // "Cannot find module" en la copia. CI no builda antes de testear).
+    testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+
     // Extensiones de módulos
     moduleFileExtensions: ['js'],
 
