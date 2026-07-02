@@ -80,9 +80,10 @@ function mostrarCampoDetalleMercado() {
 
     campoDetalle.style.display = esCompasMercado ? 'block' : 'none';
 
-    // Limpiar campo si se oculta
+    // Limpiar campo si se oculta (id real: ped-mercado-puesto — fix auditoría 2026-07-02,
+    // antes apuntaba a 'ped-detalle-mercado' y el puesto quedaba obsoleto al cambiar proveedor)
     if (!esCompasMercado) {
-        const input = document.getElementById('ped-detalle-mercado');
+        const input = document.getElementById('ped-mercado-puesto');
         if (input) input.value = '';
     }
 }

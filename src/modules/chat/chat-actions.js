@@ -102,11 +102,14 @@ export async function executeAction(actionData) {
                 const ingredienteActualizado = window.ingredientes?.find(i => i.id === ing.id);
                 if (ingredienteActualizado) {
                     if (field === 'precio') {
-                        document.getElementById('ing-precio').value = ingredienteActualizado.precio;
+                        const elPrecio = document.getElementById('ing-precio');
+                        if (elPrecio) elPrecio.value = ingredienteActualizado.precio;
                     }
                     if (field === 'stock') {
-                        document.getElementById('ing-stock').value =
-                            ingredienteActualizado.stock_actual;
+                        // Id real del input: ing-stockActual (bug auditoría 2026-07-02:
+                        // 'ing-stock' no existe → TypeError con el form de edición abierto).
+                        const elStock = document.getElementById('ing-stockActual');
+                        if (elStock) elStock.value = ingredienteActualizado.stock_actual;
                     }
                 }
             }

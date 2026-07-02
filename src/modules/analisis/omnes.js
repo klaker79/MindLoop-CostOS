@@ -21,8 +21,10 @@ const HOST_ID = 'analisis-omnes';
 function ensureHost() {
     let host = document.getElementById(HOST_ID);
     if (host) return host;
-    // Insertar DEBAJO del BCG (matriz-bcg.js usa #bcg-matrix-container-v2).
-    const bcgV2 = document.getElementById('bcg-matrix-container-v2');
+    // Insertar DEBAJO del BCG (matriz-bcg.js monta su host como #analisis-matriz-bcg-v2;
+    // fix auditoría 2026-07-02: antes buscaba 'bcg-matrix-container-v2', que no existe,
+    // y el panel caía siempre al fallback de appendChild).
+    const bcgV2 = document.getElementById('analisis-matriz-bcg-v2');
     const contenido = document.getElementById('analisis-contenido');
     host = document.createElement('div');
     host.id = HOST_ID;

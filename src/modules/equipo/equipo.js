@@ -177,8 +177,11 @@ export function mostrarModalInvitar() {
  * Cierra modal de invitación
  */
 export function cerrarModalInvitar() {
-    const modal = document.getElementById('modal-invitar');
-    if (modal) modal.style.display = 'none';
+    // Id real: modal-invitar-equipo; se abre con classList.add('active') en
+    // mostrarModalInvitar(), así que se cierra quitando esa misma clase
+    // (bug auditoría 2026-07-02: apuntaba a 'modal-invitar' + display:none → no-op).
+    const modal = document.getElementById('modal-invitar-equipo');
+    if (modal) modal.classList.remove('active');
 }
 
 /**
@@ -212,9 +215,11 @@ export async function invitarUsuarioEquipo() {
         cerrarModalInvitar();
         renderizarEquipo();
 
-        // Limpiar formulario
-        const form = document.getElementById('form-invitar');
-        if (form) form.reset();
+        // Limpiar campos (no hay <form> envolvente en el modal, se limpian a mano)
+        ['team-nombre', 'team-email', 'team-password'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
     } catch (error) {
         window.showToast?.(error.message, 'error');
     }
