@@ -31,6 +31,7 @@ Dos módulos antes monolíticos ahora son orchestrators delgados con submódulos
 - Use CSS variables (`--bg-primary`, `--bg-card`, etc.) for theming
 - Many JS files use inline `background: white` — override with `[data-theme="dark"] [style*="background: white"]`
 - `background: rgba(255,255,255,0.98)` ≠ `background: white` — use class selectors for dashboard cards
+- **Grids en modales con `<select>`/input de nombres largos → usa `minmax(0, 1fr)`, NUNCA `1fr` pelado**, y `min-width: 0` en el select. Motivo: `1fr` = `minmax(auto, 1fr)` NO encoge bajo su contenido; un `<select>` de ingredientes/recetas (nombres largos, ej. La Nave 5) estira su columna y empuja las columnas fijas siguientes FUERA del modal (quedan en el DOM pero invisibles). Incidente Merma Rápida 2026-07-02 (cantidad/motivo desaparecidos). Guard: `src/__tests__/regression/merma-modal-grid.test.js`.
 
 ## What NOT to Touch
 
