@@ -159,7 +159,7 @@ function rowHtml(gasto) {
     const currency = currencySymbol();
     return `
         <div class="gf-row" data-gasto-id="${id}"
-             style="display: grid; grid-template-columns: 1fr 140px 32px; gap: 12px; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; transition: background 0.2s;">
+             style="display: grid; grid-template-columns: minmax(0, 1fr) 140px 32px; gap: 12px; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; transition: background 0.2s;">
             <span style="color: white; font-size: 14px; font-weight: 500; word-break: break-word;">${escapeHTML(label)}</span>
             <div style="position: relative;">
                 <input type="number" inputmode="decimal" step="0.01" min="0" value="${monto}"

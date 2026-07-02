@@ -260,7 +260,7 @@ async function renderContenido() {
                     <span style="font-size: 16px;">📋</span>
                     <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #F8FAFC;">${escapeHTML(t('recetas:escandallo_ficha_title'))}</span>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; font-size: 13px;">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; font-size: 13px;">
                     <span style="color: #94A3B8;">${escapeHTML(t('recetas:escandallo_coste_ingredientes'))}</span>
                     <span style="text-align: right; font-weight: 600;">${cm(costeTotal)}</span>
 
