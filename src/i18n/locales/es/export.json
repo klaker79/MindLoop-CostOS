@@ -20,7 +20,7 @@
   "pdf_label_sale_price": "PRECIO VENTA:",
   "pdf_label_profit": "BENEFICIO:",
   "pdf_label_margin": "MARGEN:",
-  "pdf_footer": "Generado el {{date}} por MindLoop CostOS",
+  "pdf_footer": "Generado el {{date}} por CosteOS",
   "pdf_title_ingredient_list": "LISTA DE INGREDIENTES",
   "pdf_col_unit": "Unidad",
   "pdf_col_price": "Precio",

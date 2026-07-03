@@ -1,6 +1,6 @@
 {
-    "name": "MindLoop CostOS",
-    "short_name": "CostOS",
+    "name": "CosteOS",
+    "short_name": "CosteOS",
     "description": "Plataforma de inteligencia para restaurantes. Gestión de costes, recetas e inventario.",
     "start_url": "/",
     "display": "standalone",
