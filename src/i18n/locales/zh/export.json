@@ -20,7 +20,7 @@
   "pdf_label_sale_price": "售价：",
   "pdf_label_profit": "利润：",
   "pdf_label_margin": "毛利率：",
-  "pdf_footer": "由 MindLoop CostOS 于 {{date}} 生成",
+  "pdf_footer": "由 CosteOS 于 {{date}} 生成",
   "pdf_title_ingredient_list": "食材清单",
   "pdf_col_unit": "单位",
   "pdf_col_price": "价格",
