@@ -2464,16 +2464,16 @@ table tbody td:first-child {
 }
 
 .sidebar-brand-icon {
-  width: 40px;
-  height: 40px;
-  background: #fff;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  background: transparent; /* búho transparente directo sobre el navy, sin caja */
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
   flex-shrink: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .sidebar-brand-owl {
