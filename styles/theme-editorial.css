@@ -258,9 +258,15 @@ select:focus,
 .modal-header h3,
 .sidebar-brand-name {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.15;
+  /* Wordmark CosteOS en naranja de marca (igual que la web) */
+  background: linear-gradient(135deg, #FF8C00 0%, #FFB347 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #FF8C00; /* fallback */
 }
 
 /* H2 grandes (encabezado de pestaña). */
@@ -297,7 +303,8 @@ th.numeric,
 [data-theme="dark"] .main-card h2,
 [data-theme="dark"] .top-bar h2,
 [data-theme="dark"] .sidebar-brand-name {
-  color: inherit;
+  /* mantener el naranja de marca también en modo oscuro */
+  -webkit-text-fill-color: transparent;
 }
 
 
@@ -654,9 +661,14 @@ table tbody td[style*="background:#152b48"] {
 
 .login-header h1 {
   font-family: var(--font-display) !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   letter-spacing: -0.015em !important;
-  color: var(--accent-dark) !important;
+  /* Wordmark CosteOS en naranja de marca (igual que la web) */
+  background: linear-gradient(135deg, #FF8C00 0%, #FFB347 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: #FF8C00 !important; /* fallback si no soporta clip */
 }
 .login-header p {
   color: #64748b !important;
