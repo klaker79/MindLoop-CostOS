@@ -2498,7 +2498,7 @@ table tbody td:first-child {
 
 .sidebar-brand-tagline {
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #FFB347; /* naranja de marca (claro) */
   white-space: nowrap;
 }
 

@@ -168,7 +168,7 @@
 // BUMP v181: limpieza — i18n de la pestaña "Inteligencia" reescrito para describir el feed real de Omnes (avisos por categoría + Pregúntale a Omnes + descartar), antes describía paneles que ya no existen. Borrado módulo huérfano alertas-sistema.js.
 // BUMP v183: nueva sección "Personal extra (por horas)" en balance (apunte fecha/nombre/horas/€h + subtotal del periodo). Nuevo módulo src/modules/balance/personal-extra.js.
 // BUMP v188: recepción de pedidos — el descuento se mete bajando el PRECIO REAL de la línea (lo que pagas/unidad), que ya alimenta precio_medio_compra (food cost) Y ahora también el GASTO del P&L: al recibir, pedidos.total pasa a ser lo realmente recibido (precioReal×cantidad + envases), no lo pedido. Así coste y gasto cuadran del mismo precioReal. El "ajuste" queda SOLO para envases/portes (textos relabel; descuentos van en PRECIO REAL). Revertido el "Total del albarán" de v187 (prorrateo global, contaminaba líneas no descontadas). Incidente cerveza EG La Nave 5 2026-06-27.
-const CACHE_NAME = 'mindloop-costos-v204';
+const CACHE_NAME = 'mindloop-costos-v205';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
