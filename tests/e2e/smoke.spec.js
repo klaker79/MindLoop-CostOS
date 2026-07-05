@@ -11,7 +11,9 @@ test.describe('Smoke — home y backend', () => {
         // de la cuenta y disparan el timeout sin razón.
         await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-        await expect(page).toHaveTitle(/MindLoop|CostOS/i);
+        // Rebrand 2026-07: el producto es "CosteOS" (con 'e'). Se aceptan también
+        // las marcas antiguas por si corre contra un deploy previo al rebrand.
+        await expect(page).toHaveTitle(/CosteOS|MindLoop|CostOS/i);
 
         // Anclar al form del login (#login-form) para evitar el strict mode violation
         // que provoca el que forgot-password y registro tienen inputs con placeholders idénticos.

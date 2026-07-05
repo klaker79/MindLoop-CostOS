@@ -47,10 +47,12 @@
   "omnes_ask_recetas": "为什么不赚钱？建议定价是多少？",
   "omnes_ask_stock": "我应该订多少？",
   "omnes_ask_precio": "为什么涨价了？我能做什么？",
+  "omnes_ask_deriva": "影响哪些菜品？我实际损失了多少毛利？",
   "omnes_ask_frescura": "我该怎么做才不会损失它？",
   "omnes_ask_sobrestock": "如何减少这些库存？",
   "omnes_ask_default": "请解释一下并给我一个方案。",
   "omnes_sec_recetas": "不赚钱的菜品",
+  "omnes_sec_deriva": "菜品成本已过时",
   "omnes_sec_stock": "库存紧急",
   "omnes_sec_frescura": "新鲜度",
   "omnes_sec_precio": "价格上涨",
@@ -68,6 +70,10 @@
   "omnes_t_precio_sube": "有价格上涨",
   "omnes_x_precio_sube": "「{{nombre}}」上次采购上涨了 {{pct}}%：从 {{antes}} 涨到 {{ahora}}/{{unidad}}。请留意。",
   "omnes_cta_ver_ingrediente": "查看食材",
+
+  "omnes_t_deriva": "菜品成本用的是旧价格",
+  "omnes_x_deriva": "「{{nombre}}」：菜品成本按 {{app}}/{{unidad}} 计算，但近90天平均进价为 {{real}}（高出 {{pct}}%）。隐藏超支约 {{impacto}}/月。",
+  "omnes_x_deriva_recetas": "影响 {{n}} 道菜品。",
 
   "omnes_t_frescura": "新鲜度",
   "omnes_x_frescura": "「{{nombre}}」有 {{stock}} {{unidad}} 已存放 {{dias}} 天。请尽快使用以免损耗。",

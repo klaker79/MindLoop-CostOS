@@ -214,6 +214,7 @@ const OWL_FALLBACK = `onerror="this.replaceWith(Object.assign(document.createEle
 // Secciones del feed (orden fijo de arriba a abajo). Cada aviso trae `categoria`.
 const SECCIONES = [
     { cat: 'recetas',    emoji: '📉', bg: 'rgba(239,68,68,0.16)',  titleKey: 'omnes_sec_recetas' },
+    { cat: 'deriva',     emoji: '🔺', bg: 'rgba(249,115,22,0.16)', titleKey: 'omnes_sec_deriva' },
     { cat: 'stock',      emoji: '📦', bg: 'rgba(245,158,11,0.16)', titleKey: 'omnes_sec_stock' },
     { cat: 'frescura',   emoji: '🧊', bg: 'rgba(34,211,238,0.16)', titleKey: 'omnes_sec_frescura' },
     { cat: 'precio',     emoji: '📈', bg: 'rgba(168,85,247,0.16)', titleKey: 'omnes_sec_precio' },
@@ -225,6 +226,7 @@ function frasesOmnes() {
     return {
         prefix: t('inteligencia:omnes_ask_prefix'),
         recetas: t('inteligencia:omnes_ask_recetas'),
+        deriva: t('inteligencia:omnes_ask_deriva'),
         stock: t('inteligencia:omnes_ask_stock'),
         precio: t('inteligencia:omnes_ask_precio'),
         frescura: t('inteligencia:omnes_ask_frescura'),

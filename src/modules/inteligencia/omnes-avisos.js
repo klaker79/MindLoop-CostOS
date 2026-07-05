@@ -9,6 +9,8 @@
  *  - /intelligence/price-check  → recetas no rentables (food cost alto)
  *  - /intelligence/freshness    → frescura / caducidad de frescos
  *  - /intelligence/overstock    → sobrestock
+ *  - /intelligence/price-drift  → deriva sostenida: el escandallo usa un precio
+ *                                 viejo vs la media real de 90 días (caso tomate)
  *  - window.ingredientes        → stock crítico (<= mínimo)
  *  - window.pedidos             → subidas de precio (último vs anterior)
  *
@@ -145,10 +147,11 @@ export async function construirAvisos(deps) {
     const ingMap = new Map(ingredientes.map(i => [i.id, i]));
     const max = UMBRALES.maxPorTipo;
 
-    const [price, fresh, over] = await Promise.all([
+    const [price, fresh, over, drift] = await Promise.all([
         fetchIntelligence('price-check'),
         fetchIntelligence('freshness'),
         fetchIntelligence('overstock'),
+        fetchIntelligence('price-drift'), // null si el backend aún no lo tiene (degrada sin romper)
     ]);
 
     const avisos = [];
@@ -203,6 +206,33 @@ export async function construirAvisos(deps) {
                 antes: cm(p.anterior), ahora: cm(p.ultimo), unidad: p.unidad,
             }),
             cta: mkCta('ingrediente', p.id, t('inteligencia:omnes_cta_ver_ingrediente')),
+        });
+    });
+
+    // 3bis) 🔴/🟠 Deriva de precio sostenida ("caso tomate"): el food cost usa la
+    // media histórica; si llevas 90 días comprando bastante más caro, el escandallo
+    // enseña un margen mejor que el real. Umbrales y filtros anti-ruido viven en el
+    // backend (computePriceDrift): sostenido (>=3 compras) + alto gasto (>=100 €).
+    const derivas = (drift && Array.isArray(drift.alertas)) ? drift.alertas : [];
+    derivas.slice(0, max).forEach((d) => {
+        const recetasTxt = (Number.isFinite(d.recetas_afectadas) && d.recetas_afectadas > 0)
+            ? ' ' + t('inteligencia:omnes_x_deriva_recetas', { n: d.recetas_afectadas })
+            : '';
+        avisos.push({
+            id: `deriva-${d.id}`,
+            categoria: 'deriva',
+            nivel: (d.desviacion_pct >= 30) ? 'critico' : 'atencion',
+            icono: '🔺',
+            titulo: t('inteligencia:omnes_t_deriva'),
+            texto: t('inteligencia:omnes_x_deriva', {
+                nombre: d.nombre,
+                app: cm(d.precio_app),
+                real: cm(d.media_90d),
+                unidad: d.unidad || 'ud',
+                pct: (d.desviacion_pct || 0).toFixed(0),
+                impacto: cm(d.impacto_mes),
+            }) + recetasTxt,
+            cta: mkCta('ingrediente', d.id, t('inteligencia:omnes_cta_ver_ingrediente')),
         });
     });
 
