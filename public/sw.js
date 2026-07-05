@@ -168,8 +168,9 @@
 // BUMP v181: limpieza — i18n de la pestaña "Inteligencia" reescrito para describir el feed real de Omnes (avisos por categoría + Pregúntale a Omnes + descartar), antes describía paneles que ya no existen. Borrado módulo huérfano alertas-sistema.js.
 // BUMP v183: nueva sección "Personal extra (por horas)" en balance (apunte fecha/nombre/horas/€h + subtotal del periodo). Nuevo módulo src/modules/balance/personal-extra.js.
 // BUMP v188: recepción de pedidos — el descuento se mete bajando el PRECIO REAL de la línea (lo que pagas/unidad), que ya alimenta precio_medio_compra (food cost) Y ahora también el GASTO del P&L: al recibir, pedidos.total pasa a ser lo realmente recibido (precioReal×cantidad + envases), no lo pedido. Así coste y gasto cuadran del mismo precioReal. El "ajuste" queda SOLO para envases/portes (textos relabel; descuentos van en PRECIO REAL). Revertido el "Total del albarán" de v187 (prorrateo global, contaminaba líneas no descontadas). Incidente cerveza EG La Nave 5 2026-06-27.
-// BUMP v207: Omnes — nueva sección "Escandallo desactualizado" (deriva de precio sostenida, caso tomate de Anais): /intelligence/price-drift compara el precio que usa el food cost vs la media ponderada de 90 días y avisa de subidas sostenidas en ingredientes de alto gasto. (v205/v206 reservados por PR #679 branding.)
-const CACHE_NAME = 'mindloop-costos-v207';
+// BUMP v207: Omnes — nueva sección "Escandallo desactualizado" (deriva de precio sostenida, caso tomate de Anais): /intelligence/price-drift compara el precio que usa el food cost vs la media ponderada de 90 días y avisa de subidas sostenidas en ingredientes de alto gasto.
+// BUMP v208: branding — subtítulo "Restaurant Intelligence" en naranja claro #FFB347 (header + sidebar) + búhos SIN caja (fuera el círculo blanco del header y el cuadrado del sidebar; el búho transparente va directo sobre el navy).
+const CACHE_NAME = 'mindloop-costos-v208';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
