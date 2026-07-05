@@ -47,10 +47,12 @@
   "omnes_ask_recetas": "¿Por qué no renta y qué precio me recomiendas?",
   "omnes_ask_stock": "¿Cuánto debería pedir?",
   "omnes_ask_precio": "¿Por qué ha subido y qué puedo hacer?",
+  "omnes_ask_deriva": "¿Qué recetas afecta y cuánto margen estoy perdiendo de verdad?",
   "omnes_ask_frescura": "¿Qué hago para no perderlo?",
   "omnes_ask_sobrestock": "¿Cómo reduzco este stock?",
   "omnes_ask_default": "Explícamelo y dame un plan.",
   "omnes_sec_recetas": "Recetas que no rentan",
+  "omnes_sec_deriva": "Escandallo desactualizado",
   "omnes_sec_stock": "Stock crítico",
   "omnes_sec_frescura": "Frescura",
   "omnes_sec_precio": "Subidas de precio",
@@ -68,6 +70,10 @@
   "omnes_t_precio_sube": "Te ha subido un precio",
   "omnes_x_precio_sube": "«{{nombre}}» subió un {{pct}}% en tu última compra: de {{antes}} a {{ahora}}/{{unidad}}. Vigílalo.",
   "omnes_cta_ver_ingrediente": "Ver ingrediente",
+
+  "omnes_t_deriva": "Tu escandallo usa un precio viejo",
+  "omnes_x_deriva": "«{{nombre}}»: el escandallo lo cuesta a {{app}}/{{unidad}}, pero llevas 90 días comprándolo a {{real}} de media ({{pct}}% más). Sobrecoste oculto ≈ {{impacto}}/mes.",
+  "omnes_x_deriva_recetas": "Afecta a {{n}} receta(s).",
 
   "omnes_t_frescura": "Frescura",
   "omnes_x_frescura": "{{stock}} {{unidad}} de «{{nombre}}» llevan {{dias}} días en cámara. Úsalo antes de que se pierda.",

@@ -47,10 +47,12 @@
   "omnes_ask_recetas": "Why isn't it profitable and what price do you suggest?",
   "omnes_ask_stock": "How much should I order?",
   "omnes_ask_precio": "Why did it go up and what can I do?",
+  "omnes_ask_deriva": "Which recipes are affected and how much margin am I really losing?",
   "omnes_ask_frescura": "What should I do so I don't lose it?",
   "omnes_ask_sobrestock": "How do I reduce this stock?",
   "omnes_ask_default": "Explain it and give me a plan.",
   "omnes_sec_recetas": "Unprofitable recipes",
+  "omnes_sec_deriva": "Outdated recipe costs",
   "omnes_sec_stock": "Critical stock",
   "omnes_sec_frescura": "Freshness",
   "omnes_sec_precio": "Price increases",
@@ -68,6 +70,10 @@
   "omnes_t_precio_sube": "A price went up",
   "omnes_x_precio_sube": "“{{nombre}}” rose {{pct}}% on your last purchase: from {{antes}} to {{ahora}}/{{unidad}}. Keep an eye on it.",
   "omnes_cta_ver_ingrediente": "View ingredient",
+
+  "omnes_t_deriva": "Your recipe cost uses an old price",
+  "omnes_x_deriva": "“{{nombre}}”: recipes cost it at {{app}}/{{unidad}}, but your 90-day average purchase price is {{real}} ({{pct}}% higher). Hidden extra cost ≈ {{impacto}}/month.",
+  "omnes_x_deriva_recetas": "Affects {{n}} recipe(s).",
 
   "omnes_t_frescura": "Freshness",
   "omnes_x_frescura": "{{stock}} {{unidad}} of “{{nombre}}” has been in storage for {{dias}} days. Use it before it's lost.",
