@@ -194,6 +194,17 @@ function renderItemsRecepcionModal(ped) {
     let totalOriginal = 0;
     let totalRecibido = 0;
 
+    // data-label por columna → vista TARJETA en móvil (#tabla-recepcion, main.css).
+    // El camarero recibe el albarán desde el móvil: antes era una tabla de 780px
+    // con scroll lateral. Las etiquetas las pinta td::before{content:attr(data-label)}.
+    const lRecIng = t('pedidos:reception_col_ingredient');
+    const lRecPed = t('pedidos:reception_col_ordered');
+    const lRecRec = t('pedidos:reception_col_received');
+    const lRecPP = t('pedidos:reception_col_price_ordered');
+    const lRecPR = t('pedidos:reception_col_price_real');
+    const lRecSub = t('pedidos:reception_col_subtotal');
+    const lRecEst = t('pedidos:reception_col_status');
+
     ped.itemsRecepcion.forEach((item, idx) => {
         const ingId = item.ingredienteId || item.ingrediente_id;
         const ing = ingMap.get(ingId);
@@ -237,13 +248,13 @@ function renderItemsRecepcionModal(ped) {
         if (item.personal === true) {
             html += `
           <tr style="background:#faf5ff;">
-            <td>${escapeHTML(nombre)} <span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#7c3aed;background:#ede9fe;border-radius:6px;padding:2px 7px;white-space:nowrap;">🍽️ ${escapeHTML(t('pedidos:personal_label'))}</span></td>
-            <td>${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}</td>
-            <td><span style="color:#94a3b8;">${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}</span></td>
-            <td>${precioPedTxt}</td>
-            <td><span style="color:#94a3b8;">${precioRealTxt}</span></td>
-            <td><strong>${cm(subtotalRecibido)}</strong></td>
-            <td><span style="font-size:11px;color:#7c3aed;font-weight:600;">no toca stock</span></td>
+            <td data-label="${lRecIng}">${escapeHTML(nombre)} <span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#7c3aed;background:#ede9fe;border-radius:6px;padding:2px 7px;white-space:nowrap;">🍽️ ${escapeHTML(t('pedidos:personal_label'))}</span></td>
+            <td data-label="${lRecPed}">${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}</td>
+            <td data-label="${lRecRec}"><span style="color:#94a3b8;">${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}</span></td>
+            <td data-label="${lRecPP}">${precioPedTxt}</td>
+            <td data-label="${lRecPR}"><span style="color:#94a3b8;">${precioRealTxt}</span></td>
+            <td data-label="${lRecSub}"><strong>${cm(subtotalRecibido)}</strong></td>
+            <td data-label="${lRecEst}"><span style="font-size:11px;color:#7c3aed;font-weight:600;">no toca stock</span></td>
           </tr>
         `;
             return;
@@ -251,9 +262,9 @@ function renderItemsRecepcionModal(ped) {
 
         html += `
           <tr>
-            <td>${escapeHTML(nombre)}</td>
-            <td>${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}${hintBase}</td>
-            <td>
+            <td data-label="${lRecIng}">${escapeHTML(nombre)}</td>
+            <td data-label="${lRecPed}">${formatQuantity(cantPedidaShown)} ${escapeHTML(unidadLabel)}${hintBase}</td>
+            <td data-label="${lRecRec}">
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
                 : `<input type="number" step="0.01" min="0" value="${cantRecibidaShown}"
@@ -261,8 +272,8 @@ function renderItemsRecepcionModal(ped) {
                     oninput="${recOnchange}"> <small style="color:#64748b;">${escapeHTML(unidadLabel)}</small>`
             }
             </td>
-            <td>${precioPedTxt}</td>
-            <td>
+            <td data-label="${lRecPP}">${precioPedTxt}</td>
+            <td data-label="${lRecPR}">
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
                 : `<input type="number" step="0.01" min="0" value="${usaFormato ? precioRealShown.toFixed(2) : precioReal}"
@@ -270,8 +281,8 @@ function renderItemsRecepcionModal(ped) {
                     oninput="${precioOnchange}">${usaFormato ? ` <small style="color:#64748b;white-space:nowrap;">/${escapeHTML(formatoNombre)}</small>` : ''}`
             }
             </td>
-            <td><strong id="subtotal-item-${idx}">${cm(subtotalRecibido)}</strong></td>
-            <td>
+            <td data-label="${lRecSub}"><strong id="subtotal-item-${idx}">${cm(subtotalRecibido)}</strong></td>
+            <td data-label="${lRecEst}">
               <select onchange="window.cambiarEstadoItem(${idx}, this.value)"
                 style="padding:5px;border:1px solid #ddd;border-radius:4px;">
                 <option value="consolidado" ${item.estado === 'consolidado' ? 'selected' : ''}>✅ OK</option>

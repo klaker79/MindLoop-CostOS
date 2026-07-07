@@ -9,7 +9,7 @@
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
 
   <!-- SEO Meta Tags -->
   <title>CosteOS — Control de costes para restaurantes</title>
@@ -57,7 +57,7 @@
   <!-- Chart.js, XLSX, jsPDF ahora se cargan desde node_modules -->
   <!-- Esto mejora seguridad y control de versiones -->
 
-  <link rel="stylesheet" href="styles/main.css?v=20260706-movil-fase1">
+  <link rel="stylesheet" href="styles/main.css?v=20260707-movil-fase2">
   <link rel="stylesheet" href="styles/polish.css?v=20260703-brand-orange">
   <!-- 🎨 Tema visual rediseñado (Fase A — tokens fundacionales).
        Carga al final → prioridad sobre main.css y polish.css.
@@ -2779,7 +2779,7 @@
           <div style="margin-bottom: 20px; overflow-x: auto;">
             <h4 style="margin-bottom: 10px;" data-i18n="pedidos:reception_ingredients_title">Ingredientes del pedido:
             </h4>
-            <table style="font-size: 13px; min-width: 780px;">
+            <table id="tabla-recepcion" style="font-size: 13px; min-width: 780px;">
               <thead>
                 <tr>
                   <th data-i18n="pedidos:reception_col_ingredient">Ingrediente</th>
