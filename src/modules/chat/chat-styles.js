@@ -716,13 +716,12 @@ export function createChatStyles() {
             .chat-informe-btn { padding: 6px 8px; }
         }
 
-        /* Responsive */
-        @media (max-width: 480px) {
+        /* Responsive — TODO el rango móvil/tablet (≤768), no solo ≤480: algunos
+           móviles reportan viewport 481-768 y ahí la ventana se salía por la
+           derecha. Anclada por los DOS lados (left+right, width:auto) es
+           IMPOSIBLE que exceda la pantalla, pase lo que pase con el viewport. */
+        @media (max-width: 768px) {
             .chat-window {
-                /* Anclada por los DOS lados (left+right) con width:auto → es
-                   IMPOSIBLE que sea más ancha que la pantalla. Antes se anclaba
-                   solo a la derecha con un width que en algunos móviles superaba
-                   el viewport y cortaba el texto por la izquierda (bug 07-07). */
                 left: 10px;
                 right: 10px;
                 width: auto;

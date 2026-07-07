@@ -64,15 +64,23 @@ describe('F2 — chat dvh + safe-area', () => {
         expect(chat).toMatch(/dvh/);
     });
     test('en móvil la ventana del chat se ancla por los DOS lados (no se sale)', () => {
-        // Antes solo anclaba a la derecha con un width que desbordaba y cortaba
-        // el texto por la izquierda (bug 07-07). left+right+width:auto lo impide.
-        // Acotamos al bloque .chat-window dentro del @media 480.
-        const media = chat.slice(chat.indexOf('@media (max-width: 480px)'));
-        const cwStart = media.indexOf('.chat-window');
-        const bloque = media.slice(cwStart, media.indexOf('}', cwStart));
-        expect(bloque).toMatch(/left:\s*10px/);
+        // Antes solo anclaba a la derecha con un width que desbordaba (bug 07-07).
+        // left+right+width:auto lo impide, y en TODO el rango móvil (≤768) porque
+        // algunos móviles reportan viewport 481-768.
+        const cwStart = chat.indexOf('@media (max-width: 768px)');
+        expect(cwStart).toBeGreaterThan(-1);
+        const bloque = chat.slice(cwStart);
+        expect(bloque).toMatch(/\.chat-window\s*\{[\s\S]{0,120}left:\s*10px/);
         expect(bloque).toMatch(/right:\s*10px/);
         expect(bloque).toMatch(/width:\s*auto/);
+    });
+    test('la raíz clampa el overflow horizontal en móvil (fixed no se desplaza)', () => {
+        // La regla html{overflow-x:hidden} solo se añadió en el bloque móvil.
+        expect(css).toMatch(/html\s*\{\s*overflow-x:\s*hidden/);
+        // y está dentro de un @media ≤768 (no global)
+        const idx = css.search(/html\s*\{\s*overflow-x:\s*hidden/);
+        const antes = css.slice(0, idx);
+        expect(antes.lastIndexOf('@media (max-width: 768px)')).toBeGreaterThan(antes.lastIndexOf('@media (max-width: 480px)'));
     });
     test('viewport-fit=cover en el meta', () => {
         expect(html).toMatch(/viewport-fit=cover/);

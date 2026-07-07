@@ -2720,6 +2720,16 @@ table tbody td:first-child {
    RESPONSIVE — TABLET & MOBILE (≤768px)
    ════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* 📱 Impedir el DESBORDAMIENTO HORIZONTAL de la página. En móvil, si algún
+     elemento es más ancho que la pantalla, el "layout viewport" se ensancha y
+     los elementos position:fixed (chat, hamburguesa) se anclan a ESE ancho →
+     el chat se salía por la derecha aunque su CSS fuera correcto (bug 07-07,
+     no reproducible en desktop). overflow-x:hidden en la raíz lo clava al
+     ancho visible. En html (no body) para no romper position:sticky. */
+  html {
+    overflow-x: hidden;
+  }
+
   /* --- Layout base --- */
   .app-content {
     margin-left: 0;
