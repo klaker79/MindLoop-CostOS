@@ -458,9 +458,52 @@ async function renderizarBeneficioNetoDiario() {
         `;
     }
 
-    // ✅ NUEVO: Calcular PUNTO DE EQUILIBRIO
+    // ✅ PUNTO DE EQUILIBRIO — mini compacto. Usa el MISMO cálculo que el
+    // bloque grande de Análisis (margen ponderado por ventas reales) vía
+    // window.mlBreakevenGetSnapshot, para que los números cuadren entre
+    // las dos pantallas. Si el módulo no cargó, cae al cálculo simple viejo.
     let puntoEquilibrioHTML = '';
-    if (window.recetas && window.recetas.length > 0 && gastosFijosMes > 0) {
+    try {
+        const snap = typeof window.mlBreakevenGetSnapshot === 'function'
+            ? await window.mlBreakevenGetSnapshot()
+            : null;
+        if (snap && snap.estado === 'ok' && snap.breakevenPlatosMes > 0) {
+            let unidadesMes = 0;
+            const vendidas = window.datosResumenMensual.ventas?.recetas || {};
+            for (const nombre in vendidas) {
+                unidadesMes += parseFloat(vendidas[nombre]?.totalVendidas) || 0;
+            }
+            const be = snap.breakevenPlatosMes;
+            const progreso = Math.min(100, (unidadesMes / be) * 100);
+            const faltantes = Math.max(0, be - unidadesMes);
+            const faltantesEuros = faltantes * snap.ticketMedio;
+            const color = progreso >= 100 ? '#10b981' : progreso >= 60 ? '#f59e0b' : '#ef4444';
+            const pie = faltantes > 0
+                ? `Te faltan <strong style="color:#fff;">${faltantes.toLocaleString('es-ES')}</strong> platos (~${cm(faltantesEuros)}) · detalle en Análisis`
+                : '✅ Gastos fijos cubiertos · detalle en Análisis';
+            puntoEquilibrioHTML = `
+              <div style="background: linear-gradient(135deg, #0f172a 0%, #14294a 100%); padding: 14px 16px; border-radius: 12px; margin-bottom: 12px; border-left: 3px solid ${color};">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
+                  <span style="color: #fff; font-weight: 700; font-size: 13px;">🎯 ${window.t('balance:breakeven_title')}</span>
+                  <span style="color: ${color}; font-weight: 800; font-size: 15px;">${progreso.toFixed(0)}%</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.12); border-radius: 999px; height: 10px; overflow: hidden; margin-bottom: 8px;">
+                  <div style="background: ${color}; height: 100%; width: ${progreso}%; border-radius: 999px; transition: width 0.5s;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: rgba(226,232,240,0.85); font-size: 12px;">
+                  <span><strong style="color: #fff;">${unidadesMes.toLocaleString('es-ES')}</strong> / ${be.toLocaleString('es-ES')} platos este mes</span>
+                  <span>Necesitas <strong style="color: #10b981;">${cm(snap.ventasEquilibrioDia)}/día</strong></span>
+                </div>
+                <div style="margin-top: 8px; font-size: 11px; color: rgba(226,232,240,0.7); text-align: center;">${pie}</div>
+              </div>
+            `;
+        }
+    } catch (e) {
+        console.warn('[diario] breakeven mini falló, uso fallback:', e?.message);
+    }
+
+    // Fallback: cálculo simple antiguo (solo si el snapshot no está disponible).
+    if (!puntoEquilibrioHTML && window.recetas && window.recetas.length > 0 && gastosFijosMes > 0) {
         // Calcular margen promedio de todas las recetas
         let totalMargen = 0;
         window.recetas.forEach(rec => {

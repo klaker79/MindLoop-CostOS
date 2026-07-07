@@ -175,7 +175,8 @@
 // BUMP v211: fix chat móvil — la ventana se salía por la izquierda (anclada solo a la derecha con un width que superaba el viewport → texto cortado). Ahora anclada por los DOS lados (left:10 + right:10 + width:auto) + overflow:hidden → imposible desbordar. Verificado geométricamente (overflow horizontal=0).
 // BUMP v212: fix chat móvil (2ª causa, la real): la PÁGINA tenía overflow horizontal en móvil → el "layout viewport" se ensanchaba y el chat position:fixed (anclado a la derecha) se salía por la derecha, aunque su CSS fuese correcto (no reproducible en desktop). Fix: (1) html{overflow-x:hidden} en ≤768 clava la página al ancho visible; (2) el chat se ancla por los DOS lados (left:10+right:10) en TODO el rango móvil ≤768 (antes solo ≤480; algunos móviles reportan 481-768).
 // BUMP v213: LA CAUSA REAL del chat gigante en móvil — theme-editorial.css forzaba .chat-window{width:600px!important;height:80vh!important} SIN media query → en móvil aplicaba 600px (mayor que la pantalla, se salía 220px por la derecha) y machacaba con !important toda la regla responsive del chat. Fix: gated a @media(min-width:769px) → solo escritorio; en móvil manda la regla responsive del chat (reforzada con !important). Reproducido y verificado EN VIVO con emulación iPhone: 600px→370px, dentro de pantalla.
-const CACHE_NAME = 'mindloop-costos-v213';
+// BUMP v214: Punto de Equilibrio como bloque protagonista en Análisis (hero €/día + platos/día + 3 palancas margen/gastos/food cost, margen de contribución PONDERADO por ventas reales) + mini compacto en el Diario que consume el MISMO cálculo (window.mlBreakevenGetSnapshot) para que los números cuadren entre pantallas.
+const CACHE_NAME = 'mindloop-costos-v214';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
