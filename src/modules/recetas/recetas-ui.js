@@ -513,6 +513,16 @@ export async function renderizarRecetas() {
             `<th>${t('recetas:export_col_code')}</th><th>${t('recetas:export_col_name')}</th><th>${t('recetas:export_col_category')}</th><th>${t('recetas:escandallo_cost')}</th><th>${t('recetas:export_col_sale_price')}</th><th>${t('recetas:escandallo_margin')}</th><th>${t('ingredientes:col_actions')}</th>`;
         html += '</tr></thead><tbody>';
 
+        // data-label por columna → vista TARJETA en móvil (main.css apila los td
+        // y pinta la etiqueta con td::before{content:attr(data-label)}).
+        const lblCod = t('recetas:export_col_code');
+        const lblNom = t('recetas:export_col_name');
+        const lblCat = t('recetas:export_col_category');
+        const lblCos = t('recetas:escandallo_cost');
+        const lblPvp = t('recetas:export_col_sale_price');
+        const lblMar = t('recetas:escandallo_margin');
+        const lblAcc = t('ingredientes:col_actions');
+
         recetasPagina.forEach(rec => {
             const coste = window.calcularCosteRecetaCompleto(rec);
             const margen = rec.precio_venta - coste;
@@ -541,24 +551,24 @@ export async function renderizarRecetas() {
             }
 
             html += '<tr>';
-            html += `<td><span style="color:#666;font-size:12px;">${escapeHTML(codigoMostrar || '-')}</span></td>`;
-            html += `<td><strong>${escapeHTML(rec.nombre)}</strong></td>`;
+            html += `<td data-label="${lblCod}"><span style="color:#666;font-size:12px;">${escapeHTML(codigoMostrar || '-')}</span></td>`;
+            html += `<td data-label="${lblNom}"><strong>${escapeHTML(rec.nombre)}</strong></td>`;
             const categoriaLower = (rec.categoria || 'alimentos').toLowerCase();
             const esBebida = categoriaLower === 'bebida' || categoriaLower === 'bebidas';
             const esBase = categoriaLower === 'base';
             const categoriaBadge = esBase ? 'badge-purple' : esBebida ? 'badge-info' : 'badge-success';
-            html += `<td><span class="badge ${categoriaBadge}">${escapeHTML(rec.categoria)}</span></td>`;
-            html += `<td>${cm(coste)}</td>`;
+            html += `<td data-label="${lblCat}"><span class="badge ${categoriaBadge}">${escapeHTML(rec.categoria)}</span></td>`;
+            html += `<td data-label="${lblCos}">${cm(coste)}</td>`;
             // Subproductos base no se venden → no tiene sentido PVP ni margen.
             // Mostrar "—" con badge gris para no engañar con "0% rojo". Iker 2026-06-08.
             if (esBase) {
-                html += `<td><span style="color:#94a3b8;" title="Los subproductos no se venden al cliente">—</span></td>`;
-                html += `<td><span class="badge" style="background:#e2e8f0;color:#475569;">N/A</span></td>`;
+                html += `<td data-label="${lblPvp}"><span style="color:#94a3b8;" title="Los subproductos no se venden al cliente">—</span></td>`;
+                html += `<td data-label="${lblMar}"><span class="badge" style="background:#e2e8f0;color:#475569;">N/A</span></td>`;
             } else {
-                html += `<td>${cm(rec.precio_venta || 0)}</td>`;
-                html += `<td><span class="badge ${badgeClass}">${cm(margen)} (${pct}%)</span></td>`;
+                html += `<td data-label="${lblPvp}">${cm(rec.precio_venta || 0)}</td>`;
+                html += `<td data-label="${lblMar}"><span class="badge ${badgeClass}">${cm(margen)} (${pct}%)</span></td>`;
             }
-            html += `<td><div class="actions">`;
+            html += `<td data-label="${lblAcc}"><div class="actions">`;
             html += `<button class="icon-btn view" onclick="window.verEscandallo(${rec.id})" title="${t('recetas:btn_view_escandallo')}">📊</button>`;
             html += `<button class="icon-btn" onclick="window.exportarEscandalloReceta(${rec.id})" title="${t('recetas:export_escandallo_btn')}">📋</button>`;
             // Botón de variantes solo para bebidas (botella/copa)

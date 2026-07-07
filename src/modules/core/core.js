@@ -135,6 +135,11 @@ async function _cargarDatosInternal() {
  * Cambia la pestaña activa
  */
 export function cambiarTab(tab) {
+    // 📱 Móvil: cerrar el sidebar off-canvas al navegar. Sin esto el menú se
+    // queda abierto tapando el contenido tras tocar una pestaña (en desktop la
+    // clase 'open' no existe → no-op).
+    document.getElementById('sidebar')?.classList.remove('open');
+
     // Desactivar todas las tabs (legacy horizontal tabs)
     document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
 

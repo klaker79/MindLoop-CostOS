@@ -132,7 +132,11 @@ export function createChatStyles() {
                o se salía. Con min()/viewport se ve igual en Mac/Windows/móvil
                sin tocar nada de la lógica del chat. */
             width: min(450px, calc(100vw - 32px));
+            /* dvh = dynamic viewport height: con el teclado abierto en móvil el
+               viewport se encoge y la ventana (y su input) NO quedan tapados.
+               Fallback a vh para navegadores sin dvh. */
             height: min(550px, calc(100vh - 140px));
+            height: min(550px, calc(100dvh - 140px));
             background: #ffffff;
             border-radius: 20px;
             box-shadow: 0 10px 50px rgba(0, 0, 0, 0.15);
@@ -712,18 +716,32 @@ export function createChatStyles() {
             .chat-informe-btn { padding: 6px 8px; }
         }
 
-        /* Responsive */
-        @media (max-width: 480px) {
+        /* Responsive — TODO el rango móvil/tablet (≤768), no solo ≤480: algunos
+           móviles reportan viewport 481-768 y ahí la ventana se salía por la
+           derecha. Anclada por los DOS lados (left+right, width:auto) es
+           IMPOSIBLE que exceda la pantalla, pase lo que pase con el viewport. */
+        @media (max-width: 768px) {
             .chat-window {
-                width: calc(100% - 32px);
-                right: 16px;
-                bottom: 90px;
-                height: 70vh;
+                /* !important para ganar a theme-editorial.css, que fuerza
+                   width/height:600px !important en la ventana (ahora gated a
+                   escritorio, pero blindamos por si acaso). */
+                left: 10px !important;
+                right: 10px !important;
+                width: auto !important;
+                max-width: none !important;
+                min-height: 0 !important;
+                /* dvh para que el teclado NO tape el input; bottom respeta la
+                   barra home del iPhone (safe-area). */
+                bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+                height: 70vh !important;
+                height: 70dvh !important;
+                /* nada se sale de la caja redondeada */
+                overflow: hidden;
             }
-            
+
             .chat-fab {
-                right: 16px;
-                bottom: 16px;
+                right: calc(16px + env(safe-area-inset-right, 0px));
+                bottom: calc(16px + env(safe-area-inset-bottom, 0px));
             }
             .chat-fab-bubble { display: none; }
         }

@@ -2446,6 +2446,18 @@ table tbody td:first-child {
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Overlay del sidebar móvil: oculto por defecto (desktop nunca lo ve).
+   El @media 768 lo muestra cuando .sidebar tiene .open (tocar fuera = cerrar). */
+.sidebar-overlay {
+  display: none;
+}
+
+/* Steppers +/− de cantidad en Nuevo Pedido: SOLO móvil. En escritorio se
+   ocultan y la .cantidad-input se ve como siempre (desktop intacto). */
+.qty-btn {
+  display: none;
+}
+
 .app.sidebar-collapsed .sidebar {
   width: var(--sidebar-collapsed);
 }
@@ -2708,6 +2720,16 @@ table tbody td:first-child {
    RESPONSIVE — TABLET & MOBILE (≤768px)
    ════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* 📱 Impedir el DESBORDAMIENTO HORIZONTAL de la página. En móvil, si algún
+     elemento es más ancho que la pantalla, el "layout viewport" se ensancha y
+     los elementos position:fixed (chat, hamburguesa) se anclan a ESE ancho →
+     el chat se salía por la derecha aunque su CSS fuera correcto (bug 07-07,
+     no reproducible en desktop). overflow-x:hidden en la raíz lo clava al
+     ancho visible. En html (no body) para no romper position:sticky. */
+  html {
+    overflow-x: hidden;
+  }
+
   /* --- Layout base --- */
   .app-content {
     margin-left: 0;
@@ -2724,8 +2746,9 @@ table tbody td:first-child {
   .mobile-menu-toggle {
     display: flex;
     position: fixed;
-    top: 12px;
-    left: 12px;
+    /* safe-area: no quedar bajo el notch / esquina redondeada del iPhone */
+    top: calc(12px + env(safe-area-inset-top, 0px));
+    left: calc(12px + env(safe-area-inset-left, 0px));
     width: 44px;
     height: 44px;
     background: linear-gradient(135deg, #f97316, #ea580c);
@@ -2801,6 +2824,17 @@ table tbody td:first-child {
   table {
     min-width: 650px !important;
     font-size: 12px !important;
+    /* 📱 Toda tabla se hace AUTO-SCROLLABLE: display:block + overflow-x. Con el
+       min-width:650px forzado de arriba, cualquier tabla SIN contenedor de
+       scroll (modales de mermas, comida personal, editar pedido, evolución de
+       precio, alérgenos, horarios, cost-tracker...) desbordaba el viewport de
+       390px sin forma de ver la mitad derecha. Así cada tabla trae su propio
+       scroll horizontal. Las vistas-tarjeta (#tabla-ingredientes etc.) ya ponen
+       min-width:0 + display:block en sus celdas → compatibles. */
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
   }
   th {
     padding: 10px 8px !important;
@@ -2809,6 +2843,27 @@ table tbody td:first-child {
   td {
     padding: 10px 8px !important;
     font-size: 12px !important;
+  }
+
+  /* 📱 iOS hace ZOOM automático al enfocar cualquier input con font-size <16px
+     (efecto "app cutre"). En móvil todos los campos interactivos van a 16px.
+     Cubre también los <select> con font-size inline pequeño (11px en merma
+     rápida) gracias al !important. El login ya iba a 16px. */
+  .form-group input,
+  .form-group select,
+  .form-group textarea,
+  .search-box input,
+  .ingrediente-item input,
+  .modal-content input,
+  .modal-content select,
+  .modal-content textarea {
+    font-size: 16px !important;
+  }
+
+  /* 📱 El chip "⌘K" es una pista de atajo de TECLADO físico — sin sentido en
+     móvil (y se solapa con el texto tecleado en el buscador). */
+  .gs-kbd-hint {
+    display: none !important;
   }
   .icon-btn {
     width: 30px !important;
@@ -2998,6 +3053,10 @@ table tbody td:first-child {
   }
 
   /* --- Sidebar overlay on mobile --- */
+  /* z-index 99: por DEBAJO del sidebar (z-index 100, main.css .sidebar) para no
+     taparlo, y al nivel del hamburguesa → con el menú abierto, tocar cualquier
+     zona fuera del sidebar (overlay) lo cierra. Base fuera del @media:
+     display:none por defecto (desktop no lo ve nunca). */
   .sidebar.open ~ .sidebar-overlay,
   .sidebar-overlay.active {
     display: block;
@@ -3013,6 +3072,157 @@ table tbody td:first-child {
   /* --- Pedidos grid inline styles --- */
   #tab-pedidos div[style*="grid-template-columns"] {
     grid-template-columns: 1fr !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     📱 SIDEBAR COLAPSADO EN MÓVIL — neutralizar (bug captura Iker 07-07)
+     Si el usuario colapsó el sidebar en desktop (.app.sidebar-collapsed),
+     esas reglas (especificidad mayor) ganaban a las del móvil:
+     - margin-left:70px estrujaba el contenido dejando un canal muerto;
+     - al abrir con ☰ salía el sidebar de 70px solo-iconos.
+     En móvil el colapsado NO existe: sidebar SIEMPRE completo y off-canvas.
+     ══════════════════════════════════════════════════════════════ */
+  .app.sidebar-collapsed .app-content {
+    margin-left: 0 !important;
+  }
+  .app.sidebar-collapsed .sidebar {
+    width: var(--sidebar-width) !important;
+  }
+  .app.sidebar-collapsed .sidebar-brand-text,
+  .app.sidebar-collapsed .nav-item-text {
+    display: block !important;
+  }
+  .app.sidebar-collapsed .nav-section-title {
+    display: block !important;
+  }
+  .app.sidebar-collapsed .sidebar-user-info {
+    display: block !important;
+  }
+  /* el botón ◀ de colapsar no tiene sentido en móvil */
+  .sidebar-toggle {
+    display: none !important;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     📱 NUEVO PEDIDO — fila de ingrediente como TARJETA apilada.
+     El JS (pedidos-ui.js agregarIngredientePedido) pone display:flex +
+     flex-wrap inline con inputs de 60/70px → en 390px quedaba un revoltijo
+     de columnas desiguales. Aprovechamos el flex-wrap: cada campo toma su
+     ancho de tarjeta. NO se toca ningún id/clase (contrato de guardarPedido
+     y calcularTotalPedido intacto).
+     ══════════════════════════════════════════════════════════════ */
+  #lista-ingredientes-pedido .ingrediente-item {
+    position: relative;
+    padding: 12px !important;
+    padding-right: 56px !important; /* hueco para el botón × absoluto */
+    gap: 8px !important;
+    border: 1px solid #e2e8f0;
+  }
+  /* buscador inyectado (select-with-search), select de ingrediente y formato:
+     a ancho completo, uno por fila */
+  #lista-ingredientes-pedido .ingrediente-item > .select-search-input,
+  #lista-ingredientes-pedido .ingrediente-item > select,
+  #lista-ingredientes-pedido .ingrediente-item > div[id$="-formato-container"] {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px;
+  }
+  /* cantidad: stepper "− [input] +" a fila completa, botones táctiles 44px */
+  #lista-ingredientes-pedido .ingrediente-item > .qty-stepper {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  #lista-ingredientes-pedido .ingrediente-item > .qty-stepper > .cantidad-input {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 44px;
+    font-size: 18px !important;
+  }
+  #lista-ingredientes-pedido .ingrediente-item .qty-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  /* precio: fila propia a ancho completo */
+  #lista-ingredientes-pedido .ingrediente-item > .precio-input {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px;
+  }
+  #lista-ingredientes-pedido .ingrediente-item > .precio-unidad-label {
+    min-width: 0 !important;
+    flex: 0 1 auto;
+    align-self: center;
+  }
+  /* subtotal de la línea: grande y a la derecha */
+  #lista-ingredientes-pedido .ingrediente-item > span[id$="-subtotal"] {
+    flex: 1 1 auto !important;
+    text-align: right !important;
+    font-size: 16px;
+    align-self: center;
+  }
+  /* conversión: fila propia; si está vacía no ocupa sitio */
+  #lista-ingredientes-pedido .ingrediente-item > span[id$="-conversion"] {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+    text-align: left !important;
+  }
+  #lista-ingredientes-pedido .ingrediente-item > span[id$="-conversion"]:empty {
+    display: none;
+  }
+  /* botón eliminar: arriba a la derecha de la tarjeta, target 40px */
+  #lista-ingredientes-pedido .ingrediente-item > button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  /* botones del form: grandes y de ancho completo */
+  #container-ingredientes-pedido > button,
+  #formulario-pedido .form-actions .btn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 16px;
+  }
+  /* Barra de acciones PEGADA abajo: "Crear pedido" siempre alcanzable con el
+     pulgar mientras añades ingredientes (no hay que hacer scroll al final). */
+  #formulario-pedido .form-actions {
+    display: flex;
+    flex-direction: column-reverse; /* Crear Pedido encima, Cancelar debajo */
+    gap: 8px;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card, #ffffff);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    margin: 12px -16px -16px;
+    box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.07);
+    z-index: 6;
+  }
+  /* bloque total: a todo el ancho, número visible */
+  #total-pedido-form {
+    justify-content: space-between !important;
+    flex-wrap: wrap;
   }
 
   /* --- Config tab grids --- */
@@ -3510,6 +3720,153 @@ table tbody td:first-child {
     width: 36px !important;
     height: 36px !important;
     font-size: 15px !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Recetas y Proveedores: tabla → tarjetas (F2 móvil 2026-07-07)
+   --------------------------------------------------------------------
+   Mismo patrón que #tabla-ingredientes (los td llevan data-label desde el JS:
+   recetas-ui.js / proveedores-ui.js). Antes eran tablas con scroll lateral y
+   las acciones (editar/borrar) quedaban fuera de pantalla.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-recetas table,
+  #tabla-proveedores table {
+    min-width: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0;
+  }
+  #tabla-recetas thead,
+  #tabla-proveedores thead { display: none; }
+  #tabla-recetas tbody, #tabla-recetas tr, #tabla-recetas td,
+  #tabla-proveedores tbody, #tabla-proveedores tr, #tabla-proveedores td {
+    display: block;
+    width: 100%;
+  }
+  #tabla-recetas tr,
+  #tabla-proveedores tr {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+  #tabla-recetas td,
+  #tabla-proveedores td {
+    padding: 6px 0 !important;
+    border: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px !important;
+    min-width: 0;
+  }
+  #tabla-recetas td::before,
+  #tabla-proveedores td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  /* Última celda = acciones: separada arriba con línea, botones a la derecha. */
+  #tabla-recetas td:last-child,
+  #tabla-proveedores td:last-child {
+    border-top: 1px solid #f1f5f9 !important;
+    padding-top: 10px !important;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  #tabla-recetas td:last-child::before,
+  #tabla-proveedores td:last-child::before { display: none; }
+  #tabla-recetas td:last-child .actions,
+  #tabla-proveedores td:last-child .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  #tabla-recetas td .icon-btn,
+  #tabla-proveedores td .icon-btn {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Recepción de pedidos: tabla → tarjetas (F2 móvil 2026-07-07)
+   --------------------------------------------------------------------
+   Flujo del camarero desde el móvil (LO MÁS usado). Antes: tabla inline de
+   min-width:780px con scroll lateral dentro del modal. Ahora cada ingrediente
+   es una tarjeta: etiqueta a la izquierda (data-label desde pedidos-recepcion.js)
+   y el valor/input a la derecha. NO se toca la lógica de recepción.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #tabla-recepcion {
+    min-width: 0 !important;
+    display: block;
+  }
+  #tabla-recepcion thead { display: none; }
+  #tabla-recepcion tbody,
+  #tabla-recepcion tr,
+  #tabla-recepcion td {
+    display: block;
+    width: 100%;
+  }
+  #tabla-recepcion tr {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  #tabla-recepcion td {
+    padding: 7px 0 !important;
+    border: none !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  #tabla-recepcion td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  /* Nombre del ingrediente: fila destacada arriba, sin etiqueta. */
+  #tabla-recepcion td:first-child {
+    font-weight: 700;
+    font-size: 15px;
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 4px;
+  }
+  #tabla-recepcion td:first-child::before { display: none; }
+  /* inputs de cantidad/precio y el select de estado: cómodos (target 44px). */
+  #tabla-recepcion td input[type="number"] {
+    width: 96px !important;
+    min-height: 40px;
+    padding: 8px !important;
+    text-align: right;
+  }
+  #tabla-recepcion td select {
+    min-height: 40px;
+    flex: 1 1 auto;
+    max-width: 60%;
   }
 }
 
