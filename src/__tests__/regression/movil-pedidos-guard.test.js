@@ -34,8 +34,10 @@ describe('Móvil — Nuevo Pedido en tarjetas (guard)', () => {
     test('la fila de ingrediente se apila: select/buscador a ancho completo', () => {
         expect(movil).toMatch(/#lista-ingredientes-pedido \.ingrediente-item > \.select-search-input,[\s\S]{0,300}flex:\s*1 1 100% !important/);
     });
-    test('cantidad y precio con target táctil (min-height 44px)', () => {
-        expect(movil).toMatch(/\.cantidad-input,[\s\S]{0,300}min-height:\s*44px/);
+    test('cantidad (dentro de .qty-stepper) y precio con target táctil (min-height 44px)', () => {
+        // F2: la .cantidad-input pasó a vivir dentro de .qty-stepper (steppers +/−).
+        expect(movil).toMatch(/\.qty-stepper > \.cantidad-input[\s\S]{0,200}min-height:\s*44px/);
+        expect(movil).toMatch(/> \.precio-input[\s\S]{0,200}min-height:\s*44px/);
     });
     test('el botón eliminar es absoluto (no rompe el flujo de la tarjeta)', () => {
         expect(movil).toMatch(/#lista-ingredientes-pedido \.ingrediente-item > button\s*\{[\s\S]{0,120}position:\s*absolute/);

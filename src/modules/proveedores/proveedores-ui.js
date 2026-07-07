@@ -189,6 +189,13 @@ export function renderizarProveedores() {
     html += `<th>${t('proveedores:col_name')}</th><th>${t('proveedores:col_contact')}</th><th>${t('proveedores:col_ingredients')}</th><th>${t('proveedores:col_actions')}</th>`;
     html += '</tr></thead><tbody>';
 
+    // data-label → vista TARJETA en móvil (main.css apila los td y pinta la
+    // etiqueta con td::before{content:attr(data-label)}).
+    const lblNom = t('proveedores:col_name');
+    const lblCon = t('proveedores:col_contact');
+    const lblIng = t('proveedores:col_ingredients');
+    const lblAcc = t('proveedores:col_actions');
+
     filtrados.forEach(prov => {
         // Conteo coherente con modal/editor: combina 3 fuentes para no depender
         // solo de prov.ingredientes (legacy, frecuentemente desincronizado tras
@@ -207,13 +214,13 @@ export function renderizarProveedores() {
         const ingredientesCount = allIds.size;
 
         html += '<tr>';
-        html += `<td><strong>${escapeHTML(prov.nombre)}</strong></td>`;
-        html += `<td>`;
+        html += `<td data-label="${lblNom}"><strong>${escapeHTML(prov.nombre)}</strong></td>`;
+        html += `<td data-label="${lblCon}">`;
         if (prov.telefono) html += `📞 ${escapeHTML(prov.telefono)}<br>`;
         if (prov.email) html += `✉️ ${escapeHTML(prov.email)}`;
         html += `</td>`;
-        html += `<td>${ingredientesCount} items</td>`;
-        html += `<td><div class="actions">`;
+        html += `<td data-label="${lblIng}">${ingredientesCount} items</td>`;
+        html += `<td data-label="${lblAcc}"><div class="actions">`;
         html += `<button class="icon-btn view" onclick="window.verProveedorDetalles(${prov.id})">👁️</button>`;
         html += `<button class="icon-btn edit" onclick="window.editarProveedor(${prov.id})">✏️</button>`;
         html += `<button class="icon-btn delete" onclick="window.eliminarProveedor(${prov.id})">🗑️</button>`;

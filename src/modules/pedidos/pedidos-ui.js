@@ -329,6 +329,20 @@ export function cargarIngredientesPedido() {
  * 🆕 Ahora soporta formato de compra con conversión automática
  * 🏪 Para "Compras Mercado": muestra TODOS los ingredientes
  */
+/**
+ * Steppers +/− de cantidad (móvil). Sube/baja en pasos de 1 la .cantidad-input
+ * de la misma línea y recalcula el total. No altera el contrato DOM (la
+ * .cantidad-input sigue existiendo; solo queda dentro de .qty-stepper).
+ */
+window.pedidoStep = function pedidoStep(btn, delta) {
+    const input = btn.parentElement?.querySelector('.cantidad-input');
+    if (!input) return;
+    const actual = parseFloat(input.value) || 0;
+    const siguiente = Math.max(0, Math.round((actual + delta) * 100) / 100);
+    input.value = siguiente;
+    window.calcularTotalPedido();
+};
+
 export function agregarIngredientePedido() {
     const proveedorId = parseInt(document.getElementById('ped-proveedor')?.value);
     if (!proveedorId) return;
@@ -396,7 +410,11 @@ export function agregarIngredientePedido() {
         <select id="${rowId}-formato-select" style="padding: 8px; border: 1px solid #ddd; border-radius: 6px; width: 100%;" onchange="window.calcularTotalPedido()">
         </select>
       </div>
-      <input type="number" placeholder="${t('pedidos:placeholder_quantity')}" step="0.01" min="0" class="cantidad-input" style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" oninput="window.calcularTotalPedido()">
+      <span class="qty-stepper" style="display: inline-flex; align-items: center; gap: 4px;">
+        <button type="button" class="qty-btn" tabindex="-1" aria-label="menos" onclick="window.pedidoStep(this, -1)">−</button>
+        <input type="number" placeholder="${t('pedidos:placeholder_quantity')}" step="0.01" min="0" class="cantidad-input" style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center;" oninput="window.calcularTotalPedido()">
+        <button type="button" class="qty-btn" tabindex="-1" aria-label="más" onclick="window.pedidoStep(this, 1)">+</button>
+      </span>
       <input type="number" placeholder="${t('pedidos:placeholder_price_unit')}" step="0.01" min="0" class="precio-input" style="width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; text-align: right; ${esCompraMercado ? 'border-color: #10b981; background: #f0fdf4;' : ''}" oninput="window.calcularTotalPedido()">
       <span class="precio-unidad-label" style="font-size: 11px; color: #64748b; align-self: center; min-width: 55px;"></span>
       <span id="${rowId}-subtotal" style="min-width: 70px; font-weight: 600; color: #059669; text-align: right;">${cm(0)}</span>

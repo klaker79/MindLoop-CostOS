@@ -132,7 +132,11 @@ export function createChatStyles() {
                o se salía. Con min()/viewport se ve igual en Mac/Windows/móvil
                sin tocar nada de la lógica del chat. */
             width: min(450px, calc(100vw - 32px));
+            /* dvh = dynamic viewport height: con el teclado abierto en móvil el
+               viewport se encoge y la ventana (y su input) NO quedan tapados.
+               Fallback a vh para navegadores sin dvh. */
             height: min(550px, calc(100vh - 140px));
+            height: min(550px, calc(100dvh - 140px));
             background: #ffffff;
             border-radius: 20px;
             box-shadow: 0 10px 50px rgba(0, 0, 0, 0.15);
@@ -715,15 +719,18 @@ export function createChatStyles() {
         /* Responsive */
         @media (max-width: 480px) {
             .chat-window {
-                width: calc(100% - 32px);
-                right: 16px;
-                bottom: 90px;
-                height: 70vh;
+                width: calc(100% - 24px);
+                right: 12px;
+                /* dvh para que el teclado NO tape el input al escribir; el bottom
+                   respeta la barra home del iPhone (safe-area). */
+                bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+                height: 72vh;
+                height: 72dvh;
             }
-            
+
             .chat-fab {
-                right: 16px;
-                bottom: 16px;
+                right: calc(16px + env(safe-area-inset-right, 0px));
+                bottom: calc(16px + env(safe-area-inset-bottom, 0px));
             }
             .chat-fab-bubble { display: none; }
         }
