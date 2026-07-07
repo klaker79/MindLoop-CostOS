@@ -722,15 +722,19 @@ export function createChatStyles() {
            IMPOSIBLE que exceda la pantalla, pase lo que pase con el viewport. */
         @media (max-width: 768px) {
             .chat-window {
-                left: 10px;
-                right: 10px;
-                width: auto;
-                max-width: none;
+                /* !important para ganar a theme-editorial.css, que fuerza
+                   width/height:600px !important en la ventana (ahora gated a
+                   escritorio, pero blindamos por si acaso). */
+                left: 10px !important;
+                right: 10px !important;
+                width: auto !important;
+                max-width: none !important;
+                min-height: 0 !important;
                 /* dvh para que el teclado NO tape el input; bottom respeta la
                    barra home del iPhone (safe-area). */
-                bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-                height: 70vh;
-                height: 70dvh;
+                bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+                height: 70vh !important;
+                height: 70dvh !important;
                 /* nada se sale de la caja redondeada */
                 overflow: hidden;
             }
