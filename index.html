@@ -57,7 +57,7 @@
   <!-- Chart.js, XLSX, jsPDF ahora se cargan desde node_modules -->
   <!-- Esto mejora seguridad y control de versiones -->
 
-  <link rel="stylesheet" href="styles/main.css?v=20260703-brand-orange2">
+  <link rel="stylesheet" href="styles/main.css?v=20260706-movil-fase1">
   <link rel="stylesheet" href="styles/polish.css?v=20260703-brand-orange">
   <!-- 🎨 Tema visual rediseñado (Fase A — tokens fundacionales).
        Carga al final → prioridad sobre main.css y polish.css.
@@ -321,6 +321,11 @@
       <button class="sidebar-toggle" id="sidebar-toggle" title="Colapsar menú" data-i18n-title="common:sidebar_collapse"
         onclick="document.querySelector('.app').classList.toggle('sidebar-collapsed')">◀</button>
     </aside>
+
+    <!-- Overlay móvil: oscurece el contenido con el sidebar abierto y cierra al tocar fuera.
+         Debe ser HERMANO posterior del aside (el CSS usa .sidebar.open ~ .sidebar-overlay). -->
+    <div class="sidebar-overlay" id="sidebar-overlay"
+      onclick="document.getElementById('sidebar').classList.remove('open')"></div>
 
     <!-- Main Content -->
     <div class="app-content">
