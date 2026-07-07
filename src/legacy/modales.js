@@ -477,30 +477,30 @@ async function renderizarBeneficioNetoDiario() {
             const progreso = Math.min(100, (unidadesMes / be) * 100);
             const faltantes = Math.max(0, be - unidadesMes);
             const faltantesEuros = faltantes * snap.ticketMedio;
-            // Tarjeta LIGERA que se integra con las cajas verde/ámbar/rojo de
-            // esta sección (mismo lenguaje visual que "Beneficio días operativos").
+            // Franja superior navy del branding CosteOS (número €/día en verde
+            // dinero) + cuerpo claro. La barra y el "faltan" llevan el color de
+            // estado (verde/ámbar/rojo) según el progreso.
             const cubierto = faltantes <= 0;
-            const accent = cubierto ? '#059669' : progreso >= 60 ? '#d97706' : '#dc2626';
-            const bg = cubierto ? '#ecfdf5' : progreso >= 60 ? '#fffbeb' : '#fef2f2';
-            const borde = cubierto ? '#a7f3d0' : progreso >= 60 ? '#fde68a' : '#fecaca';
-            const track = cubierto ? '#d1fae5' : progreso >= 60 ? '#fef3c7' : '#fee2e2';
+            const accent = cubierto ? '#10b981' : progreso >= 60 ? '#f59e0b' : '#ef4444';
             const pie = cubierto
                 ? '✅ Gastos fijos cubiertos'
                 : `faltan <strong style="color:${accent};">${faltantes.toLocaleString('es-ES')}</strong> platos (~${cm(faltantesEuros)})`;
             puntoEquilibrioHTML = `
-              <div style="background: ${bg}; border: 1px solid ${borde}; border-radius: 12px; padding: 13px 16px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 9px;">
-                  <span style="color: #14294a; font-weight: 700; font-size: 13px;">🎯 Punto de equilibrio</span>
-                  <span style="color: ${accent}; font-weight: 800; font-size: 20px; line-height: 1;">${cm(snap.ventasEquilibrioDia)}<span style="font-size: 12px; font-weight: 600; color: #64748b;"> / día</span></span>
+              <div style="border: 1px solid #e5e8ee; border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(15,23,42,0.06);">
+                <div style="background: linear-gradient(135deg, #14294a 0%, #0f172a 100%); padding: 11px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                  <span style="color: #fff; font-weight: 700; font-size: 13px;">🎯 Punto de equilibrio</span>
+                  <span style="color: #34d399; font-weight: 800; font-size: 19px; line-height: 1;">${cm(snap.ventasEquilibrioDia)}<span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6);"> / día</span></span>
                 </div>
-                <div style="background: ${track}; border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 8px;">
-                  <div style="background: ${accent}; height: 100%; width: ${progreso}%; border-radius: 999px; transition: width 0.5s;"></div>
+                <div style="padding: 12px 16px; background: #fff;">
+                  <div style="background: #eef1f6; border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 8px;">
+                    <div style="background: ${accent}; height: 100%; width: ${progreso}%; border-radius: 999px; transition: width 0.5s;"></div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; color: #64748b;">
+                    <span><strong style="color: #1e293b;">${unidadesMes.toLocaleString('es-ES')}</strong> / ${be.toLocaleString('es-ES')} platos este mes · ${progreso.toFixed(0)}%</span>
+                    <span>${pie}</span>
+                  </div>
+                  <div style="margin-top: 7px; font-size: 11px; color: #94a3b8;">Detalle y palancas en la pestaña Análisis →</div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; color: #64748b;">
-                  <span><strong style="color: #1e293b;">${unidadesMes.toLocaleString('es-ES')}</strong> / ${be.toLocaleString('es-ES')} platos este mes · ${progreso.toFixed(0)}%</span>
-                  <span>${pie}</span>
-                </div>
-                <div style="margin-top: 7px; font-size: 11px; color: #94a3b8;">Detalle y palancas en la pestaña Análisis →</div>
               </div>
             `;
         }

@@ -177,7 +177,8 @@
 // BUMP v213: LA CAUSA REAL del chat gigante en móvil — theme-editorial.css forzaba .chat-window{width:600px!important;height:80vh!important} SIN media query → en móvil aplicaba 600px (mayor que la pantalla, se salía 220px por la derecha) y machacaba con !important toda la regla responsive del chat. Fix: gated a @media(min-width:769px) → solo escritorio; en móvil manda la regla responsive del chat (reforzada con !important). Reproducido y verificado EN VIVO con emulación iPhone: 600px→370px, dentro de pantalla.
 // BUMP v214: Punto de Equilibrio como bloque protagonista en Análisis (hero €/día + platos/día + 3 palancas margen/gastos/food cost, margen de contribución PONDERADO por ventas reales) + mini compacto en el Diario que consume el MISMO cálculo (window.mlBreakevenGetSnapshot) para que los números cuadren entre pantallas.
 // BUMP v215: rediseño del mini de Punto de Equilibrio en el Diario — de bloque oscuro pesado a tarjeta LIGERA tintada (verde/ámbar/rojo suave) integrada con el resto de la sección "Beneficio Neto por Día". Arreglado el 🎯🎯 doble (el título i18n ya traía el emoji). Números idénticos a Análisis (mismo snapshot).
-const CACHE_NAME = 'mindloop-costos-v215';
+// BUMP v216: mini de Punto de Equilibrio del Diario con franja superior navy del branding CosteOS (número €/día en verde dinero) + cuerpo claro — quedaba demasiado blanco con el tinte de estado suave. Barra/faltan mantienen color de estado.
+const CACHE_NAME = 'mindloop-costos-v216';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
