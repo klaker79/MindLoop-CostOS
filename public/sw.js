@@ -170,7 +170,8 @@
 // BUMP v188: recepción de pedidos — el descuento se mete bajando el PRECIO REAL de la línea (lo que pagas/unidad), que ya alimenta precio_medio_compra (food cost) Y ahora también el GASTO del P&L: al recibir, pedidos.total pasa a ser lo realmente recibido (precioReal×cantidad + envases), no lo pedido. Así coste y gasto cuadran del mismo precioReal. El "ajuste" queda SOLO para envases/portes (textos relabel; descuentos van en PRECIO REAL). Revertido el "Total del albarán" de v187 (prorrateo global, contaminaba líneas no descontadas). Incidente cerveza EG La Nave 5 2026-06-27.
 // BUMP v207: Omnes — nueva sección "Escandallo desactualizado" (deriva de precio sostenida, caso tomate de Anais): /intelligence/price-drift compara el precio que usa el food cost vs la media ponderada de 90 días y avisa de subidas sostenidas en ingredientes de alto gasto.
 // BUMP v208: branding — subtítulo "Restaurant Intelligence" en naranja claro #FFB347 (header + sidebar) + búhos SIN caja (fuera el círculo blanco del header y el cuadrado del sidebar; el búho transparente va directo sobre el navy).
-const CACHE_NAME = 'mindloop-costos-v208';
+// BUMP v209: móvil Fase 1 — (1) el sidebar se CIERRA al navegar (cambiarTab quita .open) + overlay real que oscurece y cierra al tocar fuera (elemento #sidebar-overlay nuevo; su CSS existía muerto); (2) toda tabla sin wrapper se hace auto-scrollable en móvil (display:block+overflow-x — antes desbordaban por el min-width:650 global: mermas, comida personal, editar pedido, evolución precio, alérgenos, horarios, cost-tracker); (3) inputs/selects a 16px en móvil (mata el ZOOM automático de iOS al enfocar); (4) chip ⌘K oculto en móvil (atajo de teclado físico).
+const CACHE_NAME = 'mindloop-costos-v209';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

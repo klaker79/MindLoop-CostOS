@@ -2446,6 +2446,12 @@ table tbody td:first-child {
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Overlay del sidebar móvil: oculto por defecto (desktop nunca lo ve).
+   El @media 768 lo muestra cuando .sidebar tiene .open (tocar fuera = cerrar). */
+.sidebar-overlay {
+  display: none;
+}
+
 .app.sidebar-collapsed .sidebar {
   width: var(--sidebar-collapsed);
 }
@@ -2801,6 +2807,17 @@ table tbody td:first-child {
   table {
     min-width: 650px !important;
     font-size: 12px !important;
+    /* 📱 Toda tabla se hace AUTO-SCROLLABLE: display:block + overflow-x. Con el
+       min-width:650px forzado de arriba, cualquier tabla SIN contenedor de
+       scroll (modales de mermas, comida personal, editar pedido, evolución de
+       precio, alérgenos, horarios, cost-tracker...) desbordaba el viewport de
+       390px sin forma de ver la mitad derecha. Así cada tabla trae su propio
+       scroll horizontal. Las vistas-tarjeta (#tabla-ingredientes etc.) ya ponen
+       min-width:0 + display:block en sus celdas → compatibles. */
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
   }
   th {
     padding: 10px 8px !important;
@@ -2809,6 +2826,27 @@ table tbody td:first-child {
   td {
     padding: 10px 8px !important;
     font-size: 12px !important;
+  }
+
+  /* 📱 iOS hace ZOOM automático al enfocar cualquier input con font-size <16px
+     (efecto "app cutre"). En móvil todos los campos interactivos van a 16px.
+     Cubre también los <select> con font-size inline pequeño (11px en merma
+     rápida) gracias al !important. El login ya iba a 16px. */
+  .form-group input,
+  .form-group select,
+  .form-group textarea,
+  .search-box input,
+  .ingrediente-item input,
+  .modal-content input,
+  .modal-content select,
+  .modal-content textarea {
+    font-size: 16px !important;
+  }
+
+  /* 📱 El chip "⌘K" es una pista de atajo de TECLADO físico — sin sentido en
+     móvil (y se solapa con el texto tecleado en el buscador). */
+  .gs-kbd-hint {
+    display: none !important;
   }
   .icon-btn {
     width: 30px !important;
@@ -2998,6 +3036,10 @@ table tbody td:first-child {
   }
 
   /* --- Sidebar overlay on mobile --- */
+  /* z-index 99: por DEBAJO del sidebar (z-index 100, main.css .sidebar) para no
+     taparlo, y al nivel del hamburguesa → con el menú abierto, tocar cualquier
+     zona fuera del sidebar (overlay) lo cierra. Base fuera del @media:
+     display:none por defecto (desktop no lo ve nunca). */
   .sidebar.open ~ .sidebar-overlay,
   .sidebar-overlay.active {
     display: block;
