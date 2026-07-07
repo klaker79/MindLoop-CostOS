@@ -719,13 +719,21 @@ export function createChatStyles() {
         /* Responsive */
         @media (max-width: 480px) {
             .chat-window {
-                width: calc(100% - 24px);
-                right: 12px;
-                /* dvh para que el teclado NO tape el input al escribir; el bottom
-                   respeta la barra home del iPhone (safe-area). */
-                bottom: calc(84px + env(safe-area-inset-bottom, 0px));
-                height: 72vh;
-                height: 72dvh;
+                /* Anclada por los DOS lados (left+right) con width:auto → es
+                   IMPOSIBLE que sea más ancha que la pantalla. Antes se anclaba
+                   solo a la derecha con un width que en algunos móviles superaba
+                   el viewport y cortaba el texto por la izquierda (bug 07-07). */
+                left: 10px;
+                right: 10px;
+                width: auto;
+                max-width: none;
+                /* dvh para que el teclado NO tape el input; bottom respeta la
+                   barra home del iPhone (safe-area). */
+                bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+                height: 70vh;
+                height: 70dvh;
+                /* nada se sale de la caja redondeada */
+                overflow: hidden;
             }
 
             .chat-fab {

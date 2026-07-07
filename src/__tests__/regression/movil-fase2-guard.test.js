@@ -63,6 +63,17 @@ describe('F2 — chat dvh + safe-area', () => {
     test('chat usa dvh (no solo vh)', () => {
         expect(chat).toMatch(/dvh/);
     });
+    test('en móvil la ventana del chat se ancla por los DOS lados (no se sale)', () => {
+        // Antes solo anclaba a la derecha con un width que desbordaba y cortaba
+        // el texto por la izquierda (bug 07-07). left+right+width:auto lo impide.
+        // Acotamos al bloque .chat-window dentro del @media 480.
+        const media = chat.slice(chat.indexOf('@media (max-width: 480px)'));
+        const cwStart = media.indexOf('.chat-window');
+        const bloque = media.slice(cwStart, media.indexOf('}', cwStart));
+        expect(bloque).toMatch(/left:\s*10px/);
+        expect(bloque).toMatch(/right:\s*10px/);
+        expect(bloque).toMatch(/width:\s*auto/);
+    });
     test('viewport-fit=cover en el meta', () => {
         expect(html).toMatch(/viewport-fit=cover/);
     });
