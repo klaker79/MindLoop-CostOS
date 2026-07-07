@@ -70,9 +70,19 @@ describe('F2 — chat dvh + safe-area', () => {
         const cwStart = chat.indexOf('@media (max-width: 768px)');
         expect(cwStart).toBeGreaterThan(-1);
         const bloque = chat.slice(cwStart);
-        expect(bloque).toMatch(/\.chat-window\s*\{[\s\S]{0,120}left:\s*10px/);
-        expect(bloque).toMatch(/right:\s*10px/);
-        expect(bloque).toMatch(/width:\s*auto/);
+        expect(bloque).toMatch(/\.chat-window\s*\{[\s\S]{0,400}left:\s*10px\s*!important/);
+        expect(bloque).toMatch(/right:\s*10px\s*!important/);
+        expect(bloque).toMatch(/width:\s*auto\s*!important/);
+    });
+    test('theme-editorial NO fuerza el chat a 600px en móvil (gated a ≥769px)', () => {
+        // CAUSA REAL del chat gigante: width:600px!important sin media query.
+        // Debe estar dentro de @media (min-width: 769px).
+        const editorial = readFileSync('styles/theme-editorial.css', 'utf8');
+        const idx = editorial.search(/\.chat-window\s*\{[\s\S]{0,120}width:\s*600px\s*!important/);
+        expect(idx).toBeGreaterThan(-1);
+        const antes = editorial.slice(0, idx);
+        // el @media min-width:769 más cercano por delante debe estar sin cerrar
+        expect(antes.lastIndexOf('@media (min-width: 769px)')).toBeGreaterThan(-1);
     });
     test('la raíz clampa el overflow horizontal en móvil (fixed no se desplaza)', () => {
         // La regla html{overflow-x:hidden} solo se añadió en el bloque móvil.

@@ -1396,18 +1396,23 @@ select:focus {
 /* --- I.1 Chat window — panel grande estilo GG-OS --- */
 /* Antes: 450x550 flotante pequeño.
    Ahora: 600px ancho × 80vh alto (mín 600px) → mucho más espacio
-   para conversaciones largas y tablas. En pantallas pequeñas
-   (<1024px) el chat-styles.js original ya tiene un @media que lo
-   pone full-screen, ese sigue activo. */
-.chat-window {
-  width: 600px !important;
-  height: 80vh !important;
-  max-height: 880px !important;
-  min-height: 600px !important;
-  border-radius: 18px !important;
-  box-shadow: 0 16px 50px rgba(30, 58, 95, 0.18),
-              0 4px 12px rgba(30, 58, 95, 0.08) !important;
-  border: 1px solid var(--app-border) !important;
+   para conversaciones largas y tablas.
+   ⚠️ SOLO ESCRITORIO (≥769px): este bloque llevaba width/min-height:600px
+   con !important SIN media query → en móvil forzaba 600px (mayor que la
+   pantalla) y machacaba la regla responsive de chat-styles.js, que NO usa
+   !important. El chat se salía por la derecha en móvil (bug 07-07). Gated a
+   ≥769px para que en móvil mande la regla responsive del chat. */
+@media (min-width: 769px) {
+  .chat-window {
+    width: 600px !important;
+    height: 80vh !important;
+    max-height: 880px !important;
+    min-height: 600px !important;
+    border-radius: 18px !important;
+    box-shadow: 0 16px 50px rgba(30, 58, 95, 0.18),
+                0 4px 12px rgba(30, 58, 95, 0.08) !important;
+    border: 1px solid var(--app-border) !important;
+  }
 }
 
 
