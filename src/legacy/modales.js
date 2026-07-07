@@ -477,24 +477,30 @@ async function renderizarBeneficioNetoDiario() {
             const progreso = Math.min(100, (unidadesMes / be) * 100);
             const faltantes = Math.max(0, be - unidadesMes);
             const faltantesEuros = faltantes * snap.ticketMedio;
-            const color = progreso >= 100 ? '#10b981' : progreso >= 60 ? '#f59e0b' : '#ef4444';
-            const pie = faltantes > 0
-                ? `Te faltan <strong style="color:#fff;">${faltantes.toLocaleString('es-ES')}</strong> platos (~${cm(faltantesEuros)}) · detalle en Análisis`
-                : '✅ Gastos fijos cubiertos · detalle en Análisis';
+            // Tarjeta LIGERA que se integra con las cajas verde/ámbar/rojo de
+            // esta sección (mismo lenguaje visual que "Beneficio días operativos").
+            const cubierto = faltantes <= 0;
+            const accent = cubierto ? '#059669' : progreso >= 60 ? '#d97706' : '#dc2626';
+            const bg = cubierto ? '#ecfdf5' : progreso >= 60 ? '#fffbeb' : '#fef2f2';
+            const borde = cubierto ? '#a7f3d0' : progreso >= 60 ? '#fde68a' : '#fecaca';
+            const track = cubierto ? '#d1fae5' : progreso >= 60 ? '#fef3c7' : '#fee2e2';
+            const pie = cubierto
+                ? '✅ Gastos fijos cubiertos'
+                : `faltan <strong style="color:${accent};">${faltantes.toLocaleString('es-ES')}</strong> platos (~${cm(faltantesEuros)})`;
             puntoEquilibrioHTML = `
-              <div style="background: linear-gradient(135deg, #0f172a 0%, #14294a 100%); padding: 14px 16px; border-radius: 12px; margin-bottom: 12px; border-left: 3px solid ${color};">
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
-                  <span style="color: #fff; font-weight: 700; font-size: 13px;">🎯 ${window.t('balance:breakeven_title')}</span>
-                  <span style="color: ${color}; font-weight: 800; font-size: 15px;">${progreso.toFixed(0)}%</span>
+              <div style="background: ${bg}; border: 1px solid ${borde}; border-radius: 12px; padding: 13px 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 9px;">
+                  <span style="color: #14294a; font-weight: 700; font-size: 13px;">🎯 Punto de equilibrio</span>
+                  <span style="color: ${accent}; font-weight: 800; font-size: 20px; line-height: 1;">${cm(snap.ventasEquilibrioDia)}<span style="font-size: 12px; font-weight: 600; color: #64748b;"> / día</span></span>
                 </div>
-                <div style="background: rgba(255,255,255,0.12); border-radius: 999px; height: 10px; overflow: hidden; margin-bottom: 8px;">
-                  <div style="background: ${color}; height: 100%; width: ${progreso}%; border-radius: 999px; transition: width 0.5s;"></div>
+                <div style="background: ${track}; border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 8px;">
+                  <div style="background: ${accent}; height: 100%; width: ${progreso}%; border-radius: 999px; transition: width 0.5s;"></div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: rgba(226,232,240,0.85); font-size: 12px;">
-                  <span><strong style="color: #fff;">${unidadesMes.toLocaleString('es-ES')}</strong> / ${be.toLocaleString('es-ES')} platos este mes</span>
-                  <span>Necesitas <strong style="color: #10b981;">${cm(snap.ventasEquilibrioDia)}/día</strong></span>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; color: #64748b;">
+                  <span><strong style="color: #1e293b;">${unidadesMes.toLocaleString('es-ES')}</strong> / ${be.toLocaleString('es-ES')} platos este mes · ${progreso.toFixed(0)}%</span>
+                  <span>${pie}</span>
                 </div>
-                <div style="margin-top: 8px; font-size: 11px; color: rgba(226,232,240,0.7); text-align: center;">${pie}</div>
+                <div style="margin-top: 7px; font-size: 11px; color: #94a3b8;">Detalle y palancas en la pestaña Análisis →</div>
               </div>
             `;
         }
