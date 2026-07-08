@@ -293,6 +293,7 @@ window.marcarProveedorPrincipal = IngredientesProveedores.marcarProveedorPrincip
 window.editarPrecioProveedor = IngredientesProveedores.editarPrecioProveedor;
 window.eliminarProveedorIngrediente = IngredientesProveedores.eliminarProveedorIngrediente;
 window.cerrarModalProveedoresIngrediente = IngredientesProveedores.cerrarModalProveedoresIngrediente;
+window.mlPreviewPrecioProveedor = IngredientesProveedores.mlPreviewPrecioProveedor;
 
 // ============================================
 // MÓDULO: RECETAS ✅ (Legacy comentado)

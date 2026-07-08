@@ -9,6 +9,9 @@ import { t } from '@/i18n/index.js';
 
 // Variable para tracking del ingrediente actual
 let ingredienteActualId = null;
+// Unidad base del ingrediente abierto (ej: "Docena", "kg"). Se usa para etiquetar
+// que TODOS los precios del modal son €/unidad-base y evitar comparar peras con manzanas.
+let unidadBaseActual = '';
 
 /**
  * Abre el modal de gestión de proveedores para un ingrediente
@@ -24,11 +27,17 @@ export async function gestionarProveedoresIngrediente(ingredienteId) {
         return;
     }
 
+    // Unidad base del ingrediente: todos los precios del modal se expresan en €/esta unidad.
+    unidadBaseActual = ingrediente.unidad || '';
+
     // Actualizar título del modal
     const modalTitulo = document.getElementById('modal-proveedores-titulo');
     if (modalTitulo) {
         modalTitulo.textContent = t('ingredientes:suppliers_modal_title', { name: ingrediente.nombre });
     }
+
+    // Etiquetar los campos con la unidad base y limpiar el bloque de formato.
+    resetFormularioNuevoProveedor();
 
     // Cargar proveedores asociados
     await cargarProveedoresIngrediente(ingredienteId);
@@ -37,6 +46,55 @@ export async function gestionarProveedoresIngrediente(ingredienteId) {
     const modal = document.getElementById('modal-proveedores-ingrediente');
     if (modal) {
         modal.classList.add('active');
+    }
+}
+
+/**
+ * Devuelve el sufijo de unidad para mostrar junto a un precio (ej: "/docena").
+ * Si no hay unidad conocida, cae a "/ud" genérico.
+ */
+function sufijoUnidad() {
+    const u = (unidadBaseActual || '').trim();
+    return u ? `/${u}` : `/${t('ingredientes:suppliers_unit_fallback')}`;
+}
+
+/**
+ * Limpia el formulario de "Agregar proveedor" y refresca las etiquetas de unidad.
+ * Se llama al abrir el modal y tras agregar un proveedor.
+ */
+function resetFormularioNuevoProveedor() {
+    const u = (unidadBaseActual || '').trim();
+    const hintPrecio = document.getElementById('ml-precio-unidad-hint');
+    if (hintPrecio) hintPrecio.textContent = u ? `(€ ${sufijoUnidad()})` : '';
+    const hintQty = document.getElementById('ml-formato-qty-unidad');
+    if (hintQty) hintQty.textContent = u ? `(${u})` : '';
+
+    ['input-precio-nuevo', 'input-formato-nuevo', 'input-cantidad-formato-nuevo', 'input-precio-formato-nuevo']
+        .forEach(idInput => {
+            const el = document.getElementById(idInput);
+            if (el) el.value = '';
+        });
+    const details = document.getElementById('ml-formato-proveedor-details');
+    if (details) details.open = false;
+    const preview = document.getElementById('ml-formato-preview');
+    if (preview) preview.textContent = '';
+}
+
+/**
+ * Calcula en vivo el precio €/unidad-base derivado del formato (precio_formato / cantidad)
+ * y lo muestra bajo los inputs. NO envía nada; solo feedback visual.
+ */
+export function mlPreviewPrecioProveedor() {
+    const cant = parseFloat(document.getElementById('input-cantidad-formato-nuevo')?.value);
+    const pf = parseFloat(document.getElementById('input-precio-formato-nuevo')?.value);
+    const preview = document.getElementById('ml-formato-preview');
+    if (!preview) return;
+
+    if (!isNaN(cant) && cant > 0 && !isNaN(pf) && pf >= 0) {
+        const derivado = pf / cant;
+        preview.textContent = `= ${cm(derivado)} ${sufijoUnidad()}`;
+    } else {
+        preview.textContent = '';
     }
 }
 
@@ -128,7 +186,7 @@ function renderizarProveedoresAsociados(proveedoresAsociados) {
                 </div>
                 <div style="margin-top: 12px; padding: 10px; background: #FEF3C7; border-radius: 8px; text-align: center;">
                     <span style="font-size: 13px; color: #92400E;">
-                        💡 <strong>Ahorro potencial:</strong> ${cm(ahorroPotencial)}/unidad comprando a ${escapeHTML(mejorProveedor.nombre)}
+                        💡 <strong>Ahorro potencial:</strong> ${cm(ahorroPotencial)}${escapeHTML(sufijoUnidad())} comprando a ${escapeHTML(mejorProveedor.nombre)}
                     </span>
                 </div>
             </div>
@@ -147,18 +205,30 @@ function renderizarProveedoresAsociados(proveedoresAsociados) {
             ? '<span style="background: #22C55E; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 6px;">💰 MEJOR PRECIO</span>'
             : '';
 
+        // 📦 Pista de formato: solo se muestra si es COHERENTE con el precio canónico
+        // (precio_formato / cantidad ≈ precio). Así, si el precio se editó a mano después,
+        // no enseñamos un formato que ya no cuadra.
+        let hintFormato = '';
+        const cantF = parseFloat(pa.cantidad_por_formato);
+        const pF = parseFloat(pa.precio_formato);
+        if (pa.formato && !isNaN(cantF) && cantF > 0 && !isNaN(pF) &&
+            Math.abs((pF / cantF) - parseFloat(pa.precio)) < 0.01) {
+            hintFormato = `<p style="margin: 4px 0; font-size: 12px; color: #6366F1;">📦 ${escapeHTML(pa.formato)} · ${cantF} ${escapeHTML(unidadBaseActual)} · ${cm(pF)}</p>`;
+        }
+
         html += `
             <div style="border: 2px solid ${esPrincipal ? '#10B981' : esMejorPrecio ? '#22C55E' : '#E2E8F0'}; border-radius: 12px; padding: 16px; background: ${esPrincipal ? '#F0FDF4' : 'white'};">
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                     <div>
                         <h4 style="margin: 0; color: #1E293B; font-size: 16px;">${escapeHTML(pa.proveedor_nombre)}${badgeMejorPrecio}</h4>
+                        ${hintFormato}
                         ${pa.proveedor_contacto ? '<p style="margin: 4px 0; font-size: 13px; color: #64748B;">👤 ' + escapeHTML(pa.proveedor_contacto) + '</p>' : ''}
                         ${pa.proveedor_telefono ? '<p style="margin: 4px 0; font-size: 13px; color: #64748B;">📞 ' + escapeHTML(pa.proveedor_telefono) + '</p>' : ''}
                         ${pa.proveedor_email ? '<p style="margin: 4px 0; font-size: 13px; color: #64748B;">✉️ ' + escapeHTML(pa.proveedor_email) + '</p>' : ''}
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 24px; font-weight: bold; color: ${esMejorPrecio ? '#059669' : '#1E293B'}; margin-bottom: 4px;">
-                            ${cm(parseFloat(pa.precio))}
+                            ${cm(parseFloat(pa.precio))} <span style="font-size: 13px; font-weight: 400; color: #94A3B8;">${escapeHTML(sufijoUnidad())}</span>
                         </div>
                         ${badgePrincipal}
                     </div>
@@ -217,9 +287,38 @@ export async function agregarProveedorIngrediente() {
         return;
     }
 
-    if (!precio || parseFloat(precio) <= 0) {
-        showToast(t('ingredientes:suppliers_price_warning'), 'warning');
-        return;
+    // ¿Usó el bloque de formato de compra? (caja/bolsa → deriva el €/unidad-base)
+    const formato = document.getElementById('input-formato-nuevo')?.value?.trim();
+    const cantidadFormatoRaw = document.getElementById('input-cantidad-formato-nuevo')?.value;
+    const precioFormatoRaw = document.getElementById('input-precio-formato-nuevo')?.value;
+    const intentaFormato = !!(formato || cantidadFormatoRaw || precioFormatoRaw);
+
+    let body;
+    if (intentaFormato) {
+        const cant = parseFloat(cantidadFormatoRaw);
+        const pf = parseFloat(precioFormatoRaw);
+        // Si empezó a rellenar el formato, exige los tres campos válidos.
+        if (!formato || isNaN(cant) || cant <= 0 || isNaN(pf) || pf < 0) {
+            showToast(t('ingredientes:suppliers_format_incomplete'), 'warning');
+            return;
+        }
+        body = {
+            proveedor_id: parseInt(proveedorId),
+            formato,
+            cantidad_por_formato: cant,
+            precio_formato: pf,
+            es_proveedor_principal: false,
+        };
+    } else {
+        if (!precio || parseFloat(precio) <= 0) {
+            showToast(t('ingredientes:suppliers_price_warning'), 'warning');
+            return;
+        }
+        body = {
+            proveedor_id: parseInt(proveedorId),
+            precio: parseFloat(precio),
+            es_proveedor_principal: false,
+        };
     }
 
     try {
@@ -227,18 +326,15 @@ export async function agregarProveedorIngrediente() {
 
         await window.API.fetch(`/ingredients/${ingredienteActualId}/suppliers`, {
             method: 'POST',
-            body: JSON.stringify({
-                proveedor_id: parseInt(proveedorId),
-                precio: parseFloat(precio),
-                es_proveedor_principal: false,
-            }),
+            body: JSON.stringify(body),
         });
 
         showToast(t('ingredientes:suppliers_added'), 'success');
 
-        // Limpiar inputs
-        document.getElementById('select-proveedor-nuevo').value = '';
-        document.getElementById('input-precio-nuevo').value = '';
+        // Limpiar formulario (precio + bloque de formato) y select
+        const sel = document.getElementById('select-proveedor-nuevo');
+        if (sel) sel.value = '';
+        resetFormularioNuevoProveedor();
 
         // Recargar lista
         await cargarProveedoresIngrediente(ingredienteActualId);
@@ -270,7 +366,7 @@ export async function marcarProveedorPrincipal(ingredienteId, proveedorId) {
             throw new Error('Proveedor no encontrado');
         }
 
-        await window.API.fetch(`/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
+        const resp = await window.API.fetch(`/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
             method: 'PUT',
             body: JSON.stringify({
                 precio: proveedorActual.precio,
@@ -278,7 +374,12 @@ export async function marcarProveedorPrincipal(ingredienteId, proveedorId) {
             }),
         });
 
-        showToast(t('ingredientes:suppliers_marked_main'), 'success');
+        if (resp?.precio_sync_omitido) {
+            // El guard ±70% frenó el volcado a la ficha: avisar para que Iker/cocina revise.
+            showToast(t('ingredientes:suppliers_sync_skipped'), 'warning');
+        } else {
+            showToast(t('ingredientes:suppliers_marked_main'), 'success');
+        }
 
         // Recargar lista
         await cargarProveedoresIngrediente(ingredienteId);
@@ -316,7 +417,7 @@ export async function editarPrecioProveedor(ingredienteId, proveedorId, precioAc
         );
         const proveedorActual = proveedoresActuales.find(p => p.proveedor_id === proveedorId);
 
-        await window.API.fetch(`/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
+        const resp = await window.API.fetch(`/ingredients/${ingredienteId}/suppliers/${proveedorId}`, {
             method: 'PUT',
             body: JSON.stringify({
                 precio: parseFloat(nuevoPrecio),
@@ -324,7 +425,11 @@ export async function editarPrecioProveedor(ingredienteId, proveedorId, precioAc
             }),
         });
 
-        showToast(t('ingredientes:suppliers_price_updated'), 'success');
+        if (resp?.precio_sync_omitido) {
+            showToast(t('ingredientes:suppliers_sync_skipped'), 'warning');
+        } else {
+            showToast(t('ingredientes:suppliers_price_updated'), 'success');
+        }
 
         // Recargar lista
         await cargarProveedoresIngrediente(ingredienteId);

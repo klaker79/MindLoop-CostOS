@@ -191,7 +191,11 @@
 // BUMP v227: la Cuenta de Resultados (P&L Diario) del MES EN CURSO prorratea los gastos fijos a los días transcurridos, no al mes entero — antes restaba el mes completo de fijos contra ventas parciales y salía una pérdida FALSA a mitad de mes (La Nave 5: −29.582€ engañoso con 4 días de ventas). Los meses pasados se cuentan completos, igual que antes.
 // BUMP v228: el Punto de Equilibrio (food cost, ticket, margen y pregunta a Omnes) usa una VENTANA MÓVIL de los últimos 90 días, no el histórico completo — un número de supervivencia debe reflejar la realidad reciente, no arrastrar precios/carta viejos. El mini del Diario usa el mismo snapshot → cuadran entre pestañas.
 // BUMP v229: FIX P&L Diario — el TOTAL MES de gastos fijos = gastoFijoDia × nº de días MOSTRADOS (columnas con datos), no × días de calendario transcurridos. Así el TOTAL cuadra EXACTO con la suma de los beneficios netos diarios (cada columna ya resta su gasto fijo). Antes salía 396€ en vez de 5.610€ = suma de las columnas (La Nave 5, 4 días).
-const CACHE_NAME = 'mindloop-costos-v229';
+// BUMP v232: formato de compra por proveedor en el modal de Proveedores (unidad explícita €/unidad-base + bloque caja/bolsa que deriva el precio) + aviso del guard ±70% al marcar principal.
+// BUMP v233: el mini de "Punto de equilibrio" se quita del Diario y queda SOLO en Análisis — tenerlo junto al P&L mezclaba el gasto fijo/día (coste, ÷31 días) con el objetivo de ventas/día del equilibrio (÷26 días y descontando food cost) → confundía. El cálculo sigue en Análisis (window.mlBreakevenGetSnapshot). Solo se deja de renderizar el bloque en el Diario; no toca cálculos.
+// BUMP v234: rediseño VISUAL de "Beneficio neto por día" en el Diario — de lista de texto a GRÁFICO de barras divergentes (verde arriba = ganas, rojo abajo = pierdes) + titular grande con el beneficio del mes + mejor/peor día + 3 stats + 1 línea de aviso para días sin ventas. Mismos datos y cálculos que antes (barras alimentadas por el mismo beneficio neto diario); solo cambia la presentación.
+// BUMP v235: el contenedor de "Beneficio neto por día" recortaba el gráfico (max-height:300px + marco blanco de la lista antigua). Quitado el max-height/overflow y el fondo blanco → el gráfico se ve completo. Texto de estado vacío aclarado sobre fondo oscuro.
+const CACHE_NAME = 'mindloop-costos-v235';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
