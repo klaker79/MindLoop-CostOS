@@ -79,21 +79,29 @@ export function calcularMediasMenu(platos) {
         };
     }
     // Fallback aritmético (cliente sin metricas del backend).
-    let sumaPrecio = 0, sumaFc = 0, sumaMargen = 0, sumaPop = 0;
-    let nPrecio = 0, nFc = 0, nMargen = 0, nPop = 0;
+    // Food cost medio = COGS/ingresos PONDERADO por lo vendido (coste total ÷
+    // ventas totales), NO media simple de porcentajes — el mismo método
+    // canónico que el backend (menuEngineeringService) y el resto de la app
+    // (feedback_datos_cuadran_entre_pestanas, auditoría 2026-07-08).
+    let sumaPrecio = 0, sumaMargen = 0, sumaPop = 0;
+    let nPrecio = 0, nMargen = 0, nPop = 0;
+    let costeVendido = 0, ingresosVendidos = 0;
     platos.forEach(p => {
         const precio = num(p.precio_venta);
         const fc = num(p.foodCost);
         const margen = num(p.margen);
         const pop = num(p.popularidad ?? p.cantidad_vendida);
         if (precio !== null && precio > 0) { sumaPrecio += precio; nPrecio++; }
-        if (fc !== null && fc > 0) { sumaFc += fc; nFc++; }
+        if (precio !== null && precio > 0 && fc !== null && fc > 0 && pop !== null && pop > 0) {
+            costeVendido += (fc / 100) * precio * pop;
+            ingresosVendidos += precio * pop;
+        }
         if (margen !== null) { sumaMargen += margen; nMargen++; }
         if (pop !== null && pop > 0) { sumaPop += pop; nPop++; }
     });
     return {
         precio: nPrecio > 0 ? sumaPrecio / nPrecio : 0,
-        foodCost: nFc > 0 ? sumaFc / nFc : 0,
+        foodCost: ingresosVendidos > 0 ? (costeVendido / ingresosVendidos) * 100 : 0,
         margen: nMargen > 0 ? sumaMargen / nMargen : 0,
         popularidad: nPop > 0 ? sumaPop / nPop : 0,
         totalPlatos: platos.length

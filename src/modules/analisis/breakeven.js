@@ -47,9 +47,10 @@ function ensureHost() {
 }
 
 /**
- * Suma los gastos fijos OPERATIVOS del mes desde el backend (excluye impuestos:
- * IVA, IRPF, IAE, Sociedades…). Los impuestos no son coste operativo y meterlos
- * infla el punto de equilibrio (ver sumaGastosOperativos/esImpuesto).
+ * Suma los gastos fijos OPERATIVOS del mes desde el backend: excluye SOLO los
+ * impuestos NO operativos (IVA, IGIC, IRPF, Sociedades). El IAE, IBI, tasas y
+ * licencias SÍ cuentan — son gasto de explotación, se pagan vendas o no
+ * (ver sumaGastosOperativos/esImpuestoNoOperativo en breakeven-calc.js).
  */
 async function fetchGastosFijosMes() {
     try {
@@ -88,6 +89,10 @@ export async function getBreakevenSnapshot() {
     const platos = Array.isArray(platosRaw) ? platosRaw : [];
     const snap = computeBreakeven({ platos, gastosFijosMes, foodCostCanonical, diasServicio: DIAS_SERVICIO_MES_DEFAULT });
     snap.platosVentana = platos;
+    // Ventana explícita del snapshot: la usa la pregunta a Omnes para que sus
+    // tools de platos analicen el MISMO periodo (no el histórico) — el relato
+    // completo (break-even + platos) habla de la misma ventana de 90 días.
+    snap.ventana = { desde, hasta };
     return snap;
 }
 
@@ -99,6 +104,13 @@ function progresoDelMes(breakevenPlatosMes, ticketMedio) {
     const drm = typeof window !== 'undefined' ? window.datosResumenMensual : null;
     const recetas = drm?.ventas?.recetas;
     if (!recetas || !breakevenPlatosMes) return null;
+    // La barra dice "Mes en curso": solo se muestra si lo que hay cargado en el
+    // Diario ES el mes actual. Si el usuario cargó un mes pasado, sus unidades
+    // saldrían aquí etiquetadas como "mes en curso" (auditoría 2026-07-08).
+    const hoy = new Date();
+    const esMesActual = parseInt(drm.mes) === hoy.getMonth() + 1
+        && parseInt(drm.ano) === hoy.getFullYear();
+    if (!esMesActual) return null;
     let unidadesMes = 0;
     for (const nombre in recetas) {
         unidadesMes += parseFloat(recetas[nombre]?.totalVendidas) || 0;

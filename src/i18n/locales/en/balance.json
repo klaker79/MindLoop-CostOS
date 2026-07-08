@@ -162,7 +162,7 @@
   "cashflow_note": "💡 <strong>Note:</strong> Purchases increase your inventory (asset). Production cost reflects what you actually consumed when selling.",
   "net_profit_operating": "Profit from operating days:",
   "net_profit_inactive_days": "{{count}} days without activity",
-  "net_profit_pending": "{{amount}}€ pending to cover",
+  "net_profit_pending": "{{amount}}€ of fixed costs NOT deducted (closed days are not charged)",
   "net_profit_real": "📊 REAL Profit:",
   "net_profit_operating_days": "📅 Operating days",
   "net_profit_projection": "🎯 Month projection",
@@ -182,5 +182,6 @@
   "rec_more_data": "📊 Record more sales to get personalized recommendations.",
   "supplier_title": "📦 Purchases by Supplier / Day",
   "supplier_col_name": "Supplier",
-  "supplier_total_day": "TOTAL / DAY"
+  "supplier_total_day": "TOTAL / DAY",
+  "diario_food_cost_scope": "food · current month"
 }
