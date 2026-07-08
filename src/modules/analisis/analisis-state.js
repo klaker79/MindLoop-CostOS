@@ -12,7 +12,7 @@
  *     navegador abierto y vuelves al rato).
  */
 
-import { api } from '../../api/client.js';
+import { api, apiClient } from '../../api/client.js';
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
@@ -20,6 +20,9 @@ const state = {
     periodo: { tipo: 'historico', desde: null, hasta: null },
     menuEngineering: { data: null, ts: 0 },
     omnes: { data: null, ts: 0 },
+    // Food cost canónico (COGS/ingresos) del mismo endpoint que el KPI del
+    // dashboard, para que el food cost del Punto de Equilibrio sea IDÉNTICO.
+    pnl: { data: null, ts: 0 },
     // Medias del menú (precio, foodCost, margen, popularidad) calculadas
     // a partir del último BCG cargado. Las usa el modal drill-down para
     // generar recomendaciones reales por plato.
@@ -75,6 +78,7 @@ export function setPeriodo(tipo, customDesde = null, customHasta = null) {
     // Invalida cache
     state.menuEngineering = { data: null, ts: 0 };
     state.omnes = { data: null, ts: 0 };
+    state.pnl = { data: null, ts: 0 };
     notify();
 }
 
@@ -123,11 +127,41 @@ export async function getOmnes({ force = false } = {}) {
 }
 
 /**
+ * Devuelve el food cost canónico (COGS/ingresos) del MISMO endpoint que usa el
+ * KPI del dashboard (/analytics/pnl-breakdown → food.food_cost_pct), para el
+ * periodo activo de Análisis. Así el food cost del Punto de Equilibrio es el
+ * mismo número que en el resto de la app. Devuelve null si falla (el break-even
+ * cae entonces a su cálculo propio COGS/ingresos desde menu-engineering).
+ */
+export async function getFoodCostCanonical({ force = false } = {}) {
+    if (!force && !isExpired(state.pnl)) return state.pnl.data;
+    // SIEMPRE el MES EN CURSO (no el periodo de Análisis): un punto de equilibrio
+    // debe reflejar el food cost de AHORA, no el histórico (que arrastra periodos
+    // con otros precios). Y así coincide con el KPI mensual del dashboard.
+    const hoy = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const desde = iso(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+    const hasta = iso(new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1));
+    try {
+        const resp = await apiClient.get(`/analytics/pnl-breakdown?desde=${desde}&hasta=${hasta}`);
+        const fc = parseFloat(resp?.food?.food_cost_pct);
+        const val = Number.isFinite(fc) && fc > 0 ? fc : null;
+        state.pnl = { data: val, ts: Date.now() };
+        return val;
+    } catch (e) {
+        console.warn('[analisis] pnl-breakdown (food cost canónico) falló:', e?.message);
+        return null;
+    }
+}
+
+/**
  * Fuerza refresh de TODOS los datos del módulo (recarga BCG + Omnes).
  */
 export async function refrescarTodo() {
     state.menuEngineering = { data: null, ts: 0 };
     state.omnes = { data: null, ts: 0 };
+    state.pnl = { data: null, ts: 0 };
     notify();
 }
 
