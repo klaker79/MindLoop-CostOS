@@ -2647,7 +2647,7 @@
           <div style="background: #F8FAFC; padding: 20px; border-radius: 12px; margin-top: 20px;">
             <h4 style="color: #1E293B; font-size: 15px; margin-bottom: 16px;"
               data-i18n="ingredientes:suppliers_add_title">➕ Agregar proveedor</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end;">
               <div>
                 <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;"
                   data-i18n="common:label_supplier">Proveedor</label>
@@ -2656,17 +2656,57 @@
                 </select>
               </div>
               <div>
-                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;"
-                  data-i18n="ingredientes:suppliers_label_price">Precio</label>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #64748B;">
+                  <span data-i18n="ingredientes:suppliers_label_price">Precio</span>
+                  <span id="ml-precio-unidad-hint" style="color: #94A3B8; font-weight: 400;"></span>
+                </label>
                 <input type="number" id="input-precio-nuevo" class="form-input" placeholder="0.00" step="0.01" min="0"
                   style="width: 100%;">
               </div>
-              <div>
-                <button class="btn btn-primary" onclick="window.agregarProveedorIngrediente()"
-                  style="padding: 10px 20px;">
-                  <span data-i18n="ingredientes:suppliers_btn_add">➕ Agregar</span>
-                </button>
+            </div>
+
+            <!-- 📦 Bloque OPCIONAL: formato de compra propio de este proveedor.
+                 Si se rellena, el precio por unidad se DERIVA solo (precio_formato / cantidad). -->
+            <details id="ml-formato-proveedor-details" style="margin-top: 14px;">
+              <summary style="cursor: pointer; font-size: 13px; color: #6366F1; font-weight: 600;"
+                data-i18n="ingredientes:suppliers_format_toggle">📦 ¿Este proveedor lo vende por caja/bolsa u otro formato?
+                (opcional)</summary>
+              <div style="margin-top: 12px; padding: 12px; background: #EEF2FF; border-radius: 8px;">
+                <p style="font-size: 12px; color: #4338CA; margin: 0 0 10px;"
+                  data-i18n="ingredientes:suppliers_format_help">Rellena esto y el precio por unidad se calcula solo. No
+                  hace falta que toques el campo «Precio» de arriba.</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                  <div>
+                    <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #64748B;"
+                      data-i18n="ingredientes:suppliers_format_name">Formato</label>
+                    <input type="text" id="input-formato-nuevo" class="form-input" placeholder="ej: caja, bolsa"
+                      maxlength="100" style="width: 100%;" oninput="window.mlPreviewPrecioProveedor()">
+                  </div>
+                  <div>
+                    <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #64748B;">
+                      <span data-i18n="ingredientes:suppliers_format_qty">Unidades que trae</span>
+                      <span id="ml-formato-qty-unidad" style="color: #94A3B8;"></span>
+                    </label>
+                    <input type="number" id="input-cantidad-formato-nuevo" class="form-input" placeholder="ej: 7.5"
+                      step="0.0001" min="0" style="width: 100%;" oninput="window.mlPreviewPrecioProveedor()">
+                  </div>
+                  <div>
+                    <label style="display: block; margin-bottom: 4px; font-size: 12px; color: #64748B;"
+                      data-i18n="ingredientes:suppliers_format_price">Precio del formato (€)</label>
+                    <input type="number" id="input-precio-formato-nuevo" class="form-input" placeholder="ej: 3.21"
+                      step="0.01" min="0" style="width: 100%;" oninput="window.mlPreviewPrecioProveedor()">
+                  </div>
+                </div>
+                <div id="ml-formato-preview"
+                  style="margin-top: 10px; font-size: 13px; color: #065F46; font-weight: 600; min-height: 18px;"></div>
               </div>
+            </details>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 14px;">
+              <button class="btn btn-primary" onclick="window.agregarProveedorIngrediente()"
+                style="padding: 10px 20px;">
+                <span data-i18n="ingredientes:suppliers_btn_add">➕ Agregar</span>
+              </button>
             </div>
           </div>
 
@@ -3583,7 +3623,7 @@
   <script src="src/legacy/modales.js?v=20260628-iva-cashflow"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260630-backlog-ui"></script>
+  <script type="module" src="./src/main.js?v=20260708-proveedor-formato"></script>
 </body>
 
 </html>
