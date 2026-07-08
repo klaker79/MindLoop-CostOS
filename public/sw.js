@@ -180,7 +180,8 @@
 // BUMP v216: mini de Punto de Equilibrio del Diario con franja superior navy del branding CosteOS (número €/día en verde dinero) + cuerpo claro — quedaba demasiado blanco con el tinte de estado suave. Barra/faltan mantienen color de estado.
 // BUMP v217: consejos de las 3 palancas del Punto de Equilibrio ahora INTELIGENTES (leen la BD, no plantillas): food cost nombra los platos que más suben la media, margen nombra los Caballos donde subir precio, prioridad "⭐ Empieza por aquí" en la palanca de mayor impacto. + botón "🦉 Pregúntale a Omnes cómo bajarlo" (deep-link al chat con la pregunta y el número ya redactados; falla suave si no hay add-on).
 // BUMP v218: (1) fix carrera de carga en Análisis — si entrabas nada más loguear (datos iniciales aún cargando), la pestaña quedaba "muerta" en ceros/vacío sin repintarse nunca (había que salir y volver). Ahora: watcher one-shot repinta solo cuando llegan los datos (si la pestaña sigue activa), y los 4 stats muestran "…" mientras el fetch está en vuelo en vez de un 0 engañoso. (2) pregunta del botón "Pregúntale a Omnes" reescrita con los números etiquetados por periodo (mensual vs diario) + instrucción de no mezclar "platos/mes" con "€/día" en la misma cifra (Omnes lo comprimía confuso).
-const CACHE_NAME = 'mindloop-costos-v218';
+// BUMP v219: re-land de la pregunta a Omnes con periodos etiquetados (mensual vs diario) — el commit se quedó fuera del merge de #694. Sin este re-land, Omnes seguía recibiendo la pregunta vieja y mezclaba "560 platos / 464,70 /día".
+const CACHE_NAME = 'mindloop-costos-v219';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
