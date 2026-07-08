@@ -200,7 +200,8 @@
 // BUMP v238: fix solapamiento — el número del DÍA pasa a ir DENTRO de la barra (blanco) y el chip azul del acumulado se coloca arriba o abajo según la posición del punto (sin cortarse por el borde). Antes, en días donde el pico de la línea coincidía con la punta de la barra (p.ej. día 4), los dos números se pisaban y se cortaban.
 // BUMP v239: solución definitiva al solapamiento — el número de cada día YA NO va en la barra; va DEBAJO, en el eje (bajo el número del día, en verde/rojo). Así en el área del gráfico solo queda el chip del acumulado, y el valor diario va abajo → imposible que se pisen. Barras limpias.
 // BUMP v240: la cifra de cada día vuelve PEGADA a la barra — las VERDES por arriba (encima de la barra) y las ROJAS por abajo (debajo de la barra), como pidió Iker. Barras escaladas al 82% para dejar hueco a la cifra sin cortarse. El chip azul del acumulado sigue sobre la línea (colocado según su altura), sin solaparse.
-const CACHE_NAME = 'mindloop-costos-v240';
+// BUMP v241: fin del solape definitivo — las cifras del ACUMULADO se sacan del gráfico y van a una fila DEBAJO del eje (azul, bajo el número del día); la línea se queda sin números encima. Así la cifra del día (pegada a la barra) y la del acumulado (bajo el eje) están en zonas separadas y NO pueden pisarse (días 3 y 4 arreglados).
+const CACHE_NAME = 'mindloop-costos-v241';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
