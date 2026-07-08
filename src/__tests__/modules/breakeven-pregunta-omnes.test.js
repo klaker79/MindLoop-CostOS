@@ -16,7 +16,8 @@ const snap = {
     platosDia: 22,
     ventasEquilibrioDia: 464.7,
     foodCostMedio: 42,
-    gastosFijosMes: 6700
+    gastosFijosMes: 6700,
+    ventana: { desde: '2026-04-09', hasta: '2026-07-09' }
 };
 
 describe('construirPreguntaOmnes', () => {
@@ -36,6 +37,20 @@ describe('construirPreguntaOmnes', () => {
         expect(q).toMatch(/MENSUAL:/);
         expect(q).toMatch(/DIARIO:/);
         expect(q).toContain('no mezcles');
+    });
+
+    // Iker 2026-07-08: Omnes citaba platos del HISTÓRICO junto a un break-even
+    // de 90 días. La pregunta debe fijar el rango explícito para sus tools.
+    test('incluye el rango explícito de 90 días y prohíbe el histórico', () => {
+        expect(q).toContain('del 2026-04-09 al 2026-07-09');
+        expect(q).toContain('pasa ese rango como desde/hasta');
+        expect(q).toContain('NO uses el histórico completo');
+    });
+
+    test('sin ventana en el snapshot: fallback que sigue pidiendo 90 días, sin fechas undefined', () => {
+        const sinVentana = construirPreguntaOmnes({ ...snap, ventana: undefined });
+        expect(sinVentana).toContain('últimos 90 días');
+        expect(sinVentana).not.toContain('undefined');
     });
 });
 

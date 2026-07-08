@@ -122,12 +122,22 @@ export function construirConsejos(snap, platos) {
  * etiquetados por periodo (mensual vs diario) para que Omnes no los mezcle.
  */
 export function construirPreguntaOmnes(snap) {
+    // Rango explícito de la ventana del break-even (90 días). Se incluye en la
+    // pregunta para que Omnes pase EXACTAMENTE este desde/hasta a sus tools de
+    // platos (analisis_menu_engineering) en vez de tirar del histórico completo
+    // — si no, citaba unidades del histórico junto a un break-even de 90 días y
+    // el relato mezclaba periodos (Iker 2026-07-08, decisión: todo a 90 días).
+    const v = snap.ventana || {};
+    const lineaPeriodo = (v.desde && v.hasta)
+        ? `Analiza mis platos SOLO con el periodo del ${v.desde} al ${v.hasta} (últimos 90 días, el mismo del punto de equilibrio): pasa ese rango como desde/hasta en tus herramientas de análisis. NO uses el histórico completo.`
+        : 'Analiza mis platos con el MISMO periodo de estos números (últimos 90 días), no con el histórico completo.';
     return [
         'Estos son mis números del punto de equilibrio (mantén SIEMPRE el periodo al citarlos; no mezcles «al mes» con «al día» en la misma cifra):',
         `- Punto de equilibrio MENSUAL: ${snap.breakevenPlatosMes} platos al mes.`,
         `- Equivalente DIARIO: ${snap.platosDia} platos al día (${cm(snap.ventasEquilibrioDia)} de ventas al día).`,
         `- Food cost medio (global, últimos 90 días): ${Number(snap.foodCostMedio).toFixed(1)}%.`,
         `- Gastos fijos operativos: ${cm(snap.gastosFijosMes)} al mes.`,
+        lineaPeriodo,
         '¿Cuáles son las 2-3 acciones más concretas para bajar mi punto de equilibrio, según mis platos? Dímelo con nombres de platos concretos.'
     ].join('\n');
 }

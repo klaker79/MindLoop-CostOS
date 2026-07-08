@@ -162,7 +162,7 @@
   "cashflow_note": "💡 <strong>说明：</strong>采购增加您的库存（资产）。生产成本反映的是您在销售时实际消耗的部分。",
   "net_profit_operating": "营业日利润：",
   "net_profit_inactive_days": "{{count}} 天无经营活动",
-  "net_profit_pending": "{{amount}}€ 待覆盖",
+  "net_profit_pending": "{{amount}}€ 固定成本未扣除（无营业日不计费）",
   "net_profit_real": "📊 实际利润：",
   "net_profit_operating_days": "📅 营业天数",
   "net_profit_projection": "🎯 月度预测",
@@ -182,5 +182,6 @@
   "rec_more_data": "📊 记录更多销售以获取个性化建议。",
   "supplier_title": "📦 供应商采购 / 日",
   "supplier_col_name": "供应商",
-  "supplier_total_day": "每日合计"
+  "supplier_total_day": "每日合计",
+  "diario_food_cost_scope": "食物 · 本月"
 }
