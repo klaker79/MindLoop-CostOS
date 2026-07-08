@@ -20,6 +20,45 @@
 /** Días de servicio al mes por defecto (restaurante que cierra ~1 día/semana). */
 export const DIAS_SERVICIO_MES_DEFAULT = 26;
 
+/**
+ * Impuestos que NO son gasto fijo operativo y por tanto NO cuentan para el
+ * punto de equilibrio:
+ *   - IVA / IGIC: pass-through. Lo cobras al cliente y lo devuelves a Hacienda,
+ *     no es un coste tuyo. Además escala con las ventas (no es fijo).
+ *   - IRPF / Impuesto de Sociedades: tributos sobre el BENEFICIO — solo pagas si
+ *     ganas. Meterlos en el equilibrio es circular.
+ *   - IAE / IBI / otros tributos: impuestos, no coste operativo del servicio.
+ * Meterlos infla el punto de equilibrio y da un número irreal (caso La Nave 5,
+ * 2026-07-08: 45.645€ con impuestos vs 36.073€ operativos reales).
+ *
+ * Se detecta por PALABRA COMPLETA normalizada (sin acentos, minúsculas) para no
+ * dar falsos positivos: "Seguridad Social" NO matchea "sociedades".
+ */
+const TOKENS_IMPUESTO = new Set([
+    'iva', 'igic', 'irpf', 'iae', 'ibi', 'sociedades',
+    'impuesto', 'impuestos', 'tributo', 'tributos', 'hacienda'
+]);
+
+export function esImpuesto(concepto) {
+    const norm = String(concepto || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '');
+    return norm.split(/[^a-z0-9]+/).some(p => p && TOKENS_IMPUESTO.has(p));
+}
+
+/**
+ * Suma SOLO los gastos fijos OPERATIVOS (excluye impuestos). Es lo que debe
+ * alimentar el punto de equilibrio.
+ * @param {Array} gastos - [{ concepto, monto_mensual }]
+ */
+export function sumaGastosOperativos(gastos) {
+    const arr = Array.isArray(gastos) ? gastos : [];
+    return arr.reduce(
+        (s, g) => (esImpuesto(g.concepto) ? s : s + (parseFloat(g.monto_mensual) || 0)),
+        0
+    );
+}
+
 function num(v) {
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : 0;

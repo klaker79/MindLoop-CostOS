@@ -5,7 +5,7 @@
  * borde. El margen de contribución es PONDERADO por ventas reales, no un
  * promedio simple — este test lo blinda.
  */
-import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT } from '@modules/analisis/breakeven-calc.js';
+import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, esImpuesto, sumaGastosOperativos } from '@modules/analisis/breakeven-calc.js';
 
 describe('computeBreakeven — fórmula ponderada', () => {
     // 2 platos:
@@ -58,6 +58,65 @@ describe('computeBreakeven — fórmula ponderada', () => {
         expect(s.palancas.platosSiGastosMenos500).toBe(Math.ceil(11500 / 12));
         // food −2pts: margen sube ticket*0.02 = 0,35 → 12,35; 12000/12,35 = 971,6 → 972
         expect(s.palancas.platosSiFood2).toBe(Math.ceil(12000 / (12 + 17.5 * 0.02)));
+    });
+});
+
+describe('esImpuesto / sumaGastosOperativos — La Nave 5 real', () => {
+    // Conceptos EXACTOS de gastos_fijos de La Nave 5 (restaurante_id=3), 2026-07-08.
+    const gastosNave5 = [
+        { concepto: 'Nóminas', monto_mensual: 14857.64 },
+        { concepto: 'Seguridad Social', monto_mensual: 7113.48 },
+        { concepto: 'IVA', monto_mensual: 4395.06 },
+        { concepto: 'IAE', monto_mensual: 4333.34 },
+        { concepto: 'Cuota préstamo', monto_mensual: 3809.00 },
+        { concepto: 'Alquiler', monto_mensual: 3700.00 },
+        { concepto: 'Comunidad', monto_mensual: 1755.60 },
+        { concepto: 'Luz', monto_mensual: 1500.00 },
+        { concepto: 'Seguro local', monto_mensual: 979.11 },
+        { concepto: 'IRPF', monto_mensual: 843.71 },
+        { concepto: 'Coche', monto_mensual: 714.40 },
+        { concepto: 'Gas', monto_mensual: 600.00 },
+        { concepto: 'Agua', monto_mensual: 560.00 },
+        { concepto: 'Web/dominio', monto_mensual: 469.49 },
+        { concepto: 'Comisión TPV', monto_mensual: 14.52 },
+        { concepto: 'Gestoría', monto_mensual: 0 },
+        { concepto: 'SGAE', monto_mensual: 0 },
+        { concepto: 'Basura', monto_mensual: 0 },
+        { concepto: 'Comisiones cuenta', monto_mensual: 0 },
+        { concepto: 'Sociedades', monto_mensual: 0 }
+    ];
+
+    test('marca como impuesto SOLO IVA, IAE, IRPF, Sociedades', () => {
+        expect(esImpuesto('IVA')).toBe(true);
+        expect(esImpuesto('IAE')).toBe(true);
+        expect(esImpuesto('IRPF')).toBe(true);
+        expect(esImpuesto('Sociedades')).toBe(true);
+        expect(esImpuesto('Impuesto de Sociedades')).toBe(true);
+        expect(esImpuesto('IGIC')).toBe(true);
+        expect(esImpuesto('IBI')).toBe(true);
+    });
+
+    test('NO marca como impuesto los gastos operativos legítimos', () => {
+        ['Nóminas', 'Seguridad Social', 'Cuota préstamo', 'Alquiler', 'Comunidad',
+         'Luz', 'Seguro local', 'Coche', 'Gas', 'Agua', 'Web/dominio', 'Comisión TPV',
+         'Gestoría', 'SGAE', 'Basura', 'Comisiones cuenta'].forEach(c => {
+            expect(esImpuesto(c)).toBe(false);
+        });
+    });
+
+    test('suma operativa de La Nave 5 = 36.073,24€ (45.645,35 − 9.572,11 impuestos)', () => {
+        expect(sumaGastosOperativos(gastosNave5)).toBeCloseTo(36073.24, 2);
+    });
+
+    test('con impuestos fuera, el punto de equilibrio es realista', () => {
+        const operativos = sumaGastosOperativos(gastosNave5); // 36.073,24
+        // margen ponderado ~11,25 y ticket ~16,17 (datos reales La Nave 5)
+        const platos = [{ precio_venta: 16.17, foodCost: 29, margen: 11.25, popularidad: 1000 }];
+        const s = computeBreakeven({ platos, gastosFijosMes: operativos });
+        expect(s.breakevenPlatosMes).toBe(Math.ceil(36073.24 / 11.25)); // 3207
+        // ventas/día claramente por debajo de la facturación real (~2000€/día servicio)
+        expect(s.ventasEquilibrioDia).toBeLessThan(2100);
+        expect(s.ventasEquilibrioDia).toBeGreaterThan(1800);
     });
 });
 
