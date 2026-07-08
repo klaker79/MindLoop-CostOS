@@ -17,7 +17,7 @@
 
 import { api } from '../../api/client.js';
 import { getMenuEngineering } from './analisis-state.js';
-import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT } from './breakeven-calc.js';
+import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, sumaGastosOperativos } from './breakeven-calc.js';
 import { construirConsejos, construirPreguntaOmnes } from './breakeven-consejos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { mostrarBreakevenInfo } from './breakeven-info.js';
@@ -45,12 +45,16 @@ function ensureHost() {
     return host;
 }
 
-/** Suma los gastos fijos mensuales desde el backend (defensivo con la forma). */
+/**
+ * Suma los gastos fijos OPERATIVOS del mes desde el backend (excluye impuestos:
+ * IVA, IRPF, IAE, Sociedades…). Los impuestos no son coste operativo y meterlos
+ * infla el punto de equilibrio (ver sumaGastosOperativos/esImpuesto).
+ */
 async function fetchGastosFijosMes() {
     try {
         const raw = await api.getGastosFijos();
         const arr = Array.isArray(raw) ? raw : (raw?.gastos || raw?.data || []);
-        return arr.reduce((s, g) => s + (parseFloat(g.monto_mensual) || 0), 0);
+        return sumaGastosOperativos(arr);
     } catch (e) {
         console.warn('[breakeven] error gastos fijos:', e?.message);
         return 0;
@@ -202,7 +206,7 @@ function palancasHTML(snap, platos) {
                     ${c.prioridad === 'gastos' ? BADGE_EMPIEZA : '<span class="oms-badge oms-badge--mute">Palanca</span>'}
                 </div>
                 <div class="oms-card__value">${cm(snap.gastosFijosMes)}<span class="be-unit">/ mes</span></div>
-                <p class="oms-card__sub">Alquiler, personal, suministros y los que todos olvidan: cuota de autónomo, préstamo, suscripciones.</p>
+                <p class="oms-card__sub">Gastos fijos <strong>operativos</strong> (sin impuestos: IVA, IRPF, IAE…): alquiler, personal, suministros, préstamo, suscripciones.</p>
                 ${tipHTML(c.gastos.tono, c.gastos.titulo, c.gastos.texto)}
             </div>
             <div class="oms-card">

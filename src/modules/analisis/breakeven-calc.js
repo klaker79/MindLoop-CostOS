@@ -20,6 +20,45 @@
 /** Días de servicio al mes por defecto (restaurante que cierra ~1 día/semana). */
 export const DIAS_SERVICIO_MES_DEFAULT = 26;
 
+/**
+ * Impuestos que NO son gasto fijo operativo y por tanto NO cuentan para el
+ * punto de equilibrio:
+ *   - IVA / IGIC: pass-through. Lo cobras al cliente y lo devuelves a Hacienda,
+ *     no es un coste tuyo. Además escala con las ventas (no es fijo).
+ *   - IRPF / Impuesto de Sociedades: tributos sobre el BENEFICIO — solo pagas si
+ *     ganas. Meterlos en el equilibrio es circular.
+ *   - IAE / IBI / otros tributos: impuestos, no coste operativo del servicio.
+ * Meterlos infla el punto de equilibrio y da un número irreal (caso La Nave 5,
+ * 2026-07-08: 45.645€ con impuestos vs 36.073€ operativos reales).
+ *
+ * Se detecta por PALABRA COMPLETA normalizada (sin acentos, minúsculas) para no
+ * dar falsos positivos: "Seguridad Social" NO matchea "sociedades".
+ */
+const TOKENS_IMPUESTO = new Set([
+    'iva', 'igic', 'irpf', 'iae', 'ibi', 'sociedades',
+    'impuesto', 'impuestos', 'tributo', 'tributos', 'hacienda'
+]);
+
+export function esImpuesto(concepto) {
+    const norm = String(concepto || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '');
+    return norm.split(/[^a-z0-9]+/).some(p => p && TOKENS_IMPUESTO.has(p));
+}
+
+/**
+ * Suma SOLO los gastos fijos OPERATIVOS (excluye impuestos). Es lo que debe
+ * alimentar el punto de equilibrio.
+ * @param {Array} gastos - [{ concepto, monto_mensual }]
+ */
+export function sumaGastosOperativos(gastos) {
+    const arr = Array.isArray(gastos) ? gastos : [];
+    return arr.reduce(
+        (s, g) => (esImpuesto(g.concepto) ? s : s + (parseFloat(g.monto_mensual) || 0)),
+        0
+    );
+}
+
 function num(v) {
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : 0;
@@ -58,11 +97,16 @@ export function computeBreakeven({ platos, gastosFijosMes, diasServicio = DIAS_S
     // Ponderados por unidades vendidas (mix real).
     const sumMargen = conVentas.reduce((s, p) => s + num(p.margen) * unidadesDe(p), 0);
     const sumTicket = conVentas.reduce((s, p) => s + num(p.precio_venta) * unidadesDe(p), 0);
-    const sumFood = conVentas.reduce((s, p) => s + num(p.foodCost) * unidadesDe(p), 0);
 
     const margenPonderado = sumMargen / unidades;   // € de contribución por plato vendido
     const ticketMedio = sumTicket / unidades;       // € de venta por plato
-    const foodCostMedio = sumFood / unidades;       // %
+
+    // Food cost = COGS / ingresos (coste total ÷ ventas totales), IGUAL que el
+    // KPI canónico del dashboard (food-cost.js → /analytics/pnl-breakdown).
+    // NO la media de porcentajes ponderada por unidades: eso da otro número
+    // (un plato caro con food cost bajo pesa distinto) y no cuadraba con la app.
+    // COGS = ingresos − margen (el margen ya es contribución = precio − coste).
+    const foodCostMedio = sumTicket > 0 ? ((sumTicket - sumMargen) / sumTicket) * 100 : 0; // %
 
     if (margenPonderado <= 0) {
         return {
