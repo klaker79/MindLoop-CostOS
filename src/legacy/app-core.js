@@ -940,11 +940,39 @@
         if (recetas.length === 0 || ingredientes.length === 0) {
             vacioEl.style.display = 'block';
             contenidoEl.style.display = 'none';
+            // 🔧 FIX carrera de carga (Iker 2026-07-08): si entras en Análisis
+            // nada más loguear, los datos iniciales aún no han llegado y esta
+            // rama dejaba la pestaña "muerta" (nadie la repintaba al terminar
+            // la carga — había que salir y volver). Watcher one-shot: cuando
+            // recetas/ingredientes se poblen, re-render SOLO si la pestaña
+            // sigue activa. Máx 60s, luego desiste (tenant sin datos de verdad).
+            if (!window.__analisisRetryPending) {
+                window.__analisisRetryPending = true;
+                const t0 = Date.now();
+                const timer = setInterval(() => {
+                    const cargado = Array.isArray(window.recetas) && window.recetas.length > 0
+                        && Array.isArray(window.ingredientes) && window.ingredientes.length > 0;
+                    if (cargado || (Date.now() - t0) > 60000) {
+                        clearInterval(timer);
+                        window.__analisisRetryPending = false;
+                        const tabActiva = document.getElementById('tab-analisis')?.classList.contains('active');
+                        if (cargado && tabActiva) window.renderizarAnalisis();
+                    }
+                }, 500);
+            }
             return;
         }
 
         vacioEl.style.display = 'none';
         contenidoEl.style.display = 'block';
+
+        // ⏳ Estado de carga honesto: mientras el fetch de menu-engineering está
+        // en vuelo (staging/prod en frío puede tardar segundos), los stats
+        // muestran "…" en vez de un "0" engañoso que parece bug.
+        ['stat-total-recetas', 'stat-margen-promedio', 'stat-coste-promedio', 'stat-total-ingredientes'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '…';
+        });
 
         let totalMargen = 0;
         let totalCoste = 0;
