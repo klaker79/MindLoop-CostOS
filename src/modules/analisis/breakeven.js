@@ -215,8 +215,8 @@ function palancasHTML(snap, platos) {
                     <h4 class="oms-card__title">Food cost</h4>
                     ${c.prioridad === 'food' ? BADGE_EMPIEZA : `<span class="oms-badge ${fb.cls}">${fb.label}</span>`}
                 </div>
-                <div class="oms-card__value">${snap.foodCostMedio.toFixed(0)}%</div>
-                <p class="oms-card__sub">% de tus ventas que se va en materia prima. Cuanto más bajo, más margen por plato.</p>
+                <div class="oms-card__value">${snap.foodCostMedio.toFixed(1)}%</div>
+                <p class="oms-card__sub">Food cost <strong>global</strong> (comida + bebida) — el mismo que te dice Omnes. % de tus ventas que se va en materia prima.</p>
                 ${tipHTML(c.food.tono, c.food.titulo, c.food.texto)}
             </div>
         </div>

@@ -127,26 +127,34 @@ export async function getOmnes({ force = false } = {}) {
 }
 
 /**
- * Devuelve el food cost canónico (COGS/ingresos) del MISMO endpoint que usa el
- * KPI del dashboard (/analytics/pnl-breakdown → food.food_cost_pct), para el
- * periodo activo de Análisis. Así el food cost del Punto de Equilibrio es el
- * mismo número que en el resto de la app. Devuelve null si falla (el break-even
- * cae entonces a su cálculo propio COGS/ingresos desde menu-engineering).
+ * Devuelve el food cost canónico GLOBAL (comida + bebida) del MISMO endpoint
+ * que usa el KPI del dashboard y Omnes (/analytics/pnl-breakdown), para TODO el
+ * histórico. Se calcula como (cogs_food + cogs_beverage) / (ing_food +
+ * ing_beverage) × 100 — EXACTAMENTE la misma fórmula que Omnes (fc_total), para
+ * que el food cost del Punto de Equilibrio sea el MISMO número que Omnes (34,2%
+ * en La Nave 5), no el de comida sola (33,5%). Un punto de equilibrio va sobre
+ * TODA la facturación (comida + bebida), así que el food cost correcto es el
+ * global. Devuelve null si falla (el break-even cae a su cálculo propio).
  */
 export async function getFoodCostCanonical({ force = false } = {}) {
     if (!force && !isExpired(state.pnl)) return state.pnl.data;
-    // SIEMPRE el MES EN CURSO (no el periodo de Análisis): un punto de equilibrio
-    // debe reflejar el food cost de AHORA, no el histórico (que arrastra periodos
-    // con otros precios). Y así coincide con el KPI mensual del dashboard.
+    // Histórico completo (mismo periodo por defecto que el resto del bloque y que
+    // Omnes cuando le preguntas "food cost histórico").
     const hoy = new Date();
     const pad = (n) => String(n).padStart(2, '0');
     const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-    const desde = iso(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
-    const hasta = iso(new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1));
+    const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
+    const desde = '2000-01-01';
+    const hasta = iso(manana);
     try {
         const resp = await apiClient.get(`/analytics/pnl-breakdown?desde=${desde}&hasta=${hasta}`);
-        const fc = parseFloat(resp?.food?.food_cost_pct);
-        const val = Number.isFinite(fc) && fc > 0 ? fc : null;
+        // Global = (COGS comida + COGS bebida) / (ingresos comida + ingresos
+        // bebida). MISMA base que Omnes (excluye 'otros', no vendido a cliente).
+        const f = resp?.food || {};
+        const b = resp?.beverage || {};
+        const cogs = (parseFloat(f.cogs) || 0) + (parseFloat(b.cogs) || 0);
+        const ing = (parseFloat(f.ingresos) || 0) + (parseFloat(b.ingresos) || 0);
+        const val = ing > 0 ? Math.round((cogs / ing) * 1000) / 10 : null; // 1 decimal, como Omnes
         state.pnl = { data: val, ts: Date.now() };
         return val;
     } catch (e) {
