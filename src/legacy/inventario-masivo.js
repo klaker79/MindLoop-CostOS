@@ -3043,27 +3043,18 @@ async function renderizarTablaPLDiario() {
     }
 
     // ── FILA: GASTOS FIJOS / DÍA ──
-    // 🔧 FIX: antes se multiplicaba por dias.length (sólo días con movimiento), lo que
-    // infravaloraba el gasto mensual real. El alquiler y personal se pagan todos los días
-    // del mes (o de la semana), no solo los días con ventas/compras.
-    const _esSemanaActiva = window.diarioSemanaActiva && window.diarioSemanaActiva !== 'todas';
-    let diasPeriodoReales;
-    if (!_esSemanaActiva) {
-        // Mes completo. Si es el MES EN CURSO, PRORRATEA los gastos fijos a los
-        // días transcurridos: si no, el TOTAL restaría el mes entero de fijos
-        // contra ventas parciales y saldría una pérdida FALSA a mitad de mes
-        // (Iker 2026-07-08: 4 días de ventas vs mes entero de fijos = −29.582€
-        // engañoso). Un mes PASADO se cuenta completo. Igual que Omnes (prorrateo).
-        const _hoy = new Date();
-        const _esMesEnCurso = (anoSeleccionado === _hoy.getFullYear() && mesSeleccionado === (_hoy.getMonth() + 1));
-        diasPeriodoReales = _esMesEnCurso ? Math.min(_hoy.getDate(), diasEnMes) : diasEnMes;
-    } else {
-        const _semNum = parseInt(window.diarioSemanaActiva);
-        const _minDia = (_semNum - 1) * 7 + 1;
-        const _maxDia = Math.min(_semNum * 7, diasEnMes);
-        diasPeriodoReales = Math.max(0, _maxDia - _minDia + 1);
-    }
-    const totalGastosFijosMostrados = gastosFijosDia * diasPeriodoReales;
+    // El TOTAL MES de gastos fijos = gasto fijo diario × nº de días MOSTRADOS
+    // (los que tienen datos = las columnas de la tabla). Así el TOTAL cuadra
+    // EXACTAMENTE con la suma de los beneficios netos diarios: cada columna ya
+    // resta su gastoFijoDia y el total suma lo mismo. Ni más ni menos.
+    //
+    // Historia (Iker 2026-07-08): el total prorrateaba a los días de CALENDARIO
+    // transcurridos (p.ej. día 8) aunque solo hubiera 4 días con ventas → cargaba
+    // 4 días de fijos "fantasma" sin ingresos detrás y el total NO cuadraba con la
+    // suma de las columnas (salía 396€ en vez de 5.610€). Antes de eso restaba el
+    // mes ENTERO (−29.582€ falso). Regla correcta y sin sorpresas: el total es la
+    // suma de lo que se ve; cada día ya lleva descontado su gasto fijo.
+    const totalGastosFijosMostrados = gastosFijosDia * dias.length;
     html += `<tr style="background: #fce7f3;"><td style="position: sticky; left: 0; background: #fce7f3; padding: 16px; font-weight: 600; color: #9d174d; border-bottom: 1px solid #f9a8d4;">${window.t('balance:pl_fixed_expenses')}</td>`;
     dias.forEach(() => {
         html += `<td style="text-align: center; padding: 16px 8px; color: #be185d; border-bottom: 1px solid #f9a8d4;">${cm(gastosFijosDia)}</td>`;
