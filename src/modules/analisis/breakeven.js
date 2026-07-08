@@ -18,7 +18,7 @@
 import { api } from '../../api/client.js';
 import { getMenuEngineering } from './analisis-state.js';
 import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT } from './breakeven-calc.js';
-import { construirConsejos } from './breakeven-consejos.js';
+import { construirConsejos, construirPreguntaOmnes } from './breakeven-consejos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { mostrarBreakevenInfo } from './breakeven-info.js';
 
@@ -220,16 +220,6 @@ function palancasHTML(snap, platos) {
 
 function recomendacionHTML(snap) {
     const texto = `Facturar no es ganar. Tu punto de equilibrio son ${snap.breakevenPlatosMes.toLocaleString('es-ES')} platos al mes (~${snap.platosDia.toLocaleString('es-ES')} al día). A partir de ahí, cada plato es beneficio de verdad — y las tres palancas de arriba te dicen cómo bajar ese número.`;
-    // Pregunta para Omnes. Números etiquetados por periodo para que NO mezcle
-    // "platos/mes" con "€/día" en la misma cifra (confundía a Iker 2026-07-08).
-    const pregunta = [
-        'Estos son mis números del punto de equilibrio (mantén SIEMPRE el periodo al citarlos; NO mezcles "al mes" con "al día" en la misma cifra):',
-        `- Punto de equilibrio MENSUAL: ${snap.breakevenPlatosMes} platos al mes.`,
-        `- Equivalente DIARIO: ${snap.platosDia} platos al día (${cm(snap.ventasEquilibrioDia)} de ventas al día).`,
-        `- Food cost medio: ${snap.foodCostMedio.toFixed(0)}%.`,
-        `- Gastos fijos: ${cm(snap.gastosFijosMes)} al mes.`,
-        '¿Cuáles son las 2-3 acciones más concretas para bajar mi punto de equilibrio, según mis platos? Dímelo con nombres de platos concretos.'
-    ].join('\n');
     return `
         <div class="oms-recom">
             <div class="oms-recom__icon" aria-hidden="true">
@@ -241,7 +231,7 @@ function recomendacionHTML(snap) {
             <div class="oms-recom__body">
                 <div class="oms-recom__label">Tu número de supervivencia</div>
                 <p class="oms-recom__text">${escapeHTML(texto)}</p>
-                <button type="button" class="be-omnes-btn" data-action="be-omnes" data-omnes-q="${escapeHTML(pregunta)}">
+                <button type="button" class="be-omnes-btn" data-action="be-omnes">
                     🦉 Pregúntale a Omnes cómo bajarlo
                 </button>
             </div>
@@ -281,16 +271,18 @@ function estadoVacioHTML(snap) {
     `;
 }
 
-function bindHandlers(host) {
+function bindHandlers(host, pregunta) {
     host.querySelectorAll('[data-action="be-info"]').forEach(btn => {
         btn.addEventListener('click', (e) => { e.preventDefault(); mostrarBreakevenInfo(); });
     });
     // Botón "Pregúntale a Omnes" — deep-link al chat con la pregunta redactada.
-    // Si el add-on no está activo, preguntarAOmnes devuelve false y avisamos.
+    // La pregunta se captura por CLOSURE (no por atributo HTML) para que no la
+    // trunque ningún carácter del texto. Si el add-on no está activo,
+    // preguntarAOmnes devuelve false y avisamos.
     host.querySelectorAll('[data-action="be-omnes"]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const q = btn.dataset.omnesQ || '¿Cómo bajo mi punto de equilibrio?';
+            const q = pregunta || '¿Cómo puedo bajar mi punto de equilibrio según mis platos?';
             const ok = typeof window.preguntarAOmnes === 'function' && window.preguntarAOmnes(q);
             if (!ok) {
                 window.showToast?.('Activa el add-on de Omnes para preguntarle sobre tu punto de equilibrio.', 'info');
@@ -313,7 +305,7 @@ export async function renderBreakeven() {
         ]);
         if (snap.estado !== 'ok') {
             host.innerHTML = headerHTML('Cuánto necesitas facturar para no perder dinero — tu número de supervivencia.') + estadoVacioHTML(snap);
-            bindHandlers(host);
+            bindHandlers(host, null);
             return;
         }
         const prog = progresoDelMes(snap.breakevenPlatosMes, snap.ticketMedio);
@@ -323,7 +315,7 @@ export async function renderBreakeven() {
             ${palancasHTML(snap, platos)}
             ${recomendacionHTML(snap)}
         `;
-        bindHandlers(host);
+        bindHandlers(host, construirPreguntaOmnes(snap));
     } catch (err) {
         console.warn('[analisis] breakeven falló:', err?.message);
     }
