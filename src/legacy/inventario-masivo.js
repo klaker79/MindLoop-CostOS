@@ -3049,7 +3049,14 @@ async function renderizarTablaPLDiario() {
     const _esSemanaActiva = window.diarioSemanaActiva && window.diarioSemanaActiva !== 'todas';
     let diasPeriodoReales;
     if (!_esSemanaActiva) {
-        diasPeriodoReales = diasEnMes; // mes completo: siempre 28-31 según mes
+        // Mes completo. Si es el MES EN CURSO, PRORRATEA los gastos fijos a los
+        // días transcurridos: si no, el TOTAL restaría el mes entero de fijos
+        // contra ventas parciales y saldría una pérdida FALSA a mitad de mes
+        // (Iker 2026-07-08: 4 días de ventas vs mes entero de fijos = −29.582€
+        // engañoso). Un mes PASADO se cuenta completo. Igual que Omnes (prorrateo).
+        const _hoy = new Date();
+        const _esMesEnCurso = (anoSeleccionado === _hoy.getFullYear() && mesSeleccionado === (_hoy.getMonth() + 1));
+        diasPeriodoReales = _esMesEnCurso ? Math.min(_hoy.getDate(), diasEnMes) : diasEnMes;
     } else {
         const _semNum = parseInt(window.diarioSemanaActiva);
         const _minDia = (_semNum - 1) * 7 + 1;
