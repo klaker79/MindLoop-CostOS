@@ -220,7 +220,16 @@ function palancasHTML(snap, platos) {
 
 function recomendacionHTML(snap) {
     const texto = `Facturar no es ganar. Tu punto de equilibrio son ${snap.breakevenPlatosMes.toLocaleString('es-ES')} platos al mes (~${snap.platosDia.toLocaleString('es-ES')} al día). A partir de ahí, cada plato es beneficio de verdad — y las tres palancas de arriba te dicen cómo bajar ese número.`;
-    const pregunta = `Mi punto de equilibrio son ${snap.breakevenPlatosMes} platos al mes (unos ${snap.platosDia} al día, ${cm(snap.ventasEquilibrioDia)}/día). ¿Cuáles son las 2-3 acciones más concretas para bajarlo según mis platos, mi food cost (${snap.foodCostMedio.toFixed(0)}%) y mis gastos fijos? Dímelo con nombres de platos.`;
+    // Pregunta para Omnes. Números etiquetados por periodo para que NO mezcle
+    // "platos/mes" con "€/día" en la misma cifra (confundía a Iker 2026-07-08).
+    const pregunta = [
+        'Estos son mis números del punto de equilibrio (mantén SIEMPRE el periodo al citarlos; NO mezcles "al mes" con "al día" en la misma cifra):',
+        `- Punto de equilibrio MENSUAL: ${snap.breakevenPlatosMes} platos al mes.`,
+        `- Equivalente DIARIO: ${snap.platosDia} platos al día (${cm(snap.ventasEquilibrioDia)} de ventas al día).`,
+        `- Food cost medio: ${snap.foodCostMedio.toFixed(0)}%.`,
+        `- Gastos fijos: ${cm(snap.gastosFijosMes)} al mes.`,
+        '¿Cuáles son las 2-3 acciones más concretas para bajar mi punto de equilibrio, según mis platos? Dímelo con nombres de platos concretos.'
+    ].join('\n');
     return `
         <div class="oms-recom">
             <div class="oms-recom__icon" aria-hidden="true">
