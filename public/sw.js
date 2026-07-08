@@ -186,7 +186,8 @@
 // BUMP v222: food cost del punto de equilibrio ahora se calcula como COGS/ingresos (coste total ÷ ventas totales), IGUAL que el KPI canónico del dashboard (food-cost.js). Antes usaba media de porcentajes ponderada por unidades → daba 29% en vez de ~31% y no cuadraba con el resto de la app. Cambio de método, mismo origen de datos (menu-engineering).
 // BUMP v223: food cost del punto de equilibrio ahora se LEE del endpoint canónico (/analytics/pnl-breakdown, el mismo que el KPI del dashboard) para el MES EN CURSO → número idéntico al dashboard (antes: método propio + periodo histórico = descuadre 29% vs 31%). De ese food cost se deriva el margen, así todo el bloque cuadra. Fallback al cálculo del menú si el endpoint falla.
 // BUMP v224: el food cost del punto de equilibrio muestra el GLOBAL (comida+bebida) histórico = MISMA fórmula y número que Omnes (34,2% en La Nave 5), no el de comida sola. Un punto de equilibrio va sobre toda la facturación → food cost global. Calculado como (cogs_food+cogs_bev)/(ing_food+ing_bev) desde /analytics/pnl-breakdown, idéntico a fc_total de Omnes.
-const CACHE_NAME = 'mindloop-costos-v224';
+// BUMP v225: la pregunta a Omnes cita el food cost con 1 decimal (35,6%) igual que la tarjeta del bloque — antes lo redondeaba a 36% y parecía descuadre.
+const CACHE_NAME = 'mindloop-costos-v225';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
