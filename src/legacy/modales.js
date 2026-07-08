@@ -480,126 +480,13 @@ async function renderizarBeneficioNetoDiario() {
         `;
     }
 
-    // ✅ PUNTO DE EQUILIBRIO — mini compacto. Usa el MISMO cálculo que el
-    // bloque grande de Análisis (margen ponderado por ventas reales) vía
-    // window.mlBreakevenGetSnapshot, para que los números cuadren entre
-    // las dos pantallas. Si el módulo no cargó, cae al cálculo simple viejo.
-    let puntoEquilibrioHTML = '';
-    try {
-        const snap = typeof window.mlBreakevenGetSnapshot === 'function'
-            ? await window.mlBreakevenGetSnapshot()
-            : null;
-        if (snap && snap.estado === 'ok' && snap.breakevenPlatosMes > 0) {
-            let unidadesMes = 0;
-            const vendidas = window.datosResumenMensual.ventas?.recetas || {};
-            for (const nombre in vendidas) {
-                unidadesMes += parseFloat(vendidas[nombre]?.totalVendidas) || 0;
-            }
-            const be = snap.breakevenPlatosMes;
-            const progreso = Math.min(100, (unidadesMes / be) * 100);
-            const faltantes = Math.max(0, be - unidadesMes);
-            const faltantesEuros = faltantes * snap.ticketMedio;
-            // Franja superior navy del branding CosteOS (número €/día en verde
-            // dinero) + cuerpo claro. La barra y el "faltan" llevan el color de
-            // estado (verde/ámbar/rojo) según el progreso.
-            const cubierto = faltantes <= 0;
-            const accent = cubierto ? '#10b981' : progreso >= 60 ? '#f59e0b' : '#ef4444';
-            const pie = cubierto
-                ? '✅ Gastos fijos cubiertos'
-                : `faltan <strong style="color:${accent};">${faltantes.toLocaleString('es-ES')}</strong> platos (~${cm(faltantesEuros)})`;
-            puntoEquilibrioHTML = `
-              <div style="border: 1px solid #e5e8ee; border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(15,23,42,0.06);">
-                <div style="background: linear-gradient(135deg, #14294a 0%, #0f172a 100%); padding: 11px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                  <span style="color: #fff; font-weight: 700; font-size: 13px;">🎯 Punto de equilibrio</span>
-                  <span style="color: #34d399; font-weight: 800; font-size: 19px; line-height: 1;">${cm(snap.ventasEquilibrioDia)}<span style="font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6);"> / día</span></span>
-                </div>
-                <div style="padding: 12px 16px; background: #fff;">
-                  <div style="background: #eef1f6; border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 8px;">
-                    <div style="background: ${accent}; height: 100%; width: ${progreso}%; border-radius: 999px; transition: width 0.5s;"></div>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; color: #64748b;">
-                    <span><strong style="color: #1e293b;">${unidadesMes.toLocaleString('es-ES')}</strong> / ${be.toLocaleString('es-ES')} platos este mes · ${progreso.toFixed(0)}%</span>
-                    <span>${pie}</span>
-                  </div>
-                  <div style="margin-top: 7px; font-size: 11px; color: #94a3b8;">Detalle y palancas en la pestaña Análisis →</div>
-                </div>
-              </div>
-            `;
-        }
-    } catch (e) {
-        console.warn('[diario] breakeven mini falló, uso fallback:', e?.message);
-    }
-
-    // Fallback: cálculo simple antiguo (solo si el snapshot no está disponible).
-    if (!puntoEquilibrioHTML && window.recetas && window.recetas.length > 0 && gastosFijosMes > 0) {
-        // Calcular margen promedio de todas las recetas
-        let totalMargen = 0;
-        window.recetas.forEach(rec => {
-            const precioVenta = parseFloat(rec.precio_venta) || 0;
-            let costeReceta = 0;
-            if (rec.ingredientes && Array.isArray(rec.ingredientes)) {
-                rec.ingredientes.forEach(ing => {
-                    const ingData = window.ingredientes?.find(i => i.id === ing.ingredienteId);
-                    if (ingData) {
-                        // fix C3: precio es por FORMATO → dividir por cantidad_por_formato para obtener precio unitario
-                        const cpf = parseFloat(ingData.cantidad_por_formato) || 1;
-                        const precioUnitario = (parseFloat(ingData.precio) || 0) / cpf;
-                        costeReceta += precioUnitario * (ing.cantidad || 0);
-                    }
-                });
-            }
-            totalMargen += precioVenta - costeReceta;
-        });
-        // 🔒 FIX: Proteger división por cero si no hay recetas
-        const margenPromedio = window.recetas?.length > 0
-            ? totalMargen / window.recetas.length
-            : 0;
-
-        // Punto de equilibrio = Gastos fijos / Margen promedio
-        const puntoEquilibrio = margenPromedio > 0 ? Math.ceil(gastosFijosMes / margenPromedio) : 0;
-
-        // Ventas del mes (cantidad total) - sumar de todas las recetas vendidas
-        let ventasMes = 0;
-        const recetasVendidas = window.datosResumenMensual.ventas?.recetas || {};
-        for (const [nombre, data] of Object.entries(recetasVendidas)) {
-            ventasMes += data.totalVendidas || 0;
-        }
-        const progreso =
-            puntoEquilibrio > 0 ? Math.min(100, (ventasMes / puntoEquilibrio) * 100) : 0;
-        const faltantes = Math.max(0, puntoEquilibrio - ventasMes);
-        const ventasFaltantes = faltantes * margenPromedio;
-
-        const progresoColor = progreso >= 100 ? '#10b981' : progreso >= 50 ? '#f59e0b' : '#ef4444';
-        const progresoIcon = progreso >= 100 ? '🎉' : progreso >= 50 ? '📈' : '⚠️';
-
-        puntoEquilibrioHTML = `
-          <div style="background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 16px; border-radius: 12px; margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="color: white; font-weight: 600; font-size: 13px;">${window.t('balance:breakeven_title')}</span>
-              <span style="color: ${progresoColor}; font-weight: 700; font-size: 14px;">${progresoIcon} ${progreso.toFixed(0)}%</span>
-            </div>
-            <div style="background: rgba(255,255,255,0.1); border-radius: 8px; height: 12px; overflow: hidden; margin-bottom: 12px;">
-              <div style="background: linear-gradient(90deg, ${progresoColor}, ${progresoColor}99); height: 100%; width: ${progreso}%; border-radius: 8px; transition: width 0.5s;"></div>
-            </div>
-            <div style="display: flex; justify-content: space-between; color: rgba(255,255,255,0.8); font-size: 12px;">
-              <span><strong style="color: white;">${ventasMes}</strong> / ${puntoEquilibrio} ${window.t('balance:breakeven_dishes')}</span>
-              <span>${window.t('balance:breakeven_margin_dish')} <strong style="color: #10b981;">${cm(margenPromedio)}</strong></span>
-            </div>
-            ${faltantes > 0
-                ? `
-              <div style="margin-top: 10px; padding: 8px; background: rgba(239, 68, 68, 0.2); border-radius: 6px; text-align: center;">
-                <span style="color: #fca5a5; font-size: 12px;">${window.t('balance:breakeven_missing', { count: faltantes, amount: ventasFaltantes.toFixed(0) })}</span>
-              </div>
-            `
-                : `
-              <div style="margin-top: 10px; padding: 8px; background: rgba(16, 185, 129, 0.2); border-radius: 6px; text-align: center;">
-                <span style="color: #6ee7b7; font-size: 12px;">${window.t('balance:breakeven_covered')}</span>
-              </div>
-            `
-            }
-          </div>
-        `;
-    }
+    // El mini de "Punto de equilibrio" se movió SOLO a la pestaña Análisis
+    // (Iker 2026-07-08): tenerlo en el Diario mezclaba el gasto fijo/día
+    // (1.303€, un COSTE, repartido entre los 31 días del mes) con el objetivo
+    // de ventas/día del equilibrio (2.362€, repartido entre los 26 días de
+    // servicio y descontando el food cost) en la misma pantalla → confundía.
+    // El cálculo sigue vivo en window.mlBreakevenGetSnapshot para Análisis.
+    const puntoEquilibrioHTML = '';
 
     // Proyección (diasConDatos ya calculado arriba en el loop)
     const promedioDiario = diasConDatos > 0 ? sumaTotal / diasConDatos : 0;
