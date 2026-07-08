@@ -198,7 +198,8 @@
 // BUMP v236: "Beneficio neto por día" añade LÍNEA de acumulado del mes sobre las barras (sube cuando ganas, baja cuando pierdes) + puntos con el acumulado por día en tooltip. Recupera el arrastre día a día que mostraba la lista antigua, ahora visual. Solo presentación; el total del mes no cambia.
 // BUMP v237: la línea de acumulado muestra ahora la CIFRA visible en cada punto (chip azul con el acumulado del día), no solo en tooltip — antes no se veía ningún número sobre la línea. Con >12 días vuelve a solo-tooltip para no saturar.
 // BUMP v238: fix solapamiento — el número del DÍA pasa a ir DENTRO de la barra (blanco) y el chip azul del acumulado se coloca arriba o abajo según la posición del punto (sin cortarse por el borde). Antes, en días donde el pico de la línea coincidía con la punta de la barra (p.ej. día 4), los dos números se pisaban y se cortaban.
-const CACHE_NAME = 'mindloop-costos-v238';
+// BUMP v239: solución definitiva al solapamiento — el número de cada día YA NO va en la barra; va DEBAJO, en el eje (bajo el número del día, en verde/rojo). Así en el área del gráfico solo queda el chip del acumulado, y el valor diario va abajo → imposible que se pisen. Barras limpias.
+const CACHE_NAME = 'mindloop-costos-v239';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

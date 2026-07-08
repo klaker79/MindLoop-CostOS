@@ -483,11 +483,9 @@ async function renderizarBeneficioNetoDiario() {
         const positivo = b.beneficio >= 0 && b.activo;
         const grad = positivo ? 'linear-gradient(180deg,#34d399,#10b981)' : 'linear-gradient(180deg,#ef4444,#b91c1c)';
         const radio = positivo ? '5px 5px 2px 2px' : '2px 2px 5px 5px';
-        // Número del DÍA dentro de la barra (blanco), para no chocar con el chip
-        // azul del acumulado que va sobre la línea.
-        const etiqueta = mostrarEtiquetas
-            ? `<span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#fff;font-size:9.5px;font-weight:800;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.4);">${fmt(b.beneficio)}</span>`
-            : '';
+        // El número del día NO va en la barra (se pisaba con el chip del acumulado
+        // en días donde ambos coincidían arriba). Va debajo, en el eje.
+        const etiqueta = '';
         const barra = `<div title="${b.dia}/${mes}: ${cm(b.beneficio)}" style="width:72%;max-width:30px;height:${h}%;background:${grad};opacity:${b.activo ? '1' : '0.5'};border-radius:${radio};position:relative;">${etiqueta}</div>`;
         return `<div style="flex:1;min-width:20px;display:flex;flex-direction:column;height:180px;">`
             + `<div style="flex:1;display:flex;align-items:flex-end;justify-content:center;">${positivo ? barra : ''}</div>`
@@ -495,7 +493,12 @@ async function renderizarBeneficioNetoDiario() {
             + `</div>`;
     }).join('');
 
-    const ejeHTML = barras.map(b => `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;">${b.dia}</span>`).join('');
+    // Eje: número del día + DEBAJO el valor neto de ese día (verde/rojo). Así el
+    // valor diario y el chip azul del acumulado nunca se solapan.
+    const ejeHTML = barras.map(b => {
+        const colDia = (b.beneficio >= 0 && b.activo) ? '#34d399' : '#f87171';
+        return `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;line-height:1.4;">${b.dia}<br><span style="color:${colDia};font-weight:700;font-variant-numeric:tabular-nums;">${fmt(b.beneficio)}</span></span>`;
+    }).join('');
 
     // Línea de ACUMULADO del mes sobre las barras: sube cuando ganas, baja
     // cuando pierdes → es lo que antes mostraba la lista día a día (el arrastre).
