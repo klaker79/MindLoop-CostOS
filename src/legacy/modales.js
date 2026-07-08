@@ -399,7 +399,6 @@ async function renderizarBeneficioNetoDiario() {
     }
 
     // Calcular beneficios y acumulados para TODOS los días del mes
-    let html = '';
     let acumulado = 0;
     let sumaTotal = 0;
     let totalPlatosVendidos = 0;
@@ -415,6 +414,7 @@ async function renderizarBeneficioNetoDiario() {
     let beneficioRealTotal = 0;
     let diasSinActividad = 0;
     let gastosPendientes = 0;
+    const barras = []; // {dia, beneficio, activo} por día → alimenta el gráfico
 
     for (let diaNum = 1; diaNum <= ultimoDiaMostrar; diaNum++) {
         const diaData = diasDataMap[diaNum] || { ingresos: 0, costos: 0, cantidadVendida: 0 };
@@ -447,89 +447,92 @@ async function renderizarBeneficioNetoDiario() {
 
         totalPlatosVendidos += diaData.cantidadVendida || 0;
 
-        // Determinar icono y estilo según el estado del día
-        let icono, estiloFecha, beneficioTexto;
-        const colorAcumulado = beneficioRealTotal >= 0 ? '#10b981' : '#ef4444';
-
-        if (!tieneActividad) {
-            // Día cerrado - muestra el neto del día (gastos fijos + cualquier gasto
-            // operativo de ese día: mermas, comida personal o personal extra).
-            icono = '🔘';
-            estiloFecha = 'color: #9ca3af; font-size: 13px;';
-            beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">${cm(beneficioNeto)}</span>`;
-        } else if (beneficioNeto >= 0) {
-            icono = '✅';
-            estiloFecha = 'color: #10b981; font-size: 13px;';
-            beneficioTexto = `<span style="color: #10b981; font-size: 11px; margin-left: 8px;">+${cm(beneficioNeto)}</span>`;
-        } else {
-            icono = '❌';
-            estiloFecha = 'color: #ef4444; font-size: 13px;';
-            beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">${cm(beneficioNeto)}</span>`;
-        }
-
-        const fechaFormateada = `${diaNum}/${mes}`;
-
-        html += `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; ${!tieneActividad ? 'background: #f8fafc;' : ''}">
-            <div>
-              <span style="${estiloFecha}">${icono} ${fechaFormateada}</span>
-              ${beneficioTexto}
-            </div>
-            <span style="color: ${colorAcumulado}; font-weight: 700; font-size: 14px;">${cm(beneficioRealTotal)}</span>
-          </div>
-        `;
+        // Recogemos el neto del día para el gráfico de barras (verde arriba si
+        // ganas, rojo abajo si pierdes). El día sin actividad entra como pérdida
+        // (solo gastos fijos) pero marcado inactivo para atenuar su barra.
+        barras.push({ dia: diaNum, beneficio: beneficioNeto, activo: tieneActividad });
     }
 
     // El mini de "Punto de equilibrio" se movió SOLO a la pestaña Análisis
-    // (Iker 2026-07-08): tenerlo en el Diario mezclaba el gasto fijo/día
-    // (1.303€, un COSTE, repartido entre los 31 días del mes) con el objetivo
-    // de ventas/día del equilibrio (2.362€, repartido entre los 26 días de
-    // servicio y descontando el food cost) en la misma pantalla → confundía.
-    // El cálculo sigue vivo en window.mlBreakevenGetSnapshot para Análisis.
-    const puntoEquilibrioHTML = '';
+    // (Iker 2026-07-08): en el Diario mezclaba el gasto fijo/día (coste) con el
+    // objetivo de ventas/día del equilibrio y confundía. Sigue en Análisis vía
+    // window.mlBreakevenGetSnapshot.
 
     // Proyección (diasConDatos ya calculado arriba en el loop)
     const promedioDiario = diasConDatos > 0 ? sumaTotal / diasConDatos : 0;
     const diasRestantes = diasTotalesMes - ultimoDiaMostrar;
     const proyeccionFinMes = beneficioRealTotal + promedioDiario * diasRestantes;
 
-    const finalColor = beneficioRealTotal >= 0 ? '#059669' : '#dc2626';
-    const finalBg = beneficioRealTotal >= 0 ? '#ecfdf5' : '#fef2f2';
-    const finalIcon = beneficioRealTotal >= 0 ? '✨' : '⚠️';
+    // ── GRÁFICO "Beneficio neto por día": barras divergentes (verde arriba =
+    // ganas, rojo abajo = pierdes) + titular grande. Sustituye la lista de texto
+    // anterior para que se lea de un vistazo. NO cambia ningún cálculo, solo la
+    // presentación (Iker 2026-07-08). El día sin ventas entra como barra roja
+    // atenuada (solo carga gastos fijos).
+    const maxAbs = barras.reduce((m, b) => Math.max(m, Math.abs(b.beneficio)), 0) || 1;
+    const mostrarEtiquetas = barras.length <= 12; // con muchos días, solo tooltip
+    const colorMes = beneficioRealTotal >= 0 ? '#34d399' : '#f87171';
+    const anchoMin = Math.max(320, barras.length * 26);
 
-    // Mensaje de gastos pendientes (días cerrados)
-    const gastosPendientesHTML = diasSinActividad > 0 ? `
-        <div style="background: #fef3c7; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #fcd34d;">
-          <div style="font-size: 11px; color: #92400e; text-align: center;">
-            ⚠️ <strong>${window.t('balance:net_profit_inactive_days', { count: diasSinActividad })}</strong> → ${window.t('balance:net_profit_pending', { amount: gastosPendientes.toFixed(2) })}
+    const mejor = barras.reduce((a, b) => (b.beneficio > a.beneficio ? b : a), { beneficio: -Infinity, dia: 0 });
+    const peor = barras.reduce((a, b) => (b.beneficio < a.beneficio ? b : a), { beneficio: Infinity, dia: 0 });
+
+    const fmt = (n) => `${n >= 0 ? '+' : ''}${Math.round(n).toLocaleString('es-ES')}`;
+
+    const barrasHTML = barras.map(b => {
+        const h = Math.max(2, Math.round((Math.abs(b.beneficio) / maxAbs) * 100));
+        const positivo = b.beneficio >= 0 && b.activo;
+        const grad = positivo ? 'linear-gradient(180deg,#34d399,#10b981)' : 'linear-gradient(180deg,#ef4444,#b91c1c)';
+        const radio = positivo ? '5px 5px 2px 2px' : '2px 2px 5px 5px';
+        const etiqueta = mostrarEtiquetas
+            ? `<span style="position:absolute;left:50%;transform:translateX(-50%);${positivo ? 'top:-15px;color:#34d399;' : 'bottom:-15px;color:#f87171;'}font-size:10px;font-weight:700;white-space:nowrap;">${fmt(b.beneficio)}</span>`
+            : '';
+        const barra = `<div title="${b.dia}/${mes}: ${cm(b.beneficio)}" style="width:72%;max-width:30px;height:${h}%;background:${grad};opacity:${b.activo ? '1' : '0.5'};border-radius:${radio};position:relative;">${etiqueta}</div>`;
+        return `<div style="flex:1;min-width:20px;display:flex;flex-direction:column;height:180px;">`
+            + `<div style="flex:1;display:flex;align-items:flex-end;justify-content:center;">${positivo ? barra : ''}</div>`
+            + `<div style="flex:1;display:flex;align-items:flex-start;justify-content:center;border-top:1px solid rgba(255,255,255,0.14);">${!positivo ? barra : ''}</div>`
+            + `</div>`;
+    }).join('');
+
+    const ejeHTML = barras.map(b => `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;">${b.dia}</span>`).join('');
+
+    const notaHTML = diasSinActividad > 0
+        ? `<div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:9px 13px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:9px;color:#fcd9a0;font-size:12.5px;">⚠️ <span><strong style="color:#fde9c7;">${window.t('balance:net_profit_inactive_days', { count: diasSinActividad })}</strong> → ${window.t('balance:net_profit_pending', { amount: gastosPendientes.toFixed(2) })}</span></div>`
+        : '';
+
+    const stat = (k, v, color) => `<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:11px 13px;"><div style="font-size:10.5px;color:#8595ad;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">${k}</div><div style="font-size:16px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums;color:${color};">${v}</div></div>`;
+
+    container.innerHTML = `
+      <div style="background:linear-gradient(160deg,#14294a 0%,#0f172a 100%);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;box-shadow:0 12px 30px -14px rgba(2,8,20,0.5);">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px;">
+          <div>
+            <div style="font-size:11.5px;color:#93a2b7;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Beneficio real del mes</div>
+            <div style="font-size:38px;font-weight:800;line-height:1;letter-spacing:-0.02em;color:${colorMes};font-variant-numeric:tabular-nums;">${cm(beneficioRealTotal)}</div>
+          </div>
+          <div style="text-align:right;color:#c7d3e6;font-size:12px;line-height:1.7;">
+            ${isFinite(mejor.beneficio) && mejor.dia ? `Mejor día · <strong style="color:#fff;">${fmt(mejor.beneficio)} €</strong> (${mejor.dia}/${mes})<br>` : ''}
+            ${isFinite(peor.beneficio) && peor.dia ? `Peor día · <strong style="color:#fff;">${fmt(peor.beneficio)} €</strong> (${peor.dia}/${mes})` : ''}
           </div>
         </div>
-    ` : '';
 
-    const headerHTML = `
-        ${puntoEquilibrioHTML}
-        <div style="background: ${finalBg}; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
-          <div style="text-align: center; font-size: 13px; color: ${finalColor}; font-weight: 600; margin-bottom: 8px;">
-            ${finalIcon} ${window.t('balance:net_profit_operating')} <strong>${cm(acumulado)}</strong>
-          </div>
-          ${gastosPendientesHTML}
-          <div style="text-align: center; font-size: 14px; font-weight: 700; color: ${beneficioRealTotal >= 0 ? '#059669' : '#dc2626'}; padding: 8px; background: white; border-radius: 6px; margin-bottom: 8px;">
-            ${window.t('balance:net_profit_real')} ${cm(beneficioRealTotal)}
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
-            <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
-              <div style="color: #64748B;">${window.t('balance:net_profit_operating_days')}</div>
-              <div style="color: #1e293b; font-weight: 700;">${diasConDatos} ${window.t('balance:net_profit_of')} ${ultimoDiaMostrar}</div>
-            </div>
-            <div style="text-align: center; padding: 6px; background: white; border-radius: 6px;">
-              <div style="color: #64748B;">${window.t('balance:net_profit_projection')}</div>
-              <div style="color: ${proyeccionFinMes >= 0 ? '#059669' : '#dc2626'}; font-weight: 700;">${cm(proyeccionFinMes)}</div>
-            </div>
-          </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 10px 8px;overflow-x:auto;">
+          <div style="display:flex;gap:8px;min-width:${anchoMin}px;">${barrasHTML}</div>
+          <div style="display:flex;gap:8px;min-width:${anchoMin}px;margin-top:10px;">${ejeHTML}</div>
         </div>
-      `;
 
-    container.innerHTML = headerHTML + html;
+        <div style="display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:11.5px;color:#93a2b7;">
+          <span><i style="width:10px;height:10px;border-radius:3px;display:inline-block;background:#10b981;margin-right:5px;vertical-align:-1px;"></i>Día en beneficio</span>
+          <span><i style="width:10px;height:10px;border-radius:3px;display:inline-block;background:#ef4444;margin-right:5px;vertical-align:-1px;"></i>Día en pérdida</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px;">
+          ${stat(window.t('balance:net_profit_operating_days'), `${diasConDatos} / ${ultimoDiaMostrar}`, '#fff')}
+          ${stat('Acumulado', cm(beneficioRealTotal), colorMes)}
+          ${stat(window.t('balance:net_profit_projection'), cm(proyeccionFinMes), '#fff')}
+        </div>
+
+        ${notaHTML}
+      </div>
+    `;
 }
 
 // ✅ PRODUCTION FIX #1: Auto-refresh de JWT Token
