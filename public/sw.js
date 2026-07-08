@@ -178,7 +178,8 @@
 // BUMP v214: Punto de Equilibrio como bloque protagonista en Análisis (hero €/día + platos/día + 3 palancas margen/gastos/food cost, margen de contribución PONDERADO por ventas reales) + mini compacto en el Diario que consume el MISMO cálculo (window.mlBreakevenGetSnapshot) para que los números cuadren entre pantallas.
 // BUMP v215: rediseño del mini de Punto de Equilibrio en el Diario — de bloque oscuro pesado a tarjeta LIGERA tintada (verde/ámbar/rojo suave) integrada con el resto de la sección "Beneficio Neto por Día". Arreglado el 🎯🎯 doble (el título i18n ya traía el emoji). Números idénticos a Análisis (mismo snapshot).
 // BUMP v216: mini de Punto de Equilibrio del Diario con franja superior navy del branding CosteOS (número €/día en verde dinero) + cuerpo claro — quedaba demasiado blanco con el tinte de estado suave. Barra/faltan mantienen color de estado.
-const CACHE_NAME = 'mindloop-costos-v216';
+// BUMP v217: consejos de las 3 palancas del Punto de Equilibrio ahora INTELIGENTES (leen la BD, no plantillas): food cost nombra los platos que más suben la media, margen nombra los Caballos donde subir precio, prioridad "⭐ Empieza por aquí" en la palanca de mayor impacto. + botón "🦉 Pregúntale a Omnes cómo bajarlo" (deep-link al chat con la pregunta y el número ya redactados; falla suave si no hay add-on).
+const CACHE_NAME = 'mindloop-costos-v217';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

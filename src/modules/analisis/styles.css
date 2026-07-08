@@ -1001,6 +1001,28 @@
     margin-left: 4px;
 }
 
+.be-omnes-btn {
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #14294a 0%, #0f172a 100%);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.be-omnes-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -6px rgba(20, 41, 74, 0.6);
+    background: linear-gradient(135deg, #14294a 0%, #b45309 130%);
+}
+
 @media (max-width: 700px) {
     .be-hero__number { font-size: 36px; }
     .be-hero { padding: 18px; }
