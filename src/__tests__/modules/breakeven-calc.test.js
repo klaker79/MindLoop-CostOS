@@ -14,18 +14,20 @@ describe('computeBreakeven — fórmula ponderada', () => {
     // unidades = 400
     // margen ponderado = (6*100 + 14*300) / 400 = (600+4200)/400 = 12
     // ticket medio    = (10*100 + 20*300) / 400 = (1000+6000)/400 = 17,5
-    // food medio      = (40*100 + 30*300) / 400 = (4000+9000)/400 = 32,5
+    // food cost = COGS/ingresos: COGS = (4*100 + 6*300)=2200; ingresos=7000 → 31,43%
+    //   (NO la media de % ponderada por unidades, que daría 32,5% — método erróneo)
     const platos = [
         { precio_venta: 10, foodCost: 40, margen: 6, popularidad: 100 },
         { precio_venta: 20, foodCost: 30, margen: 14, popularidad: 300 }
     ];
 
-    test('margen/ticket/food ponderados por ventas (no promedio simple)', () => {
+    test('margen/ticket ponderados por ventas + food cost = COGS/ingresos', () => {
         const s = computeBreakeven({ platos, gastosFijosMes: 12000 });
         expect(s.estado).toBe('ok');
         expect(s.margenPonderado).toBeCloseTo(12, 6);
         expect(s.ticketMedio).toBeCloseTo(17.5, 6);
-        expect(s.foodCostMedio).toBeCloseTo(32.5, 6);
+        // COGS/ingresos = (7000-4800)/7000 = 2200/7000 = 31,4286%
+        expect(s.foodCostMedio).toBeCloseTo(31.4286, 3);
     });
 
     test('punto de equilibrio en platos = ceil(gastos / margen ponderado)', () => {

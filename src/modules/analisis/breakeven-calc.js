@@ -97,11 +97,16 @@ export function computeBreakeven({ platos, gastosFijosMes, diasServicio = DIAS_S
     // Ponderados por unidades vendidas (mix real).
     const sumMargen = conVentas.reduce((s, p) => s + num(p.margen) * unidadesDe(p), 0);
     const sumTicket = conVentas.reduce((s, p) => s + num(p.precio_venta) * unidadesDe(p), 0);
-    const sumFood = conVentas.reduce((s, p) => s + num(p.foodCost) * unidadesDe(p), 0);
 
     const margenPonderado = sumMargen / unidades;   // € de contribución por plato vendido
     const ticketMedio = sumTicket / unidades;       // € de venta por plato
-    const foodCostMedio = sumFood / unidades;       // %
+
+    // Food cost = COGS / ingresos (coste total ÷ ventas totales), IGUAL que el
+    // KPI canónico del dashboard (food-cost.js → /analytics/pnl-breakdown).
+    // NO la media de porcentajes ponderada por unidades: eso da otro número
+    // (un plato caro con food cost bajo pesa distinto) y no cuadraba con la app.
+    // COGS = ingresos − margen (el margen ya es contribución = precio − coste).
+    const foodCostMedio = sumTicket > 0 ? ((sumTicket - sumMargen) / sumTicket) * 100 : 0; // %
 
     if (margenPonderado <= 0) {
         return {
