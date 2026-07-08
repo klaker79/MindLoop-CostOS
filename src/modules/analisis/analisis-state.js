@@ -128,24 +128,25 @@ export async function getOmnes({ force = false } = {}) {
 
 /**
  * Devuelve el food cost canónico GLOBAL (comida + bebida) del MISMO endpoint
- * que usa el KPI del dashboard y Omnes (/analytics/pnl-breakdown), para TODO el
- * histórico. Se calcula como (cogs_food + cogs_beverage) / (ing_food +
+ * que usa el KPI del dashboard y Omnes (/analytics/pnl-breakdown), para el rango
+ * {desde, hasta} que se le pase (el break-even usa una VENTANA MÓVIL de 90 días,
+ * no el histórico). Se calcula como (cogs_food + cogs_beverage) / (ing_food +
  * ing_beverage) × 100 — EXACTAMENTE la misma fórmula que Omnes (fc_total), para
- * que el food cost del Punto de Equilibrio sea el MISMO número que Omnes (34,2%
- * en La Nave 5), no el de comida sola (33,5%). Un punto de equilibrio va sobre
- * TODA la facturación (comida + bebida), así que el food cost correcto es el
- * global. Devuelve null si falla (el break-even cae a su cálculo propio).
+ * que el food cost del Punto de Equilibrio sea el MISMO número que Omnes para ese
+ * mismo periodo. Un punto de equilibrio va sobre TODA la facturación (comida +
+ * bebida) → el food cost correcto es el global. null si falla.
+ * @param {Object} [opts] - { desde, hasta } ISO. Si faltan, usa todo el histórico.
  */
-export async function getFoodCostCanonical({ force = false } = {}) {
+export async function getFoodCostCanonical({ force = false, desde, hasta } = {}) {
     if (!force && !isExpired(state.pnl)) return state.pnl.data;
-    // Histórico completo (mismo periodo por defecto que el resto del bloque y que
-    // Omnes cuando le preguntas "food cost histórico").
-    const hoy = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-    const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-    const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
-    const desde = '2000-01-01';
-    const hasta = iso(manana);
+    if (!desde || !hasta) {
+        const hoy = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
+        desde = '2000-01-01';
+        hasta = iso(manana);
+    }
     try {
         const resp = await apiClient.get(`/analytics/pnl-breakdown?desde=${desde}&hasta=${hasta}`);
         // Global = (COGS comida + COGS bebida) / (ingresos comida + ingresos
