@@ -377,18 +377,38 @@ export async function marcarProveedorPrincipal(ingredienteId, proveedorId) {
         if (resp?.precio_sync_omitido) {
             // El guard ±70% frenó el volcado a la ficha: avisar para que Iker/cocina revise.
             showToast(t('ingredientes:suppliers_sync_skipped'), 'warning');
+        } else if (resp?.formato_propagado) {
+            // El formato del proveedor principal se copió al ingrediente → ya aplica a pedidos/inventario.
+            showToast(t('ingredientes:suppliers_format_propagated'), 'success');
         } else {
             showToast(t('ingredientes:suppliers_marked_main'), 'success');
         }
 
-        // Recargar lista
+        // Recargar lista + refrescar ingredientes globales (el formato/precio del ingrediente
+        // puede haber cambiado → pedidos e inventario deben verlo al momento).
         await cargarProveedoresIngrediente(ingredienteId);
+        await refrescarIngredientesGlobal();
 
         window.hideLoading?.();
     } catch (error) {
         window.hideLoading?.();
         console.error('Error marcando proveedor como principal:', error);
         showToast(t('ingredientes:suppliers_error_updating'), 'error');
+    }
+}
+
+/**
+ * Refresca window.ingredientes desde el backend tras propagar formato/precio del proveedor
+ * principal, para que el resto de pestañas (pedidos, inventario) usen el dato actualizado.
+ * Silencioso: si falla, no bloquea el flujo del modal.
+ */
+async function refrescarIngredientesGlobal() {
+    try {
+        if (window.api?.getIngredientes) {
+            window.ingredientes = await window.api.getIngredientes();
+        }
+    } catch (e) {
+        console.warn('No se pudo refrescar ingredientes tras cambio de proveedor:', e?.message);
     }
 }
 
@@ -427,12 +447,15 @@ export async function editarPrecioProveedor(ingredienteId, proveedorId, precioAc
 
         if (resp?.precio_sync_omitido) {
             showToast(t('ingredientes:suppliers_sync_skipped'), 'warning');
+        } else if (resp?.formato_propagado) {
+            showToast(t('ingredientes:suppliers_format_propagated'), 'success');
         } else {
             showToast(t('ingredientes:suppliers_price_updated'), 'success');
         }
 
-        // Recargar lista
+        // Recargar lista + refrescar ingredientes globales
         await cargarProveedoresIngrediente(ingredienteId);
+        await refrescarIngredientesGlobal();
 
         window.hideLoading?.();
     } catch (error) {
