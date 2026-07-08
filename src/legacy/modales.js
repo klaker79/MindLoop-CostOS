@@ -496,28 +496,25 @@ async function renderizarBeneficioNetoDiario() {
             + `</div>`;
     }).join('');
 
-    const ejeHTML = barras.map(b => `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;">${b.dia}</span>`).join('');
-
-    // Línea de ACUMULADO del mes sobre las barras: sube cuando ganas, baja
-    // cuando pierdes → es lo que antes mostraba la lista día a día (el arrastre).
-    // Escala propia (el acumulado crece más que un día suelto), etiquetada aparte.
+    // Acumulado del mes (arrastre día a día): sube cuando ganas, baja cuando pierdes.
     let _acc = 0;
     const acumulados = barras.map(b => (_acc += b.beneficio));
     const maxAbsCum = Math.max(1, ...acumulados.map(v => Math.abs(v)));
     const nCol = barras.length || 1;
     const xPct = (i) => ((i + 0.5) / nCol) * 100;      // % del ancho
-    const yPx = (v) => 90 - (v / maxAbsCum) * 72;      // alto barras 180px, centro 90; ±72 deja margen arriba/abajo para los chips
+    const yPx = (v) => 90 - (v / maxAbsCum) * 74;      // alto barras 180px, centro 90
     const puntosLinea = acumulados.map((v, i) => `${xPct(i).toFixed(2)},${yPx(v).toFixed(2)}`).join(' ');
     const lineaSVG = `<svg viewBox="0 0 100 180" preserveAspectRatio="none" style="position:absolute;top:0;left:0;width:100%;height:180px;pointer-events:none;overflow:visible;"><polyline points="${puntosLinea}" fill="none" stroke="#7dd3fc" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
-    const dotsHTML = acumulados.map((v, i) => {
-        const cy = yPx(v);
-        // Si el punto está muy arriba, el chip va DEBAJO (si no, se corta por el borde);
-        // si está muy abajo, va ENCIMA. En el resto, encima.
-        const posChip = cy < 30 ? 'top:12px' : 'bottom:11px';
-        const etq = mostrarEtiquetas
-            ? `<span style="position:absolute;left:50%;${posChip};transform:translateX(-50%);white-space:nowrap;font-size:9.5px;font-weight:700;color:#bae6fd;background:rgba(15,23,42,0.85);padding:1px 5px;border-radius:5px;">${fmt(v)}</span>`
-            : '';
-        return `<div title="Acumulado ${barras[i].dia}/${mes}: ${cm(v)}" style="position:absolute;left:${xPct(i).toFixed(2)}%;top:${cy.toFixed(2)}px;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#7dd3fc;border:2px solid #0f172a;">${etq}</div>`;
+    // Puntos de la línea SIN número encima: la cifra del acumulado va en una fila
+    // DEBAJO del eje (azul), para que NUNCA se pise con la cifra del día (que va
+    // pegada a la barra). El valor por día sigue disponible en el tooltip del punto.
+    const dotsHTML = acumulados.map((v, i) => `<div title="Acumulado ${barras[i].dia}/${mes}: ${cm(v)}" style="position:absolute;left:${xPct(i).toFixed(2)}%;top:${yPx(v).toFixed(2)}px;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#7dd3fc;border:2px solid #0f172a;"></div>`).join('');
+
+    // Eje: número del día + DEBAJO el acumulado hasta ese día (en azul, igual que
+    // la línea). Fuera del área del gráfico → nunca choca con la cifra del día.
+    const ejeHTML = barras.map((b, i) => {
+        const accTxt = mostrarEtiquetas ? `<br><span style="color:#7dd3fc;font-weight:700;font-variant-numeric:tabular-nums;">${fmt(acumulados[i])}</span>` : '';
+        return `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;line-height:1.4;">${b.dia}${accTxt}</span>`;
     }).join('');
 
     const notaHTML = diasSinActividad > 0
