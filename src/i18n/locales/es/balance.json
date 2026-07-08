@@ -162,7 +162,7 @@
   "cashflow_note": "💡 <strong>Nota:</strong> Las compras aumentan tu inventario (activo). El coste de producción refleja lo que realmente consumiste al vender.",
   "net_profit_operating": "Beneficio días operativos:",
   "net_profit_inactive_days": "{{count}} días sin actividad",
-  "net_profit_pending": "{{amount}}€ pendientes de cubrir",
+  "net_profit_pending": "{{amount}}€ de gastos fijos NO descontados (no cargan sin ventas)",
   "net_profit_real": "📊 Beneficio REAL:",
   "net_profit_operating_days": "📅 Días operativos",
   "net_profit_projection": "🎯 Proyección mes",
@@ -182,5 +182,6 @@
   "rec_more_data": "📊 Registra más ventas para obtener recomendaciones personalizadas.",
   "supplier_title": "📦 Compras por Proveedor / Día",
   "supplier_col_name": "Proveedor",
-  "supplier_total_day": "TOTAL / DÍA"
+  "supplier_total_day": "TOTAL / DÍA",
+  "diario_food_cost_scope": "comida · mes en curso"
 }

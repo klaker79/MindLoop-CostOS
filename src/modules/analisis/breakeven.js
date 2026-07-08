@@ -47,9 +47,10 @@ function ensureHost() {
 }
 
 /**
- * Suma los gastos fijos OPERATIVOS del mes desde el backend (excluye impuestos:
- * IVA, IRPF, IAE, Sociedades…). Los impuestos no son coste operativo y meterlos
- * infla el punto de equilibrio (ver sumaGastosOperativos/esImpuesto).
+ * Suma los gastos fijos OPERATIVOS del mes desde el backend: excluye SOLO los
+ * impuestos NO operativos (IVA, IGIC, IRPF, Sociedades). El IAE, IBI, tasas y
+ * licencias SÍ cuentan — son gasto de explotación, se pagan vendas o no
+ * (ver sumaGastosOperativos/esImpuestoNoOperativo en breakeven-calc.js).
  */
 async function fetchGastosFijosMes() {
     try {
@@ -88,6 +89,10 @@ export async function getBreakevenSnapshot() {
     const platos = Array.isArray(platosRaw) ? platosRaw : [];
     const snap = computeBreakeven({ platos, gastosFijosMes, foodCostCanonical, diasServicio: DIAS_SERVICIO_MES_DEFAULT });
     snap.platosVentana = platos;
+    // Ventana explícita del snapshot: la usa la pregunta a Omnes para que sus
+    // tools de platos analicen el MISMO periodo (no el histórico) — el relato
+    // completo (break-even + platos) habla de la misma ventana de 90 días.
+    snap.ventana = { desde, hasta };
     return snap;
 }
 

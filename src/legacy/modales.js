@@ -432,8 +432,14 @@ async function renderizarBeneficioNetoDiario() {
         const comidaDia = (window.plComidaPersonalPorDia && window.plComidaPersonalPorDia[_ymd]) || 0;
         const extraDia = (window.plPersonalExtraPorDia && window.plPersonalExtraPorDia[_ymd]) || 0;
 
-        // Siempre restamos gastos fijos + gastos operativos del día (enfoque contable real)
-        const beneficioNeto = ingresos - costos - mermaDia - comidaDia - extraDia - gastosFijosDia;
+        // 📐 Criterio Iker 2026-07-08 (el MISMO que la Cuenta de Resultados):
+        // el gasto fijo diario se descuenta SOLO en los días con ventas; un día
+        // cerrado no carga fijos. Así el acumulado de este widget cuadra con el
+        // TOTAL MES de la tabla P&L y con Omnes (resumen_pyg, mismo criterio).
+        // Los gastos CON FECHA de un día cerrado (mermas, comida personal,
+        // extras) sí restan: son dinero real de ese día.
+        const fijosDelDia = tieneActividad ? gastosFijosDia : 0;
+        const beneficioNeto = ingresos - costos - mermaDia - comidaDia - extraDia - fijosDelDia;
         beneficioRealTotal += beneficioNeto;
 
         if (tieneActividad) {
@@ -452,8 +458,9 @@ async function renderizarBeneficioNetoDiario() {
         const colorAcumulado = beneficioRealTotal >= 0 ? '#10b981' : '#ef4444';
 
         if (!tieneActividad) {
-            // Día cerrado - muestra el neto del día (gastos fijos + cualquier gasto
-            // operativo de ese día: mermas, comida personal o personal extra).
+            // Día cerrado — sin gasto fijo (criterio 2026-07-08). Solo muestra
+            // gastos CON FECHA de ese día (mermas, comida personal, extras),
+            // normalmente 0.
             icono = '🔘';
             estiloFecha = 'color: #9ca3af; font-size: 13px;';
             beneficioTexto = `<span style="color: #ef4444; font-size: 11px; margin-left: 8px;">${cm(beneficioNeto)}</span>`;
