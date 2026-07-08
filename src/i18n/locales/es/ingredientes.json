@@ -169,6 +169,7 @@
   "suppliers_format_price": "Precio del formato (€)",
   "suppliers_format_incomplete": "Completa el formato: nombre, unidades que trae (>0) y precio del formato.",
   "suppliers_sync_skipped": "Proveedor guardado, pero el precio del ingrediente NO se actualizó: el nuevo se aparta más de un 70% del actual. Revísalo por si es un error de formato.",
+  "suppliers_format_propagated": "Proveedor principal actualizado. Su formato ya se aplica también a pedidos e inventario.",
   "import_modal_title": "Importar Ingredientes desde Excel",
   "import_columns_hint": "Sube un archivo Excel (.xlsx) o CSV con las columnas:",
   "import_preview_title": "Vista Previa de Ingredientes",

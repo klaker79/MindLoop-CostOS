@@ -152,6 +152,7 @@
   "suppliers_format_price": "规格价格（€）",
   "suppliers_format_incomplete": "请完整填写规格：名称、包含数量（>0）和规格价格。",
   "suppliers_sync_skipped": "供应商已保存，但食材价格未更新：新价格与当前价格相差超过70%。请检查是否为规格录入错误。",
+  "suppliers_format_propagated": "主供应商已更新。其规格现已同样应用于订单和库存。",
   "import_modal_title": "从 Excel 导入食材",
   "import_columns_hint": "上传 Excel (.xlsx) 或 CSV 文件，包含以下列：",
   "import_preview_title": "食材预览",
