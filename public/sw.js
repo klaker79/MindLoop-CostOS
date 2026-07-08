@@ -188,7 +188,8 @@
 // BUMP v224: el food cost del punto de equilibrio muestra el GLOBAL (comida+bebida) histórico = MISMA fórmula y número que Omnes (34,2% en La Nave 5), no el de comida sola. Un punto de equilibrio va sobre toda la facturación → food cost global. Calculado como (cogs_food+cogs_bev)/(ing_food+ing_bev) desde /analytics/pnl-breakdown, idéntico a fc_total de Omnes.
 // BUMP v225: la pregunta a Omnes cita el food cost con 1 decimal (35,6%) igual que la tarjeta del bloque — antes lo redondeaba a 36% y parecía descuadre.
 // BUMP v226: gastos fijos OPERATIVOS (de explotación) en TODO el P&L y el punto de equilibrio — excluye solo impuestos NO operativos (IVA/IGIC/IRPF/Sociedades) y MANTIENE el IAE/IBI/tasas. La Nave 5: 45.645€ (lista, sin tocar) → 40.406,58€ operativos (P&L beneficio + Cuenta de Resultados + equilibrio + Omnes cuadran). + ⓘ discreto que explica qué cuenta y por qué. Regla: "si mañana no vendes ni un café, ¿lo pagarías?".
-const CACHE_NAME = 'mindloop-costos-v226';
+// BUMP v227: la Cuenta de Resultados (P&L Diario) del MES EN CURSO prorratea los gastos fijos a los días transcurridos, no al mes entero — antes restaba el mes completo de fijos contra ventas parciales y salía una pérdida FALSA a mitad de mes (La Nave 5: −29.582€ engañoso con 4 días de ventas). Los meses pasados se cuentan completos, igual que antes.
+const CACHE_NAME = 'mindloop-costos-v227';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
