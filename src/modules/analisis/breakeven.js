@@ -104,6 +104,13 @@ function progresoDelMes(breakevenPlatosMes, ticketMedio) {
     const drm = typeof window !== 'undefined' ? window.datosResumenMensual : null;
     const recetas = drm?.ventas?.recetas;
     if (!recetas || !breakevenPlatosMes) return null;
+    // La barra dice "Mes en curso": solo se muestra si lo que hay cargado en el
+    // Diario ES el mes actual. Si el usuario cargó un mes pasado, sus unidades
+    // saldrían aquí etiquetadas como "mes en curso" (auditoría 2026-07-08).
+    const hoy = new Date();
+    const esMesActual = parseInt(drm.mes) === hoy.getMonth() + 1
+        && parseInt(drm.ano) === hoy.getFullYear();
+    if (!esMesActual) return null;
     let unidadesMes = 0;
     for (const nombre in recetas) {
         unidadesMes += parseFloat(recetas[nombre]?.totalVendidas) || 0;

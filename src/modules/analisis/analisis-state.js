@@ -138,7 +138,6 @@ export async function getOmnes({ force = false } = {}) {
  * @param {Object} [opts] - { desde, hasta } ISO. Si faltan, usa todo el histórico.
  */
 export async function getFoodCostCanonical({ force = false, desde, hasta } = {}) {
-    if (!force && !isExpired(state.pnl)) return state.pnl.data;
     if (!desde || !hasta) {
         const hoy = new Date();
         const pad = (n) => String(n).padStart(2, '0');
@@ -147,6 +146,13 @@ export async function getFoodCostCanonical({ force = false, desde, hasta } = {})
         desde = '2000-01-01';
         hasta = iso(manana);
     }
+    // ⚠️ La cache va INDEXADA por periodo: el food cost DEPENDE del rango
+    // (mes 31,5% vs 90d 34,2% en La Nave 5). Sin la clave, un segundo caller
+    // con otro rango dentro del TTL recibía en silencio el número de un
+    // periodo distinto — justo la clase de descuadre prohibida
+    // (feedback_datos_cuadran_entre_pestanas). Auditoría 2026-07-08.
+    const cacheKey = `${desde}|${hasta}`;
+    if (!force && !isExpired(state.pnl) && state.pnl.key === cacheKey) return state.pnl.data;
     try {
         const resp = await apiClient.get(`/analytics/pnl-breakdown?desde=${desde}&hasta=${hasta}`);
         // Global = (COGS comida + COGS bebida) / (ingresos comida + ingresos
@@ -156,7 +162,7 @@ export async function getFoodCostCanonical({ force = false, desde, hasta } = {})
         const cogs = (parseFloat(f.cogs) || 0) + (parseFloat(b.cogs) || 0);
         const ing = (parseFloat(f.ingresos) || 0) + (parseFloat(b.ingresos) || 0);
         const val = ing > 0 ? Math.round((cogs / ing) * 1000) / 10 : null; // 1 decimal, como Omnes
-        state.pnl = { data: val, ts: Date.now() };
+        state.pnl = { data: val, ts: Date.now(), key: cacheKey };
         return val;
     } catch (e) {
         console.warn('[analisis] pnl-breakdown (food cost canónico) falló:', e?.message);

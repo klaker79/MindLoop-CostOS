@@ -506,6 +506,15 @@ async function renderizarBeneficioNetoDiario() {
             const progreso = Math.min(100, (unidadesMes / be) * 100);
             const faltantes = Math.max(0, be - unidadesMes);
             const faltantesEuros = faltantes * snap.ticketMedio;
+            // Etiqueta honesta del periodo: "este mes" SOLO si lo cargado es el
+            // mes actual; si el usuario cargó un mes pasado, se nombra (07/2026).
+            const _drmMini = window.datosResumenMensual || {};
+            const _hoyMini = new Date();
+            const _esMesActualMini = parseInt(_drmMini.mes) === _hoyMini.getMonth() + 1
+                && parseInt(_drmMini.ano) === _hoyMini.getFullYear();
+            const etiquetaMes = _esMesActualMini
+                ? 'este mes'
+                : `en ${String(_drmMini.mes || '?').padStart(2, '0')}/${_drmMini.ano || ''}`;
             // Franja superior navy del branding CosteOS (número €/día en verde
             // dinero) + cuerpo claro. La barra y el "faltan" llevan el color de
             // estado (verde/ámbar/rojo) según el progreso.
@@ -525,7 +534,7 @@ async function renderizarBeneficioNetoDiario() {
                     <div style="background: ${accent}; height: 100%; width: ${progreso}%; border-radius: 999px; transition: width 0.5s;"></div>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; color: #64748b;">
-                    <span><strong style="color: #1e293b;">${unidadesMes.toLocaleString('es-ES')}</strong> / ${be.toLocaleString('es-ES')} platos este mes · ${progreso.toFixed(0)}%</span>
+                    <span><strong style="color: #1e293b;">${unidadesMes.toLocaleString('es-ES')}</strong> / ${be.toLocaleString('es-ES')} platos ${etiquetaMes} · ${progreso.toFixed(0)}%</span>
                     <span>${pie}</span>
                   </div>
                   <div style="margin-top: 7px; font-size: 11px; color: #94a3b8;">Detalle y palancas en la pestaña Análisis →</div>

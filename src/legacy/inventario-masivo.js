@@ -2429,15 +2429,22 @@ window.actualizarKPIsDiario = async function () {
             const dd = String(d.getDate()).padStart(2, '0');
             return `${yyyy}-${mm}-${dd}`;
         };
-        const ahora = new Date();
-        let desde = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-        let hasta = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 1);
+        // 📅 Mes SELECCIONADO en el Diario (no el mes actual): las tablas de
+        // abajo (cargarResumenMensual) y el gasto fijo/día ya usan el selector
+        // diario-mes/diario-ano; los KPIs de cabecera lo ignoraban y siempre
+        // enseñaban el mes ACTUAL → si cargabas junio, las tablas decían junio
+        // y la cabecera julio (auditoría 2026-07-08). Fallback: mes actual.
+        const _hoyKpi = new Date();
+        const anoSel = parseInt(document.getElementById('diario-ano')?.value) || _hoyKpi.getFullYear();
+        const mesSel = parseInt(document.getElementById('diario-mes')?.value) || (_hoyKpi.getMonth() + 1);
+        let desde = new Date(anoSel, mesSel - 1, 1);
+        let hasta = new Date(anoSel, mesSel, 1);
         const sem = parseInt(window.diarioSemanaActiva);
         if (Number.isFinite(sem) && sem >= 1 && sem <= 5) {
             const minDia = (sem - 1) * 7 + 1;
             const maxDia = sem * 7; // pnl-breakdown usa hasta exclusivo, ver más abajo
-            desde = new Date(ahora.getFullYear(), ahora.getMonth(), minDia);
-            hasta = new Date(ahora.getFullYear(), ahora.getMonth(), maxDia + 1);
+            desde = new Date(anoSel, mesSel - 1, minDia);
+            hasta = new Date(anoSel, mesSel - 1, maxDia + 1);
         }
         const desdeStr = toLocalDate(desde);
         const hastaStr = toLocalDate(hasta);
