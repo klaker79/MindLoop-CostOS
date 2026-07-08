@@ -483,8 +483,10 @@ async function renderizarBeneficioNetoDiario() {
         const positivo = b.beneficio >= 0 && b.activo;
         const grad = positivo ? 'linear-gradient(180deg,#34d399,#10b981)' : 'linear-gradient(180deg,#ef4444,#b91c1c)';
         const radio = positivo ? '5px 5px 2px 2px' : '2px 2px 5px 5px';
+        // Número del DÍA dentro de la barra (blanco), para no chocar con el chip
+        // azul del acumulado que va sobre la línea.
         const etiqueta = mostrarEtiquetas
-            ? `<span style="position:absolute;left:50%;transform:translateX(-50%);${positivo ? 'top:-15px;color:#34d399;' : 'bottom:-15px;color:#f87171;'}font-size:10px;font-weight:700;white-space:nowrap;">${fmt(b.beneficio)}</span>`
+            ? `<span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#fff;font-size:9.5px;font-weight:800;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.4);">${fmt(b.beneficio)}</span>`
             : '';
         const barra = `<div title="${b.dia}/${mes}: ${cm(b.beneficio)}" style="width:72%;max-width:30px;height:${h}%;background:${grad};opacity:${b.activo ? '1' : '0.5'};border-radius:${radio};position:relative;">${etiqueta}</div>`;
         return `<div style="flex:1;min-width:20px;display:flex;flex-direction:column;height:180px;">`
@@ -503,14 +505,18 @@ async function renderizarBeneficioNetoDiario() {
     const maxAbsCum = Math.max(1, ...acumulados.map(v => Math.abs(v)));
     const nCol = barras.length || 1;
     const xPct = (i) => ((i + 0.5) / nCol) * 100;      // % del ancho
-    const yPx = (v) => 90 - (v / maxAbsCum) * 86;      // alto de barras = 180px, centro = 90
+    const yPx = (v) => 90 - (v / maxAbsCum) * 72;      // alto barras 180px, centro 90; ±72 deja margen arriba/abajo para los chips
     const puntosLinea = acumulados.map((v, i) => `${xPct(i).toFixed(2)},${yPx(v).toFixed(2)}`).join(' ');
     const lineaSVG = `<svg viewBox="0 0 100 180" preserveAspectRatio="none" style="position:absolute;top:0;left:0;width:100%;height:180px;pointer-events:none;overflow:visible;"><polyline points="${puntosLinea}" fill="none" stroke="#7dd3fc" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
     const dotsHTML = acumulados.map((v, i) => {
+        const cy = yPx(v);
+        // Si el punto está muy arriba, el chip va DEBAJO (si no, se corta por el borde);
+        // si está muy abajo, va ENCIMA. En el resto, encima.
+        const posChip = cy < 30 ? 'top:12px' : 'bottom:11px';
         const etq = mostrarEtiquetas
-            ? `<span style="position:absolute;left:50%;bottom:11px;transform:translateX(-50%);white-space:nowrap;font-size:9.5px;font-weight:700;color:#bae6fd;background:rgba(15,23,42,0.8);padding:1px 5px;border-radius:5px;">${fmt(v)}</span>`
+            ? `<span style="position:absolute;left:50%;${posChip};transform:translateX(-50%);white-space:nowrap;font-size:9.5px;font-weight:700;color:#bae6fd;background:rgba(15,23,42,0.85);padding:1px 5px;border-radius:5px;">${fmt(v)}</span>`
             : '';
-        return `<div title="Acumulado ${barras[i].dia}/${mes}: ${cm(v)}" style="position:absolute;left:${xPct(i).toFixed(2)}%;top:${yPx(v).toFixed(2)}px;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#7dd3fc;border:2px solid #0f172a;">${etq}</div>`;
+        return `<div title="Acumulado ${barras[i].dia}/${mes}: ${cm(v)}" style="position:absolute;left:${xPct(i).toFixed(2)}%;top:${cy.toFixed(2)}px;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#7dd3fc;border:2px solid #0f172a;">${etq}</div>`;
     }).join('');
 
     const notaHTML = diasSinActividad > 0
