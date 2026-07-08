@@ -495,6 +495,19 @@ async function renderizarBeneficioNetoDiario() {
 
     const ejeHTML = barras.map(b => `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;">${b.dia}</span>`).join('');
 
+    // Línea de ACUMULADO del mes sobre las barras: sube cuando ganas, baja
+    // cuando pierdes → es lo que antes mostraba la lista día a día (el arrastre).
+    // Escala propia (el acumulado crece más que un día suelto), etiquetada aparte.
+    let _acc = 0;
+    const acumulados = barras.map(b => (_acc += b.beneficio));
+    const maxAbsCum = Math.max(1, ...acumulados.map(v => Math.abs(v)));
+    const nCol = barras.length || 1;
+    const xPct = (i) => ((i + 0.5) / nCol) * 100;      // % del ancho
+    const yPx = (v) => 90 - (v / maxAbsCum) * 86;      // alto de barras = 180px, centro = 90
+    const puntosLinea = acumulados.map((v, i) => `${xPct(i).toFixed(2)},${yPx(v).toFixed(2)}`).join(' ');
+    const lineaSVG = `<svg viewBox="0 0 100 180" preserveAspectRatio="none" style="position:absolute;top:0;left:0;width:100%;height:180px;pointer-events:none;overflow:visible;"><polyline points="${puntosLinea}" fill="none" stroke="#7dd3fc" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+    const dotsHTML = acumulados.map((v, i) => `<div title="Acumulado ${barras[i].dia}/${mes}: ${cm(v)}" style="position:absolute;left:${xPct(i).toFixed(2)}%;top:${yPx(v).toFixed(2)}px;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#7dd3fc;border:2px solid #0f172a;"></div>`).join('');
+
     const notaHTML = diasSinActividad > 0
         ? `<div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:9px 13px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:9px;color:#fcd9a0;font-size:12.5px;">⚠️ <span><strong style="color:#fde9c7;">${window.t('balance:net_profit_inactive_days', { count: diasSinActividad })}</strong> → ${window.t('balance:net_profit_pending', { amount: gastosPendientes.toFixed(2) })}</span></div>`
         : '';
@@ -515,13 +528,18 @@ async function renderizarBeneficioNetoDiario() {
         </div>
 
         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 10px 8px;overflow-x:auto;">
-          <div style="display:flex;gap:8px;min-width:${anchoMin}px;">${barrasHTML}</div>
+          <div style="position:relative;min-width:${anchoMin}px;">
+            <div style="display:flex;gap:8px;">${barrasHTML}</div>
+            ${lineaSVG}
+            ${dotsHTML}
+          </div>
           <div style="display:flex;gap:8px;min-width:${anchoMin}px;margin-top:10px;">${ejeHTML}</div>
         </div>
 
         <div style="display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:11.5px;color:#93a2b7;">
           <span><i style="width:10px;height:10px;border-radius:3px;display:inline-block;background:#10b981;margin-right:5px;vertical-align:-1px;"></i>Día en beneficio</span>
           <span><i style="width:10px;height:10px;border-radius:3px;display:inline-block;background:#ef4444;margin-right:5px;vertical-align:-1px;"></i>Día en pérdida</span>
+          <span><span style="display:inline-block;width:16px;height:0;border-top:2px solid #7dd3fc;margin-right:5px;vertical-align:3px;"></span>Acumulado del mes</span>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px;">
