@@ -5,7 +5,7 @@
  * borde. El margen de contribución es PONDERADO por ventas reales, no un
  * promedio simple — este test lo blinda.
  */
-import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, esImpuesto, sumaGastosOperativos } from '@modules/analisis/breakeven-calc.js';
+import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, esImpuestoNoOperativo, sumaGastosOperativos } from '@modules/analisis/breakeven-calc.js';
 
 describe('computeBreakeven — fórmula ponderada', () => {
     // 2 platos:
@@ -102,37 +102,38 @@ describe('esImpuesto / sumaGastosOperativos — La Nave 5 real', () => {
         { concepto: 'Sociedades', monto_mensual: 0 }
     ];
 
-    test('marca como impuesto SOLO IVA, IAE, IRPF, Sociedades', () => {
-        expect(esImpuesto('IVA')).toBe(true);
-        expect(esImpuesto('IAE')).toBe(true);
-        expect(esImpuesto('IRPF')).toBe(true);
-        expect(esImpuesto('Sociedades')).toBe(true);
-        expect(esImpuesto('Impuesto de Sociedades')).toBe(true);
-        expect(esImpuesto('IGIC')).toBe(true);
-        expect(esImpuesto('IBI')).toBe(true);
+    test('marca como NO operativo SOLO IVA/IGIC/IRPF/Sociedades (el IAE NO)', () => {
+        expect(esImpuestoNoOperativo('IVA')).toBe(true);
+        expect(esImpuestoNoOperativo('IGIC')).toBe(true);
+        expect(esImpuestoNoOperativo('IRPF')).toBe(true);
+        expect(esImpuestoNoOperativo('Sociedades')).toBe(true);
+        expect(esImpuestoNoOperativo('Impuesto de Sociedades')).toBe(true);
+        // IAE e IBI SÍ son gasto de explotación → NO son "no operativos"
+        expect(esImpuestoNoOperativo('IAE')).toBe(false);
+        expect(esImpuestoNoOperativo('IBI')).toBe(false);
     });
 
-    test('NO marca como impuesto los gastos operativos legítimos', () => {
+    test('NO marca como no operativo los gastos de explotación (incluido el IAE)', () => {
         ['Nóminas', 'Seguridad Social', 'Cuota préstamo', 'Alquiler', 'Comunidad',
          'Luz', 'Seguro local', 'Coche', 'Gas', 'Agua', 'Web/dominio', 'Comisión TPV',
-         'Gestoría', 'SGAE', 'Basura', 'Comisiones cuenta'].forEach(c => {
-            expect(esImpuesto(c)).toBe(false);
+         'Gestoría', 'SGAE', 'Basura', 'Comisiones cuenta', 'IAE'].forEach(c => {
+            expect(esImpuestoNoOperativo(c)).toBe(false);
         });
     });
 
-    test('suma operativa de La Nave 5 = 36.073,24€ (45.645,35 − 9.572,11 impuestos)', () => {
-        expect(sumaGastosOperativos(gastosNave5)).toBeCloseTo(36073.24, 2);
+    test('suma operativa de La Nave 5 = 40.406,58€ (45.645,35 − 5.238,77 [IVA+IRPF+Soc], IAE dentro)', () => {
+        expect(sumaGastosOperativos(gastosNave5)).toBeCloseTo(40406.58, 2);
     });
 
-    test('con impuestos fuera, el punto de equilibrio es realista', () => {
-        const operativos = sumaGastosOperativos(gastosNave5); // 36.073,24
+    test('con impuestos no operativos fuera, el punto de equilibrio es realista', () => {
+        const operativos = sumaGastosOperativos(gastosNave5); // 40.406,58
         // margen ponderado ~11,25 y ticket ~16,17 (datos reales La Nave 5)
         const platos = [{ precio_venta: 16.17, foodCost: 29, margen: 11.25, popularidad: 1000 }];
         const s = computeBreakeven({ platos, gastosFijosMes: operativos });
-        expect(s.breakevenPlatosMes).toBe(Math.ceil(36073.24 / 11.25)); // 3207
-        // ventas/día claramente por debajo de la facturación real (~2000€/día servicio)
-        expect(s.ventasEquilibrioDia).toBeLessThan(2100);
-        expect(s.ventasEquilibrioDia).toBeGreaterThan(1800);
+        expect(s.breakevenPlatosMes).toBe(Math.ceil(40406.58 / 11.25));
+        // ventas/día en el orden de la facturación real de servicio (~2000-2500)
+        expect(s.ventasEquilibrioDia).toBeGreaterThan(2000);
+        expect(s.ventasEquilibrioDia).toBeLessThan(2600);
     });
 });
 

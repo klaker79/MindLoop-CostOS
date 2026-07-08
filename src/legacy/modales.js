@@ -276,6 +276,26 @@ async function calcularTotalGastosFijos() {
     }
 }
 
+// ✅ Gastos fijos OPERATIVOS (de explotación): excluye impuestos NO operativos
+// (IVA/IGIC/IRPF/Sociedades) pero MANTIENE el IAE, IBI, tasas, licencias… Es lo
+// que debe alimentar el P&L (beneficio neto) y el punto de equilibrio, para que
+// ambos cuadren. Usa la MISMA regla que el bloque de Análisis
+// (window.mlSumaGastosOperativos). Si el módulo ESM aún no cargó, cae al total
+// completo (comportamiento antiguo) para no romper.
+async function calcularGastosFijosOperativos() {
+    try {
+        const gastos = await fetchGastosFijos();
+        if (!gastos || !Array.isArray(gastos)) return 0;
+        const suma = typeof window.mlSumaGastosOperativos === 'function'
+            ? window.mlSumaGastosOperativos(gastos)
+            : gastos.reduce((sum, g) => sum + (parseFloat(g.monto_mensual) || 0), 0);
+        return (isNaN(suma) || suma < 0) ? 0 : suma;
+    } catch (error) {
+        console.error('Error calculando gastos fijos operativos:', error);
+        return 0;
+    }
+}
+
 // Actualizar el display del total (usa la función centralizada)
 async function actualizarTotalGastosFijos() {
     try {
@@ -319,7 +339,9 @@ async function renderizarBeneficioNetoDiario() {
     }
 
     const dias = window.datosResumenMensual.dias;
-    let gastosFijosMes = await calcularTotalGastosFijos();
+    // P&L operativo: usa gastos fijos OPERATIVOS (sin IVA/IRPF/Sociedades), igual
+    // que el punto de equilibrio → el beneficio neto refleja la realidad y cuadra.
+    let gastosFijosMes = await calcularGastosFijosOperativos();
 
     // ✅ VALIDACIÓN DEFENSIVA: Prevenir NaN en todos los edge cases
     if (typeof gastosFijosMes !== 'number' || isNaN(gastosFijosMes) || gastosFijosMes < 0) {

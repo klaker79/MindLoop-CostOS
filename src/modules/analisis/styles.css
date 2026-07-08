@@ -1001,6 +1001,20 @@
     margin-left: 4px;
 }
 
+.be-why {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: #0f766e;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.be-why:hover { color: #0b5a54; }
+
 .be-omnes-btn {
     margin-top: 10px;
     display: inline-flex;

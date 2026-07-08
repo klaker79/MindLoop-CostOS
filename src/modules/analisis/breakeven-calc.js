@@ -21,40 +21,45 @@
 export const DIAS_SERVICIO_MES_DEFAULT = 26;
 
 /**
- * Impuestos que NO son gasto fijo operativo y por tanto NO cuentan para el
- * punto de equilibrio:
+ * Impuestos NO OPERATIVOS: los que NO son coste de explotación y por tanto NO
+ * cuentan en el P&L operativo ni en el punto de equilibrio.
  *   - IVA / IGIC: pass-through. Lo cobras al cliente y lo devuelves a Hacienda,
- *     no es un coste tuyo. Además escala con las ventas (no es fijo).
- *   - IRPF / Impuesto de Sociedades: tributos sobre el BENEFICIO — solo pagas si
- *     ganas. Meterlos en el equilibrio es circular.
- *   - IAE / IBI / otros tributos: impuestos, no coste operativo del servicio.
- * Meterlos infla el punto de equilibrio y da un número irreal (caso La Nave 5,
- * 2026-07-08: 45.645€ con impuestos vs 36.073€ operativos reales).
+ *     no es un coste tuyo (si no vendes, no lo pagas).
+ *   - IRPF (autónomo) / Impuesto de Sociedades: tributos sobre el BENEFICIO —
+ *     solo aparecen si ganas. Meterlos en el equilibrio es circular.
+ *
+ * SÍ cuentan (son gasto fijo de explotación, se pagan por tener el negocio
+ * abierto vendas o no, como el alquiler): IAE, IBI, tasas de basura, licencias,
+ * seguros… → NO están en esta lista.
+ *
+ * Regla mnemotécnica (Iker + validación contable 2026-07-08): "si mañana no
+ * vendes ni un café, ¿lo seguirías pagando?". Alquiler/seguro/IAE = sí (dentro).
+ * IVA/Sociedades/IRPF = no (fuera).
  *
  * Se detecta por PALABRA COMPLETA normalizada (sin acentos, minúsculas) para no
  * dar falsos positivos: "Seguridad Social" NO matchea "sociedades".
  */
-const TOKENS_IMPUESTO = new Set([
-    'iva', 'igic', 'irpf', 'iae', 'ibi', 'sociedades',
-    'impuesto', 'impuestos', 'tributo', 'tributos', 'hacienda'
+const TOKENS_IMPUESTO_NO_OPERATIVO = new Set([
+    'iva', 'igic', 'irpf', 'sociedades'
 ]);
 
-export function esImpuesto(concepto) {
+export function esImpuestoNoOperativo(concepto) {
     const norm = String(concepto || '')
         .toLowerCase()
         .normalize('NFD').replace(/[̀-ͯ]/g, '');
-    return norm.split(/[^a-z0-9]+/).some(p => p && TOKENS_IMPUESTO.has(p));
+    return norm.split(/[^a-z0-9]+/).some(p => p && TOKENS_IMPUESTO_NO_OPERATIVO.has(p));
 }
 
 /**
- * Suma SOLO los gastos fijos OPERATIVOS (excluye impuestos). Es lo que debe
- * alimentar el punto de equilibrio.
+ * Suma los gastos fijos DE EXPLOTACIÓN (operativos): excluye SOLO los impuestos
+ * no operativos (IVA/IGIC/IRPF/Sociedades). Es lo que alimenta el P&L y el punto
+ * de equilibrio. El IAE, IBI, tasas, licencias, etc. SÍ cuentan.
  * @param {Array} gastos - [{ concepto, monto_mensual }]
  */
 export function sumaGastosOperativos(gastos) {
     const arr = Array.isArray(gastos) ? gastos : [];
     return arr.reduce(
-        (s, g) => (esImpuesto(g.concepto) ? s : s + (parseFloat(g.monto_mensual) || 0)),
+        (s, g) => (esImpuestoNoOperativo(g.concepto) ? s : s + (parseFloat(g.monto_mensual) || 0)),
         0
     );
 }
