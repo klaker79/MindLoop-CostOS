@@ -506,7 +506,12 @@ async function renderizarBeneficioNetoDiario() {
     const yPx = (v) => 90 - (v / maxAbsCum) * 86;      // alto de barras = 180px, centro = 90
     const puntosLinea = acumulados.map((v, i) => `${xPct(i).toFixed(2)},${yPx(v).toFixed(2)}`).join(' ');
     const lineaSVG = `<svg viewBox="0 0 100 180" preserveAspectRatio="none" style="position:absolute;top:0;left:0;width:100%;height:180px;pointer-events:none;overflow:visible;"><polyline points="${puntosLinea}" fill="none" stroke="#7dd3fc" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
-    const dotsHTML = acumulados.map((v, i) => `<div title="Acumulado ${barras[i].dia}/${mes}: ${cm(v)}" style="position:absolute;left:${xPct(i).toFixed(2)}%;top:${yPx(v).toFixed(2)}px;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#7dd3fc;border:2px solid #0f172a;"></div>`).join('');
+    const dotsHTML = acumulados.map((v, i) => {
+        const etq = mostrarEtiquetas
+            ? `<span style="position:absolute;left:50%;bottom:11px;transform:translateX(-50%);white-space:nowrap;font-size:9.5px;font-weight:700;color:#bae6fd;background:rgba(15,23,42,0.8);padding:1px 5px;border-radius:5px;">${fmt(v)}</span>`
+            : '';
+        return `<div title="Acumulado ${barras[i].dia}/${mes}: ${cm(v)}" style="position:absolute;left:${xPct(i).toFixed(2)}%;top:${yPx(v).toFixed(2)}px;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#7dd3fc;border:2px solid #0f172a;">${etq}</div>`;
+    }).join('');
 
     const notaHTML = diasSinActividad > 0
         ? `<div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:9px 13px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:9px;color:#fcd9a0;font-size:12.5px;">⚠️ <span><strong style="color:#fde9c7;">${window.t('balance:net_profit_inactive_days', { count: diasSinActividad })}</strong> → ${window.t('balance:net_profit_pending', { amount: gastosPendientes.toFixed(2) })}</span></div>`
