@@ -189,6 +189,9 @@
 // BUMP v225: la pregunta a Omnes cita el food cost con 1 decimal (35,6%) igual que la tarjeta del bloque — antes lo redondeaba a 36% y parecía descuadre.
 // BUMP v226: gastos fijos OPERATIVOS (de explotación) en TODO el P&L y el punto de equilibrio — excluye solo impuestos NO operativos (IVA/IGIC/IRPF/Sociedades) y MANTIENE el IAE/IBI/tasas. La Nave 5: 45.645€ (lista, sin tocar) → 40.406,58€ operativos (P&L beneficio + Cuenta de Resultados + equilibrio + Omnes cuadran). + ⓘ discreto que explica qué cuenta y por qué. Regla: "si mañana no vendes ni un café, ¿lo pagarías?".
 // BUMP v227: la Cuenta de Resultados (P&L Diario) del MES EN CURSO prorratea los gastos fijos a los días transcurridos, no al mes entero — antes restaba el mes completo de fijos contra ventas parciales y salía una pérdida FALSA a mitad de mes (La Nave 5: −29.582€ engañoso con 4 días de ventas). Los meses pasados se cuentan completos, igual que antes.
+// BUMP v228: el Punto de Equilibrio (food cost, ticket, margen y pregunta a Omnes) usa una VENTANA MÓVIL de los últimos 90 días, no el histórico completo — un número de supervivencia debe reflejar la realidad reciente, no arrastrar precios/carta viejos. El mini del Diario usa el mismo snapshot → cuadran entre pestañas.
+// BUMP v229: FIX P&L Diario — el TOTAL MES de gastos fijos = gastoFijoDia × nº de días MOSTRADOS (columnas con datos), no × días de calendario transcurridos. Así el TOTAL cuadra EXACTO con la suma de los beneficios netos diarios (cada columna ya resta su gasto fijo). Antes salía 396€ en vez de 5.610€ = suma de las columnas (La Nave 5, 4 días).
+// BUMP v232: formato de compra por proveedor en el modal de Proveedores (unidad explícita €/unidad-base + bloque caja/bolsa que deriva el precio) + aviso del guard ±70% al marcar principal.
 const CACHE_NAME = 'mindloop-costos-v232';
 
 // Solo recursos GARANTIZADOS que existen en producción
