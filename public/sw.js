@@ -192,7 +192,8 @@
 // BUMP v228: el Punto de Equilibrio (food cost, ticket, margen y pregunta a Omnes) usa una VENTANA MÓVIL de los últimos 90 días, no el histórico completo — un número de supervivencia debe reflejar la realidad reciente, no arrastrar precios/carta viejos. El mini del Diario usa el mismo snapshot → cuadran entre pestañas.
 // BUMP v229: FIX P&L Diario — el TOTAL MES de gastos fijos = gastoFijoDia × nº de días MOSTRADOS (columnas con datos), no × días de calendario transcurridos. Así el TOTAL cuadra EXACTO con la suma de los beneficios netos diarios (cada columna ya resta su gasto fijo). Antes salía 396€ en vez de 5.610€ = suma de las columnas (La Nave 5, 4 días).
 // BUMP v232: formato de compra por proveedor en el modal de Proveedores (unidad explícita €/unidad-base + bloque caja/bolsa que deriva el precio) + aviso del guard ±70% al marcar principal.
-const CACHE_NAME = 'mindloop-costos-v232';
+// BUMP v233: el mini de "Punto de equilibrio" se quita del Diario y queda SOLO en Análisis — tenerlo junto al P&L mezclaba el gasto fijo/día (coste, ÷31 días) con el objetivo de ventas/día del equilibrio (÷26 días y descontando food cost) → confundía. El cálculo sigue en Análisis (window.mlBreakevenGetSnapshot). Solo se deja de renderizar el bloque en el Diario; no toca cálculos.
+const CACHE_NAME = 'mindloop-costos-v233';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
