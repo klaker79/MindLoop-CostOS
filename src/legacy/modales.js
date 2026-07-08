@@ -479,13 +479,16 @@ async function renderizarBeneficioNetoDiario() {
     const fmt = (n) => `${n >= 0 ? '+' : ''}${Math.round(n).toLocaleString('es-ES')}`;
 
     const barrasHTML = barras.map(b => {
-        const h = Math.max(2, Math.round((Math.abs(b.beneficio) / maxAbs) * 100));
+        const h = Math.max(2, Math.round((Math.abs(b.beneficio) / maxAbs) * 82)); // *82 (no 100): deja hueco arriba/abajo para la cifra del día pegada a la barra
         const positivo = b.beneficio >= 0 && b.activo;
         const grad = positivo ? 'linear-gradient(180deg,#34d399,#10b981)' : 'linear-gradient(180deg,#ef4444,#b91c1c)';
         const radio = positivo ? '5px 5px 2px 2px' : '2px 2px 5px 5px';
-        // El número del día NO va en la barra (se pisaba con el chip del acumulado
-        // en días donde ambos coincidían arriba). Va debajo, en el eje.
-        const etiqueta = '';
+        // Cifra del día PEGADA a la barra: las VERDES por arriba, las ROJAS por
+        // abajo. El chip azul del acumulado va sobre la línea (colocado según su
+        // altura), así no se pisan (Iker 2026-07-09).
+        const etiqueta = mostrarEtiquetas
+            ? `<span style="position:absolute;left:50%;transform:translateX(-50%);${positivo ? 'bottom:100%;margin-bottom:2px;color:#34d399;' : 'top:100%;margin-top:2px;color:#f87171;'}font-size:10px;font-weight:800;white-space:nowrap;">${fmt(b.beneficio)}</span>`
+            : '';
         const barra = `<div title="${b.dia}/${mes}: ${cm(b.beneficio)}" style="width:72%;max-width:30px;height:${h}%;background:${grad};opacity:${b.activo ? '1' : '0.5'};border-radius:${radio};position:relative;">${etiqueta}</div>`;
         return `<div style="flex:1;min-width:20px;display:flex;flex-direction:column;height:180px;">`
             + `<div style="flex:1;display:flex;align-items:flex-end;justify-content:center;">${positivo ? barra : ''}</div>`
@@ -493,12 +496,7 @@ async function renderizarBeneficioNetoDiario() {
             + `</div>`;
     }).join('');
 
-    // Eje: número del día + DEBAJO el valor neto de ese día (verde/rojo). Así el
-    // valor diario y el chip azul del acumulado nunca se solapan.
-    const ejeHTML = barras.map(b => {
-        const colDia = (b.beneficio >= 0 && b.activo) ? '#34d399' : '#f87171';
-        return `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;line-height:1.4;">${b.dia}<br><span style="color:${colDia};font-weight:700;font-variant-numeric:tabular-nums;">${fmt(b.beneficio)}</span></span>`;
-    }).join('');
+    const ejeHTML = barras.map(b => `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;">${b.dia}</span>`).join('');
 
     // Línea de ACUMULADO del mes sobre las barras: sube cuando ganas, baja
     // cuando pierdes → es lo que antes mostraba la lista día a día (el arrastre).
