@@ -194,7 +194,8 @@
 // BUMP v232: formato de compra por proveedor en el modal de Proveedores (unidad explícita €/unidad-base + bloque caja/bolsa que deriva el precio) + aviso del guard ±70% al marcar principal.
 // BUMP v233: el mini de "Punto de equilibrio" se quita del Diario y queda SOLO en Análisis — tenerlo junto al P&L mezclaba el gasto fijo/día (coste, ÷31 días) con el objetivo de ventas/día del equilibrio (÷26 días y descontando food cost) → confundía. El cálculo sigue en Análisis (window.mlBreakevenGetSnapshot). Solo se deja de renderizar el bloque en el Diario; no toca cálculos.
 // BUMP v234: rediseño VISUAL de "Beneficio neto por día" en el Diario — de lista de texto a GRÁFICO de barras divergentes (verde arriba = ganas, rojo abajo = pierdes) + titular grande con el beneficio del mes + mejor/peor día + 3 stats + 1 línea de aviso para días sin ventas. Mismos datos y cálculos que antes (barras alimentadas por el mismo beneficio neto diario); solo cambia la presentación.
-const CACHE_NAME = 'mindloop-costos-v234';
+// BUMP v235: el contenedor de "Beneficio neto por día" recortaba el gráfico (max-height:300px + marco blanco de la lista antigua). Quitado el max-height/overflow y el fondo blanco → el gráfico se ve completo. Texto de estado vacío aclarado sobre fondo oscuro.
+const CACHE_NAME = 'mindloop-costos-v235';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
