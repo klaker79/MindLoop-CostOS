@@ -195,7 +195,9 @@
 // BUMP v233: el mini de "Punto de equilibrio" se quita del Diario y queda SOLO en Análisis — tenerlo junto al P&L mezclaba el gasto fijo/día (coste, ÷31 días) con el objetivo de ventas/día del equilibrio (÷26 días y descontando food cost) → confundía. El cálculo sigue en Análisis (window.mlBreakevenGetSnapshot). Solo se deja de renderizar el bloque en el Diario; no toca cálculos.
 // BUMP v234: rediseño VISUAL de "Beneficio neto por día" en el Diario — de lista de texto a GRÁFICO de barras divergentes (verde arriba = ganas, rojo abajo = pierdes) + titular grande con el beneficio del mes + mejor/peor día + 3 stats + 1 línea de aviso para días sin ventas. Mismos datos y cálculos que antes (barras alimentadas por el mismo beneficio neto diario); solo cambia la presentación.
 // BUMP v235: el contenedor de "Beneficio neto por día" recortaba el gráfico (max-height:300px + marco blanco de la lista antigua). Quitado el max-height/overflow y el fondo blanco → el gráfico se ve completo. Texto de estado vacío aclarado sobre fondo oscuro.
-const CACHE_NAME = 'mindloop-costos-v235';
+// BUMP v236: "Beneficio neto por día" añade LÍNEA de acumulado del mes sobre las barras (sube cuando ganas, baja cuando pierdes) + puntos con el acumulado por día en tooltip. Recupera el arrastre día a día que mostraba la lista antigua, ahora visual. Solo presentación; el total del mes no cambia.
+// BUMP v237: la línea de acumulado muestra ahora la CIFRA visible en cada punto (chip azul con el acumulado del día), no solo en tooltip — antes no se veía ningún número sobre la línea. Con >12 días vuelve a solo-tooltip para no saturar.
+const CACHE_NAME = 'mindloop-costos-v237';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
