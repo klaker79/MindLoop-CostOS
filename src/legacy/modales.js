@@ -483,9 +483,9 @@ async function renderizarBeneficioNetoDiario() {
         const positivo = b.beneficio >= 0 && b.activo;
         const grad = positivo ? 'linear-gradient(180deg,#34d399,#10b981)' : 'linear-gradient(180deg,#ef4444,#b91c1c)';
         const radio = positivo ? '5px 5px 2px 2px' : '2px 2px 5px 5px';
-        const etiqueta = mostrarEtiquetas
-            ? `<span style="position:absolute;left:50%;transform:translateX(-50%);${positivo ? 'top:-15px;color:#34d399;' : 'bottom:-15px;color:#f87171;'}font-size:10px;font-weight:700;white-space:nowrap;">${fmt(b.beneficio)}</span>`
-            : '';
+        // El número del día NO va en la barra (se pisaba con el chip del acumulado
+        // en días donde ambos coincidían arriba). Va debajo, en el eje.
+        const etiqueta = '';
         const barra = `<div title="${b.dia}/${mes}: ${cm(b.beneficio)}" style="width:72%;max-width:30px;height:${h}%;background:${grad};opacity:${b.activo ? '1' : '0.5'};border-radius:${radio};position:relative;">${etiqueta}</div>`;
         return `<div style="flex:1;min-width:20px;display:flex;flex-direction:column;height:180px;">`
             + `<div style="flex:1;display:flex;align-items:flex-end;justify-content:center;">${positivo ? barra : ''}</div>`
@@ -493,7 +493,12 @@ async function renderizarBeneficioNetoDiario() {
             + `</div>`;
     }).join('');
 
-    const ejeHTML = barras.map(b => `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;">${b.dia}</span>`).join('');
+    // Eje: número del día + DEBAJO el valor neto de ese día (verde/rojo). Así el
+    // valor diario y el chip azul del acumulado nunca se solapan.
+    const ejeHTML = barras.map(b => {
+        const colDia = (b.beneficio >= 0 && b.activo) ? '#34d399' : '#f87171';
+        return `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;line-height:1.4;">${b.dia}<br><span style="color:${colDia};font-weight:700;font-variant-numeric:tabular-nums;">${fmt(b.beneficio)}</span></span>`;
+    }).join('');
 
     // Línea de ACUMULADO del mes sobre las barras: sube cuando ganas, baja
     // cuando pierdes → es lo que antes mostraba la lista día a día (el arrastre).
@@ -503,14 +508,18 @@ async function renderizarBeneficioNetoDiario() {
     const maxAbsCum = Math.max(1, ...acumulados.map(v => Math.abs(v)));
     const nCol = barras.length || 1;
     const xPct = (i) => ((i + 0.5) / nCol) * 100;      // % del ancho
-    const yPx = (v) => 90 - (v / maxAbsCum) * 86;      // alto de barras = 180px, centro = 90
+    const yPx = (v) => 90 - (v / maxAbsCum) * 72;      // alto barras 180px, centro 90; ±72 deja margen arriba/abajo para los chips
     const puntosLinea = acumulados.map((v, i) => `${xPct(i).toFixed(2)},${yPx(v).toFixed(2)}`).join(' ');
     const lineaSVG = `<svg viewBox="0 0 100 180" preserveAspectRatio="none" style="position:absolute;top:0;left:0;width:100%;height:180px;pointer-events:none;overflow:visible;"><polyline points="${puntosLinea}" fill="none" stroke="#7dd3fc" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
     const dotsHTML = acumulados.map((v, i) => {
+        const cy = yPx(v);
+        // Si el punto está muy arriba, el chip va DEBAJO (si no, se corta por el borde);
+        // si está muy abajo, va ENCIMA. En el resto, encima.
+        const posChip = cy < 30 ? 'top:12px' : 'bottom:11px';
         const etq = mostrarEtiquetas
-            ? `<span style="position:absolute;left:50%;bottom:11px;transform:translateX(-50%);white-space:nowrap;font-size:9.5px;font-weight:700;color:#bae6fd;background:rgba(15,23,42,0.8);padding:1px 5px;border-radius:5px;">${fmt(v)}</span>`
+            ? `<span style="position:absolute;left:50%;${posChip};transform:translateX(-50%);white-space:nowrap;font-size:9.5px;font-weight:700;color:#bae6fd;background:rgba(15,23,42,0.85);padding:1px 5px;border-radius:5px;">${fmt(v)}</span>`
             : '';
-        return `<div title="Acumulado ${barras[i].dia}/${mes}: ${cm(v)}" style="position:absolute;left:${xPct(i).toFixed(2)}%;top:${yPx(v).toFixed(2)}px;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#7dd3fc;border:2px solid #0f172a;">${etq}</div>`;
+        return `<div title="Acumulado ${barras[i].dia}/${mes}: ${cm(v)}" style="position:absolute;left:${xPct(i).toFixed(2)}%;top:${cy.toFixed(2)}px;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#7dd3fc;border:2px solid #0f172a;">${etq}</div>`;
     }).join('');
 
     const notaHTML = diasSinActividad > 0
