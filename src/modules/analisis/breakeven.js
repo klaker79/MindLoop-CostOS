@@ -6,18 +6,18 @@
  * el número grande. Responde a "¿cuánto necesito facturar para no perder?"
  * y ofrece las tres palancas para moverlo (margen, gastos fijos, food cost).
  *
- * Fuente de datos:
- *   - Gastos fijos: GET /gastos-fijos (suma de monto_mensual).
- *   - Margen/ticket/food cost: /analysis/menu-engineering (cacheado en
- *     analisis-state), ponderado por ventas reales en breakeven-calc.js.
+ * Fuente de datos (ventana móvil de VENTANA_DIAS días, no el histórico):
+ *   - Gastos fijos OPERATIVOS: GET /gastos-fijos (excluye impuestos no operativos).
+ *   - Margen/ticket: /analysis/menu-engineering de los últimos VENTANA_DIAS días.
+ *   - Food cost global: /analytics/pnl-breakdown de los últimos VENTANA_DIAS días.
  *
  * Expone `window.mlBreakevenGetSnapshot()` para que el mini del Diario
  * (legacy) consuma EXACTAMENTE el mismo cálculo → los números cuadran.
  */
 
 import { api } from '../../api/client.js';
-import { getMenuEngineering, getFoodCostCanonical } from './analisis-state.js';
-import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, sumaGastosOperativos } from './breakeven-calc.js';
+import { getFoodCostCanonical } from './analisis-state.js';
+import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, VENTANA_DIAS, sumaGastosOperativos } from './breakeven-calc.js';
 import { construirConsejos, construirPreguntaOmnes } from './breakeven-consejos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { mostrarBreakevenInfo } from './breakeven-info.js';
@@ -62,17 +62,33 @@ async function fetchGastosFijosMes() {
     }
 }
 
+/** Rango ISO de los últimos VENTANA_DIAS días (hasta exclusivo = mañana). */
+function ventanaMovil() {
+    const hoy = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const desde = new Date(hoy); desde.setDate(hoy.getDate() - VENTANA_DIAS);
+    const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
+    return { desde: iso(desde), hasta: iso(manana) };
+}
+
 /**
  * Devuelve el snapshot del punto de equilibrio (mismo cálculo para Análisis
- * y para el mini del Diario). Usa la cache de menu-engineering.
+ * y para el mini del Diario). Usa la VENTANA MÓVIL de VENTANA_DIAS días (no el
+ * histórico ni el selector de periodo) → refleja la realidad reciente. Adjunta
+ * `platosVentana` (menu-engineering de la ventana) para los consejos.
  */
 export async function getBreakevenSnapshot() {
-    const [gastosFijosMes, platos, foodCostCanonical] = await Promise.all([
+    const { desde, hasta } = ventanaMovil();
+    const [gastosFijosMes, platosRaw, foodCostCanonical] = await Promise.all([
         fetchGastosFijosMes(),
-        getMenuEngineering().catch(() => []),
-        getFoodCostCanonical().catch(() => null)
+        api.getMenuEngineering({ desde, hasta }).catch(() => []),
+        getFoodCostCanonical({ desde, hasta }).catch(() => null)
     ]);
-    return computeBreakeven({ platos, gastosFijosMes, foodCostCanonical, diasServicio: DIAS_SERVICIO_MES_DEFAULT });
+    const platos = Array.isArray(platosRaw) ? platosRaw : [];
+    const snap = computeBreakeven({ platos, gastosFijosMes, foodCostCanonical, diasServicio: DIAS_SERVICIO_MES_DEFAULT });
+    snap.platosVentana = platos;
+    return snap;
 }
 
 /**
@@ -178,7 +194,7 @@ function heroBandHTML(snap, prog) {
             <div class="be-hero__main">
                 <span class="be-hero__eyebrow">Para no perder dinero, necesitas facturar</span>
                 <div class="be-hero__number">${cm(snap.ventasEquilibrioDia)}<span class="be-hero__unit">/ día</span></div>
-                <div class="be-hero__sub">≈ ${platosDiaTxt} platos al día · ${cm(snap.ventasEquilibrioMes)} al mes (${platosMesTxt} platos) · sobre ${snap.diasServicio} días de servicio</div>
+                <div class="be-hero__sub">≈ ${platosDiaTxt} platos al día · ${cm(snap.ventasEquilibrioMes)} al mes (${platosMesTxt} platos) · sobre ${snap.diasServicio} días de servicio · datos de los últimos 90 días</div>
             </div>
             ${progresoHTML}
         </div>
@@ -217,7 +233,7 @@ function palancasHTML(snap, platos) {
                     ${c.prioridad === 'food' ? BADGE_EMPIEZA : `<span class="oms-badge ${fb.cls}">${fb.label}</span>`}
                 </div>
                 <div class="oms-card__value">${snap.foodCostMedio.toFixed(1)}%</div>
-                <p class="oms-card__sub">Food cost <strong>global</strong> (comida + bebida) — el mismo que te dice Omnes. % de tus ventas que se va en materia prima.</p>
+                <p class="oms-card__sub">Food cost <strong>global</strong> (comida + bebida) de los <strong>últimos 90 días</strong>. % de tus ventas que se va en materia prima.</p>
                 ${tipHTML(c.food.tono, c.food.titulo, c.food.texto)}
             </div>
         </div>
@@ -308,10 +324,7 @@ export async function renderBreakeven() {
     const host = ensureHost();
     if (!host) return;
     try {
-        const [snap, platos] = await Promise.all([
-            getBreakevenSnapshot(),
-            getMenuEngineering().catch(() => [])
-        ]);
+        const snap = await getBreakevenSnapshot();
         if (snap.estado !== 'ok') {
             host.innerHTML = headerHTML('Cuánto necesitas facturar para no perder dinero — tu número de supervivencia.') + estadoVacioHTML(snap);
             bindHandlers(host, null);
@@ -321,7 +334,7 @@ export async function renderBreakeven() {
         host.innerHTML = `
             ${headerHTML('Cuánto necesitas facturar para no perder dinero — tu número de supervivencia.')}
             ${heroBandHTML(snap, prog)}
-            ${palancasHTML(snap, platos)}
+            ${palancasHTML(snap, snap.platosVentana || [])}
             ${recomendacionHTML(snap)}
         `;
         bindHandlers(host, construirPreguntaOmnes(snap));

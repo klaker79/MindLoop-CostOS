@@ -21,6 +21,14 @@
 export const DIAS_SERVICIO_MES_DEFAULT = 26;
 
 /**
+ * Ventana móvil (días hacia atrás) sobre la que se calcula el punto de
+ * equilibrio: food cost, ticket y margen. NO se usa el histórico completo (que
+ * arrastra precios/carta viejos) — un número de supervivencia debe reflejar la
+ * realidad RECIENTE. 90 días = reciente y estable (Iker 2026-07-08).
+ */
+export const VENTANA_DIAS = 90;
+
+/**
  * Impuestos NO OPERATIVOS: los que NO son coste de explotación y por tanto NO
  * cuentan en el P&L operativo ni en el punto de equilibrio.
  *   - IVA / IGIC: pass-through. Lo cobras al cliente y lo devuelves a Hacienda,
