@@ -20,6 +20,45 @@
 /** Días de servicio al mes por defecto (restaurante que cierra ~1 día/semana). */
 export const DIAS_SERVICIO_MES_DEFAULT = 26;
 
+/**
+ * Impuestos que NO son gasto fijo operativo y por tanto NO cuentan para el
+ * punto de equilibrio:
+ *   - IVA / IGIC: pass-through. Lo cobras al cliente y lo devuelves a Hacienda,
+ *     no es un coste tuyo. Además escala con las ventas (no es fijo).
+ *   - IRPF / Impuesto de Sociedades: tributos sobre el BENEFICIO — solo pagas si
+ *     ganas. Meterlos en el equilibrio es circular.
+ *   - IAE / IBI / otros tributos: impuestos, no coste operativo del servicio.
+ * Meterlos infla el punto de equilibrio y da un número irreal (caso La Nave 5,
+ * 2026-07-08: 45.645€ con impuestos vs 36.073€ operativos reales).
+ *
+ * Se detecta por PALABRA COMPLETA normalizada (sin acentos, minúsculas) para no
+ * dar falsos positivos: "Seguridad Social" NO matchea "sociedades".
+ */
+const TOKENS_IMPUESTO = new Set([
+    'iva', 'igic', 'irpf', 'iae', 'ibi', 'sociedades',
+    'impuesto', 'impuestos', 'tributo', 'tributos', 'hacienda'
+]);
+
+export function esImpuesto(concepto) {
+    const norm = String(concepto || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '');
+    return norm.split(/[^a-z0-9]+/).some(p => p && TOKENS_IMPUESTO.has(p));
+}
+
+/**
+ * Suma SOLO los gastos fijos OPERATIVOS (excluye impuestos). Es lo que debe
+ * alimentar el punto de equilibrio.
+ * @param {Array} gastos - [{ concepto, monto_mensual }]
+ */
+export function sumaGastosOperativos(gastos) {
+    const arr = Array.isArray(gastos) ? gastos : [];
+    return arr.reduce(
+        (s, g) => (esImpuesto(g.concepto) ? s : s + (parseFloat(g.monto_mensual) || 0)),
+        0
+    );
+}
+
 function num(v) {
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : 0;
@@ -36,10 +75,14 @@ function unidadesDe(p) {
  *                                         (cada uno: { precio_venta, foodCost, margen, popularidad }).
  * @param {number} opts.gastosFijosMes  - suma de gastos fijos mensuales (€).
  * @param {number} [opts.diasServicio]  - días de servicio/mes para la traducción diaria.
+ * @param {number} [opts.foodCostCanonical] - food cost % del endpoint canónico
+ *   (/analytics/pnl-breakdown, el MISMO que el KPI del dashboard). Si se pasa
+ *   (>0 y <100), fija el food cost mostrado Y de él se deriva el margen, para
+ *   que todo cuadre con el resto de la app. Si no, se calcula desde el menú.
  * @returns {Object} snapshot con `estado` y los números derivados.
  *   estado ∈ 'ok' | 'sin_gastos' | 'sin_ventas' | 'sin_margen'
  */
-export function computeBreakeven({ platos, gastosFijosMes, diasServicio = DIAS_SERVICIO_MES_DEFAULT } = {}) {
+export function computeBreakeven({ platos, gastosFijosMes, diasServicio = DIAS_SERVICIO_MES_DEFAULT, foodCostCanonical } = {}) {
     const gastos = Math.max(0, num(gastosFijosMes));
     const dias = diasServicio > 0 ? diasServicio : DIAS_SERVICIO_MES_DEFAULT;
 
@@ -58,11 +101,24 @@ export function computeBreakeven({ platos, gastosFijosMes, diasServicio = DIAS_S
     // Ponderados por unidades vendidas (mix real).
     const sumMargen = conVentas.reduce((s, p) => s + num(p.margen) * unidadesDe(p), 0);
     const sumTicket = conVentas.reduce((s, p) => s + num(p.precio_venta) * unidadesDe(p), 0);
-    const sumFood = conVentas.reduce((s, p) => s + num(p.foodCost) * unidadesDe(p), 0);
 
-    const margenPonderado = sumMargen / unidades;   // € de contribución por plato vendido
     const ticketMedio = sumTicket / unidades;       // € de venta por plato
-    const foodCostMedio = sumFood / unidades;       // %
+
+    // Food cost + margen de contribución:
+    //   - Con food cost CANÓNICO (mismo endpoint que el KPI del dashboard): ese
+    //     es EL food cost (cuadra en toda la app) y de él sale el margen
+    //     (contribución = ticket × (1 − foodCost)).
+    //   - Sin él: se calcula desde el menú como COGS/ingresos (coste total ÷
+    //     ventas totales) — método correcto, NO media de % ponderada por unidad.
+    const fcCanon = num(foodCostCanonical);
+    let foodCostMedio, margenPonderado;
+    if (fcCanon > 0 && fcCanon < 100) {
+        foodCostMedio = fcCanon;
+        margenPonderado = ticketMedio * (1 - fcCanon / 100);
+    } else {
+        margenPonderado = sumMargen / unidades;
+        foodCostMedio = sumTicket > 0 ? ((sumTicket - sumMargen) / sumTicket) * 100 : 0;
+    }
 
     if (margenPonderado <= 0) {
         return {
