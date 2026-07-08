@@ -16,7 +16,7 @@
  */
 
 import { api } from '../../api/client.js';
-import { getMenuEngineering } from './analisis-state.js';
+import { getMenuEngineering, getFoodCostCanonical } from './analisis-state.js';
 import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, sumaGastosOperativos } from './breakeven-calc.js';
 import { construirConsejos, construirPreguntaOmnes } from './breakeven-consejos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
@@ -66,11 +66,12 @@ async function fetchGastosFijosMes() {
  * y para el mini del Diario). Usa la cache de menu-engineering.
  */
 export async function getBreakevenSnapshot() {
-    const [gastosFijosMes, platos] = await Promise.all([
+    const [gastosFijosMes, platos, foodCostCanonical] = await Promise.all([
         fetchGastosFijosMes(),
-        getMenuEngineering().catch(() => [])
+        getMenuEngineering().catch(() => []),
+        getFoodCostCanonical().catch(() => null)
     ]);
-    return computeBreakeven({ platos, gastosFijosMes, diasServicio: DIAS_SERVICIO_MES_DEFAULT });
+    return computeBreakeven({ platos, gastosFijosMes, foodCostCanonical, diasServicio: DIAS_SERVICIO_MES_DEFAULT });
 }
 
 /**
