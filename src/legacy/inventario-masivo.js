@@ -2794,12 +2794,17 @@ async function renderizarTablaPLDiario() {
         }
     }
 
-    // Obtener gastos fijos mensuales
+    // Obtener gastos fijos mensuales OPERATIVOS (de explotación): excluye
+    // impuestos NO operativos (IVA/IGIC/IRPF/Sociedades), mantiene IAE/IBI/tasas.
+    // MISMA regla que el punto de equilibrio (window.mlSumaGastosOperativos) → el
+    // P&L (Cuenta de Resultados) y el equilibrio cuadran.
     let gastosFijosMes = 0;
     try {
         const gastosFijos = await window.api.getGastosFijos();
         if (gastosFijos && gastosFijos.length > 0) {
-            gastosFijosMes = gastosFijos.reduce((sum, g) => sum + parseFloat(g.monto_mensual || 0), 0);
+            gastosFijosMes = typeof window.mlSumaGastosOperativos === 'function'
+                ? window.mlSumaGastosOperativos(gastosFijos)
+                : gastosFijos.reduce((sum, g) => sum + parseFloat(g.monto_mensual || 0), 0);
         }
     } catch (error) {
         console.warn('Fallback a localStorage para gastos fijos:', error.message);
@@ -2939,6 +2944,7 @@ async function renderizarTablaPLDiario() {
         <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px; display: flex; align-items: center; gap: 8px;">
             ${window.t('balance:pl_title')}
             <span style="font-size: 12px; color: #64748b; font-weight: normal;">${window.t('balance:pl_subtitle')}</span>
+            <button type="button" onclick="window.mlGastosOperativosInfo && window.mlGastosOperativosInfo()" title="¿Qué gastos cuentan en el P&L y por qué?" style="background: none; border: 1px solid #cbd5e1; border-radius: 999px; width: 19px; height: 19px; line-height: 17px; color: #64748b; cursor: pointer; font-size: 12px; font-weight: 700; padding: 0; font-style: italic; flex-shrink: 0;">i</button>
         </h3>
         <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
     `;
