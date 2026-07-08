@@ -18,6 +18,7 @@
 import { api } from '../../api/client.js';
 import { getMenuEngineering } from './analisis-state.js';
 import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT } from './breakeven-calc.js';
+import { construirConsejos } from './breakeven-consejos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { mostrarBreakevenInfo } from './breakeven-info.js';
 
@@ -178,39 +179,40 @@ function heroBandHTML(snap, prog) {
     `;
 }
 
-function palancasHTML(snap) {
-    const p = snap.palancas;
+const BADGE_EMPIEZA = '<span class="oms-badge oms-badge--ok">⭐ Empieza por aquí</span>';
+
+function palancasHTML(snap, platos) {
+    const c = construirConsejos(snap, platos);
     const fb = foodCostBadge(snap.foodCostMedio);
-    const ganaFood = cm(snap.ticketMedio * 0.02);
 
     return `
         <div class="oms-cards">
             <div class="oms-card">
                 <div class="oms-card__head">
                     <h4 class="oms-card__title">Margen por plato</h4>
-                    <span class="oms-badge oms-badge--ok">Palanca 1</span>
+                    ${c.prioridad === 'margen' ? BADGE_EMPIEZA : '<span class="oms-badge oms-badge--mute">Palanca</span>'}
                 </div>
                 <div class="oms-card__value">${cm(snap.margenPonderado)}</div>
                 <p class="oms-card__sub">Lo que deja de media cada plato tras su coste (ponderado por ventas reales).</p>
-                ${tipHTML('ok', 'Sube el margen', `Escandalla bien y ajusta precios en bebidas, cafés y postres. Con solo +1 € de margen por plato, tu objetivo baja de ${snap.breakevenPlatosMes.toLocaleString('es-ES')} a ${p.platosSiMargenMas1.toLocaleString('es-ES')} platos al mes.`)}
+                ${tipHTML(c.margen.tono, c.margen.titulo, c.margen.texto)}
             </div>
             <div class="oms-card">
                 <div class="oms-card__head">
                     <h4 class="oms-card__title">Gastos fijos</h4>
-                    <span class="oms-badge oms-badge--warn">Palanca 2</span>
+                    ${c.prioridad === 'gastos' ? BADGE_EMPIEZA : '<span class="oms-badge oms-badge--mute">Palanca</span>'}
                 </div>
                 <div class="oms-card__value">${cm(snap.gastosFijosMes)}<span class="be-unit">/ mes</span></div>
                 <p class="oms-card__sub">Alquiler, personal, suministros y los que todos olvidan: cuota de autónomo, préstamo, suscripciones.</p>
-                ${tipHTML('warn', 'Revisa lo que no ves', `Revisa softwares que no usas y ajusta plantilla por franja. Cada 500 €/mes menos son ${p.reduccionGastosMenos500.toLocaleString('es-ES')} platos al mes que ya no tienes que vender.`)}
+                ${tipHTML(c.gastos.tono, c.gastos.titulo, c.gastos.texto)}
             </div>
             <div class="oms-card">
                 <div class="oms-card__head">
                     <h4 class="oms-card__title">Food cost</h4>
-                    <span class="oms-badge ${fb.cls}">${fb.label}</span>
+                    ${c.prioridad === 'food' ? BADGE_EMPIEZA : `<span class="oms-badge ${fb.cls}">${fb.label}</span>`}
                 </div>
                 <div class="oms-card__value">${snap.foodCostMedio.toFixed(0)}%</div>
                 <p class="oms-card__sub">% de tus ventas que se va en materia prima. Cuanto más bajo, más margen por plato.</p>
-                ${tipHTML(snap.foodCostMedio > 40 ? 'bad' : (snap.foodCostMedio > 35 ? 'warn' : 'ok'), 'Baja el food cost', `Bajarlo 2 puntos suma ~${ganaFood}/plato de margen → tu objetivo baja a ${p.platosSiFood2.toLocaleString('es-ES')} platos al mes. Mira los Perros de la Matriz BCG para saber por dónde empezar.`)}
+                ${tipHTML(c.food.tono, c.food.titulo, c.food.texto)}
             </div>
         </div>
     `;
@@ -218,6 +220,7 @@ function palancasHTML(snap) {
 
 function recomendacionHTML(snap) {
     const texto = `Facturar no es ganar. Tu punto de equilibrio son ${snap.breakevenPlatosMes.toLocaleString('es-ES')} platos al mes (~${snap.platosDia.toLocaleString('es-ES')} al día). A partir de ahí, cada plato es beneficio de verdad — y las tres palancas de arriba te dicen cómo bajar ese número.`;
+    const pregunta = `Mi punto de equilibrio son ${snap.breakevenPlatosMes} platos al mes (unos ${snap.platosDia} al día, ${cm(snap.ventasEquilibrioDia)}/día). ¿Cuáles son las 2-3 acciones más concretas para bajarlo según mis platos, mi food cost (${snap.foodCostMedio.toFixed(0)}%) y mis gastos fijos? Dímelo con nombres de platos.`;
     return `
         <div class="oms-recom">
             <div class="oms-recom__icon" aria-hidden="true">
@@ -229,6 +232,9 @@ function recomendacionHTML(snap) {
             <div class="oms-recom__body">
                 <div class="oms-recom__label">Tu número de supervivencia</div>
                 <p class="oms-recom__text">${escapeHTML(texto)}</p>
+                <button type="button" class="be-omnes-btn" data-action="be-omnes" data-omnes-q="${escapeHTML(pregunta)}">
+                    🦉 Pregúntale a Omnes cómo bajarlo
+                </button>
             </div>
         </div>
     `;
@@ -266,9 +272,21 @@ function estadoVacioHTML(snap) {
     `;
 }
 
-function bindInfo(host) {
+function bindHandlers(host) {
     host.querySelectorAll('[data-action="be-info"]').forEach(btn => {
         btn.addEventListener('click', (e) => { e.preventDefault(); mostrarBreakevenInfo(); });
+    });
+    // Botón "Pregúntale a Omnes" — deep-link al chat con la pregunta redactada.
+    // Si el add-on no está activo, preguntarAOmnes devuelve false y avisamos.
+    host.querySelectorAll('[data-action="be-omnes"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const q = btn.dataset.omnesQ || '¿Cómo bajo mi punto de equilibrio?';
+            const ok = typeof window.preguntarAOmnes === 'function' && window.preguntarAOmnes(q);
+            if (!ok) {
+                window.showToast?.('Activa el add-on de Omnes para preguntarle sobre tu punto de equilibrio.', 'info');
+            }
+        });
     });
 }
 
@@ -280,20 +298,23 @@ export async function renderBreakeven() {
     const host = ensureHost();
     if (!host) return;
     try {
-        const snap = await getBreakevenSnapshot();
+        const [snap, platos] = await Promise.all([
+            getBreakevenSnapshot(),
+            getMenuEngineering().catch(() => [])
+        ]);
         if (snap.estado !== 'ok') {
             host.innerHTML = headerHTML('Cuánto necesitas facturar para no perder dinero — tu número de supervivencia.') + estadoVacioHTML(snap);
-            bindInfo(host);
+            bindHandlers(host);
             return;
         }
         const prog = progresoDelMes(snap.breakevenPlatosMes, snap.ticketMedio);
         host.innerHTML = `
             ${headerHTML('Cuánto necesitas facturar para no perder dinero — tu número de supervivencia.')}
             ${heroBandHTML(snap, prog)}
-            ${palancasHTML(snap)}
+            ${palancasHTML(snap, platos)}
             ${recomendacionHTML(snap)}
         `;
-        bindInfo(host);
+        bindHandlers(host);
     } catch (err) {
         console.warn('[analisis] breakeven falló:', err?.message);
     }
