@@ -21,6 +21,7 @@ import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, sumaGastosOperativos } fro
 import { construirConsejos, construirPreguntaOmnes } from './breakeven-consejos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { mostrarBreakevenInfo } from './breakeven-info.js';
+import { mostrarGastosOperativosInfo } from './gastos-operativos-info.js';
 
 const HOST_ID = 'analisis-breakeven';
 
@@ -207,7 +208,7 @@ function palancasHTML(snap, platos) {
                     ${c.prioridad === 'gastos' ? BADGE_EMPIEZA : '<span class="oms-badge oms-badge--mute">Palanca</span>'}
                 </div>
                 <div class="oms-card__value">${cm(snap.gastosFijosMes)}<span class="be-unit">/ mes</span></div>
-                <p class="oms-card__sub">Gastos fijos <strong>operativos</strong> (sin impuestos: IVA, IRPF, IAE…): alquiler, personal, suministros, préstamo, suscripciones.</p>
+                <p class="oms-card__sub">Gastos fijos <strong>operativos</strong> (de explotación): alquiler, personal, IAE… Excluye IVA/IRPF/Sociedades. <button type="button" class="be-why" data-action="gastos-info">¿por qué?</button></p>
                 ${tipHTML(c.gastos.tono, c.gastos.titulo, c.gastos.texto)}
             </div>
             <div class="oms-card">
@@ -280,6 +281,9 @@ function bindHandlers(host, pregunta) {
     host.querySelectorAll('[data-action="be-info"]').forEach(btn => {
         btn.addEventListener('click', (e) => { e.preventDefault(); mostrarBreakevenInfo(); });
     });
+    host.querySelectorAll('[data-action="gastos-info"]').forEach(btn => {
+        btn.addEventListener('click', (e) => { e.preventDefault(); mostrarGastosOperativosInfo(); });
+    });
     // Botón "Pregúntale a Omnes" — deep-link al chat con la pregunta redactada.
     // La pregunta se captura por CLOSURE (no por atributo HTML) para que no la
     // trunque ningún carácter del texto. Si el add-on no está activo,
@@ -329,4 +333,8 @@ export async function renderBreakeven() {
 if (typeof window !== 'undefined') {
     window.mlBreakevenGetSnapshot = getBreakevenSnapshot;
     window.mlBreakevenRender = renderBreakeven;
+    // Expuesto para el Diario legacy (modales.js, sin ESM): que el P&L use la
+    // MISMA regla de gastos operativos (excluye IVA/IRPF/Sociedades, mantiene IAE)
+    // que el punto de equilibrio → los dos cuadran.
+    window.mlSumaGastosOperativos = sumaGastosOperativos;
 }

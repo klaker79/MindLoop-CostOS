@@ -187,7 +187,8 @@
 // BUMP v223: food cost del punto de equilibrio ahora se LEE del endpoint canónico (/analytics/pnl-breakdown, el mismo que el KPI del dashboard) para el MES EN CURSO → número idéntico al dashboard (antes: método propio + periodo histórico = descuadre 29% vs 31%). De ese food cost se deriva el margen, así todo el bloque cuadra. Fallback al cálculo del menú si el endpoint falla.
 // BUMP v224: el food cost del punto de equilibrio muestra el GLOBAL (comida+bebida) histórico = MISMA fórmula y número que Omnes (34,2% en La Nave 5), no el de comida sola. Un punto de equilibrio va sobre toda la facturación → food cost global. Calculado como (cogs_food+cogs_bev)/(ing_food+ing_bev) desde /analytics/pnl-breakdown, idéntico a fc_total de Omnes.
 // BUMP v225: la pregunta a Omnes cita el food cost con 1 decimal (35,6%) igual que la tarjeta del bloque — antes lo redondeaba a 36% y parecía descuadre.
-const CACHE_NAME = 'mindloop-costos-v225';
+// BUMP v226: gastos fijos OPERATIVOS (de explotación) en TODO el P&L y el punto de equilibrio — excluye solo impuestos NO operativos (IVA/IGIC/IRPF/Sociedades) y MANTIENE el IAE/IBI/tasas. La Nave 5: 45.645€ (lista, sin tocar) → 40.406,58€ operativos (P&L beneficio + Cuenta de Resultados + equilibrio + Omnes cuadran). + ⓘ discreto que explica qué cuenta y por qué. Regla: "si mañana no vendes ni un café, ¿lo pagarías?".
+const CACHE_NAME = 'mindloop-costos-v226';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
