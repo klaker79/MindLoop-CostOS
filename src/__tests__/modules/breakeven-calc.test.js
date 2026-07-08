@@ -30,6 +30,20 @@ describe('computeBreakeven — fórmula ponderada', () => {
         expect(s.foodCostMedio).toBeCloseTo(31.4286, 3);
     });
 
+    test('food cost CANÓNICO manda: fija el food cost y de él sale el margen', () => {
+        // Con foodCostCanonical=31 (el del dashboard), foodCostMedio=31 exacto y
+        // margen = ticket × (1 − 0,31) = 17,5 × 0,69 = 12,075 (no el del menú).
+        const s = computeBreakeven({ platos, gastosFijosMes: 12000, foodCostCanonical: 31 });
+        expect(s.foodCostMedio).toBeCloseTo(31, 6);
+        expect(s.margenPonderado).toBeCloseTo(17.5 * 0.69, 6);
+    });
+
+    test('sin food cost canónico → fallback al cálculo del menú (COGS/ingresos)', () => {
+        const s = computeBreakeven({ platos, gastosFijosMes: 12000 });
+        expect(s.foodCostMedio).toBeCloseTo(31.4286, 3);
+        expect(s.margenPonderado).toBeCloseTo(12, 6);
+    });
+
     test('punto de equilibrio en platos = ceil(gastos / margen ponderado)', () => {
         const s = computeBreakeven({ platos, gastosFijosMes: 12000 });
         // 12000 / 12 = 1000 platos/mes

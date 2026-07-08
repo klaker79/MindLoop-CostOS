@@ -75,10 +75,14 @@ function unidadesDe(p) {
  *                                         (cada uno: { precio_venta, foodCost, margen, popularidad }).
  * @param {number} opts.gastosFijosMes  - suma de gastos fijos mensuales (€).
  * @param {number} [opts.diasServicio]  - días de servicio/mes para la traducción diaria.
+ * @param {number} [opts.foodCostCanonical] - food cost % del endpoint canónico
+ *   (/analytics/pnl-breakdown, el MISMO que el KPI del dashboard). Si se pasa
+ *   (>0 y <100), fija el food cost mostrado Y de él se deriva el margen, para
+ *   que todo cuadre con el resto de la app. Si no, se calcula desde el menú.
  * @returns {Object} snapshot con `estado` y los números derivados.
  *   estado ∈ 'ok' | 'sin_gastos' | 'sin_ventas' | 'sin_margen'
  */
-export function computeBreakeven({ platos, gastosFijosMes, diasServicio = DIAS_SERVICIO_MES_DEFAULT } = {}) {
+export function computeBreakeven({ platos, gastosFijosMes, diasServicio = DIAS_SERVICIO_MES_DEFAULT, foodCostCanonical } = {}) {
     const gastos = Math.max(0, num(gastosFijosMes));
     const dias = diasServicio > 0 ? diasServicio : DIAS_SERVICIO_MES_DEFAULT;
 
@@ -98,15 +102,23 @@ export function computeBreakeven({ platos, gastosFijosMes, diasServicio = DIAS_S
     const sumMargen = conVentas.reduce((s, p) => s + num(p.margen) * unidadesDe(p), 0);
     const sumTicket = conVentas.reduce((s, p) => s + num(p.precio_venta) * unidadesDe(p), 0);
 
-    const margenPonderado = sumMargen / unidades;   // € de contribución por plato vendido
     const ticketMedio = sumTicket / unidades;       // € de venta por plato
 
-    // Food cost = COGS / ingresos (coste total ÷ ventas totales), IGUAL que el
-    // KPI canónico del dashboard (food-cost.js → /analytics/pnl-breakdown).
-    // NO la media de porcentajes ponderada por unidades: eso da otro número
-    // (un plato caro con food cost bajo pesa distinto) y no cuadraba con la app.
-    // COGS = ingresos − margen (el margen ya es contribución = precio − coste).
-    const foodCostMedio = sumTicket > 0 ? ((sumTicket - sumMargen) / sumTicket) * 100 : 0; // %
+    // Food cost + margen de contribución:
+    //   - Con food cost CANÓNICO (mismo endpoint que el KPI del dashboard): ese
+    //     es EL food cost (cuadra en toda la app) y de él sale el margen
+    //     (contribución = ticket × (1 − foodCost)).
+    //   - Sin él: se calcula desde el menú como COGS/ingresos (coste total ÷
+    //     ventas totales) — método correcto, NO media de % ponderada por unidad.
+    const fcCanon = num(foodCostCanonical);
+    let foodCostMedio, margenPonderado;
+    if (fcCanon > 0 && fcCanon < 100) {
+        foodCostMedio = fcCanon;
+        margenPonderado = ticketMedio * (1 - fcCanon / 100);
+    } else {
+        margenPonderado = sumMargen / unidades;
+        foodCostMedio = sumTicket > 0 ? ((sumTicket - sumMargen) / sumTicket) * 100 : 0;
+    }
 
     if (margenPonderado <= 0) {
         return {

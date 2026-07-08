@@ -184,7 +184,9 @@
 // BUMP v220: FIX pregunta a Omnes truncada. Iba en un atributo HTML data-omnes-q="..." y una comilla doble del texto («al mes») lo cerraba antes de tiempo → Omnes recibía la pregunta cortada en "...NO mezcles" y respondía "el mensaje se cortó". Ahora la pregunta se pasa por JS directo (closure), sin atributo y sin comillas ASCII. Tests: completitud + guard anti-regresión (no data-omnes-q).
 // BUMP v221: el Punto de Equilibrio EXCLUYE los impuestos de los gastos fijos (IVA, IRPF, IAE, Sociedades…). El IVA es pass-through y IRPF/Sociedades son sobre beneficio → no son coste operativo; meterlos inflaba el número (La Nave 5: 45.645€ con impuestos → 36.073€ operativos reales; ~2.524€/día → ~1.994€/día). Detección por palabra completa normalizada (esImpuesto), testada contra los conceptos reales de La Nave 5.
 // BUMP v222: food cost del punto de equilibrio ahora se calcula como COGS/ingresos (coste total ÷ ventas totales), IGUAL que el KPI canónico del dashboard (food-cost.js). Antes usaba media de porcentajes ponderada por unidades → daba 29% en vez de ~31% y no cuadraba con el resto de la app. Cambio de método, mismo origen de datos (menu-engineering).
-const CACHE_NAME = 'mindloop-costos-v222';
+// BUMP v223: food cost del punto de equilibrio ahora se LEE del endpoint canónico (/analytics/pnl-breakdown, el mismo que el KPI del dashboard) para el MES EN CURSO → número idéntico al dashboard (antes: método propio + periodo histórico = descuadre 29% vs 31%). De ese food cost se deriva el margen, así todo el bloque cuadra. Fallback al cálculo del menú si el endpoint falla.
+// BUMP v224: el food cost del punto de equilibrio muestra el GLOBAL (comida+bebida) histórico = MISMA fórmula y número que Omnes (34,2% en La Nave 5), no el de comida sola. Un punto de equilibrio va sobre toda la facturación → food cost global. Calculado como (cogs_food+cogs_bev)/(ing_food+ing_bev) desde /analytics/pnl-breakdown, idéntico a fc_total de Omnes.
+const CACHE_NAME = 'mindloop-costos-v224';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
