@@ -15,7 +15,7 @@ import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 import { loadChart, loadPDF } from '../../utils/lazy-vendors.js';
 import { getIngredientUnitPrice, getIngredientNominalPrice } from '../../utils/cost-calculator.js';
 import { getInvMap, getIngMap } from './recetas-crud.js';
-import { ALERGENOS, getAlergenosReceta } from '../ingredientes/alergenos.js';
+import { ALERGENOS, getAlergenosReceta, getAlergenosHeredados } from '../ingredientes/alergenos.js';
 
 function calcularDesglose(receta, modo, recetas, ingMap, invMap, ingredientes) {
     const desglose = [];
@@ -118,16 +118,20 @@ export async function verEscandallo(recetaId) {
 
     const precioVenta = parseFloat(receta.precio_venta || 0);
 
-    // Alérgenos heredados: unión recursiva de los alérgenos de cada ingrediente
-    // (y subrecetas). ingMap ya mapea id->ingrediente con su campo .alergenos.
+    // Alérgenos a declarar: heredados (unión recursiva de ingredientes/subrecetas)
+    // ∪ extra del plato (trazas / contaminación cruzada, receta.alergenos_extra).
+    // Guardamos también cuáles son EXTRA para marcarlos con "(traza)" en la ficha.
     const recetasMap = new Map((recetas || []).map(r => [r.id, r]));
     const alergenos = getAlergenosReceta(receta, ingMap, recetasMap);
+    const heredados = getAlergenosHeredados(receta, ingMap, recetasMap);
+    const alergenosExtra = alergenos.filter(c => !heredados.includes(c));
 
     window._escandalloActual = {
         receta,
         real,
         precioVenta,
-        alergenos
+        alergenos,
+        alergenosExtra
     };
 
     let modal = document.getElementById('modal-escandallo');
@@ -175,7 +179,7 @@ export async function verEscandallo(recetaId) {
 async function renderContenido() {
     const data = window._escandalloActual;
     if (!data) return;
-    const { receta, real, precioVenta, alergenos = [] } = data;
+    const { receta, real, precioVenta, alergenos = [], alergenosExtra = [] } = data;
     const { desglose, costeTotal } = real;
 
     const margenEuros = precioVenta - costeTotal;
@@ -216,12 +220,15 @@ async function renderContenido() {
 
     // Alérgenos heredados → chips emoji + nombre (o "sin alérgenos declarados")
     const alergenosMap = new Map(ALERGENOS.map(a => [a.code, a]));
+    const setExtra = new Set(alergenosExtra);
     const alergenosChips = (alergenos && alergenos.length)
         ? alergenos.map(code => {
             const meta = alergenosMap.get(code);
             const emoji = meta ? meta.emoji : '';
-            const nombre = escapeHTML(t('alergenos:' + code));
-            return `<span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.08); border: 1px solid #475569; border-radius: 999px; padding: 3px 10px; font-size: 12px; color: #E2E8F0;"><span style="font-size: 14px;">${emoji}</span>${nombre}</span>`;
+            const esExtra = setExtra.has(code);
+            const nombre = escapeHTML(t('alergenos:' + code))
+                + (esExtra ? ` <span style="font-style: italic; opacity: 0.8;">${escapeHTML(t('recetas:escandallo_alergeno_traza'))}</span>` : '');
+            return `<span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.08); border: 1px solid ${esExtra ? '#F59E0B' : '#475569'}; border-radius: 999px; padding: 3px 10px; font-size: 12px; color: #E2E8F0;"><span style="font-size: 14px;">${emoji}</span>${nombre}</span>`;
         }).join('')
         : `<span style="font-size: 12px; color: #94A3B8; font-style: italic;">${escapeHTML(t('recetas:escandallo_sin_alergenos'))}</span>`;
     const alergenosRow = `
@@ -397,7 +404,7 @@ export async function exportarPDFEscandallo() {
     const data = window._escandalloActual;
     if (!data) return;
 
-    const { receta, desglose, costeTotal, precioVenta, margenEuros, foodCost, alergenos = [] } = data;
+    const { receta, desglose, costeTotal, precioVenta, margenEuros, foodCost, alergenos = [], alergenosExtra = [] } = data;
 
     await loadPDF();
     const jsPDF = window.jsPDF;
@@ -515,8 +522,9 @@ export async function exportarPDFEscandallo() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(71, 85, 105);
+    const setExtraPdf = new Set(alergenosExtra);
     const alergenosTexto = (alergenos && alergenos.length)
-        ? alergenos.map(code => t('alergenos:' + code)).join(', ')
+        ? alergenos.map(code => t('alergenos:' + code) + (setExtraPdf.has(code) ? ' ' + t('recetas:escandallo_alergeno_traza') : '')).join(', ')
         : t('recetas:escandallo_sin_alergenos');
     const alergenosLines = doc.splitTextToSize(alergenosTexto, pageWidth - 28);
     doc.text(alergenosLines, 14, tableY + 11);

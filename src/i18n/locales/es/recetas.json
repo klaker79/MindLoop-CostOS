@@ -162,5 +162,12 @@
   "price_simulator_title": "Simulador de Precio",
   "price_simulator_hint": "Ajusta el food cost deseado para calcular el precio",
   "suggested_price": "Precio Sugerido",
-  "apply_price": "Aplicar Precio"
+  "apply_price": "Aplicar Precio",
+  "alergenos_titulo": "Alérgenos",
+  "alergenos_ayuda": "Los heredados salen solos de tus ingredientes. Añade abajo solo los extra por trazas o contaminación cruzada.",
+  "alergenos_heredados_label": "Heredados de los ingredientes",
+  "alergenos_extra_label": "Añadir extra (trazas / contaminación cruzada)",
+  "alergenos_ninguno_heredado": "Ninguno según los ingredientes actuales",
+  "alergenos_ya_heredado": "Ya viene de un ingrediente",
+  "escandallo_alergeno_traza": "(traza)"
 }

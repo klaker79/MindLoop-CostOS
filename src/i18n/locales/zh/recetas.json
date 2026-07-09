@@ -162,5 +162,12 @@
   "price_simulator_title": "价格模拟器",
   "price_simulator_hint": "设定目标食材成本率来计算售价",
   "suggested_price": "建议售价",
-  "apply_price": "应用售价"
+  "apply_price": "应用售价",
+  "alergenos_titulo": "过敏原",
+  "alergenos_ayuda": "继承的过敏原会根据食材自动显示。下方仅需添加因痕量或交叉污染而额外产生的过敏原。",
+  "alergenos_heredados_label": "继承自食材",
+  "alergenos_extra_label": "添加额外项（痕量／交叉污染）",
+  "alergenos_ninguno_heredado": "根据当前食材，无过敏原",
+  "alergenos_ya_heredado": "已来自某个食材",
+  "escandallo_alergeno_traza": "(痕量)"
 }
