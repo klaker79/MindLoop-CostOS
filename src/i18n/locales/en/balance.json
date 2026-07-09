@@ -39,6 +39,7 @@
   "diario_total_sales": "Total Monthly Sales",
   "diario_gross_profit": "Gross Profit",
   "diario_food_cost": "Food Cost",
+  "diario_food_cost_hint": "Food only · selected period. The Break-even block uses the 90-day global (food+beverage).",
   "diario_fixed_total": "Total Fixed Expenses",
   "gasto_fijo_title": "Add Fixed Expense",
   "gasto_fijo_edit_title": "Edit Fixed Expense",

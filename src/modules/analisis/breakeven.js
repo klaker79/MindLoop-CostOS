@@ -88,6 +88,10 @@ export async function getBreakevenSnapshot() {
     const platos = Array.isArray(platosRaw) ? platosRaw : [];
     const snap = computeBreakeven({ platos, gastosFijosMes, foodCostCanonical, diasServicio: DIAS_SERVICIO_MES_DEFAULT });
     snap.platosVentana = platos;
+    // Ventana usada, para que la pregunta a Omnes le ordene analizar los platos
+    // en el MISMO periodo (sin esto, su tool de menu-engineering usa el
+    // histórico completo y el relato mezcla periodos — auditoría 2026-07-09).
+    snap.ventana = { desde, hasta, dias: VENTANA_DIAS };
     return snap;
 }
 

@@ -201,7 +201,8 @@
 // BUMP v239: solución definitiva al solapamiento — el número de cada día YA NO va en la barra; va DEBAJO, en el eje (bajo el número del día, en verde/rojo). Así en el área del gráfico solo queda el chip del acumulado, y el valor diario va abajo → imposible que se pisen. Barras limpias.
 // BUMP v240: la cifra de cada día vuelve PEGADA a la barra — las VERDES por arriba (encima de la barra) y las ROJAS por abajo (debajo de la barra), como pidió Iker. Barras escaladas al 82% para dejar hueco a la cifra sin cortarse. El chip azul del acumulado sigue sobre la línea (colocado según su altura), sin solaparse.
 // BUMP v241: fin del solape definitivo — las cifras del ACUMULADO se sacan del gráfico y van a una fila DEBAJO del eje (azul, bajo el número del día); la línea se queda sin números encima. Así la cifra del día (pegada a la barra) y la del acumulado (bajo el eje) están en zonas separadas y NO pueden pisarse (días 3 y 4 arreglados).
-const CACHE_NAME = 'mindloop-costos-v241';
+// BUMP v242 (auditoría Lote 1): (1) FIX las tarjetas KPI del Diario (Ventas/Beneficio/FoodCost) respetan el selector de mes/año — antes usaban SIEMPRE el mes actual y al consultar un mes pasado tarjetas y tablas mostraban meses distintos. (2) La tarjeta Food Cost lleva etiqueta "Solo comida · periodo seleccionado" (el Equilibrio usa el global de 90 días — eran números distintos por diseño, ahora se explica). (3) La pregunta a Omnes del Equilibrio le ordena analizar los platos en la MISMA ventana de 90 días (antes Omnes respondía con el histórico completo).
+const CACHE_NAME = 'mindloop-costos-v242';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
