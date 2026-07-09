@@ -1173,6 +1173,28 @@
                   data-i18n="recetas:form_add_ingredient">+
                   Añadir</button>
               </div>
+              <div id="alergenos-receta-bloque" class="alergenos-receta-bloque"
+                style="margin:16px 0;padding:14px;border:1px solid var(--border-color,#e5e7eb);border-radius:12px;">
+                <h4 style="margin:0 0 4px;display:flex;align-items:center;gap:8px;">
+                  <span>⚠️</span><span data-i18n="recetas:alergenos_titulo">Alérgenos</span>
+                </h4>
+                <p style="margin:0 0 10px;font-size:12px;color:var(--text-secondary,#6b7280);"
+                  data-i18n="recetas:alergenos_ayuda">
+                  Los heredados salen solos de tus ingredientes. Añade abajo solo los extra por trazas o
+                  contaminación cruzada.
+                </p>
+                <div style="margin-bottom:10px;">
+                  <label style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;color:var(--text-secondary,#6b7280);"
+                    data-i18n="recetas:alergenos_heredados_label">Heredados de los ingredientes</label>
+                  <div id="alergenos-heredados-chips" style="margin-top:6px;"></div>
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;color:var(--text-secondary,#6b7280);"
+                    data-i18n="recetas:alergenos_extra_label">Añadir extra (trazas / contaminación cruzada)</label>
+                  <div id="alergenos-extra-checks"
+                    style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+                </div>
+              </div>
               <div id="coste-calculado-form" class="coste-calculado" style="display: none;">
                 <!-- Panel de Análisis de Costes - Diseño Premium -->
                 <div
@@ -3625,7 +3647,7 @@
   <script src="src/legacy/modales.js?v=20260628-iva-cashflow"></script>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260709b-proveedor-formato-a-ingrediente"></script>
+  <script type="module" src="./src/main.js?v=20260709c-alergenos-extra-receta"></script>
 </body>
 
 </html>
