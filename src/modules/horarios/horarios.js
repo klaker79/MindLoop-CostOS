@@ -1180,10 +1180,11 @@ window.descargarHorarioMensual = async function () {
         // Generar HTML del documento - DISEÑO PREMIUM
         // Nombre del restaurante del tenant actual (derivado del user logueado,
         // no de localStorage global — evita que tenant B imprima horarios de A).
-        const restaurantName =
+        const restaurantName = escapeHTML(
             window.currentUser?.restaurante?.nombre ||
             window.currentUser?.restaurante_nombre ||
-            'MindLoop';
+            'MindLoop'
+        );
         const restaurantLogo = 'https://em-content.zobj.net/source/apple/391/anchor_2693.png'; // Emoji ancla
 
         let html = `

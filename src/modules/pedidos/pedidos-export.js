@@ -8,7 +8,7 @@
  */
 
 import { t } from '@/i18n/index.js';
-import { cm, getDateLocale } from '../../utils/helpers.js';
+import { cm, getDateLocale, escapeHTML } from '../../utils/helpers.js';
 
 /**
  * Descarga PDF del pedido actual
@@ -24,10 +24,12 @@ export function descargarPedidoPDF() {
 
   const provId = pedido.proveedorId || pedido.proveedor_id;
   const prov = (window.proveedores || []).find(p => p.id === provId);
-  const provNombre = prov ? prov.nombre : t('pedidos:detail_no_supplier');
-  const provDir = prov?.direccion || '';
-  const provTel = prov?.telefono || '';
-  const provEmail = prov?.email || '';
+  // 🔒 Seguridad: escapar en origen (nombres/datos de proveedor vienen de BD y
+  // se vuelcan en un document.write same-origin → XSS almacenado si no se escapa).
+  const provNombre = escapeHTML(prov ? prov.nombre : t('pedidos:detail_no_supplier'));
+  const provDir = escapeHTML(prov?.direccion || '');
+  const provTel = escapeHTML(prov?.telefono || '');
+  const provEmail = escapeHTML(prov?.email || '');
 
   const esRecibido = pedido.estado === 'recibido';
   const items = pedido.itemsRecepcion || pedido.ingredientes || [];
@@ -39,8 +41,8 @@ export function descargarPedidoPDF() {
   items.forEach(item => {
     const ingId = item.ingredienteId || item.ingrediente_id;
     const ing = (window.ingredientes || []).find(i => i.id === ingId);
-    const nombre = ing ? ing.nombre : t('pedidos:detail_col_ingredient');
-    const unidad = ing ? ing.unidad : '';
+    const nombre = escapeHTML(ing ? ing.nombre : t('pedidos:detail_col_ingredient'));
+    const unidad = escapeHTML(ing ? ing.unidad : '');
 
     const cantPedida = parseFloat(item.cantidad || 0);
     const cantRecibida = parseFloat(item.cantidadRecibida || cantPedida);
@@ -121,7 +123,7 @@ export function descargarPedidoPDF() {
     <body>
       <div class="header">
         <div>
-          <div class="logo">${window.getRestaurantName ? window.getRestaurantName() : 'MindLoop CostOS'}</div>
+          <div class="logo">${escapeHTML(window.getRestaurantName ? window.getRestaurantName() : 'MindLoop CostOS')}</div>
           <p style="margin: 5px 0; color: #6b7280;">${t('pedidos:pdf_cost_management')}</p>
         </div>
         <div class="doc-info">
