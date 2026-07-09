@@ -2429,15 +2429,22 @@ window.actualizarKPIsDiario = async function () {
             const dd = String(d.getDate()).padStart(2, '0');
             return `${yyyy}-${mm}-${dd}`;
         };
+        // 🔴 FIX auditoría 2026-07-09: las tarjetas KPI usaban SIEMPRE el mes actual
+        // (new Date()) e ignoraban los selectores #diario-mes/#diario-ano, mientras
+        // las tablas de la misma pestaña sí los respetan → al consultar un mes
+        // pasado, tarjetas y tablas mostraban meses DISTINTOS. Ahora todas las
+        // piezas del Diario usan el mes/año seleccionados.
         const ahora = new Date();
-        let desde = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-        let hasta = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 1);
+        const mesSel = parseInt(document.getElementById('diario-mes')?.value) || (ahora.getMonth() + 1);
+        const anoSel = parseInt(document.getElementById('diario-ano')?.value) || ahora.getFullYear();
+        let desde = new Date(anoSel, mesSel - 1, 1);
+        let hasta = new Date(anoSel, mesSel, 1);
         const sem = parseInt(window.diarioSemanaActiva);
         if (Number.isFinite(sem) && sem >= 1 && sem <= 5) {
             const minDia = (sem - 1) * 7 + 1;
             const maxDia = sem * 7; // pnl-breakdown usa hasta exclusivo, ver más abajo
-            desde = new Date(ahora.getFullYear(), ahora.getMonth(), minDia);
-            hasta = new Date(ahora.getFullYear(), ahora.getMonth(), maxDia + 1);
+            desde = new Date(anoSel, mesSel - 1, minDia);
+            hasta = new Date(anoSel, mesSel - 1, maxDia + 1);
         }
         const desdeStr = toLocalDate(desde);
         const hastaStr = toLocalDate(hasta);

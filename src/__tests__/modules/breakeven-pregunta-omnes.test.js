@@ -39,6 +39,25 @@ describe('construirPreguntaOmnes', () => {
     });
 });
 
+describe('construirPreguntaOmnes — ventana de 90 días (auditoría 2026-07-09)', () => {
+    test('CON ventana: ordena a Omnes analizar los platos en el MISMO periodo', () => {
+        const q = construirPreguntaOmnes({
+            ...snap,
+            ventana: { desde: '2026-04-09', hasta: '2026-07-10', dias: 90 }
+        });
+        expect(q).toContain('últimos 90 días');
+        expect(q).toContain('desde 2026-04-09 hasta 2026-07-10');
+        expect(q).toContain('NO uses el histórico completo');
+        expect(q).not.toContain('"'); // sigue sin comillas ASCII
+    });
+
+    test('SIN ventana (snapshot antiguo): no rompe y no mete la línea', () => {
+        const q = construirPreguntaOmnes(snap);
+        expect(q).not.toContain('histórico completo');
+        expect(q).toContain('acciones más concretas');
+    });
+});
+
 describe('guard anti-regresión', () => {
     test('breakeven.js NO vuelve a meter la pregunta en data-omnes-q', () => {
         const src = fs.readFileSync(
