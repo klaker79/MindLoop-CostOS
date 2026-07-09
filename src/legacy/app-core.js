@@ -2210,11 +2210,11 @@
             trHeader.innerHTML = `
                     <td colspan="4" style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <strong>${nombre}</strong>
-                            <span>Diff: <strong style="color:${color}">${sign}${Math.abs(diffTotal).toFixed(2)} ${ing.unidad}</strong></span>
+                            <strong>${escapeHTML(nombre)}</strong>
+                            <span>Diff: <strong style="color:${color}">${sign}${Math.abs(diffTotal).toFixed(2)} ${escapeHTML(ing.unidad)}</strong></span>
                         </div>
                          <div style="font-size:12px; color: ${isMatch ? '#059669' : '#dc2626'}; margin-top:4px;">
-                            ${isMatch ? '✓ Cuadrado' : `⚠️ Faltan por asignar: ${restante.toFixed(2)} ${ing.unidad}`}
+                            ${isMatch ? '✓ Cuadrado' : `⚠️ Faltan por asignar: ${restante.toFixed(2)} ${escapeHTML(ing.unidad)}`}
                         </div>
                     </td>
                 `;
@@ -2231,7 +2231,7 @@
                             <input type="number" step="0.01" value="${adj.cantidad || 0}" 
                                 onchange="window.updateSplitAmount(${snap.id}, ${adj.id}, this.value)"
                                 style="width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"> 
-                            <span style="font-size:11px">${ing.unidad}</span>
+                            <span style="font-size:11px">${escapeHTML(ing.unidad)}</span>
                         </td>
                         <td style="padding: 5px;">
                             <select onchange="window.updateSplitReason(${snap.id}, ${adj.id}, this.value)"
@@ -2245,7 +2245,7 @@
                             </select>
                         </td>
                         <td style="padding: 5px; display: flex; gap: 5px;">
-                            <input type="text" value="${adj.notas}" placeholder="Nota..."
+                            <input type="text" value="${escapeHTML(adj.notas || '')}" placeholder="Nota..."
                                 onchange="window.updateSplitNote(${snap.id}, ${adj.id}, this.value)"
                                 style="flex:1; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
                             <button onclick="window.removeSplit(${snap.id}, ${adj.id})" style="background:none; border:none; cursor:pointer;">❌</button>
