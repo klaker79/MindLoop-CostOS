@@ -458,7 +458,12 @@ async function renderizarBeneficioNetoDiario() {
     // presentación (Iker 2026-07-08). El día sin ventas entra como barra roja
     // atenuada (solo carga gastos fijos).
     const maxAbs = barras.reduce((m, b) => Math.max(m, Math.abs(b.beneficio)), 0) || 1;
-    const mostrarEtiquetas = barras.length <= 12; // con muchos días, solo tooltip
+    // Un mes cabe (≤31 días): mostramos los números todo el mes, con la letra
+    // ADAPTATIVA al nº de días para que no se amontonen (antes se ocultaban por
+    // encima de 12 días y en un mes entero no se veía ningún número — Iker
+    // 2026-07-09). Solo tooltip si por alguna razón hubiera >31 columnas.
+    const mostrarEtiquetas = barras.length <= 31;
+    const fsEtiq = barras.length <= 12 ? 10 : (barras.length <= 20 ? 9 : 7.5); // px
     const colorMes = beneficioRealTotal >= 0 ? '#34d399' : '#f87171';
     const anchoMin = Math.max(320, barras.length * 26);
 
@@ -476,7 +481,7 @@ async function renderizarBeneficioNetoDiario() {
         // abajo. El chip azul del acumulado va sobre la línea (colocado según su
         // altura), así no se pisan (Iker 2026-07-09).
         const etiqueta = mostrarEtiquetas
-            ? `<span style="position:absolute;left:50%;transform:translateX(-50%);${positivo ? 'bottom:100%;margin-bottom:2px;color:#34d399;' : 'top:100%;margin-top:2px;color:#f87171;'}font-size:10px;font-weight:800;white-space:nowrap;">${fmt(b.beneficio)}</span>`
+            ? `<span style="position:absolute;left:50%;transform:translateX(-50%);${positivo ? 'bottom:100%;margin-bottom:2px;color:#34d399;' : 'top:100%;margin-top:2px;color:#f87171;'}font-size:${fsEtiq}px;font-weight:800;white-space:nowrap;">${fmt(b.beneficio)}</span>`
             : '';
         const barra = `<div title="${b.dia}/${mes}: ${cm(b.beneficio)}" style="width:72%;max-width:30px;height:${h}%;background:${grad};opacity:${b.activo ? '1' : '0.5'};border-radius:${radio};position:relative;">${etiqueta}</div>`;
         return `<div style="flex:1;min-width:20px;display:flex;flex-direction:column;height:180px;">`
@@ -502,8 +507,8 @@ async function renderizarBeneficioNetoDiario() {
     // Eje: número del día + DEBAJO el acumulado hasta ese día (en azul, igual que
     // la línea). Fuera del área del gráfico → nunca choca con la cifra del día.
     const ejeHTML = barras.map((b, i) => {
-        const accTxt = mostrarEtiquetas ? `<br><span style="color:#7dd3fc;font-weight:700;font-variant-numeric:tabular-nums;">${fmt(acumulados[i])}</span>` : '';
-        return `<span style="flex:1;min-width:20px;text-align:center;font-size:10px;color:#8595ad;font-weight:600;line-height:1.4;">${b.dia}${accTxt}</span>`;
+        const accTxt = mostrarEtiquetas ? `<br><span style="font-size:${fsEtiq}px;color:#7dd3fc;font-weight:700;font-variant-numeric:tabular-nums;">${fmt(acumulados[i])}</span>` : '';
+        return `<span style="flex:1;min-width:20px;text-align:center;font-size:${barras.length <= 20 ? 10 : 8.5}px;color:#8595ad;font-weight:600;line-height:1.35;">${b.dia}${accTxt}</span>`;
     }).join('');
 
     const notaHTML = diasSinActividad > 0
