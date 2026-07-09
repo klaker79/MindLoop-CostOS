@@ -56,8 +56,10 @@ export async function guardarVenta() {
         const result = await store.createSale({ recetaId, cantidad, varianteId, precioVariante });
         if (!result.success) throw new Error(result.error || 'Error al registrar venta');
 
-        // Invalidar caché y refrescar UI
+        // Invalidar caché y refrescar UI. Volver a la página 1: la venta recién
+        // registrada es la más reciente y se muestra arriba del todo.
         window._ventasCache = null;
+        window._ventasPagina = 1;
         await window.renderizarVentas?.();
         window.actualizarKPIs?.();
         form?.reset();
