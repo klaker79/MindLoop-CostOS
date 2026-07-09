@@ -17,7 +17,7 @@
 
 import { api } from '../../api/client.js';
 import { getFoodCostCanonical } from './analisis-state.js';
-import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, VENTANA_DIAS, sumaGastosOperativos } from './breakeven-calc.js';
+import { computeBreakeven, computeProgresoEquilibrio, DIAS_SERVICIO_MES_DEFAULT, VENTANA_DIAS, sumaGastosOperativos } from './breakeven-calc.js';
 import { computeBeneficioNetoDiario } from './pnl-diario-calc.js';
 import { construirConsejos, construirPreguntaOmnes } from './breakeven-consejos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
@@ -73,6 +73,16 @@ function ventanaMovil() {
     return { desde: iso(desde), hasta: iso(manana) };
 }
 
+/** Rango ISO del MES EN CURSO ([1 del mes, 1 del mes siguiente)). */
+function rangoMesActual() {
+    const hoy = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const primero = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const primeroSig = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+    return { desde: iso(primero), hasta: iso(primeroSig) };
+}
+
 /**
  * Devuelve el snapshot del punto de equilibrio (mismo cálculo para Análisis
  * y para el mini del Diario). Usa la VENTANA MÓVIL de VENTANA_DIAS días (no el
@@ -81,14 +91,24 @@ function ventanaMovil() {
  */
 export async function getBreakevenSnapshot() {
     const { desde, hasta } = ventanaMovil();
-    const [gastosFijosMes, platosRaw, foodCostCanonical] = await Promise.all([
+    const mes = rangoMesActual();
+    const [gastosFijosMes, platosRaw, foodCostCanonical, pnlMes] = await Promise.all([
         fetchGastosFijosMes(),
         api.getMenuEngineering({ desde, hasta }).catch(() => []),
-        getFoodCostCanonical({ desde, hasta }).catch(() => null)
+        getFoodCostCanonical({ desde, hasta }).catch(() => null),
+        api.getPnlBreakdown(mes.desde, mes.hasta).catch(() => null)
     ]);
     const platos = Array.isArray(platosRaw) ? platosRaw : [];
     const snap = computeBreakeven({ platos, gastosFijosMes, foodCostCanonical, diasServicio: DIAS_SERVICIO_MES_DEFAULT });
     snap.platosVentana = platos;
+    // Ventas del MES EN CURSO (base global comida+bebida, la misma del food cost
+    // canónico y del /analytics/pnl-breakdown que usa el dashboard/Diario) → sirve
+    // para el progreso: cuánto de la facturación de equilibrio llevas hecho.
+    if (pnlMes) {
+        const f = parseFloat(pnlMes.food?.ingresos) || 0;
+        const b = parseFloat(pnlMes.beverage?.ingresos) || 0;
+        snap.ventasMesActual = f + b;
+    }
     // Ventana usada, para que la pregunta a Omnes le ordene analizar los platos
     // en el MISMO periodo (sin esto, su tool de menu-engineering usa el
     // histórico completo y el relato mezcla periodos — auditoría 2026-07-09).
@@ -97,27 +117,27 @@ export async function getBreakevenSnapshot() {
 }
 
 /**
- * Progreso del mes cargado en el Diario (si `datosResumenMensual` existe).
- * Devuelve null si no hay datos — el hero muestra solo el objetivo.
+ * Progreso del mes en curso hacia el punto de equilibrio.
+ *
+ * ⚠️ CORRECCIÓN 2026-07-10 (Iker): antes comparaba UNIDADES vendidas del mes
+ * (todas las recetas, bebidas y complementos incluidos) contra un objetivo en
+ * PLATOS calculado con el ticket del menu-engineering (que excluye bebidas y
+ * complementos). Poblaciones distintas → 4.910 uds baratas > 3.834 platos de
+ * ~16€ marcaba falsamente "gastos cubiertos" cuando por margen iba al ~56%.
+ *
+ * Ahora se mide por FACTURACIÓN, que es a prueba de mezcla de productos:
+ *   `ventasEquilibrioMes` = gastos fijos ÷ (1 − food cost) = lo que hay que
+ *   facturar (base global comida+bebida) para cubrir gastos. El progreso es
+ *   simplemente ventas del mes ÷ ese objetivo. Mismo food cost y misma base que
+ *   el dashboard/Diario → los números cuadran ([[datos_cuadran_entre_pestanas]]).
+ *
+ * Devuelve null si no hay datos del mes — el hero muestra solo el objetivo.
  */
-function progresoDelMes(breakevenPlatosMes, ticketMedio) {
-    const drm = typeof window !== 'undefined' ? window.datosResumenMensual : null;
-    const recetas = drm?.ventas?.recetas;
-    if (!recetas || !breakevenPlatosMes) return null;
-    let unidadesMes = 0;
-    for (const nombre in recetas) {
-        unidadesMes += parseFloat(recetas[nombre]?.totalVendidas) || 0;
-    }
-    if (unidadesMes <= 0) return null;
-    const progreso = Math.min(100, (unidadesMes / breakevenPlatosMes) * 100);
-    const faltantesPlatos = Math.max(0, breakevenPlatosMes - unidadesMes);
-    return {
-        unidadesMes,
-        progreso,
-        faltantesPlatos,
-        faltantesEuros: faltantesPlatos * ticketMedio,
-        cubierto: faltantesPlatos <= 0
-    };
+function progresoDelMes(snap) {
+    return computeProgresoEquilibrio({
+        ventasMes: snap && snap.ventasMesActual,
+        ventasEquilibrioMes: snap && snap.ventasEquilibrioMes
+    });
 }
 
 const INFO_BTN_HTML = `
@@ -179,12 +199,12 @@ function heroBandHTML(snap, prog) {
         const color = prog.cubierto ? '#10b981' : (prog.progreso >= 60 ? '#f59e0b' : '#ef4444');
         const pie = prog.cubierto
             ? '✅ Gastos fijos cubiertos — a partir de aquí, todo es beneficio.'
-            : `Te faltan ${prog.faltantesPlatos.toLocaleString('es-ES')} platos (~${cm(prog.faltantesEuros)}) para cubrir gastos.`;
+            : `Te faltan ${cm(prog.faltantesEuros)} en ventas este mes para cubrir gastos.`;
         progresoHTML = `
             <div class="be-progress">
                 <div class="be-progress__head">
                     <span>Mes en curso: <strong>${prog.progreso.toFixed(0)}%</strong> del objetivo</span>
-                    <span class="be-progress__count">${prog.unidadesMes.toLocaleString('es-ES')} / ${platosMesTxt} platos</span>
+                    <span class="be-progress__count">${cm(prog.ventasMes)} / ${cm(prog.objetivo)}</span>
                 </div>
                 <div class="be-progress__track">
                     <div class="be-progress__fill" style="width:${prog.progreso}%; background:${color};"></div>
@@ -335,7 +355,7 @@ export async function renderBreakeven() {
             bindHandlers(host, null);
             return;
         }
-        const prog = progresoDelMes(snap.breakevenPlatosMes, snap.ticketMedio);
+        const prog = progresoDelMes(snap);
         host.innerHTML = `
             ${headerHTML('Cuánto necesitas facturar para no perder dinero — tu número de supervivencia.')}
             ${heroBandHTML(snap, prog)}

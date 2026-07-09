@@ -5,7 +5,7 @@
  * borde. El margen de contribución es PONDERADO por ventas reales, no un
  * promedio simple — este test lo blinda.
  */
-import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, esImpuestoNoOperativo, sumaGastosOperativos } from '@modules/analisis/breakeven-calc.js';
+import { computeBreakeven, computeProgresoEquilibrio, DIAS_SERVICIO_MES_DEFAULT, esImpuestoNoOperativo, sumaGastosOperativos } from '@modules/analisis/breakeven-calc.js';
 
 describe('computeBreakeven — fórmula ponderada', () => {
     // 2 platos:
@@ -177,5 +177,37 @@ describe('computeBreakeven — estados de borde', () => {
         const s = computeBreakeven({ platos: sucio, gastosFijosMes: '4000' });
         expect(s.estado).toBe('ok');
         expect(Number.isFinite(s.breakevenPlatosMes)).toBe(true);
+    });
+});
+
+describe('computeProgresoEquilibrio — progreso por facturación (fix 2026-07-10)', () => {
+    // Caso real La Nave 5 julio: ventasEquilibrioMes = gastos ÷ (1−fc) = 61.885€;
+    // ventas del mes = 34.934€. El bug viejo (unidades) marcaba "cubierto"; por
+    // facturación va al ~56% y NO cubierto.
+    test('mes por debajo del equilibrio → no cubierto, % real', () => {
+        const p = computeProgresoEquilibrio({ ventasMes: 34933.70, ventasEquilibrioMes: 61885.44 });
+        expect(p.cubierto).toBe(false);
+        expect(p.progreso).toBeCloseTo(56.45, 1);
+        expect(p.faltantesEuros).toBeCloseTo(26951.74, 1);
+    });
+
+    test('mes por encima del equilibrio → cubierto y progreso topado a 100', () => {
+        const p = computeProgresoEquilibrio({ ventasMes: 80000, ventasEquilibrioMes: 61885.44 });
+        expect(p.cubierto).toBe(true);
+        expect(p.progreso).toBe(100);
+        expect(p.faltantesEuros).toBe(0);
+    });
+
+    test('justo en el equilibrio → cubierto', () => {
+        const p = computeProgresoEquilibrio({ ventasMes: 61885.44, ventasEquilibrioMes: 61885.44 });
+        expect(p.cubierto).toBe(true);
+        expect(p.progreso).toBe(100);
+    });
+
+    test('sin datos / objetivo inválido → null (el hero muestra solo el objetivo)', () => {
+        expect(computeProgresoEquilibrio({ ventasMes: 0, ventasEquilibrioMes: 61885 })).toBeNull();
+        expect(computeProgresoEquilibrio({ ventasMes: 34934, ventasEquilibrioMes: 0 })).toBeNull();
+        expect(computeProgresoEquilibrio({})).toBeNull();
+        expect(computeProgresoEquilibrio()).toBeNull();
     });
 });
