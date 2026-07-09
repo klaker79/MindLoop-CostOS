@@ -2792,7 +2792,24 @@ async function renderizarTablaPLDiario() {
         return;
     }
 
-    const dias = window.filtrarDiasPorSemana(window.datosResumenMensual.dias, window.diarioSemanaActiva);
+    // ⛔ COLUMNAS = TODOS los días TRANSCURRIDOS del mes (1..hoy si es el mes en
+    // curso; el mes entero si es pasado), no solo los días con ventas/compras.
+    // MISMO universo que el gráfico "Beneficio neto por día" (modales.js), para
+    // que tabla y gráfico den EXACTAMENTE el mismo total y el TOTAL de cada fila
+    // sea SIEMPRE la suma de sus columnas (auditoría 2026-07-09: un extra pagado
+    // un día sin ventas tenía total pero no columna, y un extra con FECHA FUTURA
+    // entraba al total del mes "hasta hoy").
+    const _hoyTabla = new Date();
+    const _mesTabla = parseInt(document.getElementById('diario-mes')?.value) || (_hoyTabla.getMonth() + 1);
+    const _anoTabla = parseInt(document.getElementById('diario-ano')?.value) || _hoyTabla.getFullYear();
+    const _esMesEnCursoTabla = _anoTabla === _hoyTabla.getFullYear() && _mesTabla === (_hoyTabla.getMonth() + 1);
+    const _diasEnMesTabla = new Date(_anoTabla, _mesTabla, 0).getDate();
+    const _ultimoDiaTabla = _esMesEnCursoTabla ? _hoyTabla.getDate() : _diasEnMesTabla;
+    const _diasCompletos = [];
+    for (let d = 1; d <= _ultimoDiaTabla; d++) {
+        _diasCompletos.push(`${_anoTabla}-${String(_mesTabla).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+    }
+    const dias = window.filtrarDiasPorSemana(_diasCompletos, window.diarioSemanaActiva);
     const recetas = window.datosResumenMensual.ventas?.recetas || {};
 
     // Calcular totales por día
@@ -2912,11 +2929,12 @@ async function renderizarTablaPLDiario() {
     // Gasto operativo aparte: resta al beneficio neto, pero NO es food cost ni
     // compra. Mismo importe que el chat (resumen_pyg) y el informe mensual para
     // que el beneficio cuadre en TODOS los sitios.
-    // Igual criterio que la fila de gastos fijos: el total cubre TODO el periodo
-    // activo (mes completo o semana filtrada) aunque ese día no tenga ventas — un
-    // extra se paga aunque no haya TPV ese día, así que NO se limita a `dias`
-    // (que son solo los días con movimiento de ventas). Si se limitara, los extras
-    // de días sin ventas se perderían del total y el beneficio no cuadraría.
+    // El mapa cubre todo el periodo consultado; el TOTAL de la fila se calcula
+    // después SOLO sobre los días MOSTRADOS (columnas), como mermas y comida.
+    // Desde la auditoría 2026-07-09 las columnas son TODOS los días transcurridos
+    // → un extra de un día sin ventas SÍ tiene columna y cuenta; un extra con
+    // FECHA FUTURA no cuenta hasta que su día llegue (antes entraba al total del
+    // mes "hasta hoy" sin columna y el total no era la suma de las columnas).
     const personalExtraPorDia = {};
     let totalPersonalExtra = 0;
     try {
@@ -3046,9 +3064,10 @@ async function renderizarTablaPLDiario() {
 
     // ── FILA: PERSONAL EXTRA DEL DÍA (👷) ──
     // Pagos a extras por horas. Gasto operativo aparte (resta al beneficio).
-    // `totalPersonalExtra` ya viene calculado del loader (cubre todo el periodo,
-    // incluidos días sin ventas). Las celdas por día muestran el importe de los
-    // días visibles; el TOTAL puede ser mayor (igual que la fila de gastos fijos).
+    // El TOTAL de la fila = suma de las COLUMNAS mostradas (auditoría 2026-07-09):
+    // como las columnas ya son todos los días transcurridos, ningún extra pasado
+    // se pierde, y un extra con FECHA FUTURA no cuenta hasta que llegue su día.
+    totalPersonalExtra = dias.reduce((s, dia) => s + (personalExtraPorDia[dia] || 0), 0);
     if (totalPersonalExtra > 0) {
         html += `<tr style="background: #e0f2fe;"><td style="position: sticky; left: 0; background: #e0f2fe; padding: 16px; font-weight: 600; color: #075985; border-bottom: 1px solid #bae6fd;" title="Pagos a extras por horas. No es food cost ni compra del restaurante.">${window.t('balance:pl_extra_staff') || '👷 PERSONAL EXTRA'}</td>`;
         dias.forEach(dia => {
@@ -3060,9 +3079,10 @@ async function renderizarTablaPLDiario() {
 
     // ── FILA: GASTOS FIJOS / DÍA ──
     // El TOTAL MES de gastos fijos = gasto fijo diario × nº de días MOSTRADOS
-    // (los que tienen datos = las columnas de la tabla). Así el TOTAL cuadra
-    // EXACTAMENTE con la suma de los beneficios netos diarios: cada columna ya
-    // resta su gastoFijoDia y el total suma lo mismo. Ni más ni menos.
+    // (desde la auditoría 2026-07-09, TODOS los días transcurridos del mes =
+    // mismo universo que el gráfico). Así el TOTAL cuadra EXACTAMENTE con la
+    // suma de los beneficios netos diarios: cada columna ya resta su
+    // gastoFijoDia y el total suma lo mismo. Ni más ni menos.
     //
     // Historia (Iker 2026-07-08): el total prorrateaba a los días de CALENDARIO
     // transcurridos (p.ej. día 8) aunque solo hubiera 4 días con ventas → cargaba
