@@ -57,43 +57,74 @@ export const ALERGENOS_CODES = new Set(ALERGENOS.map(a => a.code));
  * @param {Set<number>} [_visto] - Ids de recetas ya visitadas (anti-ciclos).
  * @returns {string[]} Array único y ordenado de códigos de alérgeno.
  */
-export function getAlergenosReceta(receta, ingMap, recetasMap, _visto = new Set()) {
-    const out = new Set();
-
-    if (!receta || !Array.isArray(receta.ingredientes)) {
-        return [];
+/** Añade a `out` los alérgenos EXTRA propios de una receta (solo códigos válidos). */
+function _agregarExtras(out, receta) {
+    const extra = receta && Array.isArray(receta.alergenos_extra) ? receta.alergenos_extra : null;
+    if (extra) {
+        for (const code of extra) {
+            if (ALERGENOS_CODES.has(code)) out.add(code);
+        }
     }
+}
 
-    for (const linea of receta.ingredientes) {
-        if (!linea) continue;
-        const ingredienteId = Number(
-            linea.ingredienteId ?? linea.ingrediente_id
-        );
-        if (!Number.isFinite(ingredienteId)) continue;
+/**
+ * Acumula en `out` los alérgenos de una receta: los de sus ingredientes + los de
+ * sus subrecetas (recursivo, con TODOS sus extras) y, si `incluirExtraTop`, los
+ * extra PROPIOS de esta receta. `incluirExtraTop=false` da solo los HEREDADOS.
+ */
+function _acumular(receta, ingMap, recetasMap, _visto, out, incluirExtraTop) {
+    if (receta && Array.isArray(receta.ingredientes)) {
+        for (const linea of receta.ingredientes) {
+            if (!linea) continue;
+            const ingredienteId = Number(linea.ingredienteId ?? linea.ingrediente_id);
+            if (!Number.isFinite(ingredienteId)) continue;
 
-        if (ingredienteId > 100000) {
-            // Subreceta: id real = ingredienteId - 100000.
-            const subId = ingredienteId - 100000;
-            if (_visto.has(subId)) continue; // anti-ciclo
-            _visto.add(subId);
-            const sub = recetasMap && recetasMap.get(subId);
-            if (sub) {
-                for (const code of getAlergenosReceta(sub, ingMap, recetasMap, _visto)) {
-                    out.add(code);
-                }
-            }
-        } else {
-            const ing = ingMap && ingMap.get(ingredienteId);
-            const alergenos = ing && Array.isArray(ing.alergenos) ? ing.alergenos : null;
-            if (alergenos) {
-                for (const code of alergenos) {
-                    if (ALERGENOS_CODES.has(code)) out.add(code);
+            if (ingredienteId > 100000) {
+                // Subreceta: id real = ingredienteId - 100000.
+                const subId = ingredienteId - 100000;
+                if (_visto.has(subId)) continue; // anti-ciclo
+                _visto.add(subId);
+                const sub = recetasMap && recetasMap.get(subId);
+                // La subreceta aporta sus HEREDADOS + sus PROPIOS extras (una
+                // subreceta con trazas contamina al plato padre).
+                if (sub) _acumular(sub, ingMap, recetasMap, _visto, out, true);
+            } else {
+                const ing = ingMap && ingMap.get(ingredienteId);
+                const alergenos = ing && Array.isArray(ing.alergenos) ? ing.alergenos : null;
+                if (alergenos) {
+                    for (const code of alergenos) {
+                        if (ALERGENOS_CODES.has(code)) out.add(code);
+                    }
                 }
             }
         }
     }
+    if (incluirExtraTop) _agregarExtras(out, receta);
+}
 
+/**
+ * Alérgenos TOTALES de una receta (lo que hay que declarar): heredados de los
+ * ingredientes/subrecetas ∪ los EXTRA propios del plato (trazas / contaminación
+ * cruzada / emplatado, columna recetas.alergenos_extra — Opción A 2026-07-09).
+ * Único, ordenado. La receta NO puede QUITAR un heredado (salud/legal).
+ */
+export function getAlergenosReceta(receta, ingMap, recetasMap, _visto = new Set()) {
+    if (!receta) return [];
+    const out = new Set();
+    _acumular(receta, ingMap, recetasMap, _visto, out, true);
     return Array.from(out).sort();
 }
 
-export default { ALERGENOS, ALERGENOS_CODES, getAlergenosReceta };
+/**
+ * Solo los alérgenos HEREDADOS (de ingredientes y subrecetas), SIN los extra
+ * propios del nivel superior. Sirve para que la UI distinga cuáles son
+ * heredados (solo lectura) de los extra que el usuario añadió a mano.
+ */
+export function getAlergenosHeredados(receta, ingMap, recetasMap) {
+    if (!receta) return [];
+    const out = new Set();
+    _acumular(receta, ingMap, recetasMap, new Set(), out, false);
+    return Array.from(out).sort();
+}
+
+export default { ALERGENOS, ALERGENOS_CODES, getAlergenosReceta, getAlergenosHeredados };

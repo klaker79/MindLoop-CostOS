@@ -5,6 +5,11 @@ import { t } from '@/i18n/index.js';
 import { renderEmptyStateOnboarding } from '../../components/domain/EmptyStateOnboarding.js';
 import { renderRequirementBanner, removeRequirementBanner } from '../../components/domain/RequirementBanner.js';
 import { HELP_VIDEOS } from '../help/help-config.js';
+import {
+    renderAlergenosExtraCheckboxes,
+    actualizarAlergenosReceta,
+    resetAlergenosExtra,
+} from './recetas-alergenos.js';
 /**
  * Recetas UI Module
  * Funciones de interfaz de usuario para recetas
@@ -32,6 +37,11 @@ export function mostrarFormularioReceta() {
     }
     document.getElementById('formulario-receta').style.display = 'block';
     window.agregarIngredienteReceta();
+    // 🆕 Alérgenos: pintar las casillas extra (idempotente). En receta NUEVA
+    // (sin id en edición) resetear estado; en edición, editarReceta precargará.
+    renderAlergenosExtraCheckboxes();
+    if (window.editandoRecetaId === null || window.editandoRecetaId === undefined) resetAlergenosExtra();
+    actualizarAlergenosReceta();
     document.getElementById('rec-nombre').focus();
 }
 
@@ -54,6 +64,10 @@ export function cerrarFormularioReceta() {
     document.getElementById('lista-ingredientes-receta').innerHTML = '';
     document.getElementById('form-title-receta').textContent = t('recetas:form_title_new');
     document.getElementById('btn-text-receta').textContent = t('recetas:btn_save');
+    // 🆕 Limpiar estado de alérgenos extra (desmarcar + rehabilitar casillas).
+    resetAlergenosExtra();
+    const chipsHeredados = document.getElementById('alergenos-heredados-chips');
+    if (chipsHeredados) chipsHeredados.innerHTML = '';
 }
 
 /**
@@ -340,6 +354,9 @@ export function calcularCosteReceta() {
 
     // Sync price simulator if visible
     actualizarPrecioSugerido();
+
+    // 🆕 Refrescar alérgenos heredados en vivo al cambiar ingredientes.
+    actualizarAlergenosReceta();
 
     return costeTotal;
 }

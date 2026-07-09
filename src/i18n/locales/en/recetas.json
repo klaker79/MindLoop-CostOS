@@ -162,5 +162,12 @@
   "price_simulator_title": "Price Simulator",
   "price_simulator_hint": "Set desired food cost to calculate the price",
   "suggested_price": "Suggested Price",
-  "apply_price": "Apply Price"
+  "apply_price": "Apply Price",
+  "alergenos_titulo": "Allergens",
+  "alergenos_ayuda": "Inherited ones come automatically from your ingredients. Below, add only the extra ones for traces or cross-contamination.",
+  "alergenos_heredados_label": "Inherited from ingredients",
+  "alergenos_extra_label": "Add extra (traces / cross-contamination)",
+  "alergenos_ninguno_heredado": "None based on the current ingredients",
+  "alergenos_ya_heredado": "Already comes from an ingredient",
+  "escandallo_alergeno_traza": "(trace)"
 }

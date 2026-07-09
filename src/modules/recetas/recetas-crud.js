@@ -9,6 +9,12 @@ import recipeStore from '../../stores/recipeStore.js';
 import { validateReceta, showValidationErrors } from '../../utils/validation.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
+import {
+    renderAlergenosExtraCheckboxes,
+    actualizarAlergenosReceta,
+    getAlergenosExtraSeleccionados,
+    precargarAlergenosExtra,
+} from './recetas-alergenos.js';
 
 /**
  * Guarda una receta (nueva o editada)
@@ -55,6 +61,11 @@ export async function guardarReceta(event) {
         precio_venta: parseFloat(document.getElementById('rec-precio_venta').value) || 0,
         porciones: parseInt(document.getElementById('rec-porciones').value) || 1,
         ingredientes: ingredientesReceta,
+        // 🆕 Alérgenos EXTRA del plato (trazas / contaminación cruzada). Los
+        // heredados de los ingredientes NO se guardan aquí: el backend los une
+        // al declarar. Solo van los que el usuario marcó a mano y no vienen ya
+        // heredados. Ver recetas-alergenos.js + [[project_alergenos_2026_06_11]].
+        alergenos_extra: getAlergenosExtraSeleccionados(),
     };
 
     // 🆕 Validación centralizada
@@ -154,6 +165,13 @@ export function editarReceta(id) {
     document.getElementById('form-title-receta').textContent = t('recetas:form_title_edit');
     document.getElementById('btn-text-receta').textContent = t('recetas:btn_save');
     window.mostrarFormularioReceta();
+
+    // 🆕 Alérgenos EXTRA guardados: pre-marcar tras abrir el formulario (las
+    // casillas ya están pintadas por mostrarFormularioReceta). Luego refrescar
+    // heredados, que deshabilitará las que ya vengan de los ingredientes.
+    renderAlergenosExtraCheckboxes();
+    precargarAlergenosExtra(rec.alergenos_extra);
+    actualizarAlergenosReceta();
 }
 
 /**
