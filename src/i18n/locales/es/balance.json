@@ -39,6 +39,7 @@
   "diario_total_sales": "Total Ventas Mes",
   "diario_gross_profit": "Beneficio Bruto",
   "diario_food_cost": "Food Cost",
+  "diario_food_cost_hint": "Solo comida · periodo seleccionado. El Punto de Equilibrio usa el global (comida+bebida) de 90 días.",
   "diario_fixed_total": "Gastos Fijos Totales",
   "gasto_fijo_title": "Añadir Gasto Fijo",
   "gasto_fijo_edit_title": "Editar Gasto Fijo",
