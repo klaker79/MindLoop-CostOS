@@ -520,12 +520,21 @@ window.confirmarInventarioMasivo = async function () {
             const ing = ingredientesMap.get(d.ingredienteId) || {};
             const inv = inventarioMap.get(d.ingredienteId) || {};
             const cantidad = +(d.stockVirtual - d.stockReal).toFixed(4);
-            // Precio unitario (€/unidad-base) con prioridad estándar:
-            // precio_medio_compra > precio_medio > precio/cpf > 0
-            let precioUnit = parseFloat(inv.precio_medio_compra) || 0;
-            if (!precioUnit) precioUnit = parseFloat(inv.precio_medio) || 0;
-            if (!precioUnit && ing.precio && ing.cantidad_por_formato > 0) {
-                precioUnit = parseFloat(ing.precio) / parseFloat(ing.cantidad_por_formato);
+            // Precio unitario (€/unidad-base) por la función CANÓNICA (respeta el
+            // precio fijado 📌 y la prioridad estándar precio_medio_compra >
+            // precio_medio > precio/cpf). Antes replicaba la cascada a mano y un
+            // ingrediente con precio fijado valoraba su merma con la media de
+            // compras (auditoría 2026-07-09). Fallback inline solo si el puente
+            // window no está (no debería ocurrir: main.js lo registra al boot).
+            let precioUnit;
+            if (typeof window.getIngredientUnitPrice === 'function') {
+                precioUnit = parseFloat(window.getIngredientUnitPrice(inv, ing)) || 0;
+            } else {
+                precioUnit = parseFloat(inv.precio_medio_compra) || 0;
+                if (!precioUnit) precioUnit = parseFloat(inv.precio_medio) || 0;
+                if (!precioUnit && ing.precio && ing.cantidad_por_formato > 0) {
+                    precioUnit = parseFloat(ing.precio) / parseFloat(ing.cantidad_por_formato);
+                }
             }
             mermasDetectadas.push({
                 ingredienteId: d.ingredienteId,

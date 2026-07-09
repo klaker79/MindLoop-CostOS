@@ -18,6 +18,7 @@
 import { api } from '../../api/client.js';
 import { getFoodCostCanonical } from './analisis-state.js';
 import { computeBreakeven, DIAS_SERVICIO_MES_DEFAULT, VENTANA_DIAS, sumaGastosOperativos } from './breakeven-calc.js';
+import { computeBeneficioNetoDiario } from './pnl-diario-calc.js';
 import { construirConsejos, construirPreguntaOmnes } from './breakeven-consejos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { mostrarBreakevenInfo } from './breakeven-info.js';
@@ -354,4 +355,8 @@ if (typeof window !== 'undefined') {
     // MISMA regla de gastos operativos (excluye IVA/IRPF/Sociedades, mantiene IAE)
     // que el punto de equilibrio → los dos cuadran.
     window.mlSumaGastosOperativos = sumaGastosOperativos;
+    // Cálculo PURO y TESTEADO del "Beneficio neto por día" (invariante:
+    // total = Σ columnas). El gráfico del Diario legacy lo consume por este
+    // puente para que la lógica blindada por tests sea la que corre en la app.
+    window.mlComputeBeneficioNetoDiario = computeBeneficioNetoDiario;
 }

@@ -398,60 +398,49 @@ async function renderizarBeneficioNetoDiario() {
         }
     }
 
-    // Calcular beneficios y acumulados para TODOS los días del mes
-    let acumulado = 0;
-    let sumaTotal = 0;
-    let totalPlatosVendidos = 0;
-    let diasConDatos = 0;
-
     // Obtener el día actual para no mostrar días futuros
     const hoy = new Date();
     const esEsteMes = mes === hoy.getMonth() + 1 && ano === hoy.getFullYear();
     const ultimoDiaMostrar = esEsteMes ? hoy.getDate() : diasTotalesMes;
 
-    // Iterar por todos los días del mes (del 1 al último día a mostrar)
-    // Todos los días restan gastos fijos - enfoque contable claro
-    let beneficioRealTotal = 0;
-    let diasSinActividad = 0;
-    let gastosPendientes = 0;
-    const barras = []; // {dia, beneficio, activo} por día → alimenta el gráfico
-
+    // 🔗 Entrada por día con los MISMOS componentes que la tabla P&L (única
+    // fuente de verdad): mermas, comida de personal y personal extra del día
+    // (mapas YYYY-MM-DD que expone renderizarTablaPLDiario) + gastos fijos.
+    const diasInput = [];
     for (let diaNum = 1; diaNum <= ultimoDiaMostrar; diaNum++) {
         const diaData = diasDataMap[diaNum] || { ingresos: 0, costos: 0, cantidadVendida: 0 };
-        const tieneActividad = diasDataMap[diaNum] !== undefined;
-
-        const ingresos = diaData.ingresos || 0;
-        const costos = diaData.costos || 0;
-
-        // 🔗 Mismos componentes que la tabla P&L (única fuente de verdad): además
-        // de los gastos fijos, restamos mermas, comida de personal y personal extra
-        // del día, para que el beneficio neto diario cuadre con la Cuenta de
-        // Resultados. Los mapas (clave YYYY-MM-DD) los expone renderizarTablaPLDiario.
         const _ymd = `${ano}-${String(mes).padStart(2, '0')}-${String(diaNum).padStart(2, '0')}`;
-        const mermaDia = (window.plMermasPorDia && window.plMermasPorDia[_ymd]) || 0;
-        const comidaDia = (window.plComidaPersonalPorDia && window.plComidaPersonalPorDia[_ymd]) || 0;
-        const extraDia = (window.plPersonalExtraPorDia && window.plPersonalExtraPorDia[_ymd]) || 0;
-
-        // Siempre restamos gastos fijos + gastos operativos del día (enfoque contable real)
-        const beneficioNeto = ingresos - costos - mermaDia - comidaDia - extraDia - gastosFijosDia;
-        beneficioRealTotal += beneficioNeto;
-
-        if (tieneActividad) {
-            acumulado += beneficioNeto;
-            sumaTotal += beneficioNeto;
-            diasConDatos++;
-        } else {
-            diasSinActividad++;
-            gastosPendientes += gastosFijosDia;
-        }
-
-        totalPlatosVendidos += diaData.cantidadVendida || 0;
-
-        // Recogemos el neto del día para el gráfico de barras (verde arriba si
-        // ganas, rojo abajo si pierdes). El día sin actividad entra como pérdida
-        // (solo gastos fijos) pero marcado inactivo para atenuar su barra.
-        barras.push({ dia: diaNum, beneficio: beneficioNeto, activo: tieneActividad });
+        diasInput.push({
+            dia: diaNum,
+            ingresos: diaData.ingresos || 0,
+            costos: diaData.costos || 0,
+            merma: (window.plMermasPorDia && window.plMermasPorDia[_ymd]) || 0,
+            comida: (window.plComidaPersonalPorDia && window.plComidaPersonalPorDia[_ymd]) || 0,
+            extra: (window.plPersonalExtraPorDia && window.plPersonalExtraPorDia[_ymd]) || 0,
+            cantidadVendida: diaData.cantidadVendida || 0,
+            tieneActividad: diasDataMap[diaNum] !== undefined
+        });
     }
+
+    // ⛔ Cálculo por la función PURA y TESTEADA (pnl-diario-calc.js, invariante
+    // blindado: total = Σ columnas; gasto fijo total = gfd × días MOSTRADOS).
+    // Puente window porque el legacy no admite imports ESM. Fallback inline con
+    // la MISMA fórmula por si el módulo no cargó.
+    const calc = typeof window.mlComputeBeneficioNetoDiario === 'function'
+        ? window.mlComputeBeneficioNetoDiario(diasInput, gastosFijosDia)
+        : (() => {
+            const out = { barras: [], beneficioRealTotal: 0, sumaTotal: 0, diasConDatos: 0, diasSinActividad: 0, gastosPendientes: 0, totalPlatosVendidos: 0 };
+            for (const d of diasInput) {
+                const b = d.ingresos - d.costos - d.merma - d.comida - d.extra - gastosFijosDia;
+                out.beneficioRealTotal += b;
+                if (d.tieneActividad) { out.sumaTotal += b; out.diasConDatos++; }
+                else { out.diasSinActividad++; out.gastosPendientes += gastosFijosDia; }
+                out.totalPlatosVendidos += d.cantidadVendida;
+                out.barras.push({ dia: d.dia, beneficio: b, activo: d.tieneActividad });
+            }
+            return out;
+        })();
+    const { barras, beneficioRealTotal, sumaTotal, diasConDatos, diasSinActividad, gastosPendientes } = calc;
 
     // El mini de "Punto de equilibrio" se movió SOLO a la pestaña Análisis
     // (Iker 2026-07-08): en el Diario mezclaba el gasto fijo/día (coste) con el
