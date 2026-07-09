@@ -389,6 +389,10 @@ export const api = {
     adjustStock: (id, delta, reason = '') => apiClient.post(`/ingredients/${id}/adjust-stock`, { delta, reason }),
     bulkAdjustStock: (adjustments, reason = '') => apiClient.post('/ingredients/bulk-adjust-stock', { adjustments, reason }),
 
+    // P&L canónico por rango (food/beverage/otros/total). Fuente única de food
+    // cost e ingresos por periodo (dashboard, Diario, punto de equilibrio).
+    getPnlBreakdown: (desde, hasta) => apiClient.get(`/analytics/pnl-breakdown?desde=${desde}&hasta=${hasta}`),
+
     // Balance / P&L
     getBalance: (mes, ano) => apiClient.get(`/balance/mes?month=${ano}-${String(mes).padStart(2, '0')}`),
     // 🧾 IVA soportado del periodo (informativo, SEPARADO de la P&L). Migración 015.

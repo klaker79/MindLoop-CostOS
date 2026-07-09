@@ -180,3 +180,28 @@ export function computeBreakeven({ platos, gastosFijosMes, diasServicio = DIAS_S
         }
     };
 }
+
+/**
+ * Progreso del mes en curso hacia el punto de equilibrio, medido por
+ * FACTURACIÓN (a prueba de mezcla de productos — ver progresoDelMes en
+ * breakeven.js). `ventasEquilibrioMes` ya es la facturación global necesaria
+ * para cubrir gastos (= gastos ÷ (1 − food cost)), así que el progreso es
+ * ventas del mes ÷ ese objetivo. Devuelve null si faltan datos.
+ *
+ * @param {Object} p
+ * @param {number} p.ventasMes            - ventas globales (comida+bebida) del mes en curso.
+ * @param {number} p.ventasEquilibrioMes  - facturación de equilibrio del mes.
+ * @returns {{ventasMes:number, objetivo:number, progreso:number, faltantesEuros:number, cubierto:boolean}|null}
+ */
+export function computeProgresoEquilibrio({ ventasMes, ventasEquilibrioMes } = {}) {
+    const v = parseFloat(ventasMes);
+    const objetivo = parseFloat(ventasEquilibrioMes);
+    if (!Number.isFinite(v) || v <= 0 || !Number.isFinite(objetivo) || objetivo <= 0) return null;
+    return {
+        ventasMes: v,
+        objetivo,
+        progreso: Math.min(100, (v / objetivo) * 100),
+        faltantesEuros: Math.max(0, objetivo - v),
+        cubierto: v >= objetivo
+    };
+}
