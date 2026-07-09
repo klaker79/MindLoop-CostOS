@@ -553,7 +553,18 @@ export function onIngredientePedidoChange(selectElement, rowId) {
             );
             const tieneConfigurado = rel && parseFloat(rel.precio) > 0;
             if (tieneConfigurado) {
-                precioInput.value = parseFloat(rel.precio).toFixed(2);
+                // rel.precio (ingredientes_proveedores.precio) está en €/UNIDAD-BASE
+                // (€/kg). Si el input está en modo FORMATO (CAJA), hay que expresarlo
+                // en €/formato = €base × cpf, EXACTAMENTE como la rama de "última
+                // compra" de abajo. Antes ponía el €/base crudo en el campo €/CAJA →
+                // 1 caja de 3 kg salía a 16,09 € en vez de 48,27 € (bug detectado por
+                // Iker probando la propagación de formato, 2026-07-09).
+                const cpfCfg = parseFloat(cantidadFormato) || 1;
+                const enFormatoCfg = (formatoSelect?.value === 'formato') && cpfCfg > 1;
+                const valorCfg = enFormatoCfg
+                    ? parseFloat(rel.precio) * cpfCfg
+                    : parseFloat(rel.precio);
+                precioInput.value = valorCfg.toFixed(2);
                 _setHintLastPurchase(selectElement, null, 'configurado');
             }
 
