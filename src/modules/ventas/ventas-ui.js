@@ -50,16 +50,21 @@ export async function renderizarVentas() {
             select.parentElement.insertBefore(input, select);
         }
 
-        // ⚡ Usar caché para render instantáneo, luego refrescar en background
-        let ventas;
-        if (window._ventasCache) {
-            ventas = window._ventasCache;
-        } else {
-            ventas = await window.api.getSales();
-            window._ventasCache = ventas;
+        // ⚡ PAGINACIÓN (2026-07-10): antes se traían TODAS las ventas de la
+        // historia y se pintaban en una sola tabla (miles de filas → carga lenta
+        // + scroll "infinito"). Ahora se pide solo la página actual (100 ventas,
+        // más recientes primero). El backend ya soporta ?limit&page.
+        const VENTAS_POR_PAGINA = 100;
+        let pagina = Math.max(1, window._ventasPagina || 1);
+        let ventas = await window.api.getSales(null, pagina, VENTAS_POR_PAGINA);
+        // Si la página quedó vacía (clicaste "Siguiente" en un múltiplo exacto de
+        // 100, o borraste la última fila de la última página), retrocede una
+        // página y reintenta una vez.
+        if ((!ventas || ventas.length === 0) && pagina > 1) {
+            pagina -= 1;
+            window._ventasPagina = pagina;
+            ventas = await window.api.getSales(null, pagina, VENTAS_POR_PAGINA);
         }
-        // Refrescar caché en background (sin bloquear render)
-        window.api.getSales().then(fresh => { window._ventasCache = fresh; }).catch(() => { });
         const container = document.getElementById('tabla-ventas');
 
         if (ventas.length === 0) {
@@ -119,12 +124,38 @@ export async function renderizarVentas() {
             });
 
         html += '</tbody></table>';
+
+        // === CONTROLES DE PAGINACIÓN ===
+        // Sin total del servidor: "hay siguiente" si esta página vino llena
+        // (== VENTAS_POR_PAGINA), "hay anterior" si no es la primera.
+        const haySiguiente = ventas.length === VENTAS_POR_PAGINA;
+        const hayAnterior = pagina > 1;
+        if (haySiguiente || hayAnterior) {
+            const btn = (activo) => `padding:8px 16px;border:1px solid #e2e8f0;border-radius:8px;background:${activo ? 'white' : '#f1f5f9'};color:${activo ? '#475569' : '#94a3b8'};cursor:${activo ? 'pointer' : 'not-allowed'};font-weight:500;`;
+            html += `
+        <div style="display:flex;justify-content:center;align-items:center;gap:16px;padding:20px 0;border-top:1px solid #e2e8f0;margin-top:16px;">
+            <button onclick="window.cambiarPaginaVentas(-1)" ${hayAnterior ? '' : 'disabled'} style="${btn(hayAnterior)}">${t('ventas:pagination_prev')}</button>
+            <span style="font-size:14px;color:#475569;">${t('ventas:pagination_page')} <strong>${pagina}</strong></span>
+            <button onclick="window.cambiarPaginaVentas(1)" ${haySiguiente ? '' : 'disabled'} style="${btn(haySiguiente)}">${t('ventas:pagination_next')}</button>
+        </div>`;
+        }
+
         container.innerHTML = html;
     } catch (error) {
         console.error('Error renderizando ventas:', error);
         window.showToast(t('ventas:error_loading'), 'error');
     }
 }
+
+/**
+ * Cambia de página en la tabla de ventas y re-renderiza. Registrado en window
+ * porque los botones se pintan con onclick inline (mismo patrón que recetas).
+ */
+window.cambiarPaginaVentas = function (delta) {
+    window._ventasPagina = Math.max(1, (window._ventasPagina || 1) + delta);
+    renderizarVentas();
+    document.getElementById('tabla-ventas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 
 /**
  * Exporta ventas a Excel

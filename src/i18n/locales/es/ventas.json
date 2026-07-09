@@ -48,5 +48,8 @@
   "import_preview_title": "Vista Previa de Ventas",
   "import_confirm_btn": "Importar Ventas",
   "import_click_to_select": "Haz clic para seleccionar archivo",
-  "import_file_types": "PDF del TPV, Excel (.xlsx) o CSV"
+  "import_file_types": "PDF del TPV, Excel (.xlsx) o CSV",
+  "pagination_prev": "‹ Anteriores",
+  "pagination_next": "Siguientes ›",
+  "pagination_page": "Página"
 }

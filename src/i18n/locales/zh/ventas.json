@@ -46,5 +46,8 @@
   "import_preview_title": "销售预览",
   "import_confirm_btn": "导入销售",
   "import_click_to_select": "点击选择文件",
-  "import_file_types": "POS PDF、Excel (.xlsx) 或 CSV"
+  "import_file_types": "POS PDF、Excel (.xlsx) 或 CSV",
+  "pagination_prev": "‹ 上一页",
+  "pagination_next": "下一页 ›",
+  "pagination_page": "第 页"
 }

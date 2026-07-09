@@ -48,5 +48,8 @@
   "import_preview_title": "Sales Preview",
   "import_confirm_btn": "Import Sales",
   "import_click_to_select": "Click to select file",
-  "import_file_types": "POS PDF, Excel (.xlsx) or CSV"
+  "import_file_types": "POS PDF, Excel (.xlsx) or CSV",
+  "pagination_prev": "‹ Previous",
+  "pagination_next": "Next ›",
+  "pagination_page": "Page"
 }

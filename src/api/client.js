@@ -361,7 +361,15 @@ export const api = {
     deleteProveedor: (id) => apiClient.delete(`/suppliers/${id}`),
 
     // Sales (ya estaba en inglés)
-    getSales: (fecha = null) => apiClient.get(fecha ? `/sales?fecha=${fecha}` : '/sales'),
+    // page/limit opcionales: si se pasa limit, el backend pagina (ORDER BY fecha
+    // DESC, LIMIT/OFFSET). Sin ellos devuelve todas (comportamiento previo, usado
+    // por balance/gráfico de ingresos). La pestaña Ventas usa la versión paginada.
+    getSales: (fecha = null, page = null, limit = null) => {
+        const qs = [];
+        if (fecha) qs.push(`fecha=${fecha}`);
+        if (limit) { qs.push(`limit=${limit}`); qs.push(`page=${page || 1}`); }
+        return apiClient.get(`/sales${qs.length ? `?${qs.join('&')}` : ''}`);
+    },
     createSale: (data) => apiClient.post('/sales', data),
     createBulkSales: (data) => apiClient.post('/sales/bulk', data),
     bulkSales: (data) => apiClient.post('/sales/bulk', data),
