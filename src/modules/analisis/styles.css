@@ -346,6 +346,22 @@
     white-space: nowrap;
 }
 
+.bcg2-cuadrante__leyenda {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4px 14px 2px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #9ca3af;
+}
+
+.bcg2-cuadrante__leyenda span:last-child {
+    text-align: right;
+}
+
 .bcg2-empty {
     padding: 24px 16px;
     text-align: center;
