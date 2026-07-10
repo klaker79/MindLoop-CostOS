@@ -208,7 +208,7 @@
 // BUMP v245: en el gráfico Beneficio neto por día, los números (valor del día + acumulado bajo el eje) se muestran ahora TODO el mes (hasta 31 días) con letra ADAPTATIVA al nº de días — antes se ocultaban por encima de 12 días y en un mes entero (junio 30 días) no se veía ningún número.
 // BUMP v246 (Tanda 2 volandeira — Opción A): al marcar/editar el proveedor PRINCIPAL con formato, ese formato se PROPAGA al ingrediente (formato_compra + cantidad_por_formato + precio en €/formato coherente) → pedidos e inventario lo usan igual que si se configurara en la pestaña Ingredientes. Refresca window.ingredientes al momento + toast. Guard ±70% sobre precio UNITARIO; respeta precio_fijado.
 // BUMP v247 (bug pedido por formato): al pedir un ingrediente que se compra por CAJA cuyo proveedor tiene precio configurado (ingredientes_proveedores.precio, en €/unidad-base), el input €/CAJA mostraba el €/base crudo (1 caja de 3 kg salía a 16,09 € en vez de 48,27 €). Ahora, en modo formato, muestra €/formato = €base × cpf, igual que la rama de última compra. Detectado probando la propagación de formato de la volandeira.
-const CACHE_NAME = 'mindloop-costos-v250';
+const CACHE_NAME = 'mindloop-costos-v251';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
