@@ -132,11 +132,17 @@ function renderListaCuadrante(categoria, platos) {
             <button type="button" class="bcg2-item" data-plato-id="${p.id}">
                 <span class="bcg2-item__nombre">${escapeHTML(p.nombre)}</span>
                 <span class="bcg2-item__metrics">
-                    <span title="Margen contribución">${cm(p.margen?.toFixed?.(2) ?? p.margen)}</span>
-                    <span title="Unidades vendidas">·  ${Math.round(p.popularidad || 0)}</span>
+                    <span title="Margen de contribución por ración (precio de venta − coste real)">${cm(p.margen?.toFixed?.(2) ?? p.margen)}</span>
+                    <span title="Unidades vendidas en el periodo">·  ${Math.round(p.popularidad || 0)} uds</span>
                 </span>
             </button>
         `).join('');
+
+    const leyenda = platos.length === 0 ? '' : `
+        <div class="bcg2-cuadrante__leyenda" aria-hidden="true">
+            <span>Plato</span>
+            <span>Margen/ración · uds vendidas</span>
+        </div>`;
 
     return `
         <div class="bcg2-cuadrante" data-cat="${categoria}" style="--cat-color:${color};">
@@ -148,6 +154,7 @@ function renderListaCuadrante(categoria, platos) {
                 </div>
                 <span class="bcg2-cuadrante__count">${platos.length}</span>
             </header>
+            ${leyenda}
             <div class="bcg2-cuadrante__items">${items}</div>
             ${tipCuadranteHTML(consejoCuadrante(categoria, platos))}
         </div>
