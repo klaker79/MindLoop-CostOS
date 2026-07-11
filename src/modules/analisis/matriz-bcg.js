@@ -131,12 +131,17 @@ function renderListaCuadrante(categoria, platos) {
         : platos.slice(0, 12).map(p => `
             <button type="button" class="bcg2-item" data-plato-id="${p.id}">
                 <span class="bcg2-item__nombre">${escapeHTML(p.nombre)}</span>
-                <span class="bcg2-item__metrics">
-                    <span title="Margen contribución">${cm(p.margen?.toFixed?.(2) ?? p.margen)}</span>
-                    <span title="Unidades vendidas">·  ${Math.round(p.popularidad || 0)}</span>
-                </span>
+                <span class="bcg2-item__margen" title="Margen de contribución por ración (precio de venta − coste real)">${cm(p.margen?.toFixed?.(2) ?? p.margen)}</span>
+                <span class="bcg2-item__uds" title="Unidades vendidas en el periodo">${Math.round(p.popularidad || 0)}</span>
             </button>
         `).join('');
+
+    const leyenda = platos.length === 0 ? '' : `
+        <div class="bcg2-cuadrante__leyenda" aria-hidden="true">
+            <span class="bcg2-leyenda__nombre">Plato</span>
+            <span class="bcg2-leyenda__margen">Margen/ración</span>
+            <span class="bcg2-leyenda__uds">Uds vendidas</span>
+        </div>`;
 
     return `
         <div class="bcg2-cuadrante" data-cat="${categoria}" style="--cat-color:${color};">
@@ -148,6 +153,7 @@ function renderListaCuadrante(categoria, platos) {
                 </div>
                 <span class="bcg2-cuadrante__count">${platos.length}</span>
             </header>
+            ${leyenda}
             <div class="bcg2-cuadrante__items">${items}</div>
             ${tipCuadranteHTML(consejoCuadrante(categoria, platos))}
         </div>
