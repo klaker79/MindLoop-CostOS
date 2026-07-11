@@ -312,9 +312,10 @@
 }
 
 .bcg2-item {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 96px 92px;
     align-items: center;
+    column-gap: 10px;
     background: white;
     border: 1px solid transparent;
     text-align: left;
@@ -336,29 +337,41 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    flex: 1;
-    margin-right: 12px;
+    text-align: left;
 }
 
-.bcg2-item__metrics {
-    color: #6b7280;
+.bcg2-item__margen {
+    text-align: right;
     font-size: 12px;
+    font-weight: 700;
+    color: #374151;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.bcg2-item__uds {
+    text-align: right;
+    font-size: 12px;
+    color: #6b7280;
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
 
 .bcg2-cuadrante__leyenda {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 96px 92px;
+    column-gap: 10px;
     align-items: baseline;
-    padding: 4px 14px 2px;
+    padding: 6px 12px 3px;
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: .02em;
     color: #9ca3af;
+    white-space: nowrap;
 }
 
-.bcg2-cuadrante__leyenda span:last-child {
+.bcg2-cuadrante__leyenda span:not(:first-child) {
     text-align: right;
 }
 

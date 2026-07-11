@@ -209,7 +209,8 @@
 // BUMP v246 (Tanda 2 volandeira — Opción A): al marcar/editar el proveedor PRINCIPAL con formato, ese formato se PROPAGA al ingrediente (formato_compra + cantidad_por_formato + precio en €/formato coherente) → pedidos e inventario lo usan igual que si se configurara en la pestaña Ingredientes. Refresca window.ingredientes al momento + toast. Guard ±70% sobre precio UNITARIO; respeta precio_fijado.
 // BUMP v247 (bug pedido por formato): al pedir un ingrediente que se compra por CAJA cuyo proveedor tiene precio configurado (ingredientes_proveedores.precio, en €/unidad-base), el input €/CAJA mostraba el €/base crudo (1 caja de 3 kg salía a 16,09 € en vez de 48,27 €). Ahora, en modo formato, muestra €/formato = €base × cpf, igual que la rama de última compra. Detectado probando la propagación de formato de la volandeira.
 // BUMP v252 (claridad ingeniería de menú): las listas de cuadrantes (Estrellas/Puzzles/Caballos/Perros) mostraban "12,44€ · 3387" sin etiqueta (solo tooltip). Ahora cada cuadrante lleva una leyenda de columnas visible "Plato — Margen/ración · uds vendidas" y las unidades llevan sufijo "uds". Se entiende de un vistazo qué es cada número.
-const CACHE_NAME = 'mindloop-costos-v252';
+// BUMP v253 (tabla ingeniería coherente): la fila era flex "nombre ... margen · uds" amontonado y sin alinear. Ahora item y leyenda son GRID de 3 columnas idénticas (Plato | Margen/ración | Uds vendidas), números a la derecha con tabular-nums → columnas cuadradas y legibles. Sin sufijo "uds" en el valor (ya lo dice la cabecera de columna).
+const CACHE_NAME = 'mindloop-costos-v253';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
