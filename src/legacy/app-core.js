@@ -14,6 +14,28 @@
     let chartRentabilidad = null;
     let chartIngredientes = null;
 
+    // 🏷️ FUENTE ÚNICA: categorías que NO son platos reales de la carta.
+    // Se excluyen del Ranking de Rentabilidad, de la matriz BCG y de la gráfica de
+    // margen por categoría — antes cada uno usaba su propia lista y no cuadraban
+    // entre sí (el ranking solo quitaba 'base', la gráfica quitaba además
+    // suministros/preparaciones base).
+    //
+    // Espejo del criterio canónico del backend: lacaleta-api/src/utils/categoriaClassifier.js
+    // (OTHER_CATEGORIES + los 'extra'/'extras' de OMNES_EXCLUDED_CATEGORIES).
+    // Si allí se añade un sinónimo nuevo, añadirlo también aquí.
+    //
+    // Decisión Iker 2026-07-10: fuera los CARGOS/COMPLEMENTOS (PAN POR PERSONA, ACEITE…),
+    // que se marcan con `categoria='extra'` en su receta. Los pinchos/tapas SÍ siguen en el
+    // ranking: son platos que vendes y de los que quieres saber el margen (Omnes sí los
+    // excluye, pero para medir estrategia de carta, que es otra pregunta distinta).
+    const CATEGORIAS_NO_PLATO = [
+        'base', 'preparacion base', 'preparaciones base',
+        'suministro', 'suministros',
+        'extra', 'extras'
+    ];
+    const esCategoriaNoPlato = (cat) =>
+        CATEGORIAS_NO_PLATO.includes(String(cat || '').toLowerCase().trim());
+
     // === UTILIDADES ===
     // showToast MIGRADO A src/utils/toast.js
 
@@ -996,11 +1018,14 @@
             //     comparables entre sí. Mezclar bebidas (volumen alto, margen distinto,
             //     se piden por categoría no por plato) distorsiona el cuadrante. Iker
             //     lo confirmó: "En ingeniería de menús sólo van alimentos".
-            //   - Base SIEMPRE excluida en ambos (subproductos no vendibles).
+            //   - Los "no platos" (base, suministros, extras) SIEMPRE excluidos en ambos:
+            //     subproductos no vendibles y cargos/complementos (PAN POR PERSONA, ACEITE…).
+            //     Ver CATEGORIAS_NO_PLATO arriba. El "Todo" del toggle es Alimentos+Bebidas,
+            //     nunca los no-platos.
             const filtro = window.analisisCategoriaFilter || 'alimentos';
             const pasaFiltro = (cat) => {
                 const c = String(cat || '').toLowerCase();
-                if (c === 'base') return false; // subproductos: nunca
+                if (esCategoriaNoPlato(c)) return false; // subproductos y cargos: nunca
                 if (filtro === 'todo') return true;
                 const esBebida = (c === 'bebidas' || c === 'bebida');
                 return filtro === 'bebidas' ? esBebida : !esBebida;
@@ -1008,7 +1033,7 @@
             // BCG: filtro fijo a alimentos, NO depende del toggle.
             const esAlimentoVendible = (cat) => {
                 const c = String(cat || '').toLowerCase();
-                return c !== 'base' && c !== 'bebidas' && c !== 'bebida';
+                return !esCategoriaNoPlato(c) && c !== 'bebidas' && c !== 'bebida';
             };
 
             const menuAnalysis = menuAnalysisRaw.filter(item => esAlimentoVendible(item.categoria));
@@ -1621,15 +1646,13 @@
         const margenPorCategoria = {};
         const countPorCategoria = {};
 
-        // 🔧 Categorías excluidas del gráfico de margen (no son platos reales)
-        const CATEGORIAS_EXCLUIDAS = ['suministros', 'suministro', 'preparaciones base', 'preparacion base', 'base'];
-
         recetas.forEach(rec => {
             // Usar la categoría REAL de la receta (normalizada a minúsculas)
             const catOriginal = (rec.categoria || 'otros').toLowerCase().trim();
 
-            // Excluir categorías que no son platos reales
-            if (CATEGORIAS_EXCLUIDAS.includes(catOriginal)) return;
+            // Excluir las que no son platos reales — MISMA lista que el ranking y el BCG
+            // (antes esta gráfica tenía su propia lista sin 'extra' → no cuadraba).
+            if (esCategoriaNoPlato(catOriginal)) return;
 
             // Excluir recetas sin precio de venta (no son vendibles)
             if (!rec.precio_venta || parseFloat(rec.precio_venta) <= 0) return;
