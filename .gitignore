@@ -58,3 +58,12 @@ yarn-error.log*
 
 # Vídeo fuente sin comprimir del FAB Omnes (usar omnes-fab.mp4 comprimido)
 public/images/VIDEO OMNES.mp4
+
+# 📸 Capturas del deck de venta (FOTO*) y capturas sueltas de pantalla.
+# NO son assets de la app: ningún fichero del repo las referencia. Viven en el disco
+# local para montar el deck. Si se commitean, Vite las copia a dist/ y quedan
+# DESCARGABLES en público (app.mindloop.cloud/images/…) — y son capturas reales de
+# La Nave 5 (balance, P&L, food cost, precios). Mismo criterio que el vídeo de arriba.
+public/images/FOTO*
+public/images/Captura de pantalla*
+public/images/SEGUIMIENTODE INVENTARIO.png
