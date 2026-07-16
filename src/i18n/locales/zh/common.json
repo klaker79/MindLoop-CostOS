@@ -131,5 +131,7 @@
   "mobile_only_banner_hint": "本部分针对大屏幕设计，请在笔记本电脑或台式机上打开应用以获得完整体验。",
   "mobile_nav_home": "首页",
   "mobile_nav_receive": "收货",
-  "mobile_nav_more": "更多"
+  "mobile_nav_more": "更多",
+  "mobile_nav_dashboard": "面板",
+  "mobile_home_greeting": "需要什么？"
 }

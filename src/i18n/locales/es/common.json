@@ -131,5 +131,7 @@
   "mobile_only_banner_hint": "Esta sección está pensada para pantalla grande. Abre la app en el portátil o sobremesa para verla bien.",
   "mobile_nav_home": "Inicio",
   "mobile_nav_receive": "Recibir",
-  "mobile_nav_more": "Más"
+  "mobile_nav_more": "Más",
+  "mobile_nav_dashboard": "Panel",
+  "mobile_home_greeting": "¿Qué necesitas?"
 }
