@@ -63,6 +63,8 @@
        Carga al final → prioridad sobre main.css y polish.css.
        100% aditivo. Para revertir: borrar este archivo + esta línea. -->
   <link rel="stylesheet" href="styles/theme-editorial.css?v=20260707-chat-desktop-only">
+  <!-- 📱 Portada móvil enfocada (Pieza A). 100% dentro de @media 768 → escritorio intacto. -->
+  <link rel="stylesheet" href="styles/mobile-home.css?v=20260716-movil-portada">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -357,6 +359,21 @@
               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239,68,68,0.4)';">Cerrar
               Sesión</button>
           </div>
+        </div>
+
+        <!-- 📱 Acciones grandes de la portada móvil (Pieza A). Solo visibles en móvil.
+             cambiarTab las muestra/oculta junto al resto de la portada (vista Inicio). -->
+        <div class="ml-mobile-actions" id="ml-mobile-actions">
+          <button type="button" class="ml-act ml-act--pedir" data-mact="nuevo-pedido">
+            <span class="ml-act-ic">🎙️</span>
+            <b data-i18n="pedidos:mobile_new_order">Nuevo pedido</b>
+            <span data-i18n="pedidos:mobile_new_order_sub">Por voz</span>
+          </button>
+          <button type="button" class="ml-act ml-act--recibir" data-mact="recibir-albaran">
+            <span class="ml-act-ic">📷</span>
+            <b data-i18n="pedidos:mobile_receive">Recibir albarán</b>
+            <span data-i18n="pedidos:mobile_receive_sub">Foto</span>
+          </button>
         </div>
 
         <!-- 🗓️ Banner de Fecha Actual -->
@@ -3646,8 +3663,16 @@
   <!-- Modal CSS: extraído a styles/modals.css -->
   <script src="src/legacy/modales.js?v=20260628-iva-cashflow"></script>
 
+  <!-- 📱 Barra de navegación inferior (Pieza A). Solo visible en móvil (@media 768). -->
+  <nav class="ml-bottomnav" id="ml-bottomnav" aria-label="Navegación móvil">
+    <button type="button" data-mnav="inicio"><span class="ml-bn-ic">🏠</span><span data-i18n="common:mobile_nav_home">Inicio</span></button>
+    <button type="button" data-mnav="pedidos"><span class="ml-bn-ic">📋</span><span data-i18n="common:nav_pedidos">Pedidos</span></button>
+    <button type="button" data-mnav="recibir"><span class="ml-bn-ic">📷</span><span data-i18n="common:mobile_nav_receive">Recibir</span></button>
+    <button type="button" data-mnav="mas"><span class="ml-bn-ic">☰</span><span data-i18n="common:mobile_nav_more">Más</span></button>
+  </nav>
+
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260710c-breakeven-progreso"></script>
+  <script type="module" src="./src/main.js?v=20260716-movil-portada"></script>
 </body>
 
 </html>

@@ -210,5 +210,9 @@
   "form_supplier_required": "供应商 *",
   "edit_adjustment_warning": "增减订单总额。不影响库存。",
   "price_source_configured": "此供应商的预设价格",
-  "price_source_last_purchase": "最近一次向此供应商采购 ({{date}})"
+  "price_source_last_purchase": "最近一次向此供应商采购 ({{date}})",
+  "mobile_new_order": "新订单",
+  "mobile_new_order_sub": "语音",
+  "mobile_receive": "收货单拍照",
+  "mobile_receive_sub": "拍照"
 }

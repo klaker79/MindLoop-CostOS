@@ -24,7 +24,6 @@
   "btn_receive": "Receive",
   "reception_success": "Order received: stock updated and logged in Journal",
   "reception_error": "Error receiving order: {{message}}",
-
   "cart_title": "Cart",
   "cart_empty": "Cart is empty",
   "cart_confirm_empty": "Empty the entire cart?",
@@ -36,12 +35,10 @@
   "cart_confirm_order": "Create order with {{count}} ingredients?",
   "cart_orders_created": "{{count}} order(s) created",
   "cart_error_creating": "Error creating orders: {{message}}",
-
   "scanner_unsupported_format": "Unsupported format. Use JPG, PNG or PDF.",
   "scanner_file_too_large": "File too large. Maximum 10MB.",
   "scanner_error_processing": "Error processing delivery note",
   "scanner_error_generic": "Error: {{message}}",
-
   "pending_approving": "Approving purchase...",
   "pending_approved": "Purchase approved and registered",
   "pending_batch_approving": "Approving full delivery note...",
@@ -58,20 +55,17 @@
   "pending_error_format": "Error changing format: {{message}}",
   "pending_error_rejecting": "Error rejecting: {{message}}",
   "pending_error_saving": "Error saving: {{message}}",
-
   "export_popup_blocked": "Pop-ups blocked. Allow pop-ups to download PDF.",
   "export_pdf_error": "Error generating PDF",
   "export_no_order_selected": "No order selected",
   "export_configure_phone": "Configure the supplier's phone number",
   "export_whatsapp_opened": "Chat opened. To attach PDF use the PDF button",
-
   "status_received": "Received",
   "status_pending": "Pending",
   "status_confirmed": "Confirmed",
   "status_in_transit": "In transit",
   "status_delivered": "Delivered",
   "status_cancelled": "Cancelled",
-
   "detail_order_title": "Order #{{id}}",
   "detail_no_supplier": "No supplier",
   "detail_status_received": "Received",
@@ -99,16 +93,13 @@
   "cart_iva_label": "VAT",
   "cart_total_with_iva": "Total with VAT",
   "cart_iva_hint": "VAT is only to reconcile with the invoice. It does not affect food cost or profitability (you reclaim it in your tax return).",
-
   "scanner_items_detected": "{{total}} items detected from {{supplier}} ({{matched}} assigned, {{unmatched}} to review)",
   "scanner_items_detected_no_supplier": "{{total}} items detected ({{matched}} assigned, {{unmatched}} to review)",
-
   "description": "Manage orders to suppliers",
   "tab_title": "Supplier Orders",
   "btn_new": "+ New Order",
   "btn_create": "Create Order",
   "search_placeholder": "Search orders...",
-
   "form_search_ingredient": "Search by ingredient",
   "form_search_ingredient_hint": "optional - auto-selects supplier",
   "form_search_ingredient_placeholder": "Type ingredient name...",
@@ -167,7 +158,6 @@
   "import_confirm_btn": "Import Orders",
   "import_click_to_select": "Click to select file",
   "import_file_types": "Excel (.xlsx) or CSV",
-
   "placeholder_quantity": "Qty.",
   "placeholder_price_unit": "/unit",
   "empty_no_orders": "No orders",
@@ -179,7 +169,6 @@
   "export_col_total": "Total",
   "export_col_total_received": "Total Received",
   "export_col_reception_date": "Reception Date",
-
   "pdf_cost_management": "Cost Management System",
   "pdf_order_label": "ORDER",
   "pdf_order_details": "Order Details",
@@ -191,7 +180,6 @@
   "pdf_price_orig": "Orig. Price",
   "pdf_price_real": "Real Price",
   "pdf_generated_on": "Document generated on",
-
   "wa_order_number": "Order No. {{id}}",
   "wa_greeting": "Dear supplier,",
   "wa_order_intro": "We send you the following order:",
@@ -199,7 +187,6 @@
   "wa_confirm_availability": "Please confirm availability and price.",
   "wa_thanks": "Thank you!",
   "wa_regards": "Best regards",
-
   "pending_possible_duplicate": "Possible duplicate",
   "pending_dup_already_approved": "Already approved",
   "pending_dup_pending_other": "Pending in another delivery note",
@@ -220,9 +207,7 @@
   "pending_col_price": "Price",
   "pending_review_title": "{{count}} purchases pending review",
   "pending_review_subtitle": "Automatically imported from scanned delivery notes",
-
   "form_supplier_required": "Supplier *",
-
   "edit_title": "Edit Order #{{id}}",
   "edit_subtotal_items": "Subtotal items:",
   "edit_total": "TOTAL:",
@@ -240,7 +225,6 @@
   "edit_confirm_empty": "The order has no ingredients. Save anyway?",
   "edit_toast_saved": "Order updated",
   "edit_toast_error": "Error updating order",
-
   "smart_no_low_stock": "All ingredients above minimum stock — no orders needed",
   "smart_items_low": "ingredients below minimum stock",
   "smart_suppliers": "suppliers",
@@ -255,10 +239,12 @@
   "smart_pending_orders": "pending orders",
   "smart_orders_created": "orders created",
   "smart_review_and_receive": "review and receive when ready",
-
   "repeat_confirm": "Repeat order from {{supplier}}? ({{count}} items)\n\nA new pending order will be created with the same ingredients. You can edit quantities before confirming.",
   "repeat_success": "Order repeated from {{supplier}} — edit quantities and confirm when ready",
-
   "price_source_configured": "Configured price for this supplier",
-  "price_source_last_purchase": "Last purchase from this supplier ({{date}})"
+  "price_source_last_purchase": "Last purchase from this supplier ({{date}})",
+  "mobile_new_order": "New order",
+  "mobile_new_order_sub": "By voice",
+  "mobile_receive": "Receive delivery note",
+  "mobile_receive_sub": "Photo"
 }

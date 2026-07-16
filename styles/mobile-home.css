@@ -1,0 +1,82 @@
+/* ============================================================
+   Portada móvil enfocada (Pieza A) — CosteOS
+   TODO va dentro de @media (max-width: 768px): en escritorio
+   estos elementos no existen (display:none) y nada cambia.
+   Reutiliza cambiarTab() y el dashboard que ya renderiza la app.
+   ============================================================ */
+
+/* Ocultos por defecto (escritorio) */
+.ml-mobile-actions { display: none; }
+.ml-bottomnav { display: none; }
+
+@media (max-width: 768px) {
+
+  /* ---- Dos acciones grandes en la portada (Inicio) ---- */
+  .ml-mobile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 14px 16px 4px;
+  }
+  .ml-act {
+    border: 0;
+    border-radius: 16px;
+    padding: 15px 12px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+    box-shadow: 0 6px 18px rgba(16, 24, 40, .16);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ml-act:active { transform: scale(.985); }
+  .ml-act .ml-act-ic { font-size: 22px; line-height: 1; }
+  .ml-act b { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+  .ml-act span { font-size: 11.5px; opacity: .92; }
+  .ml-act--pedir { background: linear-gradient(135deg, #F5822A, #FFB24D); }
+  .ml-act--recibir { background: linear-gradient(135deg, #16233B, #31456B); }
+
+  /* ---- Barra de navegación inferior ---- */
+  .ml-bottomnav {
+    display: flex;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 90;                 /* por debajo del sidebar (100) y su overlay (99) */
+    background: #ffffff;
+    border-top: 1px solid #e6eaf0;
+    padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -2px 12px rgba(16, 24, 40, .06);
+  }
+  .ml-bottomnav button {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    padding: 4px 2px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ml-bottomnav button .ml-bn-ic { font-size: 19px; line-height: 1; filter: grayscale(1) opacity(.6); }
+  .ml-bottomnav button.active { color: #F5822A; }
+  .ml-bottomnav button.active .ml-bn-ic { filter: none; }
+
+  /* Deja hueco para que la barra no tape el contenido ni el chat FAB */
+  .main-content { padding-bottom: 76px !important; }
+
+  /* El botón flotante del chat sube para no chocar con la barra */
+  #chat-fab, .chat-fab, .chat-widget-fab { bottom: 84px !important; }
+}
+
+/* Modo oscuro de la barra inferior */
+@media (max-width: 768px) and (prefers-color-scheme: dark) {
+  .ml-bottomnav { background: #16233B; border-top-color: #24304A; }
+  .ml-bottomnav button { color: #9fb0cf; }
+}
+:root[data-theme="dark"] .ml-bottomnav { background: #16233B; border-top-color: #24304A; }
+:root[data-theme="dark"] .ml-bottomnav button { color: #9fb0cf; }

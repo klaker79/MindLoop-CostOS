@@ -1,7 +1,6 @@
 {
   "app_name": "CosteOS",
   "app_subtitle": "Restaurant Intelligence Platform",
-
   "nav_ingredientes": "Ingredientes",
   "nav_recetas": "Recetas",
   "nav_proveedores": "Proveedores",
@@ -16,7 +15,6 @@
   "nav_section_operations": "Operaciones",
   "nav_section_analysis": "Análisis",
   "nav_section_config": "Configuración",
-
   "btn_save": "Guardar",
   "btn_cancel": "Cancelar",
   "btn_delete": "Eliminar",
@@ -40,7 +38,6 @@
   "btn_upload": "Subir",
   "btn_refresh": "Actualizar",
   "btn_select_all": "Seleccionar todo",
-
   "label_name": "Nombre",
   "label_email": "Email",
   "label_date": "Fecha",
@@ -59,7 +56,6 @@
   "label_cost": "Coste",
   "label_margin": "Margen",
   "label_food_cost": "Food Cost",
-
   "unit_kg": "kg",
   "unit_g": "g",
   "unit_l": "L",
@@ -68,7 +64,6 @@
   "unit_dozen": "docena",
   "unit_pack": "paq",
   "currency": "€",
-
   "loading": "Cargando...",
   "loading_date": "Cargando fecha...",
   "no_data": "Sin datos",
@@ -77,18 +72,14 @@
   "success": "Éxito",
   "warning": "Advertencia",
   "info": "Información",
-
   "confirm_generic": "¿Estás seguro?",
   "confirm_delete_generic": "¿Eliminar este elemento?",
-
   "sidebar_my_restaurant": "Mi Restaurante",
   "sidebar_switch": "Cambiar ▾",
   "sidebar_collapse": "Colapsar menú",
   "sidebar_logout": "Cerrar Sesión",
-
   "week_label": "Semana {{week}}",
   "month_of": "Mes de {{month}}",
-
   "toast_saved": "Guardado correctamente",
   "toast_deleted": "Eliminado correctamente",
   "toast_error_generic": "Ha ocurrido un error",
@@ -96,7 +87,6 @@
   "toast_error_loading": "Error cargando datos",
   "toast_copied": "Copiado al portapapeles",
   "toast_error_api": "Error conectando con la API",
-
   "search_placeholder": "Buscar...",
   "search_placeholder_expanded": "Buscar ingredientes, recetas, pedidos...",
   "search_no_results": "No se encontraron resultados para \"{{query}}\"",
@@ -106,9 +96,7 @@
   "btn_import": "Importar",
   "btn_import_excel": "📤 Importar Excel",
   "btn_export_excel": "📥 Exportar Excel",
-
   "label_name_required": "Nombre *",
-
   "tab_ingredientes": "🧂 Ingredientes",
   "tab_recetas": "📖 Recetas",
   "tab_proveedores": "🏭 Proveedores",
@@ -120,11 +108,9 @@
   "tab_inteligencia": "🦉 Omnes",
   "tab_horarios": "🕐 Horarios",
   "tab_configuracion": "⚙️ Config",
-
   "confirm_delete_title": "Confirmar Eliminación",
   "btn_cancel_with_icon": "✖ Cancelar",
   "btn_delete_with_icon": "🗑️ Eliminar",
-
   "toast_excel_unavailable": "Error: Librería Excel no disponible",
   "toast_excel_downloaded": "Excel descargado correctamente",
   "toast_excel_error": "Error al exportar Excel",
@@ -141,7 +127,9 @@
   "label_recalculate_costs": "Recalcular Costes",
   "unit_botella": "Botella",
   "unit_pza": "Ud.",
-
   "mobile_only_banner_title": "Mejor en ordenador",
-  "mobile_only_banner_hint": "Esta sección está pensada para pantalla grande. Abre la app en el portátil o sobremesa para verla bien."
+  "mobile_only_banner_hint": "Esta sección está pensada para pantalla grande. Abre la app en el portátil o sobremesa para verla bien.",
+  "mobile_nav_home": "Inicio",
+  "mobile_nav_receive": "Recibir",
+  "mobile_nav_more": "Más"
 }
