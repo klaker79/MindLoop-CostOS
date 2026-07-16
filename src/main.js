@@ -836,17 +836,8 @@ if (import.meta.env?.DEV || window.location.hostname === 'localhost') {
 // ============================================
 // PWA - SERVICE WORKER REGISTRATION
 // ============================================
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-                console.log('✅ Service Worker registrado:', registration.scope);
-            })
-            .catch((error) => {
-                console.warn('⚠️ Service Worker no registrado:', error);
-            });
-    });
-}
+// El Service Worker se registra UNA sola vez, en el <script> inline de index.html
+// (cabecera). Registrarlo aquí también provocaba doble registro y arranque doble.
 
 // ============================================
 // INICIALIZACIÓN AUTOMÁTICA

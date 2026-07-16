@@ -68,7 +68,7 @@ export function initMobileNav() {
         btn.addEventListener('click', () => {
             const a = btn.dataset.mnav;
             if (a === 'inicio') mostrarHome();
-            else if (a === 'dashboard') irATab('ingredientes');
+            else if (a === 'dashboard') { window.__mlShowPanel = true; irATab('ingredientes'); }  // "Panel" SÍ muestra el dashboard
             else if (a === 'pedidos') irATab('pedidos');
             else if (a === 'mas') document.getElementById('sidebar')?.classList.add('open');
         });

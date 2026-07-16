@@ -163,7 +163,14 @@ export function cambiarTab(tab) {
     // 1. #fecha-actual-banner (date bar)
     // 2. KPI row (div containing .kpi-mini cards)
     // 3. #dashboard-premium (expanded dashboard grid)
-    const showDashboard = (tab === 'ingredientes');
+    // En escritorio, la pestaña 'ingredientes' es el "home" y lleva el dashboard
+    // encima (legacy). En MÓVIL, "Panel" e "Ingredientes" son entradas distintas a
+    // la MISMA pestaña: el dashboard solo debe salir si el cliente entró por "Panel"
+    // (window.__mlShowPanel), no al abrir "Ingredientes" desde el menú.
+    const isMobile = typeof window.matchMedia === 'function'
+        && window.matchMedia('(max-width: 768px)').matches;
+    const showDashboard = (tab === 'ingredientes') && (!isMobile || window.__mlShowPanel === true);
+    window.__mlShowPanel = false;   // se consume una sola vez
     const dashboard = document.getElementById('dashboard-premium');
     const dateBanner = document.getElementById('fecha-actual-banner');
     // KPI row is the parent of .kpi-mini elements
