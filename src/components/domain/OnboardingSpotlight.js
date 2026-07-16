@@ -56,6 +56,12 @@ const PASOS = [
 ];
 
 const OVERLAY_ID = 'onboarding-spotlight-overlay';
+// Sessionkey: tras saltar el onboarding con "Lo hago yo después", no volver a
+// molestar durante ESTA sesión (se limpia al recargar/nueva sesión).
+const SKIP_SESSION_KEY = 'onboarding_spotlight_skipped';
+// Candado anti-carrera: dos disparos casi simultáneos (dashboard + cambio de
+// pestaña) pasaban el guard antes del await y creaban DOS overlays con el mismo id.
+let spotlightRendering = false;
 const STYLE_ID = 'onboarding-spotlight-styles';
 // Cooldown corto para evitar reaperturas inmediatas tras cerrar el modal
 // con CTA / skip definitivo (durante la transición visual). Re-abre al
@@ -255,11 +261,16 @@ function bumpCooldown(ms = 1500) {
     cooldownUntil = Date.now() + ms;
 }
 
+// Marca "no molestar esta sesión" cuando el cliente salta todo el onboarding.
+function markSkippedForSession() {
+    try { sessionStorage.setItem(SKIP_SESSION_KEY, '1'); } catch { /* no-op */ }
+}
+
 // Avanza al siguiente paso pendiente añadiendo el actual al set de saltados
 // en esta apertura. Si no quedan más, cierra con cooldown.
 function advanceToNextPendingStep(currentKey) {
     skippedInThisOpen.add(currentKey);
-    if (!lastStatus) { closeSpotlight(); bumpCooldown(); return; }
+    if (!lastStatus) { closeSpotlight(); bumpCooldown(); markSkippedForSession(); return; }
     // Re-renderizar con el mismo status; el cálculo de siguiente paso
     // excluirá los saltados en esta apertura.
     const overlay = document.getElementById(OVERLAY_ID);
@@ -269,9 +280,10 @@ function advanceToNextPendingStep(currentKey) {
         .forEach(el => el.classList.remove('spotlight-highlight'));
     const nextOverlay = renderModal(lastStatus);
     if (!nextOverlay) {
-        // Se han saltado todos los pendientes — cerrar.
+        // Se han saltado todos los pendientes — cerrar y no molestar esta sesión.
         closeSpotlight();
         bumpCooldown();
+        markSkippedForSession();
     }
 }
 
@@ -386,30 +398,37 @@ function renderModal(status) {
  *  - ya hay overlay abierto → no duplicar
  */
 export async function renderOnboardingSpotlight() {
+    if (spotlightRendering) return;                 // candado anti-carrera (overlay duplicado)
     if (Date.now() < cooldownUntil) return;
     if (document.getElementById(OVERLAY_ID)) return;
+    try { if (sessionStorage.getItem(SKIP_SESSION_KEY)) return; } catch { /* no-op */ }
 
-    let status;
+    spotlightRendering = true;
     try {
-        status = await api.getOnboardingStatus();
-    } catch (err) {
-        console.warn('[OnboardingSpotlight] status no disponible:', err?.message);
-        return;
+        let status;
+        try {
+            status = await api.getOnboardingStatus();
+        } catch (err) {
+            console.warn('[OnboardingSpotlight] status no disponible:', err?.message);
+            return;
+        }
+
+        if (status.completado) {
+            closeSpotlight();
+            return;
+        }
+
+        // Nueva apertura: olvidar saltos de aperturas previas. Así si el cliente
+        // saltó los 4 pasos y vuelve al dashboard / navega, vuelve a ver desde
+        // paso 1 los modales en cadena.
+        skippedInThisOpen = new Set();
+        lastStatus = status;
+
+        injectStyles();
+        renderModal(status);
+    } finally {
+        spotlightRendering = false;
     }
-
-    if (status.completado) {
-        closeSpotlight();
-        return;
-    }
-
-    // Nueva apertura: olvidar saltos de aperturas previas. Así si el cliente
-    // saltó los 4 pasos y vuelve al dashboard / navega, vuelve a ver desde
-    // paso 1 los modales en cadena.
-    skippedInThisOpen = new Set();
-    lastStatus = status;
-
-    injectStyles();
-    renderModal(status);
 }
 
 if (typeof window !== 'undefined') {
