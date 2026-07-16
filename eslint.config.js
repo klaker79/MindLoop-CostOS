@@ -30,6 +30,7 @@ export default [
                 cancelAnimationFrame: 'readonly',
                 FormData: 'readonly',
                 FileReader: 'readonly',
+                createImageBitmap: 'readonly',
                 Blob: 'readonly',
                 URL: 'readonly',
                 URLSearchParams: 'readonly',
