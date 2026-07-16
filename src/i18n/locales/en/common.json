@@ -131,5 +131,7 @@
   "mobile_only_banner_hint": "This section is designed for large screens. Open the app on a laptop or desktop for the full experience.",
   "mobile_nav_home": "Home",
   "mobile_nav_receive": "Receive",
-  "mobile_nav_more": "More"
+  "mobile_nav_more": "More",
+  "mobile_nav_dashboard": "Panel",
+  "mobile_home_greeting": "What do you need?"
 }

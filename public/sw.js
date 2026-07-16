@@ -212,7 +212,8 @@
 // BUMP v253 (tabla ingeniería coherente): la fila era flex "nombre ... margen · uds" amontonado y sin alinear. Ahora item y leyenda son GRID de 3 columnas idénticas (Plato | Margen/ración | Uds vendidas), números a la derecha con tabular-nums → columnas cuadradas y legibles. Sin sufijo "uds" en el valor (ya lo dice la cabecera de columna).
 // BUMP v254: Ranking de Rentabilidad, matriz BCG y gráfica de margen por categoría comparten UNA sola lista de "no son platos" (base/suministros/extras). Antes el ranking solo quitaba 'base' y colaba los cargos (PAN POR PERSONA) entre los platos; la gráfica de margen usaba otra lista distinta. Los cargos/complementos se marcan con categoria='extra' (mismo criterio que el backend categoriaClassifier). Pinchos/tapas SIGUEN en el ranking.
 // BUMP v255: portada móvil enfocada (Pieza A) — barra de navegación inferior (Inicio/Pedidos/Recibir/Más) + 2 acciones grandes (Nuevo pedido / Recibir albarán) en la vista Inicio. 100% dentro de @media 768 (escritorio intacto), reutiliza cambiarTab. mobile-home.css + mobile-nav.js. i18n es/en/zh.
-const CACHE_NAME = 'mindloop-costos-v255';
+// BUMP v256: portada móvil Inicio = 2 botones grandes (Nuevo pedido / Recibir albarán) a pantalla completa; dashboard movido a su propio botón (Panel). Barra: Inicio·Panel·Pedidos·Más.
+const CACHE_NAME = 'mindloop-costos-v256';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

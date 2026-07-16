@@ -1,32 +1,56 @@
 /**
- * Navegación móvil enfocada (Pieza A) — CosteOS.
+ * Navegación móvil enfocada — CosteOS.
  *
- * Añade barra inferior (Inicio · Pedidos · Recibir · Más) y las dos acciones
- * grandes de la portada. NO duplica vistas: reutiliza window.cambiarTab() y el
- * sidebar off-canvas que ya existen. Solo actúa en móvil (los elementos están
- * ocultos por CSS en escritorio), así que en ordenador es inerte.
+ * Portada móvil (Inicio) = dos botones grandes: Nuevo pedido (voz) y Recibir
+ * albarán (foto). El dashboard vive en su propio botón (Panel). Barra inferior:
+ * Inicio · Panel · Pedidos · Más.
+ *
+ * 100% aditivo y responsive: en escritorio los elementos están ocultos por CSS,
+ * así que este módulo es inerte. Reutiliza window.cambiarTab() y el sidebar
+ * off-canvas que ya existen; nunca los reemplaza.
  */
 
-// Mapa: pestaña activa → botón de la barra inferior que debe encenderse.
+// Pestaña activa → botón de la barra que se enciende (cuando NO estamos en Inicio).
 const TAB_TO_NAV = {
-    ingredientes: 'inicio',
+    ingredientes: 'dashboard',
     pedidos: 'pedidos',
 };
 
-function syncBottomNav(tab) {
-    const target = TAB_TO_NAV[tab] || null;
+function setNavActive(name) {
     document.querySelectorAll('.ml-bottomnav button[data-mnav]').forEach((b) => {
-        b.classList.toggle('active', b.dataset.mnav === target);
+        b.classList.toggle('active', b.dataset.mnav === name);
     });
 }
 
-function irA(tab) {
+/** Muestra la portada de Inicio (2 botones). */
+function mostrarHome() {
+    document.body.classList.add('ml-home-active');
+    setNavActive('inicio');
+}
+
+/** Sale de la portada (deja ver el contenido de la app). */
+function salirHome() {
+    document.body.classList.remove('ml-home-active');
+}
+
+/** Sincroniza la barra según la pestaña activa (si no estamos en Inicio). */
+function syncNavFromTab(tab) {
+    if (document.body.classList.contains('ml-home-active')) {
+        setNavActive('inicio');
+        return;
+    }
+    setNavActive(TAB_TO_NAV[tab] || null);
+}
+
+/** Sale de Inicio y navega a una pestaña real. */
+function irATab(tab) {
+    salirHome();
     if (typeof window.cambiarTab === 'function') window.cambiarTab(tab);
 }
 
 /**
- * Placeholder de la recepción por foto. La Pieza B (cámara → /parse-albaran)
- * reemplaza esta función. Aquí solo avisamos para no dejar un botón muerto.
+ * Placeholder de la recepción por foto. La Pieza B (cámara → /parse-albaran) lo
+ * reemplaza. Aquí solo avisamos para no dejar un botón muerto.
  */
 function recibirAlbaranPlaceholder() {
     if (typeof window.showToast === 'function') {
@@ -35,7 +59,6 @@ function recibirAlbaranPlaceholder() {
 }
 
 export function initMobileNav() {
-    // Placeholder global (la Pieza B lo sobrescribe con la cámara real).
     if (typeof window.mlRecibirAlbaran !== 'function') {
         window.mlRecibirAlbaran = recibirAlbaranPlaceholder;
     }
@@ -44,31 +67,32 @@ export function initMobileNav() {
     document.querySelectorAll('.ml-bottomnav button[data-mnav]').forEach((btn) => {
         btn.addEventListener('click', () => {
             const a = btn.dataset.mnav;
-            if (a === 'inicio') irA('ingredientes');
-            else if (a === 'pedidos') irA('pedidos');
-            else if (a === 'recibir') window.mlRecibirAlbaran?.();
+            if (a === 'inicio') mostrarHome();
+            else if (a === 'dashboard') irATab('ingredientes');
+            else if (a === 'pedidos') irATab('pedidos');
             else if (a === 'mas') document.getElementById('sidebar')?.classList.add('open');
         });
     });
 
-    // Acciones grandes de la portada
-    document.querySelector('[data-mact="nuevo-pedido"]')?.addEventListener('click', () => irA('pedidos'));
+    // Botones grandes de la portada
+    document.querySelector('[data-mact="nuevo-pedido"]')?.addEventListener('click', () => irATab('pedidos'));
     document.querySelector('[data-mact="recibir-albaran"]')?.addEventListener('click', () => window.mlRecibirAlbaran?.());
 
-    // Mantener la barra inferior sincronizada con la navegación, venga de donde
-    // venga (sidebar, checklist, alertas…). Envolvemos cambiarTab conservando el
-    // original — nunca lo reemplazamos.
+    // Envolver cambiarTab (conservando el original): navegar a una pestaña = salir
+    // de Inicio y sincronizar la barra, venga la navegación de donde venga.
     if (typeof window.cambiarTab === 'function' && !window.cambiarTab.__mlWrapped) {
         const original = window.cambiarTab;
         const wrapped = function (tab) {
+            salirHome();
             const r = original.apply(this, arguments);
-            try { syncBottomNav(tab); } catch { /* no-op */ }
+            try { syncNavFromTab(tab); } catch { /* no-op */ }
             return r;
         };
         wrapped.__mlWrapped = true;
         window.cambiarTab = wrapped;
     }
 
-    // Estado inicial (la app arranca en 'ingredientes').
-    syncBottomNav('ingredientes');
+    // Arranque: en móvil, la portada de 2 botones es la primera pantalla.
+    // En escritorio esta clase es inerte (el CSS solo la usa dentro de @media 768).
+    mostrarHome();
 }

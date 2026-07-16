@@ -1,80 +1,85 @@
 /* ============================================================
-   Portada móvil enfocada (Pieza A) — CosteOS
+   Portada móvil enfocada — CosteOS
    TODO va dentro de @media (max-width: 768px): en escritorio
-   estos elementos no existen (display:none) y nada cambia.
-   Reutiliza cambiarTab() y el dashboard que ya renderiza la app.
+   estos elementos están ocultos y nada cambia.
+   Inicio = 2 botones grandes (Nuevo pedido / Recibir albarán).
+   Dashboard vive en su propio botón (Panel). Barra inferior fija.
    ============================================================ */
 
 /* Ocultos por defecto (escritorio) */
-.ml-mobile-actions { display: none; }
+.ml-mobile-home { display: none; }
 .ml-bottomnav { display: none; }
 
 @media (max-width: 768px) {
 
-  /* ---- Dos acciones grandes en la portada (Inicio) ---- */
-  .ml-mobile-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin: 14px 16px 4px;
-  }
-  .ml-act {
-    border: 0;
-    border-radius: 16px;
-    padding: 15px 12px;
-    color: #fff;
+  /* ---- Portada Inicio: dos botones grandes, pantalla completa ---- */
+  body.ml-home-active #ml-mobile-home {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    text-align: left;
-    box-shadow: 0 6px 18px rgba(16, 24, 40, .16);
+    justify-content: center;
+    gap: 14px;
+    position: fixed;
+    left: 0; right: 0; top: 0; bottom: 64px;   /* deja la barra inferior visible */
+    z-index: 85;                               /* bajo barra (90), sidebar (100) y overlay (99) */
+    background: linear-gradient(180deg, #F6F8FB 0%, #EAEFF5 100%);
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  /* En la portada, el FAB del chat estorba: ocúltalo */
+  body.ml-home-active #chat-fab,
+  body.ml-home-active .chat-fab,
+  body.ml-home-active .chat-widget-fab { display: none !important; }
+
+  .ml-home-hi { text-align: center; margin-bottom: 4px; }
+  .ml-home-hi-brand {
+    display: block; font-size: 26px; font-weight: 800; letter-spacing: -.02em;
+    background: linear-gradient(135deg, #F5822A, #FFB24D);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .ml-home-hi-sub { display: block; font-size: 14px; color: #64748b; font-weight: 600; margin-top: 2px; }
+
+  .ml-home-btn {
+    border: 0; border-radius: 20px; padding: 26px 20px; color: #fff;
+    display: flex; flex-direction: column; gap: 8px; text-align: left;
+    box-shadow: 0 10px 28px rgba(16, 24, 40, .20);
     -webkit-tap-highlight-color: transparent;
   }
-  .ml-act:active { transform: scale(.985); }
-  .ml-act .ml-act-ic { font-size: 22px; line-height: 1; }
-  .ml-act b { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
-  .ml-act span { font-size: 11.5px; opacity: .92; }
-  .ml-act--pedir { background: linear-gradient(135deg, #F5822A, #FFB24D); }
-  .ml-act--recibir { background: linear-gradient(135deg, #16233B, #31456B); }
+  .ml-home-btn:active { transform: scale(.985); }
+  .ml-home-btn-ic { font-size: 34px; line-height: 1; }
+  .ml-home-btn b { font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+  .ml-home-btn span { font-size: 13px; opacity: .92; }
+  .ml-home-btn--pedir { background: linear-gradient(135deg, #F5822A, #FFB24D); }
+  .ml-home-btn--recibir { background: linear-gradient(135deg, #16233B, #31456B); }
 
   /* ---- Barra de navegación inferior ---- */
   .ml-bottomnav {
     display: flex;
     position: fixed;
     left: 0; right: 0; bottom: 0;
-    z-index: 90;                 /* por debajo del sidebar (100) y su overlay (99) */
+    z-index: 90;
     background: #ffffff;
     border-top: 1px solid #e6eaf0;
     padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -2px 12px rgba(16, 24, 40, .06);
   }
   .ml-bottomnav button {
-    flex: 1;
-    border: 0;
-    background: transparent;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-    padding: 4px 2px;
+    flex: 1; border: 0; background: transparent;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 10px; font-weight: 700; color: #94a3b8; padding: 4px 2px;
     -webkit-tap-highlight-color: transparent;
   }
   .ml-bottomnav button .ml-bn-ic { font-size: 19px; line-height: 1; filter: grayscale(1) opacity(.6); }
   .ml-bottomnav button.active { color: #F5822A; }
   .ml-bottomnav button.active .ml-bn-ic { filter: none; }
 
-  /* Deja hueco para que la barra no tape el contenido ni el chat FAB */
+  /* Hueco para que la barra no tape el contenido de las secciones */
   .main-content { padding-bottom: 76px !important; }
-
-  /* El botón flotante del chat sube para no chocar con la barra */
   #chat-fab, .chat-fab, .chat-widget-fab { bottom: 84px !important; }
 }
 
-/* Modo oscuro de la barra inferior */
+/* Modo oscuro */
 @media (max-width: 768px) and (prefers-color-scheme: dark) {
+  body.ml-home-active #ml-mobile-home { background: linear-gradient(180deg, #0E1116 0%, #141A22 100%); }
+  .ml-home-hi-sub { color: #9aa3b2; }
   .ml-bottomnav { background: #16233B; border-top-color: #24304A; }
   .ml-bottomnav button { color: #9fb0cf; }
 }
