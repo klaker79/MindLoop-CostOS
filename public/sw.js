@@ -211,7 +211,8 @@
 // BUMP v252 (claridad ingeniería de menú): las listas de cuadrantes (Estrellas/Puzzles/Caballos/Perros) mostraban "12,44€ · 3387" sin etiqueta (solo tooltip). Ahora cada cuadrante lleva una leyenda de columnas visible "Plato — Margen/ración · uds vendidas" y las unidades llevan sufijo "uds". Se entiende de un vistazo qué es cada número.
 // BUMP v253 (tabla ingeniería coherente): la fila era flex "nombre ... margen · uds" amontonado y sin alinear. Ahora item y leyenda son GRID de 3 columnas idénticas (Plato | Margen/ración | Uds vendidas), números a la derecha con tabular-nums → columnas cuadradas y legibles. Sin sufijo "uds" en el valor (ya lo dice la cabecera de columna).
 // BUMP v254: Ranking de Rentabilidad, matriz BCG y gráfica de margen por categoría comparten UNA sola lista de "no son platos" (base/suministros/extras). Antes el ranking solo quitaba 'base' y colaba los cargos (PAN POR PERSONA) entre los platos; la gráfica de margen usaba otra lista distinta. Los cargos/complementos se marcan con categoria='extra' (mismo criterio que el backend categoriaClassifier). Pinchos/tapas SIGUEN en el ranking.
-const CACHE_NAME = 'mindloop-costos-v254';
+// BUMP v255: portada móvil enfocada (Pieza A) — barra de navegación inferior (Inicio/Pedidos/Recibir/Más) + 2 acciones grandes (Nuevo pedido / Recibir albarán) en la vista Inicio. 100% dentro de @media 768 (escritorio intacto), reutiliza cambiarTab. mobile-home.css + mobile-nav.js. i18n es/en/zh.
+const CACHE_NAME = 'mindloop-costos-v255';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

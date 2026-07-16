@@ -24,7 +24,6 @@
   "btn_receive": "Recibir",
   "reception_success": "Pedido recibido: stock actualizado y registrado en Diario",
   "reception_error": "Error recibiendo pedido: {{message}}",
-
   "cart_title": "Carrito",
   "cart_empty": "El carrito está vacío",
   "cart_confirm_empty": "¿Vaciar todo el carrito?",
@@ -36,12 +35,10 @@
   "cart_confirm_order": "¿Crear pedido con {{count}} ingredientes?",
   "cart_orders_created": "{{count}} pedido(s) creado(s)",
   "cart_error_creating": "Error creando pedidos: {{message}}",
-
   "scanner_unsupported_format": "Formato no soportado. Usa JPG, PNG o PDF.",
   "scanner_file_too_large": "Archivo demasiado grande. Máximo 10MB.",
   "scanner_error_processing": "Error procesando albarán",
   "scanner_error_generic": "Error: {{message}}",
-
   "pending_approving": "Aprobando compra...",
   "pending_approved": "Compra aprobada y registrada",
   "pending_batch_approving": "Aprobando albarán completo...",
@@ -58,20 +55,17 @@
   "pending_error_format": "Error al cambiar formato: {{message}}",
   "pending_error_rejecting": "Error al rechazar: {{message}}",
   "pending_error_saving": "Error al guardar: {{message}}",
-
   "export_popup_blocked": "Pop-ups bloqueados. Permite pop-ups para descargar PDF.",
   "export_pdf_error": "Error generando PDF",
   "export_no_order_selected": "No hay pedido seleccionado",
   "export_configure_phone": "Configura el teléfono del proveedor",
   "export_whatsapp_opened": "Chat abierto. Para adjuntar PDF usa el botón PDF",
-
   "status_received": "Recibido",
   "status_pending": "Pendiente",
   "status_confirmed": "Confirmado",
   "status_in_transit": "En tránsito",
   "status_delivered": "Entregado",
   "status_cancelled": "Cancelado",
-
   "detail_order_title": "Pedido #{{id}}",
   "detail_no_supplier": "Sin proveedor",
   "detail_status_received": "Recibido",
@@ -99,16 +93,13 @@
   "cart_iva_label": "IVA",
   "cart_total_with_iva": "Total con IVA",
   "cart_iva_hint": "El IVA es solo para cuadrar con la factura. No afecta al food cost ni a la rentabilidad (se recupera en tu declaración).",
-
   "scanner_items_detected": "{{total}} productos detectados de {{supplier}} ({{matched}} asignados, {{unmatched}} por revisar)",
   "scanner_items_detected_no_supplier": "{{total}} productos detectados ({{matched}} asignados, {{unmatched}} por revisar)",
-
   "description": "Gestiona pedidos a proveedores",
   "tab_title": "Pedidos a Proveedores",
   "btn_new": "+ Nuevo Pedido",
   "btn_create": "Crear Pedido",
   "search_placeholder": "Buscar pedidos...",
-
   "form_search_ingredient": "Buscar por ingrediente",
   "form_search_ingredient_hint": "opcional - auto-selecciona proveedor",
   "form_search_ingredient_placeholder": "Escribe nombre del ingrediente...",
@@ -167,7 +158,6 @@
   "import_confirm_btn": "Importar Pedidos",
   "import_click_to_select": "Haz clic para seleccionar archivo",
   "import_file_types": "Excel (.xlsx) o CSV",
-
   "placeholder_quantity": "Cant.",
   "placeholder_price_unit": "/ud",
   "empty_no_orders": "No hay pedidos",
@@ -179,7 +169,6 @@
   "export_col_total": "Total",
   "export_col_total_received": "Total Recibido",
   "export_col_reception_date": "Fecha Recepción",
-
   "pdf_cost_management": "Sistema de Gestión de Costos",
   "pdf_order_label": "PEDIDO",
   "pdf_order_details": "Detalles del Pedido",
@@ -191,7 +180,6 @@
   "pdf_price_orig": "Precio Orig.",
   "pdf_price_real": "Precio Real",
   "pdf_generated_on": "Documento generado el",
-
   "wa_order_number": "Pedido Nº {{id}}",
   "wa_greeting": "Estimado proveedor,",
   "wa_order_intro": "Le enviamos el siguiente pedido:",
@@ -199,7 +187,6 @@
   "wa_confirm_availability": "Por favor, confirme disponibilidad y precio.",
   "wa_thanks": "¡Gracias!",
   "wa_regards": "Cordial saludo",
-
   "pending_possible_duplicate": "⚠️ Posible duplicado",
   "pending_dup_already_approved": "Ya aprobado",
   "pending_dup_pending_other": "Pendiente en otro albarán",
@@ -220,9 +207,7 @@
   "pending_col_price": "Precio",
   "pending_review_title": "{{count}} compras pendientes de revisión",
   "pending_review_subtitle": "Importadas automáticamente desde albaranes escaneados",
-
   "form_supplier_required": "Proveedor *",
-
   "edit_title": "Editar Pedido #{{id}}",
   "edit_subtotal_items": "Subtotal items:",
   "edit_total": "TOTAL:",
@@ -240,7 +225,6 @@
   "edit_confirm_empty": "El pedido no tiene ingredientes. ¿Guardar igual?",
   "edit_toast_saved": "Pedido actualizado",
   "edit_toast_error": "Error actualizando pedido",
-
   "smart_no_low_stock": "Todos los ingredientes por encima del stock mínimo — no hay pedidos necesarios",
   "smart_items_low": "ingredientes bajo mínimo",
   "smart_suppliers": "proveedores",
@@ -255,10 +239,12 @@
   "smart_pending_orders": "pedidos pendientes",
   "smart_orders_created": "pedidos creados",
   "smart_review_and_receive": "revísalos y recíbelos cuando estén listos",
-
   "repeat_confirm": "¿Repetir pedido de {{supplier}}? ({{count}} artículos)\n\nSe creará un nuevo pedido pendiente con los mismos ingredientes. Puedes editar cantidades antes de confirmar.",
   "repeat_success": "Pedido repetido de {{supplier}} — edita cantidades y confirma cuando esté listo",
-
   "price_source_configured": "Precio configurado para este proveedor",
-  "price_source_last_purchase": "Última compra a este proveedor ({{date}})"
+  "price_source_last_purchase": "Última compra a este proveedor ({{date}})",
+  "mobile_new_order": "Nuevo pedido",
+  "mobile_new_order_sub": "Por voz",
+  "mobile_receive": "Recibir albarán",
+  "mobile_receive_sub": "Foto"
 }

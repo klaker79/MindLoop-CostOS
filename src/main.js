@@ -116,9 +116,15 @@ import { loadAlertPanel } from './components/domain/AlertPanel.js';
 // CORE - Funciones centrales (cargarDatos, cambiarTab, init)
 // ============================================
 import * as Core from './modules/core/core.js';
+import { initMobileNav } from './modules/mobile/mobile-nav.js';
 
 window.cargarDatos = Core.cargarDatos;
 window.cambiarTab = Core.cambiarTab;
+
+// 📱 Navegación móvil enfocada (Pieza A). Inerte en escritorio (elementos ocultos por CSS).
+document.addEventListener('DOMContentLoaded', () => {
+    try { initMobileNav(); } catch (e) { console.warn('initMobileNav', e?.message); }
+});
 window.init = Core.init;
 window.inicializarFechaActual = Core.inicializarFechaActual;
 

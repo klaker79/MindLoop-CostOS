@@ -169,15 +169,20 @@ export function cambiarTab(tab) {
     // KPI row is the parent of .kpi-mini elements
     const kpiMini = document.querySelector('.kpi-mini');
     const kpiRow = kpiMini?.parentElement;
+    // 📱 Acciones grandes de la portada móvil: viven en la vista Inicio (ingredientes).
+    // display '' devuelve el control al CSS (none en escritorio, grid en móvil).
+    const mobileActions = document.getElementById('ml-mobile-actions');
 
     if (showDashboard) {
         if (dashboard) dashboard.style.display = '';
         if (dateBanner) dateBanner.style.display = '';
         if (kpiRow) kpiRow.style.display = 'flex';
+        if (mobileActions) mobileActions.style.display = '';
     } else {
         if (dashboard) dashboard.style.display = 'none';
         if (dateBanner) dateBanner.style.display = 'none';
         if (kpiRow) kpiRow.style.display = 'none';
+        if (mobileActions) mobileActions.style.display = 'none';
     }
 
     // Scroll main content area to top so tab content is visible
