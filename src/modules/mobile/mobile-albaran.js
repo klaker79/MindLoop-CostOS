@@ -12,26 +12,22 @@
 
 // Reescala la imagen a máx `maxLado` px (lado mayor) y devuelve JPEG base64 (sin el
 // prefijo data:). Mantiene la legibilidad para OCR y evita subir 10 MB desde el móvil.
-function imagenAJpegBase64(file, maxLado = 1600, calidad = 0.85) {
-    return new Promise((resolve, reject) => {
-        const img = document.createElement('img');
-        const url = URL.createObjectURL(file);
-        img.onload = () => {
-            try {
-                const escala = Math.min(1, maxLado / Math.max(img.width, img.height));
-                const w = Math.round(img.width * escala);
-                const h = Math.round(img.height * escala);
-                const canvas = document.createElement('canvas');
-                canvas.width = w; canvas.height = h;
-                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                const dataUrl = canvas.toDataURL('image/jpeg', calidad);
-                URL.revokeObjectURL(url);
-                resolve(dataUrl.split(',')[1]);
-            } catch (e) { URL.revokeObjectURL(url); reject(e); }
-        };
-        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen')); };
-        img.src = url;
-    });
+// Usa createImageBitmap para decodificar el fichero directo a bitmap: sin <img> ni
+// blob URL, y con `imageOrientation: 'from-image'` endereza la foto girada del móvil.
+async function imagenAJpegBase64(file, maxLado = 1600, calidad = 0.85) {
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    try {
+        const escala = Math.min(1, maxLado / Math.max(bitmap.width, bitmap.height));
+        const w = Math.round(bitmap.width * escala);
+        const h = Math.round(bitmap.height * escala);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', calidad);
+        return dataUrl.split(',')[1];
+    } finally {
+        bitmap.close();
+    }
 }
 
 async function procesarFotoAlbaran(file) {
