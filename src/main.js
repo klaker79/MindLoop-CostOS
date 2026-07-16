@@ -117,6 +117,7 @@ import { loadAlertPanel } from './components/domain/AlertPanel.js';
 // ============================================
 import * as Core from './modules/core/core.js';
 import { initMobileNav } from './modules/mobile/mobile-nav.js';
+import { initMobileAlbaran } from './modules/mobile/mobile-albaran.js';
 
 window.cargarDatos = Core.cargarDatos;
 window.cambiarTab = Core.cambiarTab;
@@ -124,6 +125,7 @@ window.cambiarTab = Core.cambiarTab;
 // 📱 Navegación móvil enfocada (Pieza A). Inerte en escritorio (elementos ocultos por CSS).
 document.addEventListener('DOMContentLoaded', () => {
     try { initMobileNav(); } catch (e) { console.warn('initMobileNav', e?.message); }
+    try { initMobileAlbaran(); } catch (e) { console.warn('initMobileAlbaran', e?.message); }
 });
 window.init = Core.init;
 window.inicializarFechaActual = Core.inicializarFechaActual;
