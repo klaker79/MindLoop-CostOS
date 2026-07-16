@@ -913,6 +913,22 @@ table input[type="number"] {
   transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
+/* Anti-zoom móvil: los inputs de modales y tablas a 16px en pantallas pequeñas
+   para que iOS/Android NO hagan zoom automático al enfocar. Va después de la
+   regla de 14px de arriba y con la misma especificidad para ganarle (esta hoja
+   carga después de main.css, que ya intentaba lo mismo pero era menos específica). */
+@media (max-width: 768px) {
+  .modal-content input[type="text"],
+  .modal-content input[type="number"],
+  .modal-content input[type="email"],
+  .modal-content select,
+  .modal-content textarea,
+  table input[type="text"],
+  table input[type="number"] {
+    font-size: 16px !important;
+  }
+}
+
 .modal-content input[type="text"]:focus,
 .modal-content input[type="number"]:focus,
 .modal-content input[type="email"]:focus,

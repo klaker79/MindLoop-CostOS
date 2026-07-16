@@ -19,15 +19,16 @@
     justify-content: center;
     gap: 14px;
     position: fixed;
-    left: 0; right: 0; top: 0; bottom: 64px;   /* deja la barra inferior visible */
+    left: 0; right: 0; top: 0; bottom: 0;      /* cubre toda la altura; la barra (z-90) pinta encima */
     z-index: 85;                               /* bajo barra (90), sidebar (100) y overlay (99) */
     background: linear-gradient(180deg, #F6F8FB 0%, #EAEFF5 100%);
-    padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    padding: 24px 20px calc(76px + env(safe-area-inset-bottom, 0px)); /* deja hueco para la barra inferior */
   }
-  /* En la portada, el FAB del chat estorba: ocúltalo */
+  /* En la portada, el FAB del chat y la hamburguesa de escritorio estorban: ocúltalos */
   body.ml-home-active #chat-fab,
   body.ml-home-active .chat-fab,
-  body.ml-home-active .chat-widget-fab { display: none !important; }
+  body.ml-home-active .chat-widget-fab,
+  body.ml-home-active .mobile-menu-toggle { display: none !important; }
 
   .ml-home-hi { text-align: center; margin-bottom: 4px; }
   .ml-home-hi-brand {
@@ -63,7 +64,8 @@
   }
   .ml-bottomnav button {
     flex: 1; border: 0; background: transparent;
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    min-height: 44px;   /* objetivo táctil mínimo para el dedo */
     font-size: 10px; font-weight: 700; color: #94a3b8; padding: 4px 2px;
     -webkit-tap-highlight-color: transparent;
   }
