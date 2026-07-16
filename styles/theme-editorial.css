@@ -1264,6 +1264,14 @@ button[onclick="window.guardarEdicionPedido()"]:hover {
   margin: 0 -8px !important;     /* extiende ligeramente para evitar
                                     scroll por padding del modal */
   padding: 0 8px !important;
+  /* 🐛 FIX (2026-07-16): quick-actions.css pone `.modal-content { display:flex;
+     flex-direction:column }` de forma GLOBAL. Un hijo con overflow dentro de un
+     flex-column se encoge a height:0 y OCULTA la tabla entera (p.ej. las líneas
+     editables del modal de recepción de pedidos: se veían Proveedor y Total
+     pegados, sin líneas en medio). flex-shrink:0 impide ese colapso.
+     Verificado en staging: 0px → 418px, las 4 líneas aparecen. */
+  flex-shrink: 0 !important;
+  min-height: 0 !important;
 }
 
 

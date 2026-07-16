@@ -213,7 +213,8 @@
 // BUMP v254: Ranking de Rentabilidad, matriz BCG y gráfica de margen por categoría comparten UNA sola lista de "no son platos" (base/suministros/extras). Antes el ranking solo quitaba 'base' y colaba los cargos (PAN POR PERSONA) entre los platos; la gráfica de margen usaba otra lista distinta. Los cargos/complementos se marcan con categoria='extra' (mismo criterio que el backend categoriaClassifier). Pinchos/tapas SIGUEN en el ranking.
 // BUMP v255: portada móvil enfocada (Pieza A) — barra de navegación inferior (Inicio/Pedidos/Recibir/Más) + 2 acciones grandes (Nuevo pedido / Recibir albarán) en la vista Inicio. 100% dentro de @media 768 (escritorio intacto), reutiliza cambiarTab. mobile-home.css + mobile-nav.js. i18n es/en/zh.
 // BUMP v256: portada móvil Inicio = 2 botones grandes (Nuevo pedido / Recibir albarán) a pantalla completa; dashboard movido a su propio botón (Panel). Barra: Inicio·Panel·Pedidos·Más.
-const CACHE_NAME = 'mindloop-costos-v256';
+// BUMP v257: FIX modal de recepción de pedidos — las líneas editables (cantidad/precio recibidos) se ocultaban porque quick-actions.css pone .modal-content en flex-column global y el wrapper con overflow-x colapsaba a height:0. flex-shrink:0 en el wrapper. Verificado en staging (0→418px, 4 líneas visibles).
+const CACHE_NAME = 'mindloop-costos-v257';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
