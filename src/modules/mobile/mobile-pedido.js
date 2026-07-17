@@ -234,42 +234,41 @@ function restaurarVozBtn(txt) {
     if (btn) { btn.classList.remove('escuchando'); btn.textContent = txt || '🎙️ Dictar'; }
 }
 
-// Grabación de audio → transcripción en el servidor (Gemini). En la app instalada
-// de Android el reconocedor del navegador (Web Speech) NO está disponible, pero
-// GRABAR audio (getUserMedia + MediaRecorder) SÍ. Se toca para empezar y se toca
-// otra vez para parar; al parar se manda el audio y se rellenan las cantidades.
-let mlRec = null;
-let mlChunks = [];
+// Dictado por voz usando la GRABADORA NATIVA del móvil (input type=file capture),
+// NO getUserMedia. En la app instalada de Android, Chrome deniega el micro por
+// getUserMedia (y el reconocedor Web Speech tampoco va), pero un input de audio
+// con `capture` abre la grabadora del sistema, que SÍ tiene micro. El usuario
+// graba, confirma, y el archivo (m4a/3gp/…) sube al servidor, que lo convierte a
+// WAV con ffmpeg y lo transcribe con Gemini.
+let vozInput = null;
 
-function pickMime() {
-    if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return '';
-    const cand = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
-    return cand.find((m) => MediaRecorder.isTypeSupported(m)) || '';
+function ensureVozInput() {
+    if (vozInput) return vozInput;
+    vozInput = document.createElement('input');
+    vozInput.type = 'file';
+    vozInput.accept = 'audio/*';
+    vozInput.setAttribute('capture', 'microphone');
+    vozInput.style.display = 'none';
+    vozInput.addEventListener('change', () => {
+        const file = vozInput.files && vozInput.files[0];
+        vozInput.value = ''; // permite volver a grabar el mismo botón
+        if (file) enviarAudio(file);
+    });
+    document.body.appendChild(vozInput);
+    return vozInput;
 }
 
 function grabarPedido() {
-    // Ya está grabando → parar (se procesa en onstop).
-    if (mlRec && mlRec.state === 'recording') { try { mlRec.stop(); } catch { /* no-op */ } return; }
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
-        window.showToast?.('Tu navegador no permite grabar audio.', 'warning'); return;
+    const btn = document.getElementById('mlp-voz-btn');
+    if (btn) { btn.classList.add('escuchando'); btn.textContent = '🎙️ Abriendo grabadora…'; }
+    try {
+        ensureVozInput().click();
+    } catch {
+        window.showToast?.('No pude abrir la grabadora del móvil.', 'warning');
     }
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mlChunks = [];
-        const mime = pickMime();
-        mlRec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
-        mlRec.ondataavailable = (ev) => { if (ev.data && ev.data.size) mlChunks.push(ev.data); };
-        mlRec.onstop = () => {
-            stream.getTracks().forEach((t) => t.stop());
-            const blob = new Blob(mlChunks, { type: (mlRec && mlRec.mimeType) || mime || 'audio/webm' });
-            enviarAudio(blob);
-        };
-        mlRec.start();
-        const btn = document.getElementById('mlp-voz-btn');
-        if (btn) { btn.classList.add('escuchando'); btn.textContent = '⏹ Parar (hablando…)'; }
-    }).catch(() => {
-        window.showToast?.('Necesito permiso del micrófono. Permítelo cuando el navegador lo pida y prueba otra vez.', 'warning');
-        restaurarVozBtn();
-    });
+    // Si el usuario cancela la grabadora no llega 'change'; restauramos el botón al volver el foco.
+    const restaurar = () => { restaurarVozBtn('🎙️ Dictar'); window.removeEventListener('focus', restaurar); };
+    setTimeout(() => window.addEventListener('focus', restaurar), 500);
 }
 
 function blobABase64(blob) {
