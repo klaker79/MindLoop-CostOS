@@ -13,6 +13,7 @@
 
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { formatoDesdeBase, esCantidadEnteraEnFormato } from '../pedidos/formato-utils.js';
+import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
 const OV_ID = 'ml-pedido-ov';
 let estado = { provId: null, provNombre: '', lineas: [] };
@@ -38,7 +39,8 @@ function historialProveedor(provId) {
             if (id === null || id === undefined || map.has(id)) continue;
             map.set(id, {
                 cantidad: parseFloat(it.cantidadRecibida ?? it.cantidad ?? 0) || 0,
-                precio: parseFloat(it.precioReal ?? it.precioUnitario ?? it.precio_unitario ?? 0) || 0,
+                // Las líneas de pedido del backend guardan el precio en `precio`.
+                precio: parseFloat(it.precioReal ?? it.precioUnitario ?? it.precio_unitario ?? it.precio ?? 0) || 0,
             });
         }
     }
@@ -55,13 +57,19 @@ function construirLineas(provId) {
         const { cpf, formato, unidad } = ctxFmt(ing);
         const usaFormato = cpf > 1 && !!formato && esCantidadEnteraEnFormato(h.cantidad, cpf);
         const cantDisplay = usaFormato ? formatoDesdeBase(h.cantidad, 0, cpf).cantidad : h.cantidad;
+        // Precio: el del historial; si viniera 0, el precio actual del ingrediente
+        // (precio_medio_compra > precio_medio > precio/formato, vía getIngredientUnitPrice).
+        let precioBase = h.precio;
+        if (!(precioBase > 0)) {
+            try { precioBase = parseFloat(getIngredientUnitPrice(ing)) || 0; } catch { precioBase = 0; }
+        }
         lineas.push({
             ingredienteId: id,
             nombre: ing.nombre || 'Ingrediente',
             usaFormato,
             cpf,
             unidadLabel: usaFormato ? formato : unidad,
-            precioBase: h.precio,
+            precioBase,
             cantDisplay,
         });
     }
