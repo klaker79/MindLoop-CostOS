@@ -37,6 +37,35 @@ function ctxFormato(ing) {
 let isConfirmingReception = false;
 
 /**
+ * 📸 Pieza B.2: VUELCA los datos leídos del albarán en las líneas de recepción ya
+ * macheadas (mismo criterio de unidad que un input manual: valor de display × / ÷ cpf).
+ * Marca varianza si difiere del pedido. NO consolida — el humano revisa y confirma.
+ */
+function volcarAlbaranEnRecepcion(ped) {
+    const hints = window.__albaranHints;
+    if (!hints || !ped.itemsRecepcion) return;
+    const ingMap = new Map((window.ingredientes || []).map((i) => [i.id, i]));
+    ped.itemsRecepcion.forEach((item) => {
+        if (item.personal === true) return;
+        const ingId = item.ingredienteId || item.ingrediente_id;
+        const h = hints.porIngrediente.get(Number(ingId));
+        if (!h) return;
+        const ing = ingMap.get(ingId);
+        const cpfRaw = parseFloat(ing?.cantidad_por_formato);
+        const cpf = cpfRaw > 1 ? cpfRaw : 1;
+        const usaFormato = cpf > 1 && !!ing?.formato_compra
+            && esCantidadEnteraEnFormato(parseFloat(item.cantidad || 0), cpf);
+        const k = usaFormato ? cpf : 1;
+        item.cantidadRecibida = (parseFloat(h.cantidad) || 0) * k;
+        item.precioReal = (parseFloat(h.precio) || 0) / k;
+        if (Math.abs(item.cantidadRecibida - item.cantidad) > 0.01
+            || Math.abs(item.precioReal - item.precioUnitario) > 0.01) {
+            item.estado = 'varianza';
+        }
+    });
+}
+
+/**
  * Marca un pedido como recibido (abre modal)
  * @param {number} id - ID del pedido
  */
@@ -91,6 +120,10 @@ export function marcarPedidoRecibido(id) {
     const totalSpan = document.getElementById('modal-rec-total-original');
     if (totalSpan) totalSpan.textContent = cm(ped.total || 0);
 
+    // 📸 Si se llegó por foto (Pieza B.2), reconstruir para volcar los datos del albarán.
+    const hayAlbaran = !!(window.__albaranHints && window.__albaranHints.pedidoId === id);
+    if (hayAlbaran) ped.itemsRecepcion = null;
+
     // Inicializar items de recepción con estado
     // 🔒 Excluir items de tipo 'ajuste' (envases/bonificaciones) — solo afectan al total, no al stock
     if (!ped.itemsRecepcion) {
@@ -111,6 +144,9 @@ export function marcarPedidoRecibido(id) {
                 };
             });
     }
+
+    // 📸 Volcar cantidades y precios leídos del albarán en las líneas macheadas.
+    if (hayAlbaran) volcarAlbaranEnRecepcion(ped);
 
     renderItemsRecepcionModal(ped);
 
@@ -243,28 +279,26 @@ function renderItemsRecepcionModal(ped) {
         const recOnchange = `window.actualizarItemRecepcion(${idx}, 'cantidad', this.value, ${cpfInput})`;
         const precioOnchange = `window.actualizarItemRecepcion(${idx}, 'precio', this.value, ${cpfInput})`;
 
-        // 📸 Pieza B.2: pista del albarán leído para esta línea (si se llegó por foto).
-        // Solo SUGERENCIA: el valor se aplica con "usar" (el humano decide). El número
-        // del albarán se muestra tal cual se leyó y, al aplicarlo, se convierte a base
-        // igual que un input manual (misma unidad de display que la fila).
+        // 📸 Pieza B.2: los datos del albarán ya vienen VOLCADOS en los inputs (se
+        // rellenan al abrir la recepción por foto, en marcarPedidoRecibido). Aquí solo
+        // se marca el origen (📸) y el aviso de precio. El humano revisa y confirma
+        // igual que a mano — no hay que pulsar nada por línea.
         const albHint = (window.__albaranHints && window.__albaranHints.pedidoId === ped.id)
             ? window.__albaranHints.porIngrediente.get(Number(ingId)) : null;
-        const hintBtnCss = 'border:0;background:#fef3c7;color:#92400e;border-radius:5px;padding:1px 7px;font-size:10px;cursor:pointer;margin-left:4px;';
         const albHintCant = albHint
-            ? `<div style="margin-top:3px;font-size:10px;color:#b45309;white-space:nowrap;">📸 ${escapeHTML(formatQuantity(albHint.cantidad))}<button type="button" onclick="window.aplicarAlbaranCant(${idx})" style="${hintBtnCss}">usar</button></div>`
+            ? '<span title="Volcado del albarán" style="margin-left:5px;font-size:11px;">📸</span>'
             : '';
-        // 📈 Aviso de subida de precio (Fase 4): compara el precio del albarán (en
-        // unidad base = €/ud, dividiendo por el cpf de la fila) con el precio del
-        // pedido. Rojo si sube ≥5%, verde si baja ≥5%. El "caso tomate" en el momento.
+        // 📈 Aviso de subida de precio: compara el precio del albarán (base = €/ud,
+        // ÷cpf de la fila) con el del pedido. Rojo si sube ≥5%, verde si baja ≥5%.
         let albPrecioBadge = '';
         if (albHint && precioPed > 0) {
             const albBase = (parseFloat(albHint.precio) || 0) / cpfInput;
             const pct = ((albBase - precioPed) / precioPed) * 100;
-            if (pct >= 5) albPrecioBadge = `<span style="font-size:9.5px;font-weight:800;color:#b91c1c;background:#fde2e2;border-radius:5px;padding:1px 6px;margin-left:5px;">▲ +${pct.toFixed(0)}% vs pedido</span>`;
-            else if (pct <= -5) albPrecioBadge = `<span style="font-size:9.5px;font-weight:800;color:#047857;background:#d1fae5;border-radius:5px;padding:1px 6px;margin-left:5px;">▼ ${pct.toFixed(0)}%</span>`;
+            if (pct >= 5) albPrecioBadge = `<span style="font-size:9.5px;font-weight:800;color:#b91c1c;background:#fde2e2;border-radius:5px;padding:1px 6px;">▲ +${pct.toFixed(0)}% vs pedido</span>`;
+            else if (pct <= -5) albPrecioBadge = `<span style="font-size:9.5px;font-weight:800;color:#047857;background:#d1fae5;border-radius:5px;padding:1px 6px;">▼ ${pct.toFixed(0)}%</span>`;
         }
         const albHintPrecio = albHint
-            ? `<div style="margin-top:3px;font-size:10px;color:#b45309;">📸 ${cm(albHint.precio)}<button type="button" onclick="window.aplicarAlbaranPrecio(${idx})" style="${hintBtnCss}">usar</button>${albPrecioBadge}</div>`
+            ? `<div style="margin-top:3px;">${albPrecioBadge || '<span title="Volcado del albarán" style="font-size:11px;">📸</span>'}</div>`
             : '';
 
         // 🍽️ Líneas de comida personal: fila en modo LECTURA (gris, badge), sin
