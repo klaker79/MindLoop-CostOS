@@ -102,7 +102,11 @@
     z-index: 1000;
 }
 
-.modal-content {
+/* Acotado a los modales que viven dentro de .modal-overlay (quick-actions,
+   cost-tracker, ayuda...). ANTES era `.modal-content` global y su
+   display:flex + overflow:hidden se filtraba a TODOS los modales de la app
+   (index.html), colapsando tablas y campos con scroll propio. */
+.modal-overlay .modal-content {
     background: white;
     border-radius: 16px;
     width: 90%;

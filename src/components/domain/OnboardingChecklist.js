@@ -67,6 +67,22 @@ if (typeof window !== 'undefined') {
     window.__onboardingChecklistNav = navigateToTab;
 }
 
+// Plegar/desplegar el checklist. En móvil arranca plegado para no comerse la
+// primera pantalla de las secciones; el usuario puede abrirlo y se recuerda.
+function toggleChecklist() {
+    const body = document.getElementById('onb-checklist-body');
+    const chev = document.getElementById('onb-checklist-chevron');
+    if (!body) return;
+    const estabaPlegado = body.style.display === 'none';
+    body.style.display = estabaPlegado ? 'block' : 'none';
+    if (chev) chev.textContent = estabaPlegado ? '▾' : '▸';
+    try { localStorage.setItem('onb_checklist_collapsed', estabaPlegado ? '0' : '1'); } catch { /* no-op */ }
+}
+
+if (typeof window !== 'undefined') {
+    window.__onboardingChecklistToggle = toggleChecklist;
+}
+
 /**
  * Refresca el status desde el backend y re-renderiza si hay cambios.
  * Pensado para llamarse tras crear proveedor/ingrediente/receta/pedido
@@ -133,6 +149,16 @@ function buildChecklistHTML(status) {
     const total = pasos.length;
     const indiceSiguiente = pasos.findIndex(p => !p.completado);
 
+    // Plegado por defecto en móvil (para no tapar la lista de la sección); en
+    // escritorio, desplegado. Respeta la preferencia guardada si existe.
+    const isMobile = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        && window.matchMedia('(max-width: 768px)').matches;
+    let plegado;
+    try {
+        const stored = localStorage.getItem('onb_checklist_collapsed');
+        plegado = stored === null ? isMobile : stored === '1';
+    } catch { plegado = isMobile; }
+
     const rowsHTML = pasos.map((p, i) =>
         buildRowHTML(p, p.completado, i === indiceSiguiente)
     ).join('');
@@ -146,7 +172,8 @@ function buildChecklistHTML(status) {
             margin-bottom:20px;
             box-shadow:0 2px 8px rgba(0,0,0,0.04);
         ">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <div onclick="window.__onboardingChecklistToggle()"
+                 style="display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;">
                 <div style="
                     background:linear-gradient(135deg,#7c3aed,#6d28d9);
                     color:white;width:36px;height:36px;border-radius:10px;
@@ -165,17 +192,20 @@ function buildChecklistHTML(status) {
                     background:#f3f4f6;color:#374151;padding:6px 12px;border-radius:999px;
                     font-weight:700;font-size:13px;
                 ">${completados}/${total}</div>
+                <span id="onb-checklist-chevron" style="color:#9ca3af;font-size:14px;flex:0 0 auto;">${plegado ? '▸' : '▾'}</span>
             </div>
-            <div style="
-                width:100%;height:6px;background:#f3f4f6;border-radius:999px;
-                overflow:hidden;margin:12px 0 4px;
-            ">
+            <div id="onb-checklist-body" style="display:${plegado ? 'none' : 'block'};">
                 <div style="
-                    height:100%;background:linear-gradient(90deg,#7c3aed,#6d28d9);
-                    width:${(completados / total * 100).toFixed(0)}%;transition:width 0.4s;
-                "></div>
+                    width:100%;height:6px;background:#f3f4f6;border-radius:999px;
+                    overflow:hidden;margin:12px 0 4px;
+                ">
+                    <div style="
+                        height:100%;background:linear-gradient(90deg,#7c3aed,#6d28d9);
+                        width:${(completados / total * 100).toFixed(0)}%;transition:width 0.4s;
+                    "></div>
+                </div>
+                <div style="margin-top:8px;">${rowsHTML}</div>
             </div>
-            <div style="margin-top:8px;">${rowsHTML}</div>
         </div>
     `;
 }
