@@ -46,6 +46,29 @@ function historialProveedor(provId) {
     return map;
 }
 
+// Construye una línea del order-guide a partir de un ingrediente. precioBaseUd =
+// €/unidad base (para GUARDAR); precioDisplay = €/formato (para MOSTRAR y el total,
+// coherente con la cantidad en cajas). Así los números cuadran (no se multiplica de más).
+function lineaDesdeIngrediente(ing, cantDisplay = 0) {
+    const { cpf, formato, unidad } = ctxFmt(ing);
+    // Si tiene formato de compra (CAJA, GARRAFA…) se pide en ese formato.
+    const usaFormato = cpf > 1 && !!formato;
+    let precioBaseUd = 0;
+    try { precioBaseUd = parseFloat(getIngredientUnitPrice(ing)) || 0; } catch { precioBaseUd = 0; }
+    if (!(precioBaseUd > 0)) precioBaseUd = (parseFloat(ing.precio) || 0) / cpf;
+    const precioDisplay = usaFormato ? precioBaseUd * cpf : precioBaseUd;
+    return {
+        ingredienteId: ing.id,
+        nombre: ing.nombre || 'Ingrediente',
+        usaFormato,
+        cpf,
+        unidadLabel: usaFormato ? formato : unidad,
+        precioBaseUd,
+        precioDisplay,
+        cantDisplay,
+    };
+}
+
 function construirLineas(provId) {
     const ingMap = new Map((window.ingredientes || []).map((i) => [i.id, i]));
     const hist = historialProveedor(provId);
@@ -53,26 +76,7 @@ function construirLineas(provId) {
     for (const id of hist.keys()) {
         const ing = ingMap.get(id);
         if (!ing) continue;
-        const { cpf, formato, unidad } = ctxFmt(ing);
-        // Si tiene formato de compra (CAJA, GARRAFA…) se pide en ese formato.
-        const usaFormato = cpf > 1 && !!formato;
-        // Precio ACTUAL del ingrediente. precioBaseUd = €/unidad base (para GUARDAR);
-        // precioDisplay = €/formato (para MOSTRAR y para el total, coherente con la
-        // cantidad en cajas). Así los números cuadran (no se multiplica de más).
-        let precioBaseUd = 0;
-        try { precioBaseUd = parseFloat(getIngredientUnitPrice(ing)) || 0; } catch { precioBaseUd = 0; }
-        if (!(precioBaseUd > 0)) precioBaseUd = (parseFloat(ing.precio) || 0) / cpf;
-        const precioDisplay = usaFormato ? precioBaseUd * cpf : precioBaseUd;
-        lineas.push({
-            ingredienteId: id,
-            nombre: ing.nombre || 'Ingrediente',
-            usaFormato,
-            cpf,
-            unidadLabel: usaFormato ? formato : unidad,
-            precioBaseUd,
-            precioDisplay,
-            cantDisplay: 0,   // EN BLANCO: el usuario pone las cantidades (a mano o por voz)
-        });
+        lineas.push(lineaDesdeIngrediente(ing, 0)); // EN BLANCO: cantidades a mano o por voz
     }
     return lineas;
 }
@@ -296,25 +300,47 @@ async function enviarAudio(blob) {
     }
 }
 
+// Empareja un texto dictado contra un nombre: coincide si comparten palabra o uno
+// contiene al otro. Devuelve una "puntuación" para elegir el mejor candidato.
+function coincide(np, nombre) {
+    const nx = normaliza(nombre);
+    if (!nx || !np) return 0;
+    if (nx === np) return 3;
+    if (nx.includes(np) || np.includes(nx)) return 2;
+    const palabras = np.split(' ').filter((w) => w.length >= 3);
+    if (palabras.some((w) => nx.includes(w))) return 1;
+    return 0;
+}
+
 function aplicarLineasVoz(r) {
     if (!r || r.success !== true || !Array.isArray(r.lineas) || !r.lineas.length) {
         window.showToast?.('No entendí ningún producto. Prueba otra vez, más claro.', 'warning');
         return;
     }
+    const todosIng = window.ingredientes || [];
     let aplicados = 0;
     const noEncontrados = [];
     r.lineas.forEach((l) => {
         const np = normaliza(l.producto);
-        const linea = estado.lineas.find((x) => {
-            const nx = normaliza(x.nombre);
-            return nx && (nx.includes(np) || np.includes(nx));
-        });
-        if (linea) { linea.cantDisplay = parseFloat(l.cantidad) || linea.cantDisplay; aplicados++; }
-        else noEncontrados.push(l.producto);
+        const cant = parseFloat(l.cantidad) || 1;
+        // 1) ¿ya está como línea del proveedor? → rellenar cantidad.
+        let mejor = null; let mejorSc = 0;
+        estado.lineas.forEach((x) => { const sc = coincide(np, x.nombre); if (sc > mejorSc) { mejorSc = sc; mejor = x; } });
+        if (mejor && mejorSc >= 1) { mejor.cantDisplay = cant; aplicados++; return; }
+        // 2) buscar contra TODOS los ingredientes de la cuenta y AÑADIR la línea.
+        let ing = null; let ingSc = 0;
+        todosIng.forEach((i) => { const sc = coincide(np, i.nombre); if (sc > ingSc) { ingSc = sc; ing = i; } });
+        if (ing && ingSc >= 1) {
+            estado.lineas.push(lineaDesdeIngrediente(ing, cant));
+            aplicados++;
+            return;
+        }
+        // 3) no existe en la cuenta.
+        noEncontrados.push(l.producto);
     });
     pintar(renderGuide());
     let msg = `🎙️ ${aplicados} producto(s) puestos por voz.`;
-    if (noEncontrados.length) msg += ` No encontré: ${noEncontrados.join(', ')} (no habituales de este proveedor).`;
+    if (noEncontrados.length) msg += ` No encontré en tus ingredientes: ${noEncontrados.join(', ')}.`;
     window.showToast?.(msg, aplicados ? 'success' : 'warning');
 }
 
