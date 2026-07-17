@@ -9,6 +9,7 @@
 /* Ocultos por defecto (escritorio) */
 .ml-mobile-home { display: none; }
 .ml-bottomnav { display: none; }
+.sidebar-mobile-menu { display: none; }   /* solo móvil (menú "Más" mínimo) */
 
 @media (max-width: 768px) {
 
@@ -88,6 +89,21 @@
      comía un tercio de pantalla en cada pestaña. Tema y logout pasan al menú "Más". */
   #app-header { display: none !important; }
   .sidebar-mobile-actions { display: flex !important; }
+
+  /* "Más" = hoja mínima. Se oculta la nav completa de escritorio (13 secciones)
+     y se muestra el menú curado: el móvil es para pedir + recibir, no para
+     navegar toda la app. */
+  .sidebar .sidebar-nav { display: none !important; }
+  .sidebar-mobile-menu { display: block !important; padding: 10px 12px 4px; }
+  .smm-group { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.5); margin: 6px 6px 8px; }
+  .smm-item {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08);
+    color: #eaf0f8; border-radius: 12px; padding: 13px 14px; margin-bottom: 8px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .smm-item:active { background: rgba(255,255,255,.12); }
+  .smm-i { font-size: 18px; width: 22px; text-align: center; }
 }
 
 /* Modo oscuro */

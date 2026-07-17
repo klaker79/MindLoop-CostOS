@@ -11,8 +11,9 @@
  */
 
 // Pestaña activa → botón de la barra que se enciende (cuando NO estamos en Inicio).
+// Barra = destinos: Inicio · Pedidos · Recibir · Más. "Recibir" es una acción
+// (abre la cámara), no una pestaña, así que no aparece aquí.
 const TAB_TO_NAV = {
-    ingredientes: 'dashboard',
     pedidos: 'pedidos',
 };
 
@@ -68,8 +69,8 @@ export function initMobileNav() {
         btn.addEventListener('click', () => {
             const a = btn.dataset.mnav;
             if (a === 'inicio') mostrarHome();
-            else if (a === 'dashboard') { window.__mlShowPanel = true; irATab('ingredientes'); }  // "Panel" SÍ muestra el dashboard
             else if (a === 'pedidos') irATab('pedidos');
+            else if (a === 'recibir') window.mlRecibirAlbaran?.();   // trabajo nº2: foto del albarán
             else if (a === 'mas') document.getElementById('sidebar')?.classList.add('open');
         });
     });
