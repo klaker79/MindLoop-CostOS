@@ -12,7 +12,6 @@
  */
 
 import { escapeHTML, cm } from '../../utils/helpers.js';
-import { formatoDesdeBase, esCantidadEnteraEnFormato } from '../pedidos/formato-utils.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 
 const OV_ID = 'ml-pedido-ov';
@@ -51,36 +50,36 @@ function construirLineas(provId) {
     const ingMap = new Map((window.ingredientes || []).map((i) => [i.id, i]));
     const hist = historialProveedor(provId);
     const lineas = [];
-    for (const [id, h] of hist) {
+    for (const id of hist.keys()) {
         const ing = ingMap.get(id);
         if (!ing) continue;
         const { cpf, formato, unidad } = ctxFmt(ing);
-        const usaFormato = cpf > 1 && !!formato && esCantidadEnteraEnFormato(h.cantidad, cpf);
-        const cantDisplay = usaFormato ? formatoDesdeBase(h.cantidad, 0, cpf).cantidad : h.cantidad;
-        // Precio: el del historial; si viniera 0, el precio actual del ingrediente
-        // (precio_medio_compra > precio_medio > precio/formato, vía getIngredientUnitPrice).
-        let precioBase = h.precio;
-        if (!(precioBase > 0)) {
-            try { precioBase = parseFloat(getIngredientUnitPrice(ing)) || 0; } catch { precioBase = 0; }
-        }
+        // Si tiene formato de compra (CAJA, GARRAFA…) se pide en ese formato.
+        const usaFormato = cpf > 1 && !!formato;
+        // Precio ACTUAL del ingrediente. precioBaseUd = €/unidad base (para GUARDAR);
+        // precioDisplay = €/formato (para MOSTRAR y para el total, coherente con la
+        // cantidad en cajas). Así los números cuadran (no se multiplica de más).
+        let precioBaseUd = 0;
+        try { precioBaseUd = parseFloat(getIngredientUnitPrice(ing)) || 0; } catch { precioBaseUd = 0; }
+        if (!(precioBaseUd > 0)) precioBaseUd = (parseFloat(ing.precio) || 0) / cpf;
+        const precioDisplay = usaFormato ? precioBaseUd * cpf : precioBaseUd;
         lineas.push({
             ingredienteId: id,
             nombre: ing.nombre || 'Ingrediente',
             usaFormato,
             cpf,
             unidadLabel: usaFormato ? formato : unidad,
-            precioBase,
-            cantDisplay,
+            precioBaseUd,
+            precioDisplay,
+            cantDisplay: 0,   // EN BLANCO: el usuario pone las cantidades (a mano o por voz)
         });
     }
     return lineas;
 }
 
 function totalActual() {
-    return estado.lineas.reduce((s, l) => {
-        const base = l.cantDisplay * (l.usaFormato ? l.cpf : 1);
-        return s + base * l.precioBase;
-    }, 0);
+    // cantidad (en formato) × precio (€/formato). Coherente con lo que se muestra.
+    return estado.lineas.reduce((s, l) => s + (l.cantDisplay * l.precioDisplay), 0);
 }
 
 // ---------- Paso 1: elegir proveedor ----------
@@ -112,7 +111,7 @@ function renderGuide() {
         <div class="mlp-item">
           <div class="mlp-item-tt">
             <b>${escapeHTML(l.nombre)}</b>
-            <small>${cm(l.precioBase)}${l.usaFormato ? '/' + escapeHTML(l.unidadLabel) : (l.unidadLabel ? '/' + escapeHTML(l.unidadLabel) : '')}</small>
+            <small>${cm(l.precioDisplay)}${l.unidadLabel ? '/' + escapeHTML(l.unidadLabel) : ''}</small>
           </div>
           <div class="mlp-step">
             <button type="button" class="mlp-b" data-op="menos" data-i="${i}">–</button>
@@ -132,7 +131,7 @@ function renderGuide() {
         <div class="mlp-title">${escapeHTML(estado.provNombre)}</div>
         <button type="button" class="mlp-x" data-act="cerrar">✕</button>
       </div>
-      <div class="mlp-sub">Lo que le pides siempre · ajusta las cantidades</div>
+      <div class="mlp-sub">Tus productos de este proveedor · pon las cantidades (a mano o 🎙️)</div>
       ${estado.lineas.length ? '<div class="mlp-vozbar"><button type="button" id="mlp-voz-btn" data-act="voz" class="mlp-voz">🎙️ Dictar</button></div>' : ''}
       <div class="mlp-body">${cuerpo}</div>
       ${estado.lineas.length ? `<div class="mlp-footer"><button type="button" class="mlp-send" data-act="enviar">Revisar y enviar · <span id="mlp-total">${cm(totalActual())}</span></button></div>` : ''}`;
@@ -176,8 +175,8 @@ async function enviar() {
                 ingredienteId: l.ingredienteId,
                 ingrediente_id: l.ingredienteId,
                 cantidad: cantidadBase,
-                precio_unitario: l.precioBase,
-                precioUnitario: l.precioBase,
+                precio_unitario: l.precioBaseUd,
+                precioUnitario: l.precioBaseUd,
             };
         });
     if (!ingredientes.length) { window.showToast?.('Pon alguna cantidad antes de enviar.', 'warning'); return; }
@@ -245,7 +244,19 @@ function dictarPedido() {
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     rec.onresult = (e) => { procesarDictado(e.results?.[0]?.[0]?.transcript || ''); };
-    rec.onerror = () => { window.showToast?.('No te he oído bien, prueba otra vez.', 'warning'); restaurarVozBtn(); };
+    rec.onerror = (e) => {
+        const err = e?.error || '';
+        let msg = 'No te he oído bien, prueba otra vez.';
+        if (err === 'not-allowed' || err === 'service-not-allowed') {
+            msg = 'Necesito permiso del micrófono. Permítelo en el navegador (candado ▸ Micrófono) y prueba otra vez.';
+        } else if (err === 'audio-capture') {
+            msg = 'No encuentro micrófono en este dispositivo.';
+        } else if (err === 'network') {
+            msg = 'Sin conexión para el dictado. Revisa internet.';
+        }
+        window.showToast?.(msg, 'warning');
+        restaurarVozBtn();
+    };
     rec.onend = () => restaurarVozBtn();
     try { rec.start(); } catch { restaurarVozBtn(); }
 }
