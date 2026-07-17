@@ -31,6 +31,8 @@ export default [
                 FormData: 'readonly',
                 FileReader: 'readonly',
                 createImageBitmap: 'readonly',
+                SpeechRecognition: 'readonly',
+                webkitSpeechRecognition: 'readonly',
                 Blob: 'readonly',
                 URL: 'readonly',
                 URLSearchParams: 'readonly',
