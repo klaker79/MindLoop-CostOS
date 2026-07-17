@@ -234,11 +234,9 @@ function restaurarVozBtn() {
     if (btn) { btn.classList.remove('escuchando'); btn.textContent = '🎙️ Dictar'; }
 }
 
-function dictarPedido() {
+function iniciarReconocimiento() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { window.showToast?.('Tu navegador no soporta dictado por voz (prueba en Chrome de Android).', 'warning'); return; }
-    const btn = document.getElementById('mlp-voz-btn');
-    if (btn) { btn.classList.add('escuchando'); btn.textContent = '🎙️ Escuchando…'; }
+    if (!SR) { window.showToast?.('Tu navegador no soporta dictado por voz (prueba en Chrome de Android).', 'warning'); restaurarVozBtn(); return; }
     const rec = new SR();
     rec.lang = 'es-ES';
     rec.interimResults = false;
@@ -248,7 +246,7 @@ function dictarPedido() {
         const err = e?.error || '';
         let msg = 'No te he oído bien, prueba otra vez.';
         if (err === 'not-allowed' || err === 'service-not-allowed') {
-            msg = 'Necesito permiso del micrófono. Permítelo en el navegador (candado ▸ Micrófono) y prueba otra vez.';
+            msg = 'Necesito permiso del micrófono. Permítelo cuando el navegador lo pida (o en Ajustes de Chrome ▸ Micrófono) y prueba otra vez.';
         } else if (err === 'audio-capture') {
             msg = 'No encuentro micrófono en este dispositivo.';
         } else if (err === 'network') {
@@ -259,6 +257,24 @@ function dictarPedido() {
     };
     rec.onend = () => restaurarVozBtn();
     try { rec.start(); } catch { restaurarVozBtn(); }
+}
+
+function dictarPedido() {
+    const btn = document.getElementById('mlp-voz-btn');
+    if (btn) { btn.classList.add('escuchando'); btn.textContent = '🎙️ Escuchando…'; }
+    // Fuerza el permiso del micrófono con getUserMedia → dispara el aviso estándar
+    // "¿Permitir micrófono?" de Chrome (y lo registra en los permisos del sitio).
+    // Sin esto, la API de voz de Android a veces falla sin llegar a pedirlo.
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream) => { stream.getTracks().forEach((t) => t.stop()); iniciarReconocimiento(); })
+            .catch(() => {
+                window.showToast?.('Necesito permiso del micrófono. Permítelo cuando el navegador lo pida (o en Ajustes de Chrome ▸ Micrófono) y prueba otra vez.', 'warning');
+                restaurarVozBtn();
+            });
+    } else {
+        iniciarReconocimiento();
+    }
 }
 
 async function procesarDictado(transcript) {
