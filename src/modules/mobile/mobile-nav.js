@@ -78,7 +78,11 @@ export function initMobileNav() {
     });
 
     // Botones grandes de la portada
-    document.querySelector('[data-mact="nuevo-pedido"]')?.addEventListener('click', () => irATab('pedidos'));
+    document.querySelector('[data-mact="nuevo-pedido"]')?.addEventListener('click', () => {
+        salirHome();
+        if (typeof window.mlNuevoPedido === 'function') window.mlNuevoPedido();
+        else irATab('pedidos');
+    });
     document.querySelector('[data-mact="recibir-albaran"]')?.addEventListener('click', () => window.mlRecibirAlbaran?.());
 
     // Envolver cambiarTab (conservando el original): navegar a una pestaña = salir
