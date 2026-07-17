@@ -133,6 +133,7 @@ function renderGuide() {
         <button type="button" class="mlp-x" data-act="cerrar">✕</button>
       </div>
       <div class="mlp-sub">Lo que le pides siempre · ajusta las cantidades</div>
+      ${estado.lineas.length ? '<div class="mlp-vozbar"><button type="button" id="mlp-voz-btn" data-act="voz" class="mlp-voz">🎙️ Dictar</button></div>' : ''}
       <div class="mlp-body">${cuerpo}</div>
       ${estado.lineas.length ? `<div class="mlp-footer"><button type="button" class="mlp-send" data-act="enviar">Revisar y enviar · <span id="mlp-total">${cm(totalActual())}</span></button></div>` : ''}`;
 }
@@ -210,6 +211,7 @@ function onClick(ev) {
     if (act === 'cerrar') { cerrar(); return; }
     if (act === 'volver') { pintar(renderSelectorProveedor()); return; }
     if (act === 'enviar') { enviar(); return; }
+    if (act === 'voz') { dictarPedido(); return; }
     const prov = ev.target.closest('[data-pid]');
     if (prov) { elegirProveedor(Number(prov.dataset.pid)); return; }
     const step = ev.target.closest('[data-op]');
@@ -219,6 +221,66 @@ function onClick(ev) {
 function abrir() {
     estado = { provId: null, provNombre: '', lineas: [] };
     pintar(renderSelectorProveedor());
+}
+
+// ---------- Dictado por voz ----------
+function normaliza(s) {
+    return (s || '').toString().toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function restaurarVozBtn() {
+    const btn = document.getElementById('mlp-voz-btn');
+    if (btn) { btn.classList.remove('escuchando'); btn.textContent = '🎙️ Dictar'; }
+}
+
+function dictarPedido() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { window.showToast?.('Tu navegador no soporta dictado por voz (prueba en Chrome de Android).', 'warning'); return; }
+    const btn = document.getElementById('mlp-voz-btn');
+    if (btn) { btn.classList.add('escuchando'); btn.textContent = '🎙️ Escuchando…'; }
+    const rec = new SR();
+    rec.lang = 'es-ES';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (e) => { procesarDictado(e.results?.[0]?.[0]?.transcript || ''); };
+    rec.onerror = () => { window.showToast?.('No te he oído bien, prueba otra vez.', 'warning'); restaurarVozBtn(); };
+    rec.onend = () => restaurarVozBtn();
+    try { rec.start(); } catch { restaurarVozBtn(); }
+}
+
+async function procesarDictado(transcript) {
+    restaurarVozBtn();
+    if (!transcript.trim()) return;
+    try {
+        window.showLoading?.();
+        const r = await window.API.fetch('/parse-pedido-voz', { method: 'POST', body: JSON.stringify({ transcript }) });
+        window.hideLoading?.();
+        if (!r || r.success !== true || !Array.isArray(r.lineas) || !r.lineas.length) {
+            window.showToast?.('No entendí ningún producto. Repite más despacio.', 'warning');
+            return;
+        }
+        // Emparejar cada producto dictado con una línea del guide (por nombre).
+        let aplicados = 0;
+        const noEncontrados = [];
+        r.lineas.forEach((l) => {
+            const np = normaliza(l.producto);
+            const linea = estado.lineas.find((x) => {
+                const nx = normaliza(x.nombre);
+                return nx && (nx.includes(np) || np.includes(nx));
+            });
+            if (linea) { linea.cantDisplay = parseFloat(l.cantidad) || linea.cantDisplay; aplicados++; }
+            else noEncontrados.push(l.producto);
+        });
+        pintar(renderGuide());
+        let msg = `🎙️ ${aplicados} producto(s) puestos por voz.`;
+        if (noEncontrados.length) msg += ` No encontré: ${noEncontrados.join(', ')} (no habituales de este proveedor).`;
+        window.showToast?.(msg, aplicados ? 'success' : 'warning');
+    } catch (e) {
+        window.hideLoading?.();
+        window.showToast?.('No se pudo procesar el dictado: ' + (e?.message || 'error'), 'error');
+    }
 }
 
 export function initMobilePedido() {
