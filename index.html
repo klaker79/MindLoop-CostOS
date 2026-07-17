@@ -64,7 +64,7 @@
        100% aditivo. Para revertir: borrar este archivo + esta línea. -->
   <link rel="stylesheet" href="styles/theme-editorial.css?v=20260717-movil-tanda1">
   <!-- 📱 Portada móvil enfocada (Pieza A). 100% dentro de @media 768 → escritorio intacto. -->
-  <link rel="stylesheet" href="styles/mobile-home.css?v=20260717i-fase1-estructura">
+  <link rel="stylesheet" href="styles/mobile-home.css?v=20260717j-fase2-inicio">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -3678,16 +3678,23 @@
       <span class="ml-home-hi-brand">CosteOS</span>
       <span class="ml-home-hi-sub" data-i18n="common:mobile_home_greeting">¿Qué necesitas?</span>
     </div>
+
+    <!-- "Qué me falta" (Smart Order): lo rellena mobile-home.js si hay bajo mínimo -->
+    <div id="ml-home-falta"></div>
+
     <button type="button" class="ml-home-btn ml-home-btn--pedir" data-mact="nuevo-pedido">
-      <span class="ml-home-btn-ic">🎙️</span>
+      <span class="ml-home-btn-ic">➕</span>
       <b data-i18n="pedidos:mobile_new_order">Nuevo pedido</b>
-      <span data-i18n="pedidos:mobile_new_order_sub">Por voz</span>
+      <span>A un proveedor</span>
     </button>
     <button type="button" class="ml-home-btn ml-home-btn--recibir" data-mact="recibir-albaran">
       <span class="ml-home-btn-ic">📷</span>
       <b data-i18n="pedidos:mobile_receive">Recibir albarán</b>
-      <span data-i18n="pedidos:mobile_receive_sub">Foto</span>
+      <span>Foto → conciliar</span>
     </button>
+
+    <!-- "Volver a pedir": lo rellena mobile-home.js con los últimos pedidos por proveedor -->
+    <div id="ml-home-repetir"></div>
   </section>
 
   <nav class="ml-bottomnav" id="ml-bottomnav" aria-label="Navegación móvil">
@@ -3698,7 +3705,7 @@
   </nav>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260717i-fase1"></script>
+  <script type="module" src="./src/main.js?v=20260717j-fase2"></script>
 </body>
 
 </html>

@@ -118,6 +118,7 @@ import { loadAlertPanel } from './components/domain/AlertPanel.js';
 import * as Core from './modules/core/core.js';
 import { initMobileNav } from './modules/mobile/mobile-nav.js';
 import { initMobileAlbaran } from './modules/mobile/mobile-albaran.js';
+import { initMobileHome } from './modules/mobile/mobile-home.js';
 
 window.cargarDatos = Core.cargarDatos;
 window.cambiarTab = Core.cambiarTab;
@@ -126,6 +127,7 @@ window.cambiarTab = Core.cambiarTab;
 document.addEventListener('DOMContentLoaded', () => {
     try { initMobileNav(); } catch (e) { console.warn('initMobileNav', e?.message); }
     try { initMobileAlbaran(); } catch (e) { console.warn('initMobileAlbaran', e?.message); }
+    try { initMobileHome(); } catch (e) { console.warn('initMobileHome', e?.message); }
 });
 window.init = Core.init;
 window.inicializarFechaActual = Core.inicializarFechaActual;
