@@ -51,9 +51,19 @@ async function procesarFotoAlbaran(file) {
         // recibirlo — no se duplica nada (Ley: nunca duplicar).
         if (r && r.duplicateWarning) {
             const dw = r.duplicateWarning;
-            const nf = dw.numero_factura ? ` (factura ${dw.numero_factura})` : '';
-            toast(`Este albarán ya lo habías escaneado${nf}. Te lo abro para recibirlo, no lo duplico.`, 'info');
-            await reconciliarConPedido({ batchId: dw.batchId, proveedor: '', matched: dw.itemCount, totalItems: dw.itemCount });
+            // Mostramos proveedor · fecha · nº líneas · factura + primeros productos,
+            // para que Iker distinga DE QUÉ albarán es el duplicado.
+            const fmtF = (f) => { try { return new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f).toLocaleDateString(); } catch { return ''; } };
+            const partes = [];
+            if (dw.proveedor) partes.push(dw.proveedor);
+            if (dw.fecha) partes.push(fmtF(dw.fecha));
+            if (dw.itemCount) partes.push(`${dw.itemCount} líneas`);
+            if (dw.numero_factura) partes.push(`factura ${dw.numero_factura}`);
+            const detalle = partes.length ? ' — ' + partes.join(' · ') : '';
+            const items = (Array.isArray(dw.items) && dw.items.length)
+                ? ` (${dw.items.slice(0, 3).join(', ')}${dw.items.length > 3 ? '…' : ''})` : '';
+            toast(`Ya habías escaneado este albarán${detalle}${items}. Te lo abro para recibirlo, no lo duplico.`, 'info');
+            await reconciliarConPedido({ batchId: dw.batchId, proveedor: dw.proveedor || '', matched: dw.itemCount, totalItems: dw.itemCount });
             return;
         }
         if (!r || r.success !== true) {
