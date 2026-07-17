@@ -125,7 +125,7 @@ function abrirReconciliacion(pedidoId, porIngrediente, r) {
     window.__albaranHints = { pedidoId, porIngrediente, proveedor: r.proveedor, batchId: r.batchId };
     if (typeof window.marcarPedidoRecibido === 'function') {
         window.marcarPedidoRecibido(pedidoId);
-        window.showToast?.(`📸 Albarán de ${r.proveedor || ''} leído. Revisa las líneas: pulsa "usar" para tomar el valor del albarán donde difiera del pedido.`, 'success');
+        window.showToast?.(`📸 Albarán de ${r.proveedor || ''} leído y volcado. Revisa las cantidades y precios (📸) y confirma la recepción.`, 'success');
     }
 }
 
