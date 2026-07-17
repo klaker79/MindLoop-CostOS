@@ -33,6 +33,7 @@ export default [
                 createImageBitmap: 'readonly',
                 SpeechRecognition: 'readonly',
                 webkitSpeechRecognition: 'readonly',
+                MediaRecorder: 'readonly',
                 Blob: 'readonly',
                 URL: 'readonly',
                 URLSearchParams: 'readonly',
