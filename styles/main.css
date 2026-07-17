@@ -4117,3 +4117,16 @@ table tbody td:first-child {
     display: none !important;
   }
 }
+/* 🍳 Modal de receta en MÓVIL: la fila de ingrediente es un flex de 5 columnas
+   (ingrediente / cantidad / merma% / coste / ✕) con anchos fijos (flex:2/1.5/1).
+   En ~290px del modal se aplastaban el ingrediente y la cantidad a ~40px y "no se
+   veía nada". Se apila: ingrediente a lo ancho completo, cantidad+merma+coste debajo. */
+@media (max-width: 768px) {
+  /* Acotado al modal de RECETA (no toca la fila de pedidos, que tiene su propio
+     layout en #lista-ingredientes-pedido). La fila de receta es flex inline, así
+     que las reglas grid previas no le afectan; aquí se apila de verdad. */
+  #lista-ingredientes-receta .ingrediente-item { flex-wrap: wrap !important; gap: 8px !important; padding: 12px !important; }
+  #lista-ingredientes-receta .ingrediente-item > div:nth-of-type(1) { flex: 1 1 100% !important; } /* ingrediente (con buscador) */
+  #lista-ingredientes-receta .ingrediente-item > div:nth-of-type(2) { flex: 1 1 46% !important; }  /* cantidad */
+  #lista-ingredientes-receta .ingrediente-item > div:nth-of-type(3) { flex: 1 1 30% !important; }  /* merma % */
+}
