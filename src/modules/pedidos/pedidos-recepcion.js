@@ -243,6 +243,20 @@ function renderItemsRecepcionModal(ped) {
         const recOnchange = `window.actualizarItemRecepcion(${idx}, 'cantidad', this.value, ${cpfInput})`;
         const precioOnchange = `window.actualizarItemRecepcion(${idx}, 'precio', this.value, ${cpfInput})`;
 
+        // 📸 Pieza B.2: pista del albarán leído para esta línea (si se llegó por foto).
+        // Solo SUGERENCIA: el valor se aplica con "usar" (el humano decide). El número
+        // del albarán se muestra tal cual se leyó y, al aplicarlo, se convierte a base
+        // igual que un input manual (misma unidad de display que la fila).
+        const albHint = (window.__albaranHints && window.__albaranHints.pedidoId === ped.id)
+            ? window.__albaranHints.porIngrediente.get(Number(ingId)) : null;
+        const hintBtnCss = 'border:0;background:#fef3c7;color:#92400e;border-radius:5px;padding:1px 7px;font-size:10px;cursor:pointer;margin-left:4px;';
+        const albHintCant = albHint
+            ? `<div style="margin-top:3px;font-size:10px;color:#b45309;white-space:nowrap;">📸 ${escapeHTML(formatQuantity(albHint.cantidad))}<button type="button" onclick="window.aplicarAlbaranCant(${idx})" style="${hintBtnCss}">usar</button></div>`
+            : '';
+        const albHintPrecio = albHint
+            ? `<div style="margin-top:3px;font-size:10px;color:#b45309;white-space:nowrap;">📸 ${cm(albHint.precio)}<button type="button" onclick="window.aplicarAlbaranPrecio(${idx})" style="${hintBtnCss}">usar</button></div>`
+            : '';
+
         // 🍽️ Líneas de comida personal: fila en modo LECTURA (gris, badge), sin
         // inputs ni estado. Cuenta en el total pero NO toca stock ni food cost.
         if (item.personal === true) {
@@ -267,18 +281,18 @@ function renderItemsRecepcionModal(ped) {
             <td data-label="${lRecRec}">
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
-                : `<input type="number" step="0.01" min="0" value="${cantRecibidaShown}"
+                : `<input type="number" step="0.01" min="0" value="${cantRecibidaShown}" id="rec-cant-${idx}" data-cpf="${cpfInput}"
                     style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;"
-                    oninput="${recOnchange}"> <small style="color:#64748b;">${escapeHTML(unidadLabel)}</small>`
+                    oninput="${recOnchange}"> <small style="color:#64748b;">${escapeHTML(unidadLabel)}</small>${albHintCant}`
             }
             </td>
             <td data-label="${lRecPP}">${precioPedTxt}</td>
             <td data-label="${lRecPR}">
               ${item.estado === 'no-entregado'
                 ? '<span style="color:#999;">-</span>'
-                : `<input type="number" step="0.01" min="0" value="${usaFormato ? precioRealShown.toFixed(2) : precioReal}"
+                : `<input type="number" step="0.01" min="0" value="${usaFormato ? precioRealShown.toFixed(2) : precioReal}" id="rec-precio-${idx}" data-cpf="${cpfInput}"
                     style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px;"
-                    oninput="${precioOnchange}">${usaFormato ? ` <small style="color:#64748b;white-space:nowrap;">/${escapeHTML(formatoNombre)}</small>` : ''}`
+                    oninput="${precioOnchange}">${usaFormato ? ` <small style="color:#64748b;white-space:nowrap;">/${escapeHTML(formatoNombre)}</small>` : ''}${albHintPrecio}`
             }
             </td>
             <td data-label="${lRecSub}"><strong id="subtotal-item-${idx}">${cm(subtotalRecibido)}</strong></td>
@@ -414,7 +428,40 @@ export function cerrarModalRecibirPedido() {
     const modal = document.getElementById('modal-recibir-pedido');
     if (modal) modal.classList.remove('active');
     window.pedidoRecibiendoId = null;
+    // Limpiar pistas del albarán (Pieza B.2) para que no reaparezcan en una
+    // recepción manual posterior de otro pedido.
+    window.__albaranHints = null;
 }
+
+/**
+ * 📸 Pieza B.2: aplica el valor leído del albarán a una línea (cantidad o precio).
+ * El valor del albarán se trata como valor de DISPLAY (misma unidad que el input
+ * de la fila) y se convierte a base con el cpf de la fila, IGUAL que un input
+ * manual. Marca varianza si difiere de lo pedido. NO confirma nada: el humano
+ * sigue teniendo que pulsar "Confirmar recepción".
+ */
+function aplicarAlbaran(idx, tipo) {
+    const ped = (window.pedidos || []).find(p => p.id === window.pedidoRecibiendoId);
+    const hints = window.__albaranHints;
+    if (!ped || !ped.itemsRecepcion || !hints || hints.pedidoId !== ped.id) return;
+    const item = ped.itemsRecepcion[idx];
+    if (!item) return;
+    const h = hints.porIngrediente.get(Number(item.ingredienteId || item.ingrediente_id));
+    if (!h) return;
+    const inputId = tipo === 'cantidad' ? `rec-cant-${idx}` : `rec-precio-${idx}`;
+    const cpfRaw = parseFloat(document.getElementById(inputId)?.dataset.cpf);
+    const k = cpfRaw > 1 ? cpfRaw : 1;
+    if (tipo === 'cantidad') {
+        item.cantidadRecibida = (parseFloat(h.cantidad) || 0) * k;
+        if (Math.abs(item.cantidadRecibida - item.cantidad) > 0.01) item.estado = 'varianza';
+    } else {
+        item.precioReal = (parseFloat(h.precio) || 0) / k;
+        if (Math.abs(item.precioReal - item.precioUnitario) > 0.01) item.estado = 'varianza';
+    }
+    renderItemsRecepcionModal(ped);
+}
+export function aplicarAlbaranCant(idx) { aplicarAlbaran(idx, 'cantidad'); }
+export function aplicarAlbaranPrecio(idx) { aplicarAlbaran(idx, 'precio'); }
 
 /**
  * Confirma la recepción del pedido (actualiza stock Y PRECIO MEDIO PONDERADO)
@@ -691,5 +738,7 @@ if (typeof window !== 'undefined') {
     window.actualizarItemRecepcion = actualizarItemRecepcion;
     window.cambiarEstadoItem = cambiarEstadoItem;
     window.cerrarModalRecibirPedido = cerrarModalRecibirPedido;
+    window.aplicarAlbaranCant = aplicarAlbaranCant;
+    window.aplicarAlbaranPrecio = aplicarAlbaranPrecio;
     window.confirmarRecepcionPedido = confirmarRecepcionPedido;
 }
