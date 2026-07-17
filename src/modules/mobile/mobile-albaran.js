@@ -53,13 +53,110 @@ async function procesarFotoAlbaran(file) {
             toast('Este albarán ya se había escaneado.', 'warning');
             return;
         }
-        const prov = r.proveedor ? ` de ${r.proveedor}` : '';
-        toast(`📸 Albarán${prov} leído: ${r.matched}/${r.totalItems} líneas reconocidas · ${r.totalImporte} €. (Reconciliación con el pedido: siguiente paso.)`, 'success');
+        // Pieza B.2: reconciliar contra el pedido pendiente del proveedor.
+        await reconciliarConPedido(r);
     } catch (e) {
         window.hideLoading?.();
         // El backstop de prod devuelve 410; cualquier fallo aquí no rompe la app.
         toast('No se pudo procesar el albarán: ' + (e?.message || 'error'), 'error');
     }
+}
+
+// Normaliza un nombre (minúsculas, sin acentos ni signos) para comparar proveedores.
+function normalizarNombre(s) {
+    return (s || '').toString().toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+/**
+ * Pieza B.2 — reconciliación foto → pedido.
+ * Trae las líneas leídas de este albarán (compras_pendientes), busca el/los
+ * pedidos PENDIENTES del proveedor y abre el modal de recepción del pedido con
+ * las pistas del albarán cargadas. NO escribe nada en el pedido ni en el stock:
+ * solo prepara el modal; el humano revisa y confirma (Ley: auto-consolidar NUNCA).
+ */
+async function reconciliarConPedido(r) {
+    const toast = (m, tt) => window.showToast?.(m, tt);
+
+    // 1) Líneas leídas de ESTE batch (para saber cantidad/precio por ingrediente).
+    let porIngrediente = new Map();
+    try {
+        const pend = await window.API.fetch('/purchases/pending?estado=pendiente');
+        const lineas = (Array.isArray(pend) ? pend : []).filter(x => x.batch_id === r.batchId);
+        lineas.forEach(l => {
+            if (l.ingrediente_id !== null && l.ingrediente_id !== undefined) {
+                porIngrediente.set(Number(l.ingrediente_id), {
+                    cantidad: parseFloat(l.cantidad) || 0,
+                    precio: parseFloat(l.precio) || 0,
+                    nombre: l.ingrediente_nombre || l.ingrediente_nombre_db || '',
+                });
+            }
+        });
+    } catch { /* si falla, abrimos igual el pedido pero sin pistas */ }
+
+    // 2) Pedidos PENDIENTES del proveedor del albarán.
+    const provNorm = normalizarNombre(r.proveedor);
+    const provs = window.proveedores || [];
+    const nombreProv = (pid) => normalizarNombre(provs.find(x => x.id === pid)?.nombre);
+    const pendientes = (window.pedidos || []).filter(p => p.estado === 'pendiente');
+
+    let candidatos = pendientes;
+    if (provNorm) {
+        const match = pendientes.filter(p => {
+            const pn = nombreProv(p.proveedor_id ?? p.proveedorId);
+            return pn && (pn.includes(provNorm) || provNorm.includes(pn));
+        });
+        if (match.length) candidatos = match;
+    }
+
+    if (!candidatos.length) {
+        toast(`📸 Albarán de ${r.proveedor || 'proveedor'} leído (${r.matched}/${r.totalItems} líneas). No encontré un pedido pendiente de ese proveedor; revísalo en Pedidos.`, 'warning');
+        return;
+    }
+    if (candidatos.length === 1) {
+        abrirReconciliacion(candidatos[0].id, porIngrediente, r);
+        return;
+    }
+    mostrarSelectorPedido(candidatos, porIngrediente, r);
+}
+
+function abrirReconciliacion(pedidoId, porIngrediente, r) {
+    window.__albaranHints = { pedidoId, porIngrediente, proveedor: r.proveedor, batchId: r.batchId };
+    if (typeof window.marcarPedidoRecibido === 'function') {
+        window.marcarPedidoRecibido(pedidoId);
+        window.showToast?.(`📸 Albarán de ${r.proveedor || ''} leído. Revisa las líneas: pulsa "usar" para tomar el valor del albarán donde difiera del pedido.`, 'success');
+    }
+}
+
+/** Selector simple cuando hay varios pedidos pendientes del mismo proveedor. */
+function mostrarSelectorPedido(candidatos, porIngrediente, r) {
+    document.getElementById('ml-albaran-picker')?.remove();
+    const ov = document.createElement('div');
+    ov.id = 'ml-albaran-picker';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;';
+    const fmtFecha = (f) => { try { return new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f).toLocaleDateString(); } catch { return ''; } };
+    const filas = candidatos.map(p =>
+        `<button type="button" data-pid="${p.id}" style="display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid #eef2f7;background:#fff;padding:14px 16px;font-size:15px;cursor:pointer;">
+            <span>Pedido del ${fmtFecha(p.fecha)}</span>
+            <strong>${window.cm ? window.cm(p.total || 0) : (p.total || 0)}</strong>
+         </button>`
+    ).join('');
+    ov.innerHTML = `<div style="background:#fff;width:100%;max-width:520px;border-radius:16px 16px 0 0;overflow:hidden;">
+        <div style="padding:14px 16px;font-weight:700;border-bottom:1px solid #eef2f7;">📸 ${r.proveedor || 'Proveedor'} — elige el pedido</div>
+        ${filas}
+        <button type="button" id="ml-albaran-picker-cancel" style="width:100%;border:0;background:#f8fafc;padding:14px;font-size:15px;color:#64748b;cursor:pointer;">Cancelar</button>
+    </div>`;
+    ov.addEventListener('click', (ev) => {
+        if (ev.target === ov || ev.target.id === 'ml-albaran-picker-cancel') { ov.remove(); return; }
+        const btn = ev.target.closest('[data-pid]');
+        if (btn) {
+            const pid = Number(btn.dataset.pid);
+            ov.remove();
+            abrirReconciliacion(pid, porIngrediente, r);
+        }
+    });
+    document.body.appendChild(ov);
 }
 
 /** Abre la cámara nativa del móvil (o selector de archivo) para el albarán. */
