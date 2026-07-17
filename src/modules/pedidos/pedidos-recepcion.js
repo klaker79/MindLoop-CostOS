@@ -583,6 +583,21 @@ export function emparejarExtraAlbaran(ei) {
     ex.ingredienteId = ingId;   // marca la línea como emparejada (no reaparece)
     anadirLineaRecepcion(ped, ingId, parseFloat(ex.cantidad) || 0, parseFloat(ex.precio) || 0);
     renderItemsRecepcionModal(ped);
+
+    // 🧠 APRENDER: guarda el texto que leyó el OCR como alias del ingrediente, para
+    // que el próximo albarán lo machee solo. Fire-and-forget: si falla, la recepción
+    // sigue igual (no bloquea nada).
+    const aliasTxt = (ex.nombre || '').toString().trim();
+    if (aliasTxt && window.API?.fetch) {
+        window.API.fetch('/purchases/alias', {
+            method: 'POST',
+            body: JSON.stringify({ ingredienteId: ingId, alias: aliasTxt }),
+        }).then((r) => {
+            if (r && r.success && !r.alreadyExists) {
+                window.showToast?.(`🧠 Aprendido: "${aliasTxt}" lo reconoceré solo la próxima vez.`, 'success');
+            }
+        }).catch(() => { /* no rompe la recepción */ });
+    }
 }
 
 /**
