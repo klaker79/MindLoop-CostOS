@@ -304,10 +304,16 @@ function grabarPedido() {
         if (btn) { btn.classList.add('escuchando'); btn.textContent = '⏹ Parar (hablando…)'; }
         // Seguridad: si se olvida de parar, cortamos a los 30 s.
         mlAutoStop = setTimeout(pararGrabacion, 30000);
-    }).catch((err) => {
+    }).catch(async (err) => {
         // Chrome deniega el micro en la app instalada → grabadora nativa (siempre va).
-        console.warn('getUserMedia no disponible, uso grabadora nativa:', err && err.name);
-        grabarNativo();
+        // Diagnóstico: nombre del error + estado del permiso, para saber SI es arreglable.
+        let permiso = '?';
+        try { const p = await navigator.permissions?.query({ name: 'microphone' }); permiso = p?.state || '?'; } catch { /* no-op */ }
+        const diag = `${err?.name || 'error'} · permiso: ${permiso}`;
+        console.warn('getUserMedia no disponible:', diag);
+        window.showToast?.(`Micro in-app no disponible (${diag}). Uso la grabadora del móvil.`, 'warning');
+        // Pequeña pausa para que se lea el diagnóstico antes de abrir la grabadora.
+        setTimeout(grabarNativo, 1800);
     });
 }
 
