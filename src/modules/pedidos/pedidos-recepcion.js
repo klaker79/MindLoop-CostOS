@@ -253,8 +253,18 @@ function renderItemsRecepcionModal(ped) {
         const albHintCant = albHint
             ? `<div style="margin-top:3px;font-size:10px;color:#b45309;white-space:nowrap;">📸 ${escapeHTML(formatQuantity(albHint.cantidad))}<button type="button" onclick="window.aplicarAlbaranCant(${idx})" style="${hintBtnCss}">usar</button></div>`
             : '';
+        // 📈 Aviso de subida de precio (Fase 4): compara el precio del albarán (en
+        // unidad base = €/ud, dividiendo por el cpf de la fila) con el precio del
+        // pedido. Rojo si sube ≥5%, verde si baja ≥5%. El "caso tomate" en el momento.
+        let albPrecioBadge = '';
+        if (albHint && precioPed > 0) {
+            const albBase = (parseFloat(albHint.precio) || 0) / cpfInput;
+            const pct = ((albBase - precioPed) / precioPed) * 100;
+            if (pct >= 5) albPrecioBadge = `<span style="font-size:9.5px;font-weight:800;color:#b91c1c;background:#fde2e2;border-radius:5px;padding:1px 6px;margin-left:5px;">▲ +${pct.toFixed(0)}% vs pedido</span>`;
+            else if (pct <= -5) albPrecioBadge = `<span style="font-size:9.5px;font-weight:800;color:#047857;background:#d1fae5;border-radius:5px;padding:1px 6px;margin-left:5px;">▼ ${pct.toFixed(0)}%</span>`;
+        }
         const albHintPrecio = albHint
-            ? `<div style="margin-top:3px;font-size:10px;color:#b45309;white-space:nowrap;">📸 ${cm(albHint.precio)}<button type="button" onclick="window.aplicarAlbaranPrecio(${idx})" style="${hintBtnCss}">usar</button></div>`
+            ? `<div style="margin-top:3px;font-size:10px;color:#b45309;">📸 ${cm(albHint.precio)}<button type="button" onclick="window.aplicarAlbaranPrecio(${idx})" style="${hintBtnCss}">usar</button>${albPrecioBadge}</div>`
             : '';
 
         // 🍽️ Líneas de comida personal: fila en modo LECTURA (gris, badge), sin
