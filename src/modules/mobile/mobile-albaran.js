@@ -63,7 +63,7 @@ async function procesarFotoAlbaran(file) {
             const items = (Array.isArray(dw.items) && dw.items.length)
                 ? ` (${dw.items.slice(0, 3).join(', ')}${dw.items.length > 3 ? '…' : ''})` : '';
             toast(`Ya habías escaneado este albarán${detalle}${items}. Te lo abro para recibirlo, no lo duplico.`, 'info');
-            await reconciliarConPedido({ batchId: dw.batchId, proveedor: dw.proveedor || '', matched: dw.itemCount, totalItems: dw.itemCount });
+            await reconciliarConPedido({ batchId: dw.batchId, proveedor: dw.proveedor || '', matched: dw.itemCount, totalItems: dw.itemCount, duplicateWarning: dw });
             return;
         }
         if (!r || r.success !== true) {
@@ -146,10 +146,13 @@ async function reconciliarConPedido(r) {
 }
 
 function abrirReconciliacion(pedidoId, porIngrediente, todasLineas, r) {
-    window.__albaranHints = { pedidoId, porIngrediente, todasLineas, proveedor: r.proveedor, batchId: r.batchId };
+    window.__albaranHints = { pedidoId, porIngrediente, todasLineas, proveedor: r.proveedor, batchId: r.batchId, duplicado: r.duplicateWarning || null };
     if (typeof window.marcarPedidoRecibido === 'function') {
         window.marcarPedidoRecibido(pedidoId);
-        window.showToast?.(`📸 Albarán de ${r.proveedor || ''} leído y volcado. Revisa las cantidades y precios (📸) y confirma la recepción.`, 'success');
+        // Si es duplicado, el banner ROJO del modal ya avisa: no damos toast verde de "volcado".
+        if (!r.duplicateWarning) {
+            window.showToast?.(`📸 Albarán de ${r.proveedor || ''} leído y volcado. Revisa las cantidades y precios (📸) y confirma la recepción.`, 'success');
+        }
     }
 }
 
