@@ -64,7 +64,7 @@
        100% aditivo. Para revertir: borrar este archivo + esta línea. -->
   <link rel="stylesheet" href="styles/theme-editorial.css?v=20260717-movil-tanda1">
   <!-- 📱 Portada móvil enfocada (Pieza A). 100% dentro de @media 768 → escritorio intacto. -->
-  <link rel="stylesheet" href="styles/mobile-home.css?v=20260717g-foto-fab">
+  <link rel="stylesheet" href="styles/mobile-home.css?v=20260717h-nav-limpia">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -304,6 +304,16 @@
         </button>
       </div>
 
+      <!-- Móvil: tema + cerrar sesión viven aquí (el cabezón de escritorio se oculta
+           en móvil). En escritorio esta fila está oculta (esas acciones están arriba). -->
+      <div class="sidebar-mobile-actions" style="display: none; gap: 8px; padding: 8px 12px;">
+        <button data-action="toggle-theme" title="Cambiar tema" data-i18n-title="common:theme_toggle"
+          style="flex: 0 0 auto; background: rgba(255,255,255,0.12); color: #fff; border: none; padding: 10px 14px; border-radius: 10px; cursor: pointer; font-size: 16px;">
+          <span class="theme-icon">🌙</span></button>
+        <button data-action="logout" data-i18n="common:sidebar_logout"
+          style="flex: 1; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #fff; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;">Cerrar Sesión</button>
+      </div>
+
       <div class="sidebar-footer" style="position: relative;">
         <div class="sidebar-user" id="sidebar-restaurant-switcher" style="cursor: pointer;">
           <div class="avatar" id="sidebar-avatar">--</div>
@@ -332,7 +342,7 @@
     <!-- Main Content -->
     <div class="app-content">
       <div class="main-content">
-        <div class="header" style="justify-content: space-between; padding: 20px 30px;">
+        <div class="header" id="app-header" style="justify-content: space-between; padding: 20px 30px;">
           <div style="display: flex; align-items: center; flex: 1; gap: 16px;">
             <img src="/images/costeos-mark.png" alt="CosteOS" style="height: 52px; width: auto; object-fit: contain; flex-shrink: 0; background: transparent; border-radius: 0; padding: 0; box-shadow: none;" onerror="this.style.display='none'">
             <div>
@@ -3672,8 +3682,8 @@
 
   <nav class="ml-bottomnav" id="ml-bottomnav" aria-label="Navegación móvil">
     <button type="button" data-mnav="inicio"><span class="ml-bn-ic">🏠</span><span data-i18n="common:mobile_nav_home">Inicio</span></button>
-    <button type="button" data-mnav="dashboard"><span class="ml-bn-ic">📊</span><span data-i18n="common:mobile_nav_dashboard">Panel</span></button>
     <button type="button" data-mnav="pedidos"><span class="ml-bn-ic">📋</span><span data-i18n="common:nav_pedidos">Pedidos</span></button>
+    <button type="button" data-mnav="dashboard"><span class="ml-bn-ic">📊</span><span data-i18n="common:mobile_nav_dashboard">Panel</span></button>
     <button type="button" data-mnav="mas"><span class="ml-bn-ic">☰</span><span data-i18n="common:mobile_nav_more">Más</span></button>
   </nav>
 

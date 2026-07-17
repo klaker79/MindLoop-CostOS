@@ -79,6 +79,15 @@
      botones de acción de las tarjetas de pedido. */
   .main-content { padding-bottom: 150px !important; }
   #chat-fab, .chat-fab, .chat-widget-fab { bottom: 84px !important; }
+
+  /* UN SOLO menú en móvil: la barra inferior ("Más") es el único acceso al
+     lateral. Se elimina la hamburguesa naranja flotante (era redundante). */
+  .mobile-menu-toggle { display: none !important; }
+
+  /* El cabezón de escritorio (logo grande + Cerrar Sesión + tema) NO va en móvil:
+     comía un tercio de pantalla en cada pestaña. Tema y logout pasan al menú "Más". */
+  #app-header { display: none !important; }
+  .sidebar-mobile-actions { display: flex !important; }
 }
 
 /* Modo oscuro */
