@@ -79,19 +79,22 @@ function normalizarNombre(s) {
 async function reconciliarConPedido(r) {
     const toast = (m, tt) => window.showToast?.(m, tt);
 
-    // 1) Líneas leídas de ESTE batch (para saber cantidad/precio por ingrediente).
+    // 1) Líneas leídas de ESTE batch. `porIngrediente` = macheadas (para volcar en
+    //    la recepción). `todasLineas` = TODAS (incluidas las no encontradas, con
+    //    ingredienteId=null y el nombre leído) → para relacionar/añadir las que no
+    //    estén en el pedido.
     let porIngrediente = new Map();
+    const todasLineas = [];
     try {
         const pend = await window.API.fetch('/purchases/pending?estado=pendiente');
         const lineas = (Array.isArray(pend) ? pend : []).filter(x => x.batch_id === r.batchId);
         lineas.forEach(l => {
-            if (l.ingrediente_id !== null && l.ingrediente_id !== undefined) {
-                porIngrediente.set(Number(l.ingrediente_id), {
-                    cantidad: parseFloat(l.cantidad) || 0,
-                    precio: parseFloat(l.precio) || 0,
-                    nombre: l.ingrediente_nombre || l.ingrediente_nombre_db || '',
-                });
-            }
+            const id = (l.ingrediente_id !== null && l.ingrediente_id !== undefined) ? Number(l.ingrediente_id) : null;
+            const cantidad = parseFloat(l.cantidad) || 0;
+            const precio = parseFloat(l.precio) || 0;
+            const nombre = l.ingrediente_nombre || l.ingrediente_nombre_db || '';
+            todasLineas.push({ ingredienteId: id, nombre, cantidad, precio });
+            if (id !== null) porIngrediente.set(id, { cantidad, precio, nombre });
         });
     } catch { /* si falla, abrimos igual el pedido pero sin pistas */ }
 
@@ -115,14 +118,14 @@ async function reconciliarConPedido(r) {
         return;
     }
     if (candidatos.length === 1) {
-        abrirReconciliacion(candidatos[0].id, porIngrediente, r);
+        abrirReconciliacion(candidatos[0].id, porIngrediente, todasLineas, r);
         return;
     }
-    mostrarSelectorPedido(candidatos, porIngrediente, r);
+    mostrarSelectorPedido(candidatos, porIngrediente, todasLineas, r);
 }
 
-function abrirReconciliacion(pedidoId, porIngrediente, r) {
-    window.__albaranHints = { pedidoId, porIngrediente, proveedor: r.proveedor, batchId: r.batchId };
+function abrirReconciliacion(pedidoId, porIngrediente, todasLineas, r) {
+    window.__albaranHints = { pedidoId, porIngrediente, todasLineas, proveedor: r.proveedor, batchId: r.batchId };
     if (typeof window.marcarPedidoRecibido === 'function') {
         window.marcarPedidoRecibido(pedidoId);
         window.showToast?.(`📸 Albarán de ${r.proveedor || ''} leído y volcado. Revisa las cantidades y precios (📸) y confirma la recepción.`, 'success');
@@ -130,7 +133,7 @@ function abrirReconciliacion(pedidoId, porIngrediente, r) {
 }
 
 /** Selector simple cuando hay varios pedidos pendientes del mismo proveedor. */
-function mostrarSelectorPedido(candidatos, porIngrediente, r) {
+function mostrarSelectorPedido(candidatos, porIngrediente, todasLineas, r) {
     document.getElementById('ml-albaran-picker')?.remove();
     const ov = document.createElement('div');
     ov.id = 'ml-albaran-picker';
@@ -153,7 +156,7 @@ function mostrarSelectorPedido(candidatos, porIngrediente, r) {
         if (btn) {
             const pid = Number(btn.dataset.pid);
             ov.remove();
-            abrirReconciliacion(pid, porIngrediente, r);
+            abrirReconciliacion(pid, porIngrediente, todasLineas, r);
         }
     });
     document.body.appendChild(ov);

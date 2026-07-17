@@ -352,6 +352,45 @@ function renderItemsRecepcionModal(ped) {
         `;
     });
 
+    // 📸 Extras del albarán: líneas leídas que NO están en el pedido (producto que
+    // llegó de más, o que la IA no reconoció). Añadir/emparejar a mano; el humano
+    // decide y confirma. NO se añade nada solo.
+    const hintsX = window.__albaranHints;
+    window.__albaranExtras = [];
+    if (hintsX && hintsX.pedidoId === ped.id && Array.isArray(hintsX.todasLineas)) {
+        const idsPedido = new Set((ped.itemsRecepcion || []).map((it) => Number(it.ingredienteId || it.ingrediente_id)));
+        window.__albaranExtras = hintsX.todasLineas.filter((l) => l.ingredienteId === null || !idsPedido.has(Number(l.ingredienteId)));
+        if (window.__albaranExtras.length) {
+            const ingsSorted = [...(window.ingredientes || [])].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+            html += `<tr><td colspan="7" style="padding-top:14px;font-weight:800;font-size:12px;color:#b45309;text-transform:uppercase;letter-spacing:.05em;">📸 En el albarán, no en el pedido</td></tr>`;
+            window.__albaranExtras.forEach((ex, ei) => {
+                const sub = (parseFloat(ex.cantidad) || 0) * (parseFloat(ex.precio) || 0);
+                if (ex.ingredienteId !== null) {
+                    const ing = ingMap.get(Number(ex.ingredienteId));
+                    const nom = ing ? ing.nombre : (ex.nombre || 'Ingrediente');
+                    html += `<tr style="background:#f0fdf4;">
+                        <td data-label="${lRecIng}">🆕 ${escapeHTML(nom)}</td>
+                        <td data-label="${lRecPed}"><span style="color:#999;">—</span></td>
+                        <td data-label="${lRecRec}">${escapeHTML(formatQuantity(ex.cantidad))}</td>
+                        <td data-label="${lRecPP}"><span style="color:#999;">—</span></td>
+                        <td data-label="${lRecPR}">${cm(ex.precio)}</td>
+                        <td data-label="${lRecSub}"><strong>${cm(sub)}</strong></td>
+                        <td data-label="${lRecEst}"><button type="button" onclick="window.anadirExtraAlbaran(${ei})" style="border:0;background:#059669;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer;">Añadir</button></td>
+                      </tr>`;
+                } else {
+                    const opts = ingsSorted.map((i) => `<option value="${i.id}">${escapeHTML(i.nombre)}</option>`).join('');
+                    html += `<tr style="background:#fffbeb;">
+                        <td data-label="${lRecIng}">❓ ${escapeHTML(ex.nombre || 'No reconocido')} <small style="color:#b45309;">(${escapeHTML(formatQuantity(ex.cantidad))} · ${cm(ex.precio)})</small></td>
+                        <td data-label="Emparejar" colspan="6">
+                          <select id="rel-extra-${ei}" style="max-width:160px;padding:5px;border:1px solid #ddd;border-radius:5px;font-size:12px;"><option value="">Emparejar con…</option>${opts}</select>
+                          <button type="button" onclick="window.emparejarExtraAlbaran(${ei})" style="border:0;background:#059669;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer;margin-left:6px;">Añadir</button>
+                        </td>
+                      </tr>`;
+                }
+            });
+        }
+    }
+
     tbody.innerHTML = html;
 
     // Actualizar resúmenes
@@ -475,6 +514,7 @@ export function cerrarModalRecibirPedido() {
     // Limpiar pistas del albarán (Pieza B.2) para que no reaparezcan en una
     // recepción manual posterior de otro pedido.
     window.__albaranHints = null;
+    window.__albaranExtras = null;
 }
 
 /**
@@ -506,6 +546,44 @@ function aplicarAlbaran(idx, tipo) {
 }
 export function aplicarAlbaranCant(idx) { aplicarAlbaran(idx, 'cantidad'); }
 export function aplicarAlbaranPrecio(idx) { aplicarAlbaran(idx, 'precio'); }
+
+/**
+ * 📸 Añade una línea EXTRA del albarán (producto que no estaba en el pedido) como
+ * línea recibida. Pedido=0 (no se pidió) → sale como varianza. El humano confirma.
+ */
+function anadirLineaRecepcion(ped, ingredienteId, cantidadBase, precioBase) {
+    const ing = (window.ingredientes || []).find((i) => i.id === Number(ingredienteId));
+    ped.itemsRecepcion = ped.itemsRecepcion || [];
+    ped.itemsRecepcion.push({
+        ingredienteId: Number(ingredienteId),
+        ingrediente_id: Number(ingredienteId),
+        cantidad: 0,                 // no estaba en el pedido
+        precioUnitario: precioBase,
+        cantidadRecibida: cantidadBase,
+        precioReal: precioBase,
+        estado: 'varianza',
+        nombre: ing ? ing.nombre : '',
+    });
+}
+
+export function anadirExtraAlbaran(ei) {
+    const ped = (window.pedidos || []).find((p) => p.id === window.pedidoRecibiendoId);
+    const ex = (window.__albaranExtras || [])[ei];
+    if (!ped || !ex || ex.ingredienteId === null || ex.ingredienteId === undefined) return;
+    anadirLineaRecepcion(ped, ex.ingredienteId, parseFloat(ex.cantidad) || 0, parseFloat(ex.precio) || 0);
+    renderItemsRecepcionModal(ped);
+}
+
+export function emparejarExtraAlbaran(ei) {
+    const ped = (window.pedidos || []).find((p) => p.id === window.pedidoRecibiendoId);
+    const ex = (window.__albaranExtras || [])[ei];
+    const sel = document.getElementById('rel-extra-' + ei);
+    const ingId = sel ? Number(sel.value) : 0;
+    if (!ped || !ex || !ingId) { window.showToast?.('Elige un ingrediente para emparejar.', 'warning'); return; }
+    ex.ingredienteId = ingId;   // marca la línea como emparejada (no reaparece)
+    anadirLineaRecepcion(ped, ingId, parseFloat(ex.cantidad) || 0, parseFloat(ex.precio) || 0);
+    renderItemsRecepcionModal(ped);
+}
 
 /**
  * Confirma la recepción del pedido (actualiza stock Y PRECIO MEDIO PONDERADO)
@@ -784,5 +862,7 @@ if (typeof window !== 'undefined') {
     window.cerrarModalRecibirPedido = cerrarModalRecibirPedido;
     window.aplicarAlbaranCant = aplicarAlbaranCant;
     window.aplicarAlbaranPrecio = aplicarAlbaranPrecio;
+    window.anadirExtraAlbaran = anadirExtraAlbaran;
+    window.emparejarExtraAlbaran = emparejarExtraAlbaran;
     window.confirmarRecepcionPedido = confirmarRecepcionPedido;
 }
