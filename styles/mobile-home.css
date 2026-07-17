@@ -139,3 +139,50 @@
 }
 :root[data-theme="dark"] .ml-bottomnav { background: #16233B; border-top-color: #24304A; }
 :root[data-theme="dark"] .ml-bottomnav button { color: #9fb0cf; }
+
+/* ============================================================
+   Order-guide móvil (Fase 3): "Nuevo pedido" → proveedor → lo que pides siempre.
+   Global (solo se abre en móvil vía window.mlNuevoPedido). Pantalla completa.
+   ============================================================ */
+.mlp-ov { position: fixed; inset: 0; z-index: 10001; background: rgba(15,23,42,.5); display: flex; }
+.mlp-sheet {
+  background: #f6f8fb; width: 100%; max-width: 560px; margin: auto auto 0; align-self: stretch;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.mlp-head {
+  display: flex; align-items: center; gap: 10px; background: #16233b; color: #fff;
+  padding: calc(14px + env(safe-area-inset-top,0px)) 14px 14px;
+}
+.mlp-title { flex: 1; font-weight: 800; font-size: 17px; text-align: center; }
+.mlp-x { background: rgba(255,255,255,.12); color: #fff; border: 0; width: 34px; height: 34px; border-radius: 10px; font-size: 18px; cursor: pointer; flex: 0 0 auto; }
+.mlp-sub { font-size: 12.5px; color: #64748b; padding: 12px 16px 4px; font-weight: 600; }
+.mlp-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 6px 14px 14px; }
+.mlp-empty { color: #64748b; font-size: 14px; text-align: center; padding: 30px 10px; line-height: 1.6; }
+
+.mlp-prov {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  background: #fff; border: 1px solid #e6eaf0; border-radius: 14px; padding: 14px; margin-bottom: 9px; cursor: pointer;
+}
+.mlp-prov-av { width: 38px; height: 38px; border-radius: 10px; background: #16233b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.mlp-prov-nm { flex: 1; font-weight: 700; font-size: 15px; color: #0f1b2d; }
+.mlp-prov-tag { font-size: 10.5px; font-weight: 800; color: #f5822a; background: #fff2e6; border-radius: 999px; padding: 3px 9px; }
+
+.mlp-item { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #e6eaf0; border-radius: 14px; padding: 11px 13px; margin-bottom: 9px; }
+.mlp-item-tt { flex: 1; min-width: 0; }
+.mlp-item-tt b { font-size: 14.5px; color: #0f1b2d; display: block; }
+.mlp-item-tt small { font-size: 11.5px; color: #64748b; }
+.mlp-step { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.mlp-b { width: 34px; height: 34px; border-radius: 10px; border: 1px solid #dfe5ee; background: #fff; font-size: 20px; font-weight: 800; color: #16233b; cursor: pointer; line-height: 1; }
+.mlp-n { min-width: 26px; text-align: center; font-weight: 800; font-size: 16px; color: #0f1b2d; }
+.mlp-u { font-size: 11px; color: #64748b; min-width: 26px; }
+
+.mlp-footer { padding: 12px 14px calc(12px + env(safe-area-inset-bottom,0px)); background: #fff; border-top: 1px solid #e6eaf0; }
+.mlp-send { width: 100%; border: 0; border-radius: 14px; padding: 15px; background: linear-gradient(135deg, #f5822a, #ffb24d); color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; }
+
+@media (prefers-color-scheme: dark) {
+  .mlp-sheet { background: #0f1728; }
+  .mlp-prov, .mlp-item { background: #111a2b; border-color: #22304a; }
+  .mlp-prov-nm, .mlp-item-tt b, .mlp-n { color: #eaf0f8; }
+  .mlp-b { background: #1a2438; border-color: #2c3a56; color: #eaf0f8; }
+  .mlp-footer { background: #111a2b; border-color: #22304a; }
+}

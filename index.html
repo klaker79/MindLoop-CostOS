@@ -64,7 +64,7 @@
        100% aditivo. Para revertir: borrar este archivo + esta línea. -->
   <link rel="stylesheet" href="styles/theme-editorial.css?v=20260717-movil-tanda1">
   <!-- 📱 Portada móvil enfocada (Pieza A). 100% dentro de @media 768 → escritorio intacto. -->
-  <link rel="stylesheet" href="styles/mobile-home.css?v=20260717j-fase2-inicio">
+  <link rel="stylesheet" href="styles/mobile-home.css?v=20260717k-fase3-guide">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -201,9 +201,10 @@
            se oculta en móvil por CSS. Oculto en escritorio por defecto. -->
       <div class="sidebar-mobile-menu">
         <div class="smm-group">Consultar</div>
+        <button class="smm-item" onclick="window.cambiarTab('ingredientes')"><span class="smm-i">🥕</span> Ingredientes</button>
+        <button class="smm-item" onclick="window.cambiarTab('recetas')"><span class="smm-i">👨‍🍳</span> Recetas</button>
         <button class="smm-item" onclick="window.cambiarTab('proveedores')"><span class="smm-i">🚚</span> Proveedores</button>
         <button class="smm-item" onclick="window.cambiarTab('inventario')"><span class="smm-i">📦</span> Inventario</button>
-        <button class="smm-item" onclick="window.__mlShowPanel=true; window.cambiarTab('ingredientes')"><span class="smm-i">📊</span> Panel · vistazo</button>
       </div>
 
       <nav class="sidebar-nav">
@@ -3705,7 +3706,7 @@
   </nav>
 
   <!-- Módulos ES6 - Se carga DESPUÉS del legacy para sobrescribirlo -->
-  <script type="module" src="./src/main.js?v=20260717j-fase2"></script>
+  <script type="module" src="./src/main.js?v=20260717k-fase3"></script>
 </body>
 
 </html>
