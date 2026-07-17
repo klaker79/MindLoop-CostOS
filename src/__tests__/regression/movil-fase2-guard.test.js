@@ -63,16 +63,17 @@ describe('F2 — chat dvh + safe-area', () => {
     test('chat usa dvh (no solo vh)', () => {
         expect(chat).toMatch(/dvh/);
     });
-    test('en móvil la ventana del chat se ancla por los DOS lados (no se sale)', () => {
-        // Antes solo anclaba a la derecha con un width que desbordaba (bug 07-07).
-        // left+right+width:auto lo impide, y en TODO el rango móvil (≤768) porque
-        // algunos móviles reportan viewport 481-768.
+    test('en móvil la ventana del chat es PANTALLA COMPLETA (no se sale ni deja ver el panel detrás)', () => {
+        // Antes era una ventanita al 70% anclada a los lados: dejaba ver el panel
+        // por detrás y el input pegado al búho. Ahora fullscreen: anclada a los 4
+        // lados + 100dvh, en TODO el rango móvil (≤768).
         const cwStart = chat.indexOf('@media (max-width: 768px)');
         expect(cwStart).toBeGreaterThan(-1);
         const bloque = chat.slice(cwStart);
-        expect(bloque).toMatch(/\.chat-window\s*\{[\s\S]{0,400}left:\s*10px\s*!important/);
-        expect(bloque).toMatch(/right:\s*10px\s*!important/);
-        expect(bloque).toMatch(/width:\s*auto\s*!important/);
+        expect(bloque).toMatch(/\.chat-window\s*\{[\s\S]{0,600}left:\s*0\s*!important/);
+        expect(bloque).toMatch(/right:\s*0\s*!important/);
+        expect(bloque).toMatch(/width:\s*100%\s*!important/);
+        expect(bloque).toMatch(/height:\s*100dvh\s*!important/);
     });
     test('theme-editorial NO fuerza el chat a 600px en móvil (gated a ≥769px)', () => {
         // CAUSA REAL del chat gigante: width:600px!important sin media query.
