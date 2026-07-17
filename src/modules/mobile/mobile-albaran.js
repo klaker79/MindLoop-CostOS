@@ -45,12 +45,19 @@ async function procesarFotoAlbaran(file) {
 
         window.hideLoading?.();
 
-        if (!r || r.success !== true) {
-            toast('No pude leer el albarán. Prueba con mejor luz o mételo a mano.', 'warning');
+        // Duplicado (por nº de factura o por imagen): NO es "poca luz". Se comprueba
+        // ANTES que success (la respuesta de duplicado llega con success:false). En vez
+        // de un callejón sin salida, le REABRIMOS el albarán ya leído para que pueda
+        // recibirlo — no se duplica nada (Ley: nunca duplicar).
+        if (r && r.duplicateWarning) {
+            const dw = r.duplicateWarning;
+            const nf = dw.numero_factura ? ` (factura ${dw.numero_factura})` : '';
+            toast(`Este albarán ya lo habías escaneado${nf}. Te lo abro para recibirlo, no lo duplico.`, 'info');
+            await reconciliarConPedido({ batchId: dw.batchId, proveedor: '', matched: dw.itemCount, totalItems: dw.itemCount });
             return;
         }
-        if (r.duplicateWarning) {
-            toast('Este albarán ya se había escaneado.', 'warning');
+        if (!r || r.success !== true) {
+            toast('No pude leer bien el albarán. Prueba con más luz, enfocado y recto, o mételo a mano.', 'warning');
             return;
         }
         // Pieza B.2: reconciliar contra el pedido pendiente del proveedor.
@@ -83,8 +90,9 @@ async function reconciliarConPedido(r) {
     //    la recepción). `todasLineas` = TODAS (incluidas las no encontradas, con
     //    ingredienteId=null y el nombre leído) → para relacionar/añadir las que no
     //    estén en el pedido.
-    let porIngrediente = new Map();
+    const porIngrediente = new Map();
     const todasLineas = [];
+    let provDelBatch = '';
     try {
         const pend = await window.API.fetch('/purchases/pending?estado=pendiente');
         const lineas = (Array.isArray(pend) ? pend : []).filter(x => x.batch_id === r.batchId);
@@ -93,11 +101,14 @@ async function reconciliarConPedido(r) {
             const cantidad = parseFloat(l.cantidad) || 0;
             const precio = parseFloat(l.precio) || 0;
             const nombre = l.ingrediente_nombre || l.ingrediente_nombre_db || '';
+            if (!provDelBatch && l.proveedor) provDelBatch = l.proveedor;
             todasLineas.push({ ingredienteId: id, nombre, cantidad, precio });
             if (id !== null) porIngrediente.set(id, { cantidad, precio, nombre });
         });
     } catch { /* si falla, abrimos igual el pedido pero sin pistas */ }
 
+    // Si venimos de un duplicado no traemos proveedor: lo sacamos de las líneas del batch.
+    if (!r.proveedor && provDelBatch) r.proveedor = provDelBatch;
     // 2) Pedidos PENDIENTES del proveedor del albarán.
     const provNorm = normalizarNombre(r.proveedor);
     const provs = window.proveedores || [];
