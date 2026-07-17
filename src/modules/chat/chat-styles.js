@@ -155,6 +155,22 @@ export function createChatStyles() {
             transform: translateY(0) scale(1);
             pointer-events: all;
         }
+
+        /* 📱 Móvil: chat a PANTALLA COMPLETA (no una ventanita flotante que deja
+           ver el panel por detrás) y se oculta el FAB búho mientras está abierto
+           para que no tape el input/micrófono. Se cierra con la ✕ del header
+           (#chat-close), así que ocultar el FAB no atrapa al usuario. */
+        @media (max-width: 768px) {
+            .chat-window {
+                top: 0; right: 0; bottom: 0; left: 0;
+                width: 100%;
+                height: 100vh;
+                height: 100dvh;
+                max-width: none;
+                border-radius: 0;
+            }
+            .chat-fab.active { display: none !important; }
+        }
         
         /* Chat Header */
         .chat-header {
