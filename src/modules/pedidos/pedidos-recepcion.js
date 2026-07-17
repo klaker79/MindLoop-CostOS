@@ -150,6 +150,24 @@ export function marcarPedidoRecibido(id) {
 
     renderItemsRecepcionModal(ped);
 
+    // ⚠️ Banner ROJO persistente si este albarán se reabrió por ser POSIBLE DUPLICADO.
+    // Un toast temporal sobre el fondo no se aprecia; esto queda fijo dentro del modal.
+    const dupBanner = document.getElementById('modal-rec-dup-banner');
+    if (dupBanner) {
+        const dup = (window.__albaranHints && window.__albaranHints.pedidoId === id)
+            ? window.__albaranHints.duplicado : null;
+        if (dup) {
+            const fmtF = (f) => { try { return new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f).toLocaleDateString(getDateLocale()); } catch { return ''; } };
+            const partes = [dup.proveedor, dup.fecha ? fmtF(dup.fecha) : '', dup.itemCount ? `${dup.itemCount} líneas` : '', dup.numero_factura ? `factura ${dup.numero_factura}` : ''].filter(Boolean);
+            const itemsTxt = (Array.isArray(dup.items) && dup.items.length) ? ' · ' + dup.items.slice(0, 5).join(', ') + (dup.items.length > 5 ? '…' : '') : '';
+            dupBanner.innerHTML = `⚠️ <b>POSIBLE DUPLICADO</b> — este albarán ya lo escaneaste: ${escapeHTML(partes.join(' · ') + itemsTxt)}. Revísalo bien antes de confirmar la recepción.`;
+            dupBanner.style.display = 'block';
+        } else {
+            dupBanner.style.display = 'none';
+            dupBanner.innerHTML = '';
+        }
+    }
+
     // Mostrar modal
     const modal = document.getElementById('modal-recibir-pedido');
     if (modal) modal.classList.add('active');
