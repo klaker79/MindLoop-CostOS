@@ -210,7 +210,7 @@ function onClick(ev) {
     if (act === 'cerrar') { cerrar(); return; }
     if (act === 'volver') { pintar(renderSelectorProveedor()); return; }
     if (act === 'enviar') { enviar(); return; }
-    if (act === 'voz') { dictarPedido(); return; }
+    if (act === 'voz') { grabarPedido(); return; }
     const prov = ev.target.closest('[data-pid]');
     if (prov) { elegirProveedor(Number(prov.dataset.pid)); return; }
     const step = ev.target.closest('[data-op]');
@@ -229,85 +229,94 @@ function normaliza(s) {
         .replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-function restaurarVozBtn() {
+function restaurarVozBtn(txt) {
     const btn = document.getElementById('mlp-voz-btn');
-    if (btn) { btn.classList.remove('escuchando'); btn.textContent = '🎙️ Dictar'; }
+    if (btn) { btn.classList.remove('escuchando'); btn.textContent = txt || '🎙️ Dictar'; }
 }
 
-function iniciarReconocimiento() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { window.showToast?.('Tu navegador no soporta dictado por voz (prueba en Chrome de Android).', 'warning'); restaurarVozBtn(); return; }
-    const rec = new SR();
-    rec.lang = 'es-ES';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    rec.onresult = (e) => { procesarDictado(e.results?.[0]?.[0]?.transcript || ''); };
-    rec.onerror = (e) => {
-        const err = e?.error || '';
-        let msg = 'No te he oído bien, prueba otra vez.';
-        if (err === 'not-allowed' || err === 'service-not-allowed') {
-            msg = 'Necesito permiso del micrófono. Permítelo cuando el navegador lo pida (o en Ajustes de Chrome ▸ Micrófono) y prueba otra vez.';
-        } else if (err === 'audio-capture') {
-            msg = 'No encuentro micrófono en este dispositivo.';
-        } else if (err === 'network') {
-            msg = 'Sin conexión para el dictado. Revisa internet.';
-        }
-        window.showToast?.(msg, 'warning');
-        restaurarVozBtn();
-    };
-    rec.onend = () => restaurarVozBtn();
-    try { rec.start(); } catch { restaurarVozBtn(); }
+// Grabación de audio → transcripción en el servidor (Gemini). En la app instalada
+// de Android el reconocedor del navegador (Web Speech) NO está disponible, pero
+// GRABAR audio (getUserMedia + MediaRecorder) SÍ. Se toca para empezar y se toca
+// otra vez para parar; al parar se manda el audio y se rellenan las cantidades.
+let mlRec = null;
+let mlChunks = [];
+
+function pickMime() {
+    if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return '';
+    const cand = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+    return cand.find((m) => MediaRecorder.isTypeSupported(m)) || '';
 }
 
-function dictarPedido() {
-    const btn = document.getElementById('mlp-voz-btn');
-    if (btn) { btn.classList.add('escuchando'); btn.textContent = '🎙️ Escuchando…'; }
-    // Fuerza el permiso del micrófono con getUserMedia → dispara el aviso estándar
-    // "¿Permitir micrófono?" de Chrome (y lo registra en los permisos del sitio).
-    // Sin esto, la API de voz de Android a veces falla sin llegar a pedirlo.
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then((stream) => { stream.getTracks().forEach((t) => t.stop()); iniciarReconocimiento(); })
-            .catch(() => {
-                window.showToast?.('Necesito permiso del micrófono. Permítelo cuando el navegador lo pida (o en Ajustes de Chrome ▸ Micrófono) y prueba otra vez.', 'warning');
-                restaurarVozBtn();
-            });
-    } else {
-        iniciarReconocimiento();
+function grabarPedido() {
+    // Ya está grabando → parar (se procesa en onstop).
+    if (mlRec && mlRec.state === 'recording') { try { mlRec.stop(); } catch { /* no-op */ } return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+        window.showToast?.('Tu navegador no permite grabar audio.', 'warning'); return;
     }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        mlChunks = [];
+        const mime = pickMime();
+        mlRec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+        mlRec.ondataavailable = (ev) => { if (ev.data && ev.data.size) mlChunks.push(ev.data); };
+        mlRec.onstop = () => {
+            stream.getTracks().forEach((t) => t.stop());
+            const blob = new Blob(mlChunks, { type: (mlRec && mlRec.mimeType) || mime || 'audio/webm' });
+            enviarAudio(blob);
+        };
+        mlRec.start();
+        const btn = document.getElementById('mlp-voz-btn');
+        if (btn) { btn.classList.add('escuchando'); btn.textContent = '⏹ Parar (hablando…)'; }
+    }).catch(() => {
+        window.showToast?.('Necesito permiso del micrófono. Permítelo cuando el navegador lo pida y prueba otra vez.', 'warning');
+        restaurarVozBtn();
+    });
 }
 
-async function procesarDictado(transcript) {
-    restaurarVozBtn();
-    if (!transcript.trim()) return;
+function blobABase64(blob) {
+    return new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onloadend = () => resolve(String(fr.result).split(',')[1] || '');
+        fr.onerror = reject;
+        fr.readAsDataURL(blob);
+    });
+}
+
+async function enviarAudio(blob) {
+    restaurarVozBtn('🎙️ Dictar');
+    if (!blob || !blob.size) { window.showToast?.('No grabé nada, prueba otra vez.', 'warning'); return; }
     try {
         window.showLoading?.();
-        const r = await window.API.fetch('/parse-pedido-voz', { method: 'POST', body: JSON.stringify({ transcript }) });
+        const audioBase64 = await blobABase64(blob);
+        const mimeType = (blob.type || 'audio/webm').split(';')[0];
+        const r = await window.API.fetch('/parse-pedido-voz-audio', { method: 'POST', body: JSON.stringify({ audioBase64, mimeType }) });
         window.hideLoading?.();
-        if (!r || r.success !== true || !Array.isArray(r.lineas) || !r.lineas.length) {
-            window.showToast?.('No entendí ningún producto. Repite más despacio.', 'warning');
-            return;
-        }
-        // Emparejar cada producto dictado con una línea del guide (por nombre).
-        let aplicados = 0;
-        const noEncontrados = [];
-        r.lineas.forEach((l) => {
-            const np = normaliza(l.producto);
-            const linea = estado.lineas.find((x) => {
-                const nx = normaliza(x.nombre);
-                return nx && (nx.includes(np) || np.includes(nx));
-            });
-            if (linea) { linea.cantDisplay = parseFloat(l.cantidad) || linea.cantDisplay; aplicados++; }
-            else noEncontrados.push(l.producto);
-        });
-        pintar(renderGuide());
-        let msg = `🎙️ ${aplicados} producto(s) puestos por voz.`;
-        if (noEncontrados.length) msg += ` No encontré: ${noEncontrados.join(', ')} (no habituales de este proveedor).`;
-        window.showToast?.(msg, aplicados ? 'success' : 'warning');
+        aplicarLineasVoz(r);
     } catch (e) {
         window.hideLoading?.();
-        window.showToast?.('No se pudo procesar el dictado: ' + (e?.message || 'error'), 'error');
+        window.showToast?.('No se pudo procesar la voz: ' + (e?.message || 'error'), 'error');
     }
+}
+
+function aplicarLineasVoz(r) {
+    if (!r || r.success !== true || !Array.isArray(r.lineas) || !r.lineas.length) {
+        window.showToast?.('No entendí ningún producto. Prueba otra vez, más claro.', 'warning');
+        return;
+    }
+    let aplicados = 0;
+    const noEncontrados = [];
+    r.lineas.forEach((l) => {
+        const np = normaliza(l.producto);
+        const linea = estado.lineas.find((x) => {
+            const nx = normaliza(x.nombre);
+            return nx && (nx.includes(np) || np.includes(nx));
+        });
+        if (linea) { linea.cantDisplay = parseFloat(l.cantidad) || linea.cantDisplay; aplicados++; }
+        else noEncontrados.push(l.producto);
+    });
+    pintar(renderGuide());
+    let msg = `🎙️ ${aplicados} producto(s) puestos por voz.`;
+    if (noEncontrados.length) msg += ` No encontré: ${noEncontrados.join(', ')} (no habituales de este proveedor).`;
+    window.showToast?.(msg, aplicados ? 'success' : 'warning');
 }
 
 export function initMobilePedido() {
