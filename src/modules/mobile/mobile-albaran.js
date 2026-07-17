@@ -63,7 +63,7 @@ async function procesarFotoAlbaran(file) {
             const items = (Array.isArray(dw.items) && dw.items.length)
                 ? ` (${dw.items.slice(0, 3).join(', ')}${dw.items.length > 3 ? '…' : ''})` : '';
             toast(`Ya habías escaneado este albarán${detalle}${items}. Te lo abro para recibirlo, no lo duplico.`, 'info');
-            await reconciliarConPedido({ batchId: dw.batchId, proveedor: dw.proveedor || '', matched: dw.itemCount, totalItems: dw.itemCount, duplicateWarning: dw });
+            await reconciliarConPedido({ batchId: dw.batchId, proveedor: dw.proveedor || '', fecha: dw.fecha, matched: dw.itemCount, totalItems: dw.itemCount, duplicateWarning: dw });
             return;
         }
         if (!r || r.success !== true) {
@@ -142,6 +142,22 @@ async function reconciliarConPedido(r) {
         abrirReconciliacion(candidatos[0].id, porIngrediente, todasLineas, r);
         return;
     }
+    // Varios pedidos del mismo proveedor → desempatar por la FECHA del albarán:
+    // abrimos directamente el pedido cuya fecha es la más cercana. Solo si NO se puede
+    // decidir (sin fecha en el albarán, o empate exacto) mostramos la lista.
+    const diaDe = (f) => { if (!f) return null; const d = new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f); return isNaN(d.getTime()) ? null : Math.round(d.getTime() / 86400000); };
+    const diaAlb = diaDe(r.fecha);
+    if (diaAlb !== null) {
+        const conDist = candidatos
+            .map(p => ({ p, dist: (diaDe(p.fecha) !== null) ? Math.abs(diaDe(p.fecha) - diaAlb) : Infinity }))
+            .sort((a, b) => a.dist - b.dist);
+        // Mejor candidato con mínimo ÚNICO (no empate) → abrir directo.
+        if (conDist[0].dist !== Infinity && (conDist.length === 1 || conDist[0].dist < conDist[1].dist)) {
+            abrirReconciliacion(conDist[0].p.id, porIngrediente, todasLineas, r);
+            return;
+        }
+    }
+    // No se pudo desempatar por fecha → dejar elegir.
     mostrarSelectorPedido(candidatos, porIngrediente, todasLineas, r);
 }
 
