@@ -156,21 +156,6 @@ export function createChatStyles() {
             pointer-events: all;
         }
 
-        /* 📱 Móvil: chat a PANTALLA COMPLETA (no una ventanita flotante que deja
-           ver el panel por detrás) y se oculta el FAB búho mientras está abierto
-           para que no tape el input/micrófono. Se cierra con la ✕ del header
-           (#chat-close), así que ocultar el FAB no atrapa al usuario. */
-        @media (max-width: 768px) {
-            .chat-window {
-                top: 0; right: 0; bottom: 0; left: 0;
-                width: 100%;
-                height: 100vh;
-                height: 100dvh;
-                max-width: none;
-                border-radius: 0;
-            }
-            .chat-fab.active { display: none !important; }
-        }
         
         /* Chat Header */
         .chat-header {
@@ -738,20 +723,21 @@ export function createChatStyles() {
            IMPOSIBLE que exceda la pantalla, pase lo que pase con el viewport. */
         @media (max-width: 768px) {
             .chat-window {
-                /* !important para ganar a theme-editorial.css, que fuerza
-                   width/height:600px !important en la ventana (ahora gated a
-                   escritorio, pero blindamos por si acaso). */
-                left: 10px !important;
-                right: 10px !important;
-                width: auto !important;
+                /* PANTALLA COMPLETA en móvil: no una ventanita flotante que deja
+                   ver el panel por detrás y con el input pegado al búho. dvh para
+                   que el teclado no tape el input. !important para ganar a
+                   theme-editorial.css (fuerza width/height:600px, gated a escritorio). */
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100% !important;
                 max-width: none !important;
                 min-height: 0 !important;
-                /* dvh para que el teclado NO tape el input; bottom respeta la
-                   barra home del iPhone (safe-area). */
-                bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
-                height: 70vh !important;
-                height: 70dvh !important;
-                /* nada se sale de la caja redondeada */
+                height: 100vh !important;
+                height: 100dvh !important;
+                border-radius: 0 !important;
+                /* nada se sale de la caja */
                 overflow: hidden;
             }
 
@@ -759,6 +745,9 @@ export function createChatStyles() {
                 right: calc(16px + env(safe-area-inset-right, 0px));
                 bottom: calc(16px + env(safe-area-inset-bottom, 0px));
             }
+            /* Con el chat abierto, ocultar el búho para que no tape el input
+               (se cierra con la ✕ del header #chat-close). */
+            .chat-fab.active { display: none !important; }
             .chat-fab-bubble { display: none; }
         }
     `;
