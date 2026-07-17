@@ -27,6 +27,8 @@ function setNavActive(name) {
 function mostrarHome() {
     document.body.classList.add('ml-home-active');
     setNavActive('inicio');
+    // Rellena "qué me falta" + "volver a pedir" con los datos actuales.
+    window.renderMobileHome?.();
 }
 
 /** Sale de la portada (deja ver el contenido de la app). */

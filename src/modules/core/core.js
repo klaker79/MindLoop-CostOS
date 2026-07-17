@@ -273,6 +273,9 @@ export async function init() {
 
     // Cargar estado de suscripción (banner de trial)
     window.loadSubscriptionStatus?.();
+
+    // Portada móvil: rellenar "qué me falta" + "volver a pedir" con los datos ya cargados.
+    window.renderMobileHome?.();
 }
 
 /**
