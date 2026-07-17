@@ -64,7 +64,7 @@
        100% aditivo. Para revertir: borrar este archivo + esta línea. -->
   <link rel="stylesheet" href="styles/theme-editorial.css?v=20260717-movil-tanda1">
   <!-- 📱 Portada móvil enfocada (Pieza A). 100% dentro de @media 768 → escritorio intacto. -->
-  <link rel="stylesheet" href="styles/mobile-home.css?v=20260717-movil-tanda1">
+  <link rel="stylesheet" href="styles/mobile-home.css?v=20260717g-foto-fab">
 
   <!-- 📱 Service Worker para PWA -->
   <script>
@@ -1468,6 +1468,9 @@
                 <span id="carrito-badge"
                   style="display: none; background: #22c55e; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; justify-content: center; align-items: center; position: absolute; top: -8px; right: -8px; font-weight: 700;"></span>
               </button>
+              <button class="btn" onclick="window.mlRecibirAlbaran && window.mlRecibirAlbaran()"
+                style="background: linear-gradient(135deg, #16233B, #31456B); border: none; color: white;"
+                title="Recibir albarán por foto (OCR)">📸 Recibir albarán</button>
               <span style="width: 1px; height: 24px; background: #e2e8f0;"></span>
               <button class="btn btn-secondary" data-action="importar-pedidos" style="font-size: 13px; padding: 8px 12px;">📤 Import</button>
               <button class="btn btn-secondary" onclick="window.abrirModalTransferencia()"

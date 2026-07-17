@@ -73,8 +73,11 @@
   .ml-bottomnav button.active { color: #F5822A; }
   .ml-bottomnav button.active .ml-bn-ic { filter: none; }
 
-  /* Hueco para que la barra no tape el contenido de las secciones */
-  .main-content { padding-bottom: 76px !important; }
+  /* Hueco inferior: deja sitio para la barra de navegación (64px) Y para el FAB
+     del chat (búho), que flota a ~84-144px del fondo. Con este colchón, cualquier
+     tarjeta/lista se puede desplazar por encima del búho y este deja de tapar los
+     botones de acción de las tarjetas de pedido. */
+  .main-content { padding-bottom: 150px !important; }
   #chat-fab, .chat-fab, .chat-widget-fab { bottom: 84px !important; }
 }
 
