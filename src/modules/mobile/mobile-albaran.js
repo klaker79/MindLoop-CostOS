@@ -162,7 +162,7 @@ async function reconciliarConPedido(r) {
 }
 
 function abrirReconciliacion(pedidoId, porIngrediente, todasLineas, r) {
-    window.__albaranHints = { pedidoId, porIngrediente, todasLineas, proveedor: r.proveedor, batchId: r.batchId, duplicado: r.duplicateWarning || null };
+    window.__albaranHints = { pedidoId, porIngrediente, todasLineas, proveedor: r.proveedor, batchId: r.batchId, duplicado: r.duplicateWarning || null, ivaPct: (r.iva_pct !== undefined && r.iva_pct !== null) ? r.iva_pct : null };
     if (typeof window.marcarPedidoRecibido === 'function') {
         window.marcarPedidoRecibido(pedidoId);
         // Si es duplicado, el banner ROJO del modal ya avisa: no damos toast verde de "volcado".
