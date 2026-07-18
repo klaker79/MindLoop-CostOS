@@ -88,7 +88,13 @@ export function marcarPedidoRecibido(id) {
     // `total` sigue siendo la BASE sin IVA.
     const ivaInput = document.getElementById('modal-rec-iva-pct');
     if (ivaInput) {
-        if (ped.iva_pct !== null && ped.iva_pct !== undefined) {
+        // Prioridad: IVA leído del ALBARÁN (foto) → IVA del pedido → IVA del proveedor → vacío.
+        // El albarán físico manda: es lo que realmente te han facturado.
+        const ivaAlbaran = (window.__albaranHints && window.__albaranHints.pedidoId === id)
+            ? window.__albaranHints.ivaPct : null;
+        if (ivaAlbaran !== null && ivaAlbaran !== undefined) {
+            ivaInput.value = ivaAlbaran;
+        } else if (ped.iva_pct !== null && ped.iva_pct !== undefined) {
             ivaInput.value = ped.iva_pct;
         } else if (prov && prov.iva_pct !== null && prov.iva_pct !== undefined) {
             ivaInput.value = prov.iva_pct;
