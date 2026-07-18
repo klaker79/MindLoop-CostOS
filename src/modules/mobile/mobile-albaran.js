@@ -1,14 +1,16 @@
 /**
- * Recibir albarán por foto (Pieza B) — CosteOS móvil.
+ * Recibir albarán por foto — CosteOS.
  *
- * Flujo: botón "Recibir albarán" → cámara nativa del móvil → foto → se reescala y
- * se manda a POST /parse-albaran (Claude Vision, ya activo en staging) → se muestra
- * lo que la IA ha leído. La reconciliación contra el pedido (pre-rellenar el modal
- * de recepción) llega en la Pieza B.2.
+ * Flujo: botón "Recibir albarán" → foto → POST /parse-albaran (Claude Vision) →
+ * se abre la CONSOLIDACIÓN DEL PROPIO ALBARÁN: sus líneas (proveedor, productos,
+ * cantidad, precio, IVA). El humano revisa, relaciona las líneas nuevas y CONSOLIDA
+ * → se registra la compra (stock + precio + diario) vía approve-batch.
  *
- * Solo staging (OCR_ENABLED). En prod el backend devuelve 410 (backstop) → aquí se
- * avisa con un toast, no se rompe nada.
+ * NO busca pedidos pendientes: el albarán se consolida SOLO, por sí mismo.
+ * Solo staging (OCR_ENABLED). En prod el backend devuelve 410 (backstop) → toast, no rompe.
  */
+
+import { escapeHTML, cm } from '../../utils/helpers.js';
 
 // Reescala la imagen a máx `maxLado` px (lado mayor) y devuelve JPEG base64 (sin el
 // prefijo data:). Mantiene la legibilidad para OCR y evita subir 10 MB desde el móvil.
@@ -45,33 +47,25 @@ async function procesarFotoAlbaran(file) {
 
         window.hideLoading?.();
 
-        // Duplicado (por nº de factura o por imagen): NO es "poca luz". Se comprueba
-        // ANTES que success (la respuesta de duplicado llega con success:false). En vez
-        // de un callejón sin salida, le REABRIMOS el albarán ya leído para que pueda
-        // recibirlo — no se duplica nada (Ley: nunca duplicar).
+        // Duplicado (por nº de factura o imagen): llega con success:false + duplicateWarning.
+        // NO se duplica; reabrimos la CONSOLIDACIÓN del albarán ya leído (sus líneas siguen
+        // en la cola) y marcamos el aviso en la propia pantalla (banner rojo).
         if (r && r.duplicateWarning) {
             const dw = r.duplicateWarning;
-            // Mostramos proveedor · fecha · nº líneas · factura + primeros productos,
-            // para que Iker distinga DE QUÉ albarán es el duplicado.
-            const fmtF = (f) => { try { return new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f).toLocaleDateString(); } catch { return ''; } };
-            const partes = [];
-            if (dw.proveedor) partes.push(dw.proveedor);
-            if (dw.fecha) partes.push(fmtF(dw.fecha));
-            if (dw.itemCount) partes.push(`${dw.itemCount} líneas`);
-            if (dw.numero_factura) partes.push(`factura ${dw.numero_factura}`);
-            const detalle = partes.length ? ' — ' + partes.join(' · ') : '';
-            const items = (Array.isArray(dw.items) && dw.items.length)
-                ? ` (${dw.items.slice(0, 3).join(', ')}${dw.items.length > 3 ? '…' : ''})` : '';
-            toast(`Ya habías escaneado este albarán${detalle}${items}. Te lo abro para recibirlo, no lo duplico.`, 'info');
-            await reconciliarConPedido({ batchId: dw.batchId, proveedor: dw.proveedor || '', fecha: dw.fecha, matched: dw.itemCount, totalItems: dw.itemCount, duplicateWarning: dw });
+            await abrirConsolidacionAlbaran({
+                ...r,
+                batchId: dw.batchId,
+                proveedor: dw.proveedor || r.proveedor,
+                fecha: dw.fecha || r.fecha,
+                numero_factura: dw.numero_factura || r.numero_factura,
+            });
             return;
         }
         if (!r || r.success !== true) {
             toast('No pude leer bien el albarán. Prueba con más luz, enfocado y recto, o mételo a mano.', 'warning');
             return;
         }
-        // Pieza B.2: reconciliar contra el pedido pendiente del proveedor.
-        await reconciliarConPedido(r);
+        await abrirConsolidacionAlbaran(r);
     } catch (e) {
         window.hideLoading?.();
         // El backstop de prod devuelve 410; cualquier fallo aquí no rompe la app.
@@ -79,142 +73,187 @@ async function procesarFotoAlbaran(file) {
     }
 }
 
-// Normaliza un nombre (minúsculas, sin acentos ni signos) para comparar proveedores.
-function normalizarNombre(s) {
-    return (s || '').toString().toLowerCase()
-        .normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-z0-9]+/g, ' ').trim();
-}
+// ==================== CONSOLIDACIÓN DEL ALBARÁN ====================
+// El albarán se consolida SOLO (sus propias líneas), sin buscar pedidos pendientes.
+// Foto → líneas leídas → revisas (relacionas las nuevas) → Consolidar = registra
+// stock + precio + diario (POST /purchases/pending/approve-batch). Las líneas sin
+// ingrediente se OMITEN (approve-batch las salta, no rompe).
+const CONSOL_OV = 'ml-consol-ov';
+let consolEstado = { r: null, batchId: null, lineas: [] };
 
-/**
- * Pieza B.2 — reconciliación foto → pedido.
- * Trae las líneas leídas de este albarán (compras_pendientes), busca el/los
- * pedidos PENDIENTES del proveedor y abre el modal de recepción del pedido con
- * las pistas del albarán cargadas. NO escribe nada en el pedido ni en el stock:
- * solo prepara el modal; el humano revisa y confirma (Ley: auto-consolidar NUNCA).
- */
-async function reconciliarConPedido(r) {
+function cerrarConsol() { document.getElementById(CONSOL_OV)?.remove(); }
+
+const fmtFechaAlb = (f) => { try { return new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f).toLocaleDateString(); } catch { return ''; } };
+
+async function abrirConsolidacionAlbaran(r) {
     const toast = (m, tt) => window.showToast?.(m, tt);
-
-    // 1) Líneas leídas de ESTE batch. `porIngrediente` = macheadas (para volcar en
-    //    la recepción). `todasLineas` = TODAS (incluidas las no encontradas, con
-    //    ingredienteId=null y el nombre leído) → para relacionar/añadir las que no
-    //    estén en el pedido.
-    const porIngrediente = new Map();
-    const todasLineas = [];
-    let provDelBatch = '';
+    let lineas = [];
     try {
         const pend = await window.API.fetch('/purchases/pending?estado=pendiente');
-        const lineas = (Array.isArray(pend) ? pend : []).filter(x => x.batch_id === r.batchId);
-        lineas.forEach(l => {
-            const id = (l.ingrediente_id !== null && l.ingrediente_id !== undefined) ? Number(l.ingrediente_id) : null;
-            const cantidad = parseFloat(l.cantidad) || 0;
-            const precio = parseFloat(l.precio) || 0;
-            const nombre = l.ingrediente_nombre || l.ingrediente_nombre_db || '';
-            if (!provDelBatch && l.proveedor) provDelBatch = l.proveedor;
-            todasLineas.push({ ingredienteId: id, nombre, cantidad, precio });
-            if (id !== null) porIngrediente.set(id, { cantidad, precio, nombre });
-        });
-    } catch { /* si falla, abrimos igual el pedido pero sin pistas */ }
-
-    // Si venimos de un duplicado no traemos proveedor: lo sacamos de las líneas del batch.
-    if (!r.proveedor && provDelBatch) r.proveedor = provDelBatch;
-    // 2) Pedidos PENDIENTES del proveedor del albarán. Casamos PRIMERO por CIF (robusto:
-    //    la marca del albarán puede no coincidir con el nombre guardado — p.ej. "VIDE VIDE"
-    //    vs razón social "SANTOS E GONTÁ"), y si no hay CIF, por nombre. NUNCA caemos a
-    //    "todos los pedidos" cuando el proveedor es conocido (era el bug de mezclar proveedores).
-    const provNorm = normalizarNombre(r.proveedor);
-    const cifNorm = (s) => (s || '').toString().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const cifAlb = cifNorm(r.cif);
-    const provs = window.proveedores || [];
-    const nombreProv = (pid) => normalizarNombre(provs.find(x => x.id === pid)?.nombre);
-    const pendientes = (window.pedidos || []).filter(p => p.estado === 'pendiente');
-
-    // Proveedores de la cuenta cuyo CIF coincide con el del albarán (match fuerte).
-    const idsPorCif = cifAlb ? new Set(provs.filter(p => cifNorm(p.cif) === cifAlb).map(p => p.id)) : new Set();
-
-    let candidatos = pendientes;
-    let proveedorConocido = false;
-    if (idsPorCif.size) {
-        candidatos = pendientes.filter(p => idsPorCif.has(p.proveedor_id ?? p.proveedorId));
-        proveedorConocido = true;
-    } else if (provNorm) {
-        candidatos = pendientes.filter(p => {
-            const pn = nombreProv(p.proveedor_id ?? p.proveedorId);
-            return pn && (pn.includes(provNorm) || provNorm.includes(pn));
-        });
-        proveedorConocido = true;
-    }
-
-    if (!candidatos.length) {
-        const aviso = proveedorConocido
-            ? `📸 Albarán de "${r.proveedor}" leído, pero no tienes un pedido PENDIENTE de ese proveedor. Ojo: puede estar guardado con otro nombre (marca vs razón social) — añade su CIF en la ficha del proveedor para que lo reconozca siempre. Revísalo en Pedidos.`
-            : `📸 Albarán leído (${r.matched}/${r.totalItems} líneas), pero no identifiqué el proveedor. Revísalo en Pedidos.`;
-        toast(aviso, 'warning');
-        return;
-    }
-    if (candidatos.length === 1) {
-        abrirReconciliacion(candidatos[0].id, porIngrediente, todasLineas, r);
-        return;
-    }
-    // Varios pedidos del mismo proveedor → desempatar por la FECHA del albarán:
-    // abrimos directamente el pedido cuya fecha es la más cercana. Solo si NO se puede
-    // decidir (sin fecha en el albarán, o empate exacto) mostramos la lista.
-    const diaDe = (f) => { if (!f) return null; const d = new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f); return isNaN(d.getTime()) ? null : Math.round(d.getTime() / 86400000); };
-    const diaAlb = diaDe(r.fecha);
-    if (diaAlb !== null) {
-        const conDist = candidatos
-            .map(p => ({ p, dist: (diaDe(p.fecha) !== null) ? Math.abs(diaDe(p.fecha) - diaAlb) : Infinity }))
-            .sort((a, b) => a.dist - b.dist);
-        // Mejor candidato con mínimo ÚNICO (no empate) → abrir directo.
-        if (conDist[0].dist !== Infinity && (conDist.length === 1 || conDist[0].dist < conDist[1].dist)) {
-            abrirReconciliacion(conDist[0].p.id, porIngrediente, todasLineas, r);
-            return;
-        }
-    }
-    // No se pudo desempatar por fecha → dejar elegir.
-    mostrarSelectorPedido(candidatos, porIngrediente, todasLineas, r);
+        lineas = (Array.isArray(pend) ? pend : [])
+            .filter(x => x.batch_id === r.batchId)
+            .map(l => {
+                const ing = (l.ingrediente_id !== null && l.ingrediente_id !== undefined) ? Number(l.ingrediente_id) : null;
+                return {
+                    id: l.id,
+                    nombre: l.ingrediente_nombre || '',
+                    ingredienteId: ing,
+                    ingredienteOriginal: ing,
+                    cantidad: parseFloat(l.cantidad) || 0,
+                    precio: parseFloat(l.precio) || 0,
+                };
+            });
+    } catch { /* no-op */ }
+    if (!lineas.length) { toast('No pude cargar las líneas del albarán. Revísalo en la cola de compras.', 'warning'); return; }
+    consolEstado = { r, batchId: r.batchId, lineas };
+    pintarConsol();
 }
 
-function abrirReconciliacion(pedidoId, porIngrediente, todasLineas, r) {
-    window.__albaranHints = { pedidoId, porIngrediente, todasLineas, proveedor: r.proveedor, batchId: r.batchId, duplicado: r.duplicateWarning || null, ivaPct: (r.iva_pct !== undefined && r.iva_pct !== null) ? r.iva_pct : null };
-    if (typeof window.marcarPedidoRecibido === 'function') {
-        window.marcarPedidoRecibido(pedidoId);
-        // Si es duplicado, el banner ROJO del modal ya avisa: no damos toast verde de "volcado".
-        if (!r.duplicateWarning) {
-            window.showToast?.(`📸 Albarán de ${r.proveedor || ''} leído y volcado. Revisa las cantidades y precios (📸) y confirma la recepción.`, 'success');
-        }
-    }
+function opcionesIngredientes(sel) {
+    const ings = (window.ingredientes || []).slice().sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    const opts = ['<option value="">— sin asignar —</option>'];
+    ings.forEach(i => { opts.push(`<option value="${i.id}" ${Number(sel) === i.id ? 'selected' : ''}>${escapeHTML(i.nombre || '')}</option>`); });
+    return opts.join('');
 }
 
-/** Selector simple cuando hay varios pedidos pendientes del mismo proveedor. */
-function mostrarSelectorPedido(candidatos, porIngrediente, todasLineas, r) {
-    document.getElementById('ml-albaran-picker')?.remove();
-    const ov = document.createElement('div');
-    ov.id = 'ml-albaran-picker';
-    ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;';
-    const fmtFecha = (f) => { try { return new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f).toLocaleDateString(); } catch { return ''; } };
-    const filas = candidatos.map(p =>
-        `<button type="button" data-pid="${p.id}" style="display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid #eef2f7;background:#fff;padding:14px 16px;font-size:15px;cursor:pointer;">
-            <span>Pedido del ${fmtFecha(p.fecha)}</span>
-            <strong>${window.cm ? window.cm(p.total || 0) : (p.total || 0)}</strong>
-         </button>`
-    ).join('');
-    ov.innerHTML = `<div style="background:#fff;width:100%;max-width:520px;border-radius:16px 16px 0 0;overflow:hidden;">
-        <div style="padding:14px 16px;font-weight:700;border-bottom:1px solid #eef2f7;">📸 ${r.proveedor || 'Proveedor'} — elige el pedido</div>
-        ${filas}
-        <button type="button" id="ml-albaran-picker-cancel" style="width:100%;border:0;background:#f8fafc;padding:14px;font-size:15px;color:#64748b;cursor:pointer;">Cancelar</button>
+function totalesConsol() {
+    const base = consolEstado.lineas.reduce((s, l) => s + (l.cantidad * l.precio), 0);
+    const iva = parseFloat(consolEstado.r?.iva_pct) || 0;
+    return { base, iva, conIva: base * (1 + iva / 100) };
+}
+
+function refrescarTotalesConsol() {
+    const t = totalesConsol();
+    const b = document.getElementById('consol-base'); if (b) b.textContent = cm(t.base);
+    const i = document.getElementById('consol-iva'); if (i) i.textContent = cm(t.conIva - t.base);
+    const tt = document.getElementById('consol-total'); if (tt) tt.textContent = cm(t.conIva);
+}
+
+function pintarConsol() {
+    const r = consolEstado.r;
+    const dup = r?.duplicateWarning;
+    const dupBanner = dup
+        ? `<div style="background:#fef2f2;border:2px solid #dc2626;color:#991b1b;padding:12px 14px;border-radius:8px;margin-bottom:12px;font-weight:600;font-size:13px;">⚠️ POSIBLE DUPLICADO — este albarán ya lo escaneaste (${escapeHTML([dup.proveedor, dup.fecha ? fmtFechaAlb(dup.fecha) : '', dup.numero_factura ? 'factura ' + dup.numero_factura : ''].filter(Boolean).join(' · '))}). Revísalo antes de consolidar.</div>`
+        : '';
+    const ivaTxt = (r?.iva_pct !== null && r?.iva_pct !== undefined) ? 'IVA ' + r.iva_pct + '%' : '';
+    const cab = [r?.proveedor, r?.fecha ? fmtFechaAlb(r.fecha) : '', r?.numero_factura ? 'Factura ' + r.numero_factura : '', ivaTxt].filter(Boolean).map(escapeHTML).join(' · ');
+
+    const filas = consolEstado.lineas.map((l, i) => `
+        <div style="border-bottom:1px solid #eef2f7;padding:10px 0;">
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px;">${escapeHTML(l.nombre) || '(sin nombre)'}</div>
+          <select data-i="${i}" data-f="ing" style="width:100%;padding:8px;border:1px solid ${l.ingredienteId ? '#cbd5e1' : '#f59e0b'};border-radius:6px;font-size:13px;margin-bottom:6px;">${opcionesIngredientes(l.ingredienteId)}</select>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="number" step="0.001" inputmode="decimal" data-i="${i}" data-f="cantidad" value="${l.cantidad}" style="width:82px;padding:6px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;">
+            <span style="color:#64748b;font-size:12px;">×</span>
+            <input type="number" step="0.0001" inputmode="decimal" data-i="${i}" data-f="precio" value="${l.precio}" style="width:92px;padding:6px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;">
+            <span style="color:#64748b;font-size:12px;">€/ud</span>
+          </div>
+        </div>`).join('');
+
+    const t = totalesConsol();
+    const totalHtml = `<div style="margin-top:12px;font-size:14px;">
+        <div style="display:flex;justify-content:space-between;"><span>Base (sin IVA)</span><b id="consol-base">${cm(t.base)}</b></div>
+        ${t.iva ? `<div style="display:flex;justify-content:space-between;color:#64748b;"><span>IVA ${t.iva}%</span><span id="consol-iva">${cm(t.conIva - t.base)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:2px;"><span>Total con IVA</span><span id="consol-total">${cm(t.conIva)}</span></div>` : ''}
     </div>`;
-    ov.addEventListener('click', (ev) => {
-        if (ev.target === ov || ev.target.id === 'ml-albaran-picker-cancel') { ov.remove(); return; }
-        const btn = ev.target.closest('[data-pid]');
-        if (btn) {
-            const pid = Number(btn.dataset.pid);
-            ov.remove();
-            abrirReconciliacion(pid, porIngrediente, todasLineas, r);
+
+    let ov = document.getElementById(CONSOL_OV);
+    if (!ov) {
+        ov = document.createElement('div');
+        ov.id = CONSOL_OV;
+        ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;';
+        document.body.appendChild(ov);
+        ov.addEventListener('click', onClickConsol);
+        ov.addEventListener('input', onInputConsol);
+    }
+    ov.innerHTML = `
+      <div style="background:#fff;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:16px 16px 0 0;overflow:hidden;">
+        <div style="padding:14px 16px;border-bottom:1px solid #eef2f7;display:flex;justify-content:space-between;align-items:center;">
+          <b style="font-size:16px;">📸 Consolidar albarán</b>
+          <button type="button" data-act="cerrar" style="border:0;background:none;font-size:20px;color:#64748b;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:14px 16px;overflow-y:auto;">
+          ${dupBanner}
+          <div style="color:#475569;font-size:13px;margin-bottom:10px;">${cab || 'Albarán'}</div>
+          ${filas || '<p style="color:#64748b;">El albarán no tiene líneas.</p>'}
+          ${totalHtml}
+        </div>
+        <div style="padding:12px 16px;border-top:1px solid #eef2f7;display:flex;gap:8px;">
+          <button type="button" data-act="cerrar" style="flex:0 0 auto;border:0;background:#f1f5f9;color:#334155;border-radius:8px;padding:12px 16px;font-size:14px;cursor:pointer;">Cancelar</button>
+          <button type="button" data-act="consolidar" style="flex:1;border:0;background:#059669;color:#fff;border-radius:8px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;">✅ Consolidar (registra stock y precio)</button>
+        </div>
+      </div>`;
+}
+
+function onInputConsol(ev) {
+    const el = ev.target;
+    const i = Number(el.getAttribute('data-i'));
+    const f = el.getAttribute('data-f');
+    if (Number.isNaN(i) || !consolEstado.lineas[i]) return;
+    if (f === 'ing') {
+        consolEstado.lineas[i].ingredienteId = el.value ? Number(el.value) : null;
+        el.style.borderColor = el.value ? '#cbd5e1' : '#f59e0b';
+    } else if (f === 'cantidad') {
+        consolEstado.lineas[i].cantidad = parseFloat(el.value) || 0;
+        refrescarTotalesConsol();
+    } else if (f === 'precio') {
+        consolEstado.lineas[i].precio = parseFloat(el.value) || 0;
+        refrescarTotalesConsol();
+    }
+}
+
+function onClickConsol(ev) {
+    const ov = document.getElementById(CONSOL_OV);
+    if (ev.target === ov) { cerrarConsol(); return; }
+    const act = ev.target.closest('[data-act]')?.dataset.act;
+    if (act === 'cerrar') { cerrarConsol(); return; }
+    if (act === 'consolidar') { consolidarAlbaran(); return; }
+}
+
+async function consolidarAlbaran() {
+    const lineas = consolEstado.lineas;
+    const conIng = lineas.filter(l => l.ingredienteId);
+    if (!conIng.length) {
+        window.showToast?.('Relaciona al menos un producto con un ingrediente antes de consolidar.', 'warning');
+        return;
+    }
+    window.showLoading?.();
+    try {
+        // 1) Persistir cada línea macheada (relacionar/editar) y aprender alias de las nuevas.
+        for (const l of conIng) {
+            await window.API.fetch(`/purchases/pending/${l.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ ingrediente_id: l.ingredienteId, cantidad: l.cantidad, precio: l.precio }),
+            }).catch(() => { /* si una línea falla, seguimos con el resto */ });
+            if (l.ingredienteOriginal === null && l.nombre) {
+                window.API.fetch('/purchases/alias', {
+                    method: 'POST',
+                    body: JSON.stringify({ ingredienteId: l.ingredienteId, alias: l.nombre }),
+                }).catch(() => { /* no bloquea */ });
+            }
         }
-    });
-    document.body.appendChild(ov);
+        // 2) Consolidar el batch → registra stock + precio + diario.
+        const res = await window.API.fetch('/purchases/pending/approve-batch', {
+            method: 'POST',
+            body: JSON.stringify({ batchId: consolEstado.batchId }),
+        });
+        // 3) Recargar datos afectados (stock/precio de ingredientes).
+        try { window.ingredientes = await window.api.getIngredientes(); } catch { /* no-op */ }
+        window.renderizarIngredientes?.();
+        window.renderizarInventario?.();
+        window.hideLoading?.();
+        cerrarConsol();
+        const aprobados = res?.aprobados ?? res?.resultados?.aprobados;
+        const omitidos = res?.omitidos ?? res?.resultados?.omitidos;
+        let msg = '✅ Albarán consolidado. Stock y precios actualizados.';
+        if (aprobados !== null && aprobados !== undefined) {
+            msg = `✅ Consolidado: ${aprobados} línea(s) registradas${omitidos ? `, ${omitidos} sin asignar omitidas` : ''}.`;
+        }
+        window.showToast?.(msg, 'success');
+    } catch (e) {
+        window.hideLoading?.();
+        window.showToast?.('No se pudo consolidar el albarán: ' + (e?.message || 'error'), 'error');
+    }
 }
 
 /** Abre la cámara nativa del móvil (o selector de archivo) para el albarán. */
