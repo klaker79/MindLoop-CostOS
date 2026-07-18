@@ -119,23 +119,38 @@ async function reconciliarConPedido(r) {
 
     // Si venimos de un duplicado no traemos proveedor: lo sacamos de las líneas del batch.
     if (!r.proveedor && provDelBatch) r.proveedor = provDelBatch;
-    // 2) Pedidos PENDIENTES del proveedor del albarán.
+    // 2) Pedidos PENDIENTES del proveedor del albarán. Casamos PRIMERO por CIF (robusto:
+    //    la marca del albarán puede no coincidir con el nombre guardado — p.ej. "VIDE VIDE"
+    //    vs razón social "SANTOS E GONTÁ"), y si no hay CIF, por nombre. NUNCA caemos a
+    //    "todos los pedidos" cuando el proveedor es conocido (era el bug de mezclar proveedores).
     const provNorm = normalizarNombre(r.proveedor);
+    const cifNorm = (s) => (s || '').toString().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const cifAlb = cifNorm(r.cif);
     const provs = window.proveedores || [];
     const nombreProv = (pid) => normalizarNombre(provs.find(x => x.id === pid)?.nombre);
     const pendientes = (window.pedidos || []).filter(p => p.estado === 'pendiente');
 
+    // Proveedores de la cuenta cuyo CIF coincide con el del albarán (match fuerte).
+    const idsPorCif = cifAlb ? new Set(provs.filter(p => cifNorm(p.cif) === cifAlb).map(p => p.id)) : new Set();
+
     let candidatos = pendientes;
-    if (provNorm) {
-        const match = pendientes.filter(p => {
+    let proveedorConocido = false;
+    if (idsPorCif.size) {
+        candidatos = pendientes.filter(p => idsPorCif.has(p.proveedor_id ?? p.proveedorId));
+        proveedorConocido = true;
+    } else if (provNorm) {
+        candidatos = pendientes.filter(p => {
             const pn = nombreProv(p.proveedor_id ?? p.proveedorId);
             return pn && (pn.includes(provNorm) || provNorm.includes(pn));
         });
-        if (match.length) candidatos = match;
+        proveedorConocido = true;
     }
 
     if (!candidatos.length) {
-        toast(`📸 Albarán de ${r.proveedor || 'proveedor'} leído (${r.matched}/${r.totalItems} líneas). No encontré un pedido pendiente de ese proveedor; revísalo en Pedidos.`, 'warning');
+        const aviso = proveedorConocido
+            ? `📸 Albarán de "${r.proveedor}" leído, pero no tienes un pedido PENDIENTE de ese proveedor. Ojo: puede estar guardado con otro nombre (marca vs razón social) — añade su CIF en la ficha del proveedor para que lo reconozca siempre. Revísalo en Pedidos.`
+            : `📸 Albarán leído (${r.matched}/${r.totalItems} líneas), pero no identifiqué el proveedor. Revísalo en Pedidos.`;
+        toast(aviso, 'warning');
         return;
     }
     if (candidatos.length === 1) {
