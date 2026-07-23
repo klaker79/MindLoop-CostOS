@@ -758,6 +758,14 @@ a[onclick*="cerrarSesion"]:hover {
         color: var(--dm-text) !important;
         border-color: var(--dm-border) !important;
     }
+    /* theme-editorial.css tiene ".chat-input:focus { background:white !important }"
+       (0,2,0, sin scope de tema, cargado DESPUÉS de polish) → al enfocar el input
+       se ponía BLANCO con texto claro encima = invisible "donde escribes". Este
+       override [data-theme=dark] .chat-input:focus (0,3,0) le gana. */
+    .chat-input:focus {
+        background: var(--dm-surface-2) !important;
+        color: var(--dm-text) !important;
+    }
 
     .chat-inline-code {
         background: var(--dm-surface-2) !important;

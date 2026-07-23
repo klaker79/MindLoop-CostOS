@@ -217,7 +217,8 @@
 // BUMP v258: Pieza B.1 — botón 'Recibir albarán' abre la cámara del móvil, reescala la foto y la manda a /parse-albaran (Claude Vision); muestra proveedor + líneas leídas/reconocidas + total. Reconciliación con el pedido = B.2.
 // BUMP v293 (dark mode chat ilegible): styles/main.css tiene [data-theme=dark] div,span,p{color:inherit} (0,1,1) que ganaba al color fijo del chat (0,1,0) → las superficies del chat heredaban texto claro pero mantenían fondo blanco = ilegible en oscuro. Fix: skin oscuro propio del chat (chat-styles.js) con selectores de clase (0,2,0): fondos oscuros + texto claro. Verificado con mock (claro intacto).
 // BUMP v294 (dark mode transparente - RAIZ real): polish.css definia los tokens --dm-* dentro de un ':root {}' ANIDADO en [data-theme=dark] -> '[data-theme=dark] :root' es un combinador descendiente que NO matchea nada (:root=html no tiene ancestro) -> las --dm-* quedaban SIN definir -> todos los 'background: var(--dm-surface) !important' del chat (y kpi/cards/busqueda/paginacion) caian a TRANSPARENTE en oscuro manual. Fix: definir --dm-* directamente en [data-theme=dark]. Ademas: skin del globo del buho + chips. Revertido el skin redundante de chat-styles.js (#789). Verificado con mock del CSS real (oscuro solido, claro intacto).
-const CACHE_NAME = 'mindloop-costos-v294';
+// BUMP v295 (chat input blanco al enfocar en oscuro): theme-editorial.css tiene '.chat-input:focus{background:white!important}' (0,2,0, sin scope de tema, cargado despues de polish) -> al enfocar el input se ponia BLANCO con texto claro = invisible 'donde escribes'. Fix: override [data-theme=dark] .chat-input:focus (0,3,0) en polish.css. Verificado con mock ORDEN REAL (main>polish>editorial>chat) + input enfocado.
+const CACHE_NAME = 'mindloop-costos-v295';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
