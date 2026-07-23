@@ -215,7 +215,8 @@
 // BUMP v256: portada móvil Inicio = 2 botones grandes (Nuevo pedido / Recibir albarán) a pantalla completa; dashboard movido a su propio botón (Panel). Barra: Inicio·Panel·Pedidos·Más.
 // BUMP v257: FIX modal de recepción de pedidos — las líneas editables (cantidad/precio recibidos) se ocultaban porque quick-actions.css pone .modal-content en flex-column global y el wrapper con overflow-x colapsaba a height:0. flex-shrink:0 en el wrapper. Verificado en staging (0→418px, 4 líneas visibles).
 // BUMP v258: Pieza B.1 — botón 'Recibir albarán' abre la cámara del móvil, reescala la foto y la manda a /parse-albaran (Claude Vision); muestra proveedor + líneas leídas/reconocidas + total. Reconciliación con el pedido = B.2.
-const CACHE_NAME = 'mindloop-costos-v292';
+// BUMP v293 (dark mode chat ilegible): styles/main.css tiene [data-theme=dark] div,span,p{color:inherit} (0,1,1) que ganaba al color fijo del chat (0,1,0) → las superficies del chat heredaban texto claro pero mantenían fondo blanco = ilegible en oscuro. Fix: skin oscuro propio del chat (chat-styles.js) con selectores de clase (0,2,0): fondos oscuros + texto claro. Verificado con mock (claro intacto).
+const CACHE_NAME = 'mindloop-costos-v293';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
