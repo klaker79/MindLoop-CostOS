@@ -666,14 +666,16 @@ a[onclick*="cerrarSesion"]:hover {
 
 [data-theme="dark"] {
 
-    /* Tokens de color para dark mode */
-    :root {
-        --dm-surface: #1e293b;
-        --dm-surface-2: #0f172a;
-        --dm-border: #334155;
-        --dm-text: #e2e8f0;
-        --dm-text-muted: #94a3b8;
-    }
+    /* Tokens de color para dark mode.
+       ⚠️ FIX: estaban en un ":root {}" ANIDADO → "[data-theme=dark] :root" es un
+       combinador descendiente que NO matchea (:root=html no tiene ancestro) → las
+       --dm-* quedaban sin definir → los "background: var(--dm-surface) !important"
+       del chat caían a TRANSPARENTE. Definidas directamente en [data-theme=dark]. */
+    --dm-surface: #1e293b;
+    --dm-surface-2: #0f172a;
+    --dm-border: #334155;
+    --dm-text: #e2e8f0;
+    --dm-text-muted: #94a3b8;
 
     /* --- KPI mini cards (polish.css fuerza background: white) --- */
     .kpi-mini {
@@ -753,9 +755,34 @@ a[onclick*="cerrarSesion"]:hover {
         color: var(--dm-text) !important;
         border-color: var(--dm-border) !important;
     }
+    /* theme-editorial.css tiene ".chat-input:focus{background:white!important}" sin
+       scope de tema y cargado después → al enfocar el input se ponía blanco con
+       texto claro = invisible. Este override (0,3,0) lo mantiene oscuro. */
+    .chat-input:focus {
+        background: var(--dm-surface-2) !important;
+        color: var(--dm-text) !important;
+    }
 
     .chat-inline-code {
         background: var(--dm-surface-2) !important;
+    }
+
+    /* Globo de invitación del búho + chips (no estaban cubiertos por el skin) */
+    .chat-fab-bubble {
+        background-color: var(--dm-surface) !important;
+        color: var(--dm-text) !important;
+    }
+    .chat-fab-bubble-text { color: var(--dm-text) !important; }
+    .chat-fab-bubble::after { border-left-color: var(--dm-surface) !important; }
+    .chat-fab-bubble-x { color: var(--dm-text-muted) !important; }
+    .chat-quick-btn {
+        background-color: var(--dm-surface-2) !important;
+        color: var(--dm-text) !important;
+        border-color: var(--dm-border) !important;
+    }
+    .chat-mic-btn {
+        background-color: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
     }
 
     .chat-table {
