@@ -216,7 +216,8 @@
 // BUMP v257: FIX modal de recepción de pedidos — las líneas editables (cantidad/precio recibidos) se ocultaban porque quick-actions.css pone .modal-content en flex-column global y el wrapper con overflow-x colapsaba a height:0. flex-shrink:0 en el wrapper. Verificado en staging (0→418px, 4 líneas visibles).
 // BUMP v258: Pieza B.1 — botón 'Recibir albarán' abre la cámara del móvil, reescala la foto y la manda a /parse-albaran (Claude Vision); muestra proveedor + líneas leídas/reconocidas + total. Reconciliación con el pedido = B.2.
 // BUMP v293 (dark mode chat ilegible): styles/main.css tiene [data-theme=dark] div,span,p{color:inherit} (0,1,1) que ganaba al color fijo del chat (0,1,0) → las superficies del chat heredaban texto claro pero mantenían fondo blanco = ilegible en oscuro. Fix: skin oscuro propio del chat (chat-styles.js) con selectores de clase (0,2,0): fondos oscuros + texto claro. Verificado con mock (claro intacto).
-const CACHE_NAME = 'mindloop-costos-v293';
+// BUMP v294 (dark mode transparente - RAIZ real): polish.css definia los tokens --dm-* dentro de un ':root {}' ANIDADO en [data-theme=dark] -> '[data-theme=dark] :root' es un combinador descendiente que NO matchea nada (:root=html no tiene ancestro) -> las --dm-* quedaban SIN definir -> todos los 'background: var(--dm-surface) !important' del chat (y kpi/cards/busqueda/paginacion) caian a TRANSPARENTE en oscuro manual. Fix: definir --dm-* directamente en [data-theme=dark]. Ademas: skin del globo del buho + chips. Revertido el skin redundante de chat-styles.js (#789). Verificado con mock del CSS real (oscuro solido, claro intacto).
+const CACHE_NAME = 'mindloop-costos-v294';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
