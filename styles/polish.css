@@ -666,14 +666,19 @@ a[onclick*="cerrarSesion"]:hover {
 
 [data-theme="dark"] {
 
-    /* Tokens de color para dark mode */
-    :root {
-        --dm-surface: #1e293b;
-        --dm-surface-2: #0f172a;
-        --dm-border: #334155;
-        --dm-text: #e2e8f0;
-        --dm-text-muted: #94a3b8;
-    }
+    /* Tokens de color para dark mode.
+       ⚠️ FIX 2026-07-23: estos tokens estaban DENTRO de un ":root {}" anidado.
+       En CSS nativo "[data-theme=dark] :root" es un combinador DESCENDIENTE (busca
+       un :root dentro del elemento), y como :root es el <html> (no tiene ancestros)
+       no matcheaba NADA → las --dm-* quedaban sin definir → todos los
+       "background: var(--dm-surface) !important" (chat, kpi, cards…) caían a
+       TRANSPARENTE en modo oscuro manual. Definidas directamente sobre
+       [data-theme="dark"] heredan a todos sus descendientes. */
+    --dm-surface: #1e293b;
+    --dm-surface-2: #0f172a;
+    --dm-border: #334155;
+    --dm-text: #e2e8f0;
+    --dm-text-muted: #94a3b8;
 
     /* --- KPI mini cards (polish.css fuerza background: white) --- */
     .kpi-mini {
@@ -756,6 +761,26 @@ a[onclick*="cerrarSesion"]:hover {
 
     .chat-inline-code {
         background: var(--dm-surface-2) !important;
+    }
+
+    /* Globo de invitación del búho (no estaba cubierto por el skin del chat) */
+    .chat-fab-bubble {
+        background-color: var(--dm-surface) !important;
+        color: var(--dm-text) !important;
+    }
+    .chat-fab-bubble-text { color: var(--dm-text) !important; }
+    .chat-fab-bubble::after { border-left-color: var(--dm-surface) !important; }
+    .chat-fab-bubble-x { color: var(--dm-text-muted) !important; }
+
+    /* Chips de acción rápida (Resumen / Food Cost / Raciones) */
+    .chat-quick-btn {
+        background-color: var(--dm-surface-2) !important;
+        color: var(--dm-text) !important;
+        border-color: var(--dm-border) !important;
+    }
+    .chat-mic-btn {
+        background-color: var(--dm-surface-2) !important;
+        border-color: var(--dm-border) !important;
     }
 
     .chat-table {

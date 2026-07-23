@@ -750,42 +750,6 @@ export function createChatStyles() {
             .chat-fab.active { display: none !important; }
             .chat-fab-bubble { display: none; }
         }
-
-        /* ============ MODO OSCURO — skin del chat ============
-           La app pone [data-theme="dark"] en <html> y styles/main.css tiene una
-           regla global  [data-theme="dark"] div, span, p { color: inherit }
-           (especificidad 0,1,1) que le GANA al color fijo del chat (0,1,0): sus
-           superficies (div/span) dejaban de ser #1e293b y heredaban el texto CLARO
-           del body, pero el fondo seguía blanco → letra clara sobre blanco =
-           ilegible en TODO el chat (mensajes, globo, input). Aquí le damos al chat
-           un skin oscuro propio con selectores de CLASE (0,2,0) que ganan sin
-           !important: fondos oscuros + texto claro, coherente con el resto de la app. */
-        [data-theme="dark"] .chat-window { background: #1e293b; box-shadow: 0 10px 50px rgba(0,0,0,0.55); }
-        [data-theme="dark"] .chat-messages { background: #0f172a; }
-        [data-theme="dark"] .chat-message-content { background: #334155; color: #f1f5f9; box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
-        [data-theme="dark"] .chat-message.user .chat-message-content { color: #ffffff; }
-        [data-theme="dark"] .chat-message-time { color: #94a3b8; }
-        [data-theme="dark"] .chat-typing { background: #334155; box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
-        /* Globo de invitación del búho */
-        [data-theme="dark"] .chat-fab-bubble { background: #1e293b; color: #f1f5f9; box-shadow: 0 10px 34px rgba(0,0,0,0.5); }
-        [data-theme="dark"] .chat-fab-bubble-text { color: #f1f5f9; }
-        [data-theme="dark"] .chat-fab-bubble::after { border-left-color: #1e293b; }
-        [data-theme="dark"] .chat-fab-bubble-x { color: #94a3b8; }
-        /* Zona de entrada + acciones rápidas */
-        [data-theme="dark"] .chat-input-container { background: #1e293b; border-top-color: #334155; }
-        [data-theme="dark"] .chat-quick-actions { background: #1e293b; }
-        [data-theme="dark"] .chat-input { background: #334155; color: #f1f5f9; border-color: #475569; }
-        [data-theme="dark"] .chat-input::placeholder { color: #94a3b8; }
-        [data-theme="dark"] .chat-mic-btn { background: #334155; border-color: #475569; }
-        [data-theme="dark"] .chat-mic-btn:hover { background: #475569; }
-        [data-theme="dark"] .chat-mic-btn svg { fill: #cbd5e1; }
-        [data-theme="dark"] .chat-quick-btn { background: #334155; color: #cbd5e1; border-color: #475569; }
-        [data-theme="dark"] .chat-quick-btn:hover { background: #7c3aed; color: #fff; border-color: #7c3aed; }
-        [data-theme="dark"] .chat-action-btn.secondary { background: #334155; color: #cbd5e1; }
-        [data-theme="dark"] .chat-action-btn.secondary:hover { background: #475569; }
-        /* Popover de informe (selector de mes) */
-        [data-theme="dark"] .chat-informe-menu { background: #1e293b; border-color: #334155; }
-        [data-theme="dark"] .chat-informe-menu-header { color: #94a3b8; border-bottom-color: #334155; }
     `;
     document.head.appendChild(style);
 }
