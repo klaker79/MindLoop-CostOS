@@ -427,12 +427,19 @@ export async function renderizarRecetas() {
         const matchBusqueda = r.nombre.toLowerCase().includes(busqueda) ||
             (r.codigo && r.codigo.toString().includes(busqueda));
 
-        // Filtro de categoría
+        // Filtro de categoría — coherente con el badge de la tabla (ver más abajo:
+        // esBebida/esBase con el mismo criterio). "Alimentos" = todo lo que NO es
+        // bebida ni base, así las categorías no canónicas (extra, mains, vacías…)
+        // entran en Alimentos igual que el color ya las pinta de alimento. Antes el
+        // filtro hacía match EXACTO contra 'alimentos' y esas recetas quedaban fuera
+        // de todo filtro salvo "Todas".
+        const catLower = r.categoria?.toLowerCase() || 'alimentos';
+        const esBebida = catLower === 'bebida' || catLower === 'bebidas';
+        const esBase = catLower === 'base';
         const matchCategoria = filtroRecetaCategoria === 'todas' ||
-            r.categoria?.toLowerCase() === filtroRecetaCategoria.toLowerCase() ||
-            (filtroRecetaCategoria === 'bebida' && r.categoria?.toLowerCase() === 'bebidas') ||
-            (filtroRecetaCategoria === 'alimentos' && r.categoria?.toLowerCase() === 'alimentos') ||
-            (filtroRecetaCategoria === 'base' && r.categoria?.toLowerCase() === 'base');
+            ((filtroRecetaCategoria === 'bebida' || filtroRecetaCategoria === 'bebidas') && esBebida) ||
+            (filtroRecetaCategoria === 'base' && esBase) ||
+            (filtroRecetaCategoria === 'alimentos' && !esBebida && !esBase);
 
         return matchBusqueda && matchCategoria;
     }).sort((a, b) => {
