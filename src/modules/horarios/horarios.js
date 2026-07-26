@@ -125,21 +125,7 @@ function renderizarEmpleados() {
 
     let html = '<div style="display: grid; gap: 12px;">';
 
-    // Filtrar empleados por departamento (nombres hardcodeados)
-    const COCINA = ['IKER', 'LAURA', 'FRAN', 'LOLA', 'BEA'];
-    const SALA = ['PEROL', 'JUAN', 'LORENA', 'MANU', 'GUILLERMO', 'GUILLE'];
-
-    const empleadosFiltrados = empleados.filter(emp => {
-        if (filtroDepartamento === 'todos') return true;
-        const nombre = (emp.nombre || '').toUpperCase();
-        if (filtroDepartamento === 'cocina') {
-            return COCINA.includes(nombre);
-        }
-        if (filtroDepartamento === 'sala') {
-            return SALA.includes(nombre);
-        }
-        return true;
-    });
+    const empleadosFiltrados = filtrarPorDepartamento(empleados);
 
     empleadosFiltrados.forEach(emp => {
         const horasSemanales = calcularHorasSemanales(emp.id);
@@ -327,21 +313,7 @@ function renderizarGridHorarios() {
 
     html += '</tr></thead><tbody>';
 
-    // Filtrar empleados por departamento (nombres hardcodeados)
-    const COCINA = ['IKER', 'LAURA', 'FRAN', 'LOLA', 'BEA'];
-    const SALA = ['PEROL', 'JUAN', 'LORENA', 'MANU', 'GUILLERMO', 'GUILLE'];
-
-    const empleadosFiltrados = empleados.filter(emp => {
-        if (filtroDepartamento === 'todos') return true;
-        const nombre = (emp.nombre || '').toUpperCase();
-        if (filtroDepartamento === 'cocina') {
-            return COCINA.includes(nombre);
-        }
-        if (filtroDepartamento === 'sala') {
-            return SALA.includes(nombre);
-        }
-        return true;
-    });
+    const empleadosFiltrados = filtrarPorDepartamento(empleados);
 
     // Filas de empleados
     empleadosFiltrados.forEach((emp, index) => {
@@ -409,6 +381,7 @@ window.nuevoEmpleado = function () {
     document.getElementById('empleado-color').value = generarColorAleatorio();
     document.getElementById('empleado-puesto').value = 'cocina';
     document.getElementById('empleado-horas-contrato').value = '40';
+    document.getElementById('empleado-hora-entrada').value = HORA_ENTRADA_DEFECTO;
 
     // Desmarcar checkboxes
     ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'].forEach(dia => {
@@ -449,6 +422,7 @@ window.editarEmpleado = async function (id) {
     document.getElementById('empleado-color').value = emp.color || '#667eea';
     document.getElementById('empleado-puesto').value = emp.puesto || 'cocina';
     document.getElementById('empleado-horas-contrato').value = emp.horas_contrato || '40';
+    document.getElementById('empleado-hora-entrada').value = normalizarHora(emp.hora_entrada);
 
     // Marcar días libres
     const diasLibres = typeof emp.dias_libres_fijos === 'string' ? safeJSONParse(emp.dias_libres_fijos, []) : (emp.dias_libres_fijos || []);
@@ -486,6 +460,7 @@ window.guardarEmpleado = async function () {
     const color = document.getElementById('empleado-color').value;
     const puesto = document.getElementById('empleado-puesto').value;
     const horasContrato = parseInt(document.getElementById('empleado-horas-contrato').value) || 40;
+    const horaEntrada = normalizarHora(document.getElementById('empleado-hora-entrada').value);
 
     // Validar
     if (!nombre) {
@@ -507,6 +482,7 @@ window.guardarEmpleado = async function () {
         color,
         puesto,
         horas_contrato: horasContrato,
+        hora_entrada: horaEntrada,
         dias_libres_fijos: JSON.stringify(diasLibres),
         activo: true
     };
@@ -813,7 +789,15 @@ window.generarHorarioIA = async function () {
         return;
     }
 
-    const accion = confirm(t('horarios:confirm_generate_ai') + '\n\n✅ OK = BORRAR semana actual\n\n' + t('horarios:ai_rules_title') + '\n- Bea: Mié+Jue\n- Fran/Lola: Sab+Dom\n- Laura: Lun+Mar\n- Iker: Dom + 2\n- Javi: Solo sábados\n- Fran: 11:30-19:30\n- Resto: 10:00-18:00');
+    const accion = confirm(
+        t('horarios:confirm_generate_ai') + '\n\n' +
+        t('horarios:confirm_generate_ai_warning') + '\n\n' +
+        t('horarios:ai_rules_title') + '\n' +
+        '- ' + t('horarios:ai_rule_fixed_days') + '\n' +
+        '- ' + t('horarios:ai_rule_weekly_rest', { count: DESCANSO_SEMANAL_MINIMO }) + '\n' +
+        '- ' + t('horarios:ai_rule_contract_hours') + '\n' +
+        '- ' + t('horarios:ai_rule_start_time')
+    );
 
     if (!accion) return;
 
@@ -877,14 +861,104 @@ window.generarHorarioIA = async function () {
     }
 };
 
+// Parámetros del generador de horarios
+const DESCANSO_SEMANAL_MINIMO = 2;   // días libres/semana (convenio hostelería)
+const HORA_ENTRADA_DEFECTO = '10:00';
+const JORNADA_MIN_HORAS = 2;
+const JORNADA_MAX_HORAS = 12;
+
 /**
- * Algoritmo de generación inteligente de horarios
- * Reglas:
- * 1. Respeta turnos ya asignados manualmente
- * 2. Respeta días libres fijos de cada empleado
- * 3. Cada empleado tiene 2 días libres consecutivos por semana
- * 4. Domingos: rotación (no todos, alternando semanas)
- * 5. Turno estándar: mañana (09:00-17:00) 
+ * Decide los días libres de la semana para un empleado.
+ *
+ * - Los días libres fijos de su ficha se respetan SIEMPRE y cuentan DENTRO del
+ *   cupo de descanso (no se suman por encima).
+ * - Si la ficha no llega al descanso mínimo, se completan los que falten
+ *   eligiendo días pegados a los que ya libra (descanso consecutivo) y rotando
+ *   por empleado y semana para no dejar el local sin cubrir.
+ *
+ * @returns {number[]} días de la semana libres (0=Dom ... 6=Sáb)
+ */
+function calcularDiasLibresSemana(diasLibresFijos, empIndex, semanaN) {
+    const fijos = (diasLibresFijos || [])
+        .map(Number)
+        .filter(d => Number.isInteger(d) && d >= 0 && d <= 6);
+
+    const libres = new Set(fijos);
+    const objetivo = Math.max(libres.size, DESCANSO_SEMANAL_MINIMO);
+
+    while (libres.size < objetivo) {
+        const candidatos = [0, 1, 2, 3, 4, 5, 6].filter(d => !libres.has(d));
+        if (candidatos.length === 0) break;
+
+        // Preferimos pegar el día libre a otro que ya tenga (semana circular)
+        const adyacentes = candidatos.filter(d => libres.has((d + 6) % 7) || libres.has((d + 1) % 7));
+        const pool = adyacentes.length > 0 ? adyacentes : candidatos;
+
+        libres.add(pool[(empIndex + semanaN) % pool.length]);
+    }
+
+    return [...libres].sort((a, b) => a - b);
+}
+
+/**
+ * Normaliza una hora a 'HH:MM'.
+ *
+ * La API devuelve las columnas TIME de Postgres como 'HH:MM:SS' y el
+ * <input type="time"> necesita 'HH:MM'. Si el valor falta o es basura,
+ * devuelve la hora de entrada por defecto (comportamiento previo).
+ */
+function normalizarHora(valor) {
+    const match = String(valor ?? '').trim().match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return HORA_ENTRADA_DEFECTO;
+    const horas = parseInt(match[1], 10);
+    const minutos = parseInt(match[2], 10);
+    if (horas > 23 || minutos > 59) return HORA_ENTRADA_DEFECTO;
+    return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+}
+
+/**
+ * Suma minutos a una hora 'HH:MM' y devuelve 'HH:MM'
+ */
+function sumarMinutos(horaHHMM, minutos) {
+    const [h, m] = horaHHMM.split(':').map(Number);
+    const total = ((h * 60 + m + minutos) % 1440 + 1440) % 1440;
+    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
+/**
+ * Calcula el turno (inicio/fin) repartiendo las horas de contrato entre los
+ * días que el empleado trabaja esa semana.
+ *
+ * La hora de entrada sale de la ficha del empleado (`hora_entrada`); si no
+ * tiene, entra a la hora por defecto.
+ *
+ * Redondea hacia ABAJO al minuto: el total semanal nunca supera el contrato
+ * (evita generar horas extra sin querer).
+ */
+function calcularTurnoDiario(horasContrato, diasTrabajo, horaEntrada) {
+    const horas = Number(horasContrato) > 0 ? Number(horasContrato) : 40;
+    if (diasTrabajo <= 0) return null;
+
+    const brutas = horas / diasTrabajo;
+    const acotadas = Math.min(JORNADA_MAX_HORAS, Math.max(JORNADA_MIN_HORAS, brutas));
+    const minutos = Math.floor(acotadas * 60);
+    const inicio = normalizarHora(horaEntrada);
+
+    return {
+        hora_inicio: inicio,
+        hora_fin: sumarMinutos(inicio, minutos)
+    };
+}
+
+/**
+ * Algoritmo de generación automática de horarios.
+ *
+ * Reglas (iguales para TODOS los restaurantes: nada depende del nombre del
+ * empleado, solo de lo configurado en su ficha):
+ * 1. Respeta los turnos ya asignados manualmente
+ * 2. Respeta los días libres fijos de la ficha del empleado
+ * 3. Garantiza el descanso semanal mínimo, contando los fijos dentro del cupo
+ * 4. Reparte las horas de contrato entre los días trabajados
  */
 async function generarHorarioInteligente(empleados, fechaInicio, fechaFin, horariosExistentes) {
     const turnosNuevos = [];
@@ -923,108 +997,40 @@ async function generarHorarioInteligente(empleados, fechaInicio, fechaFin, horar
 
         console.log(`   Turnos existentes: ${diasConTurno.length} días`, diasConTurno);
 
-        // ============================================
-        // REGLAS DE NEGOCIO POR EMPLEADO
-        // Reglas preferidas (flexibles, basadas en patrones reales)
-        // ============================================
-        const nombreLower = emp.nombre.toLowerCase();
-        let diasLibresPreferidos = [];
-        let soloSabados = false;
-        let siempreLibraDomingo = false;
-        let libraSabadoDomingo = false;
-
-        // Calcular número de semana para rotación de domingos
+        // Número de semana: hace la rotación determinista (misma semana =
+        // mismo resultado) y reparte los días libres entre empleados.
         const semanaN = Math.floor(fechaInicio.getTime() / (7 * 24 * 60 * 60 * 1000));
-        // Rotación de domingos: alternamos por empleado + semana
-        const trabajaDomingoEstaSemana = (empIndex + semanaN) % 2 === 0;
 
-        // JAVI: Solo viene sábados
-        if (nombreLower.includes('javi')) {
-            soloSabados = true;
-            diasLibresPreferidos = [0, 1, 2, 3, 4, 5]; // Todo menos sábado (6)
-        }
-        // IKER: Siempre libra domingo + 2 días entre semana (rotativos)
-        else if (nombreLower.includes('iker')) {
-            siempreLibraDomingo = true;
-            const diasEntreSemana = [[1, 2], [2, 3], [3, 4], [4, 5]];
-            const pareja = diasEntreSemana[semanaN % diasEntreSemana.length];
-            diasLibresPreferidos = [0, ...pareja]; // Domingo + 2 días entre semana
-        }
-        // FRAN: SIEMPRE libra Sab+Dom
-        else if (nombreLower.includes('fran')) {
-            libraSabadoDomingo = true;
-            diasLibresPreferidos = [0, 6]; // Dom, Sab
-        }
-        // LOLA: SIEMPRE libra Sab+Dom
-        else if (nombreLower.includes('lola')) {
-            libraSabadoDomingo = true;
-            diasLibresPreferidos = [0, 6]; // Dom, Sab
-        }
-        // BEA: Libra Mié+Jue + rotación domingos
-        else if (nombreLower.includes('bea')) {
-            diasLibresPreferidos = [3, 4]; // Mié, Jue
-            // Domingos: trabaja uno sí, uno no
-            if (!trabajaDomingoEstaSemana) {
-                diasLibresPreferidos.push(0); // Este domingo libra
-            }
-        }
-        // LAURA: Libra Lun+Mar + rotación domingos
-        else if (nombreLower.includes('laura')) {
-            diasLibresPreferidos = [1, 2]; // Lun, Mar
-            // Domingos: trabaja uno sí, uno no
-            if (!trabajaDomingoEstaSemana) {
-                diasLibresPreferidos.push(0); // Este domingo libra
-            }
-        }
-        // Otros: usar días libres fijos si los tiene, o rotar
-        else {
-            if (diasLibresFijos.length >= 2) {
-                diasLibresPreferidos = [...diasLibresFijos];
-            } else {
-                // Rotación por índice
-                const patrones = [[1, 2], [2, 3], [3, 4], [4, 5]];
-                diasLibresPreferidos = patrones[empIndex % patrones.length];
-            }
-            // Domingos: trabaja uno sí, uno no
-            if (!trabajaDomingoEstaSemana) {
-                diasLibresPreferidos.push(0);
-            }
-        }
+        // Días libres de la semana = los fijos de su ficha, completados hasta
+        // el descanso mínimo. Los fijos cuentan DENTRO del cupo, no se suman.
+        const diasLibresSemana = calcularDiasLibresSemana(diasLibresFijos, empIndex, semanaN);
 
-        console.log(`   Días libres preferidos: ${diasLibresPreferidos} (0=Dom, 1=Lun...6=Sab)`);
-        console.log(`   Trabaja domingo esta semana: ${trabajaDomingoEstaSemana}`);
+        const diasTrabajo = Math.max(0, dias.length - diasLibresSemana.filter(
+            d => dias.some(dia => dia.diaSemana === d)
+        ).length);
+
+        const turno = calcularTurnoDiario(emp.horas_contrato, diasTrabajo, emp.hora_entrada);
+
+        console.log(`   Días libres esta semana: ${diasLibresSemana} (0=Dom, 1=Lun...6=Sab)`);
+        console.log(`   Días de trabajo: ${diasTrabajo} · Turno: ${turno ? `${turno.hora_inicio}-${turno.hora_fin}` : 'ninguno'}`);
+
+        if (!turno) return;
 
         // Asignar turnos a días disponibles
         dias.forEach(dia => {
             // Verificar si ya tiene turno este día
             if (diasConTurno.includes(dia.fechaStr)) return;
 
-            // JAVI: Solo viene sábados
-            if (soloSabados && dia.diaSemana !== 6) return;
-
-            // Verificar si es día libre fijo (de la ficha del empleado)
-            if (diasLibresFijos.includes(dia.diaSemana)) return;
-
-            // Aplicar días libres preferidos
-            if (diasLibresPreferidos.includes(dia.diaSemana)) return;
-
-            // Horario según empleado
-            let horaInicio = '10:00';
-            let horaFin = '18:00';
-
-            // FRAN: Entra a las 11:30
-            if (nombreLower.includes('fran')) {
-                horaInicio = '11:30';
-                horaFin = '19:30';
-            }
+            // Día libre (fijo de la ficha o asignado para cubrir el descanso)
+            if (diasLibresSemana.includes(dia.diaSemana)) return;
 
             // Añadir turno
             turnosNuevos.push({
                 empleado_id: emp.id,
                 fecha: dia.fechaStr,
                 turno: 'mañana',
-                hora_inicio: horaInicio,
-                hora_fin: horaFin,
+                hora_inicio: turno.hora_inicio,
+                hora_fin: turno.hora_fin,
                 es_extra: false
             });
         });
@@ -1097,6 +1103,15 @@ function esHoyFecha(fecha) {
 function generarColorAleatorio() {
     const colores = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#feca57', '#48dbfb'];
     return colores[Math.floor(Math.random() * colores.length)];
+}
+
+/**
+ * Filtra empleados por departamento usando el campo `puesto` de su ficha.
+ * NUNCA por nombre: cada restaurante tiene su propia plantilla.
+ */
+function filtrarPorDepartamento(lista) {
+    if (filtroDepartamento === 'todos') return lista;
+    return lista.filter(emp => (emp.puesto || '').toLowerCase() === filtroDepartamento);
 }
 
 /**
