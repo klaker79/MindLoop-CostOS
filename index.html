@@ -2605,13 +2605,25 @@
               </div>
             </div>
 
-            <!-- Horas contrato -->
-            <div class="form-group">
-              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
-                <span data-i18n="horarios:employee_hours_contract">⏱️ Horas contrato/semana</span>
-              </label>
-              <input type="number" id="empleado-horas-contrato" class="form-input" placeholder="40" min="0" max="168"
-                style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
+            <!-- Fila: Horas contrato + Hora de entrada -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <!-- Horas contrato -->
+              <div class="form-group">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
+                  <span data-i18n="horarios:employee_hours_contract">⏱️ Horas contrato/semana</span>
+                </label>
+                <input type="number" id="empleado-horas-contrato" class="form-input" placeholder="40" min="0" max="168"
+                  style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
+              </div>
+
+              <!-- Hora de entrada -->
+              <div class="form-group">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
+                  <span data-i18n="horarios:employee_start_time">🕙 Hora de entrada</span>
+                </label>
+                <input type="time" id="empleado-hora-entrada" class="form-input" value="10:00" step="300"
+                  style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
+              </div>
             </div>
           </div>
 

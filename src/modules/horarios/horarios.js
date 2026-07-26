@@ -381,6 +381,7 @@ window.nuevoEmpleado = function () {
     document.getElementById('empleado-color').value = generarColorAleatorio();
     document.getElementById('empleado-puesto').value = 'cocina';
     document.getElementById('empleado-horas-contrato').value = '40';
+    document.getElementById('empleado-hora-entrada').value = HORA_ENTRADA_DEFECTO;
 
     // Desmarcar checkboxes
     ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'].forEach(dia => {
@@ -421,6 +422,7 @@ window.editarEmpleado = async function (id) {
     document.getElementById('empleado-color').value = emp.color || '#667eea';
     document.getElementById('empleado-puesto').value = emp.puesto || 'cocina';
     document.getElementById('empleado-horas-contrato').value = emp.horas_contrato || '40';
+    document.getElementById('empleado-hora-entrada').value = normalizarHora(emp.hora_entrada);
 
     // Marcar días libres
     const diasLibres = typeof emp.dias_libres_fijos === 'string' ? safeJSONParse(emp.dias_libres_fijos, []) : (emp.dias_libres_fijos || []);
@@ -458,6 +460,7 @@ window.guardarEmpleado = async function () {
     const color = document.getElementById('empleado-color').value;
     const puesto = document.getElementById('empleado-puesto').value;
     const horasContrato = parseInt(document.getElementById('empleado-horas-contrato').value) || 40;
+    const horaEntrada = normalizarHora(document.getElementById('empleado-hora-entrada').value);
 
     // Validar
     if (!nombre) {
@@ -479,6 +482,7 @@ window.guardarEmpleado = async function () {
         color,
         puesto,
         horas_contrato: horasContrato,
+        hora_entrada: horaEntrada,
         dias_libres_fijos: JSON.stringify(diasLibres),
         activo: true
     };
@@ -791,7 +795,8 @@ window.generarHorarioIA = async function () {
         t('horarios:ai_rules_title') + '\n' +
         '- ' + t('horarios:ai_rule_fixed_days') + '\n' +
         '- ' + t('horarios:ai_rule_weekly_rest', { count: DESCANSO_SEMANAL_MINIMO }) + '\n' +
-        '- ' + t('horarios:ai_rule_contract_hours')
+        '- ' + t('horarios:ai_rule_contract_hours') + '\n' +
+        '- ' + t('horarios:ai_rule_start_time')
     );
 
     if (!accion) return;
@@ -896,6 +901,22 @@ function calcularDiasLibresSemana(diasLibresFijos, empIndex, semanaN) {
 }
 
 /**
+ * Normaliza una hora a 'HH:MM'.
+ *
+ * La API devuelve las columnas TIME de Postgres como 'HH:MM:SS' y el
+ * <input type="time"> necesita 'HH:MM'. Si el valor falta o es basura,
+ * devuelve la hora de entrada por defecto (comportamiento previo).
+ */
+function normalizarHora(valor) {
+    const match = String(valor ?? '').trim().match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return HORA_ENTRADA_DEFECTO;
+    const horas = parseInt(match[1], 10);
+    const minutos = parseInt(match[2], 10);
+    if (horas > 23 || minutos > 59) return HORA_ENTRADA_DEFECTO;
+    return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+}
+
+/**
  * Suma minutos a una hora 'HH:MM' y devuelve 'HH:MM'
  */
 function sumarMinutos(horaHHMM, minutos) {
@@ -908,20 +929,24 @@ function sumarMinutos(horaHHMM, minutos) {
  * Calcula el turno (inicio/fin) repartiendo las horas de contrato entre los
  * días que el empleado trabaja esa semana.
  *
+ * La hora de entrada sale de la ficha del empleado (`hora_entrada`); si no
+ * tiene, entra a la hora por defecto.
+ *
  * Redondea hacia ABAJO al minuto: el total semanal nunca supera el contrato
  * (evita generar horas extra sin querer).
  */
-function calcularTurnoDiario(horasContrato, diasTrabajo) {
+function calcularTurnoDiario(horasContrato, diasTrabajo, horaEntrada) {
     const horas = Number(horasContrato) > 0 ? Number(horasContrato) : 40;
     if (diasTrabajo <= 0) return null;
 
     const brutas = horas / diasTrabajo;
     const acotadas = Math.min(JORNADA_MAX_HORAS, Math.max(JORNADA_MIN_HORAS, brutas));
     const minutos = Math.floor(acotadas * 60);
+    const inicio = normalizarHora(horaEntrada);
 
     return {
-        hora_inicio: HORA_ENTRADA_DEFECTO,
-        hora_fin: sumarMinutos(HORA_ENTRADA_DEFECTO, minutos)
+        hora_inicio: inicio,
+        hora_fin: sumarMinutos(inicio, minutos)
     };
 }
 
@@ -984,7 +1009,7 @@ async function generarHorarioInteligente(empleados, fechaInicio, fechaFin, horar
             d => dias.some(dia => dia.diaSemana === d)
         ).length);
 
-        const turno = calcularTurnoDiario(emp.horas_contrato, diasTrabajo);
+        const turno = calcularTurnoDiario(emp.horas_contrato, diasTrabajo, emp.hora_entrada);
 
         console.log(`   Días libres esta semana: ${diasLibresSemana} (0=Dom, 1=Lun...6=Sab)`);
         console.log(`   Días de trabajo: ${diasTrabajo} · Turno: ${turno ? `${turno.hora_inicio}-${turno.hora_fin}` : 'ninguno'}`);
