@@ -2590,14 +2590,46 @@
                   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
               </div>
 
-              <!-- Hora de entrada -->
+              <!-- Tipo de jornada -->
               <div class="form-group">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;">
-                  <span data-i18n="horarios:employee_start_time">🕙 Hora de entrada</span>
+                  <span data-i18n="horarios:employee_shift_type">🕙 Jornada</span>
                 </label>
-                <input type="time" id="empleado-hora-entrada" class="form-input" value="10:00" step="300"
+                <select id="empleado-jornada-tipo" onchange="window.actualizarCamposJornada()"
                   style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.2s;">
+                  <option value="seguido" data-i18n="horarios:shift_type_straight">Seguido</option>
+                  <option value="partido" data-i18n="horarios:shift_type_split">Partido</option>
+                </select>
               </div>
+            </div>
+
+            <!-- Horario habitual (plantilla que usa el generador) -->
+            <div class="form-group" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+              <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #1e293b; font-size: 14px;">
+                <span data-i18n="horarios:employee_usual_schedule">Horario habitual</span>
+              </label>
+
+              <div style="display: grid; grid-template-columns: 70px 1fr 14px 1fr; gap: 10px; align-items: center;">
+                <span id="empleado-tramo1-label" style="font-size: 13px; font-weight: 600; color: #64748b;"
+                  data-i18n="horarios:shift_slot_1">Tramo 1</span>
+                <input type="time" id="empleado-tramo1-inicio" value="10:00" step="300"
+                  style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                <span style="text-align: center; color: #94a3b8;">→</span>
+                <input type="time" id="empleado-tramo1-fin" value="18:00" step="300"
+                  style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+              </div>
+
+              <div id="empleado-tramo2-fila" style="display: none; grid-template-columns: 70px 1fr 14px 1fr; gap: 10px; align-items: center; margin-top: 10px;">
+                <span style="font-size: 13px; font-weight: 600; color: #64748b;"
+                  data-i18n="horarios:shift_slot_2">Tramo 2</span>
+                <input type="time" id="empleado-tramo2-inicio" value="20:00" step="300"
+                  style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                <span style="text-align: center; color: #94a3b8;">→</span>
+                <input type="time" id="empleado-tramo2-fin" value="00:00" step="300"
+                  style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+              </div>
+
+              <div id="empleado-jornada-resumen" style="margin-top: 10px; font-size: 13px; color: #64748b;"></div>
             </div>
           </div>
 
@@ -2649,6 +2681,63 @@
               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 12px 32px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); cursor: pointer;">
               <span id="btn-guardar-empleado-text" data-i18n="horarios:btn_save">Guardar</span>
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: editar el horario de UN día (permite partir ese día suelto) -->
+      <div id="modal-dia"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 16px; width: 92%; max-width: 460px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 24px; color: white;">
+            <div style="font-size: 20px; font-weight: 700;">🕙 <span id="dia-empleado-nombre"></span></div>
+            <div id="dia-fecha" style="font-size: 14px; opacity: 0.9; text-transform: capitalize;"></div>
+          </div>
+
+          <div style="padding: 24px;">
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px;"
+                data-i18n="horarios:employee_shift_type">Jornada</label>
+              <select id="dia-jornada-tipo" onchange="window.actualizarCamposDia()"
+                style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px;">
+                <option value="seguido" data-i18n="horarios:shift_type_straight">Seguido</option>
+                <option value="partido" data-i18n="horarios:shift_type_split">Partido</option>
+              </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 70px 1fr 14px 1fr; gap: 10px; align-items: center;">
+              <span style="font-size: 13px; font-weight: 600; color: #64748b;" data-i18n="horarios:shift_slot_1">Tramo 1</span>
+              <input type="time" id="dia-tramo1-inicio" step="300" onchange="window.actualizarCamposDia()"
+                style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+              <span style="text-align: center; color: #94a3b8;">→</span>
+              <input type="time" id="dia-tramo1-fin" step="300" onchange="window.actualizarCamposDia()"
+                style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div id="dia-tramo2-fila" style="display: none; grid-template-columns: 70px 1fr 14px 1fr; gap: 10px; align-items: center; margin-top: 10px;">
+              <span style="font-size: 13px; font-weight: 600; color: #64748b;" data-i18n="horarios:shift_slot_2">Tramo 2</span>
+              <input type="time" id="dia-tramo2-inicio" step="300" onchange="window.actualizarCamposDia()"
+                style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+              <span style="text-align: center; color: #94a3b8;">→</span>
+              <input type="time" id="dia-tramo2-fin" step="300" onchange="window.actualizarCamposDia()"
+                style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div id="dia-resumen" style="margin-top: 14px; font-size: 13px; color: #64748b;"></div>
+
+            <div style="display: flex; gap: 10px; justify-content: space-between; margin-top: 24px;">
+              <button onclick="window.quitarDia()"
+                style="padding: 12px 18px; border-radius: 10px; font-weight: 600; background: #fef2f2; color: #ef4444; border: 2px solid #fca5a5; cursor: pointer;"
+                data-i18n="horarios:day_clear">Quitar turno</button>
+              <div style="display: flex; gap: 10px;">
+                <button onclick="window.cerrarModalDia()"
+                  style="padding: 12px 20px; border-radius: 10px; font-weight: 600; background: #e2e8f0; border: none; cursor: pointer;"
+                  data-i18n="common:btn_cancel">Cancelar</button>
+                <button onclick="window.guardarDia()"
+                  style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 12px 26px; border-radius: 10px; font-weight: 600; cursor: pointer;"
+                  data-i18n="horarios:btn_save">Guardar</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

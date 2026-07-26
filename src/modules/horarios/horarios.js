@@ -8,6 +8,15 @@ import { getApiUrl } from '../../config/app-config.js';
 import { escapeHTML } from '../../utils/sanitize.js';
 import { getDateLocale } from '../../utils/helpers.js';
 import { t } from '@/i18n/index.js';
+import {
+    normalizarHora,
+    horasDeTramos,
+    validarDia,
+    comprobarDescansoEntreJornadas,
+    tramosDesdePlantilla,
+    etiquetaTramos,
+    DESCANSO_ENTRE_JORNADAS_H
+} from './jornada.js';
 
 /**
  * 🔒 Safe JSON parse para evitar crashes con JSON malformado
@@ -231,22 +240,37 @@ function renderizarDiasLibresSemana(empleadoId) {
  * Calcula las horas trabajadas en la semana por un empleado
  */
 function calcularHorasSemanales(empleadoId) {
-    const turnosEmpleado = horarios.filter(h => h.empleado_id === empleadoId);
-    let totalHoras = 0;
+    // Suma TODOS los tramos de la semana: en turno partido son 2 por día.
+    // horasDeTramos ya cuenta el cruce de medianoche (20:00-00:00 = 4h).
+    return horasDeTramos(horarios.filter(h => h.empleado_id === empleadoId)).toFixed(1);
+}
 
-    turnosEmpleado.forEach(turno => {
-        if (turno.hora_inicio && turno.hora_fin) {
-            const [hIni, mIni] = turno.hora_inicio.split(':').map(Number);
-            const [hFin, mFin] = turno.hora_fin.split(':').map(Number);
-            const ini = hIni * 60 + mIni;
-            const fin = hFin * 60 + mFin;
-            // 🔒 P1-4 FIX: Si fin < ini, el turno cruza medianoche (ej: 22:00→06:00)
-            const minutos = fin < ini ? (fin + 1440 - ini) : (fin - ini);
-            totalHoras += minutos / 60;
-        }
-    });
+/** Normaliza la fecha de un turno ('2026-01-05T00:00:00.000Z' → '2026-01-05'). */
+function fechaDeTurno(turno) {
+    const f = turno.fecha || '';
+    return f.includes('T') ? f.split('T')[0] : f;
+}
 
-    return totalHoras.toFixed(1);
+/** Tramos de un empleado en una fecha, ordenados (1 y luego 2). */
+function tramosDe(empleadoId, fechaStr) {
+    return horarios
+        .filter(h => h.empleado_id === empleadoId && fechaDeTurno(h) === fechaStr)
+        .sort((a, b) => (a.tramo || 1) - (b.tramo || 1));
+}
+
+/**
+ * Días de la semana en los que el empleado NO cumple el descanso legal entre
+ * jornadas. Devuelve las fechas del día que se queda corto (el de la entrada).
+ */
+function diasSinDescanso(empleadoId, dias) {
+    const problemas = [];
+    for (let i = 0; i < dias.length - 1; i++) {
+        const hoy = tramosDe(empleadoId, formatearFecha(dias[i]));
+        const manana = tramosDe(empleadoId, formatearFecha(dias[i + 1]));
+        const r = comprobarDescansoEntreJornadas(hoy, manana);
+        if (!r.cumple) problemas.push({ fecha: formatearFecha(dias[i + 1]), horas: r.horas });
+    }
+    return problemas;
 }
 
 /**
@@ -332,31 +356,43 @@ function renderizarGridHorarios() {
             </td>
         `;
 
+        // Días de esta semana en los que no llega al descanso legal
+        const avisosDescanso = new Map(
+            diasSinDescanso(emp.id, dias).map(p => [p.fecha, p.horas])
+        );
+
         // Celdas de turnos
         dias.forEach(dia => {
             const fechaStr = formatearFecha(dia);
-            // Normalizar la fecha del horario al comparar (puede venir como ISO con T)
-            const turno = horarios.find(h => {
-                const fechaH = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
-                return h.empleado_id === emp.id && fechaH === fechaStr;
-            });
+            const tramos = tramosDe(emp.id, fechaStr);
             const esDiaLibre = esDiaLibreFijo(emp.dias_libres_fijos, dia.getDay());
             const esHoy = esHoyFecha(dia);
+            const descansoCorto = avisosDescanso.get(fechaStr);
 
             html += `<td style="padding: 8px; text-align: center; border-bottom: 1px solid #f1f5f9; ${esHoy ? 'background: #f0f4ff;' : ''}">`;
 
             if (esDiaLibre) {
                 // Día libre fijo del empleado - NO se puede cambiar
                 html += `<div style="padding: 16px 12px; background: #fef2f2; border: 2px solid #fca5a5; border-radius: 8px; color: #ef4444; font-size: 14px; font-weight: 700; cursor: not-allowed;">${t('horarios:grid_libre')}</div>`;
-            } else if (turno) {
-                // TRABAJA - mostrar A CURRAR (verde) - clic para quitar
+            } else if (tramos.length > 0) {
+                // TRABAJA - muestra las horas reales de cada tramo. Clic = editar.
+                const horasDia = horasDeTramos(tramos);
+                const avisoHtml = descansoCorto !== undefined
+                    ? `<div title="${t('horarios:rest_warning', { horas: descansoCorto.toFixed(1), minimo: DESCANSO_ENTRE_JORNADAS_H })}" style="font-size: 11px; color: #b45309; font-weight: 700; margin-top: 4px;">⚠️ ${descansoCorto.toFixed(1)}h</div>`
+                    : '';
+                const lineas = tramos.map(tr =>
+                    `<div style="font-size: 12px; font-weight: 700; color: #166534; white-space: nowrap;">${normalizarHora(tr.hora_inicio)}-${normalizarHora(tr.hora_fin)}</div>`
+                ).join('');
+
                 html += `
-                    <div onclick="window.toggleTurno(${emp.id}, '${fechaStr}')" style="padding: 16px 12px; background: #dcfce7; border: 2px solid #86efac; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #166534; font-size: 13px; font-weight: 700;" onmouseenter="this.style.transform='scale(1.05)'; this.style.background='#bbf7d0';" onmouseleave="this.style.transform='scale(1)'; this.style.background='#dcfce7';">
-                        💪 ${t('horarios:grid_working')}
+                    <div onclick="window.editarDia(${emp.id}, '${fechaStr}')" title="${t('horarios:grid_edit_day')}" style="padding: 10px 8px; background: #dcfce7; border: 2px solid ${descansoCorto !== undefined ? '#f59e0b' : '#86efac'}; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseenter="this.style.background='#bbf7d0';" onmouseleave="this.style.background='#dcfce7';">
+                        ${lineas}
+                        <div style="font-size: 11px; color: #15803d; margin-top: 2px;">${horasDia.toFixed(1).replace('.0', '')}h${tramos.length > 1 ? ' · ' + t('horarios:shift_type_split') : ''}</div>
+                        ${avisoHtml}
                     </div>
                 `;
             } else {
-                // NO TRABAJA - mostrar LIBRE (rojo claro) - clic para añadir
+                // NO TRABAJA - clic para asignar turno según su plantilla
                 html += `<div onclick="window.toggleTurno(${emp.id}, '${fechaStr}')" style="padding: 16px 12px; background: #fef2f2; border: 2px dashed #fca5a5; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #ef4444; font-size: 13px; font-weight: 700;" onmouseenter="this.style.borderColor='#f87171'; this.style.background='#fee2e2';" onmouseleave="this.style.borderColor='#fca5a5'; this.style.background='#fef2f2';">${t('horarios:grid_libre')}</div>`;
             }
 
@@ -371,6 +407,68 @@ function renderizarGridHorarios() {
 }
 
 /**
+ * Vuelca la plantilla de jornada de un empleado en el modal.
+ */
+function cargarPlantillaEnModal(emp) {
+    const partido = emp?.jornada_tipo === 'partido';
+    document.getElementById('empleado-jornada-tipo').value = partido ? 'partido' : 'seguido';
+    document.getElementById('empleado-tramo1-inicio').value =
+        normalizarHora(emp?.tramo1_inicio ?? emp?.hora_entrada, HORA_ENTRADA_DEFECTO);
+    document.getElementById('empleado-tramo1-fin').value =
+        normalizarHora(emp?.tramo1_fin, partido ? '16:00' : '18:00');
+    document.getElementById('empleado-tramo2-inicio').value = normalizarHora(emp?.tramo2_inicio, '20:00');
+    document.getElementById('empleado-tramo2-fin').value = normalizarHora(emp?.tramo2_fin, '00:00');
+    window.actualizarCamposJornada();
+}
+
+/**
+ * Muestra/oculta el segundo tramo y recalcula el resumen de horas del día.
+ * Se llama al cambiar el tipo de jornada o cualquiera de las horas.
+ */
+window.actualizarCamposJornada = function () {
+    const partido = document.getElementById('empleado-jornada-tipo')?.value === 'partido';
+    const fila2 = document.getElementById('empleado-tramo2-fila');
+    if (fila2) fila2.style.display = partido ? 'grid' : 'none';
+
+    const label1 = document.getElementById('empleado-tramo1-label');
+    if (label1) label1.textContent = partido ? t('horarios:shift_slot_1') : t('horarios:shift_slot_single');
+
+    const resumen = document.getElementById('empleado-jornada-resumen');
+    if (!resumen) return;
+
+    const tramos = leerTramosDelModal(partido);
+    const check = validarDia(tramos);
+
+    if (!check.valid) {
+        resumen.innerHTML = `<span style="color: #ef4444; font-weight: 600;">⚠️ ${t(`horarios:shift_error_${check.error}`)}</span>`;
+        return;
+    }
+
+    const contrato = parseInt(document.getElementById('empleado-horas-contrato')?.value, 10) || 40;
+    resumen.innerHTML = t('horarios:shift_summary', {
+        horas: check.horas.toFixed(1).replace('.0', ''),
+        contrato
+    });
+};
+
+/** Lee los tramos que hay ahora mismo en el modal. */
+function leerTramosDelModal(partido) {
+    const tramos = [{
+        tramo: 1,
+        hora_inicio: document.getElementById('empleado-tramo1-inicio')?.value,
+        hora_fin: document.getElementById('empleado-tramo1-fin')?.value
+    }];
+    if (partido) {
+        tramos.push({
+            tramo: 2,
+            hora_inicio: document.getElementById('empleado-tramo2-inicio')?.value,
+            hora_fin: document.getElementById('empleado-tramo2-fin')?.value
+        });
+    }
+    return tramos;
+}
+
+/**
  * Muestra modal para nuevo empleado
  */
 window.nuevoEmpleado = function () {
@@ -381,7 +479,7 @@ window.nuevoEmpleado = function () {
     document.getElementById('empleado-color').value = generarColorAleatorio();
     document.getElementById('empleado-puesto').value = 'cocina';
     document.getElementById('empleado-horas-contrato').value = '40';
-    document.getElementById('empleado-hora-entrada').value = HORA_ENTRADA_DEFECTO;
+    cargarPlantillaEnModal({ jornada_tipo: 'seguido', tramo1_inicio: '10:00', tramo1_fin: '18:00' });
 
     // Desmarcar checkboxes
     ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'].forEach(dia => {
@@ -422,7 +520,7 @@ window.editarEmpleado = async function (id) {
     document.getElementById('empleado-color').value = emp.color || '#667eea';
     document.getElementById('empleado-puesto').value = emp.puesto || 'cocina';
     document.getElementById('empleado-horas-contrato').value = emp.horas_contrato || '40';
-    document.getElementById('empleado-hora-entrada').value = normalizarHora(emp.hora_entrada);
+    cargarPlantillaEnModal(emp);
 
     // Marcar días libres
     const diasLibres = typeof emp.dias_libres_fijos === 'string' ? safeJSONParse(emp.dias_libres_fijos, []) : (emp.dias_libres_fijos || []);
@@ -460,11 +558,18 @@ window.guardarEmpleado = async function () {
     const color = document.getElementById('empleado-color').value;
     const puesto = document.getElementById('empleado-puesto').value;
     const horasContrato = parseInt(document.getElementById('empleado-horas-contrato').value) || 40;
-    const horaEntrada = normalizarHora(document.getElementById('empleado-hora-entrada').value);
+    const jornadaTipo = document.getElementById('empleado-jornada-tipo').value === 'partido' ? 'partido' : 'seguido';
+    const tramos = leerTramosDelModal(jornadaTipo === 'partido');
 
     // Validar
     if (!nombre) {
         showToast(t('horarios:error_name_required'), 'error');
+        return;
+    }
+
+    const jornadaCheck = validarDia(tramos);
+    if (!jornadaCheck.valid) {
+        showToast(t(`horarios:shift_error_${jornadaCheck.error}`), 'error');
         return;
     }
 
@@ -482,7 +587,13 @@ window.guardarEmpleado = async function () {
         color,
         puesto,
         horas_contrato: horasContrato,
-        hora_entrada: horaEntrada,
+        jornada_tipo: jornadaTipo,
+        tramo1_inicio: tramos[0].hora_inicio,
+        tramo1_fin: tramos[0].hora_fin,
+        tramo2_inicio: jornadaTipo === 'partido' ? tramos[1].hora_inicio : null,
+        tramo2_fin: jornadaTipo === 'partido' ? tramos[1].hora_fin : null,
+        // Compatibilidad: el backend la sigue guardando como inicio del tramo 1
+        hora_entrada: tramos[0].hora_inicio,
         dias_libres_fijos: JSON.stringify(diasLibres),
         activo: true
     };
@@ -574,52 +685,188 @@ window.toggleTurno = async function (empleadoId, fecha) {
         return;
     }
 
-    // Buscar turno existente (normalizar fecha ISO)
-    const turnoExistente = horarios.find(h => {
-        const fechaH = h.fecha.includes('T') ? h.fecha.split('T')[0] : h.fecha;
-        return h.empleado_id === empleadoId && fechaH === fecha;
-    });
-
-    if (turnoExistente) {
-        // Quitar turno
+    if (tramosDe(empleadoId, fecha).length > 0) {
         await quitarTurno(empleadoId, fecha);
     } else {
-        // Asignar turno (popup para elegir horario)
+        // Asigna su jornada habitual (la de su ficha), no una hora inventada
         await asignarTurno(empleadoId, fecha);
     }
 };
 
+/** Día que se está editando en el modal de día ({empleadoId, fecha}). */
+let diaEditando = null;
+
 /**
- * Asigna un turno
+ * Abre el editor de un día concreto: permite cambiar las horas o pasar ese día
+ * de seguido a partido sin tocar la plantilla de la ficha.
+ */
+window.editarDia = function (empleadoId, fecha) {
+    const emp = empleados.find(e => e.id === empleadoId);
+    if (!emp) return;
+
+    diaEditando = { empleadoId, fecha };
+    const tramos = tramosDe(empleadoId, fecha);
+    const partido = tramos.length > 1;
+
+    document.getElementById('dia-empleado-nombre').textContent = emp.nombre;
+    document.getElementById('dia-fecha').textContent = new Date(fecha + 'T00:00:00')
+        .toLocaleDateString(getDateLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
+
+    document.getElementById('dia-jornada-tipo').value = partido ? 'partido' : 'seguido';
+    document.getElementById('dia-tramo1-inicio').value = normalizarHora(tramos[0]?.hora_inicio, '10:00');
+    document.getElementById('dia-tramo1-fin').value = normalizarHora(tramos[0]?.hora_fin, '18:00');
+    document.getElementById('dia-tramo2-inicio').value = normalizarHora(tramos[1]?.hora_inicio, '20:00');
+    document.getElementById('dia-tramo2-fin').value = normalizarHora(tramos[1]?.hora_fin, '00:00');
+
+    window.actualizarCamposDia();
+
+    const modal = document.getElementById('modal-dia');
+    modal.style.display = 'flex';
+};
+
+/** Muestra/oculta el 2º tramo del editor de día y recalcula su resumen. */
+window.actualizarCamposDia = function () {
+    const partido = document.getElementById('dia-jornada-tipo')?.value === 'partido';
+    const fila2 = document.getElementById('dia-tramo2-fila');
+    if (fila2) fila2.style.display = partido ? 'grid' : 'none';
+
+    const resumen = document.getElementById('dia-resumen');
+    if (!resumen) return;
+
+    const check = validarDia(leerTramosDelDia(partido));
+    resumen.innerHTML = check.valid
+        ? t('horarios:day_summary', { horas: check.horas.toFixed(1).replace('.0', '') })
+        : `<span style="color: #ef4444; font-weight: 600;">⚠️ ${t(`horarios:shift_error_${check.error}`)}</span>`;
+};
+
+/** Lee los tramos del editor de día. */
+function leerTramosDelDia(partido) {
+    const tramos = [{
+        tramo: 1,
+        hora_inicio: document.getElementById('dia-tramo1-inicio')?.value,
+        hora_fin: document.getElementById('dia-tramo1-fin')?.value
+    }];
+    if (partido) {
+        tramos.push({
+            tramo: 2,
+            hora_inicio: document.getElementById('dia-tramo2-inicio')?.value,
+            hora_fin: document.getElementById('dia-tramo2-fin')?.value
+        });
+    }
+    return tramos;
+}
+
+/** Guarda el día editado. */
+window.guardarDia = async function () {
+    if (!diaEditando) return;
+
+    const partido = document.getElementById('dia-jornada-tipo').value === 'partido';
+    const tramos = leerTramosDelDia(partido);
+
+    const check = validarDia(tramos);
+    if (!check.valid) {
+        showToast(t(`horarios:shift_error_${check.error}`), 'error');
+        return;
+    }
+
+    await guardarTramosDia(diaEditando.empleadoId, diaEditando.fecha, tramos);
+    window.cerrarModalDia();
+};
+
+/** Quita el turno del día que se está editando. */
+window.quitarDia = async function () {
+    if (!diaEditando) return;
+    await quitarTurno(diaEditando.empleadoId, diaEditando.fecha);
+    window.cerrarModalDia();
+};
+
+window.cerrarModalDia = function () {
+    const modal = document.getElementById('modal-dia');
+    if (modal) modal.style.display = 'none';
+    diaEditando = null;
+};
+
+/**
+ * Calcula los minutos de jornada diaria de un empleado repartiendo su contrato
+ * entre los días que trabaja a la semana.
+ */
+function minutosJornadaDe(emp) {
+    const diasLibres = typeof emp.dias_libres_fijos === 'string'
+        ? safeJSONParse(emp.dias_libres_fijos, [])
+        : (emp.dias_libres_fijos || []);
+    const diasTrabajo = Math.max(1, 7 - Math.max(diasLibres.length, DESCANSO_SEMANAL_MINIMO));
+    const contrato = Number(emp.horas_contrato) > 0 ? Number(emp.horas_contrato) : 40;
+    const brutos = (contrato / diasTrabajo) * 60;
+    return Math.floor(Math.min(MAX_MINUTOS_JORNADA, Math.max(MIN_MINUTOS_JORNADA, brutos)));
+}
+
+/**
+ * Asigna a un día la jornada HABITUAL del empleado (su plantilla de ficha).
+ * En turno partido guarda los dos tramos.
  */
 async function asignarTurno(empleadoId, fecha) {
-    // TODO: Mostrar popup para elegir turno (mañana/tarde/noche) y horarios
-    // Por ahora asignamos turno de mañana por defecto
-    const turno = {
-        empleado_id: empleadoId,
-        fecha,
-        turno: 'mañana',
-        hora_inicio: '09:00',
-        hora_fin: '17:00',
-        es_extra: false
-    };
+    const emp = empleados.find(e => e.id === empleadoId);
+    if (!emp) return;
+
+    const tramos = tramosDesdePlantilla(emp, minutosJornadaDe(emp));
+    await guardarTramosDia(empleadoId, fecha, tramos);
+}
+
+/**
+ * Guarda los tramos de un día: borra lo que hubiera y escribe los nuevos.
+ * Devuelve los avisos de descanso que reporte la API.
+ */
+async function guardarTramosDia(empleadoId, fecha, tramos) {
+    const cabeceras = Object.assign(
+        { 'Content-Type': 'application/json' },
+        window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}
+    );
 
     try {
-        const response = await fetch(`${API_BASE}/horarios`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
-            body: JSON.stringify(turno)
+        // Limpiar el día entero para no dejar un tramo 2 huérfano al pasar de
+        // partido a seguido.
+        await fetch(`${API_BASE}/horarios/empleado/${empleadoId}/fecha/${fecha}`, {
+            method: 'DELETE', credentials: 'include', headers: cabeceras
         });
 
-        if (!response.ok) throw new Error('Error asignando turno');
+        let avisos = [];
+        for (const tr of tramos) {
+            const response = await fetch(`${API_BASE}/horarios`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: cabeceras,
+                body: JSON.stringify({
+                    empleado_id: empleadoId,
+                    fecha,
+                    tramo: tr.tramo,
+                    turno: tramos.length > 1 ? 'partido' : 'seguido',
+                    hora_inicio: tr.hora_inicio,
+                    hora_fin: tr.hora_fin,
+                    es_extra: false
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || 'Error asignando turno');
+            }
+            const body = await response.json().catch(() => ({}));
+            if (Array.isArray(body.avisos)) avisos = body.avisos;
+        }
 
         await cargarHorariosSemana();
         renderizarGridHorarios();
+        renderizarEmpleados();
+
+        if (avisos.length > 0) {
+            showToast(`⚠️ ${avisos[0]}`, 'warning');
+        }
+        return avisos;
 
     } catch (error) {
         console.error('Error asignando turno:', error);
         showToast(t('horarios:toast_error_assigning_shift') + ': ' + error.message, 'error');
+        return [];
     }
 }
 
@@ -796,7 +1043,7 @@ window.generarHorarioIA = async function () {
         '- ' + t('horarios:ai_rule_fixed_days') + '\n' +
         '- ' + t('horarios:ai_rule_weekly_rest', { count: DESCANSO_SEMANAL_MINIMO }) + '\n' +
         '- ' + t('horarios:ai_rule_contract_hours') + '\n' +
-        '- ' + t('horarios:ai_rule_start_time')
+        '- ' + t('horarios:ai_rule_split_shift')
     );
 
     if (!accion) return;
@@ -866,6 +1113,8 @@ const DESCANSO_SEMANAL_MINIMO = 2;   // días libres/semana (convenio hostelerí
 const HORA_ENTRADA_DEFECTO = '10:00';
 const JORNADA_MIN_HORAS = 2;
 const JORNADA_MAX_HORAS = 12;
+const MIN_MINUTOS_JORNADA = JORNADA_MIN_HORAS * 60;
+const MAX_MINUTOS_JORNADA = JORNADA_MAX_HORAS * 60;
 
 /**
  * Decide los días libres de la semana para un empleado.
@@ -901,53 +1150,32 @@ function calcularDiasLibresSemana(diasLibresFijos, empIndex, semanaN) {
 }
 
 /**
- * Normaliza una hora a 'HH:MM'.
- *
- * La API devuelve las columnas TIME de Postgres como 'HH:MM:SS' y el
- * <input type="time"> necesita 'HH:MM'. Si el valor falta o es basura,
- * devuelve la hora de entrada por defecto (comportamiento previo).
- */
-function normalizarHora(valor) {
-    const match = String(valor ?? '').trim().match(/^(\d{1,2}):(\d{2})/);
-    if (!match) return HORA_ENTRADA_DEFECTO;
-    const horas = parseInt(match[1], 10);
-    const minutos = parseInt(match[2], 10);
-    if (horas > 23 || minutos > 59) return HORA_ENTRADA_DEFECTO;
-    return `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
-}
-
-/**
- * Suma minutos a una hora 'HH:MM' y devuelve 'HH:MM'
- */
-function sumarMinutos(horaHHMM, minutos) {
-    const [h, m] = horaHHMM.split(':').map(Number);
-    const total = ((h * 60 + m + minutos) % 1440 + 1440) % 1440;
-    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-}
-
-/**
- * Calcula el turno (inicio/fin) repartiendo las horas de contrato entre los
- * días que el empleado trabaja esa semana.
- *
- * La hora de entrada sale de la ficha del empleado (`hora_entrada`); si no
- * tiene, entra a la hora por defecto.
+ * Minutos de jornada diaria: reparte el contrato entre los días trabajados.
  *
  * Redondea hacia ABAJO al minuto: el total semanal nunca supera el contrato
  * (evita generar horas extra sin querer).
+ *
+ * @returns {number|null} null si no trabaja ningún día
  */
-function calcularTurnoDiario(horasContrato, diasTrabajo, horaEntrada) {
+function minutosJornadaDiaria(horasContrato, diasTrabajo) {
     const horas = Number(horasContrato) > 0 ? Number(horasContrato) : 40;
     if (diasTrabajo <= 0) return null;
 
     const brutas = horas / diasTrabajo;
     const acotadas = Math.min(JORNADA_MAX_HORAS, Math.max(JORNADA_MIN_HORAS, brutas));
-    const minutos = Math.floor(acotadas * 60);
-    const inicio = normalizarHora(horaEntrada);
+    return Math.floor(acotadas * 60);
+}
 
-    return {
-        hora_inicio: inicio,
-        hora_fin: sumarMinutos(inicio, minutos)
-    };
+/**
+ * Tramos que le tocan a un empleado en un día de trabajo, según la plantilla
+ * de su ficha (seguido o partido) y su contrato.
+ *
+ * @returns {{tramo, hora_inicio, hora_fin}[]} vacío si no trabaja
+ */
+function calcularTurnoDiario(emp, diasTrabajo) {
+    const minutos = minutosJornadaDiaria(emp?.horas_contrato, diasTrabajo);
+    if (minutos === null) return [];
+    return tramosDesdePlantilla(emp, minutos);
 }
 
 /**
@@ -1009,12 +1237,13 @@ async function generarHorarioInteligente(empleados, fechaInicio, fechaFin, horar
             d => dias.some(dia => dia.diaSemana === d)
         ).length);
 
-        const turno = calcularTurnoDiario(emp.horas_contrato, diasTrabajo, emp.hora_entrada);
+        // Tramos del día según SU plantilla: seguido = 1, partido = 2
+        const tramosDia = calcularTurnoDiario(emp, diasTrabajo);
 
         console.log(`   Días libres esta semana: ${diasLibresSemana} (0=Dom, 1=Lun...6=Sab)`);
-        console.log(`   Días de trabajo: ${diasTrabajo} · Turno: ${turno ? `${turno.hora_inicio}-${turno.hora_fin}` : 'ninguno'}`);
+        console.log(`   Días de trabajo: ${diasTrabajo} · Jornada: ${etiquetaTramos(tramosDia) || 'ninguna'}`);
 
-        if (!turno) return;
+        if (tramosDia.length === 0) return;
 
         // Asignar turnos a días disponibles
         dias.forEach(dia => {
@@ -1024,15 +1253,18 @@ async function generarHorarioInteligente(empleados, fechaInicio, fechaFin, horar
             // Día libre (fijo de la ficha o asignado para cubrir el descanso)
             if (diasLibresSemana.includes(dia.diaSemana)) return;
 
-            // Añadir turno
-            turnosNuevos.push({
-                empleado_id: emp.id,
-                fecha: dia.fechaStr,
-                turno: 'mañana',
-                hora_inicio: turno.hora_inicio,
-                hora_fin: turno.hora_fin,
-                es_extra: false
-            });
+            // Una entrada por tramo (el partido genera 2 el mismo día)
+            for (const tr of tramosDia) {
+                turnosNuevos.push({
+                    empleado_id: emp.id,
+                    fecha: dia.fechaStr,
+                    tramo: tr.tramo,
+                    turno: tramosDia.length > 1 ? 'partido' : 'seguido',
+                    hora_inicio: tr.hora_inicio,
+                    hora_fin: tr.hora_fin,
+                    es_extra: false
+                });
+            }
         });
     });
 

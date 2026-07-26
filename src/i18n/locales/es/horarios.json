@@ -85,7 +85,6 @@
   "download_week_label": "Semana {{num}}: {{start}} - {{end}} de {{month}}",
   "download_footer_generated": "Generado con ❤️ por",
   "download_footer_rights": "Todos los derechos reservados",
-
   "staff_scheduler_title": "MindLoop Staff Scheduler",
   "staff_scheduler_subtitle": "Gestión inteligente de horarios y plantilla",
   "active_staff": "Plantilla Activa",
@@ -112,5 +111,23 @@
   "empty_add_for_schedule": "Añade empleados para empezar",
   "empty_schedule_ai_hint": "El horario se generará automáticamente con IA",
   "inteligencia_loading": "Cargando Inteligencia...",
-  "employee_name_required": "Nombre *"
+  "employee_name_required": "Nombre *",
+  "employee_shift_type": "Jornada",
+  "shift_type_straight": "Seguido",
+  "shift_type_split": "Partido",
+  "employee_usual_schedule": "Horario habitual",
+  "shift_slot_1": "Tramo 1",
+  "shift_slot_2": "Tramo 2",
+  "shift_slot_single": "Horario",
+  "shift_summary": "{{horas}}h al día · contrato {{contrato}}h/semana",
+  "shift_error_max_slots": "Un día admite como máximo 2 tramos",
+  "shift_error_invalid_time": "Horas inválidas",
+  "shift_error_slot_too_long": "Un tramo no puede pasar de 12h",
+  "shift_error_slots_overlap": "Los dos tramos se solapan",
+  "shift_error_day_too_long": "La jornada del día no puede pasar de 12h",
+  "rest_warning": "Sólo {{horas}}h de descanso desde el día anterior (mínimo {{minimo}}h)",
+  "grid_edit_day": "Clic para editar el horario de este día",
+  "day_summary": "Total del día: {{horas}}h",
+  "day_clear": "Quitar turno",
+  "ai_rule_split_shift": "Aplica la jornada habitual de cada ficha (seguida o partida)"
 }
