@@ -1,23 +1,28 @@
 /**
  * @jest-environment node
  *
- * Guard de regresión — bug 2026-07-26.
+ * Guards de regresión del módulo de horarios.
  *
- * El generador de horarios tenía la plantilla de La Nave 5 escrita a mano en el
- * código (`nombreLower.includes('bea')`, `'fran'`, `'laura'`…), y el filtro
- * COCINA/SALA usaba listas de nombres. Consecuencias en CUALQUIER tenant:
+ * 2026-07-26 (a) — El generador tenía la plantilla de La Nave 5 escrita a mano
+ * en el código (`nombreLower.includes('bea')`, `'fran'`…) y el filtro
+ * COCINA/SALA usaba listas de nombres. En CUALQUIER tenant eso provocaba:
+ * días libres duplicados (1 en la ficha → 3 reales), `horas_contrato` ignorado
+ * y reglas heredadas por llamarse parecido.
  *
- *  1. Un empleado con 1 día libre fijo recibía ADEMÁS un patrón inventado de 2
- *     días (`patrones[empIndex % 4]`) porque el `else` exigía `length >= 2`.
- *     Los dos se acumulaban → 3 días libres con 1 configurado (JUAN, 32h/40h).
- *  2. `horas_contrato` no se leía nunca: turno fijo de 8h para todos.
- *  3. Un "Fran" de otro restaurante heredaba el horario del Fran de La Nave 5,
- *     y un "JUAN" aparecía en SALA aunque su ficha dijera Cocina.
+ * 2026-07-26 (b) — El modelo sólo admitía UN turno por empleado y día
+ * (UNIQUE(empleado_id, fecha) + una sola hora de entrada), así que el turno
+ * PARTIDO —la norma en hostelería— era imposible. Ahora el día son tramos.
  *
- * Fix: las reglas salen SOLO de la ficha (dias_libres_fijos, horas_contrato,
- * puesto). Este test falla si alguien vuelve a cablear un nombre propio.
+ * Este fichero falla si alguien vuelve a cablear un nombre propio o si el
+ * generador deja de mirar la ficha del empleado.
  */
 import { readFileSync } from 'fs';
+import {
+    horasDeTramos,
+    validarDia,
+    tramosDesdePlantilla,
+    comprobarDescansoEntreJornadas
+} from '../../modules/horarios/jornada.js';
 
 const RUTA = 'src/modules/horarios/horarios.js';
 const src = readFileSync(RUTA, 'utf8');
@@ -37,25 +42,19 @@ function extraerFuncion(nombre) {
     throw new Error(`Cuerpo sin cerrar: ${nombre}`);
 }
 
-const sandbox = new Function(`
+// Ejecuta las funciones puras del módulo inyectándoles sus dependencias reales
+// de jornada.js — así el test valida el código que corre en producción.
+const sandbox = new Function('tramosDesdePlantilla', `
     const DESCANSO_SEMANAL_MINIMO = 2;
-    const HORA_ENTRADA_DEFECTO = '10:00';
     const JORNADA_MIN_HORAS = 2;
     const JORNADA_MAX_HORAS = 12;
     ${extraerFuncion('calcularDiasLibresSemana')}
-    ${extraerFuncion('normalizarHora')}
-    ${extraerFuncion('sumarMinutos')}
+    ${extraerFuncion('minutosJornadaDiaria')}
     ${extraerFuncion('calcularTurnoDiario')}
-    return { calcularDiasLibresSemana, normalizarHora, sumarMinutos, calcularTurnoDiario };
-`)();
+    return { calcularDiasLibresSemana, minutosJornadaDiaria, calcularTurnoDiario };
+`)(tramosDesdePlantilla);
 
-const { calcularDiasLibresSemana, normalizarHora, calcularTurnoDiario } = sandbox;
-
-const duracionHoras = (inicio, fin) => {
-    const [hi, mi] = inicio.split(':').map(Number);
-    const [hf, mf] = fin.split(':').map(Number);
-    return ((hf * 60 + mf) - (hi * 60 + mi)) / 60;
-};
+const { calcularDiasLibresSemana, minutosJornadaDiaria, calcularTurnoDiario } = sandbox;
 
 describe('Generador de horarios — sin nombres cableados', () => {
     const NOMBRES_PROHIBIDOS = ['bea', 'fran', 'laura', 'lola', 'javi', 'iker', 'perol', 'lorena', 'guille'];
@@ -70,8 +69,8 @@ describe('Generador de horarios — sin nombres cableados', () => {
         expect(src).toMatch(/emp\.puesto\s*\|\|\s*''\)\.toLowerCase\(\)\s*===\s*filtroDepartamento/);
     });
 
-    test('el generador lee horas_contrato de la ficha', () => {
-        expect(src).toMatch(/calcularTurnoDiario\(emp\.horas_contrato/);
+    test('el generador pasa la ficha entera (contrato + plantilla) al turno', () => {
+        expect(src).toMatch(/calcularTurnoDiario\(emp,\s*diasTrabajo\)/);
     });
 
     test('ya no existe el patrón rotativo inventado que ignoraba la ficha', () => {
@@ -80,7 +79,7 @@ describe('Generador de horarios — sin nombres cableados', () => {
 });
 
 describe('Días libres — los fijos cuentan DENTRO del cupo, no se suman', () => {
-    // El caso exacto del bug: 1 día libre fijo (Martes) → deben salir 2, no 3.
+    // El caso del bug: 1 día libre fijo (Martes) → deben salir 2, no 3.
     test.each([0, 1, 2, 3])('un solo fijo (Mar) da 2 días libres — semana %i', (semana) => {
         for (let empIndex = 0; empIndex < 4; empIndex++) {
             const libres = calcularDiasLibresSemana([2], empIndex, semana);
@@ -126,76 +125,121 @@ describe('Días libres — los fijos cuentan DENTRO del cupo, no se suman', () =
     });
 });
 
-describe('Turno diario — reparte las horas de contrato', () => {
-    test.each([[40, 8], [20, 4], [30, 6], [35, 7], [37.5, 7.5]])(
-        'contrato %ph en 5 días → jornada de %ph', (contrato, esperadas) => {
-            const turno = calcularTurnoDiario(contrato, 5);
-            expect(duracionHoras(turno.hora_inicio, turno.hora_fin)).toBeCloseTo(esperadas, 2);
+describe('Jornada diaria — reparte las horas de contrato', () => {
+    test.each([[40, 480], [20, 240], [30, 360], [35, 420], [37.5, 450]])(
+        'contrato %ph en 5 días → %p min/día', (contrato, esperados) => {
+            expect(minutosJornadaDiaria(contrato, 5)).toBe(esperados);
         });
 
     test('el total semanal nunca supera el contrato', () => {
         for (const contrato of [40, 24, 32, 38, 21]) {
-            const turno = calcularTurnoDiario(contrato, 5);
-            const total = duracionHoras(turno.hora_inicio, turno.hora_fin) * 5;
+            const total = (minutosJornadaDiaria(contrato, 5) * 5) / 60;
             expect(total).toBeLessThanOrEqual(contrato);
-            expect(contrato - total).toBeLessThan(0.1); // menos de 6 min de desvío
+            expect(contrato - total).toBeLessThan(0.1);
         }
     });
 
     test('acota la jornada a un máximo razonable', () => {
-        const turno = calcularTurnoDiario(40, 1);
-        expect(duracionHoras(turno.hora_inicio, turno.hora_fin)).toBeLessThanOrEqual(12);
+        expect(minutosJornadaDiaria(40, 1)).toBeLessThanOrEqual(12 * 60);
     });
 
     test('sin días de trabajo no genera turno', () => {
-        expect(calcularTurnoDiario(40, 0)).toBeNull();
+        expect(minutosJornadaDiaria(40, 0)).toBeNull();
+        expect(calcularTurnoDiario({ horas_contrato: 40 }, 0)).toEqual([]);
     });
 
     test('horas_contrato vacío cae a 40h', () => {
         for (const vacio of [null, undefined, 0, '']) {
-            const turno = calcularTurnoDiario(vacio, 5);
-            expect(duracionHoras(turno.hora_inicio, turno.hora_fin)).toBeCloseTo(8, 2);
+            expect(minutosJornadaDiaria(vacio, 5)).toBe(480);
         }
     });
 });
 
-describe('Hora de entrada — sale de la ficha, no del nombre', () => {
-    test('el generador pasa emp.hora_entrada a calcularTurnoDiario', () => {
-        expect(src).toMatch(/calcularTurnoDiario\(emp\.horas_contrato,\s*diasTrabajo,\s*emp\.hora_entrada\)/);
+describe('Turno PARTIDO — la norma en hostelería', () => {
+    test('jornada seguida genera UN tramo', () => {
+        const t = calcularTurnoDiario(
+            { horas_contrato: 40, jornada_tipo: 'seguido', tramo1_inicio: '10:00' }, 5);
+        expect(t).toHaveLength(1);
+        expect(t[0]).toEqual({ tramo: 1, hora_inicio: '10:00', hora_fin: '18:00' });
     });
 
-    test('la hora de la ficha manda sobre el defecto', () => {
-        // El caso que antes estaba cableado como `if (includes('fran'))`
-        const turno = calcularTurnoDiario(40, 5, '11:30');
-        expect(turno.hora_inicio).toBe('11:30');
-        expect(turno.hora_fin).toBe('19:30');
+    test('jornada partida genera DOS tramos que suman el día', () => {
+        const t = calcularTurnoDiario({
+            horas_contrato: 40, jornada_tipo: 'partido',
+            tramo1_inicio: '12:00', tramo2_inicio: '20:00'
+        }, 5);
+        expect(t).toHaveLength(2);
+        expect(t[0]).toEqual({ tramo: 1, hora_inicio: '12:00', hora_fin: '16:00' });
+        expect(t[1]).toEqual({ tramo: 2, hora_inicio: '20:00', hora_fin: '00:00' });
+        expect(horasDeTramos(t)).toBeCloseTo(8, 3);
     });
 
-    test('sin hora en la ficha entra a las 10:00 (comportamiento previo)', () => {
-        for (const vacio of [null, undefined, '']) {
-            const turno = calcularTurnoDiario(40, 5, vacio);
-            expect(turno.hora_inicio).toBe('10:00');
-            expect(turno.hora_fin).toBe('18:00');
+    test('las horas de la ficha mandan sobre el reparto automático', () => {
+        const t = calcularTurnoDiario({
+            horas_contrato: 40, jornada_tipo: 'partido',
+            tramo1_inicio: '13:00', tramo1_fin: '16:30',
+            tramo2_inicio: '20:00', tramo2_fin: '00:30'
+        }, 5);
+        expect(t[0].hora_fin).toBe('16:30');
+        expect(t[1].hora_fin).toBe('00:30');
+        expect(horasDeTramos(t)).toBeCloseTo(8, 3);
+    });
+
+    test('un tramo que cierra pasada la medianoche cuenta bien las horas', () => {
+        expect(horasDeTramos([{ hora_inicio: '20:00', hora_fin: '00:00' }])).toBeCloseTo(4, 3);
+        expect(horasDeTramos([{ hora_inicio: '20:00', hora_fin: '00:30' }])).toBeCloseTo(4.5, 3);
+    });
+
+    test('lo que genera la plantilla siempre es un día válido', () => {
+        for (const contrato of [20, 30, 40, 45]) {
+            for (const tipo of ['seguido', 'partido']) {
+                const t = calcularTurnoDiario({
+                    horas_contrato: contrato, jornada_tipo: tipo,
+                    tramo1_inicio: '12:00', tramo2_inicio: '20:00'
+                }, 5);
+                expect(validarDia(t).valid).toBe(true);
+            }
         }
     });
 
-    test('acepta el HH:MM:SS que devuelve Postgres para columnas TIME', () => {
-        const turno = calcularTurnoDiario(40, 5, '11:30:00');
-        expect(turno.hora_inicio).toBe('11:30');
-        expect(turno.hora_fin).toBe('19:30');
+    test('rechaza tramos solapados', () => {
+        const r = validarDia([
+            { hora_inicio: '12:00', hora_fin: '18:00' },
+            { hora_inicio: '16:00', hora_fin: '22:00' }
+        ]);
+        expect(r.valid).toBe(false);
+        expect(r.error).toBe('slots_overlap');
+    });
+});
+
+describe('Descanso legal entre jornadas (12h)', () => {
+    test('cerrar a las 00:00 y entrar a las 09:00 NO cumple', () => {
+        const r = comprobarDescansoEntreJornadas(
+            [{ hora_inicio: '20:00', hora_fin: '00:00' }],
+            [{ hora_inicio: '09:00', hora_fin: '17:00' }]
+        );
+        expect(r.cumple).toBe(false);
+        expect(r.horas).toBeCloseTo(9, 1);
     });
 
-    test('normalizarHora limpia la entrada y cae al defecto con basura', () => {
-        expect(normalizarHora('9:05')).toBe('09:05');
-        expect(normalizarHora('23:59:59')).toBe('23:59');
-        for (const basura of [null, undefined, '', 'abc', '24:00', '10:60', '10']) {
-            expect(normalizarHora(basura)).toBe('10:00');
-        }
+    test('cerrar a las 00:00 y entrar a las 12:00 SÍ cumple', () => {
+        const r = comprobarDescansoEntreJornadas(
+            [{ hora_inicio: '20:00', hora_fin: '00:00' }],
+            [{ hora_inicio: '12:00', hora_fin: '16:00' }]
+        );
+        expect(r.cumple).toBe(true);
     });
 
-    test('un turno que cruza medianoche no rompe el formato', () => {
-        const turno = calcularTurnoDiario(60, 5, '23:00'); // 12h (tope) desde las 23:00
-        expect(turno.hora_fin).toMatch(/^([01]\d|2[0-3]):[0-5]\d$/);
-        expect(turno.hora_fin).toBe('11:00');
+    test('el partido clásico encadenado día tras día cumple', () => {
+        const partido = [
+            { hora_inicio: '12:00', hora_fin: '16:00' },
+            { hora_inicio: '20:00', hora_fin: '00:00' }
+        ];
+        expect(comprobarDescansoEntreJornadas(partido, partido).cumple).toBe(true);
+    });
+
+    test('la rejilla avisa del descanso corto', () => {
+        expect(src).toMatch(/diasSinDescanso/);
+        expect(src).toMatch(/horarios:rest_warning/);
     });
 });

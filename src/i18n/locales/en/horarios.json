@@ -85,7 +85,6 @@
   "download_week_label": "Week {{num}}: {{start}} - {{end}} {{month}}",
   "download_footer_generated": "Generated with ❤️ by",
   "download_footer_rights": "All rights reserved",
-
   "staff_scheduler_title": "MindLoop Staff Scheduler",
   "staff_scheduler_subtitle": "Intelligent schedule and staff management",
   "active_staff": "Active Staff",
@@ -112,5 +111,23 @@
   "empty_add_for_schedule": "Add employees to get started",
   "empty_schedule_ai_hint": "The schedule will be generated automatically with AI",
   "inteligencia_loading": "Loading Intelligence...",
-  "employee_name_required": "Name *"
+  "employee_name_required": "Name *",
+  "employee_shift_type": "Shift",
+  "shift_type_straight": "Straight",
+  "shift_type_split": "Split",
+  "employee_usual_schedule": "Usual schedule",
+  "shift_slot_1": "Slot 1",
+  "shift_slot_2": "Slot 2",
+  "shift_slot_single": "Hours",
+  "shift_summary": "{{horas}}h per day · contract {{contrato}}h/week",
+  "shift_error_max_slots": "A day takes at most 2 slots",
+  "shift_error_invalid_time": "Invalid times",
+  "shift_error_slot_too_long": "A slot cannot exceed 12h",
+  "shift_error_slots_overlap": "The two slots overlap",
+  "shift_error_day_too_long": "A day cannot exceed 12h",
+  "rest_warning": "Only {{horas}}h of rest since the previous day (minimum {{minimo}}h)",
+  "grid_edit_day": "Click to edit this day's hours",
+  "day_summary": "Day total: {{horas}}h",
+  "day_clear": "Clear shift",
+  "ai_rule_split_shift": "Applies each employee's usual shift (straight or split)"
 }
