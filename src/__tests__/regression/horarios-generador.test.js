@@ -43,12 +43,13 @@ const sandbox = new Function(`
     const JORNADA_MIN_HORAS = 2;
     const JORNADA_MAX_HORAS = 12;
     ${extraerFuncion('calcularDiasLibresSemana')}
+    ${extraerFuncion('normalizarHora')}
     ${extraerFuncion('sumarMinutos')}
     ${extraerFuncion('calcularTurnoDiario')}
-    return { calcularDiasLibresSemana, sumarMinutos, calcularTurnoDiario };
+    return { calcularDiasLibresSemana, normalizarHora, sumarMinutos, calcularTurnoDiario };
 `)();
 
-const { calcularDiasLibresSemana, calcularTurnoDiario } = sandbox;
+const { calcularDiasLibresSemana, normalizarHora, calcularTurnoDiario } = sandbox;
 
 const duracionHoras = (inicio, fin) => {
     const [hi, mi] = inicio.split(':').map(Number);
@@ -155,5 +156,46 @@ describe('Turno diario — reparte las horas de contrato', () => {
             const turno = calcularTurnoDiario(vacio, 5);
             expect(duracionHoras(turno.hora_inicio, turno.hora_fin)).toBeCloseTo(8, 2);
         }
+    });
+});
+
+describe('Hora de entrada — sale de la ficha, no del nombre', () => {
+    test('el generador pasa emp.hora_entrada a calcularTurnoDiario', () => {
+        expect(src).toMatch(/calcularTurnoDiario\(emp\.horas_contrato,\s*diasTrabajo,\s*emp\.hora_entrada\)/);
+    });
+
+    test('la hora de la ficha manda sobre el defecto', () => {
+        // El caso que antes estaba cableado como `if (includes('fran'))`
+        const turno = calcularTurnoDiario(40, 5, '11:30');
+        expect(turno.hora_inicio).toBe('11:30');
+        expect(turno.hora_fin).toBe('19:30');
+    });
+
+    test('sin hora en la ficha entra a las 10:00 (comportamiento previo)', () => {
+        for (const vacio of [null, undefined, '']) {
+            const turno = calcularTurnoDiario(40, 5, vacio);
+            expect(turno.hora_inicio).toBe('10:00');
+            expect(turno.hora_fin).toBe('18:00');
+        }
+    });
+
+    test('acepta el HH:MM:SS que devuelve Postgres para columnas TIME', () => {
+        const turno = calcularTurnoDiario(40, 5, '11:30:00');
+        expect(turno.hora_inicio).toBe('11:30');
+        expect(turno.hora_fin).toBe('19:30');
+    });
+
+    test('normalizarHora limpia la entrada y cae al defecto con basura', () => {
+        expect(normalizarHora('9:05')).toBe('09:05');
+        expect(normalizarHora('23:59:59')).toBe('23:59');
+        for (const basura of [null, undefined, '', 'abc', '24:00', '10:60', '10']) {
+            expect(normalizarHora(basura)).toBe('10:00');
+        }
+    });
+
+    test('un turno que cruza medianoche no rompe el formato', () => {
+        const turno = calcularTurnoDiario(60, 5, '23:00'); // 12h (tope) desde las 23:00
+        expect(turno.hora_fin).toMatch(/^([01]\d|2[0-3]):[0-5]\d$/);
+        expect(turno.hora_fin).toBe('11:00');
     });
 });
