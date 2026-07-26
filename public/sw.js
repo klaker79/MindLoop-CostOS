@@ -219,7 +219,7 @@
 // BUMP v294 (dark mode transparente - RAIZ real): polish.css definia los tokens --dm-* dentro de un ':root {}' ANIDADO en [data-theme=dark] -> '[data-theme=dark] :root' es un combinador descendiente que NO matchea nada (:root=html no tiene ancestro) -> las --dm-* quedaban SIN definir -> todos los 'background: var(--dm-surface) !important' del chat (y kpi/cards/busqueda/paginacion) caian a TRANSPARENTE en oscuro manual. Fix: definir --dm-* directamente en [data-theme=dark]. Ademas: skin del globo del buho + chips. Revertido el skin redundante de chat-styles.js (#789). Verificado con mock del CSS real (oscuro solido, claro intacto).
 // BUMP v295 (chat input blanco al enfocar en oscuro): theme-editorial.css tiene '.chat-input:focus{background:white!important}' (0,2,0, sin scope de tema, cargado despues de polish) -> al enfocar el input se ponia BLANCO con texto claro = invisible 'donde escribes'. Fix: override [data-theme=dark] .chat-input:focus (0,3,0) en polish.css. Verificado con mock ORDEN REAL (main>polish>editorial>chat) + input enfocado.
 // BUMP v297 (fix solapamiento modal carrito): #modal-carrito usaba el .modal-content global (overflow-y:auto sin flex) -> footer (Total+botones) y resumen de IVA se pisaban. Fix de raiz: modal en columna (cuerpo scrollable + footer fijo) acotado por id en theme-editorial.css.
-const CACHE_NAME = 'mindloop-costos-v297';
+const CACHE_NAME = 'mindloop-costos-v298';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
