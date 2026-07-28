@@ -27,7 +27,7 @@ export const PLAN_TABS = {
     // "Lite": operativa de costes básica. Sin inventario, búsqueda, IA (Omnes),
     // horarios ni comida personal. "P&L" = diario (P&L diario) + analisis (Cuenta
     // de Resultados / BCG / break-even). Configuración se mantiene (ajustes/precios).
-    lite: ['ingredientes', 'recetas', 'proveedores', 'pedidos', 'ventas', 'diario', 'analisis', 'configuracion'],
+    lite: ['ingredientes', 'recetas', 'proveedores', 'pedidos', 'ventas', 'inventario', 'diario', 'configuracion'],
 };
 
 /**
