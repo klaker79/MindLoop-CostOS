@@ -256,14 +256,16 @@ async function consolidarAlbaran() {
     }
 }
 
-/** Abre la cámara nativa del móvil (o selector de archivo) para el albarán. */
-function iniciarRecepcionFoto() {
+/**
+ * Abre el selector de imagen. `usarCamara=true` fuerza la cámara trasera
+ * (capture=environment); false abre la galería/archivos del móvil.
+ */
+function abrirSelectorFoto(usarCamara) {
     let input = document.getElementById('ml-albaran-input');
     if (!input) {
         input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
-        input.capture = 'environment';   // cámara trasera del móvil
         input.id = 'ml-albaran-input';
         input.style.display = 'none';
         input.addEventListener('change', (ev) => {
@@ -273,10 +275,78 @@ function iniciarRecepcionFoto() {
         });
         document.body.appendChild(input);
     }
+    if (usarCamara) input.setAttribute('capture', 'environment');
+    else input.removeAttribute('capture');
     input.click();
 }
 
+// ==================== MODAL DE ENTRADA "RECIBIR ALBARÁN" ====================
+// Pantalla previa a la cámara: ilustración cámara + factura, tres consejos
+// (que además mejoran la lectura del OCR) y los botones de captura. Solo visual;
+// no toca el flujo de lectura/consolidación.
+const ALB_INTRO_OV = 'ml-albaran-intro-ov';
+
+function cerrarIntroAlbaran() { document.getElementById(ALB_INTRO_OV)?.remove(); }
+
+function abrirIntroAlbaran() {
+    if (document.getElementById(ALB_INTRO_OV)) return;
+    const ov = document.createElement('div');
+    ov.id = ALB_INTRO_OV;
+    ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(58,34,22,.42);display:flex;align-items:flex-end;justify-content:center;';
+    ov.innerHTML = `
+      <div style="background:#fffdfb;width:100%;max-width:560px;max-height:94vh;overflow-y:auto;border-radius:26px 26px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom,0));box-shadow:0 -18px 40px -20px rgba(36,18,9,.5);">
+        <div style="width:38px;height:5px;border-radius:999px;background:#e7d7c8;margin:2px auto 12px;"></div>
+        <svg viewBox="0 0 190 150" style="display:block;width:178px;height:140px;margin:2px auto 4px;" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cámara fotografiando una factura">
+          <ellipse cx="95" cy="132" rx="66" ry="10" fill="#eaddcf"/>
+          <g transform="rotate(-7 92 66)">
+            <rect x="46" y="18" width="92" height="104" rx="9" fill="#ffffff" stroke="#eaddcf" stroke-width="1.5"/>
+            <rect x="46" y="18" width="92" height="26" rx="9" fill="#b0533a"/>
+            <rect x="46" y="35" width="92" height="9" fill="#b0533a"/>
+            <rect x="56" y="26" width="34" height="6" rx="3" fill="#ffffff" opacity=".9"/>
+            <circle cx="126" cy="31" r="6.5" fill="#ffffff" opacity=".28"/>
+            <rect x="56" y="56" width="58" height="5" rx="2.5" fill="#e7d7c8"/>
+            <rect x="56" y="67" width="72" height="5" rx="2.5" fill="#efe1d5"/>
+            <rect x="56" y="78" width="48" height="5" rx="2.5" fill="#efe1d5"/>
+            <rect x="56" y="89" width="66" height="5" rx="2.5" fill="#efe1d5"/>
+            <rect x="56" y="102" width="72" height="12" rx="4" fill="#f4e4d6"/>
+            <rect x="98" y="105" width="24" height="6" rx="3" fill="#b0533a"/>
+          </g>
+          <g stroke="#b0533a" stroke-width="3.2" stroke-linecap="round">
+            <path d="M20 40 L20 26 L34 26"/><path d="M170 40 L170 26 L156 26"/>
+            <path d="M20 112 L20 126 L34 126"/><path d="M170 112 L170 126 L156 126"/>
+          </g>
+          <g transform="translate(104 84)">
+            <rect x="0" y="10" width="70" height="48" rx="11" fill="#3d251a"/>
+            <path d="M18 10 l6 -8 h22 l6 8 z" fill="#3d251a"/>
+            <rect x="8" y="17" width="12" height="7" rx="2" fill="#5c3a27"/>
+            <circle cx="35" cy="35" r="16" fill="#241209"/>
+            <circle cx="35" cy="35" r="11" fill="#b0533a"/>
+            <circle cx="35" cy="35" r="5.5" fill="#f4e4d6"/>
+            <circle cx="31" cy="31" r="2.2" fill="#ffffff" opacity=".8"/>
+            <circle cx="58" cy="20" r="3" fill="#e6c9b6"/>
+          </g>
+        </svg>
+        <h2 style="text-align:center;font-size:21px;font-weight:800;letter-spacing:-.02em;color:#3a2216;margin:6px 0 6px;">Recibir albarán</h2>
+        <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 16px;max-width:34ch;">Haz una foto del albarán o la factura. La IA lee proveedor, productos, cantidades y precios por ti.</p>
+        <div style="display:flex;gap:8px;margin:0 0 18px;">
+          <div style="flex:1;background:#faf1e9;border:1px solid #efe1d5;border-radius:14px;padding:11px 6px 9px;text-align:center;"><div style="font-size:19px;line-height:1;">☀️</div><span style="display:block;margin-top:5px;font-size:11px;font-weight:700;color:#8a6a54;">Buena luz</span></div>
+          <div style="flex:1;background:#faf1e9;border:1px solid #efe1d5;border-radius:14px;padding:11px 6px 9px;text-align:center;"><div style="font-size:19px;line-height:1;">▭</div><span style="display:block;margin-top:5px;font-size:11px;font-weight:700;color:#8a6a54;">Plano</span></div>
+          <div style="flex:1;background:#faf1e9;border:1px solid #efe1d5;border-radius:14px;padding:11px 6px 9px;text-align:center;"><div style="font-size:19px;line-height:1;">⌖</div><span style="display:block;margin-top:5px;font-size:11px;font-weight:700;color:#8a6a54;">Enfocado</span></div>
+        </div>
+        <button type="button" data-act="camara" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:16px;padding:16px;margin-bottom:10px;background:linear-gradient(145deg,#b0533a,#8c3f2b);color:#fff;font-weight:800;font-size:16px;box-shadow:0 16px 30px -14px rgba(150,60,40,.7);cursor:pointer;"><span style="font-size:19px;">📷</span> Hacer foto</button>
+        <button type="button" data-act="galeria" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:1px solid #e7d7c8;background:#fff;border-radius:16px;padding:13px;color:#8a5a3e;font-weight:700;font-size:14px;cursor:pointer;"><span>🖼️</span> Elegir de la galería</button>
+      </div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener('click', (ev) => {
+        if (ev.target === ov) { cerrarIntroAlbaran(); return; }
+        const act = ev.target.closest('[data-act]')?.dataset.act;
+        if (!act) return;
+        if (act === 'camara') { cerrarIntroAlbaran(); abrirSelectorFoto(true); }
+        else if (act === 'galeria') { cerrarIntroAlbaran(); abrirSelectorFoto(false); }
+    });
+}
+
 export function initMobileAlbaran() {
-    // Sustituye el placeholder de la Pieza A por la cámara real.
-    window.mlRecibirAlbaran = iniciarRecepcionFoto;
+    // "Recibir albarán" → modal de entrada (ilustración + consejos) → cámara.
+    window.mlRecibirAlbaran = abrirIntroAlbaran;
 }
