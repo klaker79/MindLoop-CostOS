@@ -1730,3 +1730,10 @@ select:focus {
 #modal-carrito .carrito-footer {
   flex-shrink: 0 !important;
 }
+
+/* LITE: barra lateral en terracota (forzado — la hoja original la dejaba navy) */
+aside#sidebar.sidebar,
+#sidebar.sidebar,
+.sidebar#sidebar {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-darker) 100%) !important;
+}
