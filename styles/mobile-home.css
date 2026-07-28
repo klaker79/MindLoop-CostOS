@@ -23,58 +23,89 @@
     left: 0; right: 0; top: 0; bottom: 0;      /* cubre toda la altura; la barra (z-90) pinta encima */
     z-index: 85;                               /* bajo barra (90), sidebar (100) y overlay (99) */
     overflow-y: auto; -webkit-overflow-scrolling: touch;
-    background: linear-gradient(180deg, #F6F8FB 0%, #EAEFF5 100%);
-    padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(84px + env(safe-area-inset-bottom, 0px));
+    background: radial-gradient(130% 70% at 50% -10%, #fdf7f1 0%, #f5eadf 55%, #efdfd2 100%), #f3e7dc;
+    padding: calc(22px + env(safe-area-inset-top, 0px)) 18px calc(90px + env(safe-area-inset-bottom, 0px));
   }
-  /* Qué me falta (Smart Order) */
+  /* Qué me falta (Smart Order) — tarjeta blanca con acento terracota */
   .ml-home-falta-card {
-    background: linear-gradient(135deg, #fff4e9, #ffe4cc);
-    border: 1px solid #ffd3a6; border-radius: 16px; padding: 14px 15px;
+    background: #fffdfb;
+    border: 1px solid #efe1d5; border-radius: 22px; padding: 18px 18px 16px;
+    box-shadow: 0 16px 34px -22px rgba(106, 47, 31, .40);
+    position: relative; overflow: hidden;
   }
-  .ml-home-falta-h { font-weight: 800; font-size: 15px; color: #8a4b12; }
-  .ml-home-falta-p { margin: 5px 0 11px; font-size: 12.5px; color: #9a6a3a; }
+  .ml-home-falta-card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg, #c9814f, #b0533a);
+  }
+  .ml-home-falta-h { font-weight: 700; font-size: 16px; letter-spacing: -.01em; color: #5c2a1b; }
+  .ml-home-falta-p { margin: 6px 0 14px; font-size: 13px; color: #a07d68; line-height: 1.45; }
   .ml-home-falta-btn {
-    width: 100%; border: 0; border-radius: 12px; padding: 12px;
-    background: linear-gradient(135deg, #059669, #10b981); color: #fff;
-    font-weight: 800; font-size: 14px; cursor: pointer;
+    width: 100%; border: 0; border-radius: 15px; padding: 14px;
+    background: linear-gradient(140deg, #b0533a, #97402a); color: #fff;
+    font-weight: 700; font-size: 14.5px; letter-spacing: .01em; cursor: pointer;
+    box-shadow: 0 10px 22px -10px rgba(150, 60, 40, .6);
+    transition: transform .18s cubic-bezier(.16,1,.3,1);
   }
+  .ml-home-falta-btn:active { transform: scale(.975); }
   /* Volver a pedir */
-  .ml-home-subh { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #64748b; margin: 8px 2px 2px; }
+  .ml-home-subh { font-size: 11.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #a8917f; margin: 14px 4px 4px; }
   .ml-home-rep-row {
-    display: flex; align-items: center; gap: 11px; background: #fff;
-    border: 1px solid #e6eaf0; border-radius: 14px; padding: 11px 12px;
+    display: flex; align-items: center; gap: 12px; background: #fffdfb;
+    border: 1px solid #efe1d5; border-radius: 18px; padding: 12px 13px;
+    box-shadow: 0 10px 26px -20px rgba(106, 47, 31, .35);
   }
-  .ml-home-rep-av { width: 36px; height: 36px; border-radius: 10px; background: #16233b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .ml-home-rep-av { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(140deg, #4a2c1e, #2f1c12); color: #e6c9b6; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
   .ml-home-rep-tt { flex: 1; min-width: 0; }
-  .ml-home-rep-tt b { font-size: 14px; display: block; color: #0f1b2d; }
-  .ml-home-rep-tt small { font-size: 11.5px; color: #64748b; }
-  .ml-home-rep-btn { flex: 0 0 auto; border: 0; border-radius: 999px; padding: 8px 16px; background: #f5822a; color: #fff; font-weight: 800; font-size: 12.5px; cursor: pointer; }
+  .ml-home-rep-tt b { font-size: 14.5px; display: block; color: #3a2216; letter-spacing: -.01em; }
+  .ml-home-rep-tt small { font-size: 11.5px; color: #a8917f; }
+  .ml-home-rep-btn { flex: 0 0 auto; border: 0; border-radius: 999px; padding: 9px 17px; background: #b0533a; color: #fff; font-weight: 700; font-size: 12.5px; cursor: pointer; transition: transform .18s cubic-bezier(.16,1,.3,1); }
+  .ml-home-rep-btn:active { transform: scale(.94); }
   /* En la portada, el FAB del chat y la hamburguesa de escritorio estorban: ocúltalos */
   body.ml-home-active #chat-fab,
   body.ml-home-active .chat-fab,
   body.ml-home-active .chat-widget-fab,
   body.ml-home-active .mobile-menu-toggle { display: none !important; }
 
-  .ml-home-hi { text-align: center; margin-bottom: 4px; }
+  .ml-home-hi { text-align: left; margin: 2px 2px 8px; }
   .ml-home-hi-brand {
-    display: block; font-size: 26px; font-weight: 800; letter-spacing: -.02em;
-    background: linear-gradient(135deg, #F5822A, #FFB24D);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
+    display: block; font-family: var(--font-display, 'Fraunces', 'Playfair Display', Georgia, serif);
+    font-size: 30px; font-weight: 600; letter-spacing: -.015em; line-height: 1.05;
+    color: #F5822A;
   }
-  .ml-home-hi-sub { display: block; font-size: 14px; color: #64748b; font-weight: 600; margin-top: 2px; }
+  .ml-home-hi-sub { display: block; font-size: 14px; color: #a8917f; font-weight: 500; margin-top: 3px; }
 
   .ml-home-btn {
-    border: 0; border-radius: 20px; padding: 26px 20px; color: #fff;
-    display: flex; flex-direction: column; gap: 8px; text-align: left;
-    box-shadow: 0 10px 28px rgba(16, 24, 40, .20);
+    position: relative; overflow: hidden;
+    border: 0; border-radius: 26px; padding: 24px 22px; color: #fff;
+    display: flex; flex-direction: column; gap: 10px; text-align: left;
     -webkit-tap-highlight-color: transparent;
+    transition: transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s ease;
   }
-  .ml-home-btn:active { transform: scale(.985); }
-  .ml-home-btn-ic { font-size: 34px; line-height: 1; }
-  .ml-home-btn b { font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
-  .ml-home-btn span { font-size: 13px; opacity: .92; }
-  .ml-home-btn--pedir { background: linear-gradient(135deg, #F5822A, #FFB24D); }
-  .ml-home-btn--recibir { background: linear-gradient(135deg, #16233B, #31456B); }
+  .ml-home-btn:active { transform: scale(.975); }
+  /* Brillo diagonal sutil (materialidad, no glow) */
+  .ml-home-btn::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 42%);
+    pointer-events: none;
+  }
+  .ml-home-btn-ic {
+    font-size: 26px; line-height: 1; width: 52px; height: 52px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  .ml-home-btn b { font-size: 20px; font-weight: 700; letter-spacing: -.015em; }
+  .ml-home-btn span { font-size: 13px; opacity: .82; font-weight: 500; }
+  /* Nuevo pedido — terracota cálido */
+  .ml-home-btn--pedir {
+    background: linear-gradient(145deg, #c46b45 0%, #a8492f 100%);
+    box-shadow: 0 20px 42px -20px rgba(168, 73, 47, .70);
+  }
+  /* Recibir albarán (OCR, función estrella) — marrón oscuro cálido, más presencia */
+  .ml-home-btn--recibir {
+    background: linear-gradient(150deg, #3d251a 0%, #241209 100%);
+    box-shadow: 0 22px 46px -20px rgba(36, 18, 9, .75);
+  }
+  .ml-home-btn--recibir .ml-home-btn-ic { background: rgba(197, 113, 83, .28); }
 
   /* ---- Barra de navegación inferior ---- */
   .ml-bottomnav {
@@ -82,21 +113,29 @@
     position: fixed;
     left: 0; right: 0; bottom: 0;
     z-index: 90;
-    background: #ffffff;
-    border-top: 1px solid #e6eaf0;
-    padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px));
-    box-shadow: 0 -2px 12px rgba(16, 24, 40, .06);
+    background: rgba(255, 253, 251, .92);
+    -webkit-backdrop-filter: saturate(140%) blur(14px); backdrop-filter: saturate(140%) blur(14px);
+    border-top: 1px solid #efe1d5;
+    padding: 7px 6px calc(9px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -6px 20px -8px rgba(106, 47, 31, .12);
   }
   .ml-bottomnav button {
+    position: relative;
     flex: 1; border: 0; background: transparent;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-    min-height: 44px;   /* objetivo táctil mínimo para el dedo */
-    font-size: 10px; font-weight: 700; color: #94a3b8; padding: 4px 2px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    min-height: 46px;   /* objetivo táctil mínimo para el dedo */
+    font-size: 10px; font-weight: 700; color: #b4a294; padding: 5px 2px;
     -webkit-tap-highlight-color: transparent;
+    transition: color .2s ease;
   }
-  .ml-bottomnav button .ml-bn-ic { font-size: 19px; line-height: 1; filter: grayscale(1) opacity(.6); }
-  .ml-bottomnav button.active { color: #F5822A; }
-  .ml-bottomnav button.active .ml-bn-ic { filter: none; }
+  .ml-bottomnav button .ml-bn-ic { font-size: 19px; line-height: 1; filter: grayscale(1) opacity(.55); transition: filter .2s ease, transform .2s cubic-bezier(.16,1,.3,1); }
+  .ml-bottomnav button.active { color: #b0533a; }
+  .ml-bottomnav button.active .ml-bn-ic { filter: none; transform: translateY(-1px) scale(1.06); }
+  /* Indicador de pestaña activa (píldora superior) */
+  .ml-bottomnav button.active::before {
+    content: ""; position: absolute; top: 0; width: 22px; height: 3px; border-radius: 999px;
+    background: #b0533a;
+  }
 
   /* Hueco inferior: deja sitio para la barra de navegación (64px) Y para el FAB
      del chat (búho), que flota a ~84-144px del fondo. Con este colchón, cualquier
@@ -132,13 +171,16 @@
 
 /* Modo oscuro */
 @media (max-width: 768px) and (prefers-color-scheme: dark) {
-  body.ml-home-active #ml-mobile-home { background: linear-gradient(180deg, #0E1116 0%, #141A22 100%); }
-  .ml-home-hi-sub { color: #9aa3b2; }
-  .ml-bottomnav { background: #16233B; border-top-color: #24304A; }
-  .ml-bottomnav button { color: #9fb0cf; }
+  body.ml-home-active #ml-mobile-home { background: radial-gradient(130% 70% at 50% -10%, #241811 0%, #1a1109 60%, #140d07 100%); }
+  .ml-home-hi-sub { color: #b09a88; }
+  .ml-home-falta-card, .ml-home-rep-row { background: #241811; border-color: #3a2a1e; }
+  .ml-home-falta-h { color: #f0d9c8; }
+  .ml-home-rep-tt b { color: #f0d9c8; }
+  .ml-bottomnav { background: rgba(26, 17, 9, .92); border-top-color: #3a2a1e; }
+  .ml-bottomnav button { color: #b09a88; }
 }
-:root[data-theme="dark"] .ml-bottomnav { background: #16233B; border-top-color: #24304A; }
-:root[data-theme="dark"] .ml-bottomnav button { color: #9fb0cf; }
+:root[data-theme="dark"] .ml-bottomnav { background: rgba(26, 17, 9, .92); border-top-color: #3a2a1e; }
+:root[data-theme="dark"] .ml-bottomnav button { color: #b09a88; }
 
 /* ============================================================
    Order-guide móvil (Fase 3): "Nuevo pedido" → proveedor → lo que pides siempre.

@@ -221,7 +221,7 @@
 // BUMP v297 (fix solapamiento modal carrito): #modal-carrito usaba el .modal-content global (overflow-y:auto sin flex) -> footer (Total+botones) y resumen de IVA se pisaban. Fix de raiz: modal en columna (cuerpo scrollable + footer fijo) acotado por id en theme-editorial.css.
 // BUMP v301 (paquetes reducidos por tier - prototipo Lite): plan-tabs.js oculta pestañas segun window._planData.plan (mapa PLAN_TABS). Fail-open (plan normal = todas). Calcado de aplicarGatingComidaPersonal; no toca datos ni calculos.
 // BUMP v302 (tier Lite sin chat de Omnes): los tiers sin IA (pestaña 'inteligencia') no montan el widget flotante; guard en initChatWidget (planPermiteTab) + ocultado de #chat-widget-container en aplicarGatingPlan. Fail-open (plan normal = chat intacto).
-const CACHE_NAME = 'mindloop-costos-v302';
+const CACHE_NAME = 'mindloop-costos-v303';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
