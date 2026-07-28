@@ -794,6 +794,10 @@ import './modules/busqueda/busqueda.js';
 // Side-effect import: attaches window.renderizarComidaPersonal.
 import './modules/comida-personal/comida-personal.js';
 
+// Side-effect import: gating de pestañas por tier de plan (paquetes reducidos).
+// Escucha `plan:loaded` y oculta las pestañas no incluidas en el tier (si aplica).
+import './modules/core/plan-tabs.js';
+
 // Side-effect import: recuento de inventario móvil (expone window.abrirRecuentoInventario).
 import './modules/inventario/recuento.js';
 
