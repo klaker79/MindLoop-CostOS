@@ -27,6 +27,7 @@ import {
 } from './chat-messages.js';
 import { api } from '../../api/client.js';
 import { buildMonthOptions } from './month-options.js';
+import { planPermiteTab } from '../core/plan-tabs.js';
 
 let isChatOpen = false;
 let isMounted = false;
@@ -42,6 +43,10 @@ let chatStatusCache = null;
  */
 export async function initChatWidget() {
     if (isMounted) return;
+    // Tier de plan reducido sin IA (p.ej. Lite): no montar el chat de Omnes.
+    // (Si el plan aún no ha llegado, planPermiteTab devuelve true y montamos; el
+    // gating por tier vuelve a aplicarse en `plan:loaded` ocultando el FAB.)
+    if (!planPermiteTab('inteligencia')) return;
     try {
         chatStatusCache = await api.chatStatus();
     } catch (err) {

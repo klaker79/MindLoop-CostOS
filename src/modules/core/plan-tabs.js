@@ -52,12 +52,35 @@ export function aplicarGatingPlan() {
     if (activoTab && !permit.has(activoTab)) {
         window.cambiarTab?.(allowed[0]);
     }
+
+    // El chat de Omnes (widget flotante) pertenece a la IA (pestaña 'inteligencia').
+    // Si el tier no la incluye, ocultar el FAB aunque ya se haya montado (chatStatus
+    // es async y puede montarlo antes de que llegue `plan:loaded`).
+    if (!permit.has('inteligencia')) {
+        const chat = document.getElementById('chat-widget-container');
+        if (chat) chat.style.setProperty('display', 'none', 'important');
+    }
+}
+
+/**
+ * ¿El tier del plan actual permite esta pestaña/feature? Los planes normales (sin
+ * tier reducido) permiten todo. Se usa también para no montar el widget de chat en
+ * tiers que no incluyen la IA (pestaña 'inteligencia').
+ * @param {string} tab
+ * @returns {boolean}
+ */
+export function planPermiteTab(tab) {
+    const tier = (window._planData?.plan || '').toString().toLowerCase();
+    const allowed = PLAN_TABS[tier];
+    if (!allowed) return true; // plan normal → todo permitido
+    return allowed.includes(tab);
 }
 
 if (typeof window !== 'undefined') {
     window.aplicarGatingPlan = aplicarGatingPlan;
+    window.planPermiteTab = planPermiteTab;
     // El plan llega async tras el login → reaplicar cuando se emite `plan:loaded`.
     window.addEventListener('plan:loaded', () => aplicarGatingPlan());
 }
 
-export default { PLAN_TABS, aplicarGatingPlan };
+export default { PLAN_TABS, aplicarGatingPlan, planPermiteTab };
