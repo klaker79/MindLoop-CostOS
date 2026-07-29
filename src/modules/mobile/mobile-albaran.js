@@ -488,12 +488,7 @@ function abrirIntroAlbaran() {
           </g>
         </svg>
         <h2 style="text-align:center;font-size:21px;font-weight:800;letter-spacing:-.02em;color:#3a2216;margin:6px 0 6px;">Recibir albarán</h2>
-        <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 16px;max-width:34ch;">Haz una foto del albarán o la factura. La IA lee proveedor, productos, cantidades y precios por ti.</p>
-        <div style="display:flex;gap:8px;margin:0 0 18px;">
-          <div style="flex:1;background:#faf1e9;border:1px solid #efe1d5;border-radius:14px;padding:11px 6px 9px;text-align:center;"><div style="font-size:19px;line-height:1;">☀️</div><span style="display:block;margin-top:5px;font-size:11px;font-weight:700;color:#8a6a54;">Buena luz</span></div>
-          <div style="flex:1;background:#faf1e9;border:1px solid #efe1d5;border-radius:14px;padding:11px 6px 9px;text-align:center;"><div style="font-size:19px;line-height:1;">▭</div><span style="display:block;margin-top:5px;font-size:11px;font-weight:700;color:#8a6a54;">Plano</span></div>
-          <div style="flex:1;background:#faf1e9;border:1px solid #efe1d5;border-radius:14px;padding:11px 6px 9px;text-align:center;"><div style="font-size:19px;line-height:1;">⌖</div><span style="display:block;margin-top:5px;font-size:11px;font-weight:700;color:#8a6a54;">Enfocado</span></div>
-        </div>
+        <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 18px;max-width:34ch;">Haz una foto del albarán o la factura. La IA lee proveedor, productos, cantidades y precios por ti.</p>
         <button type="button" data-act="camara" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:16px;padding:16px;margin-bottom:10px;background:linear-gradient(145deg,#b0533a,#8c3f2b);color:#fff;font-weight:800;font-size:16px;box-shadow:0 16px 30px -14px rgba(150,60,40,.7);cursor:pointer;"><span style="font-size:19px;">📷</span> Hacer foto</button>
         <button type="button" data-act="galeria" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:1px solid #e7d7c8;background:#fff;border-radius:16px;padding:13px;color:#8a5a3e;font-weight:700;font-size:14px;cursor:pointer;"><span>🖼️</span> Elegir de la galería</button>
       </div>`;
