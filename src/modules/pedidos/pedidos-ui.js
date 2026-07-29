@@ -309,8 +309,12 @@ export function cargarIngredientesPedido() {
         return;
     }
 
-    // Pedido normal: mostrar solo ingredientes del proveedor
-    if (!proveedor || !proveedor.ingredientes || proveedor.ingredientes.length === 0) {
+    // Pedido normal: si el proveedor tiene ingredientes vinculados, se muestran solo
+    // esos. Si NO tiene ninguno, en vez de bloquear (dead-end) caemos a mostrar TODOS
+    // los ingredientes (como en compra de mercado) para que el usuario SIEMPRE pueda
+    // añadir líneas con cantidad y pasar por edición/consolidación como en la original.
+    const sinIngredientesVinculados = !proveedor || !proveedor.ingredientes || proveedor.ingredientes.length === 0;
+    if (sinIngredientesVinculados && (window.ingredientes || []).length === 0) {
         if (containerWrapper) containerWrapper.style.display = 'none';
         window.showToast(t('pedidos:no_ingredients_supplier'), 'warning');
         return;
@@ -352,12 +356,12 @@ export function agregarIngredientePedido() {
 
     let ingredientesDisponibles;
 
-    if (esCompraMercado) {
-        // 🏪 Compras del mercado: mostrar TODOS los ingredientes
+    if (esCompraMercado || !proveedor || !proveedor.ingredientes || proveedor.ingredientes.length === 0) {
+        // 🏪 Compra de mercado, o proveedor SIN ingredientes vinculados: mostrar TODOS
+        // los ingredientes (así el pedido nunca se queda sin filas que rellenar).
         ingredientesDisponibles = window.ingredientes || [];
     } else {
         // Pedido normal: mostrar solo ingredientes del proveedor
-        if (!proveedor || !proveedor.ingredientes) return;
         const provIngSet = new Set(proveedor.ingredientes);
         ingredientesDisponibles = (window.ingredientes || []).filter(ing => provIngSet.has(ing.id));
     }
