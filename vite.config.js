@@ -10,13 +10,18 @@ export default defineConfig({
         port: 3000,
         open: true, // Abre navegador automáticamente
         proxy: {
-            // Redirigir /api a la API de producción para desarrollo local
+            // Desarrollo local contra la API de ESTA casa (Lite).
+            // 🔒 Antes apuntaba a lacaleta-api (la API de producción de La Nave 5)
+            // y encima se disfrazaba con Origin app.mindloop.cloud para pasar el
+            // CORS. Es decir: un `npm run dev` en la rama lite escribía en la base
+            // de datos del cliente real. Se puede sobrescribir con VITE_DEV_API_TARGET
+            // si hace falta apuntar a otro sitio puntualmente.
             '/api': {
-                target: 'https://lacaleta-api.mindloop.cloud',
+                target: process.env.VITE_DEV_API_TARGET || 'https://lite-api.mindloop.cloud',
                 changeOrigin: true,
                 secure: true,
                 headers: {
-                    Origin: 'https://app.mindloop.cloud'
+                    Origin: 'https://lite.mindloop.cloud'
                 }
             }
         }

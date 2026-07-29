@@ -27,7 +27,10 @@ import { createStore } from 'zustand/vanilla';
 function getApiBaseInline() {
     const env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
     if (env.VITE_API_BASE_URL) return env.VITE_API_BASE_URL;
-    return env.DEV ? '' : 'https://lacaleta-api.mindloop.cloud';
+    // 🔒 Casa Lite: la API de ESTA casa. Antes caía en lacaleta-api (producción,
+    // La Nave 5) — y esto es el store de AUTENTICACIÓN, así que un build sin la
+    // variable mandaba el login del cliente Lite contra el tenant equivocado.
+    return env.DEV ? '' : 'https://lite-api.mindloop.cloud';
 }
 
 /**
