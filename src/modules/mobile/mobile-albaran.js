@@ -327,9 +327,27 @@ function abrirDecisionConPedido(r, prov, pendientes, lineas) {
     });
 }
 
-// Albarán que YA se registró: no hay nada pendiente que recibir, así que se informa
-// de lo que se guardó (y cuándo) en vez de soltar un error técnico.
-function abrirYaRegistrado(info) {
+/**
+ * Deshace el registro de un albarán y lo devuelve a la cola para procesarlo bien.
+ * El backend revierte stock, Diario y precio en una transacción.
+ */
+async function revertirRegistro(batchId) {
+    try {
+        const r = await window.API.fetch('/purchases/batch/' + encodeURIComponent(batchId) + '/revert', { method: 'POST' });
+        return !!(r && r.success);
+    } catch { return false; }
+}
+
+/**
+ * Albarán que YA se registró.
+ *
+ * Que el ALBARÁN esté registrado no significa que el PEDIDO se haya recibido. Si se
+ * consolidó como compra suelta, el pedido sigue 'pendiente' y el stock entró por una
+ * vía que no lo cierra. En ese caso no basta con avisar: se ofrece PASARLO AL PEDIDO,
+ * que deshace el registro anterior y abre la recepción normal, con sus varianzas.
+ * Así el usuario acaba donde tenía que estar desde el principio, sin tocar nada a mano.
+ */
+function abrirYaRegistrado(info, pendientes, r) {
     const cuando = info.aprobado_at || info.created_at;
     let cuandoTxt = '';
     try {
@@ -354,24 +372,61 @@ function abrirYaRegistrado(info) {
         </div>`;
     }).join('');
 
+    const hayPedido = !!(pendientes && pendientes.length);
+    const ped = hayPedido ? pendientes[0] : null;
+
     const ov = overlaySheet(`
-        <div style="width:52px;height:52px;border-radius:16px;background:#eef7ee;display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">✅</div>
-        <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 6px;">Este albarán ya está registrado</h2>
+        <div style="width:52px;height:52px;border-radius:16px;background:${hayPedido ? '#fffbeb' : '#eef7ee'};display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">${hayPedido ? '⚠️' : '✅'}</div>
+        <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 6px;">${hayPedido ? 'Se guardó como compra suelta' : 'Este albarán ya está registrado'}</h2>
         <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 14px;max-width:38ch;">
-            Lo diste de alta ${cuandoTxt ? `el <b>${escapeHTML(cuandoTxt)}</b>` : 'anteriormente'}. El stock y los precios ya se actualizaron entonces, así que no hace falta volver a subirlo.
+            ${hayPedido
+        ? `Lo diste de alta ${cuandoTxt ? `el <b>${escapeHTML(cuandoTxt)}</b>` : 'antes'}, pero <b>fuera del pedido</b>, así que tu pedido del ${escapeHTML(fmtFechaAlb(ped.fecha))} (${cm(parseFloat(ped.total) || 0)}) sigue pendiente. Puedo pasarlo a ese pedido: deshago el registro anterior y abro la recepción para que revises cantidades y precios.`
+        : `Lo diste de alta ${cuandoTxt ? `el <b>${escapeHTML(cuandoTxt)}</b>` : 'anteriormente'}. El stock y los precios ya se actualizaron entonces, así que no hace falta volver a subirlo.`}
         </p>
         ${cab ? `<div style="text-align:center;font-size:12.5px;color:#8a5a3e;margin-bottom:10px;">${escapeHTML(cab)}</div>` : ''}
-        <div style="background:#fffdfb;border:1px solid #efe1d5;border-radius:14px;padding:10px 13px;margin-bottom:8px;max-height:38vh;overflow-y:auto;">
+        <div style="background:#fffdfb;border:1px solid #efe1d5;border-radius:14px;padding:10px 13px;margin-bottom:8px;max-height:34vh;overflow-y:auto;">
             ${filas || '<div style="color:#a8917f;font-size:13px;">Sin líneas.</div>'}
         </div>
         <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800;color:#3a2216;padding:4px 3px 14px;">
             <span>${info.itemCount} ${info.itemCount === 1 ? 'línea' : 'líneas'}</span>
             <span>${cm(info.totalImporte || 0)}</span>
         </div>
-        <button type="button" data-act="cerrar" style="${BTN_TERRA}">Entendido</button>`);
+        ${hayPedido
+        ? `<button type="button" data-act="pasar" style="${BTN_TERRA}">Pasarlo al pedido #${ped.id}</button>
+           <button type="button" data-act="cerrar" style="${BTN_GHOST}">Dejarlo como está</button>`
+        : `<button type="button" data-act="cerrar" style="${BTN_TERRA}">Entendido</button>`}`);
 
-    ov.addEventListener('click', (ev) => {
-        if (ev.target === ov || ev.target.closest('[data-act="cerrar"]')) ov.remove();
+    ov.addEventListener('click', async (ev) => {
+        if (ev.target === ov || ev.target.closest('[data-act="cerrar"]')) { ov.remove(); return; }
+        if (!ev.target.closest('[data-act="pasar"]')) return;
+
+        const btn = ev.target.closest('[data-act="pasar"]');
+        btn.disabled = true;
+        btn.textContent = 'Deshaciendo el registro…';
+
+        const ok = await revertirRegistro(info.batchId);
+        if (!ok) {
+            btn.disabled = false;
+            btn.textContent = `Pasarlo al pedido #${ped.id}`;
+            window.showToast?.('No se pudo deshacer el registro anterior. Revísalo en la cola de compras.', 'error');
+            return;
+        }
+
+        // El albarán vuelve a estar pendiente: se recargan sus líneas y se recibe
+        // sobre el pedido por el camino de siempre (mismo modal, mismas varianzas).
+        const lineas = await cargarLineasBatch(info.batchId);
+        ov.remove();
+        if (!lineas.length) {
+            window.showToast?.('Registro deshecho, pero no pude recuperar las líneas. Revisa la cola de compras.', 'warning');
+            return;
+        }
+        await window.cargarDatos?.();
+        prepararHints(lineas, ped, r || {});
+        if (typeof window.marcarPedidoRecibido === 'function') {
+            window.marcarPedidoRecibido(ped.id);
+        } else {
+            window.showToast?.('No se pudo abrir la recepción del pedido.', 'error');
+        }
     });
 }
 
@@ -384,7 +439,14 @@ async function enrutarAlbaran(r) {
     // (un toast de error): que el albarán YA se registrara, o que algo fallara de verdad.
     if (!lineas.length) {
         const info = await cargarBatch(r.batchId);
-        if (info) { abrirYaRegistrado(info); return; }
+        if (info) {
+            // Registrado ≠ pedido recibido. Si hay pedido pendiente de ese proveedor,
+            // el albarán entró como compra suelta y se ofrece pasarlo al pedido.
+            const provReg = casarProveedor(info.proveedor || r.proveedor);
+            const pendReg = provReg ? pedidosPendientesDe(provReg.id, info.totalImporte || 0) : [];
+            abrirYaRegistrado(info, pendReg, r);
+            return;
+        }
         toast('No pude cargar las líneas del albarán. Revísalo en la cola de compras.', 'warning');
         return;
     }
