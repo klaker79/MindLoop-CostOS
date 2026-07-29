@@ -10,7 +10,7 @@
  * Solo staging (OCR_ENABLED). En prod el backend devuelve 410 (backstop) → toast, no rompe.
  */
 
-import { escapeHTML, cm } from '../../utils/helpers.js';
+import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpers.js';
 
 // Reescala la imagen a máx `maxLado` px (lado mayor) y devuelve JPEG base64 (sin el
 // prefijo data:). Mantiene la legibilidad para OCR y evita subir 10 MB desde el móvil.
@@ -101,18 +101,65 @@ function normProv(s) {
         .trim();
 }
 
-// Casa el proveedor leído del albarán con window.proveedores (exacto → contención).
+// Palabras que no distinguen a un proveedor de otro.
+const PROV_STOPWORDS = new Set(['y', 'e', 'de', 'del', 'la', 'el', 'los', 'las', 'hnos', 'hermanos', 'grupo', 'distribuciones', 'distribucion', 'comercial', 'suministros']);
+
+function tokensProv(s) {
+    return normProv(s).split(' ').filter(t => t.length >= 2 && !PROV_STOPWORDS.has(t));
+}
+
+/**
+ * Casa el proveedor del albarán con window.proveedores.
+ *
+ * Tres niveles: exacto → contención → PALABRAS en común.
+ *
+ * El tercero es el que hace falta con nombres reales: el albarán trae la razón social
+ * larga y en la app está guardado el nombre corto o con las palabras en otro orden.
+ * Caso real: "OROSA AVES HUEVOS Y CAZA" (albarán) contra "OROSA AVES Y HUEVOS"
+ * (guardado). No son iguales ni uno contiene al otro —el orden cambia—, así que los
+ * dos primeros niveles fallaban y el usuario acababa en "sin pedido para casar".
+ *
+ * Puntuación = palabras compartidas / palabras del nombre más corto. Exige además al
+ * menos una palabra "fuerte" (≥4 letras) en común, para que un "PESCADOS PEREZ" no se
+ * confunda con un "PESCADOS GOMEZ" (comparten solo "pescados": 1/2 = 0,5 < umbral).
+ * Gana la puntuación más alta y, a igualdad, el que más palabras comparte.
+ */
+const PROV_UMBRAL = 0.6;
+
 function casarProveedor(nombreAlbaran) {
     const objetivo = normProv(nombreAlbaran);
     if (!objetivo) return null;
     const provs = window.proveedores || [];
+
+    // 1) Exacto.
     let hit = provs.find(p => normProv(p.nombre) === objetivo);
     if (hit) return hit;
+
+    // 2) Contención (un nombre dentro del otro, mismo orden).
     hit = provs.find(p => {
         const n = normProv(p.nombre);
         return n.length >= 4 && (n.includes(objetivo) || objetivo.includes(n));
     });
-    return hit || null;
+    if (hit) return hit;
+
+    // 3) Palabras en común.
+    const tokObj = tokensProv(nombreAlbaran);
+    if (!tokObj.length) return null;
+    const setObj = new Set(tokObj);
+
+    let mejor = null, mejorScore = 0, mejorComunes = 0;
+    for (const p of provs) {
+        const tokP = tokensProv(p.nombre);
+        if (!tokP.length) continue;
+        const comunes = tokP.filter(t => setObj.has(t));
+        if (!comunes.length) continue;
+        if (!comunes.some(t => t.length >= 4)) continue;   // exige una palabra con peso
+        const score = comunes.length / Math.min(tokP.length, tokObj.length);
+        if (score > mejorScore || (score === mejorScore && comunes.length > mejorComunes)) {
+            mejor = p; mejorScore = score; mejorComunes = comunes.length;
+        }
+    }
+    return mejorScore >= PROV_UMBRAL ? mejor : null;
 }
 
 // Líneas del albarán recién leído (cola compras_pendientes, filtradas por batch).
@@ -129,6 +176,22 @@ async function cargarLineasBatch(batchId) {
                 precio: parseFloat(l.precio) || 0,
             }));
     } catch { return []; }
+}
+
+/**
+ * El albarán completo, en cualquier estado (GET /purchases/batch/:batchId).
+ *
+ * `cargarLineasBatch` solo ve líneas 'pendiente'. Cuando reescaneas un albarán que YA
+ * consolidaste, el backend devuelve el batch original —ya aprobado— y aquella función
+ * devolvía [], que es lo que producía el "No pude cargar las líneas del albarán".
+ * Con esto podemos decir qué se registró y cuándo.
+ */
+async function cargarBatch(batchId) {
+    if (!batchId) return null;
+    try {
+        const info = await window.API.fetch('/purchases/batch/' + encodeURIComponent(batchId));
+        return (info && info.batchId) ? info : null;
+    } catch { return null; }
 }
 
 // Pedidos pendientes de un proveedor, "más probable" primero: importe más cercano
@@ -174,7 +237,10 @@ function prepararHints(lineas, ped, r) {
         porIngrediente,
         todasLineas: lineas,
         ivaPct: (r?.iva_pct !== null && r?.iva_pct !== undefined) ? r.iva_pct : null,
-        duplicado: !!r?.duplicateWarning,
+        // El OBJETO completo, no un booleano. pedidos-recepcion.js pinta el banner con
+        // sus campos (proveedor, fecha, itemCount, numero_factura); con `true` salía
+        // "POSIBLE DUPLICADO — este albarán ya lo escaneaste: ." sin un solo dato.
+        duplicado: r?.duplicateWarning || null,
     };
     window.__albaranExtras = extras;
 }
@@ -261,11 +327,68 @@ function abrirDecisionConPedido(r, prov, pendientes, lineas) {
     });
 }
 
+// Albarán que YA se registró: no hay nada pendiente que recibir, así que se informa
+// de lo que se guardó (y cuándo) en vez de soltar un error técnico.
+function abrirYaRegistrado(info) {
+    const cuando = info.aprobado_at || info.created_at;
+    let cuandoTxt = '';
+    try {
+        cuandoTxt = new Date(cuando).toLocaleString(getDateLocale(), {
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+    } catch { cuandoTxt = ''; }
+
+    const cab = [
+        info.proveedor,
+        info.numero_factura ? 'factura ' + info.numero_factura : ''
+    ].filter(Boolean).join(' · ');
+
+    const filas = (info.items || []).map(it => {
+        const cant = parseFloat(it.cantidad) || 0;
+        const pre = parseFloat(it.precio) || 0;
+        const nom = it.ingrediente_nombre_db || it.ingrediente_nombre || '';
+        return `<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #f2e7dd;font-size:13px;">
+            <span style="color:#3a2216;flex:1;min-width:0;">${escapeHTML(nom)}</span>
+            <span style="color:#a8917f;white-space:nowrap;">${formatQuantity(cant)} × ${cm(pre)}</span>
+            <span style="color:#3a2216;font-weight:700;white-space:nowrap;">${cm(cant * pre)}</span>
+        </div>`;
+    }).join('');
+
+    const ov = overlaySheet(`
+        <div style="width:52px;height:52px;border-radius:16px;background:#eef7ee;display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">✅</div>
+        <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 6px;">Este albarán ya está registrado</h2>
+        <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 14px;max-width:38ch;">
+            Lo diste de alta ${cuandoTxt ? `el <b>${escapeHTML(cuandoTxt)}</b>` : 'anteriormente'}. El stock y los precios ya se actualizaron entonces, así que no hace falta volver a subirlo.
+        </p>
+        ${cab ? `<div style="text-align:center;font-size:12.5px;color:#8a5a3e;margin-bottom:10px;">${escapeHTML(cab)}</div>` : ''}
+        <div style="background:#fffdfb;border:1px solid #efe1d5;border-radius:14px;padding:10px 13px;margin-bottom:8px;max-height:38vh;overflow-y:auto;">
+            ${filas || '<div style="color:#a8917f;font-size:13px;">Sin líneas.</div>'}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800;color:#3a2216;padding:4px 3px 14px;">
+            <span>${info.itemCount} ${info.itemCount === 1 ? 'línea' : 'líneas'}</span>
+            <span>${cm(info.totalImporte || 0)}</span>
+        </div>
+        <button type="button" data-act="cerrar" style="${BTN_TERRA}">Entendido</button>`);
+
+    ov.addEventListener('click', (ev) => {
+        if (ev.target === ov || ev.target.closest('[data-act="cerrar"]')) ov.remove();
+    });
+}
+
 // Punto de entrada tras leer el albarán: decide recepción-con-varianzas o compra nueva.
 async function enrutarAlbaran(r) {
     const toast = (m, tt) => window.showToast?.(m, tt);
     const lineas = await cargarLineasBatch(r.batchId);
-    if (!lineas.length) { toast('No pude cargar las líneas del albarán. Revísalo en la cola de compras.', 'warning'); return; }
+
+    // Sin líneas pendientes hay dos motivos muy distintos, y antes se trataban igual
+    // (un toast de error): que el albarán YA se registrara, o que algo fallara de verdad.
+    if (!lineas.length) {
+        const info = await cargarBatch(r.batchId);
+        if (info) { abrirYaRegistrado(info); return; }
+        toast('No pude cargar las líneas del albarán. Revísalo en la cola de compras.', 'warning');
+        return;
+    }
+
     const totalAlb = lineas.reduce((s, l) => s + l.cantidad * l.precio, 0);
     const prov = casarProveedor(r.proveedor);
     const pendientes = prov ? pedidosPendientesDe(prov.id, totalAlb) : [];
