@@ -220,7 +220,8 @@
 // BUMP v295 (chat input blanco al enfocar en oscuro): theme-editorial.css tiene '.chat-input:focus{background:white!important}' (0,2,0, sin scope de tema, cargado despues de polish) -> al enfocar el input se ponia BLANCO con texto claro = invisible 'donde escribes'. Fix: override [data-theme=dark] .chat-input:focus (0,3,0) en polish.css. Verificado con mock ORDEN REAL (main>polish>editorial>chat) + input enfocado.
 // BUMP v297 (fix solapamiento modal carrito): #modal-carrito usaba el .modal-content global (overflow-y:auto sin flex) -> footer (Total+botones) y resumen de IVA se pisaban. Fix de raiz: modal en columna (cuerpo scrollable + footer fijo) acotado por id en theme-editorial.css.
 // BUMP v301 (paquetes reducidos por tier - prototipo Lite): plan-tabs.js oculta pestañas segun window._planData.plan (mapa PLAN_TABS). Fail-open (plan normal = todas). Calcado de aplicarGatingComidaPersonal; no toca datos ni calculos.
-const CACHE_NAME = 'mindloop-costos-v301';
+// BUMP v302 (pedidos): al elegir un proveedor sin ingredientes vinculados, el formulario de Nuevo Pedido se queda en blanco y no deja poner cantidades. Ahora cae a mostrar todos los ingredientes, como en compra de mercado.
+const CACHE_NAME = 'mindloop-costos-v302';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
