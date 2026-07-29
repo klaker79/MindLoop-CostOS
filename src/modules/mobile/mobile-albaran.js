@@ -48,11 +48,18 @@ async function procesarFotoAlbaran(file) {
         window.hideLoading?.();
 
         // Duplicado (por nº de factura o imagen): llega con success:false + duplicateWarning.
-        // NO se duplica; reabrimos la CONSOLIDACIÓN del albarán ya leído (sus líneas siguen
-        // en la cola) y marcamos el aviso en la propia pantalla (banner rojo).
+        // NO se re-parsea; recuperamos el albarán ya leído (sus líneas siguen en la cola con
+        // su batchId) y seguimos por el MISMO camino que uno nuevo.
+        //
+        // Antes esto llamaba directamente a abrirConsolidacionAlbaran() y hacía return, así
+        // que un albarán marcado como duplicado NUNCA pasaba por enrutarAlbaran(): el usuario
+        // se quedaba sin la opción de recibir sobre el pedido pendiente y sin varianzas, que
+        // es justo lo que necesita al reescanear el albarán de un pedido hecho por la app
+        // (el caso en el que MÁS salta el duplicado). El aviso no se pierde: viaja en
+        // `duplicateWarning` y se pinta en las tres pantallas del flujo (bannerDuplicado).
         if (r && r.duplicateWarning) {
             const dw = r.duplicateWarning;
-            await abrirConsolidacionAlbaran({
+            await enrutarAlbaran({
                 ...r,
                 batchId: dw.batchId,
                 proveedor: dw.proveedor || r.proveedor,
@@ -172,6 +179,20 @@ function prepararHints(lineas, ped, r) {
     window.__albaranExtras = extras;
 }
 
+// Aviso de albarán ya escaneado. Se pinta en TODAS las pantallas del flujo (decisión de
+// pedido y consolidación): el duplicado ya no corta el camino, así que el usuario debe
+// seguir viendo el aviso decida lo que decida.
+function bannerDuplicado(r, cola) {
+    const dup = r?.duplicateWarning;
+    if (!dup) return '';
+    const detalle = [
+        dup.proveedor,
+        dup.fecha ? fmtFechaAlb(dup.fecha) : '',
+        dup.numero_factura ? 'factura ' + dup.numero_factura : ''
+    ].filter(Boolean).join(' · ');
+    return `<div style="background:#fef2f2;border:2px solid #dc2626;color:#991b1b;padding:12px 14px;border-radius:8px;margin-bottom:12px;font-weight:600;font-size:13px;">⚠️ POSIBLE DUPLICADO — este albarán ya lo escaneaste (${escapeHTML(detalle)}). ${escapeHTML(cola)}</div>`;
+}
+
 // Overlay tipo bottom-sheet (terracota), coherente con el modal de entrada del albarán.
 function overlaySheet(innerHtml) {
     const ov = document.createElement('div');
@@ -188,6 +209,7 @@ const BTN_GHOST = 'width:100%;border:1px solid #e7d7c8;background:#fff;border-ra
 function abrirDecisionSinPedido(r, prov) {
     const nombreProv = prov?.nombre || r?.proveedor || 'este proveedor';
     const ov = overlaySheet(`
+        ${bannerDuplicado(r, 'Revísalo antes de guardarlo.')}
         <div style="width:52px;height:52px;border-radius:16px;background:#fef3e6;display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">📄</div>
         <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 8px;">Sin pedido para casar</h2>
         <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 18px;max-width:36ch;">Este albarán no coincide con ningún pedido pendiente de <b>${escapeHTML(nombreProv)}</b>. ¿Guardarlo igualmente como una compra nueva?</p>
@@ -211,6 +233,7 @@ function abrirDecisionConPedido(r, prov, pendientes, lineas) {
           <span style="flex:1;min-width:0;"><b style="display:block;font-size:14px;color:#3a2216;">Pedido del ${escapeHTML(fmtFechaAlb(p.fecha))}</b><small style="font-size:11.5px;color:#a8917f;">${cm(parseFloat(p.total) || 0)}${i === 0 ? ' · sugerido' : ''}</small></span>
         </label>`).join('');
     const ov = overlaySheet(`
+        ${bannerDuplicado(r, 'Revísalo antes de recibirlo.')}
         <div style="width:52px;height:52px;border-radius:16px;background:#eef7ee;display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">✅</div>
         <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 6px;">${varios ? 'Elige el pedido' : 'Pedido encontrado'}</h2>
         <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 16px;max-width:36ch;">${varios ? `Hay ${pendientes.length} pedidos pendientes de <b>${escapeHTML(nombreProv)}</b>. Elige con cuál casar el albarán.` : `Casamos el albarán con tu pedido pendiente de <b>${escapeHTML(nombreProv)}</b> para comparar lo pedido con lo recibido.`}</p>
@@ -292,10 +315,7 @@ function refrescarTotalesConsol() {
 
 function pintarConsol() {
     const r = consolEstado.r;
-    const dup = r?.duplicateWarning;
-    const dupBanner = dup
-        ? `<div style="background:#fef2f2;border:2px solid #dc2626;color:#991b1b;padding:12px 14px;border-radius:8px;margin-bottom:12px;font-weight:600;font-size:13px;">⚠️ POSIBLE DUPLICADO — este albarán ya lo escaneaste (${escapeHTML([dup.proveedor, dup.fecha ? fmtFechaAlb(dup.fecha) : '', dup.numero_factura ? 'factura ' + dup.numero_factura : ''].filter(Boolean).join(' · '))}). Revísalo antes de consolidar.</div>`
-        : '';
+    const dupBanner = bannerDuplicado(r, 'Revísalo antes de consolidar.');
     const ivaTxt = (r?.iva_pct !== null && r?.iva_pct !== undefined) ? 'IVA ' + r.iva_pct + '%' : '';
     const cab = [r?.proveedor, r?.fecha ? fmtFechaAlb(r.fecha) : '', r?.numero_factura ? 'Factura ' + r.numero_factura : '', ivaTxt].filter(Boolean).map(escapeHTML).join(' · ');
 

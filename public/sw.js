@@ -221,7 +221,8 @@
 // BUMP v297 (fix solapamiento modal carrito): #modal-carrito usaba el .modal-content global (overflow-y:auto sin flex) -> footer (Total+botones) y resumen de IVA se pisaban. Fix de raiz: modal en columna (cuerpo scrollable + footer fijo) acotado por id en theme-editorial.css.
 // BUMP v301 (paquetes reducidos por tier - prototipo Lite): plan-tabs.js oculta pestañas segun window._planData.plan (mapa PLAN_TABS). Fail-open (plan normal = todas). Calcado de aplicarGatingComidaPersonal; no toca datos ni calculos.
 // BUMP v302 (tier Lite sin chat de Omnes): los tiers sin IA (pestaña 'inteligencia') no montan el widget flotante; guard en initChatWidget (planPermiteTab) + ocultado de #chat-widget-container en aplicarGatingPlan. Fail-open (plan normal = chat intacto).
-const CACHE_NAME = 'mindloop-costos-v307';
+// BUMP v308 (albaran duplicado: tambien casa con el pedido): el camino del duplicado hacia abrirConsolidacionAlbaran()+return ANTES de enrutarAlbaran(), asi que un albaran ya escaneado NUNCA llegaba al matcheo con el pedido pendiente ni a las varianzas -- justo el caso en el que mas salta el duplicado (reescanear el albaran de un pedido hecho por la app). Ahora el duplicado sigue el MISMO camino que uno nuevo; el aviso se extrae a bannerDuplicado() y se pinta en las 3 pantallas (decision con pedido, sin pedido y consolidacion). Se reutiliza el batchId ya leido: el backend no re-parsea ni duplica lineas.
+const CACHE_NAME = 'mindloop-costos-v308';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
