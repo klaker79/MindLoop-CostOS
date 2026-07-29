@@ -24,10 +24,19 @@
  * @type {Record<string, string[]>}
  */
 export const PLAN_TABS = {
-    // "Lite": operativa de costes básica. Sin inventario, búsqueda, IA (Omnes),
-    // horarios ni comida personal. "P&L" = diario (P&L diario) + analisis (Cuenta
-    // de Resultados / BCG / break-even). Configuración se mantiene (ajustes/precios).
-    lite: ['ingredientes', 'recetas', 'proveedores', 'pedidos', 'ventas', 'diario', 'analisis', 'configuracion'],
+    // "Lite": operativa de costes del día a día. Ocho pestañas, confirmadas por
+    // Iker el 2026-07-28 después de verlo funcionando:
+    //   ingredientes · recetas · proveedores · pedidos · ventas · inventario ·
+    //   diario · configuracion
+    //
+    // Fuera quedan: analisis (Cuenta de Resultados / BCG / punto de equilibrio),
+    // busqueda, inteligencia (Omnes), horarios y comida-personal.
+    //
+    // ⚠️ El comentario que había aquí decía justo lo contrario que el código
+    // ("sin inventario", "con analisis"): era el conjunto que se propuso primero
+    // y que Iker corrigió. Si cambias la lista, cambia también este texto — un
+    // comentario que miente sobre qué se está vendiendo es peor que no tenerlo.
+    lite: ['ingredientes', 'recetas', 'proveedores', 'pedidos', 'ventas', 'inventario', 'diario', 'configuracion'],
 };
 
 /**
@@ -52,12 +61,35 @@ export function aplicarGatingPlan() {
     if (activoTab && !permit.has(activoTab)) {
         window.cambiarTab?.(allowed[0]);
     }
+
+    // El chat de Omnes (widget flotante) pertenece a la IA (pestaña 'inteligencia').
+    // Si el tier no la incluye, ocultar el FAB aunque ya se haya montado (chatStatus
+    // es async y puede montarlo antes de que llegue `plan:loaded`).
+    if (!permit.has('inteligencia')) {
+        const chat = document.getElementById('chat-widget-container');
+        if (chat) chat.style.setProperty('display', 'none', 'important');
+    }
+}
+
+/**
+ * ¿El tier del plan actual permite esta pestaña/feature? Los planes normales (sin
+ * tier reducido) permiten todo. Se usa también para no montar el widget de chat en
+ * tiers que no incluyen la IA (pestaña 'inteligencia').
+ * @param {string} tab
+ * @returns {boolean}
+ */
+export function planPermiteTab(tab) {
+    const tier = (window._planData?.plan || '').toString().toLowerCase();
+    const allowed = PLAN_TABS[tier];
+    if (!allowed) return true; // plan normal → todo permitido
+    return allowed.includes(tab);
 }
 
 if (typeof window !== 'undefined') {
     window.aplicarGatingPlan = aplicarGatingPlan;
+    window.planPermiteTab = planPermiteTab;
     // El plan llega async tras el login → reaplicar cuando se emite `plan:loaded`.
     window.addEventListener('plan:loaded', () => aplicarGatingPlan());
 }
 
-export default { PLAN_TABS, aplicarGatingPlan };
+export default { PLAN_TABS, aplicarGatingPlan, planPermiteTab };
