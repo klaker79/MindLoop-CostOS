@@ -24,9 +24,18 @@
  * @type {Record<string, string[]>}
  */
 export const PLAN_TABS = {
-    // "Lite": operativa de costes básica. Sin inventario, búsqueda, IA (Omnes),
-    // horarios ni comida personal. "P&L" = diario (P&L diario) + analisis (Cuenta
-    // de Resultados / BCG / break-even). Configuración se mantiene (ajustes/precios).
+    // "Lite": operativa de costes del día a día. Ocho pestañas, confirmadas por
+    // Iker el 2026-07-28 después de verlo funcionando:
+    //   ingredientes · recetas · proveedores · pedidos · ventas · inventario ·
+    //   diario · configuracion
+    //
+    // Fuera quedan: analisis (Cuenta de Resultados / BCG / punto de equilibrio),
+    // busqueda, inteligencia (Omnes), horarios y comida-personal.
+    //
+    // ⚠️ El comentario que había aquí decía justo lo contrario que el código
+    // ("sin inventario", "con analisis"): era el conjunto que se propuso primero
+    // y que Iker corrigió. Si cambias la lista, cambia también este texto — un
+    // comentario que miente sobre qué se está vendiendo es peor que no tenerlo.
     lite: ['ingredientes', 'recetas', 'proveedores', 'pedidos', 'ventas', 'inventario', 'diario', 'configuracion'],
 };
 
