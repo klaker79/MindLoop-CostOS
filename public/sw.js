@@ -220,8 +220,7 @@
 // BUMP v295 (chat input blanco al enfocar en oscuro): theme-editorial.css tiene '.chat-input:focus{background:white!important}' (0,2,0, sin scope de tema, cargado despues de polish) -> al enfocar el input se ponia BLANCO con texto claro = invisible 'donde escribes'. Fix: override [data-theme=dark] .chat-input:focus (0,3,0) en polish.css. Verificado con mock ORDEN REAL (main>polish>editorial>chat) + input enfocado.
 // BUMP v297 (fix solapamiento modal carrito): #modal-carrito usaba el .modal-content global (overflow-y:auto sin flex) -> footer (Total+botones) y resumen de IVA se pisaban. Fix de raiz: modal en columna (cuerpo scrollable + footer fijo) acotado por id en theme-editorial.css.
 // BUMP v301 (paquetes reducidos por tier - prototipo Lite): plan-tabs.js oculta pestañas segun window._planData.plan (mapa PLAN_TABS). Fail-open (plan normal = todas). Calcado de aplicarGatingComidaPersonal; no toca datos ni calculos.
-// BUMP v302 (albaran escaneado -> pedido pendiente): tras el OCR en movil, si el proveedor tiene un pedido pendiente se abre la RECEPCION de ese pedido con las cantidades y precios del albaran ya volcados (mismo calculo de varianza que la recepcion manual, reusa marcarPedidoRecibido); si hay varios pedidos se sugiere el mas probable y se puede cambiar; si no hay ninguno, avisa y permite subirlo como compra nueva (flujo de consolidacion de siempre). Antes el OCR iba SIEMPRE directo a consolidar, sin varianzas. Solo frontend.
-const CACHE_NAME = 'mindloop-costos-v302';
+const CACHE_NAME = 'mindloop-costos-v301';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
