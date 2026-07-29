@@ -327,9 +327,17 @@ function abrirDecisionConPedido(r, prov, pendientes, lineas) {
     });
 }
 
-// Albarán que YA se registró: no hay nada pendiente que recibir, así que se informa
-// de lo que se guardó (y cuándo) en vez de soltar un error técnico.
-function abrirYaRegistrado(info) {
+/**
+ * Albarán que YA se registró.
+ *
+ * Ojo con el matiz, que no es cosmético: que el ALBARÁN esté registrado no significa
+ * que el PEDIDO se haya recibido. Si el albarán se consolidó como compra suelta
+ * (porque en su momento no casó con ningún pedido), el pedido sigue 'pendiente' y el
+ * usuario tiene una incoherencia: el stock entró por la puerta de atrás y su pedido
+ * nunca se cerró. Decirle solo "ya está registrado, no hace falta volver a subirlo"
+ * es mentirle. Por eso se le avisa de los pedidos pendientes de ese proveedor.
+ */
+function abrirYaRegistrado(info, pendientes) {
     const cuando = info.aprobado_at || info.created_at;
     let cuandoTxt = '';
     try {
@@ -354,11 +362,26 @@ function abrirYaRegistrado(info) {
         </div>`;
     }).join('');
 
+    // Aviso ámbar: el albarán entró como compra suelta y el pedido sigue sin recibir.
+    const listaPend = (pendientes || []).map(p =>
+        `<li style="margin:2px 0;">Pedido #${p.id} · ${escapeHTML(fmtFechaAlb(p.fecha))} · ${cm(parseFloat(p.total) || 0)}</li>`
+    ).join('');
+    const avisoPedido = (pendientes && pendientes.length) ? `
+        <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+            <div style="font-weight:800;color:#92400e;font-size:13.5px;margin-bottom:5px;">⚠️ Pero tu pedido sigue pendiente</div>
+            <div style="color:#92400e;font-size:12.5px;line-height:1.5;">
+                Este albarán se guardó como <b>compra suelta</b>, no como recepción de un pedido. De este proveedor tienes sin recibir:
+                <ul style="margin:6px 0 0 16px;padding:0;">${listaPend}</ul>
+                <div style="margin-top:7px;">El stock ya subió con la compra suelta, así que <b>no vuelvas a recibir el pedido</b> o lo contarás dos veces. Ciérralo a mano o avísame para deshacer el registro y rehacerlo bien.</div>
+            </div>
+        </div>` : '';
+
     const ov = overlaySheet(`
+        ${avisoPedido}
         <div style="width:52px;height:52px;border-radius:16px;background:#eef7ee;display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">✅</div>
         <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 6px;">Este albarán ya está registrado</h2>
         <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 14px;max-width:38ch;">
-            Lo diste de alta ${cuandoTxt ? `el <b>${escapeHTML(cuandoTxt)}</b>` : 'anteriormente'}. El stock y los precios ya se actualizaron entonces, así que no hace falta volver a subirlo.
+            Lo diste de alta ${cuandoTxt ? `el <b>${escapeHTML(cuandoTxt)}</b>` : 'anteriormente'}${(pendientes && pendientes.length) ? '' : '. El stock y los precios ya se actualizaron entonces, así que no hace falta volver a subirlo'}.
         </p>
         ${cab ? `<div style="text-align:center;font-size:12.5px;color:#8a5a3e;margin-bottom:10px;">${escapeHTML(cab)}</div>` : ''}
         <div style="background:#fffdfb;border:1px solid #efe1d5;border-radius:14px;padding:10px 13px;margin-bottom:8px;max-height:38vh;overflow-y:auto;">
@@ -384,7 +407,14 @@ async function enrutarAlbaran(r) {
     // (un toast de error): que el albarán YA se registrara, o que algo fallara de verdad.
     if (!lineas.length) {
         const info = await cargarBatch(r.batchId);
-        if (info) { abrirYaRegistrado(info); return; }
+        if (info) {
+            // El albarán está registrado, pero eso NO implica que el pedido se recibiera:
+            // si entró como compra suelta, el pedido sigue pendiente y hay que decirlo.
+            const provReg = casarProveedor(info.proveedor || r.proveedor);
+            const pendReg = provReg ? pedidosPendientesDe(provReg.id, info.totalImporte || 0) : [];
+            abrirYaRegistrado(info, pendReg);
+            return;
+        }
         toast('No pude cargar las líneas del albarán. Revísalo en la cola de compras.', 'warning');
         return;
     }
