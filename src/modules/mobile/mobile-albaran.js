@@ -65,7 +65,7 @@ async function procesarFotoAlbaran(file) {
             toast('No pude leer bien el albarán. Prueba con más luz, enfocado y recto, o mételo a mano.', 'warning');
             return;
         }
-        await abrirConsolidacionAlbaran(r);
+        await enrutarAlbaran(r);
     } catch (e) {
         window.hideLoading?.();
         // El backstop de prod devuelve 410; cualquier fallo aquí no rompe la app.
@@ -73,39 +73,200 @@ async function procesarFotoAlbaran(file) {
     }
 }
 
-// ==================== CONSOLIDACIÓN DEL ALBARÁN ====================
-// El albarán se consolida SOLO (sus propias líneas), sin buscar pedidos pendientes.
-// Foto → líneas leídas → revisas (relacionas las nuevas) → Consolidar = registra
-// stock + precio + diario (POST /purchases/pending/approve-batch). Las líneas sin
-// ingrediente se OMITEN (approve-batch las salta, no rompe).
+// ==================== ENRUTADO: ¿matchea con un pedido pendiente? ====================
+// Tras leer el albarán decidimos la vía, SIN duplicar la lógica de recepción:
+//   • Hay pedido pendiente del proveedor → abrimos la MISMA recepción que un pedido
+//     manual (window.marcarPedidoRecibido), volcando el albarán sobre él (varianzas).
+//   • No hay pedido → avisamos y, tras confirmar, se guarda como compra nueva
+//     (abrirConsolidacionAlbaran, el flujo de siempre).
+// El OCR solo reduce fricción: el cálculo de stock/precio/varianza es idéntico al manual.
+
+const fmtFechaAlb = (f) => { try { return new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f).toLocaleDateString(); } catch { return ''; } };
+
+// Normaliza el nombre de un proveedor para casarlo: minúsculas, sin acentos, sin
+// forma societaria (SL/SA/SCP…) ni puntuación. Los proveedores NO guardan CIF, así
+// que el matcheo es por nombre.
+function normProv(s) {
+    return (s || '').toString().toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/\b(s\.?l\.?u?|s\.?a\.?|s\.?c\.?p?|c\.?b\.?|sociedad limitada|sociedad anonima)\b/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+}
+
+// Casa el proveedor leído del albarán con window.proveedores (exacto → contención).
+function casarProveedor(nombreAlbaran) {
+    const objetivo = normProv(nombreAlbaran);
+    if (!objetivo) return null;
+    const provs = window.proveedores || [];
+    let hit = provs.find(p => normProv(p.nombre) === objetivo);
+    if (hit) return hit;
+    hit = provs.find(p => {
+        const n = normProv(p.nombre);
+        return n.length >= 4 && (n.includes(objetivo) || objetivo.includes(n));
+    });
+    return hit || null;
+}
+
+// Líneas del albarán recién leído (cola compras_pendientes, filtradas por batch).
+async function cargarLineasBatch(batchId) {
+    try {
+        const pend = await window.API.fetch('/purchases/pending?estado=pendiente');
+        return (Array.isArray(pend) ? pend : [])
+            .filter(x => x.batch_id === batchId)
+            .map(l => ({
+                id: l.id,
+                nombre: l.ingrediente_nombre || '',
+                ingredienteId: (l.ingrediente_id !== null && l.ingrediente_id !== undefined) ? Number(l.ingrediente_id) : null,
+                cantidad: parseFloat(l.cantidad) || 0,
+                precio: parseFloat(l.precio) || 0,
+            }));
+    } catch { return []; }
+}
+
+// Pedidos pendientes de un proveedor, "más probable" primero: importe más cercano
+// al total del albarán y, a igualdad, el más reciente. (Multi-pedido: auto + cambiar.)
+function pedidosPendientesDe(provId, totalAlbaran) {
+    return (window.pedidos || [])
+        .filter(p => p.estado === 'pendiente' && (p.proveedor_id ?? p.proveedorId) === provId)
+        .sort((a, b) => {
+            const da = Math.abs((parseFloat(a.total) || 0) - totalAlbaran);
+            const db = Math.abs((parseFloat(b.total) || 0) - totalAlbaran);
+            if (Math.abs(da - db) > 0.01) return da - db;
+            return new Date(b.fecha) - new Date(a.fecha);
+        });
+}
+
+// Rellena las globales que consume la recepción (pedidos-recepcion.js): las líneas del
+// albarán que casan con el pedido van a __albaranHints.porIngrediente (para volcar
+// cantidad/precio y marcar varianza); las que NO estaban en el pedido, a __albaranExtras.
+function prepararHints(lineas, ped, r) {
+    const idsPedido = new Set((ped.ingredientes || [])
+        .map(it => Number(it.ingredienteId ?? it.ingrediente_id))
+        .filter(n => Number.isFinite(n)));
+    const porIngrediente = new Map();
+    const extras = [];
+    for (const l of lineas) {
+        if (l.ingredienteId && idsPedido.has(l.ingredienteId)) {
+            const prev = porIngrediente.get(l.ingredienteId);
+            if (prev) {
+                // Mismo ingrediente en varias líneas del albarán: suma cantidad, precio ponderado.
+                const totCant = prev.cantidad + l.cantidad;
+                const precio = totCant ? (prev.cantidad * prev.precio + l.cantidad * l.precio) / totCant : l.precio;
+                porIngrediente.set(l.ingredienteId, { cantidad: totCant, precio });
+            } else {
+                porIngrediente.set(l.ingredienteId, { cantidad: l.cantidad, precio: l.precio });
+            }
+        } else {
+            // Extra: no estaba en el pedido (tenga o no ingrediente reconocido). Se confirma a mano.
+            extras.push({ ingredienteId: l.ingredienteId ?? null, cantidad: l.cantidad, precio: l.precio, nombre: l.nombre });
+        }
+    }
+    window.__albaranHints = {
+        pedidoId: ped.id,
+        porIngrediente,
+        todasLineas: lineas,
+        ivaPct: (r?.iva_pct !== null && r?.iva_pct !== undefined) ? r.iva_pct : null,
+        duplicado: !!r?.duplicateWarning,
+    };
+    window.__albaranExtras = extras;
+}
+
+// Overlay tipo bottom-sheet (terracota), coherente con el modal de entrada del albarán.
+function overlaySheet(innerHtml) {
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(58,34,22,.42);display:flex;align-items:flex-end;justify-content:center;';
+    ov.innerHTML = `<div style="background:#fffdfb;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:26px 26px 0 0;padding:14px 20px calc(20px + env(safe-area-inset-bottom,0));box-shadow:0 -18px 40px -20px rgba(36,18,9,.5);"><div style="width:38px;height:5px;border-radius:999px;background:#e7d7c8;margin:2px auto 14px;"></div>${innerHtml}</div>`;
+    document.body.appendChild(ov);
+    return ov;
+}
+
+const BTN_TERRA = 'display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:16px;padding:15px;margin-bottom:10px;background:linear-gradient(145deg,#b0533a,#8c3f2b);color:#fff;font-weight:800;font-size:15px;box-shadow:0 16px 30px -14px rgba(150,60,40,.7);cursor:pointer;';
+const BTN_GHOST = 'width:100%;border:1px solid #e7d7c8;background:#fff;border-radius:16px;padding:12px;color:#8a5a3e;font-weight:700;font-size:14px;cursor:pointer;';
+
+// No hay pedido pendiente → avisar y permitir subir igualmente como compra nueva.
+function abrirDecisionSinPedido(r, prov) {
+    const nombreProv = prov?.nombre || r?.proveedor || 'este proveedor';
+    const ov = overlaySheet(`
+        <div style="width:52px;height:52px;border-radius:16px;background:#fef3e6;display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">📄</div>
+        <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 8px;">Sin pedido para casar</h2>
+        <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 18px;max-width:36ch;">Este albarán no coincide con ningún pedido pendiente de <b>${escapeHTML(nombreProv)}</b>. ¿Guardarlo igualmente como una compra nueva?</p>
+        <button type="button" data-act="subir" style="${BTN_TERRA}">Sí, guardar como compra</button>
+        <button type="button" data-act="cerrar" style="${BTN_GHOST}">Cancelar</button>`);
+    ov.addEventListener('click', (ev) => {
+        if (ev.target === ov) { ov.remove(); return; }
+        const act = ev.target.closest('[data-act]')?.dataset.act;
+        if (act === 'cerrar') ov.remove();
+        else if (act === 'subir') { ov.remove(); abrirConsolidacionAlbaran(r); }
+    });
+}
+
+// Hay pedido(s) pendientes → sugerir el más probable, permitir cambiarlo o subir como nuevo.
+function abrirDecisionConPedido(r, prov, pendientes, lineas) {
+    const nombreProv = prov?.nombre || r?.proveedor || 'proveedor';
+    const varios = pendientes.length > 1;
+    const opciones = pendientes.map((p, i) => `
+        <label style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid ${i === 0 ? '#b0533a' : '#efe1d5'};border-radius:14px;padding:12px 13px;margin-bottom:9px;cursor:pointer;">
+          <input type="radio" name="ml-ped-sel" value="${p.id}" ${i === 0 ? 'checked' : ''} style="accent-color:#b0533a;width:18px;height:18px;flex:0 0 auto;">
+          <span style="flex:1;min-width:0;"><b style="display:block;font-size:14px;color:#3a2216;">Pedido del ${escapeHTML(fmtFechaAlb(p.fecha))}</b><small style="font-size:11.5px;color:#a8917f;">${cm(parseFloat(p.total) || 0)}${i === 0 ? ' · sugerido' : ''}</small></span>
+        </label>`).join('');
+    const ov = overlaySheet(`
+        <div style="width:52px;height:52px;border-radius:16px;background:#eef7ee;display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">✅</div>
+        <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 6px;">${varios ? 'Elige el pedido' : 'Pedido encontrado'}</h2>
+        <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 16px;max-width:36ch;">${varios ? `Hay ${pendientes.length} pedidos pendientes de <b>${escapeHTML(nombreProv)}</b>. Elige con cuál casar el albarán.` : `Casamos el albarán con tu pedido pendiente de <b>${escapeHTML(nombreProv)}</b> para comparar lo pedido con lo recibido.`}</p>
+        ${opciones}
+        <button type="button" data-act="recibir" style="${BTN_TERRA}">Recibir sobre este pedido</button>
+        <button type="button" data-act="nuevo" style="${BTN_GHOST}">Ninguno · subir como compra nueva</button>`);
+    ov.addEventListener('click', (ev) => {
+        if (ev.target === ov) { ov.remove(); return; }
+        const act = ev.target.closest('[data-act]')?.dataset.act;
+        if (!act) return;
+        if (act === 'nuevo') { ov.remove(); abrirConsolidacionAlbaran(r); return; }
+        if (act === 'recibir') {
+            const sel = ov.querySelector('input[name="ml-ped-sel"]:checked');
+            const pedId = sel ? Number(sel.value) : pendientes[0].id;
+            const ped = pendientes.find(p => p.id === pedId) || pendientes[0];
+            prepararHints(lineas, ped, r);
+            ov.remove();
+            if (typeof window.marcarPedidoRecibido === 'function') {
+                window.marcarPedidoRecibido(ped.id);
+            } else {
+                window.showToast?.('No se pudo abrir la recepción del pedido.', 'error');
+                abrirConsolidacionAlbaran(r);
+            }
+        }
+    });
+}
+
+// Punto de entrada tras leer el albarán: decide recepción-con-varianzas o compra nueva.
+async function enrutarAlbaran(r) {
+    const toast = (m, tt) => window.showToast?.(m, tt);
+    const lineas = await cargarLineasBatch(r.batchId);
+    if (!lineas.length) { toast('No pude cargar las líneas del albarán. Revísalo en la cola de compras.', 'warning'); return; }
+    const totalAlb = lineas.reduce((s, l) => s + l.cantidad * l.precio, 0);
+    const prov = casarProveedor(r.proveedor);
+    const pendientes = prov ? pedidosPendientesDe(prov.id, totalAlb) : [];
+    if (pendientes.length) abrirDecisionConPedido(r, prov, pendientes, lineas);
+    else abrirDecisionSinPedido(r, prov);
+}
+
+// ==================== CONSOLIDACIÓN DEL ALBARÁN (compra nueva, sin pedido) ====================
+// El albarán se consolida SOLO (sus propias líneas). Foto → líneas leídas → revisas
+// (relacionas las nuevas) → Consolidar = registra stock + precio + diario
+// (POST /purchases/pending/approve-batch). Las líneas sin ingrediente se OMITEN.
 const CONSOL_OV = 'ml-consol-ov';
 let consolEstado = { r: null, batchId: null, lineas: [] };
 
 function cerrarConsol() { document.getElementById(CONSOL_OV)?.remove(); }
 
-const fmtFechaAlb = (f) => { try { return new Date((typeof f === 'string' && f.length === 10) ? f + 'T12:00:00' : f).toLocaleDateString(); } catch { return ''; } };
-
 async function abrirConsolidacionAlbaran(r) {
     const toast = (m, tt) => window.showToast?.(m, tt);
-    let lineas = [];
-    try {
-        const pend = await window.API.fetch('/purchases/pending?estado=pendiente');
-        lineas = (Array.isArray(pend) ? pend : [])
-            .filter(x => x.batch_id === r.batchId)
-            .map(l => {
-                const ing = (l.ingrediente_id !== null && l.ingrediente_id !== undefined) ? Number(l.ingrediente_id) : null;
-                return {
-                    id: l.id,
-                    nombre: l.ingrediente_nombre || '',
-                    ingredienteId: ing,
-                    ingredienteOriginal: ing,
-                    cantidad: parseFloat(l.cantidad) || 0,
-                    precio: parseFloat(l.precio) || 0,
-                };
-            });
-    } catch { /* no-op */ }
+    const lineas = await cargarLineasBatch(r.batchId);
     if (!lineas.length) { toast('No pude cargar las líneas del albarán. Revísalo en la cola de compras.', 'warning'); return; }
-    consolEstado = { r, batchId: r.batchId, lineas };
+    consolEstado = {
+        r, batchId: r.batchId,
+        lineas: lineas.map(l => ({ id: l.id, nombre: l.nombre, ingredienteId: l.ingredienteId, ingredienteOriginal: l.ingredienteId, cantidad: l.cantidad, precio: l.precio })),
+    };
     pintarConsol();
 }
 
