@@ -14,7 +14,9 @@ import { filtrarVisibles, dismissAviso } from './omnes-dismiss.js';
 async function fetchIntelligence(endpoint) {
     try {
         // fix M6: el fallback necesita /api al final (igual que getApiUrl() que devuelve baseUrl+'/api')
-        const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud/api';
+        // 🔒 Casa Lite: el fallback apunta a la API de ESTA casa (antes: lacaleta-api,
+        // la de producción de La Nave 5).
+        const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lite-api.mindloop.cloud/api';
 
         // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
         const headers = { 'Content-Type': 'application/json' };

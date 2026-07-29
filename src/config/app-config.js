@@ -9,6 +9,33 @@
 import { CACHE_TTL, DEBOUNCE_DELAY, PAGE_SIZE } from './constants.js';
 
 /**
+ * API de esta casa cuando el build NO trae `VITE_API_BASE_URL`.
+ *
+ * 🔒 Rama `lite` = casa Lite (lite.mindloop.cloud + lite-api + BD propia).
+ * El fallback DEBE apuntar a la API de esta casa, nunca a la de otra.
+ *
+ * Antes caía en `lacaleta-api.mindloop.cloud`, que es la API de PRODUCCIÓN de
+ * La Nave 5. Si el build de Lite se hace sin la variable — y es fácil: en
+ * Dokploy las `VITE_*` van en "Build-time Variables", no en "Environment
+ * Settings", y esa confusión ya ocurrió una vez — el frontend de Lite se pone
+ * a leer y ESCRIBIR contra la base de datos de La Nave 5. Sin error, sin
+ * aviso: la app funciona, solo que contra el tenant equivocado.
+ *
+ * Con el fallback apuntando aquí, olvidar la variable degrada a "correcto"
+ * en vez de a "cruza de casa".
+ */
+const API_DE_ESTA_CASA = 'https://lite-api.mindloop.cloud';
+
+// Aviso ruidoso: el build salió sin la variable. No rompe la app (el fallback
+// ya es el correcto), pero deja rastro para que se arregle en Dokploy.
+if (!import.meta.env.DEV && !import.meta.env.VITE_API_BASE_URL) {
+    console.warn(
+        `[config] VITE_API_BASE_URL no está definida en el build. Usando ${API_DE_ESTA_CASA}. `
+        + 'Revisa "Build-time Variables" en Dokploy (no "Environment Settings").'
+    );
+}
+
+/**
  * Configuración de la aplicación
  */
 export const appConfig = {
@@ -17,8 +44,8 @@ export const appConfig = {
      */
     api: {
         // En desarrollo: vacío → URLs relativas que pasan por el proxy de Vite
-        // En producción: URL absoluta del API
-        baseUrl: import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : 'https://lacaleta-api.mindloop.cloud'),
+        // En producción: URL absoluta del API de ESTA casa
+        baseUrl: import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : API_DE_ESTA_CASA),
         timeout: 30000, // 30 segundos
         retries: 3,
         retryDelay: 1000, // 1 segundo entre reintentos
@@ -27,12 +54,20 @@ export const appConfig = {
     /**
      * Configuración de Chat
      *
-     * backend: "n8n" (legacy webhook) | "claude" (POST /api/chat, multi-tenant)
-     * Controlado por VITE_CHAT_BACKEND. Default "n8n" para mantener la producción
-     * intacta hasta que estemos 100% seguros de que el backend de Claude funciona.
+     * backend: "claude" (POST /api/chat, multi-tenant) | "n8n" (webhook legacy)
+     *
+     * Default "claude". Controlado por VITE_CHAT_BACKEND; solo el valor
+     * explícito "n8n" vuelve al webhook.
+     *
+     * El default era "n8n", de cuando el backend de Claude aún no estaba
+     * probado. Hoy eso está al revés: el chat va por `POST /api/chat` y el
+     * webhook `CHATBOT_APP_LANAVE5` se cerró por seguridad (no tenía Header
+     * Auth). Con el default antiguo, cualquier despliegue que perdiera la
+     * variable mandaba el chat a un webhook cerrado — el chat deja de
+     * funcionar y el motivo no se ve por ningún lado.
      */
     chat: {
-        backend: import.meta.env.VITE_CHAT_BACKEND === 'claude' ? 'claude' : 'n8n',
+        backend: import.meta.env.VITE_CHAT_BACKEND === 'n8n' ? 'n8n' : 'claude',
         webhookUrl: import.meta.env.VITE_CHAT_WEBHOOK_URL || '',
         botName: 'Asistente CostOS',
         enabled: true,
@@ -181,7 +216,7 @@ export function exportConfig() {
  * @returns {string} URL base de la API
  * 
  * @example
- * getApiBaseUrl() // 'https://lacaleta-api.mindloop.cloud'
+ * getApiBaseUrl() // 'https://lite-api.mindloop.cloud'
  * getApiBaseUrl() + '/api/ingredientes'
  */
 export function getApiBaseUrl() {
