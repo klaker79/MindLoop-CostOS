@@ -27,12 +27,23 @@ export const appConfig = {
     /**
      * Configuración de Chat
      *
-     * backend: "n8n" (legacy webhook) | "claude" (POST /api/chat, multi-tenant)
-     * Controlado por VITE_CHAT_BACKEND. Default "n8n" para mantener la producción
-     * intacta hasta que estemos 100% seguros de que el backend de Claude funciona.
+     * backend: "claude" (POST /api/chat, multi-tenant) | "n8n" (webhook legacy)
+     *
+     * Default "claude". Controlado por VITE_CHAT_BACKEND; solo el valor
+     * explícito "n8n" vuelve al webhook.
+     *
+     * El default era "n8n", de cuando el backend de Claude aún no estaba
+     * probado. Hoy es al revés: producción lleva tiempo con "claude" (el build
+     * servido en app.mindloop.cloud trae `backend:"claude"`) y el webhook
+     * `CHATBOT_APP_LANAVE5` se cerró por seguridad, porque no tenía Header Auth.
+     *
+     * Con el default antiguo, cualquier despliegue que perdiera la variable
+     * mandaba el chat de producción a un webhook cerrado: deja de funcionar y
+     * el motivo no se ve por ningún lado. Invertirlo no cambia nada hoy —
+     * la variable está puesta— y quita esa trampa.
      */
     chat: {
-        backend: import.meta.env.VITE_CHAT_BACKEND === 'claude' ? 'claude' : 'n8n',
+        backend: import.meta.env.VITE_CHAT_BACKEND === 'n8n' ? 'n8n' : 'claude',
         webhookUrl: import.meta.env.VITE_CHAT_WEBHOOK_URL || '',
         botName: 'Asistente CostOS',
         enabled: true,
