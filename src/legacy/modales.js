@@ -216,7 +216,7 @@ const CACHE_TTL = 5000; // 5 segundos
 
 // ⚡ API BASE URL - 🔧 FIX: Lazy resolution (window.API_CONFIG se configura DESPUÉS por main.js)
 function getGastosApiBase() {
-    return (window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud') + '/api';
+    return (window.API_CONFIG?.baseUrl ?? '') + '/api';
 }
 
 function getGastosAuthHeaders() {
@@ -581,7 +581,7 @@ function startTokenRefresh() {
             try {
                 // Use the verify endpoint to check session validity
                 const API_BASE =
-                    window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud';
+                    window.API_CONFIG?.baseUrl ?? '';
                 const response = await fetch(API_BASE + '/api/auth/verify', {
                     credentials: 'include',
                     headers: Object.assign({}, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {})

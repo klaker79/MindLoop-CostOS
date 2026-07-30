@@ -9,6 +9,48 @@
 import { CACHE_TTL, DEBOUNCE_DELAY, PAGE_SIZE } from './constants.js';
 
 /**
+ * A qué API habla ESTA casa. ÚNICA fuente del dominio del backend.
+ *
+ * Historia: el dominio de la API de PRODUCCIÓN estaba escrito a mano como
+ * fallback en DOCE sitios (app-core, inventario-masivo, modales, authStore…).
+ * Consecuencia real: el bundle de STAGING llevaba dentro la URL de producción
+ * — si en cualquier momento `window.API_CONFIG` no estaba definido, staging
+ * llamaba a la API de La Nave 5. Hoy lo frena el CORS (403), pero una lista
+ * de CORS no es un plan: es la última red, no la primera.
+ *
+ * Regla nueva:
+ *  1. `VITE_API_BASE_URL` manda siempre (se fija por entorno en Dokploy).
+ *  2. Sin variable, la API se deduce del DOMINIO que sirve la app: cada casa
+ *     solo conoce a su propia API. app→lacaleta-api, staging→staging-api,
+ *     lite→lite-api.
+ *  3. Una casa desconocida NO cae a producción: devuelve vacío y canta el
+ *     error en consola. Mejor romperse a la vista que llamar a la casa
+ *     equivocada en silencio — así se descubrió el agujero de Lite (una
+ *     comprobación en vivo devolvió 401 donde tocaba 403).
+ */
+export const API_POR_CASA = Object.freeze({
+    'app.mindloop.cloud': 'https://lacaleta-api.mindloop.cloud',
+    'staging.mindloop.cloud': 'https://staging-api.mindloop.cloud',
+    'lite.mindloop.cloud': 'https://lite-api.mindloop.cloud',
+});
+
+export function apiBaseSegunCasa(casa = (typeof window !== 'undefined' ? window.location.hostname : '')) {
+    const porEnv = import.meta.env.VITE_API_BASE_URL;
+    if (porEnv) return porEnv;
+
+    // En desarrollo: vacío → URLs relativas que pasan por el proxy de Vite.
+    if (import.meta.env.DEV) return '';
+
+    if (API_POR_CASA[casa]) return API_POR_CASA[casa];
+
+    console.error(
+        `❌ CosteOS: dominio desconocido "${casa}" y sin VITE_API_BASE_URL. ` +
+        'No se asume ninguna API: configúralo en el build (Dokploy) o añade la casa al mapa de app-config.js.'
+    );
+    return '';
+}
+
+/**
  * Configuración de la aplicación
  */
 export const appConfig = {
@@ -16,9 +58,7 @@ export const appConfig = {
      * Configuración de API
      */
     api: {
-        // En desarrollo: vacío → URLs relativas que pasan por el proxy de Vite
-        // En producción: URL absoluta del API
-        baseUrl: import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '' : 'https://lacaleta-api.mindloop.cloud'),
+        baseUrl: apiBaseSegunCasa(),
         timeout: 30000, // 30 segundos
         retries: 3,
         retryDelay: 1000, // 1 segundo entre reintentos

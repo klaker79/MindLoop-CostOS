@@ -213,7 +213,8 @@
 // BUMP v254: Ranking de Rentabilidad, matriz BCG y gráfica de margen por categoría comparten UNA sola lista de "no son platos" (base/suministros/extras). Antes el ranking solo quitaba 'base' y colaba los cargos (PAN POR PERSONA) entre los platos; la gráfica de margen usaba otra lista distinta. Los cargos/complementos se marcan con categoria='extra' (mismo criterio que el backend categoriaClassifier). Pinchos/tapas SIGUEN en el ranking.
 // BUMP v255 (hotfix modo oscuro chat, solo CSS): tokens --dm-* estaban en un ':root{}' anidado en [data-theme=dark] (no matchea) -> chat transparente/ilegible en oscuro; y .chat-input:focus de editorial lo ponia blanco al escribir. Fix en polish.css: definir --dm-* directo + skin globo/chips + override :focus. Cherry de los fixes de staging (#790/#791) SIN arrastrar OCR.
 // BUMP v259 (default del chat): el backend del chat pasa a 'claude' por defecto; solo un VITE_CHAT_BACKEND=n8n explicito vuelve al webhook (que esta cerrado por seguridad). Hoy el resultado es el mismo porque la variable esta puesta en prod, pero el bundle cambia y sin este bump el SW seguiria sirviendo el anterior.
-const CACHE_NAME = 'mindloop-costos-v259';
+// BUMP v260 (una API por casa): el dominio de la API estaba cableado como fallback en 12 sitios; ahora hay UN mapa dominio->API en app-config (app->lacaleta-api, staging->staging-api, lite->lite-api) y una casa desconocida falla a la vista en vez de cruzar a produccion. En app.mindloop.cloud el comportamiento es IDENTICO: su dominio resuelve a lacaleta-api, como siempre.
+const CACHE_NAME = 'mindloop-costos-v260';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
