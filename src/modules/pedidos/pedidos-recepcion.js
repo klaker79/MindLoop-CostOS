@@ -174,6 +174,31 @@ export function marcarPedidoRecibido(id) {
         }
     }
 
+    // 📅 Aviso de mes, en la pantalla donde de verdad se confirma.
+    // Si la recepción viene de un albarán de otro mes, la compra NO se registra
+    // en el mes actual sino en el del albarán. Sin este aviso el usuario confirma,
+    // mira el Diario de hoy y no ve nada.
+    const fechaBanner = document.getElementById('modal-rec-fecha-banner');
+    if (fechaBanner) {
+        const hints = (window.__albaranHints && window.__albaranHints.pedidoId === id) ? window.__albaranHints : null;
+        const fAlb = hints?.fecha ? new Date(String(hints.fecha).length === 10 ? hints.fecha + 'T12:00:00' : hints.fecha) : null;
+        const hoy = new Date();
+        const otroMes = fAlb && !Number.isNaN(fAlb.getTime())
+            && !(fAlb.getFullYear() === hoy.getFullYear() && fAlb.getMonth() === hoy.getMonth());
+        if (otroMes) {
+            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            const mesAlb = `${meses[fAlb.getMonth()]} ${fAlb.getFullYear()}`;
+            fechaBanner.innerHTML = `📅 <b>Este albarán es del ${escapeHTML(fAlb.toLocaleDateString(getDateLocale()))}</b>`
+                + ` — la compra se registrará en <b>${escapeHTML(mesAlb)}</b>, no en el mes actual.`
+                + ` Búscala en el Diario de ${escapeHTML(mesAlb)}.`;
+            fechaBanner.style.display = 'block';
+        } else {
+            fechaBanner.style.display = 'none';
+            fechaBanner.innerHTML = '';
+        }
+    }
+
     // Mostrar modal
     const modal = document.getElementById('modal-recibir-pedido');
     if (modal) modal.classList.add('active');
@@ -835,8 +860,18 @@ export async function confirmarRecepcionPedido() {
         }
 
         // Solo si TODOS los stocks se actualizaron, marcar pedido como recibido
-        // 📅 FIX: Usar la fecha original del pedido para que el Diario registre en el día correcto
-        const fechaOriginal = ped.fecha || new Date().toISOString();
+        // 📅 Fecha que llega al Diario:
+        //   - Si la recepción viene de un albarán escaneado, manda la fecha del
+        //     ALBARÁN. Es el día en que el proveedor sirvió de verdad, y es lo que
+        //     ya hacía la vía de "subir como compra nueva".
+        //     Antes se usaba siempre `ped.fecha`, así que un albarán de marzo casado
+        //     con un pedido de julio registraba la compra en JULIO. Las dos vías
+        //     fechaban distinto (2026-07-30).
+        //   - Sin albarán (recepción manual), se mantiene la fecha del pedido.
+        const fechaAlbaranRecepcion = (window.__albaranHints && window.__albaranHints.pedidoId === window.pedidoRecibiendoId)
+            ? window.__albaranHints.fecha
+            : null;
+        const fechaOriginal = fechaAlbaranRecepcion || ped.fecha || new Date().toISOString();
         await window.api.updatePedido(window.pedidoRecibiendoId, {
             ...ped,
             estado: 'recibido',

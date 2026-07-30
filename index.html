@@ -2956,6 +2956,10 @@
         <div class="modal-content" style="max-width: 1100px; width: 95vw;">
           <h3 data-i18n="pedidos:reception_title">Recibir Pedido</h3>
           <div id="modal-rec-dup-banner" style="display:none; background:#fef2f2; border:2px solid #dc2626; color:#991b1b; padding:14px 16px; border-radius:8px; margin-bottom:16px; font-weight:600; line-height:1.4;"></div>
+          <!-- 📅 Aviso: el albarán es de otro mes, así que la compra NO se registra
+               en el mes en curso sino en el del albarán. Se pinta desde
+               pedidos-recepcion.js (marcarPedidoRecibido). -->
+          <div id="modal-rec-fecha-banner" style="display:none; background:#fffbeb; border:2px solid #d97706; color:#92400e; padding:14px 16px; border-radius:8px; margin-bottom:16px; font-weight:600; line-height:1.4;"></div>
           <p style="margin-bottom: 20px; color: #666;" data-i18n="pedidos:reception_description">
             Verifica las cantidades y precios recibidos. Puedes ajustar los valores si hay diferencias.
           </p>
