@@ -2,10 +2,11 @@
 
 ## Critical Rules
 
-1. **App is in PRODUCTION** — La Caleta 102 uses it daily. Do not break anything.
+1. **App is in PRODUCTION** — La Nave 5 la usa a diario. Do not break anything.
 2. **No features without explicit permission.** Stability > new features.
 3. **Run `npm run lint` before every commit.** ESLint blocks bugs in CI.
-4. **After CSS/JS changes, update cache-busting query strings** in `index.html`.
+4. **Cualquier cambio de JS/CSS/i18n que llegue al bundle → bumpear `CACHE_NAME` en `public/sw.js`** (con una línea `// BUMP vNNN (qué y por qué)`). Sin bump, los clientes siguen viendo la versión cacheada días.
+5. **Los guardianes se prueban por MUTACIÓN**: rompe el código a propósito y confirma que el test cae. Un guardián que valida el archivo que no manda ya costó un incidente (CORS).
 
 ## Architecture
 
@@ -68,10 +69,39 @@ Requires `STAGING_URL`, `STAGING_API_URL`, `STAGING_TEST_EMAIL`, `STAGING_TEST_P
 - Use `.first()` on sidebar/tab locators (`[data-tab="..."]`) because two buttons match each nav item (sidebar + horizontal tabs).
 - New test data lives in the staging seed (`infrastructure_staging.md`), never hard-coded inside a test.
 
+## Entornos — las tres casas (2026-07-31)
+
+| Casa | Rama | Web | API |
+|---|---|---|---|
+| **Producción** (La Nave 5 — INTOCABLE) | `main` | app.mindloop.cloud | lacaleta-api |
+| **Staging** (ensayo, OCR en prueba) | `develop` (= main + OCR) | staging.mindloop.cloud | staging-api |
+| **Lite** (producto escalable, clientes nuevos) | `lite` (nace de develop) | lite.mindloop.cloud | lite-api |
+
+- **Una API por casa**: el dominio del backend vive SOLO en el mapa
+  `API_POR_CASA` de `src/config/app-config.js` (por hostname; `VITE_API_BASE_URL`
+  manda si está puesta). PROHIBIDO escribir un dominio de API en cualquier otro
+  archivo — así es como el bundle de staging acabó llevando dentro la URL de
+  producción. Una casa desconocida falla a vacío + `console.error`, nunca cae a
+  producción. Guardián: `src/__tests__/regression/una-api-por-casa.test.js`
+  (recorre todo `src/`).
+- **Paquete Lite** (`plan_tier='lite'`): 8 pestañas (ingredientes, recetas,
+  proveedores, pedidos, ventas, inventario, diario, configuracion), gating en
+  `src/modules/core/plan-tabs.js`. El gating filtra las DOS navegaciones:
+  sidebar de escritorio (`.nav-item`) Y menú "Más" del móvil (`.smm-item`).
+- **Móvil = más corto a propósito** (no una copia encogida): barra inferior
+  Inicio·Pedidos·Recibir·Más; menú "Más" con 6 entradas; **Ventas fuera del
+  móvil a propósito**; Diario móvil = SOLO el P&L en una columna
+  (`src/modules/balance/pl-movil.js` — NO calcula: usa
+  `computeBeneficioNetoDiario`, el mismo cálculo que el escritorio);
+  Configuración móvil = solo Datos del Restaurante. Guardianes:
+  `movil-pestanas-alcanzables.test.js`, `pl-movil.test.js`.
+
 ## Deploy
 
-Push to `main` → GitHub Actions → GitHub Pages (`https://app.mindloop.cloud`)
-No build step in production — Vite is dev-only. Files served as static.
+Dokploy (VPS) construye la imagen con Vite y la sirve con nginx — **mergear ≠
+desplegado**. Tras cada merge: Redeploy + **Clean Cache** del servicio frontend
+de la casa correspondiente, y verificar EN VIVO (qué `CACHE_NAME` sirve
+`<dominio>/sw.js`). Cada rama lleva su propia numeración de `CACHE_NAME`.
 
 ## Critical Business Rules
 
