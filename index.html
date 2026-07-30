@@ -26,17 +26,23 @@
     content="Plataforma de inteligencia para restaurantes. Gestión de costes, recetas e inventario.">
   <meta property="og:url" content="https://klaker79.github.io/lacaletacost/">
 
-  <!-- PWA / Mobile -->
-  <meta name="theme-color" content="#667eea">
+  <!-- PWA / Mobile — identidad de la casa Lite (terracota sobre crema).
+       Antes esto iba en morado (#667eea) y navy, del tema anterior: al instalar
+       la app en el móvil, la pantalla de arranque y la barra de estado salían
+       moradas mientras la app es terracota. Ese primer segundo es donde se
+       decide si parece una app de verdad o una web con un icono encima. -->
+  <meta name="theme-color" content="#b0533a">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- `default` y no `black-translucent`: el fondo de Lite es crema, y con
+       translucent iOS pinta la hora en blanco → invisible sobre claro. -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CosteOS">
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/images/costeos-icon-512.png">
 
-  <!-- Favicon CosteOS -->
-  <link rel="icon" href="/images/costeos-icon-192.png" type="image/png">
-  <link rel="apple-touch-icon" href="/images/costeos-icon-512.png">
+  <!-- Favicon e icono de inicio. iOS ignora los iconos del manifest para la
+       pantalla de inicio: usa apple-touch-icon, por eso va aquí también. -->
+  <link rel="icon" href="/images/costeos-lite-icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="/images/costeos-lite-icon-512.png">
 
   <!-- Preconnect para performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
