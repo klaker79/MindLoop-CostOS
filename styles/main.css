@@ -4057,12 +4057,22 @@ table tbody td:first-child {
 /* ════════════════════════════════════════════════════════════════════
    MÓVIL — Banner "abre en ordenador" (sprint 2 mobile, 2026-05-26)
    --------------------------------------------------------------------
-   Pestañas no aptas para móvil (Análisis, Inteligencia, Diario):
+   Pestañas no aptas para móvil (Análisis, Inteligencia):
    - Desktop: el banner está OCULTO. La pestaña funciona normal.
    - Móvil (<768px): el banner SE MUESTRA y oculta el resto del contenido
      de la pestaña. El usuario ve un mensaje claro de que abra la app en
      ordenador, en vez de luchar con gráficas/KPIs ilegibles en pantalla
      pequeña.
+
+   DIARIO ya NO está aquí (2026-07-30). Se bloqueó junto a las otras dos por
+   parecerse: tablas anchas de 31 columnas. Pero es distinto — sus cuatro
+   tablas ya se construyen con la primera columna FIJA (`position: sticky;
+   left: 0` en línea, en los cuatro renderers) dentro de un contenedor con
+   `overflow: auto`. Es decir: ya se manejan como una hoja de cálculo en el
+   móvil, arrastrando de lado con la etiqueta de la fila siempre a la vista.
+   Lo único que faltaba era dejar de taparlas. Y en Lite el Diario es una de
+   las ocho pestañas que se venden, así que bloquearla en el móvil era
+   dejarla sin la mitad de su uso.
    ════════════════════════════════════════════════════════════════════ */
 
 /* Desktop (por defecto): banner oculto. */
@@ -4073,8 +4083,7 @@ table tbody td:first-child {
 @media (max-width: 768px) {
   /* Mostrar banner solo cuando la pestaña padre está activa. */
   #tab-analisis.active .desktop-only-banner,
-  #tab-inteligencia.active .desktop-only-banner,
-  #tab-diario.active .desktop-only-banner {
+  #tab-inteligencia.active .desktop-only-banner {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -4112,9 +4121,68 @@ table tbody td:first-child {
   /* Ocultar el resto del contenido de las pestañas afectadas en móvil.
      Targeteamos cualquier hijo directo que NO sea el banner. */
   #tab-analisis.active > *:not(.desktop-only-banner),
-  #tab-inteligencia.active > *:not(.desktop-only-banner),
-  #tab-diario.active > *:not(.desktop-only-banner) {
+  #tab-inteligencia.active > *:not(.desktop-only-banner) {
     display: none !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   MÓVIL — Diario (2026-07-30)
+   --------------------------------------------------------------------
+   Las tablas ya funcionan solas (primera columna fija + scroll lateral).
+   Lo que no cabía eran las BARRAS DE CONTROL de arriba: mes/año + dos
+   botones, cuatro botones de vista y seis de semana, todos en filas flex
+   sin `wrap`. En un móvil se aplastan hasta ser impulsables.
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Mes/año + Cargar + Exportar: que bajen de línea en vez de encogerse. */
+  #tab-diario .top-bar > div:last-child {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+  #tab-diario .top-bar select.form-control {
+    flex: 1 1 40% !important;
+    min-width: 0 !important;
+  }
+
+  /* Los cuatro botones de vista (Compras/Ventas/Proveedores/P&L): dos por
+     fila, en vez de cuatro tiras verticales de letras partidas. */
+  #tab-diario > div[style*="margin-bottom: 20px"] {
+    flex-wrap: wrap !important;
+  }
+  #tab-diario [data-action="vista-diario"] {
+    flex: 1 1 45% !important;
+    min-width: 0 !important;
+    padding: 11px 8px !important;
+    font-size: 13px !important;
+  }
+
+  /* Botones de semana: ya venían con wrap; solo se aprietan para que las
+     seis opciones quepan en dos filas y se puedan pulsar con el pulgar. */
+  #tab-diario .btn-semana {
+    flex: 1 1 30% !important;
+    padding: 9px 6px !important;
+    font-size: 12px !important;
+  }
+
+  /* Aviso de que la tabla se arrastra de lado. Sin esto, en un móvil una
+     tabla cortada parece rota, no desplazable. */
+  #tab-diario .diario-vista::before {
+    content: '← Desliza la tabla para ver más días →';
+    display: block;
+    text-align: center;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+  }
+
+  /* El scroll lateral tiene que ser el de la tabla, no el de la página. */
+  #tabla-compras-diarias,
+  #tabla-ventas-diarias,
+  #tabla-proveedores-diarios,
+  #tabla-pl-diario {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
   }
 }
 /* 🍳 Modal de receta en MÓVIL: la fila de ingrediente es un flex de 5 columnas

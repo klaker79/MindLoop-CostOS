@@ -2028,11 +2028,11 @@
 
         <!-- TAB: DIARIO (Tracking de Costes/Ventas por Día) -->
         <div id="tab-diario" class="tab-content">
-          <div class="desktop-only-banner" aria-live="polite">
-            <div class="desktop-only-banner__icon">💻</div>
-            <h3 data-i18n="common:mobile_only_banner_title">Mejor en ordenador</h3>
-            <p data-i18n="common:mobile_only_banner_hint">Esta sección está pensada para pantalla grande. Abre la app en el portátil o sobremesa para verla bien.</p>
-          </div>
+          <!-- Aquí había un cartel "Mejor en ordenador" que tapaba el Diario
+               entero en el móvil. Se quita: las cuatro tablas ya se construyen
+               con la primera columna fija y scroll lateral, así que se leen
+               igual que una hoja de cálculo en el teléfono. Ver el bloque
+               "MÓVIL — Diario" en styles/main.css. -->
           <div class="top-bar">
             <div>
               <h2 data-i18n="balance:diario_title">📈 Control Diario</h2>
