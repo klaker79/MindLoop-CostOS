@@ -228,7 +228,8 @@
 // BUMP v312 (albaran = recepcion completa): consolidar un albaran crea ahora un PEDIDO en estado recibido, asi sale en la pestana Pedidos y se puede revertir; el lote se marca consumido para que no se pueda aprobar dos veces; y se avisa cuando la compra cae en un mes distinto al actual.
 // BUMP v313 (fecha del albaran): al recibir sobre un pedido manda ahora la fecha del ALBARAN, no la del pedido, y el aviso de mes se ve ANTES de aceptar.
 // BUMP v314 (volver a pedir): la portada movil ofrecia 'Repetir' sobre pedidos aun PENDIENTES. Ahora solo se ofrecen los ya recibidos, y no se ofrece a un proveedor que ya tiene uno en camino.
-const CACHE_NAME = 'mindloop-costos-v314';
+// BUMP v315 (identidad de app): manifest e iconos en terracota sobre crema (antes navy/morado del tema anterior: al instalarla la splash y la barra de estado salian moradas). Barra de estado iOS 'default' para fondo claro, y accesos directos de Android a 'Recibir albaran' y 'Nuevo pedido'.
+const CACHE_NAME = 'mindloop-costos-v315';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

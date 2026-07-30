@@ -115,8 +115,43 @@ export async function mlVolverAPedir(id) {
     if (typeof window.cambiarTab === 'function') window.cambiarTab('pedidos');
 }
 
+/**
+ * Accesos directos de la app instalada (`shortcuts` del manifest).
+ *
+ * En Android, al mantener pulsado el icono salen "Recibir albarán" y "Nuevo
+ * pedido", que abren la app con `?accion=...`. Sin esto abrirían la portada sin
+ * más y el acceso directo sería mentira.
+ *
+ * Solo se dispara en móvil (donde existen esos botones) y limpia el parámetro de
+ * la URL para que recargar no repita la acción.
+ */
+function atenderAccesoDirecto() {
+    const accion = new URLSearchParams(window.location.search).get('accion');
+    if (!accion) return;
+
+    // Quitar el parámetro sin recargar: si no, un F5 vuelve a abrir la cámara.
+    try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('accion');
+        window.history.replaceState({}, '', url);
+    } catch { /* no-op */ }
+
+    // Esperar a que el resto de módulos hayan registrado sus funciones globales.
+    setTimeout(() => {
+        // Mismas funciones que los botones grandes de la portada (mobile-nav.js),
+        // para que el acceso directo y el botón hagan exactamente lo mismo.
+        if (accion === 'albaran') {
+            window.mlRecibirAlbaran?.();
+        } else if (accion === 'pedido') {
+            if (typeof window.mlNuevoPedido === 'function') window.mlNuevoPedido();
+            else window.cambiarTab?.('pedidos');
+        }
+    }, 400);
+}
+
 export function initMobileHome() {
     window.renderMobileHome = renderMobileHome;
     window.mlVolverAPedir = mlVolverAPedir;
     renderMobileHome();
+    atenderAccesoDirecto();
 }

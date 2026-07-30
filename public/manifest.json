@@ -1,24 +1,47 @@
 {
     "name": "CosteOS",
     "short_name": "CosteOS",
-    "description": "Plataforma de inteligencia para restaurantes. Gestión de costes, recetas e inventario.",
+    "description": "Controla el coste de tu cocina desde el móvil: pedidos, albaranes por foto e inventario.",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
-    "background_color": "#201D47",
-    "theme_color": "#2E2A6E",
-    "orientation": "any",
+    "background_color": "#faf6f1",
+    "theme_color": "#b0533a",
+    "orientation": "portrait",
     "icons": [
         {
-            "src": "/images/costeos-icon-192.png",
+            "src": "/images/costeos-lite-icon-192.png",
             "sizes": "192x192",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
         },
         {
-            "src": "/images/costeos-icon-512.png",
+            "src": "/images/costeos-lite-icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
+        },
+        {
+            "src": "/images/costeos-lite-icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Recibir albarán",
+            "short_name": "Albarán",
+            "description": "Haz una foto del albarán y concilia el pedido",
+            "url": "/?accion=albaran",
+            "icons": [{ "src": "/images/costeos-lite-icon-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Nuevo pedido",
+            "short_name": "Pedido",
+            "description": "Crear un pedido a un proveedor",
+            "url": "/?accion=pedido",
+            "icons": [{ "src": "/images/costeos-lite-icon-192.png", "sizes": "192x192" }]
         }
     ],
     "categories": [
