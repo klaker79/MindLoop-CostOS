@@ -11,13 +11,31 @@
  * No toca datos ni cálculos: la carga de datos es global e independiente de las
  * pestañas visibles, así que ocultar UI no rompe P&L / dashboard / stock.
  *
- * PROTOTIPO 2026-07-28 (ARAU/Agustina): el tier se lee del string `plan`
- * (window._planData.plan, que viene de /stripe/subscription-status). En el MVP
- * final el tier iría en su propia columna (plan_tier) desacoplada del plan de
- * facturación. Añadir un paquete nuevo = una entrada más en PLAN_TABS.
+ * El tier sale de `plan_tier`, que es SU PROPIA columna, separada del plan de
+ * facturación (2026-07-30). Antes se leía de `plan`, y esa columna hacía dos
+ * trabajos a la vez: marcar a un cliente como Lite (`plan='lite'`) le rompía el
+ * periodo de prueba, porque el control de suscripción deja pasar por
+ * `plan='trial'` con trial vigente. Había que ponerle `plan_status='active'` a
+ * mano, o sea tratarlo como si ya pagara: vender Lite con trial era imposible.
+ * Ahora un cliente puede estar en trial Y ver el paquete Lite a la vez.
+ *
+ * Se mantiene el respaldo a `plan` para los tenants marcados antes de la
+ * migración, y para que un despliegue de frontend nuevo contra un backend que
+ * todavía no devuelva `plan_tier` no destape pestañas de golpe.
+ *
+ * Añadir un paquete nuevo = una entrada más en PLAN_TABS.
  *
  * @module modules/core/plan-tabs
  */
+
+/**
+ * Tier efectivo del restaurante: `plan_tier` y, si no está, `plan`.
+ * @returns {string} en minúsculas, o '' si no hay plan cargado
+ */
+function tierActual() {
+    const p = window._planData;
+    return (p?.plan_tier || p?.plan || '').toString().toLowerCase();
+}
 
 /**
  * Mapa tier -> pestañas (data-tab) permitidas. El resto se ocultan.
@@ -45,7 +63,7 @@ export const PLAN_TABS = {
  */
 export function aplicarGatingPlan() {
     if (typeof document === 'undefined') return;
-    const tier = (window._planData?.plan || '').toString().toLowerCase();
+    const tier = tierActual();
     const allowed = PLAN_TABS[tier];
     if (!allowed) return; // plan normal → no tocar nada
     const permit = new Set(allowed);
@@ -79,7 +97,7 @@ export function aplicarGatingPlan() {
  * @returns {boolean}
  */
 export function planPermiteTab(tab) {
-    const tier = (window._planData?.plan || '').toString().toLowerCase();
+    const tier = tierActual();
     const allowed = PLAN_TABS[tier];
     if (!allowed) return true; // plan normal → todo permitido
     return allowed.includes(tab);
