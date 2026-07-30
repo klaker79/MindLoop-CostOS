@@ -869,6 +869,28 @@ export async function confirmarRecepcionPedido() {
         // al actualizar el pedido a estado='recibido' (PUT /api/orders/:id)
         // NO llamar a /daily/purchases/bulk aquí para evitar doble registro
 
+        // 📸 Si la recepción vino de un albarán escaneado, marcar su lote como
+        // consumido. Sin esto sus líneas se quedan en Compras Pendientes y, si
+        // alguien las aprueba desde ahí, el albarán suma stock DOS veces: una en
+        // esta recepción y otra en la aprobación.
+        // No bloquea la recepción: ya está confirmada y el stock movido. Si esta
+        // llamada falla, se avisa y se sigue.
+        const batchAlbaran = window.__albaranHints?.batchId;
+        if (batchAlbaran) {
+            try {
+                await window.API.fetch(
+                    '/purchases/batch/' + encodeURIComponent(batchAlbaran) + '/consumido',
+                    { method: 'POST', body: JSON.stringify({ pedidoId: window.pedidoRecibiendoId }) }
+                );
+            } catch (e) {
+                console.warn('[albaran] no se pudo marcar el lote como consumido:', e?.message);
+                window.showToast?.(
+                    'Pedido recibido. Ojo: el albarán sigue en Compras Pendientes — no lo apruebes ahí o contará dos veces.',
+                    'warning'
+                );
+            }
+        }
+
         await window.cargarDatos();
         // 🔄 FIX stock stale: refrescar Zustand store para que TODAS las pestañas vean el stock nuevo
         await ingredientStore.getState().fetchIngredients();

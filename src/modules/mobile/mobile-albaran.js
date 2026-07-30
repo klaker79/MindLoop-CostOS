@@ -234,6 +234,11 @@ function prepararHints(lineas, ped, r) {
     }
     window.__albaranHints = {
         pedidoId: ped.id,
+        // Lote del albarán. Al confirmar la recepción se marca como consumido, para
+        // que sus líneas dejen de salir en Compras Pendientes: si se aprobaran ahí,
+        // el mismo albarán sumaría stock DOS veces (una en la recepción del pedido
+        // y otra en la aprobación).
+        batchId: r?.batchId || null,
         porIngrediente,
         todasLineas: lineas,
         ivaPct: (r?.iva_pct !== null && r?.iva_pct !== undefined) ? r.iva_pct : null,
@@ -603,10 +608,12 @@ async function consolidarAlbaran() {
             method: 'POST',
             body: JSON.stringify({ batchId: consolEstado.batchId }),
         });
-        // 3) Recargar datos afectados (stock/precio de ingredientes).
+        // 3) Recargar datos afectados (stock/precio de ingredientes + el pedido nuevo).
         try { window.ingredientes = await window.api.getIngredientes(); } catch { /* no-op */ }
+        try { await window.cargarDatos?.(); } catch { /* no-op */ }
         window.renderizarIngredientes?.();
         window.renderizarInventario?.();
+        window.renderizarPedidos?.();
         window.hideLoading?.();
         cerrarConsol();
         const aprobados = res?.aprobados ?? res?.resultados?.aprobados;
@@ -616,10 +623,55 @@ async function consolidarAlbaran() {
             msg = `✅ Consolidado: ${aprobados} línea(s) registradas${omitidos ? `, ${omitidos} sin asignar omitidas` : ''}.`;
         }
         window.showToast?.(msg, 'success');
+
+        // ⚠️ La compra se registra con la fecha del ALBARÁN, no con la de hoy: es el
+        // día en que realmente se compró, y así el Diario y el P&L del mes cuadran.
+        // Pero si el albarán es de otro mes, el Diario del mes en curso no muestra
+        // nada y parece que no ha pasado nada. Avisamos para que no despiste.
+        avisarSiFechaDeOtroMes(res?.fecha);
     } catch (e) {
         window.hideLoading?.();
         window.showToast?.('No se pudo consolidar el albarán: ' + (e?.message || 'error'), 'error');
     }
+}
+
+/**
+ * Avisa cuando la compra se ha registrado en un mes distinto al actual.
+ *
+ * La fecha de la compra es la del ALBARÁN, no la de hoy (decisión Iker
+ * 2026-07-30): contablemente pertenece al día en que el proveedor la sirvió, y
+ * así el Diario y el P&L de ese mes cuadran con las facturas reales.
+ *
+ * El efecto secundario es que al escanear un albarán antiguo el Diario del mes
+ * en curso no enseña nada, y parece que la consolidación no ha hecho nada. Este
+ * aviso lo explica en el momento, que es cuando importa.
+ *
+ * @param {string|null|undefined} fechaIso - fecha del albarán devuelta por el backend
+ */
+function avisarSiFechaDeOtroMes(fechaIso) {
+    if (!fechaIso) return;
+    const f = new Date(fechaIso);
+    if (Number.isNaN(f.getTime())) return;
+
+    const hoy = new Date();
+    const mismoMes = f.getUTCFullYear() === hoy.getFullYear() && f.getUTCMonth() === hoy.getMonth();
+    if (mismoMes) return;
+
+    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const dia = String(f.getUTCDate()).padStart(2, '0');
+    const mes = meses[f.getUTCMonth()];
+    const anio = f.getUTCFullYear();
+
+    // Se muestra después del toast de éxito, para que no se pisen.
+    setTimeout(() => {
+        window.showToast?.(
+            `📅 Este albarán es del ${dia}/${String(f.getUTCMonth() + 1).padStart(2, '0')}/${anio}: `
+            + `la compra se ha registrado en ${mes}, no en el mes actual. `
+            + `Cambia el Diario a ${mes} ${anio} para verla.`,
+            'warning'
+        );
+    }, 2600);
 }
 
 /**
