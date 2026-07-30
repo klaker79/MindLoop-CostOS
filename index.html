@@ -202,15 +202,33 @@
         </a>
       </div>
 
-      <!-- Menú "Más" SOLO móvil: hoja mínima. El móvil es para pedir + recibir;
-           lo demás vive en el ordenador. La nav completa de escritorio (.sidebar-nav)
-           se oculta en móvil por CSS. Oculto en escritorio por defecto. -->
+      <!-- Menú "Más" SOLO móvil. La nav completa de escritorio (.sidebar-nav) se
+           oculta en móvil por CSS, así que ESTA lista es la única forma de llegar
+           a una pestaña que no esté en la barra inferior (Inicio · Pedidos ·
+           Recibir · Más). Oculto en escritorio por defecto.
+
+           El móvil NO enseña todo lo que se vende, y es a propósito: se usa de
+           pie en la cocina, no sentado. Faltaba el Diario —que además se había
+           preparado para el móvil quitándole el cartel de "abre en ordenador" y
+           aun así era inalcanzable— y una Configuración mínima.
+
+           Ventas se queda FUERA a propósito (decisión de Iker, 2026-07-30): en
+           el teléfono no se registran ventas, se hacen pedidos y se reciben
+           albaranes. Si alguien la echa en falta, que sea una decisión, no un
+           descuido: por eso está escrito aquí.
+
+           `data-tab` no es decorativo: es lo que hace que el gating por plan
+           (plan-tabs.js) oculte aquí lo mismo que oculta en el escritorio. Sin
+           él, un cliente Lite vería en el móvil pestañas que no ha comprado. -->
       <div class="sidebar-mobile-menu">
         <div class="smm-group">Consultar</div>
-        <button class="smm-item" onclick="window.cambiarTab('ingredientes')"><span class="smm-i">🥕</span> Ingredientes</button>
-        <button class="smm-item" onclick="window.cambiarTab('recetas')"><span class="smm-i">👨‍🍳</span> Recetas</button>
-        <button class="smm-item" onclick="window.cambiarTab('proveedores')"><span class="smm-i">🚚</span> Proveedores</button>
-        <button class="smm-item" onclick="window.cambiarTab('inventario')"><span class="smm-i">📦</span> Inventario</button>
+        <button class="smm-item" data-tab="ingredientes" onclick="window.cambiarTab('ingredientes')"><span class="smm-i">🥕</span> Ingredientes</button>
+        <button class="smm-item" data-tab="recetas" onclick="window.cambiarTab('recetas')"><span class="smm-i">👨‍🍳</span> Recetas</button>
+        <button class="smm-item" data-tab="proveedores" onclick="window.cambiarTab('proveedores')"><span class="smm-i">🚚</span> Proveedores</button>
+        <button class="smm-item" data-tab="inventario" onclick="window.cambiarTab('inventario')"><span class="smm-i">📦</span> Inventario</button>
+        <button class="smm-item" data-tab="diario" onclick="window.cambiarTab('diario')"><span class="smm-i">📈</span> Diario</button>
+        <div class="smm-group">Ajustes</div>
+        <button class="smm-item" data-tab="configuracion" onclick="window.cambiarTab('configuracion')"><span class="smm-i">⚙️</span> Configuración</button>
       </div>
 
       <nav class="sidebar-nav">

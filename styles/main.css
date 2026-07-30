@@ -4145,16 +4145,39 @@ table tbody td:first-child {
     min-width: 0 !important;
   }
 
-  /* Los cuatro botones de vista (Compras/Ventas/Proveedores/P&L): dos por
-     fila, en vez de cuatro tiras verticales de letras partidas. */
-  #tab-diario > div[style*="margin-bottom: 20px"] {
-    flex-wrap: wrap !important;
-  }
+  /* ── En el móvil, el Diario enseña SOLO el P&L ──────────────────────
+     Decisión de Iker (2026-07-30): "esa pestaña es muy densa, estaría bien
+     poner solo el P&L; no quiero que la versión móvil sea complicada".
+
+     En el ordenador siguen las cuatro vistas (Compras, Ventas, Proveedores,
+     P&L). En el teléfono se queda la que cuenta la historia completa del día
+     —ingresos, coste, margen, mermas, beneficio neto— y desaparece el
+     selector, porque con una sola vista no hay nada que seleccionar.
+
+     Se hace por CSS y no tocando el JS a propósito: la lógica que pinta las
+     cuatro tablas sigue siendo exactamente la misma, así que los números del
+     móvil y los del ordenador no pueden divergir. */
   #tab-diario [data-action="vista-diario"] {
-    flex: 1 1 45% !important;
-    min-width: 0 !important;
-    padding: 11px 8px !important;
-    font-size: 13px !important;
+    display: none !important;
+  }
+  #tab-diario #vista-compras,
+  #tab-diario #vista-ventas,
+  #tab-diario #vista-proveedores {
+    display: none !important;
+  }
+  /* `!important` porque cambiarVistaDiario() escribe display en el style
+     inline; sin él, el P&L se ocultaría al cargar. */
+  #tab-diario #vista-combinada {
+    display: block !important;
+  }
+
+  /* Fuera también los bloques de edición: en el teléfono se consulta, no se
+     configuran gastos fijos ni se dan de alta extras por horas. Siguen
+     estando en el ordenador. */
+  #tab-diario #personal-extra-list,
+  #tab-diario > div:has(#gastos-fijos-dinamico-list),
+  #tab-diario > div:has(#beneficio-neto-diario-lista) {
+    display: none !important;
   }
 
   /* Botones de semana: ya venían con wrap; solo se aprietan para que las
@@ -4183,6 +4206,22 @@ table tbody td:first-child {
   #tabla-pl-diario {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
+  }
+
+  /* ── Configuración en el móvil: solo los datos del restaurante ──────
+     Decisión de Iker (2026-07-30). En el ordenador sigue entera (equipo,
+     plan, asistente IA, integraciones, invitar usuario); en el teléfono se
+     deja lo único que se consulta de pie en la cocina.
+
+     La regla se escribe "ocultar todo y volver a mostrar una", no "ocultar
+     estas cinco": así, si mañana se añade una sección nueva, en el móvil
+     nace oculta. Lo contrario —una lista de excepciones— se queda
+     desactualizada sin que nadie se entere, y el teléfono se va llenando. */
+  #tab-configuracion .card {
+    display: none !important;
+  }
+  #tab-configuracion .card:has(#config-restaurante-nombre) {
+    display: block !important;
   }
 }
 /* 🍳 Modal de receta en MÓVIL: la fila de ingrediente es un flex de 5 columnas

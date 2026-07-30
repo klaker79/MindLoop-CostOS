@@ -68,8 +68,13 @@ export function aplicarGatingPlan() {
     if (!allowed) return; // plan normal → no tocar nada
     const permit = new Set(allowed);
 
-    // Ocultar los nav-items no permitidos (el sidebar es el mismo en móvil off-canvas).
-    document.querySelectorAll('.nav-item[data-tab]').forEach((el) => {
+    // Ocultar las entradas no permitidas, en las DOS navegaciones:
+    //   .nav-item  → el sidebar de escritorio
+    //   .smm-item  → el menú "Más" del móvil, que es una lista aparte porque en
+    //                móvil el sidebar completo se oculta por CSS.
+    // Si solo se filtrara una, un cliente Lite vería en el teléfono pestañas que
+    // no ha comprado (o al revés, le faltarían en el escritorio).
+    document.querySelectorAll('.nav-item[data-tab], .smm-item[data-tab]').forEach((el) => {
         el.style.display = permit.has(el.dataset.tab) ? '' : 'none';
     });
 
