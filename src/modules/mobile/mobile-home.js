@@ -25,15 +25,37 @@ function contarBajoMinimo() {
     }).length;
 }
 
-// Último pedido por proveedor (para "volver a pedir"), más recientes primero.
+/**
+ * Último pedido RECIBIDO por proveedor (para "volver a pedir"), más recientes primero.
+ *
+ * Solo pedidos ya recibidos, y solo de proveedores que no tengan uno en camino
+ * (2026-07-30). Antes se recorrían TODOS los pedidos sin mirar el estado, así que
+ * un pedido `pendiente` salía como "último" con su botón Repetir: se ofrecía
+ * repetir algo que aún no había llegado, y al pulsar quedaban dos pedidos
+ * pendientes del mismo proveedor.
+ *
+ * Regla (Iker): no se repite un pedido hasta que está realizado.
+ */
 function ultimosPedidosPorProveedor(max = 3) {
     const pedidos = window.pedidos || [];
     const provs = window.proveedores || [];
     const nombreProv = (pid) => provs.find((p) => p.id === pid)?.nombre || 'Proveedor';
+
+    // Proveedores con un pedido aún sin recibir: no se les ofrece repetir, ya hay
+    // uno de camino.
+    const conPedidoEnCurso = new Set(
+        pedidos
+            .filter((p) => p.estado !== 'recibido')
+            .map((p) => p.proveedor_id ?? p.proveedorId)
+            .filter((pid) => pid !== undefined && pid !== null)
+    );
+
     const porProv = new Map();
     for (const p of pedidos) {
+        if (p.estado !== 'recibido') continue;
         const pid = p.proveedor_id ?? p.proveedorId;
         if (pid === undefined || pid === null) continue;
+        if (conPedidoEnCurso.has(pid)) continue;
         const prev = porProv.get(pid);
         const masReciente = !prev
             || new Date(p.fecha) > new Date(prev.fecha)
