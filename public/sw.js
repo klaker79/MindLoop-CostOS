@@ -230,7 +230,8 @@
 // BUMP v314 (volver a pedir): la portada movil ofrecia 'Repetir' sobre pedidos aun PENDIENTES. Ahora solo se ofrecen los ya recibidos, y no se ofrece a un proveedor que ya tiene uno en camino.
 // BUMP v315 (identidad de app): manifest e iconos en terracota sobre crema, barra de estado iOS 'default' y accesos directos de Android.
 // BUMP v316 (plan_tier): el paquete de pestanas se lee de plan_tier, su propia columna, separada del plan de facturacion. Antes marcar a un cliente como Lite le rompia el periodo de prueba.
-const CACHE_NAME = 'mindloop-costos-v316';
+// BUMP v317 (invitacion a instalar): la app era instalable desde siempre pero nadie lo sabia. Ahora se ofrece anadirla a la pantalla de inicio: dialogo nativo en Android e instrucciones en iPhone, solo en movil, nunca si ya esta instalada, y en silencio 30 dias si la descartan.
+const CACHE_NAME = 'mindloop-costos-v317';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
