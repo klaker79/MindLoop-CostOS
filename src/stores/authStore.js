@@ -27,7 +27,16 @@ import { createStore } from 'zustand/vanilla';
 function getApiBaseInline() {
     const env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
     if (env.VITE_API_BASE_URL) return env.VITE_API_BASE_URL;
-    return env.DEV ? '' : 'https://lacaleta-api.mindloop.cloud';
+    if (env.DEV) return '';
+    // Sin variable: leer la fuente ÚNICA (app-config publica window.API_CONFIG en
+    // el arranque, antes de que ningún login pueda ejecutarse). Aquí antes había
+    // un dominio de producción escrito a mano — ese fallback era el agujero: el
+    // bundle de staging llevaba dentro la URL de La Nave 5. Si la fuente única
+    // no está, vacío: mejor fallar a la vista que llamar a la casa equivocada.
+    if (typeof window !== 'undefined' && typeof window.API_CONFIG?.baseUrl === 'string') {
+        return window.API_CONFIG.baseUrl;
+    }
+    return '';
 }
 
 /**
