@@ -64,6 +64,35 @@ describe('Paquete Lite — contrato de pestañas', () => {
     describe('planPermiteTab', () => {
         afterEach(() => { delete window._planData; });
 
+        // ── El caso que motivó separar plan_tier de plan (2026-07-30) ──────────
+        // Antes el tier se leía de `plan`, así que marcar a alguien como Lite le
+        // rompía el periodo de prueba: el control de suscripción deja pasar por
+        // `plan='trial'`, y al pisarlo con 'lite' quedaba bloqueado. Un cliente
+        // tiene que poder estar EN TRIAL y ver el paquete Lite a la vez.
+        test('trial vigente + paquete Lite: se aplica el tier sin tocar la facturación', () => {
+            window._planData = { plan: 'trial', plan_status: 'trialing', plan_tier: 'lite' };
+            for (const tab of LITE_CONFIRMADO) expect(planPermiteTab(tab)).toBe(true);
+            for (const tab of FUERA_DE_LITE) expect(planPermiteTab(tab)).toBe(false);
+        });
+
+        test('plan_tier manda sobre plan', () => {
+            // Cliente que paga el plan premium pero contrató el paquete Lite.
+            window._planData = { plan: 'premium', plan_status: 'active', plan_tier: 'lite' };
+            expect(planPermiteTab('inteligencia')).toBe(false);
+            expect(planPermiteTab('inventario')).toBe(true);
+        });
+
+        test('sin plan_tier se respeta plan (tenants anteriores a la migración)', () => {
+            window._planData = { plan: 'lite' };
+            expect(planPermiteTab('analisis')).toBe(false);
+            expect(planPermiteTab('diario')).toBe(true);
+        });
+
+        test('plan_tier vacío no recorta nada', () => {
+            window._planData = { plan: 'trial', plan_status: 'trialing', plan_tier: null };
+            for (const tab of FUERA_DE_LITE) expect(planPermiteTab(tab)).toBe(true);
+        });
+
         test('con plan lite, permite las suyas y niega el resto', () => {
             window._planData = { plan: 'lite' };
             for (const tab of LITE_CONFIRMADO) expect(planPermiteTab(tab)).toBe(true);
