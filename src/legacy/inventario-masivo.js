@@ -2969,6 +2969,14 @@ async function renderizarTablaPLDiario() {
     window.plComidaPersonalPorDia = comidaPersonalPorDia;
     window.plPersonalExtraPorDia = personalExtraPorDia;
     window.plGastosFijosDia = gastosFijosDia;
+    // Ingresos y costes por día, para que el P&L del móvil (pl-movil.js) lea los
+    // MISMOS números que esta tabla en vez de recalcularlos por su cuenta.
+    window.plIngresosPorDia = {};
+    window.plCostesPorDia = {};
+    dias.forEach(d => {
+        window.plIngresosPorDia[d] = totalesPorDia[d].ingresos;
+        window.plCostesPorDia[d] = totalesPorDia[d].costes;
+    });
 
     // ═══════════════════════════════════════════════════════════
     // 📊 TABLA P&L - CUENTA DE RESULTADOS
@@ -3185,7 +3193,36 @@ async function renderizarTablaPLDiario() {
     </div>
     `;
 
-    container.innerHTML = html;
+    // 📱 P&L del móvil: la MISMA información en una sola columna, sin scroll
+    // lateral. Se antepone al HTML de escritorio; el CSS enseña uno u otro según
+    // el ancho (ver el bloque "MÓVIL — Diario" en styles/main.css).
+    //
+    // No recalcula nada: recibe los mapas por día que se acaban de publicar y el
+    // beneficio sale del mismo `computeBeneficioNetoDiario` que usan la tabla y
+    // el gráfico. Si fallara, se pinta solo el escritorio en vez de romper el
+    // Diario entero.
+    let htmlMovil = '';
+    try {
+        if (typeof window.mlHtmlPLMovil === 'function') {
+            const esSemanaMovil = window.diarioSemanaActiva && window.diarioSemanaActiva !== 'todas';
+            htmlMovil = window.mlHtmlPLMovil({
+                dias,
+                mapas: {
+                    ingresos: window.plIngresosPorDia,
+                    costes: window.plCostesPorDia,
+                    mermas: mermasPorDia,
+                    comida: comidaPersonalPorDia,
+                    extra: personalExtraPorDia,
+                },
+                gastosFijosDia,
+                periodo: esSemanaMovil ? `semana ${window.diarioSemanaActiva}` : 'todo el mes',
+            });
+        }
+    } catch (err) {
+        console.warn('No se pudo pintar el P&L móvil:', err?.message);
+    }
+
+    container.innerHTML = htmlMovil + html;
 }
 
 // Exportar a Excel

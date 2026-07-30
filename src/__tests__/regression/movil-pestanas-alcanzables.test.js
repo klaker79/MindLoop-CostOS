@@ -107,6 +107,22 @@ describe('El móvil no es una copia encogida del escritorio', () => {
         }
     });
 
+    test('el P&L del móvil sustituye a la tabla, no convive con ella', () => {
+        // En escritorio el bloque vertical está oculto y manda la tabla; en
+        // móvil, al revés. Si se enseñaran los dos, saldría la misma información
+        // dos veces y con scroll lateral, que es lo que se venía a quitar.
+        expect(css).toMatch(/#pl-movil\s*\{\s*display: none/);
+        expect(css).toMatch(/#tabla-pl-diario > \*:not\(#pl-movil\)\s*\{\s*display: none !important/);
+    });
+
+    test('el Diario legacy consume el P&L móvil por el puente, sin copiar la lógica', () => {
+        const legacy = readFileSync(join(raiz, 'src', 'legacy', 'inventario-masivo.js'), 'utf8');
+        expect(legacy).toContain('window.mlHtmlPLMovil');
+        // Y publica los mapas que ese bloque necesita, en vez de recalcularlos.
+        expect(legacy).toContain('window.plIngresosPorDia');
+        expect(legacy).toContain('window.plCostesPorDia');
+    });
+
     test('Configuración enseña solo los datos del restaurante', () => {
         // Regla "ocultar todo y volver a mostrar una": una sección nueva nace
         // oculta en el móvil, en vez de colarse por olvido.
