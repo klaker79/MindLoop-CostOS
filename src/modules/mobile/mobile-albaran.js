@@ -239,6 +239,11 @@ function prepararHints(lineas, ped, r) {
         // el mismo albarán sumaría stock DOS veces (una en la recepción del pedido
         // y otra en la aprobación).
         batchId: r?.batchId || null,
+        // Fecha del albarán: es la que debe llegar al Diario, no la del pedido.
+        // Antes la recepción usaba `ped.fecha`, así que un albarán de marzo casado
+        // con un pedido de julio registraba la compra en JULIO — y encima incoherente
+        // con la vía de "compra nueva", que sí usa la del albarán.
+        fecha: r?.fecha || null,
         porIngrediente,
         todasLineas: lineas,
         ivaPct: (r?.iva_pct !== null && r?.iva_pct !== undefined) ? r.iva_pct : null,
@@ -264,6 +269,44 @@ function bannerDuplicado(r, cola) {
     return `<div style="background:#fef2f2;border:2px solid #dc2626;color:#991b1b;padding:12px 14px;border-radius:8px;margin-bottom:12px;font-weight:600;font-size:13px;">⚠️ POSIBLE DUPLICADO — este albarán ya lo escaneaste (${escapeHTML(detalle)}). ${escapeHTML(cola)}</div>`;
 }
 
+/**
+ * Aviso, ANTES de aceptar, de que la compra no se va a registrar en el mes actual.
+ *
+ * La fecha que manda es la del ALBARÁN (decisión Iker 2026-07-30): contablemente
+ * la compra pertenece al día en que el proveedor la sirvió, y así el Diario y el
+ * P&L de ese mes cuadran con las facturas reales.
+ *
+ * El problema es que eso no se veía por ningún lado: escaneabas una factura de
+ * marzo, la aceptabas, y el Diario del mes en curso seguía vacío. Parecía que no
+ * había pasado nada. Un aviso DESPUÉS de consolidar no sirve — hay que verlo
+ * antes de pulsar.
+ *
+ * @param {string} fechaAlbaran - fecha leída del albarán
+ * @param {string} [fechaPedido] - fecha del pedido con el que se va a casar, si lo hay
+ * @returns {string} HTML del aviso, o cadena vacía si la fecha es del mes actual
+ */
+function bannerFechaOtroMes(fechaAlbaran, fechaPedido) {
+    if (!fechaAlbaran) return '';
+    const f = new Date(typeof fechaAlbaran === 'string' && fechaAlbaran.length === 10
+        ? fechaAlbaran + 'T12:00:00' : fechaAlbaran);
+    if (Number.isNaN(f.getTime())) return '';
+
+    const hoy = new Date();
+    if (f.getFullYear() === hoy.getFullYear() && f.getMonth() === hoy.getMonth()) return '';
+
+    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const mesAlb = `${meses[f.getMonth()]} ${f.getFullYear()}`;
+
+    const compara = fechaPedido
+        ? `El albarán es del <b>${escapeHTML(fmtFechaAlb(fechaAlbaran))}</b> y el pedido del <b>${escapeHTML(fmtFechaAlb(fechaPedido))}</b>. `
+        : `Este albarán es del <b>${escapeHTML(fmtFechaAlb(fechaAlbaran))}</b>. `;
+
+    return `<div style="background:#fffbeb;border:2px solid #d97706;color:#92400e;padding:12px 14px;border-radius:8px;margin-bottom:12px;font-weight:600;font-size:13px;line-height:1.45;">`
+        + `📅 ${compara}La compra se registrará en <b>${mesAlb}</b>, no en el mes actual. `
+        + `Búscala en el Diario de ${mesAlb}.</div>`;
+}
+
 // Overlay tipo bottom-sheet (terracota), coherente con el modal de entrada del albarán.
 function overlaySheet(innerHtml) {
     const ov = document.createElement('div');
@@ -281,6 +324,7 @@ function abrirDecisionSinPedido(r, prov) {
     const nombreProv = prov?.nombre || r?.proveedor || 'este proveedor';
     const ov = overlaySheet(`
         ${bannerDuplicado(r, 'Revísalo antes de guardarlo.')}
+        ${bannerFechaOtroMes(r?.fecha)}
         <div style="width:52px;height:52px;border-radius:16px;background:#fef3e6;display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">📄</div>
         <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 8px;">Sin pedido para casar</h2>
         <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 18px;max-width:36ch;">Este albarán no coincide con ningún pedido pendiente de <b>${escapeHTML(nombreProv)}</b>. ¿Guardarlo igualmente como una compra nueva?</p>
@@ -303,8 +347,12 @@ function abrirDecisionConPedido(r, prov, pendientes, lineas) {
           <input type="radio" name="ml-ped-sel" value="${p.id}" ${i === 0 ? 'checked' : ''} style="accent-color:#b0533a;width:18px;height:18px;flex:0 0 auto;">
           <span style="flex:1;min-width:0;"><b style="display:block;font-size:14px;color:#3a2216;">Pedido del ${escapeHTML(fmtFechaAlb(p.fecha))}</b><small style="font-size:11.5px;color:#a8917f;">${cm(parseFloat(p.total) || 0)}${i === 0 ? ' · sugerido' : ''}</small></span>
         </label>`).join('');
+    // La fecha del albarán es la que acaba en el Diario, aunque el pedido sea de
+    // otro mes. Se compara con la del pedido sugerido para que el aviso sea
+    // concreto: "el albarán es del X y el pedido del Y".
     const ov = overlaySheet(`
         ${bannerDuplicado(r, 'Revísalo antes de recibirlo.')}
+        ${bannerFechaOtroMes(r?.fecha, pendientes[0]?.fecha)}
         <div style="width:52px;height:52px;border-radius:16px;background:#eef7ee;display:flex;align-items:center;justify-content:center;font-size:26px;margin:2px auto 10px;">✅</div>
         <h2 style="text-align:center;font-size:19px;font-weight:800;color:#3a2216;margin:0 0 6px;">${varios ? 'Elige el pedido' : 'Pedido encontrado'}</h2>
         <p style="text-align:center;font-size:13.5px;line-height:1.5;color:#a07d68;margin:0 auto 16px;max-width:36ch;">${varios ? `Hay ${pendientes.length} pedidos pendientes de <b>${escapeHTML(nombreProv)}</b>. Elige con cuál casar el albarán.` : `Casamos el albarán con tu pedido pendiente de <b>${escapeHTML(nombreProv)}</b> para comparar lo pedido con lo recibido.`}</p>
@@ -505,7 +553,8 @@ function refrescarTotalesConsol() {
 
 function pintarConsol() {
     const r = consolEstado.r;
-    const dupBanner = bannerDuplicado(r, 'Revísalo antes de consolidar.');
+    const dupBanner = bannerDuplicado(r, 'Revísalo antes de consolidar.')
+        + bannerFechaOtroMes(r?.fecha);
     const ivaTxt = (r?.iva_pct !== null && r?.iva_pct !== undefined) ? 'IVA ' + r.iva_pct + '%' : '';
     const cab = [r?.proveedor, r?.fecha ? fmtFechaAlb(r.fecha) : '', r?.numero_factura ? 'Factura ' + r.numero_factura : '', ivaTxt].filter(Boolean).map(escapeHTML).join(' · ');
 
@@ -623,55 +672,10 @@ async function consolidarAlbaran() {
             msg = `✅ Consolidado: ${aprobados} línea(s) registradas${omitidos ? `, ${omitidos} sin asignar omitidas` : ''}.`;
         }
         window.showToast?.(msg, 'success');
-
-        // ⚠️ La compra se registra con la fecha del ALBARÁN, no con la de hoy: es el
-        // día en que realmente se compró, y así el Diario y el P&L del mes cuadran.
-        // Pero si el albarán es de otro mes, el Diario del mes en curso no muestra
-        // nada y parece que no ha pasado nada. Avisamos para que no despiste.
-        avisarSiFechaDeOtroMes(res?.fecha);
     } catch (e) {
         window.hideLoading?.();
         window.showToast?.('No se pudo consolidar el albarán: ' + (e?.message || 'error'), 'error');
     }
-}
-
-/**
- * Avisa cuando la compra se ha registrado en un mes distinto al actual.
- *
- * La fecha de la compra es la del ALBARÁN, no la de hoy (decisión Iker
- * 2026-07-30): contablemente pertenece al día en que el proveedor la sirvió, y
- * así el Diario y el P&L de ese mes cuadran con las facturas reales.
- *
- * El efecto secundario es que al escanear un albarán antiguo el Diario del mes
- * en curso no enseña nada, y parece que la consolidación no ha hecho nada. Este
- * aviso lo explica en el momento, que es cuando importa.
- *
- * @param {string|null|undefined} fechaIso - fecha del albarán devuelta por el backend
- */
-function avisarSiFechaDeOtroMes(fechaIso) {
-    if (!fechaIso) return;
-    const f = new Date(fechaIso);
-    if (Number.isNaN(f.getTime())) return;
-
-    const hoy = new Date();
-    const mismoMes = f.getUTCFullYear() === hoy.getFullYear() && f.getUTCMonth() === hoy.getMonth();
-    if (mismoMes) return;
-
-    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-    const dia = String(f.getUTCDate()).padStart(2, '0');
-    const mes = meses[f.getUTCMonth()];
-    const anio = f.getUTCFullYear();
-
-    // Se muestra después del toast de éxito, para que no se pisen.
-    setTimeout(() => {
-        window.showToast?.(
-            `📅 Este albarán es del ${dia}/${String(f.getUTCMonth() + 1).padStart(2, '0')}/${anio}: `
-            + `la compra se ha registrado en ${mes}, no en el mes actual. `
-            + `Cambia el Diario a ${mes} ${anio} para verla.`,
-            'warning'
-        );
-    }, 2600);
 }
 
 /**
