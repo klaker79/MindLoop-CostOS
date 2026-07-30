@@ -1729,7 +1729,7 @@ window.procesarArchivoVentas = async function (input) {
             });
 
             // Llamar al endpoint del backend
-            const response = await fetch(`${window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud'}/api/parse-pdf`, {
+            const response = await fetch(`${window.API_CONFIG?.baseUrl ?? ''}/api/parse-pdf`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
@@ -2369,7 +2369,7 @@ window.cargarResumenMensual = async function () {
         const response = await fetch(
             // ⚡ Multi-tenant: usa config global si existe
             // 🔧 FIX: Usar /api/monthly/summary que devuelve {dias, compras.ingredientes, ventas.recetas}
-            `${window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud'}/api/monthly/summary?mes=${mes}&ano=${ano}`,
+            `${window.API_CONFIG?.baseUrl ?? ''}/api/monthly/summary?mes=${mes}&ano=${ano}`,
             {
                 credentials: 'include',
                 headers: Object.assign({ 'Content-Type': 'application/json' }, window.authToken ? { 'Authorization': `Bearer ${window.authToken}` } : {}),
@@ -2457,7 +2457,7 @@ window.actualizarKPIsDiario = async function () {
         }
         const desdeStr = toLocalDate(desde);
         const hastaStr = toLocalDate(hasta);
-        const apiBase = window.API_CONFIG?.baseUrl ?? 'https://lacaleta-api.mindloop.cloud';
+        const apiBase = window.API_CONFIG?.baseUrl ?? '';
         const resp = await fetch(
             `${apiBase}/api/analytics/pnl-breakdown?desde=${desdeStr}&hasta=${hastaStr}`,
             {

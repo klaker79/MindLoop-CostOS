@@ -13,8 +13,11 @@ import { filtrarVisibles, dismissAviso } from './omnes-dismiss.js';
 // ========== API ==========
 async function fetchIntelligence(endpoint) {
     try {
-        // fix M6: el fallback necesita /api al final (igual que getApiUrl() que devuelve baseUrl+'/api')
-        const apiBase = window.getApiUrl ? window.getApiUrl() : 'https://lacaleta-api.mindloop.cloud/api';
+        // fix M6: el fallback necesita /api al final (igual que getApiUrl() que devuelve baseUrl+'/api').
+        // Sin getApiUrl, se lee la fuente única (window.API_CONFIG) — nunca un
+        // dominio escrito a mano, que es lo que metía la URL de producción en
+        // el bundle de staging.
+        const apiBase = window.getApiUrl ? window.getApiUrl() : (window.API_CONFIG?.baseUrl ?? '') + '/api';
 
         // 🔒 SECURITY: Dual-mode auth — cookie + in-memory Bearer (NOT localStorage)
         const headers = { 'Content-Type': 'application/json' };
