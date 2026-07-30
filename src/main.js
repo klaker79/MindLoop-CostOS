@@ -490,6 +490,9 @@ import './modules/analisis/analisis.js';
 import * as Balance from './modules/balance/index.js';
 // Dynamic fixed-expenses widget — self-registers on window for inline handlers
 import './modules/balance/gastos-fijos-dinamico.js';
+// P&L del Diario en formato teléfono (una columna en vez de 31). Solo importarlo
+// ya publica window.mlHtmlPLMovil, que es lo que consume el Diario legacy.
+import './modules/balance/pl-movil.js';
 
 window.renderizarBalance = Balance.renderizarBalance;
 window.calcularPL = Balance.calcularPL;

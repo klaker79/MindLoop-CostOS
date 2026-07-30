@@ -232,8 +232,8 @@
 // BUMP v316 (plan_tier): el paquete de pestanas se lee de plan_tier, su propia columna, separada del plan de facturacion. Antes marcar a un cliente como Lite le rompia el periodo de prueba.
 // BUMP v317 (invitacion a instalar): la app era instalable desde siempre pero nadie lo sabia. Ahora se ofrece anadirla a la pantalla de inicio: dialogo nativo en Android e instrucciones en iPhone, solo en movil, nunca si ya esta instalada, y en silencio 30 dias si la descartan.
 // BUMP v318 (Diario en el movil): estaba tapado por un cartel de "abre en ordenador" que ocultaba la pestana entera. Sus 4 tablas ya se pintan con la primera columna fija y scroll lateral, asi que se leen como una hoja de calculo en el telefono. Analisis e Inteligencia siguen bloqueadas.
-// BUMP v319 (movil mas corto, no mas denso): el menu "Mas" era una lista fija de 4 y en movil el sidebar completo se oculta por CSS, asi que el Diario no tenia camino desde el telefono pese a venderse en Lite. Ahora esta, pero enseñando SOLO el P&L; y Configuracion solo los datos del restaurante. Ventas se queda fuera a proposito. El gating por plan filtra tambien ese menu.
-const CACHE_NAME = 'mindloop-costos-v319';
+// BUMP v320 (P&L del movil en una columna): la Cuenta de Resultados era una matriz de conceptos x 31 dias; en un telefono entran 5 columnas y si son de principio de mes se ven 5 ceros y parece que no hay datos. Ahora el movil enseña el total del periodo en vertical + la lista de dias, sin scroll lateral. Los numeros salen del MISMO computeBeneficioNetoDiario que la tabla y el grafico. Incluye el menu Mas con Diario y Configuracion.
+const CACHE_NAME = 'mindloop-costos-v320';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

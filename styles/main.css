@@ -4126,6 +4126,12 @@ table tbody td:first-child {
   }
 }
 
+/* El P&L en formato teléfono existe siempre en el DOM, pero en escritorio no se
+   enseña: allí manda la tabla completa de conceptos × días. */
+#pl-movil {
+  display: none;
+}
+
 /* ════════════════════════════════════════════════════════════════════
    MÓVIL — Diario (2026-07-30)
    --------------------------------------------------------------------
@@ -4188,15 +4194,25 @@ table tbody td:first-child {
     font-size: 12px !important;
   }
 
-  /* Aviso de que la tabla se arrastra de lado. Sin esto, en un móvil una
-     tabla cortada parece rota, no desplazable. */
-  #tab-diario .diario-vista::before {
-    content: '← Desliza la tabla para ver más días →';
+  /* ── El P&L, en una columna en vez de 31 ────────────────────────────
+     La matriz de conceptos × días es la forma correcta en una pantalla
+     ancha y la equivocada en un teléfono: nadie arrastra 31 columnas con
+     el pulgar. Y en un móvil entran cinco días — si son de principio de
+     mes, se ven cinco ceros y parece que no hay datos.
+
+     Así que en el móvil se enseña el bloque vertical (pl-movil.js): el
+     total del periodo elegido arriba y la lista de días debajo. Cero
+     scroll lateral. La tabla y el resto del bloque quedan para la
+     pantalla grande.
+
+     Los números son los mismos: el bloque vertical no calcula nada, lee
+     los mapas por día que publica el propio Diario y saca el beneficio
+     del mismo `computeBeneficioNetoDiario` que la tabla. */
+  #pl-movil {
     display: block;
-    text-align: center;
-    font-size: 11px;
-    color: #94a3b8;
-    margin-bottom: 6px;
+  }
+  #tabla-pl-diario > *:not(#pl-movil) {
+    display: none !important;
   }
 
   /* El scroll lateral tiene que ser el de la tabla, no el de la página. */
