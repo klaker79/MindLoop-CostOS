@@ -2584,7 +2584,7 @@ function renderizarTablaComprasDiarias() {
     let rowIndex = 0;
     for (const [nombre, data] of Object.entries(ingredientes)) {
         const bgColor = rowIndex % 2 === 0 ? '#FFFFFF' : '#FAFBFC';
-        html += `<tr style="border-bottom: 1px solid #F1F5F9;"><td style="position: sticky; left: 0; background: ${bgColor}; font-weight: 600; padding: 18px; border-right: 1px solid #E2E8F0;">${nombre}</td>`;
+        html += `<tr style="border-bottom: 1px solid #F1F5F9;"><td style="position: sticky; left: 0; background: ${bgColor}; font-weight: 600; padding: 18px; border-right: 1px solid #E2E8F0;">${escapeHTML(nombre)}</td>`;
 
         // Buscar unidad del ingrediente
         const ing = window.ingredientes.find(i => i.nombre === nombre);
@@ -2647,7 +2647,7 @@ function renderizarTablaVentasDiarias() {
     // Filas de recetas
     html += '<tbody>';
     for (const [nombre, data] of Object.entries(recetas)) {
-        html += `<tr><td style="position: sticky; left: 0; background: white; font-weight: 500;">${nombre}</td>`;
+        html += `<tr><td style="position: sticky; left: 0; background: white; font-weight: 500;">${escapeHTML(nombre)}</td>`;
         // 📊 FIX: totales solo de los días visibles
         let ingresosVisibles = 0;
         let vendidasVisibles = 0;
@@ -2743,7 +2743,7 @@ function renderizarTablaProveedoresDiarios() {
         html += `<tr style="border-bottom: 1px solid #F1F5F9;">`;
         // Nombre del proveedor con barra de proporción
         html += `<td style="position: sticky; left: 0; background: ${bgColor}; padding: 14px 16px; border-right: 2px solid #E2E8F0; font-weight: 600; color: #1E293B;">`;
-        html += `<div>${nombre}</div>`;
+        html += `<div>${escapeHTML(nombre)}</div>`;
         html += `<div style="height: 4px; margin-top: 6px; background: #F1F5F9; border-radius: 2px;"><div style="height: 100%; width: ${barWidth}%; background: linear-gradient(90deg, #6366F1, #8B5CF6); border-radius: 2px;"></div></div>`;
         html += '</td>';
 

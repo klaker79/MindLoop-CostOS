@@ -1,4 +1,4 @@
-import { cm } from '../../utils/helpers.js';
+import { cm, escapeHTML } from '../../utils/helpers.js';
 /**
  * Componente: QuickActions
  * Panel de acciones rápidas para el dashboard
@@ -187,7 +187,7 @@ function showLowMarginModal(recipes) {
                     <tbody>
                         ${recipes.slice(0, 20).map(r => `
                             <tr class="${(r.margen_porcentaje || 0) < 50 ? 'row-critical' : 'row-warning'}">
-                                <td>${r.nombre}</td>
+                                <td>${escapeHTML(r.nombre)}</td>
                                 <td><strong>${(r.margen_porcentaje || 0).toFixed(1)}%</strong></td>
                                 <td>${(r.food_cost || 0).toFixed(1)}%</td>
                                 <td>${cm((r.precio_venta || 0))}</td>
