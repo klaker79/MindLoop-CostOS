@@ -3389,27 +3389,14 @@
             </select>
           </div>
 
-          <!-- Zona de escaneo de foto -->
-          <div id="merma-dropzone" ondrop="window.procesarFotoMerma(event)"
-            ondragover="event.preventDefault(); this.style.borderColor='#3b82f6'; this.style.background='#eff6ff';"
-            ondragleave="this.style.borderColor='#cbd5e1'; this.style.background='#f8fafc';"
-            style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin-bottom: 15px; text-align: center; cursor: pointer; transition: all 0.2s;"
-            onclick="document.getElementById('merma-foto-input').click()">
-            <input type="file" id="merma-foto-input" accept="image/*" style="display: none;"
-              onchange="window.procesarFotoMermaInput(event)">
-            <div id="merma-dropzone-content">
-              <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
-              <div style="font-weight: 600; color: #334155;" data-i18n="inventario:merma_drop_photo">Arrastra una foto
-                de la hoja de mermas</div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 4px;" data-i18n="inventario:merma_drop_click">o
-                haz clic para seleccionar archivo</div>
-            </div>
-            <div id="merma-dropzone-loading" style="display: none;">
-              <div style="font-size: 24px; margin-bottom: 8px;">⏳</div>
-              <div style="font-weight: 600; color: #3b82f6;" data-i18n="inventario:merma_analyzing_image">Analizando
-                imagen con IA...</div>
-            </div>
-          </div>
+          <!--
+            ⛔ RETIRADA la zona de "Arrastra una foto de la hoja de mermas" (2026-07-31).
+            El dropzone llamaba a POST /api/parse-merma-image, endpoint que NO EXISTE en
+            el backend (404 verificado contra lite-api; tampoco está en develop ni main).
+            Era una función fantasma: se ofrecía en la interfaz y fallaba al usarla.
+            Para reactivarla hay que implementar antes el endpoint; el JS cliente sigue
+            en modules/inventario/merma-rapida.js, sin cablear.
+          -->
 
           <!-- Líneas de merma -->
           <div style="background: #f8fafc; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
@@ -3463,9 +3450,10 @@
           <h2 data-i18n="inventario:massive_title">📊 Actualizar Inventario Masivo</h2>
 
           <div style="margin: 20px 0;">
+            <!-- Sin <strong>: el motor i18n asigna con textContent (anti-XSS), así que
+                 cualquier etiqueta HTML en el literal se mostraría en crudo al usuario. -->
             <p style="color: #64748b; margin-bottom: 15px;" data-i18n="inventario:massive_columns_hint">
-              Upload an Excel (.xlsx) or CSV file with the columns: <strong>Ingredient</strong> and <strong>Real
-                Stock</strong>
+              Upload an Excel (.xlsx) or CSV file with two columns: "Ingredient" and "Real Stock"
             </p>
 
             <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 10px;">
