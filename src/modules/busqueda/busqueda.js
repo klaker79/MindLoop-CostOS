@@ -530,6 +530,8 @@ async function doExportPDF() {
             return;
         }
         const { jsPDF } = window.jspdf;
+        // jspdf-autotable v5 ya no engancha doc.autoTable: se importa la función.
+        const { default: autoTable } = await import('jspdf-autotable');
         const isVentas = data.tipo === 'ventas';
         const doc = new jsPDF({ orientation: isVentas ? 'portrait' : 'landscape', unit: 'mm', format: 'a4' });
         const pageW = doc.internal.pageSize.getWidth();
@@ -605,7 +607,7 @@ async function doExportPDF() {
             ? { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right', fontStyle: 'bold' } }
             : { 5: { halign: 'right' }, 6: { halign: 'right' }, 7: { halign: 'right', fontStyle: 'bold' } };
 
-        doc.autoTable({
+        autoTable(doc, {
             head,
             body: bodyRows,
             startY: y + 5,
