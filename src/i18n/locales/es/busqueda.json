@@ -22,6 +22,7 @@
   "all_suppliers": "Todos los proveedores",
   "btn_search": "🔍 Buscar",
   "btn_export": "📥 Exportar Excel",
+  "btn_export_pdf": "📄 Exportar PDF",
   "btn_reset": "Limpiar",
   "empty_initial": "Selecciona un rango de fechas y pulsa «Buscar».",
   "empty_no_results": "Sin resultados en el rango seleccionado.",

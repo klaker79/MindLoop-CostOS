@@ -22,6 +22,7 @@
   "all_suppliers": "All suppliers",
   "btn_search": "🔍 Search",
   "btn_export": "📥 Export to Excel",
+  "btn_export_pdf": "📄 Export to PDF",
   "btn_reset": "Clear",
   "empty_initial": "Pick a date range and press “Search”.",
   "empty_no_results": "No results in the selected range.",
