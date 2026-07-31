@@ -22,6 +22,7 @@
   "all_suppliers": "所有供应商",
   "btn_search": "🔍 搜索",
   "btn_export": "📥 导出Excel",
+  "btn_export_pdf": "📄 导出PDF",
   "btn_reset": "清除",
   "empty_initial": "选择日期范围并点击「搜索」。",
   "empty_no_results": "所选范围内没有结果。",
