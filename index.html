@@ -734,6 +734,29 @@
               </div>
             </div>
 
+            <!--
+              ⚠️ Deriva de precio sostenida — nace OCULTA a propósito (display:none).
+              Solo la muestra deriva-precio.js cuando el endpoint devuelve alertas
+              reales. Si el backend no responde o no hay subidas sostenidas, la home
+              queda exactamente como si esta tarjeta no existiera.
+            -->
+            <div class="dashboard-card" id="card-deriva-precio"
+              style="display: none; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #FECACA;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div
+                  style="width: 44px; height: 44px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                  🔺</div>
+                <div style="flex: 1;">
+                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1E293B;"
+                    data-i18n="dashboard:drift_title">Te están subiendo precios</h3>
+                  <p style="margin: 2px 0 0; font-size: 12px; color: #64748B;"
+                    data-i18n="dashboard:drift_subtitle">Subidas sostenidas en los últimos 90 días</p>
+                </div>
+                <div id="deriva-precio-total" style="font-size: 18px; font-weight: 800; color: #DC2626;"></div>
+              </div>
+              <div id="lista-deriva-precio" style="max-height: 150px; overflow-y: auto; font-size: 13px;"></div>
+            </div>
+
             <!-- 📊 Cambios de Precio -->
             <div class="dashboard-card"
               style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #f1f5f9;">

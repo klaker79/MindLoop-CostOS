@@ -186,5 +186,10 @@
   "month_september": "九月",
   "month_october": "十月",
   "month_november": "十一月",
-  "month_december": "十二月"
+  "month_december": "十二月",
+  "drift_title": "供应商正在涨价",
+  "drift_subtitle": "过去90天的持续上涨",
+  "drift_sustained_rise": "上涨",
+  "drift_per_month": "每月",
+  "drift_and_more": "还有 {{count}} 个产品"
 }

@@ -77,7 +77,6 @@
   "day_full_thu": "Jueves",
   "day_full_fri": "Viernes",
   "day_full_sat": "Sábado",
-
   "kpi_revenue": "Ingresos",
   "kpi_orders": "Pedidos",
   "kpi_orders_pending": "pendientes",
@@ -92,7 +91,6 @@
   "stock_value_subtitle": "Inventario valorizado",
   "price_changes_title": "Cambios de Precio",
   "staff_today": "Personal Hoy",
-
   "analysis_revenue_vs_expenses": "Ingresos vs Gastos",
   "analysis_financial_evolution": "Evolución financiera de los últimos 7 días",
   "analysis_no_data": "Aún no hay datos",
@@ -137,7 +135,6 @@
   "bcg_dogs_action": "Retira o reforma",
   "bcg_recommendations": "Recomendaciones Inteligentes",
   "bcg_detailed_list": "Ver lista detallada de platos por categoría",
-
   "month_jan": "Enero",
   "month_feb": "Febrero",
   "month_mar": "Marzo",
@@ -150,7 +147,6 @@
   "month_oct": "Octubre",
   "month_nov": "Noviembre",
   "month_dec": "Diciembre",
-
   "vs_prev_week": "vs semana anterior",
   "forecast_period_projection": "Proyección {{period}}",
   "forecast_confidence_high": "Alta confianza",
@@ -159,7 +155,6 @@
   "forecast_confidence_limited": "Datos limitados",
   "period_7days": "7 días",
   "period_quarter": "trimestre",
-
   "kpi_star_dish": "⭐ Estrella",
   "staff_who_works": "Quién trabaja / libra",
   "kpi_items": "Items",
@@ -171,7 +166,6 @@
   "price_changes_subtitle": "Últimas variaciones",
   "top_suppliers_title": "Top Proveedores",
   "top_suppliers_subtitle": "Gasto este mes",
-
   "bcg_legend_stars": "⭐ Estrellas",
   "bcg_legend_puzzles": "❓ Puzzles",
   "bcg_legend_horses": "🐎 Caballos",
@@ -182,7 +176,6 @@
   "bcg_puzzles_detail": "<strong>Estrategia recomendada:</strong><ul><li>Mejora la visibilidad en la carta</li><li>Añade foto profesional</li><li>Forma al personal para recomendarlos</li><li>Crea combos con platos populares</li><li>Si no mejoran, evalúa retirarlos</li></ul>",
   "bcg_horses_detail": "<strong>⚠️ Atención:</strong> Trabajan mucho pero ganan poco.<ul><li>Sube el precio gradualmente (5-10%)</li><li>Renegocia con proveedores</li><li>Reduce porciones sin afectar percepción</li><li>Usa ingredientes más económicos</li><li>Candidatos a retirar si no mejoran</li></ul>",
   "bcg_dogs_detail": "<strong>🚨 Acción urgente:</strong> Ocupan espacio sin aportar valor.<ul><li>Retíralos del menú cuanto antes</li><li>Liberan inventario y tiempo de cocina</li><li>Si tienen valor sentimental: especial del día</li><li>Reformula completamente la receta</li><li>Redirige recursos a tus Estrellas</li></ul>",
-
   "month_january": "Enero",
   "month_february": "Febrero",
   "month_march": "Marzo",
@@ -193,5 +186,10 @@
   "month_september": "Septiembre",
   "month_october": "Octubre",
   "month_november": "Noviembre",
-  "month_december": "Diciembre"
+  "month_december": "Diciembre",
+  "drift_title": "Te están subiendo precios",
+  "drift_subtitle": "Subidas sostenidas en los últimos 90 días",
+  "drift_sustained_rise": "sube un",
+  "drift_per_month": "al mes",
+  "drift_and_more": "y {{count}} producto(s) más"
 }
