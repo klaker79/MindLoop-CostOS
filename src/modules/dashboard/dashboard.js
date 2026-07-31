@@ -16,6 +16,7 @@ import { renderKpiPedidos } from './kpis/pedidos.js';
 import { renderKpiStockBajo } from './kpis/stock-bajo.js';
 import { renderKpiValorStock } from './kpis/valor-stock.js';
 import { renderKpiCambiosPrecio } from './kpis/cambios-precio.js';
+import { renderKpiDerivaPrecio } from './kpis/deriva-precio.js';
 import { renderKpiPersonalHoy } from './kpis/personal-hoy.js';
 import { renderSparklines } from './kpis/sparklines.js';
 import { renderForecast } from './kpis/forecast.js';
@@ -180,6 +181,16 @@ export async function actualizarKPIs() {
 
         // 6. CAMBIOS DE PRECIO (últimos pedidos)
         renderKpiCambiosPrecio();
+
+        // 6b. DERIVA DE PRECIO SOSTENIDA (subidas que la media ponderada aún no
+        // refleja). Aislada en su propio try y sin await: es un extra opcional y
+        // NO debe poder retrasar ni tumbar el resto de KPIs de la home. La tarjeta
+        // nace oculta y solo aparece si hay alertas reales.
+        try {
+            renderKpiDerivaPrecio();
+        } catch (e) {
+            console.warn('KPI deriva de precio no disponible:', e?.message);
+        }
 
         // 7. PERSONAL HOY (trabajan / libran)
         await renderKpiPersonalHoy();

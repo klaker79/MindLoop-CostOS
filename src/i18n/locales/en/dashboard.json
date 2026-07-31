@@ -77,7 +77,6 @@
   "day_full_thu": "Thursday",
   "day_full_fri": "Friday",
   "day_full_sat": "Saturday",
-
   "kpi_revenue": "Revenue",
   "kpi_orders": "Orders",
   "kpi_orders_pending": "pending",
@@ -92,7 +91,6 @@
   "stock_value_subtitle": "Valued inventory",
   "price_changes_title": "Price Changes",
   "staff_today": "Staff Today",
-
   "analysis_revenue_vs_expenses": "Revenue vs Expenses",
   "analysis_financial_evolution": "Financial evolution of the last 7 days",
   "analysis_no_data": "No data yet",
@@ -137,7 +135,6 @@
   "bcg_dogs_action": "Remove or reform",
   "bcg_recommendations": "Smart Recommendations",
   "bcg_detailed_list": "View detailed dish list by category",
-
   "month_jan": "January",
   "month_feb": "February",
   "month_mar": "March",
@@ -150,7 +147,6 @@
   "month_oct": "October",
   "month_nov": "November",
   "month_dec": "December",
-
   "vs_prev_week": "vs previous week",
   "forecast_period_projection": "Projection {{period}}",
   "forecast_confidence_high": "High confidence",
@@ -159,7 +155,6 @@
   "forecast_confidence_limited": "Limited data",
   "period_7days": "7 days",
   "period_quarter": "quarter",
-
   "kpi_star_dish": "⭐ Star",
   "staff_who_works": "Who works / off",
   "kpi_items": "Items",
@@ -171,7 +166,6 @@
   "price_changes_subtitle": "Latest changes",
   "top_suppliers_title": "Top Suppliers",
   "top_suppliers_subtitle": "Spending this month",
-
   "bcg_legend_stars": "⭐ Stars",
   "bcg_legend_puzzles": "❓ Puzzles",
   "bcg_legend_horses": "🐎 Workhorses",
@@ -182,7 +176,6 @@
   "bcg_puzzles_detail": "<strong>Recommended strategy:</strong><ul><li>Improve visibility on the menu</li><li>Add professional photos</li><li>Train staff to recommend them</li><li>Create combos with popular dishes</li><li>If they don't improve, consider removing</li></ul>",
   "bcg_horses_detail": "<strong>⚠️ Attention:</strong> High sales but low profit.<ul><li>Gradually raise the price (5-10%)</li><li>Renegotiate with suppliers</li><li>Reduce portions without affecting perception</li><li>Use more affordable ingredients</li><li>Candidates for removal if no improvement</li></ul>",
   "bcg_dogs_detail": "<strong>🚨 Urgent action:</strong> Taking up space without adding value.<ul><li>Remove from the menu ASAP</li><li>Free up inventory and kitchen time</li><li>If sentimental value: daily special</li><li>Completely reformulate the recipe</li><li>Redirect resources to your Stars</li></ul>",
-
   "month_january": "January",
   "month_february": "February",
   "month_march": "March",
@@ -193,5 +186,10 @@
   "month_september": "September",
   "month_october": "October",
   "month_november": "November",
-  "month_december": "December"
+  "month_december": "December",
+  "drift_title": "Prices are creeping up",
+  "drift_subtitle": "Sustained rises over the last 90 days",
+  "drift_sustained_rise": "up",
+  "drift_per_month": "per month",
+  "drift_and_more": "and {{count}} more product(s)"
 }
