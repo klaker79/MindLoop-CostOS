@@ -222,7 +222,7 @@
 // BUMP v301 (paquetes reducidos por tier - prototipo Lite): plan-tabs.js oculta pestañas segun window._planData.plan (mapa PLAN_TABS). Fail-open (plan normal = todas). Calcado de aplicarGatingComidaPersonal; no toca datos ni calculos.
 // BUMP v302 (pedidos): al elegir un proveedor sin ingredientes vinculados, el formulario de Nuevo Pedido se queda en blanco y no deja poner cantidades. Ahora cae a mostrar todos los ingredientes, como en compra de mercado.
 // BUMP v303 (una API por casa): el dominio de la API de produccion estaba cableado como fallback en 12 sitios, asi que el bundle de STAGING llevaba dentro la URL de La Nave 5. Ahora hay UN mapa dominio->API en app-config: cada casa solo conoce a la suya, y una casa desconocida falla a la vista (vacio + error en consola) en vez de cruzar a produccion en silencio.
-const CACHE_NAME = 'mindloop-costos-v303';
+const CACHE_NAME = 'mindloop-costos-v304';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

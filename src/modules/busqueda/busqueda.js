@@ -13,8 +13,9 @@
 
 import { api } from '../../api/client.js';
 import { t } from '@/i18n/index.js';
-import { cm, escapeHTML } from '../../utils/helpers.js';
+import { cm, escapeHTML, getRestaurantName } from '../../utils/helpers.js';
 import { exportToExcel } from '../export/excel-export.js';
+import { loadPDF } from '../../utils/lazy-vendors.js';
 import { logger } from '../../utils/logger.js';
 
 // ---------------------------------------------------------------------------
@@ -195,6 +196,7 @@ function renderHTML() {
                 <button id="bsq-search" class="btn btn-primary">🔍 ${escapeHTML(t('busqueda:btn_search'))}</button>
                 <button id="bsq-reset" class="btn btn-secondary">${escapeHTML(t('busqueda:btn_reset'))}</button>
                 <button id="bsq-export" class="btn btn-secondary" disabled>📥 ${escapeHTML(t('busqueda:btn_export'))}</button>
+                <button id="bsq-export-pdf" class="btn btn-secondary" disabled>📄 ${escapeHTML(t('busqueda:btn_export_pdf') || 'Exportar PDF')}</button>
             </div>
         </div>
 
@@ -258,6 +260,7 @@ function wireEvents(container) {
         renderizarBusqueda();
     });
     container.querySelector('#bsq-export')?.addEventListener('click', doExport);
+    container.querySelector('#bsq-export-pdf')?.addEventListener('click', doExportPDF);
 
     // Enter in search field triggers search
     container.querySelector('#bsq-q')?.addEventListener('keydown', e => {
@@ -309,10 +312,11 @@ async function doSearch() {
         state.lastResult = data;
         renderResults(data);
 
+        const hasRows = !!(data.resultados && data.resultados.length);
         const exportBtn = container.querySelector('#bsq-export');
-        if (exportBtn) {
-            exportBtn.disabled = !(data.resultados && data.resultados.length);
-        }
+        if (exportBtn) exportBtn.disabled = !hasRows;
+        const exportPdfBtn = container.querySelector('#bsq-export-pdf');
+        if (exportPdfBtn) exportPdfBtn.disabled = !hasRows;
     } catch (err) {
         logger.error('Búsqueda: search failed', err);
         if (resultsEl) {
@@ -505,6 +509,137 @@ async function doExport() {
         });
     } catch (err) {
         logger.error('Búsqueda: export failed', err);
+        window.showToast?.(t('busqueda:error_generic'), 'error');
+    }
+}
+
+// ---------------------------------------------------------------------------
+// PDF export — informe profesional del mismo resultado que el Excel.
+// Reutiliza jsPDF + autoTable (loadPDF), sin dependencias nuevas.
+// ---------------------------------------------------------------------------
+async function doExportPDF() {
+    const data = state.lastResult;
+    if (!data || !data.resultados || data.resultados.length === 0) {
+        return;
+    }
+
+    try {
+        await loadPDF();
+        if (!window.jspdf) {
+            window.showToast?.(t('busqueda:error_generic'), 'error');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const isVentas = data.tipo === 'ventas';
+        const doc = new jsPDF({ orientation: isVentas ? 'portrait' : 'landscape', unit: 'mm', format: 'a4' });
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+
+        const BRAND = [255, 107, 53];
+        const INK = [30, 41, 59];
+        const MUTED = [100, 116, 139];
+
+        // Header band with brand
+        doc.setFillColor(BRAND[0], BRAND[1], BRAND[2]);
+        doc.rect(0, 0, pageW, 24, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(17);
+        doc.text('CosteOS', 14, 12);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text('Restaurant Intelligence', 14, 18);
+        const restName = getRestaurantName() || '';
+        if (restName) {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.text(restName, pageW - 14, 13, { align: 'right' });
+        }
+
+        // Title + period + filters
+        let y = 34;
+        doc.setTextColor(INK[0], INK[1], INK[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(15);
+        doc.text(isVentas ? t('busqueda:type_sales') : t('busqueda:type_purchases'), 14, y);
+
+        y += 7;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+        const desdeD = data.periodo?.desde || state.desde;
+        const hastaD = getDisplayHasta(data.periodo?.hasta || state.hasta);
+        doc.text(`${t('busqueda:label_from')}: ${desdeD}    ${t('busqueda:label_to')}: ${hastaD}`, 14, y);
+
+        const filtros = [];
+        if (state.q) filtros.push(`${t('busqueda:label_search')}: "${state.q}"`);
+        if (!isVentas && state.proveedorId) {
+            const provs = Array.isArray(window.proveedores) ? window.proveedores : [];
+            const prov = provs.find(p => String(p.id) === String(state.proveedorId));
+            if (prov) filtros.push(`${t('busqueda:label_supplier')}: ${prov.nombre}`);
+        }
+        if (filtros.length) {
+            y += 5;
+            doc.text(filtros.join('    '), 14, y);
+        }
+
+        // KPI line
+        y += 8;
+        doc.setTextColor(INK[0], INK[1], INK[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        const linesLabel = t('busqueda:results_lines') || 'Líneas';
+        const kpiText = isVentas
+            ? `${t('busqueda:col_total')}: ${cm(data.total_importe || 0)}     ${t('busqueda:col_quantity')}: ${Math.round(data.total_cantidad || 0)}     ${linesLabel}: ${data.total_registros}`
+            : `${t('busqueda:col_total')}: ${cm(data.total_importe || 0)}     ${t('busqueda:kpi_orders') || 'Pedidos'}: ${data.num_pedidos || 0}     ${linesLabel}: ${data.total_registros}`;
+        doc.text(kpiText, 14, y);
+
+        // Table (same columns as the Excel export)
+        const head = isVentas
+            ? [[t('busqueda:col_date'), t('busqueda:col_recipe'), t('busqueda:col_category'), t('busqueda:col_quantity'), t('busqueda:col_unit_price'), t('busqueda:col_total')]]
+            : [[t('busqueda:col_date'), t('busqueda:col_order_id'), t('busqueda:col_supplier'), t('busqueda:col_ingredient'), t('busqueda:col_unit'), t('busqueda:col_quantity'), t('busqueda:col_unit_price'), t('busqueda:col_subtotal'), t('busqueda:col_status')]];
+        const bodyRows = isVentas
+            ? data.resultados.map(r => [formatDisplayDate(r.fecha), r.receta_nombre || '', r.categoria || '', String(Number(r.cantidad || 0)), cm(parseFloat(r.precio_unitario) || 0), cm(parseFloat(r.total) || 0)])
+            : data.resultados.map(r => [formatDisplayDate(r.fecha), '#' + (r.pedido_id || ''), r.proveedor_nombre || '', r.ingrediente_nombre || '', r.unidad || '', String(Number(r.cantidad || 0)), cm(parseFloat(r.precio_unitario) || 0), cm(parseFloat(r.subtotal) || 0), r.estado || '']);
+        const rightCols = isVentas
+            ? { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right', fontStyle: 'bold' } }
+            : { 5: { halign: 'right' }, 6: { halign: 'right' }, 7: { halign: 'right', fontStyle: 'bold' } };
+
+        doc.autoTable({
+            head,
+            body: bodyRows,
+            startY: y + 5,
+            styles: { fontSize: 8, cellPadding: 1.8, textColor: INK, lineColor: [230, 230, 235], lineWidth: 0.1 },
+            headStyles: { fillColor: BRAND, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+            alternateRowStyles: { fillColor: [249, 249, 251] },
+            columnStyles: rightCols,
+            margin: { left: 14, right: 14 },
+            didDrawPage: () => {
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+                doc.text(`CosteOS · ${new Date().toLocaleDateString()}`, 14, pageH - 8);
+                doc.text(String(doc.internal.getCurrentPageInfo().pageNumber), pageW - 14, pageH - 8, { align: 'right' });
+            }
+        });
+
+        // Total destacado tras la tabla
+        const finalY = (doc.lastAutoTable?.finalY || y) + 8;
+        doc.setDrawColor(BRAND[0], BRAND[1], BRAND[2]);
+        doc.setLineWidth(0.4);
+        doc.line(pageW - 80, finalY - 4, pageW - 14, finalY - 4);
+        doc.setTextColor(INK[0], INK[1], INK[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text(`${t('busqueda:col_total')}: ${cm(data.total_importe || 0)}`, pageW - 14, finalY + 2, { align: 'right' });
+
+        // Save
+        const today = new Date().toISOString().split('T')[0];
+        const fileKey = isVentas ? 'excel_filename_sales' : 'excel_filename_purchases';
+        const base = `${t('busqueda:' + fileKey)}_${data.periodo.desde}_to_${data.periodo.hasta}_${today}`;
+        doc.save(`${base}.pdf`);
+    } catch (err) {
+        logger.error('Búsqueda: PDF export failed', err);
         window.showToast?.(t('busqueda:error_generic'), 'error');
     }
 }
