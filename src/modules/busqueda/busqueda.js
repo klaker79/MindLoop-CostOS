@@ -537,7 +537,7 @@ async function doExportPDF() {
         const pageW = doc.internal.pageSize.getWidth();
         const pageH = doc.internal.pageSize.getHeight();
 
-        const BRAND = [255, 107, 53];
+        const BRAND = [20, 41, 74]; // #14294A — azul navy del header de la app
         const INK = [30, 41, 59];
         const MUTED = [100, 116, 139];
 
@@ -563,7 +563,9 @@ async function doExportPDF() {
         doc.setTextColor(INK[0], INK[1], INK[2]);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(15);
-        doc.text(isVentas ? t('busqueda:type_sales') : t('busqueda:type_purchases'), 14, y);
+        // Quitar emoji del título (helvetica de jsPDF no los soporta → sale basura)
+        const titulo = (isVentas ? t('busqueda:type_sales') : t('busqueda:type_purchases')).replace(/^[^\p{L}]+/u, '').trim();
+        doc.text(titulo, 14, y);
 
         y += 7;
         doc.setFont('helvetica', 'normal');
