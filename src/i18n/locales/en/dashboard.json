@@ -163,7 +163,7 @@
   "quick_stock": "🔍 Stock",
   "forecast_title": "Forecast",
   "forecast_subtitle": "Revenue estimate",
-  "price_changes_subtitle": "Latest changes",
+  "price_changes_subtitle": "Last purchase vs. previous one",
   "top_suppliers_title": "Top Suppliers",
   "top_suppliers_subtitle": "Spending this month",
   "bcg_legend_stars": "⭐ Stars",
@@ -188,8 +188,9 @@
   "month_november": "November",
   "month_december": "December",
   "drift_title": "Prices are creeping up",
-  "drift_subtitle": "Sustained rises over the last 90 days",
+  "drift_subtitle": "90-day average vs. your current price",
   "drift_sustained_rise": "up",
   "drift_per_month": "per month",
-  "drift_and_more": "and {{count}} more product(s)"
+  "drift_and_more": "and {{count}} more product(s)",
+  "drift_footnote": "Slow rises your recipe costing doesn't reflect yet"
 }
