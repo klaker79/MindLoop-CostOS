@@ -163,7 +163,7 @@
   "quick_stock": "🔍 Stock",
   "forecast_title": "Proyección",
   "forecast_subtitle": "Estimación de ingresos",
-  "price_changes_subtitle": "Últimas variaciones",
+  "price_changes_subtitle": "Última compra vs. la anterior",
   "top_suppliers_title": "Top Proveedores",
   "top_suppliers_subtitle": "Gasto este mes",
   "bcg_legend_stars": "⭐ Estrellas",
@@ -188,8 +188,9 @@
   "month_november": "Noviembre",
   "month_december": "Diciembre",
   "drift_title": "Te están subiendo precios",
-  "drift_subtitle": "Subidas sostenidas en los últimos 90 días",
+  "drift_subtitle": "Media de 90 días vs. tu precio actual",
   "drift_sustained_rise": "sube un",
   "drift_per_month": "al mes",
-  "drift_and_more": "y {{count}} producto(s) más"
+  "drift_and_more": "y {{count}} producto(s) más",
+  "drift_footnote": "Subidas lentas que tu escandallo aún no refleja"
 }

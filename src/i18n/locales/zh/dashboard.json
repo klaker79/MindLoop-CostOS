@@ -163,7 +163,7 @@
   "quick_stock": "🔍 库存",
   "forecast_title": "预测",
   "forecast_subtitle": "收入预估",
-  "price_changes_subtitle": "最新变动",
+  "price_changes_subtitle": "最近一次采购与上一次对比",
   "top_suppliers_title": "主要供应商",
   "top_suppliers_subtitle": "本月支出",
   "bcg_legend_stars": "⭐ 明星",
@@ -188,8 +188,9 @@
   "month_november": "十一月",
   "month_december": "十二月",
   "drift_title": "供应商正在涨价",
-  "drift_subtitle": "过去90天的持续上涨",
+  "drift_subtitle": "90天均价与当前价格对比",
   "drift_sustained_rise": "上涨",
   "drift_per_month": "每月",
-  "drift_and_more": "还有 {{count}} 个产品"
+  "drift_and_more": "还有 {{count}} 个产品",
+  "drift_footnote": "成本核算尚未反映的缓慢上涨"
 }
