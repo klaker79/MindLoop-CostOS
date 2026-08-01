@@ -147,11 +147,14 @@ export async function registrarConsumoInterno() {
             'success'
         );
 
-        // Reset ligero y refresco del histórico (el modal sigue abierto para
-        // encadenar varios registros seguidos).
-        if (el('ci-nota')) el('ci-nota').value = '';
+        // El modal sigue abierto para encadenar varios registros seguidos, así que
+        // se vacía lo que cambia en cada apunte (plato, raciones, nota) y se
+        // conserva el contexto que suele repetirse (fecha, tipo, empleado).
+        if (el('ci-plato')) el('ci-plato').value = '';
         if (el('ci-raciones')) el('ci-raciones').value = 1;
+        if (el('ci-nota')) el('ci-nota').value = '';
         actualizarCostePreview();
+        el('ci-plato')?.focus();
         await cargarHistorialConsumos();
     } catch (error) {
         logger.error('Consumo interno: registro fallido', error);
