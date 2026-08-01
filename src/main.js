@@ -504,8 +504,12 @@ import './modules/inteligencia/inteligencia-ui.js';
 // MÓDULO: MERMA RÁPIDA 🗑️
 // ============================================
 import * as MermaRapida from './modules/inventario/merma-rapida.js';
+import * as ConsumoInterno from './modules/inventario/consumo-interno.js';
 
 window.mostrarModalMermaRapida = MermaRapida.mostrarModalMermaRapida;
+window.mostrarModalConsumoInterno = ConsumoInterno.mostrarModalConsumoInterno;
+window.registrarConsumoInterno = ConsumoInterno.registrarConsumoInterno;
+window.borrarConsumoInterno = ConsumoInterno.borrarConsumoInterno;
 window.confirmarMermaRapida = MermaRapida.confirmarMermaRapida;
 window.confirmarMermasMultiples = MermaRapida.confirmarMermasMultiples;
 window.agregarLineaMerma = MermaRapida.agregarLineaMerma;
