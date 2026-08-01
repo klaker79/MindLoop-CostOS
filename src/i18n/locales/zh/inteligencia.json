@@ -79,5 +79,9 @@
   "omnes_x_frescura": "「{{nombre}}」有 {{stock}} {{unidad}} 已存放 {{dias}} 天。请尽快使用以免损耗。",
 
   "omnes_t_sobrestock": "库存过剩",
-  "omnes_x_sobrestock": "「{{nombre}}」有 {{stock}} {{unidad}}，约 {{dias}} 天的库存量。暂时不要再订购。"
+  "omnes_x_sobrestock": "「{{nombre}}」有 {{stock}} {{unidad}}，约 {{dias}} 天的库存量。暂时不要再订购。",
+  "omnes_t_suministros": "请检查耗材",
+  "omnes_x_suministros": "{{total}} 项耗材中有 {{n}} 项库存超过实际用量，多出约 {{valor}}。耗材不在任何配方中，销售不会扣减，库存只会增加。请在库存页面盘点。",
+  "omnes_x_suministros_top": "积压最多：{{lista}}。",
+  "omnes_cta_hacer_recuento": "进行盘点"
 }
