@@ -108,6 +108,7 @@
   "stock_critical": "Stock crítico",
   "stock_value": "Valor stock",
   "items_in_stock": "Items con stock",
+  "supplies_value": "Suministros",
   "empty_title": "No hay ingredientes",
   "empty_hint": "Añade ingredientes para gestionar el inventario",
   "no_data_placeholder": "Sin datos",
