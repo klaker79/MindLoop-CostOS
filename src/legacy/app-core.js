@@ -2198,7 +2198,18 @@
                     {
                         id: Date.now() + Math.random(),
                         cantidad: Math.abs(diff), // Sugerimos todo como una causa inicial
-                        motivo: 'Caduco',
+                        // 📊 2026-08-01: antes esta línea decía 'Caduco'. Una diferencia de
+                        // recuento NO es caducidad: es lo que falta y no sabes por qué —
+                        // puede ser merma no apuntada, error de escandallo, mal pesaje en
+                        // recepción o venta sin registrar. Etiquetarlo de fábrica como
+                        // caducado convertía cada cuadre en caducidad ficticia: en La Nave 5,
+                        // 196 registros, entre ellos un ÚNICO ajuste de -12.991 guantes y otro
+                        // de -8.001 toallitas, y un informe que decía ~4.726 € de verdura
+                        // tirada que nunca se tiró.
+                        // 'Error de Inventario' es el default honesto ("diferencia sin
+                        // explicar"), y es el MISMO que ya usaba la rama positiva de abajo.
+                        // Quien sepa que algo caducó de verdad lo cambia a mano.
+                        motivo: 'Error de Inventario',
                         notas: '',
                     },
                 ];
@@ -2281,7 +2292,13 @@
                                 <option value="Invitacion" ${adj.motivo === 'Invitacion' ? 'selected' : ''}>Invitación</option>
                                 <option value="Accidente" ${adj.motivo === 'Accidente' ? 'selected' : ''}>Accidente</option>
                                 <option value="Error Cocina" ${adj.motivo === 'Error Cocina' ? 'selected' : ''}>Error Cocina</option>
-                                <option value="Error Inventario" ${adj.motivo === 'Error Inventario' ? 'selected' : ''}>Error Conteo</option>
+                                <!-- 📊 2026-08-01: el value era "Error Inventario" (sin "de") mientras
+                                     que el prellenado usa 'Error de Inventario'. Al no casar NINGUNA
+                                     opción, el navegador seleccionaba la primera —"Caduco"— y el
+                                     usuario veía "Caduco" aunque se guardara otra cosa. Se unifica
+                                     hacia 'Error de Inventario', que es el valor que ya tienen 351
+                                     de los registros en base de datos. -->
+                                <option value="Error de Inventario" ${(adj.motivo === 'Error de Inventario' || adj.motivo === 'Error Inventario') ? 'selected' : ''}>Error de conteo</option>
                                 <option value="Otros" ${adj.motivo === 'Otros' ? 'selected' : ''}>Otros</option>
                             </select>
                         </td>
@@ -2342,7 +2359,9 @@
         currentAdjustmentsMap[ingId].push({
             id: Date.now(),
             cantidad: 0,
-            motivo: 'Caduco',
+            // Mismo criterio que el prellenado: una diferencia de recuento no es
+            // caducidad hasta que alguien lo afirme. Default neutro.
+            motivo: 'Error de Inventario',
             notas: '',
         });
         window.renderTablaSplits();
