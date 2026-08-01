@@ -1864,14 +1864,22 @@
               MASIVO</button>
             <button class="btn btn-primary" data-action="guardar-cambios-stock" data-i18n="inventario:btn_save_stock">💾
               Guardar Stock</button>
-            <button class="btn" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white;"
-              data-action="mostrar-modal-merma-rapida" data-i18n="inventario:btn_quick_waste">🗑️ Merma Rápida</button>
+            <!-- Merma Rápida y Consumo Interno van JUNTOS: ambos DESCUENTAN stock
+                 (uno por producto tirado, otro por plato consumido). Agrupados y
+                 más pequeños para que se lea que son la misma familia de acción. -->
+            <div class="inventario-descuento-group"
+              style="display: inline-flex; flex-direction: column; gap: 6px; vertical-align: top; padding: 7px 9px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+              <span
+                style="font-size: 10px; font-weight: 700; letter-spacing: 0.6px; color: #64748b; text-transform: uppercase;"
+                data-i18n="inventario:group_deduct_stock">Descuenta stock</span>
+              <button class="btn" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 7px 14px; font-size: 13px; justify-content: center;"
+                data-action="mostrar-modal-merma-rapida" data-i18n="inventario:btn_quick_waste">🗑️ Merma Rápida</button>
+              <button class="btn" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 7px 14px; font-size: 13px; justify-content: center;"
+                data-action="mostrar-modal-consumo-interno" data-i18n="inventario:btn_internal_use">🍽️ Consumo Interno</button>
+            </div>
             <button class="btn" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white;"
               data-action="ver-historial-mermas" data-i18n="inventario:btn_waste_history">📋 Ver Historial
               Mermas</button>
-            <button class="btn" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white;"
-              data-action="mostrar-modal-consumo-interno" data-i18n="inventario:btn_internal_use">🍽️ Consumo
-              Interno</button>
             <button class="btn btn-secondary" data-action="exportar-inventario">📤 Export Excel</button>
             <!-- 📋 Recuento: contador digital móvil. Oculto en escritorio (display:none);
                  la media-query de recuento.js lo muestra solo en pantallas pequeñas. -->

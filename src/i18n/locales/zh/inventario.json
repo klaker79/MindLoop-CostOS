@@ -164,5 +164,6 @@
   "ci_error_portions": "请输入有效的份数",
   "ci_error_save": "无法登记消耗",
   "ci_error_load": "无法加载历史记录",
-  "ci_error_delete": "无法删除记录"
+  "ci_error_delete": "无法删除记录",
+  "group_deduct_stock": "扣减库存"
 }
