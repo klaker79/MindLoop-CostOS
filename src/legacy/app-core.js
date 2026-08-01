@@ -1894,13 +1894,6 @@
 
     window.renderizarInventario = function () {
         try {
-            // 📉 Panel de diferencia de inventario (último recuento físico valorado).
-            // Va aparte y en paralelo: hace su propia llamada y no debe retrasar ni
-            // romper el render de la tabla si el backend no tiene aún el endpoint.
-            if (typeof window.renderDiferenciaInventario === 'function') {
-                window.renderDiferenciaInventario();
-            }
-
             // ⚡ Usar datos en caché (ya cargados por cargarDatos()) para render instantáneo
             const inventario = window.inventarioCompleto || [];
             const busqueda = document.getElementById('busqueda-inventario').value.toLowerCase();
