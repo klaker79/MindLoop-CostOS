@@ -127,6 +127,42 @@ export function buildOmnesQuestion(aviso, frases) {
     return `${f.prefix || ''}"${texto}". ${seguimiento}`.trim();
 }
 
+/**
+ * Resume la respuesta de /intelligence/supplies-overstock en UN solo aviso.
+ *
+ * Los suministros no están en ninguna receta, así que vender no los descuenta:
+ * solo entran, nunca salen. Cuando el problema es sistémico —en La Nave 5, 45 de
+ * 54 sin bajar una unidad en 90 días— sacar un aviso por ingrediente daría 20
+ * tarjetas idénticas que nadie lee. Un único aviso con los 3 que más dinero
+ * acumulan dice lo mismo y sí se lee.
+ *
+ * Devuelve null cuando no hay nada que avisar, para que el feed no muestre
+ * tarjeta vacía.
+ *
+ * @param {object|null} data - respuesta del endpoint (null si el backend aún no lo tiene)
+ * @returns {{valorExceso:number, nAlertas:number, nTotal:number, nuncaContados:number, top:Array, peorId:number|null}|null}
+ */
+export function resumirSuministros(data) {
+    const alertas = (data && Array.isArray(data.alertas)) ? data.alertas : [];
+    if (alertas.length === 0) return null;
+
+    const valorExceso = Number.isFinite(parseFloat(data.valor_exceso_total))
+        ? parseFloat(data.valor_exceso_total)
+        : alertas.reduce((s, a) => s + (parseFloat(a.valor_exceso) || 0), 0);
+
+    // Sin dinero detrás no hay aviso: evita ruido en tenants que apenas registran material.
+    if (!(valorExceso > 0)) return null;
+
+    return {
+        valorExceso,
+        nAlertas: alertas.length,
+        nTotal: parseInt(data.n_suministros_con_stock, 10) || alertas.length,
+        nuncaContados: parseInt(data.nunca_contados, 10) || 0,
+        top: alertas.slice(0, 3).map(a => a.nombre).filter(Boolean),
+        peorId: Number.isFinite(Number(alertas[0]?.id)) ? Number(alertas[0].id) : null,
+    };
+}
+
 // ─────────────────────────────────────────────────────────────
 // CONSTRUCCIÓN DEL FEED (async — junta señales y arma los avisos)
 // ─────────────────────────────────────────────────────────────
@@ -147,11 +183,12 @@ export async function construirAvisos(deps) {
     const ingMap = new Map(ingredientes.map(i => [i.id, i]));
     const max = UMBRALES.maxPorTipo;
 
-    const [price, fresh, over, drift] = await Promise.all([
+    const [price, fresh, over, drift, supplies] = await Promise.all([
         fetchIntelligence('price-check'),
         fetchIntelligence('freshness'),
         fetchIntelligence('overstock'),
         fetchIntelligence('price-drift'), // null si el backend aún no lo tiene (degrada sin romper)
+        fetchIntelligence('supplies-overstock'), // idem
     ]);
 
     const avisos = [];
@@ -268,6 +305,31 @@ export async function construirAvisos(deps) {
             cta: mkCta('ingrediente', o.id, t('inteligencia:omnes_cta_ver_ingrediente')),
         });
     });
+
+    // 5bis) 🧹 Suministros acumulados — UN solo aviso, no uno por ingrediente.
+    // El material no comestible no está en ninguna receta: vender no lo descuenta,
+    // así que su stock solo puede subir y acaba midiendo lo comprado desde el
+    // primer día, no lo que hay en el almacén. La app no puede corregirlo sola
+    // (no sabe cuántos guantes quedan en el cajón), así que empuja al recuento.
+    const resumenSum = resumirSuministros(supplies);
+    if (resumenSum) {
+        const detalle = resumenSum.top.length > 0
+            ? ' ' + t('inteligencia:omnes_x_suministros_top', { lista: resumenSum.top.join(', ') })
+            : '';
+        avisos.push({
+            id: 'suministros-acumulados',
+            categoria: 'suministros',
+            nivel: 'atencion',
+            icono: '🧹',
+            titulo: t('inteligencia:omnes_t_suministros'),
+            texto: t('inteligencia:omnes_x_suministros', {
+                n: resumenSum.nAlertas,
+                total: resumenSum.nTotal,
+                valor: cm(resumenSum.valorExceso),
+            }) + detalle,
+            cta: mkCta('inventario', resumenSum.peorId, t('inteligencia:omnes_cta_hacer_recuento')),
+        });
+    }
 
     avisos.sort((a, b) => ORDEN_NIVEL[a.nivel] - ORDEN_NIVEL[b.nivel]);
     return avisos;
