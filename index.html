@@ -1869,6 +1869,9 @@
             <button class="btn" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white;"
               data-action="ver-historial-mermas" data-i18n="inventario:btn_waste_history">📋 Ver Historial
               Mermas</button>
+            <button class="btn" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white;"
+              data-action="mostrar-modal-consumo-interno" data-i18n="inventario:btn_internal_use">🍽️ Consumo
+              Interno</button>
             <button class="btn btn-secondary" data-action="exportar-inventario">📤 Export Excel</button>
             <!-- 📋 Recuento: contador digital móvil. Oculto en escritorio (display:none);
                  la media-query de recuento.js lo muestra solo en pantallas pequeñas. -->
@@ -3266,6 +3269,98 @@
       <!-- Modal: Información de Mermas (educativo) — MIGRADO a info-modal.js
            El contenido vive ahora en src/i18n/locales/{lang}/info-content.json
            bajo la clave "inventario". El modal lo renderiza dinámicamente. -->
+
+      <!-- Modal: Consumo Interno (plato de la carta consumido sin venta) -->
+      <!-- ⚠️ Rejillas con minmax(0,1fr) + min-width:0 en los <select>: los nombres
+           largos de receta desbordaban la rejilla y ocultaban campos (incidente
+           Merma Rápida 2026-07-02, guard merma-modal-grid.test.js). -->
+      <div id="modal-consumo-interno" class="modal">
+        <div class="modal-content" style="max-width: 720px; max-height: 90vh; overflow-y: auto;">
+          <span class="close" data-action="cerrar-modal-consumo-interno">&times;</span>
+
+          <div style="margin-bottom: 18px;">
+            <h2 style="color: #D97706; display: flex; align-items: center; gap: 10px; margin: 0;">
+              <span data-i18n="inventario:ci_title">🍽️ Consumo Interno</span>
+            </h2>
+            <p style="color: #64748b; margin: 5px 0 0; font-size: 14px;" data-i18n="inventario:ci_subtitle">
+              Un plato de la carta consumido sin venderse: comida de personal, prueba de cocina o invitación. Descuenta
+              stock.
+            </p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:ci_date">📅 Fecha</label>
+              <input type="date" id="ci-fecha"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+            </div>
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:ci_type">🏷️ Tipo</label>
+              <select id="ci-tipo"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+                <option value="personal" data-i18n="inventario:ci_type_personal">Comida de personal</option>
+                <option value="prueba" data-i18n="inventario:ci_type_prueba">Prueba de cocina</option>
+                <option value="invitacion" data-i18n="inventario:ci_type_invitacion">Invitación</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:ci_dish">🍽️ Plato o bebida</label>
+              <select id="ci-plato"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:ci_portions">🍴 Raciones</label>
+              <input type="number" id="ci-raciones" value="1" min="0.01" step="0.5"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 12px; margin-bottom: 14px;">
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:ci_employee">👤 Empleado</label>
+              <select id="ci-empleado"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:ci_note">📝 Nota</label>
+              <input type="text" id="ci-nota" maxlength="500"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+            </div>
+          </div>
+
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 15px; margin-bottom: 15px;">
+            <span style="font-weight: 600; color: #92400e; font-size: 14px;"
+              data-i18n="inventario:ci_estimated_cost">Coste estimado</span>
+            <span id="ci-coste-preview" style="font-size: 20px; font-weight: 700; color: #b45309;">—</span>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px;">
+            <button class="btn btn-secondary" data-action="cerrar-modal-consumo-interno"
+              data-i18n="common:btn_cancel">Cancelar</button>
+            <button id="ci-btn-registrar" class="btn" style="background: #D97706; color: white;"
+              data-action="registrar-consumo-interno">
+              <span data-i18n="inventario:ci_register_btn">🍽️ Registrar consumo</span>
+            </button>
+          </div>
+
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 600; color: #334155;" data-i18n="inventario:ci_month_history">📋 Este mes</span>
+              <div style="text-align: right;">
+                <span style="font-size: 12px; color: #64748b;" data-i18n="inventario:ci_month_total">Total del mes</span>
+                <span id="ci-total-mes" style="font-size: 18px; font-weight: 700; color: #b45309; margin-left: 8px;">—</span>
+              </div>
+            </div>
+            <div id="ci-historial" style="max-height: 220px; overflow-y: auto;"></div>
+          </div>
+        </div>
+      </div>
 
       <!-- Modal: Registrar Mermas (Mejorado) -->
       <div id="modal-merma-rapida" class="modal">
