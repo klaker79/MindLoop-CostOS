@@ -79,5 +79,9 @@
   "omnes_x_frescura": "{{stock}} {{unidad}} de «{{nombre}}» llevan {{dias}} días en cámara. Úsalo antes de que se pierda.",
 
   "omnes_t_sobrestock": "Te sobra producto",
-  "omnes_x_sobrestock": "Tienes {{stock}} {{unidad}} de «{{nombre}}», unos {{dias}} días de stock. No vuelvas a pedirlo aún."
+  "omnes_x_sobrestock": "Tienes {{stock}} {{unidad}} de «{{nombre}}», unos {{dias}} días de stock. No vuelvas a pedirlo aún.",
+  "omnes_t_suministros": "Revisa los suministros",
+  "omnes_x_suministros": "{{n}} de {{total}} suministros acumulan más stock del que gastas: unos {{valor}} de más. El material no está en ninguna receta, así que vender no lo descuenta y solo puede subir. Cuéntalo en Inventario.",
+  "omnes_x_suministros_top": "Los que más acumulan: {{lista}}.",
+  "omnes_cta_hacer_recuento": "Hacer recuento"
 }

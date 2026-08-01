@@ -79,5 +79,9 @@
   "omnes_x_frescura": "{{stock}} {{unidad}} of “{{nombre}}” has been in storage for {{dias}} days. Use it before it's lost.",
 
   "omnes_t_sobrestock": "Overstock",
-  "omnes_x_sobrestock": "You have {{stock}} {{unidad}} of “{{nombre}}”, about {{dias}} days of stock. Don't reorder it yet."
+  "omnes_x_sobrestock": "You have {{stock}} {{unidad}} of “{{nombre}}”, about {{dias}} days of stock. Don't reorder it yet.",
+  "omnes_t_suministros": "Check your supplies",
+  "omnes_x_suministros": "{{n}} of {{total}} supplies hold more stock than you use: about {{valor}} in excess. Supplies aren't in any recipe, so selling never deducts them and their stock can only go up. Count them in Inventory.",
+  "omnes_x_suministros_top": "Biggest build-ups: {{lista}}.",
+  "omnes_cta_hacer_recuento": "Do a stock count"
 }

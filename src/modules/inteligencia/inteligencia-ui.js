@@ -499,6 +499,10 @@ window.omnesIr = function (tipo, id) {
     } else if (tipo === 'pedido') {
         window.cambiarTab?.('pedidos');
         if (typeof window.agregarAlCarrito === 'function') window.agregarAlCarrito(itemId, 1);
+    } else if (tipo === 'inventario') {
+        // Aviso de suministros acumulados: la acción no es editar una ficha, es
+        // contar. Lleva a Inventario, donde está la columna de stock real.
+        window.cambiarTab?.('inventario');
     }
 };
 
