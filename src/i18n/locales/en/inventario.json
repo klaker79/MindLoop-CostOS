@@ -165,5 +165,6 @@
   "ci_error_portions": "Enter a valid number of portions",
   "ci_error_save": "Could not record the entry",
   "ci_error_load": "Could not load history",
-  "ci_error_delete": "Could not delete the entry"
+  "ci_error_delete": "Could not delete the entry",
+  "group_deduct_stock": "Deducts stock"
 }

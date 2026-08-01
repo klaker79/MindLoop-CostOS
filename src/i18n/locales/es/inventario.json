@@ -148,5 +148,6 @@
   "ci_error_portions": "Indica un número de raciones válido",
   "ci_error_save": "No se pudo registrar el consumo",
   "ci_error_load": "No se pudo cargar el histórico",
-  "ci_error_delete": "No se pudo borrar el consumo"
+  "ci_error_delete": "No se pudo borrar el consumo",
+  "group_deduct_stock": "Descuenta stock"
 }
