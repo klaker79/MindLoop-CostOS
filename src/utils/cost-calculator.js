@@ -77,6 +77,37 @@ export function getIngredientNominalPrice(ing) {
 }
 
 /**
+ * ¿Este ingrediente es material no comestible (suministro)?
+ *
+ * Los suministros —guantes, servilletas, mantelillos, bolsas, papel de horno,
+ * cañas, copas— entran al stock por recepción de pedido pero NUNCA salen,
+ * porque no forman parte de ninguna receta. Como resultado su stock solo puede
+ * crecer, y arrastraba consigo el Valor de Stock: en La Nave 5 eran 11.283 €
+ * de los 51.438 € totales (22%), una cifra que subía sola cada semana.
+ *
+ * Por eso el género (alimento + bebida) y los suministros se cuentan por
+ * separado. La familia `suministro` YA existía en el formulario, en los filtros
+ * y en la validación, pero no se usaba en ningún cálculo: era solo un badge.
+ *
+ * Fuente única de verdad — usar SIEMPRE este helper en vez de comparar strings
+ * a mano, para que dashboard, pestaña Inventario y Omnes den el mismo número.
+ * También se expone como `window.esSuministro` para el código legacy, que no
+ * puede importar módulos ES.
+ *
+ * Tolerante a plurales (`suministros`) porque la importación masiva y datos
+ * históricos admiten ambas formas. Sin familia ⇒ NO es suministro: el default
+ * de la columna en base de datos es 'alimento', así que ante la duda cuenta
+ * como género y el Valor de Stock nunca se queda corto por accidente.
+ *
+ * @param {Object|null} ing - Ingrediente (de ingredientes o de inventarioCompleto)
+ * @returns {boolean} true si es material no comestible
+ */
+export function esSuministro(ing) {
+    const familia = (ing?.familia || '').toString().trim().toLowerCase();
+    return familia === 'suministro' || familia === 'suministros';
+}
+
+/**
  * Umbral por defecto de desviación de precio (±70%) para el guard de recepción.
  * Un dedazo típico es ×10 o /10 (muy por encima del 70%); una subida real de
  * proveedor suele quedar por debajo, así que no cría lobos.

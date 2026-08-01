@@ -673,9 +673,14 @@
                   <div style="font-size: 10px; color: #64748B;" data-i18n="dashboard:kpi_items">Items</div>
                 </div>
               </div>
-              <div id="kpi-valor-stock" style="font-size: 32px; font-weight: 800; color: #10B981; margin-bottom: 16px;">
+              <div id="kpi-valor-stock" style="font-size: 32px; font-weight: 800; color: #10B981; margin-bottom: 4px;">
                 -
               </div>
+              <!-- 🧹 Suministros (guantes, servilletas, mantelillos…): entran por pedido
+                   pero no salen por ninguna receta, así que se cuentan aparte del género.
+                   JS lo oculta cuando no hay suministros con stock. -->
+              <div id="kpi-valor-suministros"
+                style="display: none; font-size: 12px; color: #92400E; margin-bottom: 12px;"></div>
               <div style="display: flex; gap: 8px;">
                 <button data-tab="ventas"
                   style="flex: 1; padding: 10px; background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 12px; transition: transform 0.2s;"

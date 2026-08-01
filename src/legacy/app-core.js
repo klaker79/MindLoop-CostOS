@@ -1906,10 +1906,22 @@
             let stockCritico = 0;
             let itemsConStock = 0;
             let valorStockTotal = 0;
+            // 🧹 Suministros aparte: entran por pedido pero no salen por ninguna receta,
+            // así que su stock solo sube. Mismo corte que el KPI del dashboard.
+            let itemsSuministros = 0;
+            let valorSuministros = 0;
 
             const inventarioFuente = Array.isArray(window.inventarioCompleto) && window.inventarioCompleto.length > 0
                 ? window.inventarioCompleto
                 : window.ingredientes;
+
+            // Criterio único compartido con el dashboard (window.esSuministro viene de
+            // utils/cost-calculator.js vía main.js). Si aún no está cargado, o el backend
+            // no manda `familia`, devuelve false → TODO cuenta como género y el resumen
+            // se comporta como antes. Nunca muestra un valor menor del real.
+            const esSum = typeof window.esSuministro === 'function'
+                ? window.esSuministro
+                : () => false;
 
             inventarioFuente.forEach(ing => {
                 const stockActual = parseFloat(ing.stock_actual ?? ing.stock_virtual) || 0;
@@ -1918,7 +1930,6 @@
                     stockCritico++;
                 } else {
                     if (stockMinimo > 0 && stockActual <= stockMinimo) stockBajo++;
-                    itemsConStock++;
                     // Mismo criterio que el KPI del dashboard (suma valor_stock precalculado por backend,
                     // con fallback a precio/cpf si no viene).
                     let valor = parseFloat(ing.valor_stock);
@@ -1927,7 +1938,13 @@
                         const cpf = parseFloat(ing.cantidad_por_formato) || 1;
                         valor = stockActual * (cpf > 0 ? precio / cpf : precio);
                     }
-                    valorStockTotal += valor;
+                    if (esSum(ing)) {
+                        itemsSuministros++;
+                        valorSuministros += valor;
+                    } else {
+                        itemsConStock++;
+                        valorStockTotal += valor;
+                    }
                 }
             });
 
@@ -1949,6 +1966,7 @@
                 resumen.innerHTML = `
                     <div style="color: #059669;">💰 ${_t('inventario:stock_value') || 'Valor stock'}: <strong>${cmFn(valorStockTotal, 0)}</strong></div>
                     <div style="color: #2563eb;">📦 ${_t('inventario:items_in_stock') || 'Items con stock'}: <strong>${itemsConStock}</strong></div>
+                    ${valorSuministros > 0 ? `<div style="color: #92400e;">🧹 ${_t('inventario:supplies_value') || 'Suministros'}: <strong>${cmFn(valorSuministros, 0)}</strong> (${itemsSuministros})</div>` : ''}
                     ${stockBajo > 0 ? `<div style="color: #f59e0b;">⚠️ ${_t('inventario:stock_low')}: <strong>${stockBajo}</strong></div>` : ''}
                     ${stockCritico > 0 ? `<div style="color: #ef4444;">🔴 ${_t('inventario:stock_critical')}: <strong>${stockCritico}</strong></div>` : ''}
                 `;

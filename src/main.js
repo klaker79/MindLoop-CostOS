@@ -144,7 +144,7 @@ import { initEventBindings } from './ui/event-bindings.js';
 import * as DOM from './utils/dom-helpers.js';
 import * as Helpers from './utils/helpers.js';
 import * as Performance from './utils/performance.js';
-import { getIngredientUnitPrice } from './utils/cost-calculator.js';
+import { getIngredientUnitPrice, esSuministro } from './utils/cost-calculator.js';
 import { initSearchOptimizations } from './utils/search-optimization.js';
 // 🆕 Error handler global
 import './utils/error-handler.js';
@@ -240,6 +240,10 @@ window.cm = Helpers.cm;
 // Canonical price helper (precio_medio_compra > precio_medio > precio/cpf).
 // Exposed for legacy IIFE code (src/legacy/app-core.js) and any inline handler.
 window.getIngredientUnitPrice = getIngredientUnitPrice;
+
+// Criterio único de "material no comestible". Lo usan el KPI Valor de Stock y el
+// resumen de la pestaña Inventario (legacy) para que ambos den el mismo número.
+window.esSuministro = esSuministro;
 window.formatDate = Helpers.formatDate;
 
 // Funciones de calendario
