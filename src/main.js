@@ -805,6 +805,10 @@ import './modules/comida-personal/comida-personal.js';
 // Side-effect import: recuento de inventario móvil (expone window.abrirRecuentoInventario).
 import './modules/inventario/recuento.js';
 
+// Side-effect import: panel de diferencia de inventario en la pestaña Inventario
+// (expone window.renderDiferenciaInventario, que llama el legacy al renderizar).
+import './modules/inventario/diferencia-inventario.js';
+
 // ============================================
 // MÓDULO: INTEGRACIONES 🔗
 // ============================================
