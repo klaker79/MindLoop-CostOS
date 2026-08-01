@@ -108,6 +108,15 @@ const actionHandlers = {
     'cerrar-modal-merma-rapida': () => closeModal('modal-merma-rapida'),
     'confirmar-merma-rapida': () => window.confirmarMermaRapida?.(),
 
+    // Consumo Interno (plato de la carta consumido sin venta)
+    'mostrar-modal-consumo-interno': () => window.mostrarModalConsumoInterno?.(),
+    'cerrar-modal-consumo-interno': () => closeModal('modal-consumo-interno'),
+    'registrar-consumo-interno': () => window.registrarConsumoInterno?.(),
+    'borrar-consumo-interno': (e) => {
+        const id = e.target.closest('[data-action="borrar-consumo-interno"]')?.dataset.id;
+        if (id) window.borrarConsumoInterno?.(id);
+    },
+
     // Historial Mermas
     'ver-historial-mermas': () => window.verHistorialMermas?.(),
     'cerrar-modal-historial-mermas': () => closeModal('modal-historial-mermas'),

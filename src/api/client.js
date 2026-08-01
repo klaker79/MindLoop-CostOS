@@ -432,6 +432,17 @@ export const api = {
      */
     createMermas: (mermas) => apiClient.post('/mermas', { mermas }),
 
+    // Consumo interno — un plato de la carta consumido sin venta (comida de
+    // personal / prueba de cocina / invitacion). DESCUENTA STOCK.
+    getConsumosInternos: (desde, hasta) => {
+        const params = [];
+        if (desde) params.push(`desde=${desde}`);
+        if (hasta) params.push(`hasta=${hasta}`);
+        return apiClient.get(`/consumos-internos${params.length ? '?' + params.join('&') : ''}`);
+    },
+    createConsumoInterno: (data) => apiClient.post('/consumos-internos', data),
+    deleteConsumoInterno: (id) => apiClient.delete(`/consumos-internos/${id}`),
+
     // KPIs
     getDailyKPIs: (date = null) => apiClient.get(date ? `/kpis/daily?date=${date}` : '/kpis/daily'),
     getMonthlyKPIs: (year, month) => apiClient.get(`/kpis/monthly?year=${year}&month=${month}`),
