@@ -1872,9 +1872,14 @@
                  (uno por producto tirado, otro por plato consumido). Agrupados y
                  más pequeños para que se lea que son la misma familia de acción. -->
             <div class="inventario-descuento-group"
-              style="display: inline-flex; flex-direction: column; gap: 6px; padding: 7px 9px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+              style="position: relative; display: inline-flex; flex-direction: column; gap: 6px; padding: 8px 9px 9px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; margin-top: -9px;">
+              <!-- Rotulo FUERA del flujo (position:absolute), como la etiqueta de un
+                   recuadro: si ocupa alto, empuja los botones hacia abajo y quedan
+                   desalineados con el resto de la barra. El margin-top negativo
+                   compensa exactamente borde(1px)+padding(8px) para que el primer
+                   boton arranque a la MISMA altura que los botones sueltos. -->
               <span
-                style="font-size: 10px; font-weight: 700; letter-spacing: 0.6px; color: #64748b; text-transform: uppercase;"
+                style="position: absolute; top: -8px; left: 10px; background: #ffffff; padding: 0 5px; font-size: 9px; font-weight: 700; letter-spacing: 0.6px; color: #94a3b8; text-transform: uppercase; white-space: nowrap;"
                 data-i18n="inventario:group_deduct_stock">Descuenta stock</span>
               <button class="btn" style="background: linear-gradient(135deg, #EF4444, #DC2626); color: white; padding: 7px 14px; font-size: 13px; justify-content: center;"
                 data-action="mostrar-modal-merma-rapida" data-i18n="inventario:btn_quick_waste">🗑️ Merma Rápida</button>
