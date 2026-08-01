@@ -383,8 +383,6 @@ export const api = {
     // Inventory (antes: inventario)
     getInventario: () => apiClient.get('/inventory/complete'),
     getInventoryComplete: () => apiClient.get('/inventory/complete'),
-    // 📉 Diferencia de inventario: recuentos físicos valorados en €.
-    getInventoryDifferences: (dias) => apiClient.get(`/inventory/differences${dias ? `?dias=${dias}` : ''}`),
     updateStock: (data) => apiClient.post('/inventory/ajuste', data),
 
     // 🔒 ATOMIC STOCK: Ajuste atómico individual y masivo
