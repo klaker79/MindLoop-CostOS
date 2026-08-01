@@ -125,6 +125,7 @@
   "stock_critical": "Critical stock",
   "stock_value": "Stock value",
   "items_in_stock": "Items in stock",
+  "supplies_value": "Supplies",
   "empty_title": "No ingredients",
   "empty_hint": "Add ingredients to manage inventory",
   "no_data_placeholder": "No data",

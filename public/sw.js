@@ -214,7 +214,8 @@
 // BUMP v255 (hotfix modo oscuro chat, solo CSS): tokens --dm-* estaban en un ':root{}' anidado en [data-theme=dark] (no matchea) -> chat transparente/ilegible en oscuro; y .chat-input:focus de editorial lo ponia blanco al escribir. Fix en polish.css: definir --dm-* directo + skin globo/chips + override :focus. Cherry de los fixes de staging (#790/#791) SIN arrastrar OCR.
 // BUMP v259 (default del chat): el backend del chat pasa a 'claude' por defecto; solo un VITE_CHAT_BACKEND=n8n explicito vuelve al webhook (que esta cerrado por seguridad). Hoy el resultado es el mismo porque la variable esta puesta en prod, pero el bundle cambia y sin este bump el SW seguiria sirviendo el anterior.
 // BUMP v260 (una API por casa): el dominio de la API estaba cableado como fallback en 12 sitios; ahora hay UN mapa dominio->API en app-config (app->lacaleta-api, staging->staging-api, lite->lite-api) y una casa desconocida falla a la vista en vez de cruzar a produccion. En app.mindloop.cloud el comportamiento es IDENTICO: su dominio resuelve a lacaleta-api, como siempre.
-const CACHE_NAME = 'mindloop-costos-v263';
+// BUMP v264 (suministros fuera del Valor de Stock + aviso de acumulacion): el material no comestible (guantes, servilletas, mantelillos) no esta en ninguna receta, asi que vender NO lo descuenta: solo entra, nunca sale, y su stock solo puede subir. Inflaba el KPI Valor de Stock con 11.283 EUR de los 51.438 de La Nave 5 (22%). Ahora el numero grande cuenta solo GENERO (alimento+bebida) y los suministros van en linea aparte; ademas Omnes avisa cuando acumulan mas meses de los que compras, empujando al recuento. Cherry de #446/#856 y #447/#857 desde develop SIN arrastrar OCR (bump sobre la v263 de main, no sobre la v313 de develop).
+const CACHE_NAME = 'mindloop-costos-v264';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
