@@ -40,6 +40,8 @@
   "merma_register_manually": "Register manually",
   "merma_select_product": "Select product...",
   "merma_reason_expired": "Expired",
+  "merma_reason_choose": "— Choose a reason —",
+  "merma_reason_required": "Choose a reason for every waste line (if you are just correcting the count, use “Count error”)",
   "merma_reason_invitation": "Invitation",
   "merma_reason_accident": "Accident",
   "merma_reason_other": "Other",

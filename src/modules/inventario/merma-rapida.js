@@ -107,8 +107,9 @@ export function agregarLineaMerma() {
                 <span class="merma-unidad" style="color: #64748b; font-size: 11px; min-width: 20px;">ud</span>
             </div>
             
-            <!-- Motivo -->
+            <!-- Motivo — sin preselección a propósito (ver nota en guardarMermas) -->
             <select class="merma-motivo" style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px;">
+                <option value="" selected disabled>${t('inventario:merma_reason_choose')}</option>
                 <option value="Caduco">📅 ${t('inventario:merma_reason_expired')}</option>
                 <option value="Invitacion">🎁 ${t('inventario:merma_reason_invitation')}</option>
                 <option value="Accidente">💥 ${t('inventario:merma_reason_accident')}</option>
@@ -214,18 +215,35 @@ export async function confirmarMermasMultiples() {
 
     // Recolectar datos de todas las líneas válidas
     const mermasARegistrar = [];
+    // 📊 2026-08-01: el motivo es OBLIGATORIO y ya no viene preseleccionado.
+    // Antes "Caduco" era la primera opción del desplegable, o sea la que salía por
+    // defecto: si nadie la tocaba, todo se guardaba como caducado. En La Nave 5 eso
+    // convirtió los cuadres de inventario en caducidad ficticia (un único ajuste de
+    // -12.991 guantes, -8.001 toallitas...) e infló los informes de merma, dejando el
+    // dato inservible para decidir compras. Con el motivo obligatorio se separa lo que
+    // se tira de verdad de lo que solo es poner el contador a cero ("Error Inventario").
+    let faltaMotivo = false;
 
     lineas.forEach(linea => {
         const select = linea.querySelector('.merma-producto');
         const ingredienteId = parseInt(select.value);
         const cantidad = parseFloat(linea.querySelector('.merma-cantidad')?.value) || 0;
-        const motivo = linea.querySelector('.merma-motivo')?.value || 'Otros';
+        const motivo = linea.querySelector('.merma-motivo')?.value || '';
         const nota = linea.querySelector('.merma-nota')?.value || '';
         const medida = linea.querySelector('.merma-medida')?.value || 'tirar';
         const valorText = linea.querySelector('.merma-valor')?.textContent || '0';
         const valor = parseFloat(valorText.replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
 
         if (ingredienteId && cantidad > 0) {
+            if (!motivo) {
+                faltaMotivo = true;
+                // Marcar la línea concreta para que se vea cuál falta.
+                const sel = linea.querySelector('.merma-motivo');
+                if (sel) sel.style.border = '2px solid #dc2626';
+                return;
+            }
+            const sel = linea.querySelector('.merma-motivo');
+            if (sel) sel.style.border = '1px solid #ddd';
             mermasARegistrar.push({
                 ingredienteId,
                 cantidad,
@@ -236,6 +254,11 @@ export async function confirmarMermasMultiples() {
             });
         }
     });
+
+    if (faltaMotivo) {
+        window.showToast?.(t('inventario:merma_reason_required'), 'warning');
+        return;
+    }
 
     if (mermasARegistrar.length === 0) {
         window.showToast?.(t('inventario:merma_min_one_product'), 'warning');
@@ -549,6 +572,9 @@ function agregarLineaMermaConDatos(merma) {
             </div>
             
             <select class="merma-motivo" style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px;">
+                <!-- Si el motivo leído de la foto no casa con ninguno ('otro'), el desplegable
+                     queda SIN preseleccionar en vez de caer en "Caduco" por ser el primero. -->
+                <option value="" ${motivoNormalizado === 'otro' ? 'selected' : ''} disabled>${t('inventario:merma_reason_choose')}</option>
                 <option value="Caduco" ${motivoNormalizado === 'caduco' ? 'selected' : ''}>📅 ${t('inventario:merma_reason_expired')}</option>
                 <option value="Invitacion" ${motivoNormalizado === 'invitacion' ? 'selected' : ''}>🎁 ${t('inventario:merma_reason_invitation')}</option>
                 <option value="Accidente" ${motivoNormalizado === 'accidente' ? 'selected' : ''}>💥 ${t('inventario:merma_reason_accident')}</option>

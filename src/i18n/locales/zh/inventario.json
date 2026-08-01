@@ -40,6 +40,8 @@
   "merma_register_manually": "手动登记",
   "merma_select_product": "选择产品...",
   "merma_reason_expired": "过期",
+  "merma_reason_choose": "— 请选择原因 —",
+  "merma_reason_required": "请为每条损耗选择原因（若只是校正盘点，请选「盘点误差」）",
   "merma_reason_invitation": "赠送",
   "merma_reason_accident": "意外",
   "merma_reason_other": "其他",

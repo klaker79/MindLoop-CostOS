@@ -40,6 +40,8 @@
   "merma_register_manually": "Registrar manualmente",
   "merma_select_product": "Selecciona producto...",
   "merma_reason_expired": "Caduco",
+  "merma_reason_choose": "— Elige un motivo —",
+  "merma_reason_required": "Elige el motivo de cada merma (si solo estás cuadrando el inventario, usa «Error de conteo»)",
   "merma_reason_invitation": "Invitación",
   "merma_reason_accident": "Accidente",
   "merma_reason_other": "Otros",
