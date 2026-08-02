@@ -517,6 +517,34 @@ export const api = {
         return response.text();
     },
 
+    // 📄 Informe mensual — ruta NUEVA, fuera del chat (casa Lite, 2026-08-02).
+    // Mismo contrato que getChatInformeMensualHtml: devuelve el HTML como
+    // string y el caller lo abre en pestaña nueva.
+    //
+    // ⚠️ TIENE QUE SER UN FETCH, no un window.open directo a la URL: una
+    // navegación normal del navegador NO envía el header `Origin` (la API lo
+    // exige y responde "CORS: Header Origin requerido") ni el token del
+    // Authorization. Por eso se pide aquí y luego se abre como Blob.
+    getInformeMensualHtml: async (lang = 'es', mes = null) => {
+        const params = new URLSearchParams({ lang });
+        if (mes) params.set('mes', mes);
+        const url = `${API_BASE}/informes/mensual/html?${params.toString()}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            ...defaultConfig,
+            headers: { ...defaultConfig.headers, ...getAuthHeaders() }
+        });
+        if (!response.ok) {
+            let body = null;
+            try { body = await response.json(); } catch (e) { /* not JSON */ }
+            const err = new Error(body?.error || `HTTP ${response.status}`);
+            err.status = response.status;
+            err.data = body;
+            throw err;
+        }
+        return response.text();
+    },
+
     // Búsqueda: sales/purchases with date range + optional filters
     // Returns: { tipo, periodo, total_registros, total_importe, resultados, truncado, ... }
     search: (params) => {
