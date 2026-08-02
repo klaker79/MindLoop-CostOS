@@ -71,44 +71,64 @@ describe('construirResumenRecuento — las cuentas', () => {
     });
 });
 
-describe('detección de dedazos — el motivo de que exista esto', () => {
-    test('poner a CERO algo que tenía existencias se señala', () => {
-        const r = construirResumenRecuento([{ id: 345, stock_virtual: 1416.75, stock_real: 0 }], deps);
+describe('aviso: solo las diferencias ABSURDAS, no las grandes', () => {
+    // Calibrado con 150 líneas reales de recuento de La Nave 5 (120 días). Con el
+    // criterio anterior (cualquier cero, o 200 €, o el 90%, en OR) saltaban 96 de
+    // 150. Un aviso que salta el 64% de las veces se deja de leer.
+
+    test('se esfuma casi todo Y mueve dinero → avisa', () => {
+        // Caso real: SOLOMILLO 22 → 1 kg. Es lo que Iker quiere ver.
+        const carne = {
+            ingredientes: [{ id: 1, nombre: 'Solomillo de ternera', unidad: 'kg' }],
+            inventario: [{ id: 1, precio_medio_compra: 19.08 }],
+        };
+        const r = construirResumenRecuento([{ id: 1, stock_virtual: 22, stock_real: 1 }], carne);
         expect(r.sospechosas).toHaveLength(1);
-        expect(r.sospechosas[0].motivoAviso).toBe('cero');
-    });
-
-    test('un importe gordo se señala aunque no sea un cero', () => {
-        const r = construirResumenRecuento([{ id: 47, stock_virtual: 90, stock_real: 60 }], deps);
-        expect(r.sospechosas[0].motivoAviso).toBe('importe');
-    });
-
-    test('que se esfume casi todo se señala aunque valga poco', () => {
-        const barato = { ingredientes: INGREDIENTES, inventario: [{ id: 900, precio_medio_compra: 0.01 }] };
-        const r = construirResumenRecuento([{ id: 900, stock_virtual: 100, stock_real: 2 }], barato);
         expect(r.sospechosas[0].motivoAviso).toBe('casi-todo');
     });
 
-    // Un ajuste pequeño y normal es lo que pasa el 90% de las veces: si eso
-    // también avisara, nadie leería los avisos.
-    test('una diferencia pequeña y razonable NO se señala', () => {
+    test('una merma GRANDE pero plausible NO avisa', () => {
+        // Caso real: AMEIXAS 30,7 → 6 kg (80%, 561 €). En un sitio de marisco es
+        // un martes cualquiera. Sale en la tabla de reparto, no en el aviso.
+        const marisco = {
+            ingredientes: [{ id: 2, nombre: 'AMEIXAS', unidad: 'kg' }],
+            inventario: [{ id: 2, precio_medio_compra: 22.7 }],
+        };
+        const r = construirResumenRecuento([{ id: 2, stock_virtual: 30.7, stock_real: 6 }], marisco);
+        expect(r.sospechosas).toHaveLength(0);
+        expect(r.contados).toBe(1);   // pero SÍ se cuenta en el resumen
+    });
+
+    test('vaciar algo que no vale nada NO avisa', () => {
+        // Antes bastaba con poner a 0: una caja de perejil daba aviso.
+        const perejil = {
+            ingredientes: [{ id: 3, nombre: 'PEREJIL', unidad: 'kg' }],
+            inventario: [{ id: 3, precio_medio_compra: 2 }],
+        };
+        const r = construirResumenRecuento([{ id: 3, stock_virtual: 5, stock_real: 0 }], perejil);
+        expect(r.sospechosas).toHaveLength(0);
+    });
+
+    test('una cifra bestia avisa aunque proporcionalmente sea poco', () => {
+        // 40 de 746 kg de pulpo son solo el 5%, pero son ~700 €: hay que mirarlo.
+        const pulpo = {
+            ingredientes: [{ id: 4, nombre: 'PULPO', unidad: 'kg' }],
+            inventario: [{ id: 4, precio_medio_compra: 17.49 }],
+        };
+        const r = construirResumenRecuento([{ id: 4, stock_virtual: 746, stock_real: 696 }], pulpo);
+        expect(r.sospechosas[0].motivoAviso).toBe('importe');
+    });
+
+    test('una diferencia pequeña y normal NO avisa', () => {
         const r = construirResumenRecuento([{ id: 45, stock_virtual: 20, stock_real: 19.5 }], deps);
         expect(r.sospechosas).toHaveLength(0);
     });
 
-    test('poner a cero algo que casi no valía tampoco molesta', () => {
-        const calderilla = { ingredientes: INGREDIENTES, inventario: [{ id: 900, precio_medio_compra: 0.001 }] };
-        const r = construirResumenRecuento([{ id: 900, stock_virtual: 3, stock_real: 0 }], calderilla);
-        // 0,003 € — por debajo de importeCero. Pero cae en "casi-todo", que es
-        // el aviso correcto: barato, sí, pero desapareció entero.
-        expect(r.sospechosas[0].motivoAviso).toBe('casi-todo');
-    });
-
     test('las sospechosas van primero y ordenadas por dinero', () => {
         const r = construirResumenRecuento([
-            { id: 45, stock_virtual: 20, stock_real: 19.5 },        // normal
-            { id: 900, stock_virtual: 456, stock_real: 0 },          // dedazo, 456 €
-            { id: 345, stock_virtual: 1416.75, stock_real: 0 },      // dedazo, 1.416 €
+            { id: 45, stock_virtual: 20, stock_real: 19.5 },          // normal
+            { id: 900, stock_virtual: 456, stock_real: 0 },            // absurdo, 456 €
+            { id: 345, stock_virtual: 1416.75, stock_real: 0 },        // absurdo, 1.416 €
         ], deps);
         expect(r.lineas.map(l => l.nombre)).toEqual(['Pan Total', 'VERDURA TOTAL', 'BERBERECHOS']);
         expect(r.sospechosas).toHaveLength(2);
@@ -163,10 +183,14 @@ describe('fmtCant', () => {
 });
 
 describe('umbrales', () => {
-    test('están documentados y son números', () => {
-        expect(UMBRALES_RECUENTO.importeCero).toBeGreaterThan(0);
-        expect(UMBRALES_RECUENTO.importeAlto).toBeGreaterThan(UMBRALES_RECUENTO.importeCero);
+    test('están documentados y son coherentes entre sí', () => {
         expect(UMBRALES_RECUENTO.fraccionAlta).toBeLessThanOrEqual(1);
+        expect(UMBRALES_RECUENTO.importeMinimoFraccion).toBeGreaterThan(0);
+        // El atajo por importe tiene que ser MÁS alto que el mínimo de la regla
+        // combinada; si no, se saltaría siempre por el camino corto y volveríamos
+        // al ruido de avisar por todo.
+        expect(UMBRALES_RECUENTO.importeExtremo)
+            .toBeGreaterThan(UMBRALES_RECUENTO.importeMinimoFraccion);
     });
 });
 

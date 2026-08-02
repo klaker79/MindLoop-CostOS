@@ -27,18 +27,34 @@ import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
 import { t } from '@/i18n/index.js';
 
 /**
- * Umbrales del aviso "¿seguro?". Salen de los dedazos reales vistos en La Nave 5:
- * un ajuste único de −12.991 guantes y otro de −8.001 toallitas, ambos por poner
- * a cero de golpe.
+ * Umbrales del aviso "¿seguro?".
+ *
+ * ⚠️ CALIBRADOS CON DATOS REALES (2026-08-02), no a ojo. Con los primeros valores
+ * —cualquier cero, o 200 €, o el 90% de merma, en OR— saltaban **96 de las 150**
+ * líneas de recuento de La Nave 5 de los últimos 120 días. Un aviso que salta el
+ * 64% de las veces no es un aviso: es ruido, y se deja de leer.
+ *
+ * Una merma grande NO es lo mismo que una diferencia absurda. En un restaurante
+ * de marisco, gastar 7 de 8 kg de percebes o 24 de 30 kg de ameixas es un martes
+ * cualquiera; que desaparezcan 716 de 746 kg de pulpo, no.
+ *
+ * Por eso el criterio pasa a ser Y en vez de O: hace falta que se esfume casi
+ * todo **y además** tenga peso económico. La única excepción es una cifra tan
+ * bestia que merece mirarse aunque proporcionalmente sea poco.
+ *
+ * Con estos valores saltan 27 de 150 (18%), y son las que se ven a la legua:
+ *   PULPO 746 → 30 (12.536 €) · COSTELA 259 → 10 · VERDURA y PAN a cero.
+ * Quedan fuera, correctamente: AMEIXAS 30 → 6 · PERCEBES 8 → 1 · OSTRAS 540 → 200.
+ * Esas siguen viéndose en la tabla de reparto de abajo, como cualquier otra.
  */
 export const UMBRALES_RECUENTO = {
-    // Poner a 0 algo que tenía existencias es el error de tecleo más común
-    // (teclear en la fila de al lado, o dejarse el campo).
-    importeCero: 25,
-    // Una diferencia gorda en dinero merece una mirada aunque no sea un cero.
-    importeAlto: 200,
-    // …o que se esfume casi todo lo que había, aunque valga poco.
+    // Se esfumó casi todo lo que había (incluye poner a 0, que es fracción = 1).
     fraccionAlta: 0.9,
+    // …Y además mueve dinero. Sin esto, vaciar una caja de perejil daba aviso.
+    importeMinimoFraccion: 150,
+    // Excepción: tanto dinero que hay que mirarlo aunque proporcionalmente sea poco
+    // (media merluza de un lote grande, azafrán, marisco caro…).
+    importeExtremo: 800,
 };
 
 /**
@@ -96,11 +112,14 @@ export function construirResumenRecuento(snapshots, deps = {}, umbrales = UMBRAL
 
         if (diferencia < 0) { faltan++; importeFalta += -importe; } else { sobran++; importeSobra += importe; }
 
-        // ¿Huele a dedazo? Se avisa, nunca se bloquea: puede ser real (una cámara
-        // que se vació de verdad) y el que cuenta es quien lo sabe.
-        const puestoACero = real === 0 && virtual > 0 && Math.abs(importe) >= umbrales.importeCero;
-        const importeGordo = Math.abs(importe) >= umbrales.importeAlto;
-        const casiTodo = virtual > 0 && Math.abs(diferencia) / virtual >= umbrales.fraccionAlta;
+        // ¿Diferencia ABSURDA, o simplemente grande? Solo la primera merece aviso.
+        // Una merma gorda es normal en hostelería; lo que no lo es, es que se
+        // esfume casi todo Y encima mueva dinero. Se avisa, nunca se bloquea: puede
+        // ser real (una cámara que se vació de verdad) y quien cuenta es quien sabe.
+        const fraccion = virtual > 0 ? Math.abs(diferencia) / virtual : 0;
+        const casiTodo = fraccion >= umbrales.fraccionAlta
+            && Math.abs(importe) >= umbrales.importeMinimoFraccion;
+        const importeExtremo = Math.abs(importe) >= umbrales.importeExtremo;
 
         lineas.push({
             id: snap.id,
@@ -108,8 +127,8 @@ export function construirResumenRecuento(snapshots, deps = {}, umbrales = UMBRAL
             unidad: ing?.unidad || '',
             virtual, real, diferencia,
             importe: eur(importe),
-            sospechosa: puestoACero || importeGordo || casiTodo,
-            motivoAviso: puestoACero ? 'cero' : (importeGordo ? 'importe' : (casiTodo ? 'casi-todo' : null)),
+            sospechosa: casiTodo || importeExtremo,
+            motivoAviso: casiTodo ? 'casi-todo' : (importeExtremo ? 'importe' : null),
         });
     });
 
