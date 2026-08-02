@@ -2226,6 +2226,17 @@
             }
         });
 
+        // 🧾 Resumen informativo en la cabecera del modal. Va ANTES de abrirlo para
+        // que no se vea aparecer a trozos. Envuelto en try porque es informativo:
+        // si fallara, guardar stock tiene que seguir funcionando igual.
+        try {
+            if (typeof window.renderResumenRecuento === 'function') {
+                window.renderResumenRecuento(currentSnapshots);
+            }
+        } catch (e) {
+            console.warn('Resumen de recuento no disponible:', e?.message || e);
+        }
+
         window.renderTablaSplits();
         document.getElementById('modal-confirmar-mermas').classList.add('active');
     };
