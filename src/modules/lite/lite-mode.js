@@ -82,13 +82,42 @@ export function construirTarjetaInforme() {
 }
 
 /**
- * Abre el informe del mes en curso. La URL vieja (`/chat/informe-mensual/html`)
- * sigue funcionando como alias, pero usamos la nueva: en Lite no hay chat, y
- * una ruta que empiece por /chat despistaría a cualquiera que lea los logs.
+ * Abre el informe del mes en curso.
+ *
+ * ⚠️ NO se puede hacer `window.open(url)` directo: una navegación normal del
+ * navegador NO envía el header `Origin` —la API lo exige y responde
+ * "CORS: Header Origin requerido"— ni el token del Authorization. Se descubrió
+ * en producción con la primera versión de este botón.
+ *
+ * Por eso se pide por fetch (que sí lleva las dos cosas) y el HTML recibido se
+ * abre como Blob en una pestaña nueva. Mismo patrón que ya usaba la app grande
+ * para su informe desde el chat.
+ *
+ * Se usa la ruta nueva `/informes/mensual/html`, no el alias `/chat/...`: en
+ * Lite no hay chat y una ruta /chat despistaría a quien lea los logs.
  */
-export function abrirInformeMensual() {
-    const base = (typeof window.getApiUrl === 'function' ? window.getApiUrl() : '') || '';
-    window.open(`${base}/informes/mensual/html`, '_blank', 'noopener');
+export async function abrirInformeMensual(btn) {
+    const api = window.api;
+    if (!api?.getInformeMensualHtml) return false;
+
+    const textoOriginal = btn?.innerHTML;
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; btn.innerHTML = t('dashboard:lite_informe_generando'); }
+
+    try {
+        const raw = window.getCurrentLanguage?.() || 'es';
+        const lang = String(raw).toLowerCase().startsWith('en') ? 'en' : 'es';
+        const html = await api.getInformeMensualHtml(lang);
+        const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+        const win = window.open(url, '_blank');
+        if (!win) window.showToast?.(t('dashboard:lite_informe_popup'), 'warning');
+        return true;
+    } catch (err) {
+        console.warn('Informe mensual:', err?.message || err);
+        window.showToast?.(t('dashboard:lite_informe_error'), 'error');
+        return false;
+    } finally {
+        if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.innerHTML = textoOriginal; }
+    }
 }
 
 /**
@@ -104,7 +133,8 @@ export function montarInformeMensual(doc = document) {
 
     const tarjeta = construirTarjetaInforme();
     ancla.parentNode.insertBefore(tarjeta, ancla.nextSibling);
-    tarjeta.querySelector('#btn-lite-informe')?.addEventListener('click', abrirInformeMensual);
+    const btn = tarjeta.querySelector('#btn-lite-informe');
+    btn?.addEventListener('click', () => abrirInformeMensual(btn));
     return true;
 }
 
