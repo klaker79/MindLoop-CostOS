@@ -223,7 +223,8 @@
 // BUMP v302 (pedidos): al elegir un proveedor sin ingredientes vinculados, el formulario de Nuevo Pedido se queda en blanco y no deja poner cantidades. Ahora cae a mostrar todos los ingredientes, como en compra de mercado.
 // BUMP v303 (una API por casa): el dominio de la API de produccion estaba cableado como fallback en 12 sitios, asi que el bundle de STAGING llevaba dentro la URL de La Nave 5. Ahora hay UN mapa dominio->API en app-config: cada casa solo conoce a la suya, y una casa desconocida falla a la vista (vacio + error en consola) en vez de cruzar a produccion en silencio.
 // BUMP v314 (staging al dia con prod): el reparto genero/suministros del KPI Valor de Stock, que en prod ya entro con la v264. Staging tenia el aviso de acumulacion (v313) pero no el reparto, asi que avisaba del problema sin ensenar la cifra limpia. v314 = v313 + reparto.
-const CACHE_NAME = 'mindloop-costos-v314';
+// BUMP v315 (resumen del recuento): cabecera informativa en el modal de confirmar mermas.
+const CACHE_NAME = 'mindloop-costos-v315';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
