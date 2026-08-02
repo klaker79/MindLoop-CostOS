@@ -94,22 +94,48 @@ describe('el informe mensual: un botón, no un chat', () => {
         expect(document.getElementById('lite-informe-mensual')).toBeNull();
     });
 
-    test('abre la ruta NUEVA del informe, no la del chat', () => {
-        const open = jest.spyOn(window, 'open').mockImplementation(() => null);
-        window.getApiUrl = () => 'https://lite-api.mindloop.cloud/api';
-        abrirInformeMensual();
-        const url = open.mock.calls[0][0];
-        expect(url).toContain('/informes/mensual/html');
-        expect(url).not.toContain('/chat/');
+    // El bug que costó una vuelta: `window.open(url)` es una navegación normal,
+    // y el navegador NO manda el header Origin (que la API exige) ni el token.
+    // En producción salió: {"error":"CORS: Header Origin requerido"}.
+    // Por eso se pide por fetch y el HTML se abre como Blob.
+    test('pide el informe por fetch, NO navega a la URL de la API', async () => {
+        const open = jest.spyOn(window, 'open').mockImplementation(() => ({}));
+        global.URL.createObjectURL = jest.fn(() => 'blob:informe');
+        window.api = { getInformeMensualHtml: jest.fn(async () => '<html>informe</html>') };
+
+        montarInformeMensual();
+        await abrirInformeMensual(document.getElementById('btn-lite-informe'));
+
+        expect(window.api.getInformeMensualHtml).toHaveBeenCalled();
+        // Lo que se abre es el blob, nunca la URL de lite-api.
+        expect(open.mock.calls[0][0]).toBe('blob:informe');
+        expect(open.mock.calls[0][0]).not.toContain('http');
         open.mockRestore();
     });
 
-    test('el botón dispara la apertura', () => {
-        const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+    test('si el informe falla, avisa y no rompe', async () => {
+        const toast = jest.fn();
+        window.showToast = toast;
+        window.api = { getInformeMensualHtml: jest.fn(async () => { throw new Error('500'); }) };
+
         montarInformeMensual();
-        document.getElementById('btn-lite-informe').click();
-        expect(open).toHaveBeenCalled();
-        open.mockRestore();
+        const ok = await abrirInformeMensual(document.getElementById('btn-lite-informe'));
+
+        expect(ok).toBe(false);
+        expect(toast).toHaveBeenCalled();
+    });
+
+    test('el botón se rehabilita tras generar (y tras fallar)', async () => {
+        window.api = { getInformeMensualHtml: jest.fn(async () => { throw new Error('boom'); }) };
+        montarInformeMensual();
+        const btn = document.getElementById('btn-lite-informe');
+        await abrirInformeMensual(btn);
+        expect(btn.disabled).toBe(false);
+    });
+
+    test('sin cliente de API no revienta', async () => {
+        window.api = {};
+        expect(await abrirInformeMensual()).toBe(false);
     });
 });
 
