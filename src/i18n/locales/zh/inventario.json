@@ -130,7 +130,7 @@
   "resumen_con_menos": "少于预期",
   "resumen_con_mas": "多于预期",
   "resumen_importe": "差异金额",
-  "resumen_revisa": "确认前请核对这 {{n}} 项",
+  "resumen_revisa": "差异过大：请核对这 {{n}} 项",
   "resumen_revisa_pie": "它们可能没错，但变动最大。若有输入错误，请关闭并更正：一旦确认，该差异将计入损耗记录。",
   "items_in_stock": "有库存项目",
   "supplies_value": "耗材",
