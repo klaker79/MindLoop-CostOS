@@ -821,6 +821,10 @@ import './modules/core/plan-tabs.js';
 // Side-effect import: recuento de inventario móvil (expone window.abrirRecuentoInventario).
 import './modules/inventario/recuento.js';
 
+// Side-effect import: resumen informativo del recuento físico en el modal de
+// confirmación (expone window.renderResumenRecuento, que llama el legacy).
+import './modules/inventario/resumen-recuento.js';
+
 // ============================================
 // MÓDULO: INTEGRACIONES 🔗
 // ============================================
