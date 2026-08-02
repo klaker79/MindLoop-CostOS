@@ -789,14 +789,25 @@ if (document.readyState === 'loading') {
 // ============================================
 import { initChatWidget, clearChatHistory } from './modules/chat/chat-widget.js';
 
-// initChatWidget hace fetch a /chat-status y solo monta si chat_addon=true.
-// Lo lanzamos en cuanto carga el DOM; el propio init es idempotente y la
-// llamada a /chat-status requiere auth (window.authToken) que se setea en
-// el flujo de login antes de DOMContentLoaded.
+// 🪶 CASA LITE — el chat NO se arranca (Iker, 2026-08-02).
+// Lite no lleva asistente conversacional: lleva OCR y el informe mensual, que
+// es un entregable de un botón. Esa es la diferencia por la que la app grande
+// cuesta más.
+//
+// El corte real está en el servidor: `lite-api` arranca con CHAT_ENABLED=false y
+// ni siquiera monta el router del chat, así que /chat-status ya no existe. Si
+// initChatWidget() siguiera lanzándose, solo conseguiría un 404 en cada carga.
+//
+// Se conserva el import porque `window.clearChatHistory` se expone más abajo y
+// puede llamarse desde el legacy; sin arrancar el widget, no hace nada.
+//
+// if (document.readyState === 'loading') { ... initChatWidget() ... }   ← app grande
+
+import { initLiteMode } from './modules/lite/lite-mode.js';
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => initChatWidget());
+    document.addEventListener('DOMContentLoaded', () => initLiteMode());
 } else {
-    setTimeout(() => initChatWidget(), 1000);
+    setTimeout(() => initLiteMode(), 300);
 }
 
 window.clearChatHistory = clearChatHistory;
