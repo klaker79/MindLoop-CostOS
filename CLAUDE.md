@@ -113,14 +113,14 @@ de la casa correspondiente, y verificar EN VIVO (qué `CACHE_NAME` sirve
 **IMPORTANT:** All recipe cost calculations MUST use `getIngredientUnitPrice()` from `src/utils/cost-calculator.js`.
 Never inline the price logic — always call the shared function to guarantee consistency.
 
-**EXCEPTION:** `performance.js` memoized calc uses only `precio_medio` (not `precio_medio_compra`) because it's used for stock valuation, not recipe costing.
+**(Fase C 2026-08-04):** la antigua excepción de `performance.js` (`calcularCosteRecetaMemoizado`, que usaba otra prioridad de precios) fue **ELIMINADA**: tenía 0 consumidores y era el candidato perfecto a "los números no cuadran entre pestañas". Si algún día hace falta memoizar el coste, se envuelve LA CANÓNICA — nunca se reimplementa la fórmula.
 
 **⛔ STABILITY WARNING (baseline 2026-04-09):**
 Full audit verified ALL 10 tabs + dashboard + chat are consistent. 7 modules use `getIngredientUnitPrice()`.
 DO NOT:
 - Add inline price calculations in any module
 - Change price priority without updating ALL 7 modules + backend + chat n8n
-- Use `calcularCosteRecetaMemoizado` for food cost display (it ignores purchase prices)
+- Reintroducir un cálculo de coste paralelo (la memoizada `calcularCosteRecetaMemoizado` se eliminó en Fase C exactamente por eso)
 - Deploy formula changes without verifying: escandallo = cost tracker = P&L = dashboard = analysis ranking
 If numbers don't match between modules → it's a BUG. Fix before deploying.
 
