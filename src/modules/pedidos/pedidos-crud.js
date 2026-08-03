@@ -49,34 +49,7 @@ export async function guardarPedido(event) {
     return;
   }
 
-  // Aviso preventivo: si la fecha del pedido es futura, pedir confirmación.
-  // Evita errores de tecleo (p.ej. escribir 2026-06-06 cuando era 2026-05-06)
-  // que después generan registros con fechas que no cuadran con compras reales.
-  //
-  // 🔧 FIX 2026-05-12: Comparar como strings YYYY-MM-DD en lugar de objetos
-  //    Date. `new Date('2026-05-12')` se parsea como medianoche UTC, que en
-  //    España (CEST/UTC+2) son las 2 AM hora local — mayor que `hoy` a las
-  //    0 AM local → disparaba el aviso para hoy mismo. La comparación de
-  //    strings ISO (YYYY-MM-DD) es lexicográficamente correcta y sin
-  //    ambigüedades de timezone.
   const fechaPedidoEl = document.getElementById('ped-fecha');
-  if (fechaPedidoEl && fechaPedidoEl.value) {
-    const now = new Date();
-    const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    // ⚠️ BLOQUEO, no aviso (2026-08-03). Antes esto preguntaba "¿confirmas que
-    // es correcta?" y te dejaba seguir — pero el backend RECHAZA siempre las
-    // fechas futuras (`validators.js`, allowFuture:false), así que dijeras lo
-    // que dijeras el pedido moría con "La fecha no puede ser futura". Ofrecer
-    // una opción que el servidor prohíbe solo sirve para perder el pedido.
-    if (fechaPedidoEl.value > hoyStr) {
-      window.showToast(
-        `⚠️ La fecha del pedido (${fechaPedidoEl.value}) está en el futuro y no se admite. Corrígela para continuar.`,
-        'error'
-      );
-      fechaPedidoEl.focus();
-      return;
-    }
-  }
 
   // Recoger ingredientes de las filas select+input
   const items = document.querySelectorAll('#lista-ingredientes-pedido .ingrediente-item');
@@ -163,6 +136,31 @@ export async function guardarPedido(event) {
   // positivos con "Mercadona", "Supermercado", "Hipermercado" — todos esos son
   // distribuidores formales, no compras de mercado físico.
   const esCompraMercado = proveedor && /\bmercado\b/i.test(proveedor.nombre);
+
+  // 📅 Fecha futura: depende de si el pedido nace 'recibido' (decisión de Iker,
+  // 2026-08-03). Por eso esta comprobación va AQUÍ y no al principio: hasta
+  // saber si es compra de mercado no se sabe si el futuro está permitido.
+  //
+  //  - Pedido normal ('pendiente'): SÍ. Programar la entrega del viernes es un
+  //    caso de uso real y no escribe en Diario, stock ni precios.
+  //  - Compra de mercado ('recibido'): NO. Entra al Diario en el acto con esta
+  //    fecha, así que un dedazo metería gasto en un día que no ha llegado.
+  //
+  // 🔧 FIX 2026-05-12 (se mantiene): comparar como strings YYYY-MM-DD, no como
+  // objetos Date. `new Date('2026-05-12')` es medianoche UTC, que en España
+  // (UTC+2) son las 2 AM local → disparaba el aviso para hoy mismo.
+  if (esCompraMercado && fechaPedidoEl && fechaPedidoEl.value) {
+    const now = new Date();
+    const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (fechaPedidoEl.value > hoyStr) {
+      window.showToast(
+        `⚠️ Una compra de mercado entra en las cuentas del día, así que no puede tener fecha futura (${fechaPedidoEl.value}). Corrígela para continuar.`,
+        'error'
+      );
+      fechaPedidoEl.focus();
+      return;
+    }
+  }
 
   // 🧾 IVA del albarán tecleado en el formulario (Migración 015). Es solo
   // display/tesorería para cuadrar con la factura: NO entra en `total` (base)
@@ -419,22 +417,24 @@ export async function repetirPedido(id) {
 }
 
 /**
- * Tope del selector de fecha: que el calendario nativo no deje ELEGIR una fecha
- * futura, en vez de dejar meterla y morir después contra el backend.
+ * El selector de fecha nace con HOY puesto.
  *
- * Origen (Iker, 2026-08-03): el input nacía sin `value` ni `max`, así que
- * aceptaba cualquier cosa. Esa fecha se quedaba pegada en el carrito
- * (localStorage), que no la enseña por ningún lado, y bloqueaba los pedidos con
- * "La fecha no puede ser futura" — un error que además era invisible.
+ * Origen (Iker, 2026-08-03): el input nacía sin `value`, así que se quedaba
+ * vacío o con lo último que hubiera. Esa fecha se pegaba al carrito
+ * (localStorage), que no la enseña por ningún lado, y podía bloquear los
+ * pedidos — con un error que además era invisible.
  *
- * Se refresca al abrir el desplegable por si la app lleva abierta desde ayer.
+ * ⚠️ SIN `max`: un pedido 'pendiente' PUEDE ser futuro (programar la entrega del
+ * viernes). El único caso sin futuro es la compra de mercado, y eso se valida en
+ * `guardarPedido()`, donde ya se sabe si el proveedor es un mercado.
+ *
+ * Se refresca al enfocar por si la app lleva abierta desde ayer.
  */
 function fijarTopeFechaPedido() {
   const el = document.getElementById('ped-fecha');
   if (!el) return;
   const n = new Date();
   const hoy = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
-  el.max = hoy;
   if (!el.value) el.value = hoy;
 }
 
