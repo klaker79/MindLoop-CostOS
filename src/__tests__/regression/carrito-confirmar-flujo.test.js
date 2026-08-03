@@ -127,6 +127,57 @@ describe('confirmarCarrito: flujo completo', () => {
         expect(container.querySelector('.toast.error')).not.toBeNull();
     });
 
+    // ⚠️ EL FALLO REAL DE IKER (2026-08-03): "Error creando pedidos: La fecha no
+    // puede ser futura". El backend rechaza futuras (allowFuture:false) y el
+    // carrito guardaba la fecha en localStorage SIN ENSEÑARLA — carrito
+    // bloqueado y sin forma de ver ni cambiar la fecha culpable.
+    describe('fecha futura pegada en el carrito', () => {
+        const enDias = (n) => {
+            const d = new Date();
+            d.setDate(d.getDate() + n);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+
+        async function conFecha(fecha) {
+            const raw = JSON.parse(localStorage.getItem('pedidoCarrito_2'));
+            raw.fecha = fecha;
+            localStorage.setItem('pedidoCarrito_2', JSON.stringify(raw));
+            window.initCarrito();
+            await window.confirmarCarrito();
+            return createPedido.mock.calls[0]?.[0];
+        }
+
+        test('no bloquea: manda hoy en vez de la fecha futura', async () => {
+            const pedido = await conFecha(enDias(30));
+            expect(pedido).toBeDefined();
+            expect(pedido.fecha).toBe(enDias(0));
+        });
+
+        test('avisa de la corrección en vez de cambiarla a escondidas', async () => {
+            await conFecha(enDias(30));
+            const container = document.getElementById('toast-container');
+            expect(container.querySelector('.toast.warning')).not.toBeNull();
+        });
+
+        // Las retroactivas son un flujo válido (meter una compra olvidada) y el
+        // backend las acepta: no tocarlas.
+        test('una fecha PASADA se respeta', async () => {
+            const pedido = await conFecha('2026-07-15');
+            expect(pedido.fecha).toBe('2026-07-15');
+        });
+
+        test('hoy se respeta', async () => {
+            const pedido = await conFecha(enDias(0));
+            expect(pedido.fecha).toBe(enDias(0));
+        });
+
+        // Un carrito viejo con basura no puede tumbar el pedido.
+        test('una fecha con formato inválido cae a hoy', async () => {
+            const pedido = await conFecha('no-es-una-fecha');
+            expect(pedido.fecha).toBe(enDias(0));
+        });
+    });
+
     // El carrito NO se vacía si falló: lo que el usuario metió sigue ahí.
     test('si falla, el carrito no se pierde', async () => {
         window.api.createPedido = jest.fn(async () => { throw new Error('boom'); });
