@@ -34,6 +34,7 @@
   "cart_ingredient_not_found": "Ingredient not found",
   "cart_mixed_supplier_confirm": "Cart has items from \"{{current}}\". Add \"{{item}}\" from \"{{new}}\"?\n\nNote: A separate order will be created if you continue.",
   "cart_confirm_order": "Create order with {{count}} ingredients?",
+  "cart_fecha_invalida_corregida": "⚠️ The date saved in the cart ({{anterior}}) is not valid. Today ({{hoy}}) will be used.",
   "cart_orders_created": "{{count}} order(s) created",
   "cart_error_creating": "Error creating orders: {{message}}",
 

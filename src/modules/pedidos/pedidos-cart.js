@@ -6,6 +6,7 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { tenantKey } from '../../utils/tenant-storage.js';
+import { hoyLocal } from '../../utils/fechas.js';
 
 // Estado del carrito (persistido en localStorage)
 let carrito = [];
@@ -49,6 +50,37 @@ function initCarrito() {
         carritoIvaPct = null;
     }
     actualizarBadgeCarrito();
+}
+
+/**
+ * Fecha con la que mandar el pedido, saneada.
+ *
+ * BUG (Iker, 2026-08-03): "Error creando pedidos: La fecha no puede ser futura".
+ * El carrito guarda `carritoFecha` en localStorage y **no la enseña por ningún
+ * lado**, así que una fecha que el backend rechazara lo dejaba BLOQUEADO: no se
+ * podía pedir, y no había forma de ver ni cambiar la culpable salvo vaciarlo.
+ * Y hasta el arreglo del z-index del toast, el error ni se veía.
+ *
+ * Aquello se resolvió por los dos lados: el backend ya solo prohíbe el futuro
+ * cuando el pedido nace 'recibido' (compra de mercado), y aquí queda la red
+ * para que una fecha CORRUPTA en el storage no vuelva a bloquear el carrito.
+ *
+ * Comparación como STRING YYYY-MM-DD: es lexicográficamente correcta y no tiene
+ * las ambigüedades de huso de `new Date('2026-08-03')` (medianoche UTC).
+ *
+ * @returns {{fecha: string, corregida: string|null}} `corregida` = la fecha
+ *   descartada, para poder avisar al usuario en vez de cambiarla a escondidas.
+ */
+function fechaPedidoSegura() {
+    const hoy = hoyLocal();
+    const candidata = carritoFecha || document.getElementById('ped-fecha')?.value || hoy;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(candidata)) return { fecha: hoy, corregida: candidata };
+    // ✅ Las FUTURAS ya no se corrigen (decisión de Iker, 2026-08-03): el carrito
+    // crea pedidos 'pendiente', y un pendiente programado para el viernes es un
+    // caso de uso legítimo — no escribe en Diario, stock ni precios, y al
+    // recibirlo el Diario usa la fecha de RECEPCIÓN. El backend ya solo prohíbe
+    // el futuro cuando el pedido nace 'recibido' (compra de mercado).
+    return { fecha: candidata, corregida: null };
 }
 
 /**
@@ -433,12 +465,29 @@ window.confirmarCarrito = async function () {
         return;
     }
 
+    // La fecha se sanea ANTES de preguntar: si estaba en el futuro el usuario
+    // tiene que enterarse de con qué fecha va a pedir, no descubrirlo después.
+    const { fecha: fechaPedido, corregida } = fechaPedidoSegura();
+    if (corregida) {
+        window.showToast(
+            t('pedidos:cart_fecha_invalida_corregida', { anterior: corregida, hoy: fechaPedido }),
+            'warning'
+        );
+        carritoFecha = fechaPedido;
+        guardarCarrito();
+    }
+
     if (!confirm(t('pedidos:cart_confirm_order', { count: carrito.length }))) return;
 
     isConfirmingCart = true;
-    window.showLoading();
 
     try {
+        // Dentro del try a propósito: si `showLoading` peta (no está montada,
+        // el DOM no tiene el overlay…), el error se iba SIN catch, dejaba
+        // `isConfirmingCart` en true y el botón quedaba muerto hasta recargar,
+        // sin un mísero toast. Un fallo al crear un pedido nunca puede ser
+        // silencioso: el usuario cree que lo ha pedido y no lo ha pedido.
+        window.showLoading();
         // Agrupar por proveedor para crear pedidos separados
         const porProveedor = {};
         carrito.forEach(item => {
@@ -491,7 +540,7 @@ window.confirmarCarrito = async function () {
             const pedido = {
                 proveedorId: parseInt(provId) || null,
                 proveedor_id: parseInt(provId) || null,
-                fecha: carritoFecha || document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
+                fecha: fechaPedido,
                 estado: 'pendiente',
                 ingredientes: ingredientes,
                 total: total,

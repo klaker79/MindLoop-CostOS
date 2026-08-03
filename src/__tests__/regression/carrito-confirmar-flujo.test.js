@@ -127,6 +127,63 @@ describe('confirmarCarrito: flujo completo', () => {
         expect(container.querySelector('.toast.error')).not.toBeNull();
     });
 
+    // Fecha del pedido (2026-08-03). El fallo original fue "Error creando
+    // pedidos: La fecha no puede ser futura": el backend las rechazaba SIEMPRE y
+    // el carrito guardaba la fecha en localStorage SIN ENSEÑARLA → carrito
+    // bloqueado, sin forma de ver ni cambiar la fecha culpable.
+    //
+    // Decisión de Iker: un pedido 'pendiente' SÍ puede ser futuro (programar la
+    // entrega del viernes) — no toca Diario, stock ni precios, y al recibirlo el
+    // Diario usa la fecha de RECEPCIÓN. El carrito solo crea 'pendiente', así
+    // que aquí el futuro se respeta; lo único que se sanea es la basura.
+    describe('fecha del pedido', () => {
+        const enDias = (n) => {
+            const d = new Date();
+            d.setDate(d.getDate() + n);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+
+        async function conFecha(fecha) {
+            const raw = JSON.parse(localStorage.getItem('pedidoCarrito_2'));
+            raw.fecha = fecha;
+            localStorage.setItem('pedidoCarrito_2', JSON.stringify(raw));
+            window.initCarrito();
+            await window.confirmarCarrito();
+            return createPedido.mock.calls[0]?.[0];
+        }
+
+        // El carrito crea pedidos 'pendiente': programar para el viernes vale.
+        test('una fecha FUTURA se respeta (pedido programado)', async () => {
+            const pedido = await conFecha(enDias(5));
+            expect(pedido).toBeDefined();
+            expect(pedido.fecha).toBe(enDias(5));
+        });
+
+        test('no se corrige a escondidas ni se avisa de nada', async () => {
+            await conFecha(enDias(30));
+            const container = document.getElementById('toast-container');
+            expect(container.querySelector('.toast.warning')).toBeNull();
+        });
+
+        // Las retroactivas son un flujo válido (meter una compra olvidada) y el
+        // backend las acepta: no tocarlas.
+        test('una fecha PASADA se respeta', async () => {
+            const pedido = await conFecha('2026-07-15');
+            expect(pedido.fecha).toBe('2026-07-15');
+        });
+
+        test('hoy se respeta', async () => {
+            const pedido = await conFecha(enDias(0));
+            expect(pedido.fecha).toBe(enDias(0));
+        });
+
+        // Un carrito viejo con basura no puede tumbar el pedido.
+        test('una fecha con formato inválido cae a hoy', async () => {
+            const pedido = await conFecha('no-es-una-fecha');
+            expect(pedido.fecha).toBe(enDias(0));
+        });
+    });
+
     // El carrito NO se vacía si falló: lo que el usuario metió sigue ahí.
     test('si falla, el carrito no se pierde', async () => {
         window.api.createPedido = jest.fn(async () => { throw new Error('boom'); });

@@ -1264,6 +1264,14 @@ button[onclick="window.guardarEdicionPedido()"]:hover {
   margin: 0 -8px !important;     /* extiende ligeramente para evitar
                                     scroll por padding del modal */
   padding: 0 8px !important;
+  /* 🐛 FIX (2026-07-16): quick-actions.css pone `.modal-content { display:flex;
+     flex-direction:column }` de forma GLOBAL. Un hijo con overflow dentro de un
+     flex-column se encoge a height:0 y OCULTA la tabla entera (p.ej. las líneas
+     editables del modal de recepción de pedidos: se veían Proveedor y Total
+     pegados, sin líneas en medio). flex-shrink:0 impide ese colapso.
+     Verificado en staging: 0px → 418px, las 4 líneas aparecen. */
+  flex-shrink: 0 !important;
+  min-height: 0 !important;
 }
 
 
@@ -1684,4 +1692,67 @@ select:focus {
 @keyframes chatHintIn {
   from { opacity: 0; transform: translate(-50%, -8px); }
   to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ═══ Carrito de Pedidos — header / cuerpo scrollable / footer fijo ═══════
+   BUG (2026-07-25): el `.modal-content` global es `overflow-y:auto` pero NO
+   es flex, así que con el carrito lleno el footer (Total estimado + botones)
+   y el resumen de IVA quedaban en el mismo flujo y se solapaban.
+   FIX de raíz: estructurar el modal del carrito en columna → el cuerpo
+   (#carrito-contenido) scrollea y el footer queda fijo abajo, sin pisarse. */
+#modal-carrito .modal-content {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 88vh !important;
+  overflow: hidden !important;
+}
+#modal-carrito #carrito-contenido {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+}
+#modal-carrito .carrito-footer {
+  flex-shrink: 0 !important;
+}
+
+/* ═══ …y el pie tiene que CABER en un móvil ══════════════════════════════
+   BUG (2026-08-03, captura de Iker): "Crear Pedido" salía cortado por el
+   borde de la pantalla y no se podía pulsar → el pedido no se creaba.
+
+   El pie envuelve (`flex-wrap`), pero el div que agrupa los tres botones NO:
+   es `display:flex` a secas, y sus hijos son flex items con el `min-width:auto`
+   por defecto, así que no encogen por debajo de su texto. "🗑️ Vaciar" +
+   "➕ Añadir más productos" + "✅ Crear Pedido(s)" piden ~470 px en una fila
+   y en un móvil hay ~330 útiles. El sobrante no genera scroll horizontal
+   porque el `.modal-content` de aquí arriba es `overflow:hidden` — se RECORTA.
+   Por eso el botón principal quedaba fuera del alcance del dedo.
+
+   Verificado antes de tocar nada: la API crea el pedido sin problema
+   (POST /api/orders → 201 con el payload exacto del carrito), y en la BD no
+   había quedado ni una fila del intento → la petición nunca llegó a salir. */
+#modal-carrito .carrito-footer > div:last-child {
+  flex-wrap: wrap !important;
+  min-width: 0 !important;
+}
+@media (max-width: 768px) {
+  #modal-carrito .carrito-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  #modal-carrito .carrito-footer > div:last-child {
+    width: 100% !important;
+  }
+  /* Apilados y a lo ancho: entran siempre y el área de toque es la de un dedo,
+     no los 18 px que asomaban. */
+  #modal-carrito .carrito-footer > div:last-child > .btn {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* LITE: barra lateral en terracota (forzado — la hoja original la dejaba navy) */
+aside#sidebar.sidebar,
+#sidebar.sidebar,
+.sidebar#sidebar {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-darker) 100%) !important;
 }

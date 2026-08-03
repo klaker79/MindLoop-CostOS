@@ -33,6 +33,7 @@
   "cart_ingredient_not_found": "未找到食材",
   "cart_mixed_supplier_confirm": "购物车已有 \"{{current}}\" 的商品。是否添加来自 \"{{new}}\" 的 \"{{item}}\"？\n\n注意：如继续将创建单独的订单。",
   "cart_confirm_order": "确认创建包含 {{count}} 种食材的订单？",
+  "cart_fecha_invalida_corregida": "⚠️ 购物车中保存的日期（{{anterior}}）无效。将使用今天（{{hoy}}）。",
   "cart_orders_created": "已创建 {{count}} 个订单",
   "cart_error_creating": "创建订单失败: {{message}}",
   "scanner_unsupported_format": "不支持的格式。请使用 JPG、PNG 或 PDF。",
