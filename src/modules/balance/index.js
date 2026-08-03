@@ -42,7 +42,12 @@ export async function renderizarBalance() {
         // fix M7: pasar la fecha al servidor para evitar cargar todo el historial de ventas
         const ahora = new Date();
         const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).toISOString().split('T')[0];
-        const ventas = await window.api.getSales(inicioMes);
+        // ⛔ 2026-08-03: antes esto era `getSales(inicioMes)`, pero el parámetro
+        // `fecha` del backend es UN DÍA EXACTO (DATE(v.fecha) = $n), no "desde".
+        // Balance recibía SOLO las ventas del día 1 y las pintaba como el mes
+        // entero: julio 2026 en La Nave 5 salía 3.884,70 € en vez de 134.604,30 €.
+        const inicioMesSiguiente = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 1).toISOString().split('T')[0];
+        const ventas = await window.api.getSalesRango(inicioMes, inicioMesSiguiente);
         // fix M8: comparar con timestamps para tolerar distintos formatos de fecha del backend
         const inicioMesMs = new Date(ahora.getFullYear(), ahora.getMonth(), 1).getTime();
         const ventasMes = ventas.filter(v => new Date(v.fecha).getTime() >= inicioMesMs);
@@ -119,11 +124,19 @@ export async function calcularPL(opts = {}) {
     const cogs = Number.isFinite(opts.cogs) ? opts.cogs : parseFromDom(cogsEl);
     const margenBruto = ingresos - cogs;
 
-    // Use the generic sum from DB so all categories (27+ dynamic) count.
-    // calcularTotalGastosFijos is exposed by legacy/modales.js and reads gastos_fijos via API.
-    const opexTotal = typeof window.calcularTotalGastosFijos === 'function'
-        ? (await window.calcularTotalGastosFijos()) || 0
-        : 0;
+    // ⛔ 2026-08-03: antes usaba `calcularTotalGastosFijos`, que suma TODOS los
+    // conceptos incluidos IVA/IGIC/IRPF/Sociedades. Esos NO son gasto de
+    // explotación: el IVA se cobra al cliente y se devuelve, y el IRPF se paga
+    // sobre el beneficio ya obtenido. Sumarlos inflaba el opex y hundía el
+    // beneficio neto y el umbral de rentabilidad.
+    // En La Nave 5: 70.983,04 € en vez de 45.513,58 € → 25.469,46 €/mes de más.
+    // `calcularGastosFijosOperativos` (legacy/modales.js) aplica la MISMA regla
+    // que el Diario y el Punto de Equilibrio, así que las tres pantallas cuadran.
+    const opexTotal = typeof window.calcularGastosFijosOperativos === 'function'
+        ? (await window.calcularGastosFijosOperativos()) || 0
+        : (typeof window.calcularTotalGastosFijos === 'function'
+            ? (await window.calcularTotalGastosFijos()) || 0
+            : 0);
     const opexTotalEl = document.getElementById('pl-opex-total');
     if (opexTotalEl) opexTotalEl.textContent = cm(opexTotal);
 

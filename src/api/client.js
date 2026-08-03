@@ -364,10 +364,22 @@ export const api = {
     // page/limit opcionales: si se pasa limit, el backend pagina (ORDER BY fecha
     // DESC, LIMIT/OFFSET). Sin ellos devuelve todas (comportamiento previo, usado
     // por balance/gráfico de ingresos). La pestaña Ventas usa la versión paginada.
+    // ⚠️ `fecha` es UN DÍA EXACTO (el backend hace DATE(v.fecha) = $n), NO "desde".
+    // Para un mes o un periodo hay que usar getSalesRango(desde, hasta).
+    // Confundirlos costó caro: Balance pedía getSales(<día 1 del mes>) creyendo
+    // que era "desde" y pintaba las ventas de un solo día como el mes entero
+    // (julio 2026 en La Nave 5: 3.884,70 € en vez de 134.604,30 €).
     getSales: (fecha = null, page = null, limit = null) => {
         const qs = [];
         if (fecha) qs.push(`fecha=${fecha}`);
         if (limit) { qs.push(`limit=${limit}`); qs.push(`page=${page || 1}`); }
+        return apiClient.get(`/sales${qs.length ? `?${qs.join('&')}` : ''}`);
+    },
+    // Rango [desde, hasta). Ambos en formato YYYY-MM-DD.
+    getSalesRango: (desde, hasta = null) => {
+        const qs = [];
+        if (desde) qs.push(`desde=${desde}`);
+        if (hasta) qs.push(`hasta=${hasta}`);
         return apiClient.get(`/sales${qs.length ? `?${qs.join('&')}` : ''}`);
     },
     createSale: (data) => apiClient.post('/sales', data),
