@@ -22,6 +22,7 @@ import { computeBeneficioNetoDiario } from './pnl-diario-calc.js';
 import { construirConsejos, construirPreguntaOmnes } from './breakeven-consejos.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { mostrarBreakevenInfo } from './breakeven-info.js';
+import { classifyFoodCost } from '../../utils/food-cost-thresholds.js';
 import { mostrarGastosOperativosInfo } from './gastos-operativos-info.js';
 
 const HOST_ID = 'analisis-breakeven';
@@ -164,10 +165,13 @@ function headerHTML(subtitulo) {
 }
 
 function foodCostBadge(pct) {
-    if (pct <= 30) return { cls: 'oms-badge--ok', label: 'Excelente' };
-    if (pct <= 35) return { cls: 'oms-badge--ok', label: 'En objetivo' };
-    if (pct <= 40) return { cls: 'oms-badge--warn', label: 'Vigilar' };
-    return { cls: 'oms-badge--bad', label: 'Alto' };
+    // Umbrales desde la fuente única (Fase C auditoría 2026-08-03).
+    switch (classifyFoodCost(pct)) {
+        case 'excellent': return { cls: 'oms-badge--ok', label: 'Excelente' };
+        case 'target':    return { cls: 'oms-badge--ok', label: 'En objetivo' };
+        case 'watch':     return { cls: 'oms-badge--warn', label: 'Vigilar' };
+        default:          return { cls: 'oms-badge--bad', label: 'Alto' };
+    }
 }
 
 function tipHTML(tono, titulo, texto) {
