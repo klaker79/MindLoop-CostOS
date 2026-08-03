@@ -33,6 +33,7 @@
   "cart_ingredient_not_found": "Ingrediente no encontrado",
   "cart_mixed_supplier_confirm": "El carrito tiene productos de \"{{current}}\". ¿Quieres añadir \"{{item}}\" de \"{{new}}\"?\n\nNota: Se creará un pedido separado si continúas.",
   "cart_confirm_order": "¿Crear pedido con {{count}} ingredientes?",
+  "cart_fecha_futura_corregida": "⚠️ La fecha del carrito ({{anterior}}) está en el futuro y no se admite. Se usará hoy ({{hoy}}).",
   "cart_orders_created": "{{count}} pedido(s) creado(s)",
   "cart_error_creating": "Error creando pedidos: {{message}}",
   "scanner_unsupported_format": "Formato no soportado. Usa JPG, PNG o PDF.",

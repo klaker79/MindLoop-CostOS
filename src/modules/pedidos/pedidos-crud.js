@@ -63,12 +63,18 @@ export async function guardarPedido(event) {
   if (fechaPedidoEl && fechaPedidoEl.value) {
     const now = new Date();
     const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    // ⚠️ BLOQUEO, no aviso (2026-08-03). Antes esto preguntaba "¿confirmas que
+    // es correcta?" y te dejaba seguir — pero el backend RECHAZA siempre las
+    // fechas futuras (`validators.js`, allowFuture:false), así que dijeras lo
+    // que dijeras el pedido moría con "La fecha no puede ser futura". Ofrecer
+    // una opción que el servidor prohíbe solo sirve para perder el pedido.
     if (fechaPedidoEl.value > hoyStr) {
-      const ok = window.confirm(
-        `⚠️ La fecha del pedido es ${fechaPedidoEl.value}, en el futuro.\n\n` +
-        `¿Confirmas que es correcta?`
+      window.showToast(
+        `⚠️ La fecha del pedido (${fechaPedidoEl.value}) está en el futuro y no se admite. Corrígela para continuar.`,
+        'error'
       );
-      if (!ok) return;
+      fechaPedidoEl.focus();
+      return;
     }
   }
 
@@ -411,3 +417,30 @@ export async function repetirPedido(id) {
     window.showToast(`Error: ${error.message}`, 'error');
   }
 }
+
+/**
+ * Tope del selector de fecha: que el calendario nativo no deje ELEGIR una fecha
+ * futura, en vez de dejar meterla y morir después contra el backend.
+ *
+ * Origen (Iker, 2026-08-03): el input nacía sin `value` ni `max`, así que
+ * aceptaba cualquier cosa. Esa fecha se quedaba pegada en el carrito
+ * (localStorage), que no la enseña por ningún lado, y bloqueaba los pedidos con
+ * "La fecha no puede ser futura" — un error que además era invisible.
+ *
+ * Se refresca al abrir el desplegable por si la app lleva abierta desde ayer.
+ */
+function fijarTopeFechaPedido() {
+  const el = document.getElementById('ped-fecha');
+  if (!el) return;
+  const n = new Date();
+  const hoy = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+  el.max = hoy;
+  if (!el.value) el.value = hoy;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  fijarTopeFechaPedido();
+  document.getElementById('ped-fecha')?.addEventListener('focus', fijarTopeFechaPedido);
+});
+
+window.fijarTopeFechaPedido = fijarTopeFechaPedido;
