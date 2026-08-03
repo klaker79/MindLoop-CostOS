@@ -7,6 +7,7 @@ import { showToast } from '../../ui/toast.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { getApiUrl } from '../../config/app-config.js';
 import { getIngredientUnitPrice } from '../../utils/cost-calculator.js';
+import { WINE_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 import { t } from '@/i18n/index.js';
 
 const API_BASE = getApiUrl();
@@ -181,13 +182,14 @@ function renderizarVariantes(variantes) {
         const margen = precioVenta - costeVariante;
         const foodCost = precioVenta > 0 ? (costeVariante / precioVenta) * 100 : 0;
 
-        // Color del food cost según umbrales de vinos
+        // Color del food cost según umbrales de VINOS — que son distintos a los de
+        // comida A PROPÓSITO (40/50, no 30/40): desde la fuente única WINE_COST_THRESHOLDS.
         let fcColor = '#10B981'; // Verde
         let fcEmoji = '🟢';
-        if (foodCost > 50) {
+        if (foodCost > WINE_COST_THRESHOLDS.WATCH_MAX) {
             fcColor = '#EF4444'; // Rojo
             fcEmoji = '🔴';
-        } else if (foodCost > 40) {
+        } else if (foodCost > WINE_COST_THRESHOLDS.EXCELLENT_MAX) {
             fcColor = '#F59E0B'; // Amarillo
             fcEmoji = '🟡';
         }

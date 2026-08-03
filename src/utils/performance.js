@@ -251,82 +251,22 @@ export class TTLCache {
 // 🎯 FUNCIONES OPTIMIZADAS ESPECÍFICAS
 // ═══════════════════════════════════════════════════════════════
 
-/**
- * Calcula el coste de una receta con memoización
- * @param {Object} receta - Objeto receta
- * @returns {number} Coste total
- */
-export function calcularCosteRecetaMemoizado(receta) {
-    if (!receta || !receta.ingredientes) return 0;
-
-    // Usar ID + hash de ingredientes + porciones como clave
-    const key = `${receta.id}-${receta.porciones || 1}-${JSON.stringify(receta.ingredientes.map(i => [i.ingredienteId, i.cantidad]))}`;
-
-    const cached = costeRecetasCache.get(key);
-    if (cached !== null) return cached;
-
-    // 💰 Crear map de inventario para obtener precio_medio
-    const inventario = window.inventarioCompleto || [];
-    const invMap = new Map(inventario.map(i => [i.id, i]));
-
-    const costeTotalLote = receta.ingredientes.reduce((total, item) => {
-        // Sub-recetas (ingredienteId > 100000)
-        if (item.ingredienteId > 100000) {
-            const recetaId = item.ingredienteId - 100000;
-            const allRecetas = window.recetas || [];
-            const recetaBase = allRecetas.find(r => r.id === recetaId);
-            if (recetaBase) {
-                const costeBase = calcularCosteRecetaMemoizado(recetaBase);
-                return total + costeBase * (item.cantidad || 0);
-            }
-            return total;
-        }
-
-        const ing = dataMaps.getIngrediente(item.ingredienteId);
-        const invItem = invMap.get(item.ingredienteId);
-
-        // Prioridad: precio_medio (ya normalizado a unidad) > precio/cantidad_por_formato
-        // NO usar precio_medio_compra aquí: puede ser precio por formato (caja/garrafa), no por unidad
-        let precio = 0;
-        if (invItem?.precio_medio) {
-            precio = parseFloat(invItem.precio_medio);
-        } else if (ing?.precio) {
-            const precioFormato = parseFloat(ing.precio);
-            const cantidadPorFormato = parseFloat(ing.cantidad_por_formato) || 1;
-            precio = precioFormato / cantidadPorFormato;
-        }
-
-        // Aplicar rendimiento (merma) — misma lógica que calcularCosteRecetaCompleto
-        let rendimiento = parseFloat(item.rendimiento);
-        if (!rendimiento) {
-            if (ing?.rendimiento) {
-                rendimiento = parseFloat(ing.rendimiento);
-            } else {
-                rendimiento = 100;
-            }
-        }
-        const factorRendimiento = rendimiento / 100;
-        const costeReal = factorRendimiento > 0 ? (precio / factorRendimiento) : precio;
-
-        return total + costeReal * (item.cantidad || 0);
-    }, 0);
-
-    // 🔧 FIX: Dividir por porciones para obtener coste POR PORCIÓN
-    const porciones = parseInt(receta.porciones) || 1;
-    const costePorPorcion = parseFloat((costeTotalLote / porciones).toFixed(2));
-
-    costeRecetasCache.set(key, costePorPorcion);
-    return costePorPorcion;
-}
-
-// Cache específico para costes de recetas
-const costeRecetasCache = new TTLCache(300000); // 5 minutos
+// ⚖️ AQUÍ VIVÍA `calcularCosteRecetaMemoizado` — eliminada (auditoría 2026-08-03,
+// Fase C). Era una SEGUNDA implementación del coste de receta que nadie llamaba,
+// con una prioridad de precios DISTINTA de la canónica (ignoraba
+// precio_medio_compra): si algún día alguien la hubiera "aprovechado", el
+// dashboard habría enseñado un coste diferente al del escandallo.
+//
+// La fuente única de verdad del coste es `calcularCosteRecetaCompleto`
+// (src/modules/recetas/recetas-crud.js), que usa `getIngredientUnitPrice`
+// (src/utils/cost-calculator.js: precio_medio_compra > precio_medio >
+// precio/cantidad_por_formato). Si hace falta memoizarla, envolver LA CANÓNICA
+// — nunca reimplementar la fórmula. Guardián: golden-parity-costes.test.js.
 
 /**
  * Invalida cache de costes cuando se actualizan precios
  */
 export function invalidarCacheRecetas() {
-    costeRecetasCache.clear();
     clearMemoCache('recetas');
 }
 

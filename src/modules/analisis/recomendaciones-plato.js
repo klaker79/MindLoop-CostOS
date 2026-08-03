@@ -23,9 +23,12 @@
  */
 
 import { cm } from '../../utils/helpers.js';
+import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 
-const FOOD_COST_TARGET = 35;
-const FOOD_COST_ALERTA = 40;
+// Umbrales desde la fuente única (Fase C auditoría 2026-08-03): mismos nombres
+// locales para no tocar las frases, valores del canónico.
+const FOOD_COST_TARGET = FOOD_COST_THRESHOLDS.TARGET_MAX;
+const FOOD_COST_ALERTA = FOOD_COST_THRESHOLDS.WATCH_MAX;
 
 function num(v) {
     const n = Number(v);
@@ -132,7 +135,7 @@ function fraseMargenVsMedia(plato, medias) {
 function fraseFoodCost(plato) {
     const fc = num(plato.foodCost);
     if (fc === null) return null;
-    if (fc <= 30) {
+    if (fc <= FOOD_COST_THRESHOLDS.EXCELLENT_MAX) {
         return `Food cost ${fmt(fc, 1)}%, excelente — muy por debajo del objetivo (${FOOD_COST_TARGET}%). Margen muy sano.`;
     }
     if (fc <= FOOD_COST_TARGET) {

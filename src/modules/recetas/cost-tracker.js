@@ -6,6 +6,7 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { calcularCosteRecetaCompleto } from './recetas-crud.js';
+import { classifyFoodCost, foodCostColor } from '../../utils/food-cost-thresholds.js';
 import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 
 /**
@@ -215,38 +216,37 @@ function actualizarDatosCostTracker() {
 
         const { costeActual, precioVenta, foodCost, beneficio } = receta;
 
-        // Determinar estado y colores (umbrales: ≤30 excelente, ≤35 target, ≤40 watch, >40 alert)
-        let estado, bgColor, textColor, icon;
-        if (foodCost <= 30) {
+        // Estado y colores desde la fuente única de umbrales (Fase C auditoría
+        // 2026-08-03): classifyFoodCost/foodCostColor — mismos cortes y hex que antes.
+        const nivel = classifyFoodCost(foodCost);
+        let estado, bgColor, icon;
+        const textColor = foodCostColor(foodCost);
+        if (nivel === 'excellent') {
             estado = t('recetas:cost_tracker_profitable');
             bgColor = 'rgba(5, 150, 105, 0.25)';
-            textColor = '#059669';
             icon = '⭐';
             recetasRentables++;
-        } else if (foodCost <= 35) {
+        } else if (nivel === 'target') {
             estado = t('recetas:cost_tracker_profitable');
             bgColor = 'rgba(16, 185, 129, 0.2)';
-            textColor = '#10B981';
             icon = '✅';
             recetasRentables++;
-        } else if (foodCost <= 40) {
+        } else if (nivel === 'watch') {
             estado = t('recetas:cost_tracker_tight');
             bgColor = 'rgba(245, 158, 11, 0.2)';
-            textColor = '#F59E0B';
             icon = '⚠️';
             recetasAjustadas++;
         } else {
             estado = t('recetas:cost_tracker_alert');
             bgColor = 'rgba(239, 68, 68, 0.2)';
-            textColor = '#EF4444';
             icon = '🚨';
             recetasAlerta++;
         }
 
         totalBeneficio += beneficio;
 
-        // Barra de progreso para food cost (umbrales: ≤30 excelente, ≤35 target, ≤40 watch, >40 alert)
-        const barColor = foodCost <= 30 ? '#059669' : foodCost <= 35 ? '#10B981' : foodCost <= 40 ? '#F59E0B' : '#EF4444';
+        // Barra de progreso: mismo color canónico que el texto.
+        const barColor = textColor;
         const barWidth = Math.min(foodCost, 100);
 
         // Build recipe name HTML - use yellow/gold color as originally designed
