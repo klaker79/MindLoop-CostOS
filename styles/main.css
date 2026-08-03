@@ -1902,11 +1902,25 @@ table tbody td:first-child {
 }
 
 /* === TOAST NOTIFICATIONS === */
+/* ⚠️ z-index POR ENCIMA de `.modal` (999999, unas líneas más abajo en esta
+   misma hoja). Estaba en 9999 → CUALQUIER aviso lanzado con un modal abierto
+   se pintaba DETRÁS del overlay y el usuario no lo veía jamás.
+
+   Cómo se manifestaba (Iker, 2026-08-03, carrito en el móvil): al confirmar el
+   carrito, el camino de ÉXITO hace `cerrarCarrito()` ANTES del toast — por eso
+   el "pedido creado" sí se veía. Pero el `catch` NO cierra el modal, así que el
+   toast de ERROR quedaba tapado: le dabas a "Crear Pedido", fallaba, y en
+   pantalla no pasaba absolutamente nada. Y en móvil el toast va a `top:12px`,
+   justo debajo de la cabecera del modal: tapado del todo.
+
+   Esto afecta a TODA la app, no solo al carrito: cada error dentro de un modal
+   (recepción, escandallo, ingredientes…) era invisible. Vigilado por
+   `src/__tests__/regression/toast-sobre-modal.test.js`. */
 .toast-container {
   position: fixed;
   top: 80px;
   right: 20px;
-  z-index: 9999;
+  z-index: 1000000;
   max-width: 400px;
 }
 
