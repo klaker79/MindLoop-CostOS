@@ -14,6 +14,7 @@
  */
 
 import { cm } from '../../utils/helpers.js';
+import { FOOD_COST_THRESHOLDS } from '../../utils/food-cost-thresholds.js';
 
 function num(v) {
     const n = parseFloat(v);
@@ -27,7 +28,7 @@ const fmtInt = (n) => Math.round(n).toLocaleString('es-ES');
 /** Platos que más tiran del food cost medio: se venden Y tienen food cost alto. */
 function topFoodOffenders(platos) {
     return platos
-        .filter(p => ud(p) > 0 && num(p.foodCost) > 40)
+        .filter(p => ud(p) > 0 && num(p.foodCost) > FOOD_COST_THRESHOLDS.WATCH_MAX)
         .sort((a, b) => (num(b.foodCost) * ud(b)) - (num(a.foodCost) * ud(a)))
         .slice(0, 2);
 }
@@ -60,7 +61,7 @@ export function construirConsejos(snap, platos) {
     // ── Food cost ─────────────────────────────────────────────────────
     const offenders = topFoodOffenders(lista);
     let food;
-    if (snap.foodCostMedio <= 30) {
+    if (snap.foodCostMedio <= FOOD_COST_THRESHOLDS.EXCELLENT_MAX) {
         food = {
             tono: 'ok',
             titulo: 'Food cost bajo control',
@@ -68,7 +69,7 @@ export function construirConsejos(snap, platos) {
         };
     } else if (offenders.length) {
         food = {
-            tono: snap.foodCostMedio > 40 ? 'bad' : 'warn',
+            tono: snap.foodCostMedio > FOOD_COST_THRESHOLDS.WATCH_MAX ? 'bad' : 'warn',
             titulo: 'Ataca los que más suben el food cost',
             texto: `Tu food cost medio es ${snap.foodCostMedio.toFixed(0)}%. Los que más lo tiran: ${listaNombres(offenders, true)}. Ajusta su escandallo o proveedor y tu objetivo baja a ${fmtInt(p.platosSiFood2)} platos al mes.`
         };
