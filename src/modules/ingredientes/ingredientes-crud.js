@@ -260,13 +260,55 @@ export async function guardarIngrediente(event) {
                 const yaAsociado = Array.isArray(proveedoresAsociados) && proveedoresAsociados.some(p => p.proveedor_id === idProveedor);
 
                 if (!yaAsociado) {
-                    await window.API.fetch(`/ingredients/${idIngrediente}/suppliers`, {
-                        method: 'POST',
-                        body: JSON.stringify({
+                    // ⚠️ UNIDADES (bug JOSEBA 2026-08-03). `ingrediente.precio` es
+                    // €/FORMATO (23,10 € la CAJA de 10 l), pero el campo `precio` de
+                    // esta tabla es €/UNIDAD-BASE. Mandarlo a secas guardaba 23,10 €/l,
+                    // y el desplegable de pedidos lo multiplica por cantidad_por_formato
+                    // para enseñarlo por formato → 231 € por caja.
+                    //
+                    // Mandando los tres campos de formato, el backend DERIVA el precio
+                    // canónico (23,10 / 10 = 2,31 €/l). Es la misma vía que ya usaba el
+                    // alta manual de proveedores, que por eso nunca falló.
+                    //
+                    // El backend tiene además una red por si esto llega incompleto desde
+                    // un bundle viejo, pero la fuente del dato debe salir correcta de aquí.
+                    // `cantidad_por_formato` solo viaja en el body si el usuario la
+                    // editó (undefined = "no cambiar"), así que al editar un ingrediente
+                    // sin tocar el formato hay que recuperarla del que ya existe. Mismo
+                    // fallback que usa el guard de precio unos bloques más arriba.
+                    //
+                    // ⚠️ EL FORMATO PUEDE SER MENOR QUE 1. Una BOTELLA de vino son 0,75 l
+                    // y un BOTE de mostaza 0,24 kg: el formato NO siempre agrupa varias
+                    // unidades base, a veces es una fracción. La Nave 5 tiene 15 así
+                    // (aguardiente, licor de café, siracha…). Con `cpf > 1` se quedaban
+                    // fuera y volvía el mismo bug al revés: 6,08 €/botella se guardaba
+                    // como 6,08 €/l y el carrito mostraba 4,56 € (−25 %). Menos aparatoso
+                    // que el ×10, y por eso más peligroso: no canta, se cuela en el
+                    // food cost. La condición correcta es la del resto del sistema
+                    // (`resolverFormatoProveedor`, el sync del PUT, el desplegable):
+                    // **cpf > 0**. Con cpf = 1 dividir es identidad, así que se excluye
+                    // solo para no escribir campos de formato donde no hay formato.
+                    const ingPrevio = (window.ingredientes || []).find(i => i.id === idIngrediente);
+                    const cpf = parseFloat(ingrediente.cantidad_por_formato ?? ingPrevio?.cantidad_por_formato) || 0;
+                    const formatoNombre = ingrediente.formato_compra ?? ingPrevio?.formato_compra;
+                    const usaFormato = cpf > 0 && cpf !== 1 && !!formatoNombre;
+                    const payload = usaFormato
+                        ? {
+                            proveedor_id: idProveedor,
+                            formato: formatoNombre,
+                            cantidad_por_formato: cpf,
+                            precio_formato: precioProveedor,
+                            es_proveedor_principal: true,
+                        }
+                        : {
                             proveedor_id: idProveedor,
                             precio: precioProveedor,
                             es_proveedor_principal: true,
-                        }),
+                        };
+
+                    await window.API.fetch(`/ingredients/${idIngrediente}/suppliers`, {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
                     });
                     console.log(`✅ Proveedor ${idProveedor} asociado al ingrediente ${idIngrediente}`);
                 }
