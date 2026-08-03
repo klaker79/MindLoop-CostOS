@@ -344,7 +344,6 @@ if (typeof window !== 'undefined') {
         createLookupMap,
         dataMaps,
         TTLCache,
-        calcularCosteRecetaMemoizado,
         invalidarCacheRecetas,
         invalidarCacheIngredientes,
         measurePerformance,
