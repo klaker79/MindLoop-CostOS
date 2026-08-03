@@ -1,5 +1,22 @@
 // ========== INVENTARIO MASIVO ==========
 //
+// ⚠️ Este fichero se carga como <script> PLANO: no admite import/export.
+// Por eso el helper de abajo vive aquí y no en src/utils/ (ver src/main.js:208).
+//
+// ── ¿Es esta merma un AJUSTE DE RECUENTO, y no una pérdida del día? ──────────
+// La tabla `mermas` guarda DOS cosas que no se pueden sumar igual:
+//   a) MERMA REAL (caducado, rotura, error de cocina): ocurrió ESE día, es coste.
+//   b) AJUSTE DE RECUENTO: la diferencia entre el stock del sistema y lo contado.
+//      Es deriva ACUMULADA de semanas que aflora entera el día del recuento.
+// Los dos motivos vienen del propio flujo de recuento:
+//   'Error de Inventario'  → default del recuento manual (app-core.js)
+//   'Ajuste de inventario' → subida de inventario físico por Excel
+const MOTIVOS_AJUSTE_RECUENTO = ['error de inventario', 'ajuste de inventario'];
+function esAjusteDeRecuento(motivo) {
+    if (!motivo) return false;
+    return MOTIVOS_AJUSTE_RECUENTO.indexOf(String(motivo).trim().toLowerCase()) !== -1;
+}
+//
 // Soporta 2 formatos de Excel:
 //
 //   A) Plantilla nativa (legacy):
@@ -2885,6 +2902,18 @@ async function renderizarTablaPLDiario() {
     // - cantidad y valor_perdida son SIEMPRE positivos (la tabla solo
     //   almacena pérdidas reales; los ajustes positivos del inventario
     //   masivo van por otro flujo y NO entran aquí).
+    //
+    // ⛔ 2026-08-03: los AJUSTES DE RECUENTO NO son merma de un día.
+    // Desde que el recuento físico se espeja en `mermas` (inventory.routes.js),
+    // esa tabla mezcla dos cosas MUY distintas:
+    //   a) merma real del día (caducado, rotura, error de cocina…) → SÍ es P&L
+    //   b) diferencia detectada en un recuento → deriva ACUMULADA de semanas,
+    //      que aparece toda de golpe el día que se cuenta. Meterla en el P&L
+    //      de ese día lo revienta: en La Nave 5 el recuento del 2-ago metió
+    //      8.977,53 € de "merma" en un solo día (propano, barriles de cerveza…)
+    //      y dejó el beneficio de ese día en -10.445 €.
+    // El ajuste sigue guardado y visible en la pestaña Mermas y en el panel de
+    // diferencia de inventario; lo que NO hace es fingir que se perdió ese día.
     const mermasPorDia = {};
     dias.forEach(dia => { mermasPorDia[dia] = 0; });
     try {
@@ -2893,6 +2922,7 @@ async function renderizarTablaPLDiario() {
             mermasMes.forEach(m => {
                 const valor = parseFloat(m.valor_perdida) || 0;
                 if (valor <= 0) return;
+                if (esAjusteDeRecuento(m.motivo)) return;
                 // m.fecha llega como YYYY-MM-DD o ISO. Normalizar a YYYY-MM-DD.
                 const fecha = String(m.fecha || '').substring(0, 10);
                 if (mermasPorDia[fecha] !== undefined) {
