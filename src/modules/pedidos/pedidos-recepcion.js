@@ -17,6 +17,7 @@ import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpe
 import { formatoDesdeBase, esCantidadEnteraEnFormato } from './formato-utils.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 import { precioDesviacionSospechosa, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
+import { acotarAHoy } from '../../utils/fechas.js';
 
 /**
  * Contexto de formato de un ingrediente para mostrar la recepción en formato
@@ -627,8 +628,14 @@ export async function confirmarRecepcionPedido() {
         }
 
         // Solo si TODOS los stocks se actualizaron, marcar pedido como recibido
-        // 📅 FIX: Usar la fecha original del pedido para que el Diario registre en el día correcto
-        const fechaOriginal = ped.fecha || new Date().toISOString();
+        // 📅 Fecha que llega al Diario: la del pedido, ACOTADA A HOY — un pedido
+        // programado para el viernes que recibes hoy se registra HOY (ver
+        // fechaRecepcionAcotada en utils/fechas.js). Sin esto, un pedido con fecha
+        // futura no se podía recibir.
+        // (En lite, la recepción por albarán escaneado además manda la fecha del
+        //  albarán vía window.__albaranHints; main no monta OCR, así que esa rama
+        //  no se porta a propósito.)
+        const fechaOriginal = acotarAHoy(ped.fecha);
         await window.api.updatePedido(window.pedidoRecibiendoId, {
             ...ped,
             estado: 'recibido',
