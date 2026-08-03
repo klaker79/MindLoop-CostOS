@@ -17,6 +17,7 @@ import { escapeHTML, cm, getDateLocale, formatQuantity } from '../../utils/helpe
 import { formatoDesdeBase, esCantidadEnteraEnFormato } from './formato-utils.js';
 import ingredientStore from '../../stores/ingredientStore.js';
 import { precioDesviacionSospechosa, getIngredientUnitPrice } from '../../utils/cost-calculator.js';
+import { acotarAHoy } from '../../utils/fechas.js';
 
 /**
  * Contexto de formato de un ingrediente para mostrar la recepción en formato
@@ -871,7 +872,9 @@ export async function confirmarRecepcionPedido() {
         const fechaAlbaranRecepcion = (window.__albaranHints && window.__albaranHints.pedidoId === window.pedidoRecibiendoId)
             ? window.__albaranHints.fecha
             : null;
-        const fechaOriginal = fechaAlbaranRecepcion || ped.fecha || new Date().toISOString();
+        //   - En ambos casos, acotada a HOY: un pedido programado para el viernes
+        //     que recibes hoy se registra HOY (ver fechaRecepcionAcotada).
+        const fechaOriginal = acotarAHoy(fechaAlbaranRecepcion || ped.fecha);
         await window.api.updatePedido(window.pedidoRecibiendoId, {
             ...ped,
             estado: 'recibido',

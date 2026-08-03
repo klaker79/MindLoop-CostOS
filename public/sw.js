@@ -235,7 +235,7 @@
 // BUMP v320 (P&L del movil en una columna): la Cuenta de Resultados era una matriz de conceptos x 31 dias; en un telefono entran 5 columnas y si son de principio de mes se ven 5 ceros y parece que no hay datos. Ahora el movil enseña el total del periodo en vertical + la lista de dias, sin scroll lateral. Los numeros salen del MISMO computeBeneficioNetoDiario que la tabla y el grafico. Incluye el menu Mas con Diario y Configuracion.
 // BUMP v324 (casa Lite sin Omnes): se oculta la pestaña de Omnes y aparece el boton del informe mensual. El corte real del chat esta en lite-api (CHAT_ENABLED=false).
 // BUMP v326 (precio de proveedor por formato): al asociar proveedor se mandan formato+cantidad+precio_formato para que el backend derive el EUR/unidad-base. Sin esto, una CAJA de 10 l a 23,10 EUR salia a 231 EUR en pedidos.
-const CACHE_NAME = 'mindloop-costos-v330';
+const CACHE_NAME = 'mindloop-costos-v331';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

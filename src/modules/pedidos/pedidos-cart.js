@@ -6,6 +6,7 @@
 import { t } from '@/i18n/index.js';
 import { escapeHTML, cm } from '../../utils/helpers.js';
 import { tenantKey } from '../../utils/tenant-storage.js';
+import { hoyLocal } from '../../utils/fechas.js';
 
 // Estado del carrito (persistido en localStorage)
 let carrito = [];
@@ -49,18 +50,6 @@ function initCarrito() {
         carritoIvaPct = null;
     }
     actualizarBadgeCarrito();
-}
-
-/**
- * "Hoy" en la zona del usuario, en YYYY-MM-DD.
- *
- * ⚠️ NO usar `new Date().toISOString().split('T')[0]`: eso da la fecha UTC, y a
- * las 00:30 en España (UTC+2) devuelve AYER. Mismo razonamiento que el fix de
- * 2026-05-12 en pedidos-crud.js.
- */
-function hoyLocal() {
-    const n = new Date();
-    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
 }
 
 /**
