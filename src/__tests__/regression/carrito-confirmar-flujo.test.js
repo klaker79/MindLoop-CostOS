@@ -127,11 +127,16 @@ describe('confirmarCarrito: flujo completo', () => {
         expect(container.querySelector('.toast.error')).not.toBeNull();
     });
 
-    // ⚠️ EL FALLO REAL DE IKER (2026-08-03): "Error creando pedidos: La fecha no
-    // puede ser futura". El backend rechaza futuras (allowFuture:false) y el
-    // carrito guardaba la fecha en localStorage SIN ENSEÑARLA — carrito
-    // bloqueado y sin forma de ver ni cambiar la fecha culpable.
-    describe('fecha futura pegada en el carrito', () => {
+    // Fecha del pedido (2026-08-03). El fallo original fue "Error creando
+    // pedidos: La fecha no puede ser futura": el backend las rechazaba SIEMPRE y
+    // el carrito guardaba la fecha en localStorage SIN ENSEÑARLA → carrito
+    // bloqueado, sin forma de ver ni cambiar la fecha culpable.
+    //
+    // Decisión de Iker: un pedido 'pendiente' SÍ puede ser futuro (programar la
+    // entrega del viernes) — no toca Diario, stock ni precios, y al recibirlo el
+    // Diario usa la fecha de RECEPCIÓN. El carrito solo crea 'pendiente', así
+    // que aquí el futuro se respeta; lo único que se sanea es la basura.
+    describe('fecha del pedido', () => {
         const enDias = (n) => {
             const d = new Date();
             d.setDate(d.getDate() + n);
@@ -147,16 +152,17 @@ describe('confirmarCarrito: flujo completo', () => {
             return createPedido.mock.calls[0]?.[0];
         }
 
-        test('no bloquea: manda hoy en vez de la fecha futura', async () => {
-            const pedido = await conFecha(enDias(30));
+        // El carrito crea pedidos 'pendiente': programar para el viernes vale.
+        test('una fecha FUTURA se respeta (pedido programado)', async () => {
+            const pedido = await conFecha(enDias(5));
             expect(pedido).toBeDefined();
-            expect(pedido.fecha).toBe(enDias(0));
+            expect(pedido.fecha).toBe(enDias(5));
         });
 
-        test('avisa de la corrección en vez de cambiarla a escondidas', async () => {
+        test('no se corrige a escondidas ni se avisa de nada', async () => {
             await conFecha(enDias(30));
             const container = document.getElementById('toast-container');
-            expect(container.querySelector('.toast.warning')).not.toBeNull();
+            expect(container.querySelector('.toast.warning')).toBeNull();
         });
 
         // Las retroactivas son un flujo válido (meter una compra olvidada) y el
