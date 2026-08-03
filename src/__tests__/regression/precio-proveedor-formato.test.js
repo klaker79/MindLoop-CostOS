@@ -29,6 +29,12 @@ const inicio = src.indexOf('Auto-asociar proveedor con precio');
 const fin = src.indexOf('Recargar proveedores para tener datos actualizados');
 const bloque = src.slice(inicio, fin);
 
+// Los comentarios de este bloque CITAN las condiciones erróneas al explicar los bugs
+// pasados ("con `cpf > 1` se quedaban fuera…"). Un guard que busque texto a secas
+// leería esas citas como si fueran código y daría un falso positivo, así que las
+// aserciones negativas van contra el código pelado.
+const codigo = bloque.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
 describe('auto-asociar proveedor: manda el formato, no el precio a secas', () => {
     test('el bloque existe (si no, este guard no vigila nada)', () => {
         expect(inicio).toBeGreaterThan(-1);
@@ -59,8 +65,20 @@ describe('auto-asociar proveedor: manda el formato, no el precio a secas', () =>
         expect(bloque).toMatch(/formato_compra\s*\?\?\s*ingPrevio/);
     });
 
-    // cpf de 1 significa "se compra por unidad base": no hay formato que derivar.
-    test('solo usa la vía de formato si cpf > 1', () => {
-        expect(bloque).toMatch(/cpf\s*>\s*1/);
+    // 🥔 EL INGREDIENTE SENCILLO NO SE TOCA. "1 kg de tomate a 3 €" (cpf = 1, o sin
+    // formato) sigue mandando el precio a secas: ahí €/formato y €/unidad-base son el
+    // mismo número y no hay nada que derivar.
+    test('cpf = 1 o sin formato sigue mandando `precio` a secas', () => {
+        expect(bloque).toMatch(/cpf\s*!==\s*1/);
+        expect(bloque).toMatch(/!!formatoNombre/);
+        expect(bloque).toMatch(/precio:\s*precioProveedor/);
+    });
+
+    // ⚠️ El formato puede ser MENOR que la unidad base: una BOTELLA de vino son 0,75 l,
+    // un BOTE de mostaza 0,24 kg. La Nave 5 tiene 15 ingredientes así. La primera
+    // versión usaba `cpf > 1` y los dejaba fuera → el bug volvía invertido (−25 %).
+    test('acepta formatos fraccionarios (cpf > 0, no cpf > 1)', () => {
+        expect(codigo).toMatch(/cpf\s*>\s*0/);
+        expect(codigo).not.toMatch(/cpf\s*>\s*1/);
     });
 });
