@@ -67,11 +67,14 @@ function hoyLocal() {
  * Fecha con la que mandar el pedido, saneada.
  *
  * BUG (Iker, 2026-08-03): "Error creando pedidos: La fecha no puede ser futura".
- * El backend RECHAZA fechas futuras (`validators.js`, `allowFuture:false`), pero
- * el carrito guarda `carritoFecha` en localStorage y **no la enseña por ningún
- * lado**. Con una fecha futura pegada ahí, el carrito quedaba BLOQUEADO: no se
- * podía pedir, y no había forma de ver ni cambiar la fecha culpable salvo
- * vaciarlo. Y hasta el arreglo del z-index, el error ni se veía.
+ * El carrito guarda `carritoFecha` en localStorage y **no la enseña por ningún
+ * lado**, así que una fecha que el backend rechazara lo dejaba BLOQUEADO: no se
+ * podía pedir, y no había forma de ver ni cambiar la culpable salvo vaciarlo.
+ * Y hasta el arreglo del z-index del toast, el error ni se veía.
+ *
+ * Aquello se resolvió por los dos lados: el backend ya solo prohíbe el futuro
+ * cuando el pedido nace 'recibido' (compra de mercado), y aquí queda la red
+ * para que una fecha CORRUPTA en el storage no vuelva a bloquear el carrito.
  *
  * Comparación como STRING YYYY-MM-DD: es lexicográficamente correcta y no tiene
  * las ambigüedades de huso de `new Date('2026-08-03')` (medianoche UTC).
@@ -83,7 +86,11 @@ function fechaPedidoSegura() {
     const hoy = hoyLocal();
     const candidata = carritoFecha || document.getElementById('ped-fecha')?.value || hoy;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(candidata)) return { fecha: hoy, corregida: candidata };
-    if (candidata > hoy) return { fecha: hoy, corregida: candidata };
+    // ✅ Las FUTURAS ya no se corrigen (decisión de Iker, 2026-08-03): el carrito
+    // crea pedidos 'pendiente', y un pendiente programado para el viernes es un
+    // caso de uso legítimo — no escribe en Diario, stock ni precios, y al
+    // recibirlo el Diario usa la fecha de RECEPCIÓN. El backend ya solo prohíbe
+    // el futuro cuando el pedido nace 'recibido' (compra de mercado).
     return { fecha: candidata, corregida: null };
 }
 
@@ -474,7 +481,7 @@ window.confirmarCarrito = async function () {
     const { fecha: fechaPedido, corregida } = fechaPedidoSegura();
     if (corregida) {
         window.showToast(
-            t('pedidos:cart_fecha_futura_corregida', { anterior: corregida, hoy: fechaPedido }),
+            t('pedidos:cart_fecha_invalida_corregida', { anterior: corregida, hoy: fechaPedido }),
             'warning'
         );
         carritoFecha = fechaPedido;
