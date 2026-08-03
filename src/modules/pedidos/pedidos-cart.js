@@ -436,9 +436,14 @@ window.confirmarCarrito = async function () {
     if (!confirm(t('pedidos:cart_confirm_order', { count: carrito.length }))) return;
 
     isConfirmingCart = true;
-    window.showLoading();
 
     try {
+        // Dentro del try a propósito: si `showLoading` peta (no está montada,
+        // el DOM no tiene el overlay…), el error se iba SIN catch, dejaba
+        // `isConfirmingCart` en true y el botón quedaba muerto hasta recargar,
+        // sin un mísero toast. Un fallo al crear un pedido nunca puede ser
+        // silencioso: el usuario cree que lo ha pedido y no lo ha pedido.
+        window.showLoading();
         // Agrupar por proveedor para crear pedidos separados
         const porProveedor = {};
         carrito.forEach(item => {

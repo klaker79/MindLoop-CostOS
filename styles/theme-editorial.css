@@ -1731,6 +1731,41 @@ select:focus {
   flex-shrink: 0 !important;
 }
 
+/* ═══ …y el pie tiene que CABER en un móvil ══════════════════════════════
+   BUG (2026-08-03, captura de Iker): "Crear Pedido" salía cortado por el
+   borde de la pantalla y no se podía pulsar → el pedido no se creaba.
+
+   El pie envuelve (`flex-wrap`), pero el div que agrupa los tres botones NO:
+   es `display:flex` a secas, y sus hijos son flex items con el `min-width:auto`
+   por defecto, así que no encogen por debajo de su texto. "🗑️ Vaciar" +
+   "➕ Añadir más productos" + "✅ Crear Pedido(s)" piden ~470 px en una fila
+   y en un móvil hay ~330 útiles. El sobrante no genera scroll horizontal
+   porque el `.modal-content` de aquí arriba es `overflow:hidden` — se RECORTA.
+   Por eso el botón principal quedaba fuera del alcance del dedo.
+
+   Verificado antes de tocar nada: la API crea el pedido sin problema
+   (POST /api/orders → 201 con el payload exacto del carrito), y en la BD no
+   había quedado ni una fila del intento → la petición nunca llegó a salir. */
+#modal-carrito .carrito-footer > div:last-child {
+  flex-wrap: wrap !important;
+  min-width: 0 !important;
+}
+@media (max-width: 768px) {
+  #modal-carrito .carrito-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  #modal-carrito .carrito-footer > div:last-child {
+    width: 100% !important;
+  }
+  /* Apilados y a lo ancho: entran siempre y el área de toque es la de un dedo,
+     no los 18 px que asomaban. */
+  #modal-carrito .carrito-footer > div:last-child > .btn {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+}
+
 /* LITE: barra lateral en terracota (forzado — la hoja original la dejaba navy) */
 aside#sidebar.sidebar,
 #sidebar.sidebar,
