@@ -33,6 +33,7 @@
   "cart_ingredient_not_found": "Ingredient not found",
   "cart_mixed_supplier_confirm": "Cart has items from \"{{current}}\". Add \"{{item}}\" from \"{{new}}\"?\n\nNote: A separate order will be created if you continue.",
   "cart_confirm_order": "Create order with {{count}} ingredients?",
+  "cart_fecha_futura_corregida": "⚠️ The cart date ({{anterior}}) is in the future and is not allowed. Today ({{hoy}}) will be used.",
   "cart_orders_created": "{{count}} order(s) created",
   "cart_error_creating": "Error creating orders: {{message}}",
   "scanner_unsupported_format": "Unsupported format. Use JPG, PNG or PDF.",

@@ -52,6 +52,42 @@ function initCarrito() {
 }
 
 /**
+ * "Hoy" en la zona del usuario, en YYYY-MM-DD.
+ *
+ * ⚠️ NO usar `new Date().toISOString().split('T')[0]`: eso da la fecha UTC, y a
+ * las 00:30 en España (UTC+2) devuelve AYER. Mismo razonamiento que el fix de
+ * 2026-05-12 en pedidos-crud.js.
+ */
+function hoyLocal() {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Fecha con la que mandar el pedido, saneada.
+ *
+ * BUG (Iker, 2026-08-03): "Error creando pedidos: La fecha no puede ser futura".
+ * El backend RECHAZA fechas futuras (`validators.js`, `allowFuture:false`), pero
+ * el carrito guarda `carritoFecha` en localStorage y **no la enseña por ningún
+ * lado**. Con una fecha futura pegada ahí, el carrito quedaba BLOQUEADO: no se
+ * podía pedir, y no había forma de ver ni cambiar la fecha culpable salvo
+ * vaciarlo. Y hasta el arreglo del z-index, el error ni se veía.
+ *
+ * Comparación como STRING YYYY-MM-DD: es lexicográficamente correcta y no tiene
+ * las ambigüedades de huso de `new Date('2026-08-03')` (medianoche UTC).
+ *
+ * @returns {{fecha: string, corregida: string|null}} `corregida` = la fecha
+ *   descartada, para poder avisar al usuario en vez de cambiarla a escondidas.
+ */
+function fechaPedidoSegura() {
+    const hoy = hoyLocal();
+    const candidata = carritoFecha || document.getElementById('ped-fecha')?.value || hoy;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(candidata)) return { fecha: hoy, corregida: candidata };
+    if (candidata > hoy) return { fecha: hoy, corregida: candidata };
+    return { fecha: candidata, corregida: null };
+}
+
+/**
  * Guarda el carrito en localStorage
  */
 function guardarCarrito() {
@@ -433,6 +469,18 @@ window.confirmarCarrito = async function () {
         return;
     }
 
+    // La fecha se sanea ANTES de preguntar: si estaba en el futuro el usuario
+    // tiene que enterarse de con qué fecha va a pedir, no descubrirlo después.
+    const { fecha: fechaPedido, corregida } = fechaPedidoSegura();
+    if (corregida) {
+        window.showToast(
+            t('pedidos:cart_fecha_futura_corregida', { anterior: corregida, hoy: fechaPedido }),
+            'warning'
+        );
+        carritoFecha = fechaPedido;
+        guardarCarrito();
+    }
+
     if (!confirm(t('pedidos:cart_confirm_order', { count: carrito.length }))) return;
 
     isConfirmingCart = true;
@@ -496,7 +544,7 @@ window.confirmarCarrito = async function () {
             const pedido = {
                 proveedorId: parseInt(provId) || null,
                 proveedor_id: parseInt(provId) || null,
-                fecha: carritoFecha || document.getElementById('ped-fecha')?.value || new Date().toISOString().split('T')[0],
+                fecha: fechaPedido,
                 estado: 'pendiente',
                 ingredientes: ingredientes,
                 total: total,
