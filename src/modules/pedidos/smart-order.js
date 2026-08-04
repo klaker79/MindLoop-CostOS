@@ -21,12 +21,28 @@ export async function abrirSmartOrder() {
     const ingredientes = window.ingredientes || [];
     const proveedores = window.proveedores || [];
 
+    // 🛒 Punto de pedido DINÁMICO (backend /intelligence/reorder): consumo diario
+    // real × plazo del proveedor + stock mínimo. Complementa el umbral estático
+    // de abajo (stock ≤ mínimo configurado a mano), que se queda como red de
+    // seguridad. Degrada sin romper: si el endpoint no existe aún (orden de
+    // deploy, casa Lite), el Smart Order se comporta exactamente como antes.
+    const sugerenciasMap = new Map();
+    try {
+        const data = await window.api?.getReorderSuggestions?.();
+        for (const s of (data?.sugerencias || [])) {
+            sugerenciasMap.set(Number(s.id), s);
+        }
+    } catch {
+        // sin sugerencias dinámicas — modo clásico
+    }
+
     // Find ingredients below minimum stock (same logic as dashboard Low Stock)
+    // + los que el punto de pedido dinámico marca aunque el mínimo manual no salte.
     const lowStock = ingredientes.filter(ing => {
         if (ing.stock_actual === null || ing.stock_actual === undefined) return false;
         const stock = parseFloat(ing.stock_actual) || 0;
         const minimo = parseFloat(ing.stock_minimo) || 0;
-        return stock === 0 || (minimo > 0 && stock <= minimo);
+        return stock === 0 || (minimo > 0 && stock <= minimo) || sugerenciasMap.has(Number(ing.id));
     });
 
     if (lowStock.length === 0) {
@@ -66,8 +82,12 @@ export async function abrirSmartOrder() {
         const stock = parseFloat(ing.stock_actual) || 0;
         const minimo = parseFloat(ing.stock_minimo) || 0;
         const cpf = parseFloat(ing.cantidad_por_formato) || 1;
-        // Suggest: enough to reach 2× minimum
-        const deficit = Math.max(0, (minimo * 2) - stock);
+        // Cantidad: con sugerencia dinámica, la del backend (cubre plazo de
+        // entrega + 7 días según consumo real); sin ella, la clásica (2× mínimo).
+        const sug = sugerenciasMap.get(Number(ing.id));
+        const deficit = sug
+            ? Math.max(0, parseFloat(sug.cantidad_sugerida) || 0)
+            : Math.max(0, (minimo * 2) - stock);
         // Round up to full format units if buying by format
         const suggestedQty = cpf > 1 ? Math.ceil(deficit / cpf) : parseFloat(deficit.toFixed(2));
 
@@ -95,7 +115,14 @@ export async function abrirSmartOrder() {
             formato: ing.formato_compra || '',
             precio: precioInicial,
             proveedorId: provId,  // necesario para el lookup batch posterior
-            checked: true
+            checked: true,
+            // Datos del punto de pedido dinámico para la pista de la fila (o null)
+            smart: sug ? {
+                consumoDiario: parseFloat(sug.consumo_diario) || 0,
+                coberturaDias: sug.cobertura_dias !== null ? parseFloat(sug.cobertura_dias) : null,
+                leadDias: parseFloat(sug.lead_dias) || 0,
+                leadEstimado: !!sug.lead_estimado
+            } : null
         });
     }
 
@@ -224,6 +251,7 @@ function renderSmartOrderGroups(groups) {
                             <td style="padding: 8px;">
                                 <strong style="font-size: 13px;">${escapeHTML(item.nombre)}</strong>
                                 ${item.formato ? `<br><small style="color: #94a3b8;">${escapeHTML(item.formato)} ×${item.cpf}</small>` : ''}
+                                ${item.smart ? `<br><small style="color: #0ea5e9;">📉 ${item.smart.consumoDiario} ${escapeHTML(item.unidad)}/${t('pedidos:smart_per_day') || 'día'}${item.smart.coberturaDias !== null ? ` · ${t('pedidos:smart_days_left') || 'quedan'} ~${item.smart.coberturaDias} d` : ''} · ${t('pedidos:smart_delivery') || 'entrega'} ~${item.smart.leadDias} d${item.smart.leadEstimado ? '*' : ''}</small>` : ''}
                             </td>
                             <td style="padding: 8px; text-align: center;">
                                 <span style="color: ${stockColor}; font-weight: 600;">${item.stock}</span>
