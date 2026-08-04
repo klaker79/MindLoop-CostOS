@@ -9,7 +9,7 @@
  * pisar cualquier global, y el orden de carga importa.
  *
  * La Fase E los migra a stores/imports por tandas. Esta tanda 1 CONGELA la
- * superficie: 447 claves censadas.
+ * superficie: 462 claves censadas (LITE — incluye modulos mobile/ y lite/ que main no tiene).
  *
  *   1. FALLA si aparece una clave window.* NUEVA → usa un import o un store
  *      (ya existen 8 en src/stores). Si el puente global está justificado
@@ -42,11 +42,15 @@ const CLAVES_CENSADAS = new Set([
     'Performance',
     'Validation',
     'XLSX',
+    '__albaranExtras',
+    '__albaranHints',
     '__analisisRetryPending',
     '__analisisState',
     '__importParsers',
     '__inventarioFlexible',
+    '__mlShowPanel',
     '__onboardingChecklistNav',
+    '__onboardingChecklistToggle',
     '__onboardingSpotlightClose',
     '__onboardingSpotlightGo',
     '__onboardingSpotlightSkip',
@@ -70,6 +74,7 @@ const CLAVES_CENSADAS = new Set([
     'abrirCarrito',
     'abrirDeteccionAlergenosBatch',
     'abrirDossierV24',
+    'abrirInformeMensual',
     'abrirManualFormulas',
     'abrirModalEditarPedido',
     'abrirModalNuevoGastoFijo',
@@ -105,10 +110,14 @@ const CLAVES_CENSADAS = new Set([
     'agregarLineaMerma',
     'agregarProveedorIngrediente',
     'agregarVarianteReceta',
+    'anadirExtraAlbaran',
     'analisisCategoriaFilter',
     'api',
     'apiClient',
+    'aplicarAlbaranCant',
+    'aplicarAlbaranPrecio',
     'aplicarGatingComidaPersonal',
+    'aplicarGatingPlan',
     'aplicarPrecioSugerido',
     'aprobarTransferenciaPendiente',
     'authStore',
@@ -116,7 +125,6 @@ const CLAVES_CENSADAS = new Set([
     'autocompletarPrecioEdicion',
     'bcgPagination',
     'bcgScatterChart',
-    'borrarConsumoInterno',
     'borrarTodosHorarios',
     'buscarComidaPersonal',
     'buscarIngredienteParaPedido',
@@ -241,6 +249,7 @@ const CLAVES_CENSADAS = new Set([
     'eliminarUsuarioEquipo',
     'eliminarVariante',
     'eliminarVenta',
+    'emparejarExtraAlbaran',
     'empleados',
     'enviarPedidoWhatsApp',
     'enviarTransferencia',
@@ -317,6 +326,7 @@ const CLAVES_CENSADAS = new Set([
     'initChatWidget',
     'initHorarios',
     'initIntegrations',
+    'initLiteMode',
     'initRestaurantSwitcher',
     'initSearchOptimizations',
     'inventarioCompleto',
@@ -343,9 +353,13 @@ const CLAVES_CENSADAS = new Set([
     'mlBreakevenRender',
     'mlComputeBeneficioNetoDiario',
     'mlGastosOperativosInfo',
+    'mlHtmlPLMovil',
+    'mlNuevoPedido',
     'mlOmnesInfo',
     'mlPreviewPrecioProveedor',
+    'mlRecibirAlbaran',
     'mlSumaGastosOperativos',
+    'mlVolverAPedir',
     'mostrarCalculadoraFormato',
     'mostrarCostTracker',
     'mostrarForgotPassword',
@@ -355,7 +369,6 @@ const CLAVES_CENSADAS = new Set([
     'mostrarFormularioReceta',
     'mostrarLogin',
     'mostrarModalConfirmarMermas',
-    'mostrarModalConsumoInterno',
     'mostrarModalImportarIngredientes',
     'mostrarModalImportarPedidos',
     'mostrarModalImportarProveedores',
@@ -380,9 +393,12 @@ const CLAVES_CENSADAS = new Set([
     'pedidoViendoId',
     'pedidos',
     'plComidaPersonalPorDia',
+    'plCostesPorDia',
     'plGastosFijosDia',
+    'plIngresosPorDia',
     'plMermasPorDia',
     'plPersonalExtraPorDia',
+    'planPermiteTab',
     'preguntarAOmnes',
     'procesarArchivoIngredientes',
     'procesarArchivoInventario',
@@ -402,15 +418,14 @@ const CLAVES_CENSADAS = new Set([
     'refrescarBadgeOmnes',
     'refreshOnboardingChecklist',
     'refreshOnboardingSpotlight',
-    'registrarConsumoInterno',
     'removeSplit',
     'renderBCGPage',
     'renderChatAddonCard',
     'renderForecastChart',
     'renderMenuEngineeringUI',
+    'renderMobileHome',
     'renderPersonalExtra',
     'renderRentabilidadPage',
-    'renderResumenRecuento',
     'renderTablaSplits',
     'renderizarAnalisis',
     'renderizarBalance',
@@ -527,7 +542,7 @@ describe('🧊 Censo de globales window.* (Fase E tanda 1)', () => {
         expect(migradas).toEqual([]);
     });
 
-    it('marcador de progreso: 447 claves (2026-08-04, tanda 1)', () => {
+    it('marcador de progreso: 462 claves (2026-08-04, tanda 1)', () => {
         expect(actuales.size).toBe(CLAVES_CENSADAS.size);
     });
 });
