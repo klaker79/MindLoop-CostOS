@@ -1861,6 +1861,10 @@
               <button class="btn" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; padding: 7px 14px; font-size: 13px; justify-content: center;"
                 data-action="mostrar-modal-consumo-interno" data-i18n="inventario:btn_internal_use">🍽️ Consumo Interno</button>
             </div>
+            <!-- ⚖️ Elaboración va FUERA del grupo "descuenta stock": es una MEDICIÓN
+                 (pesar crudo vs cocido para el rendimiento real), no un movimiento. -->
+            <button class="btn" style="background: linear-gradient(135deg, #10B981, #059669); color: white;"
+              data-action="mostrar-modal-elaboracion" data-i18n="inventario:btn_elaboracion">⚖️ Rendimiento Real</button>
             <button class="btn" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white;"
               data-action="ver-historial-mermas" data-i18n="inventario:btn_waste_history">📋 Ver Historial
               Mermas</button>
@@ -3355,6 +3359,79 @@
               </div>
             </div>
             <div id="ci-historial" style="max-height: 220px; overflow-y: auto;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Elaboración / Rendimiento real (pesaje crudo → cocido). NO toca stock. -->
+      <div id="modal-elaboracion" class="modal">
+        <div class="modal-content" style="max-width: 720px; max-height: 90vh; overflow-y: auto;">
+          <span class="close" data-action="cerrar-modal-elaboracion">&times;</span>
+
+          <div style="margin-bottom: 18px;">
+            <h2 style="color: #059669; display: flex; align-items: center; gap: 10px; margin: 0;">
+              <span data-i18n="inventario:elab_title">⚖️ Rendimiento Real</span>
+            </h2>
+            <p style="color: #64748b; margin: 5px 0 0; font-size: 14px;" data-i18n="inventario:elab_subtitle">
+              Pesa lo que entra crudo y lo que sale utilizable: la app calcula el rendimiento real y lo compara
+              con la ficha. No toca el stock.
+            </p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:elab_ingredient">🐙 Ingrediente</label>
+              <select id="elab-ingrediente"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:elab_date">📅 Fecha</label>
+              <input type="date" id="elab-fecha"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:elab_gross">⚖️ Peso bruto (crudo)</label>
+              <input type="number" id="elab-bruta" min="0.001" step="0.1" placeholder="10"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+            </div>
+            <div>
+              <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:elab_net">🍽️ Peso neto (utilizable)</label>
+              <input type="number" id="elab-neta" min="0.001" step="0.1" placeholder="4.4"
+                style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label style="font-weight: 600; font-size: 13px;" data-i18n="inventario:elab_note">📝 Nota</label>
+            <input type="text" id="elab-nota" maxlength="500"
+              style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; min-width: 0;">
+          </div>
+
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 12px 15px; margin-bottom: 15px;">
+            <span style="font-weight: 600; color: #065f46; font-size: 14px; min-width: 0;"
+              data-i18n="inventario:elab_preview_label">Rendimiento real</span>
+            <span id="elab-preview" style="font-size: 17px; font-weight: 700; color: #047857; min-width: 0;">—</span>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+            <button class="btn btn-secondary" data-action="cerrar-modal-elaboracion"
+              data-i18n="common:btn_cancel" style="min-width: 0;">Cancelar</button>
+            <button id="elab-btn-registrar" class="btn" style="background: #059669; color: white; min-width: 0;"
+              data-action="registrar-elaboracion">
+              <span data-i18n="inventario:elab_register_btn">⚖️ Guardar pesaje</span>
+            </button>
+          </div>
+
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 600; color: #334155;" data-i18n="inventario:elab_summary">📊 Real vs ficha</span>
+            </div>
+            <div id="elab-rendimientos" style="max-height: 220px; overflow-y: auto;"></div>
           </div>
         </div>
       </div>

@@ -443,6 +443,14 @@ export const api = {
     createConsumoInterno: (data) => apiClient.post('/consumos-internos', data),
     deleteConsumoInterno: (id) => apiClient.delete(`/consumos-internos/${id}`),
 
+    // Elaboraciones — pesaje real crudo→cocido para conocer el rendimiento REAL
+    // de un ingrediente vs el de la ficha. NO toca stock: es una medición.
+    getElaboraciones: (ingredienteId) =>
+        apiClient.get(`/elaboraciones${ingredienteId ? `?ingredienteId=${ingredienteId}` : ''}`),
+    getRendimientosReales: () => apiClient.get('/elaboraciones/rendimientos'),
+    createElaboracion: (data) => apiClient.post('/elaboraciones', data),
+    deleteElaboracion: (id) => apiClient.delete(`/elaboraciones/${id}`),
+
     // Punto de pedido recomendado (consumo real × plazo proveedor + mínimo).
     // Solo sugiere: no crea pedidos ni toca stock.
     getReorderSuggestions: () => apiClient.get('/intelligence/reorder'),
