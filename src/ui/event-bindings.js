@@ -6,6 +6,13 @@
  * @module ui/event-bindings
  */
 
+// Elaboración (rendimiento real): import directo, SIN globales window.* nuevas
+// (el censo de la Fase E está congelado y solo puede encoger).
+import {
+    mostrarModalElaboracion,
+    registrarElaboracion
+} from '../modules/inventario/elaboracion-rapida.js';
+
 /**
  * Action handlers map
  * Maps data-action values to their handler functions
@@ -111,6 +118,11 @@ const actionHandlers = {
     // Consumo Interno (plato de la carta consumido sin venta)
     'mostrar-modal-consumo-interno': () => window.mostrarModalConsumoInterno?.(),
     'cerrar-modal-consumo-interno': () => closeModal('modal-consumo-interno'),
+
+    // Elaboración / Rendimiento real (⚖️ medición, no toca stock)
+    'mostrar-modal-elaboracion': () => mostrarModalElaboracion(),
+    'cerrar-modal-elaboracion': () => closeModal('modal-elaboracion'),
+    'registrar-elaboracion': () => registrarElaboracion(),
     'registrar-consumo-interno': () => window.registrarConsumoInterno?.(),
     'borrar-consumo-interno': (e) => {
         const id = e.target.closest('[data-action="borrar-consumo-interno"]')?.dataset.id;

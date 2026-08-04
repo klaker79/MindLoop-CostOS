@@ -443,6 +443,14 @@ export const api = {
     createConsumoInterno: (data) => apiClient.post('/consumos-internos', data),
     deleteConsumoInterno: (id) => apiClient.delete(`/consumos-internos/${id}`),
 
+    // Elaboraciones — pesaje real crudo→cocido para conocer el rendimiento REAL
+    // de un ingrediente vs el de la ficha. NO toca stock: es una medición.
+    getElaboraciones: (ingredienteId) =>
+        apiClient.get(`/elaboraciones${ingredienteId ? `?ingredienteId=${ingredienteId}` : ''}`),
+    getRendimientosReales: () => apiClient.get('/elaboraciones/rendimientos'),
+    createElaboracion: (data) => apiClient.post('/elaboraciones', data),
+    deleteElaboracion: (id) => apiClient.delete(`/elaboraciones/${id}`),
+
     // KPIs
     getDailyKPIs: (date = null) => apiClient.get(date ? `/kpis/daily?date=${date}` : '/kpis/daily'),
     getMonthlyKPIs: (year, month) => apiClient.get(`/kpis/monthly?year=${year}&month=${month}`),
