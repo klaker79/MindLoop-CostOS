@@ -243,6 +243,9 @@
   "edit_toast_error": "Error updating order",
 
   "smart_no_low_stock": "All ingredients above minimum stock — no orders needed",
+  "smart_per_day": "day",
+  "smart_days_left": "left",
+  "smart_delivery": "delivery",
   "smart_items_low": "ingredients below minimum stock",
   "smart_suppliers": "suppliers",
   "smart_review_hint": "Review quantities before creating orders. You can edit or remove items.",

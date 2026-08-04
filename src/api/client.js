@@ -443,6 +443,10 @@ export const api = {
     createConsumoInterno: (data) => apiClient.post('/consumos-internos', data),
     deleteConsumoInterno: (id) => apiClient.delete(`/consumos-internos/${id}`),
 
+    // Punto de pedido recomendado (consumo real × plazo proveedor + mínimo).
+    // Solo sugiere: no crea pedidos ni toca stock.
+    getReorderSuggestions: () => apiClient.get('/intelligence/reorder'),
+
     // KPIs
     getDailyKPIs: (date = null) => apiClient.get(date ? `/kpis/daily?date=${date}` : '/kpis/daily'),
     getMonthlyKPIs: (year, month) => apiClient.get(`/kpis/monthly?year=${year}&month=${month}`),
