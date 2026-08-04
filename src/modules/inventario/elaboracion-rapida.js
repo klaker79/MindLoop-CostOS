@@ -159,6 +159,41 @@ export async function registrarElaboracion() {
 }
 
 /**
+ * Aplica el rendimiento real medido a la ficha del ingrediente. UN clic con
+ * confirmación: la app nunca cambia la ficha sola (ley de producto), pero
+ * tampoco te manda a Ingredientes a copiar el número a mano.
+ * La ficha guarda un ENTERO 1–100: se aplica redondeado.
+ */
+export async function aplicarRendimientoFicha(dataset) {
+    const id = parseInt(dataset?.id, 10);
+    const real = parseFloat(dataset?.real);
+    if (!id || !Number.isFinite(real)) return;
+
+    const nuevo = Math.min(100, Math.max(1, Math.round(real)));
+    const nombre = dataset.nombre || '';
+    const ficha = dataset.ficha || '?';
+
+    const mensaje = t('inventario:elab_apply_confirm')
+        .replace('{{nombre}}', nombre)
+        .replace('{{ficha}}', ficha)
+        .replace('{{nuevo}}', nuevo);
+    if (!window.confirm(mensaje)) return;
+
+    try {
+        await window.api.updateIngrediente(id, { rendimiento: nuevo });
+        window.showToast?.(`${t('inventario:elab_applied')} ${nombre}: ${nuevo}%`, 'success');
+        // Refrescar datos en memoria para que escandallos/inventario vean la ficha nueva
+        if (window.api?.getIngredientes) {
+            window.ingredientes = await window.api.getIngredientes();
+        }
+        cargarRendimientos();
+    } catch (err) {
+        logger.error('Error aplicando rendimiento a la ficha', err);
+        window.showToast?.(err?.message || t('inventario:elab_apply_error'), 'error');
+    }
+}
+
+/**
  * Resumen por ingrediente: rendimiento real PONDERADO vs ficha, con semáforo.
  */
 async function cargarRendimientos() {
@@ -183,13 +218,28 @@ async function cargarRendimientos() {
             const color = delta === null ? '#64748b' : delta < -5 ? '#dc2626' : delta > 5 ? '#d97706' : '#16a34a';
             const deltaTxt = delta === null ? '' :
                 ` <span style="color:${color};font-weight:700;">(${delta > 0 ? '+' : ''}${delta} pts)</span>`;
+            // "Aplicar a la ficha": cierra el círculo sin peregrinar a Ingredientes.
+            // Solo si hay desviación real (≥1 pt) y el valor cabe en la ficha (1–100:
+            // la columna `rendimiento` es INTEGER acotado; los >100 tipo arroz no).
+            const aplicable = r.ingrediente_id && delta !== null && Math.abs(delta) >= 1
+                && Number.isFinite(real) && real >= 1 && real <= 100;
+            const btnAplicar = aplicable
+                ? `<button data-action="aplicar-rendimiento-ficha"
+                       data-id="${r.ingrediente_id}" data-nombre="${escapeHTML(r.nombre || '')}"
+                       data-real="${real}" data-ficha="${ficha}"
+                       style="border:1px solid #059669;background:#ecfdf5;color:#047857;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">
+                       ✅ ${t('inventario:elab_apply_btn')}</button>`
+                : '';
             html += `
               <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #f1f5f9;font-size:13px;">
                 <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(r.nombre || '')}</span>
-                <span style="white-space:nowrap;">
-                  <strong>${Number.isFinite(real) ? real + '%' : '—'}</strong>
-                  <span style="color:#94a3b8;"> ${t('inventario:elab_vs_ficha')} ${ficha !== null ? ficha + '%' : '—'}</span>${deltaTxt}
-                  <span style="color:#94a3b8;font-size:12px;"> · ${r.n_elaboraciones}×</span>
+                <span style="white-space:nowrap;display:inline-flex;align-items:center;gap:8px;">
+                  <span>
+                    <strong>${Number.isFinite(real) ? real + '%' : '—'}</strong>
+                    <span style="color:#94a3b8;"> ${t('inventario:elab_vs_ficha')} ${ficha !== null ? ficha + '%' : '—'}</span>${deltaTxt}
+                    <span style="color:#94a3b8;font-size:12px;"> · ${r.n_elaboraciones}×</span>
+                  </span>
+                  ${btnAplicar}
                 </span>
               </div>`;
         });
