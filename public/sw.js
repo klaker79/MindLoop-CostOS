@@ -219,7 +219,7 @@
 // BUMP v271 (port Lote 1 del censo): al asociar proveedor se mandan los campos de FORMATO (no el precio a secas) — la 4a causa del bug pivot €/formato↔€/unidad-base; el formato tambien puede ser MENOR que la unidad base (botella 0,75 l); y los toasts pasan a z-index 1000000 — los errores dentro de un modal eran INVISIBLES ("le doy y no pasa nada").
 // BUMP v272 (port Lote 4 del censo, UX de pedidos que ya rodaba en Lite): el modal de recepcion no oculta las lineas editables (flex+overflow), el boton Crear Pedido cabe en el movil (footer con wrap), pedidos con FECHA FUTURA (solo compra a mercado exige hoy) y su recepcion se registra HOY (acotarAHoy), proveedor sin ingredientes vinculados no bloquea, y fuera la foto de hoja de mermas (endpoint inexistente).
 // BUMP v273 (Fase C, fuente unica): fuera la calculadora de coste DUPLICADA de performance.js (0 consumidores, ignoraba precio_medio_compra) y umbrales 30/35/40 + vinos 40/50 importados de food-cost-thresholds.js en los 5 sitios que los copiaban a mano. Cero cambio de numeros — golden-parity lo custodia.
-const CACHE_NAME = 'mindloop-costos-v274';
+const CACHE_NAME = 'mindloop-costos-v275';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes

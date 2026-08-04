@@ -451,6 +451,10 @@ export const api = {
     createElaboracion: (data) => apiClient.post('/elaboraciones', data),
     deleteElaboracion: (id) => apiClient.delete(`/elaboraciones/${id}`),
 
+    // Punto de pedido recomendado (consumo real × plazo proveedor + mínimo).
+    // Solo sugiere: no crea pedidos ni toca stock.
+    getReorderSuggestions: () => apiClient.get('/intelligence/reorder'),
+
     // KPIs
     getDailyKPIs: (date = null) => apiClient.get(date ? `/kpis/daily?date=${date}` : '/kpis/daily'),
     getMonthlyKPIs: (year, month) => apiClient.get(`/kpis/monthly?year=${year}&month=${month}`),

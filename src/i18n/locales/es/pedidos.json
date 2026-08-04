@@ -243,6 +243,9 @@
   "edit_toast_error": "Error actualizando pedido",
 
   "smart_no_low_stock": "Todos los ingredientes por encima del stock mínimo — no hay pedidos necesarios",
+  "smart_per_day": "día",
+  "smart_days_left": "quedan",
+  "smart_delivery": "entrega",
   "smart_items_low": "ingredientes bajo mínimo",
   "smart_suppliers": "proveedores",
   "smart_review_hint": "Revisa las cantidades antes de crear los pedidos. Puedes editar o eliminar items.",
