@@ -10,7 +10,8 @@
 // (el censo de la Fase E está congelado y solo puede encoger).
 import {
     mostrarModalElaboracion,
-    registrarElaboracion
+    registrarElaboracion,
+    aplicarRendimientoFicha
 } from '../modules/inventario/elaboracion-rapida.js';
 
 /**
@@ -123,6 +124,10 @@ const actionHandlers = {
     'mostrar-modal-elaboracion': () => mostrarModalElaboracion(),
     'cerrar-modal-elaboracion': () => closeModal('modal-elaboracion'),
     'registrar-elaboracion': () => registrarElaboracion(),
+    'aplicar-rendimiento-ficha': (e) => {
+        const btn = e.target.closest('[data-action="aplicar-rendimiento-ficha"]');
+        if (btn) aplicarRendimientoFicha(btn.dataset);
+    },
     'registrar-consumo-interno': () => window.registrarConsumoInterno?.(),
     'borrar-consumo-interno': (e) => {
         const id = e.target.closest('[data-action="borrar-consumo-interno"]')?.dataset.id;
