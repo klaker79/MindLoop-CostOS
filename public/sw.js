@@ -235,6 +235,9 @@
 // BUMP v320 (P&L del movil en una columna): la Cuenta de Resultados era una matriz de conceptos x 31 dias; en un telefono entran 5 columnas y si son de principio de mes se ven 5 ceros y parece que no hay datos. Ahora el movil enseña el total del periodo en vertical + la lista de dias, sin scroll lateral. Los numeros salen del MISMO computeBeneficioNetoDiario que la tabla y el grafico. Incluye el menu Mas con Diario y Configuracion.
 // BUMP v324 (casa Lite sin Omnes): se oculta la pestaña de Omnes y aparece el boton del informe mensual. El corte real del chat esta en lite-api (CHAT_ENABLED=false).
 // BUMP v326 (precio de proveedor por formato): al asociar proveedor se mandan formato+cantidad+precio_formato para que el backend derive el EUR/unidad-base. Sin esto, una CAJA de 10 l a 23,10 EUR salia a 231 EUR en pedidos.
+// BUMP v332 (port Lote 2 del censo): el Valor de Stock cuenta solo GENERO (suministros en linea aparte) y el ajuste del recuento fisico deja de contar como merma del dia en el P&L. Claves i18n kpi_supplies en es/en/zh conservando las lite_informe_*.
+// BUMP v333 (port Lote 3, seguridad): nombres escapados en tablas del Diario y modal de margenes (XSS), CSP con object-src 'none' + SRI en Sentry, y nginx deja de cachear index.html — adios pantalla en blanco tras cada Redeploy de Lite.
+// BUMP v334 (Fase C, fuente unica): fuera la calculadora de coste DUPLICADA de performance.js (0 consumidores, ignoraba precio_medio_compra) y umbrales 30/35/40 + vinos 40/50 importados de food-cost-thresholds.js en los 5 sitios que los copiaban a mano. Cero cambio de numeros — golden-parity lo custodia.
 const CACHE_NAME = 'mindloop-costos-v334';
 
 // Solo recursos GARANTIZADOS que existen en producción
