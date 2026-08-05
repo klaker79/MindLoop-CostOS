@@ -271,6 +271,9 @@ export const api = {
         null,
 
     // Ingredients (antes: ingredientes)
+    // Rendimiento estándar sugerido (tabla global USDA SR-28). Solo lectura.
+    getRendimientoSugerido: (nombre) =>
+        apiClient.get(`/ingredients/rendimiento-sugerido?nombre=${encodeURIComponent(nombre)}`),
     getIngredientes: () => apiClient.get('/ingredients'),
     getIngrediente: (id) => apiClient.get(`/ingredients/${id}`),
     getIngredients: () => apiClient.get('/ingredients'),

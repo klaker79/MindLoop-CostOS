@@ -160,5 +160,7 @@
   "import_click_to_select": "点击选择文件",
   "import_file_types": "Excel (.xlsx) 或 CSV",
   "price_evolution_modal_title": "价格走势",
-  "form_yield_help": "ℹ️ 定义产品的实际可用百分比。<br>例如：购买1公斤肉，去掉200克脂肪，出品率为 <strong>80%</strong>。"
+  "form_yield_help": "ℹ️ 定义产品的实际可用百分比。<br>例如：购买1公斤肉，去掉200克脂肪，出品率为 <strong>80%</strong>。",
+  "yield_suggested": "建议：{{pct}}% — 官方标准（{{nombre}}：去除{{quita}}）",
+  "yield_apply": "应用"
 }

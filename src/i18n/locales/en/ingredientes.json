@@ -5,7 +5,6 @@
   "filter_food": "Food",
   "filter_drinks": "Beverages",
   "filter_supplies": "Supplies",
-
   "col_ingredient": "Ingredient",
   "col_family": "Family",
   "col_supplier": "Supplier",
@@ -13,36 +12,27 @@
   "col_stock": "Stock",
   "col_stock_min": "Min Stock",
   "col_actions": "Actions",
-
   "family_food": "Food",
   "family_drink": "Beverage",
   "family_supply": "Supply",
-
   "badge_inactive": "Inactive",
-
   "vs_base": "vs base",
-
   "no_supplier": "No supplier",
-
   "empty_not_found": "Not found",
   "empty_none_yet": "No ingredients yet",
   "empty_try_another": "Try another search",
   "empty_no_in_category": "No ingredients in this category",
   "empty_add_first": "Add your first ingredient",
-
   "pagination_prev": "Previous",
   "pagination_next": "Next",
   "pagination_range": "{{start}}-{{end}} of {{total}}",
-
   "summary_total": "Total: {{count}}",
   "summary_filtered": "Filtered: {{count}}",
   "summary_showing": "Showing: {{count}}",
-
   "form_title_new": "New Ingredient",
   "form_title_edit": "Edit Ingredient",
   "btn_add": "Add",
   "btn_save": "Save",
-
   "btn_add_to_cart_title": "Add to cart",
   "btn_price_evolution_title": "View price evolution",
   "btn_manage_suppliers_title": "Manage suppliers",
@@ -50,7 +40,6 @@
   "btn_activate_title": "Activate ingredient",
   "btn_deactivate_title": "Deactivate ingredient",
   "btn_delete_title": "Delete",
-
   "export_not_available": "Export not available",
   "export_col_name": "Name",
   "export_col_category": "Category",
@@ -60,7 +49,6 @@
   "export_col_stock_actual": "Current Stock",
   "export_col_stock_min": "Min Stock",
   "export_filename": "Ingredients_CostOS",
-
   "toast_updated": "Ingredient updated",
   "toast_created": "Ingredient created",
   "toast_deleted": "Ingredient deleted",
@@ -70,9 +58,7 @@
   "toast_error_saving": "Error saving ingredient: {{message}}",
   "toast_error_deleting": "Error deleting ingredient: {{message}}",
   "toast_error_generic": "Error: {{message}}",
-
   "confirm_delete": "Delete this ingredient?",
-
   "suppliers_modal_title": "Suppliers for \"{{name}}\"",
   "suppliers_not_found": "Ingredient not found",
   "suppliers_none_associated": "No associated suppliers",
@@ -106,7 +92,6 @@
   "suppliers_error_deleting": "Error removing supplier",
   "suppliers_error_loading": "Error loading suppliers",
   "suppliers_supplier_not_found": "Supplier not found",
-
   "price_evolution_current_price": "Current price: {{price}}€/{{unit}}",
   "price_evolution_min": "Min Price",
   "price_evolution_avg": "Average",
@@ -123,7 +108,6 @@
   "price_evolution_current_label": "Current",
   "price_evolution_supplier_fallback": "Supplier",
   "price_evolution_ingredient_not_found": "Ingredient not found",
-
   "description": "Manage all your restaurant's ingredients",
   "btn_new": "➕ Add Ingredient",
   "form_label_unit": "Unit",
@@ -155,7 +139,6 @@
   "form_format_quantity": "Quantity per format",
   "form_format_placeholder": "e.g.: can, jug, box...",
   "form_format_qty_placeholder": "e.g.: 0.65 (kg), 10 (L)...",
-
   "suppliers_associated": "ASSOCIATED SUPPLIERS",
   "suppliers_add_title": "Add supplier",
   "suppliers_select": "Select...",
@@ -177,7 +160,7 @@
   "import_click_to_select": "Click to select file",
   "import_file_types": "Excel (.xlsx) or CSV",
   "price_evolution_modal_title": "Price Evolution",
-
-  "suppliers_modal_title": "Suppliers for \"{{name}}\"",
-  "form_yield_help": "ℹ️ Define what percentage of the product you actually use. <br>e.g.: If you buy 1kg of meat and trim 200g of fat, the yield is <strong>80%</strong>."
+  "form_yield_help": "ℹ️ Define what percentage of the product you actually use. <br>e.g.: If you buy 1kg of meat and trim 200g of fat, the yield is <strong>80%</strong>.",
+  "yield_suggested": "Suggested: {{pct}}% — official standard ({{nombre}}: removing {{quita}})",
+  "yield_apply": "Apply"
 }

@@ -5,7 +5,6 @@
   "filter_food": "Alimentos",
   "filter_drinks": "Bebidas",
   "filter_supplies": "Suministros",
-
   "col_ingredient": "Ingrediente",
   "col_family": "Familia",
   "col_supplier": "Proveedor",
@@ -13,36 +12,27 @@
   "col_stock": "Stock",
   "col_stock_min": "Stock Mínimo",
   "col_actions": "Acciones",
-
   "family_food": "Alimento",
   "family_drink": "Bebida",
   "family_supply": "Suministro",
-
   "badge_inactive": "Inactivo",
-
   "vs_base": "vs base",
-
   "no_supplier": "Sin proveedor",
-
   "empty_not_found": "No encontrados",
   "empty_none_yet": "Aún no hay ingredientes",
   "empty_try_another": "Prueba otra búsqueda",
   "empty_no_in_category": "No hay ingredientes en esta categoría",
   "empty_add_first": "Añade tu primer ingrediente",
-
   "pagination_prev": "Anterior",
   "pagination_next": "Siguiente",
   "pagination_range": "{{start}}-{{end}} de {{total}}",
-
   "summary_total": "Total: {{count}}",
   "summary_filtered": "Filtrados: {{count}}",
   "summary_showing": "Mostrando: {{count}}",
-
   "form_title_new": "Nuevo Ingrediente",
   "form_title_edit": "Editar Ingrediente",
   "btn_add": "Añadir",
   "btn_save": "Guardar",
-
   "btn_add_to_cart_title": "Añadir al carrito",
   "btn_price_evolution_title": "Ver evolución de precio",
   "btn_manage_suppliers_title": "Gestionar proveedores",
@@ -50,7 +40,6 @@
   "btn_activate_title": "Activar ingrediente",
   "btn_deactivate_title": "Desactivar ingrediente",
   "btn_delete_title": "Eliminar",
-
   "export_not_available": "Exportación no disponible",
   "export_col_name": "Nombre",
   "export_col_category": "Categoría",
@@ -60,7 +49,6 @@
   "export_col_stock_actual": "Stock Actual",
   "export_col_stock_min": "Stock Mínimo",
   "export_filename": "Ingredientes_CostOS",
-
   "toast_updated": "Ingrediente actualizado",
   "toast_created": "Ingrediente creado",
   "toast_deleted": "Ingrediente eliminado",
@@ -70,9 +58,7 @@
   "toast_error_saving": "Error guardando ingrediente: {{message}}",
   "toast_error_deleting": "Error eliminando ingrediente: {{message}}",
   "toast_error_generic": "Error: {{message}}",
-
   "confirm_delete": "¿Eliminar este ingrediente?",
-
   "suppliers_modal_title": "Proveedores de \"{{name}}\"",
   "suppliers_not_found": "Ingrediente no encontrado",
   "suppliers_none_associated": "No hay proveedores asociados",
@@ -106,7 +92,6 @@
   "suppliers_error_deleting": "Error eliminando proveedor",
   "suppliers_error_loading": "Error cargando proveedores",
   "suppliers_supplier_not_found": "Proveedor no encontrado",
-
   "price_evolution_current_price": "Precio actual: {{price}}€/{{unit}}",
   "price_evolution_min": "Precio Mínimo",
   "price_evolution_avg": "Promedio",
@@ -123,7 +108,6 @@
   "price_evolution_current_label": "Actual",
   "price_evolution_supplier_fallback": "Proveedor",
   "price_evolution_ingredient_not_found": "Ingrediente no encontrado",
-
   "description": "Gestiona todos los ingredientes de tu restaurante",
   "btn_new": "➕ Añadir Ingrediente",
   "form_label_unit": "Unidad",
@@ -155,7 +139,6 @@
   "form_format_quantity": "Cantidad por formato",
   "form_format_placeholder": "ej: bote, garrafa, caja...",
   "form_format_qty_placeholder": "ej: 0.65 (kg), 10 (L)...",
-
   "suppliers_associated": "PROVEEDORES ASOCIADOS",
   "suppliers_add_title": "Agregar proveedor",
   "suppliers_select": "Seleccionar...",
@@ -177,7 +160,7 @@
   "import_click_to_select": "Haz clic para seleccionar archivo",
   "import_file_types": "Excel (.xlsx) o CSV",
   "price_evolution_modal_title": "Evolución del Precio",
-
-  "suppliers_modal_title": "Proveedores de \"{{name}}\"",
-  "form_yield_help": "ℹ️ Define qué porcentaje del producto realmente usas. <br>Ej: Si compras 1kg de carne y limpias 200g de grasa, el rendimiento es <strong>80%</strong>."
+  "form_yield_help": "ℹ️ Define qué porcentaje del producto realmente usas. <br>Ej: Si compras 1kg de carne y limpias 200g de grasa, el rendimiento es <strong>80%</strong>.",
+  "yield_suggested": "Sugerido: {{pct}}% — estándar oficial ({{nombre}}: se retira {{quita}})",
+  "yield_apply": "Aplicar"
 }
