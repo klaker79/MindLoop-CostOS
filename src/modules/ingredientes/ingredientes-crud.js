@@ -27,15 +27,87 @@ if (typeof document !== 'undefined') {
  * SOLO sugerencia — el usuario confirma. Llamada con oninput desde #ing-nombre.
  */
 export function sugerirAlergenosPorNombre() {
-    if (window._alergenosManual) return;
-    const nombre = getInputValue('ing-nombre');
-    const sugeridos = detectarAlergenos(nombre);
-    const set = new Set(sugeridos);
-    document.querySelectorAll('.ing-alergeno').forEach(chk => {
-        chk.checked = set.has(chk.value); // programático → no marca _alergenosManual
-    });
-    const hint = getElement('ing-alergenos-hint');
-    if (hint) hint.style.display = sugeridos.length ? 'block' : 'none';
+    if (!window._alergenosManual) {
+        const nombre = getInputValue('ing-nombre');
+        const sugeridos = detectarAlergenos(nombre);
+        const set = new Set(sugeridos);
+        document.querySelectorAll('.ing-alergeno').forEach(chk => {
+            chk.checked = set.has(chk.value); // programático → no marca _alergenosManual
+        });
+        const hint = getElement('ing-alergenos-hint');
+        if (hint) hint.style.display = sugeridos.length ? 'block' : 'none';
+    }
+    // 💡 Mismo disparador para la sugerencia de rendimiento estándar (USDA).
+    // Piggyback a propósito: cero globales window.* nuevas (censo de main).
+    sugerirRendimientoPorNombre();
+}
+
+// ── Sugerencia de rendimiento estándar (tabla USDA vía API) ─────────────────
+// Solo al CREAR (no al editar: no pisamos fichas) y solo si el slider sigue
+// virgen al 100%. La sugerencia se APLICA con un clic del usuario, nunca sola
+// (misma filosofía que la diferencia de inventario y el pesaje real).
+let _rendimientoDebounce = null;
+let _rendimientoUltimoNombre = '';
+
+function sugerirRendimientoPorNombre() {
+    clearTimeout(_rendimientoDebounce);
+    _rendimientoDebounce = setTimeout(consultarRendimientoSugerido, 600);
+}
+
+async function consultarRendimientoSugerido() {
+    const hint = getElement('ing-rendimiento-sugerido');
+    if (!hint) return;
+
+    const nombre = (getInputValue('ing-nombre') || '').trim();
+    const editando = !!window.editandoIngredienteId;
+    const slider = getElement('ing-rendimiento-slider');
+    const sliderVirgen = slider && parseInt(slider.value, 10) === 100;
+
+    if (!nombre || nombre.length < 3 || editando || !sliderVirgen) {
+        hint.style.display = 'none';
+        return;
+    }
+    if (nombre === _rendimientoUltimoNombre) return; // ya consultado
+    _rendimientoUltimoNombre = nombre;
+
+    try {
+        const data = await window.api.getRendimientoSugerido(nombre);
+        const s = data?.sugerencia;
+        if (!s) {
+            hint.style.display = 'none';
+            return;
+        }
+
+        hint.innerHTML = '';
+        const texto = document.createElement('span');
+        texto.innerHTML = `💡 ${t('ingredientes:yield_suggested')
+            .replace('{{pct}}', escapeHTML(String(s.rendimiento)))
+            .replace('{{nombre}}', escapeHTML(s.nombre_estandar))
+            .replace('{{quita}}', escapeHTML(s.que_se_quita || ''))} `;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = `✅ ${t('ingredientes:yield_apply')} ${s.rendimiento}%`;
+        btn.style.cssText = 'margin-left:8px;border:1px solid #059669;background:#fff;color:#047857;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;cursor:pointer;';
+        // onclick programático: sin data-action ni window.* (el botón es dinámico)
+        btn.onclick = () => {
+            const sliderEl = getElement('ing-rendimiento-slider');
+            const numEl = getElement('ing-rendimiento');
+            if (sliderEl) {
+                sliderEl.value = s.rendimiento;
+                // Dispara el listener propio del slider: sincroniza el input
+                // oculto y repinta el gradiente/valor (setupYieldSlider).
+                sliderEl.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            if (numEl) numEl.value = s.rendimiento;
+            hint.style.display = 'none';
+        };
+        hint.appendChild(texto);
+        hint.appendChild(btn);
+        hint.style.display = 'block';
+    } catch {
+        // Fail-open: sin sugerencia, el alta sigue exactamente como siempre.
+        hint.style.display = 'none';
+    }
 }
 // 🆕 Zustand store para gestión de estado
 import ingredientStore from '../../stores/ingredientStore.js';

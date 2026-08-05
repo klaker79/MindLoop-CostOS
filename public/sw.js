@@ -225,7 +225,7 @@
 // BUMP v314 (staging al dia con prod): el reparto genero/suministros del KPI Valor de Stock, que en prod ya entro con la v264. Staging tenia el aviso de acumulacion (v313) pero no el reparto, asi que avisaba del problema sin ensenar la cifra limpia. v314 = v313 + reparto.
 // BUMP v315 (resumen del recuento): cabecera informativa en el modal de confirmar mermas.
 // BUMP v316 (aviso del recuento solo para diferencias absurdas): con el criterio anterior saltaban 96 de 150 lineas reales; ahora 27. Calibrado con 120 dias de recuentos de La Nave 5.
-const CACHE_NAME = 'mindloop-costos-v316';
+const CACHE_NAME = 'mindloop-costos-v317';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
