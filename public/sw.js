@@ -239,7 +239,8 @@
 // BUMP v333 (port Lote 3, seguridad): nombres escapados en tablas del Diario y modal de margenes (XSS), CSP con object-src 'none' + SRI en Sentry, y nginx deja de cachear index.html — adios pantalla en blanco tras cada Redeploy de Lite.
 // BUMP v334 (Fase C, fuente unica): fuera la calculadora de coste DUPLICADA de performance.js (0 consumidores, ignoraba precio_medio_compra) y umbrales 30/35/40 + vinos 40/50 importados de food-cost-thresholds.js en los 5 sitios que los copiaban a mano. Cero cambio de numeros — golden-parity lo custodia.
 // BUMP v335 (Diario legible en oscuro): las cards terracota del Diario (Personal extra, Gastos fijos) ya pintaban las letras BLANCAS en linea, pero los overrides genericos del modo oscuro ([data-theme=dark] label/input de main.css) las pisaban con gris turbio y cajas pizarra — ilegible sobre terracota (captura de Iker 07/08). Regla acotada en theme-editorial que re-gana la especificidad SOLO dentro de esas cards: letras claras, inputs translucidos, iconito del calendario invertido. Verificado con harness Playwright en claro y oscuro.
-const CACHE_NAME = 'mindloop-costos-v335';
+// BUMP v336 (Diario legible, segunda vuelta): los PLACEHOLDERS ('Extra', los ceros de Horas/euros-hora) seguian invisibles — main.css los pisa en oscuro con var(--text-muted) !important y en claro el gris del navegador tampoco contrasta sobre terracota. Placeholder blanco translucido (0.55) en los DOS modos, solo dentro de las cards terracota del Diario. Harness Playwright midiendo los 9 textos de la card: todos claros en claro y oscuro.
+const CACHE_NAME = 'mindloop-costos-v336';
 
 // Solo recursos GARANTIZADOS que existen en producción
 // CSS/JS se cachean dinámicamente porque Vite les añade hashes
