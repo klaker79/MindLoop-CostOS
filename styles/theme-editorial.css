@@ -1209,6 +1209,32 @@ button[onclick*="mostrarCostTracker"]:hover {
 /* El sub-card interno de "Se guardan automáticamente..." tenía bg
    rgba(255,255,255,0.2) — se queda blanco semitransparente, OK con navy. */
 
+/* --- F.1.b Letras SIEMPRE claras dentro de las cards terracota del Diario ---
+   Reportado por Iker 2026-08-07 (captura de Personal extra ilegible en Lite).
+   Estas cards tienen fondo OSCURO (terracota) en los DOS modos, y su HTML ya
+   pinta las letras blancas en línea. Pero en modo oscuro los overrides
+   GENÉRICOS de main.css pisan ese inline con !important:
+     [data-theme="dark"] label → #94a3b8 (gris turbio sobre terracota)
+     [data-theme="dark"] input → fondo pizarra #334155 (cajas negras)
+   Aquí se re-gana la especificidad SOLO dentro de estas cards: letras claras
+   e inputs translúcidos, como diseñó el componente. Verificado con harness
+   Playwright (light y dark) antes y después. */
+[data-theme="dark"] #tab-diario div[style*="linear-gradient(135deg, #667eea"] label,
+[data-theme="dark"] #tab-diario div[style*="linear-gradient(135deg, #667eea"] span {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+[data-theme="dark"] #tab-diario div[style*="linear-gradient(135deg, #667eea"] input,
+[data-theme="dark"] #tab-diario div[style*="linear-gradient(135deg, #667eea"] select {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+/* El indicador nativo del <input type="date"> se dibuja negro sobre oscuro:
+   invertirlo para que el iconito del calendario también se vea. */
+[data-theme="dark"] #tab-diario div[style*="linear-gradient(135deg, #667eea"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 
 /* --- F.2 Botón flotante chat (Asistente IA) --- */
 /* chat-styles.js inyecta:
