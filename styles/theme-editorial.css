@@ -1234,6 +1234,15 @@ button[onclick*="mostrarCostTracker"]:hover {
 [data-theme="dark"] #tab-diario div[style*="linear-gradient(135deg, #667eea"] input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
+/* Y los PLACEHOLDERS ("Extra", los ceros de Horas/€) — segunda vuelta del
+   mismo bug (captura de Iker 2026-08-07 tras v335): en oscuro main.css los
+   pisa con var(--text-muted) !important (gris apagado, invisible sobre
+   terracota) y en claro el gris del navegador tampoco llega. Blanco
+   translúcido en los DOS modos, solo dentro de estas cards. */
+#tab-diario div[style*="linear-gradient(135deg, #667eea"] input::placeholder {
+  color: rgba(255, 255, 255, 0.55) !important;
+  opacity: 1;
+}
 
 
 /* --- F.2 Botón flotante chat (Asistente IA) --- */
