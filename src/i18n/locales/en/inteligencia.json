@@ -75,6 +75,9 @@
   "omnes_x_deriva": "“{{nombre}}”: recipes cost it at {{app}}/{{unidad}}, but your 90-day average purchase price is {{real}} ({{pct}}% higher). Hidden extra cost ≈ {{impacto}}/month.",
   "omnes_x_deriva_recetas": "Affects {{n}} recipe(s).",
 
+  "omnes_t_entrada_sin_registrar": "Coming in unrecorded",
+  "omnes_x_entrada_sin_registrar": "“{{nombre}}”: {{ventas}} sales served with stock at 0 since {{desde}}. That is {{uds}} {{unidad}} ({{importe}}) charged to customers that never left your inventory. Check whether deliveries of this product are being recorded.",
+
   "omnes_t_frescura": "Freshness",
   "omnes_x_frescura": "{{stock}} {{unidad}} of “{{nombre}}” has been in storage for {{dias}} days. Use it before it's lost.",
 

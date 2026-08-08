@@ -1,7 +1,17 @@
 /**
  * Lógica determinista de los avisos de Omnes (sin IA → sin errores).
  */
-import { calcularSubidasPrecio, calcularStockCritico, UMBRALES } from '@modules/inteligencia/omnes-avisos.js';
+import { calcularSubidasPrecio, calcularStockCritico, UMBRALES, construirAvisos } from '@modules/inteligencia/omnes-avisos.js';
+
+// Señales del backend: por defecto ninguna, cada test activa la que necesita.
+const mkFetch = (porEndpoint = {}) => (endpoint) =>
+    Promise.resolve(Object.prototype.hasOwnProperty.call(porEndpoint, endpoint) ? porEndpoint[endpoint] : null);
+
+const ENTRADA_PAN = {
+    id: 345, nombre: 'PAN', unidad: 'unidad',
+    uds_sin_descontar: 2517.64, importe_eur: 5538.81, n_ventas: 150,
+    primera: '2026-05-11', ultima: '2026-08-06'
+};
 
 describe('calcularSubidasPrecio', () => {
     const ingMap = new Map([
@@ -59,5 +69,54 @@ describe('calcularStockCritico', () => {
             { id: 3, nombre: 'Z', stock_actual: null, stock_minimo: 2 },
         ];
         expect(calcularStockCritico(ings)).toEqual([]);
+    });
+});
+
+// ─────────────────────────────────────────────────────────────
+// Entradas sin registrar (caso PAN): mercancía servida y cobrada
+// con el stock a 0, que nunca salió del inventario.
+// ─────────────────────────────────────────────────────────────
+describe('construirAvisos — entradas sin registrar', () => {
+    const deps = (fetchIntelligence) => ({ fetchIntelligence, ingredientes: [], pedidos: [] });
+
+    test('crea el aviso con id estable, nivel atención y CTA al ingrediente', async () => {
+        const avisos = await construirAvisos(deps(mkFetch({
+            'unregistered-entries': { alertas: [ENTRADA_PAN] }
+        })));
+        const a = avisos.find(x => x.categoria === 'entradas');
+        expect(a).toBeDefined();
+        expect(a.id).toBe('entrada-345');      // estable → el descarte de 7d funciona
+        expect(a.nivel).toBe('atencion');      // no es urgencia de hoy, es proceso roto
+        expect(a.icono).toBe('📥');
+        expect(a.cta).toEqual({ label: expect.any(String), tipo: 'ingrediente', id: 345 });
+        expect(a.texto).toContain('PAN');
+    });
+
+    test('backend sin el endpoint (null) → no rompe y no inventa avisos', async () => {
+        const avisos = await construirAvisos(deps(mkFetch({})));
+        expect(avisos.filter(x => x.categoria === 'entradas')).toHaveLength(0);
+    });
+
+    test('respuesta sin alertas o malformada → sin avisos, sin crash', async () => {
+        for (const payload of [{}, { alertas: null }, { alertas: [] }, 'texto', 42]) {
+            const avisos = await construirAvisos(deps(mkFetch({ 'unregistered-entries': payload })));
+            expect(avisos.filter(x => x.categoria === 'entradas')).toHaveLength(0);
+        }
+    });
+
+    test('nunca supera maxPorTipo aunque el backend mande muchas', async () => {
+        const muchas = Array.from({ length: 20 }, (_, i) => ({ ...ENTRADA_PAN, id: 100 + i }));
+        const avisos = await construirAvisos(deps(mkFetch({
+            'unregistered-entries': { alertas: muchas }
+        })));
+        expect(avisos.filter(x => x.categoria === 'entradas')).toHaveLength(UMBRALES.maxPorTipo);
+    });
+
+    test('si una señal falla, las demás siguen saliendo (aislamiento)', async () => {
+        const fetchConFallo = (endpoint) => endpoint === 'price-check'
+            ? Promise.resolve(null)
+            : mkFetch({ 'unregistered-entries': { alertas: [ENTRADA_PAN] } })(endpoint);
+        const avisos = await construirAvisos(deps(fetchConFallo));
+        expect(avisos.filter(x => x.categoria === 'entradas')).toHaveLength(1);
     });
 });

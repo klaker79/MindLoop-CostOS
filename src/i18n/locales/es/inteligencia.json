@@ -75,6 +75,9 @@
   "omnes_x_deriva": "«{{nombre}}»: el escandallo lo cuesta a {{app}}/{{unidad}}, pero llevas 90 días comprándolo a {{real}} de media ({{pct}}% más). Sobrecoste oculto ≈ {{impacto}}/mes.",
   "omnes_x_deriva_recetas": "Afecta a {{n}} receta(s).",
 
+  "omnes_t_entrada_sin_registrar": "Entra sin registrarse",
+  "omnes_x_entrada_sin_registrar": "«{{nombre}}»: {{ventas}} ventas servidas con el stock a 0 desde el {{desde}}. Son {{uds}} {{unidad}} ({{importe}}) que se cobraron y nunca salieron del inventario. Revisa si se están registrando las entradas de este producto.",
+
   "omnes_t_frescura": "Frescura",
   "omnes_x_frescura": "{{stock}} {{unidad}} de «{{nombre}}» llevan {{dias}} días en cámara. Úsalo antes de que se pierda.",
 

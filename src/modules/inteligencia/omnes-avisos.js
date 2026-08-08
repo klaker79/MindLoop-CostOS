@@ -18,7 +18,7 @@
  */
 
 import { t } from '@/i18n/index.js';
-import { cm } from '../../utils/helpers.js';
+import { cm, formatDate } from '../../utils/helpers.js';
 
 // Umbrales (un aviso SOLO se muestra si supera su umbral → anti-ruido).
 export const UMBRALES = {
@@ -183,12 +183,13 @@ export async function construirAvisos(deps) {
     const ingMap = new Map(ingredientes.map(i => [i.id, i]));
     const max = UMBRALES.maxPorTipo;
 
-    const [price, fresh, over, drift, supplies] = await Promise.all([
+    const [price, fresh, over, drift, supplies, entradas] = await Promise.all([
         fetchIntelligence('price-check'),
         fetchIntelligence('freshness'),
         fetchIntelligence('overstock'),
         fetchIntelligence('price-drift'), // null si el backend aún no lo tiene (degrada sin romper)
         fetchIntelligence('supplies-overstock'), // idem
+        fetchIntelligence('unregistered-entries'), // idem
     ]);
 
     const avisos = [];
@@ -330,6 +331,33 @@ export async function construirAvisos(deps) {
             cta: mkCta('inventario', resumenSum.peorId, t('inteligencia:omnes_cta_hacer_recuento')),
         });
     }
+
+    // 6) 📥 Entradas sin registrar: producto que se sirvió y se cobró con el stock
+    // ya a 0, así que nunca salió del inventario (el descuento no baja de cero por
+    // regla de negocio). Si se repite, es que las ENTRADAS de ese producto no se
+    // están registrando (caso PAN: entra cada mañana y nadie lo recepciona).
+    // Aquí SÍ va un aviso por producto (a diferencia de suministros): cada uno es
+    // una acción distinta y el CTA lleva a su ficha. Umbrales y anti-ruido viven
+    // en el backend (computeUnregisteredEntries).
+    const sinRegistrar = (entradas && Array.isArray(entradas.alertas)) ? entradas.alertas : [];
+    sinRegistrar.slice(0, max).forEach((e) => {
+        avisos.push({
+            id: `entrada-${e.id}`,
+            categoria: 'entradas',
+            nivel: 'atencion',
+            icono: '📥',
+            titulo: t('inteligencia:omnes_t_entrada_sin_registrar'),
+            texto: t('inteligencia:omnes_x_entrada_sin_registrar', {
+                nombre: e.nombre,
+                ventas: e.n_ventas,
+                uds: fmtCant(e.uds_sin_descontar),
+                unidad: e.unidad || 'ud',
+                importe: cm(e.importe_eur),
+                desde: formatDate(e.primera),
+            }),
+            cta: mkCta('ingrediente', e.id, t('inteligencia:omnes_cta_ver_ingrediente')),
+        });
+    });
 
     avisos.sort((a, b) => ORDEN_NIVEL[a.nivel] - ORDEN_NIVEL[b.nivel]);
     return avisos;
