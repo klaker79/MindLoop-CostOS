@@ -75,6 +75,9 @@
   "omnes_x_deriva": "「{{nombre}}」：菜品成本按 {{app}}/{{unidad}} 计算，但近90天平均进价为 {{real}}（高出 {{pct}}%）。隐藏超支约 {{impacto}}/月。",
   "omnes_x_deriva_recetas": "影响 {{n}} 道菜品。",
 
+  "omnes_t_entrada_sin_registrar": "入库未登记",
+  "omnes_x_entrada_sin_registrar": "「{{nombre}}」：自 {{desde}} 起有 {{ventas}} 笔销售在库存为 0 时售出。共 {{uds}} {{unidad}}（{{importe}}）已收款但从未从库存扣减。请检查该产品的入库是否有登记。",
+
   "omnes_t_frescura": "新鲜度",
   "omnes_x_frescura": "「{{nombre}}」有 {{stock}} {{unidad}} 已存放 {{dias}} 天。请尽快使用以免损耗。",
 
